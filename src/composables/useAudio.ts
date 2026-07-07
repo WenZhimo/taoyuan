@@ -145,14 +145,6 @@ export const sfxVictory = () => {
   ;[523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playSfx(f, 0.1, 'square', 0.25), i * 70))
 }
 
-/** 钓鱼拉线（紧张棘轮音，反复勾拉） */
-export const sfxReel = () => {
-  playSfx(700, 0.03, 'triangle', 0.18)
-  setTimeout(() => playSfx(600, 0.03, 'triangle', 0.15), 35)
-  setTimeout(() => playSfx(750, 0.03, 'triangle', 0.18), 70)
-  setTimeout(() => playSfx(650, 0.03, 'triangle', 0.12), 105)
-}
-
 /** 钓到鱼（欢快弹跳上行 jingle） */
 export const sfxFishCatch = () => {
   ;[523, 659, 784, 1047].forEach((f, i) => setTimeout(() => playSfx(f, 0.06, 'square', 0.22), i * 55))
@@ -176,12 +168,6 @@ export const sfxMine = () => {
 /** 休息/睡觉（柔和下行摇篮曲） */
 export const sfxSleep = () => {
   ;[523, 440, 392, 330, 262].forEach((f, i) => setTimeout(() => playSfx(f, 0.18, 'sine', 0.12), i * 130))
-}
-
-/** 错误/失败（短促双嗡） */
-export const sfxError = () => {
-  playSfx(220, 0.06, 'square', 0.2)
-  setTimeout(() => playSfx(180, 0.08, 'square', 0.18), 70)
 }
 
 /** 采集（轻快拨取音） */
@@ -209,12 +195,6 @@ export const sfxCountdownTick = () => {
 export const sfxCountdownFinal = () => {
   playSfx(800, 0.05, 'square', 0.2)
   setTimeout(() => playSfx(1000, 0.04, 'square', 0.18), 50)
-}
-
-/** 小游戏操作按钮（有质感的反馈音） */
-export const sfxGameAction = () => {
-  playSfx(500, 0.03, 'square', 0.18)
-  setTimeout(() => playSfx(700, 0.025, 'triangle', 0.14), 30)
 }
 
 /** 领取奖励（铜钱 + 短庆祝） */
@@ -272,19 +252,6 @@ export const sfxRankLose = () => {
   ;[330, 294, 262].forEach((f, i) => setTimeout(() => playSfx(f, 0.1, 'sine', 0.12), i * 100))
 }
 
-// ====== 防重叠快速操作音效 ======
-
-let lastLightActionTime = 0
-const LIGHT_ACTION_INTERVAL = 80
-
-/** 快速操作音效（自带80ms节流，适合龙舟划桨等快速点击） */
-export const sfxGameActionLight = () => {
-  const now = Date.now()
-  if (now - lastLightActionTime < LIGHT_ACTION_INTERVAL) return
-  lastLightActionTime = now
-  playSfx(700, 0.015, 'square', 0.1)
-}
-
 // ====== 游戏专属音效 ======
 
 // --- 钓鱼大赛 ---
@@ -311,11 +278,6 @@ export const sfxPaddle = () => {
   if (now - lastPaddleTime < 100) return
   lastPaddleTime = now
   playSfx(150, 0.02, 'sine', 0.12)
-}
-
-/** 终点冲线（上行三音） */
-export const sfxRaceFinish = () => {
-  ;[392, 523, 659].forEach((f, i) => setTimeout(() => playSfx(f, 0.06, 'square', 0.18), i * 50))
 }
 
 // --- 猜灯谜 ---

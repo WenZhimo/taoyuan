@@ -38,9 +38,6 @@ export const HANHAI_ROTATING_POOL: HanhaiShopItemDef[] = [
   { itemId: 'hanhai_lapis', name: '青金石', price: 550, description: '深蓝色的珍贵宝石。', weeklyLimit: 2 }
 ]
 
-/** 兼容旧代码：合并固定+轮换池的全部商品 */
-export const HANHAI_SHOP_ITEMS: HanhaiShopItemDef[] = [...HANHAI_FIXED_ITEMS, ...HANHAI_ROTATING_POOL]
-
 /** 根据年份+季节+周数生成本周轮换商品（确定性伪随机） */
 export const getWeeklyRotatingItems = (year: number, seasonIndex: number, day: number): HanhaiShopItemDef[] => {
   const weekNumber = Math.ceil(day / 7)
@@ -546,8 +543,6 @@ export const TRADE_SHOP_UPGRADES: TradeShopUpgradeDef[] = [
 /** 积分兑换商品 */
 export const TRADE_EXCHANGE_ITEMS: TradeExchangeItemDef[] = [
   { itemId: 'trade_star_fragment', name: '星辰碎片', pointsCost: 50, description: '稀有材料，用于高级制作。', weeklyLimit: 3 },
-  // { itemId: 'trade_golden_coconut', name: '金椰子', pointsCost: 80, description: '打开可获得随机稀有物品。', weeklyLimit: 2 },
-  // { itemId: 'trade_desert_totem', name: '沙漠图腾', pointsCost: 30, description: '立即传送至瀚海（不消耗时间）。', weeklyLimit: 5 },
   { itemId: 'trade_spice_bundle', name: '香料礼包', pointsCost: 40, description: '获得西域香料×5。', weeklyLimit: 3 },
   {
     itemId: 'trade_turquoise_pendant',

@@ -308,6 +308,3 @@ export const GUILD_BONUS_PER_LEVEL = {
   attack: 1, // 每级+1攻击力
   maxHp: 5 // 每级+5最大生命值
 }
-
-/** 根据怪物ID查找讨伐目标 */
-export const getMonsterGoal = (monsterId: string): MonsterGoalDef | undefined => MONSTER_GOALS.find(g => g.monsterId === monsterId)

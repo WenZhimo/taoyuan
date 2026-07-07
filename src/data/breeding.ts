@@ -57,9 +57,6 @@ export const SEED_BOX_UPGRADES = [
 /** 每级种子箱容量增量 */
 export const SEED_BOX_UPGRADE_INCREMENT = 15
 
-/** @deprecated 使用 useBreedingStore().maxSeedBox 代替 */
-export const MAX_BREEDING_BOX = 30
-
 /** 育种加工天数 */
 export const BREEDING_DAYS = 2
 

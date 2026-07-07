@@ -8,9 +8,6 @@ export interface HanhaiShopItemDef {
   weeklyLimit?: number
 }
 
-/** 赌坊游戏类型 */
-export type CasinoGameType = 'roulette' | 'dice' | 'cup' | 'cricket' | 'cardflip' | 'texas' | 'buckshot'
-
 /** 蛐蛐定义 */
 export interface CricketDef {
   id: string

@@ -129,16 +129,6 @@ export interface CombatStatusEffect {
   source: 'player' | 'monster' | 'item'
 }
 
-export interface CombatState {
-  monster: MonsterDef
-  monsterHp: number
-  round: number
-  log: string[]
-  isBoss: boolean
-  monsterStatuses?: CombatStatusEffect[]
-  playerStatuses?: CombatStatusEffect[]
-}
-
 /** 战斗操作 */
 export type CombatAction = 'attack' | 'defend' | 'flee'
 

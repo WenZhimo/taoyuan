@@ -1495,15 +1495,6 @@ export const ITEMS: ItemDef[] = [
     sellPrice: 500,
     edible: false
   },
-  // { id: 'trade_golden_coconut', name: '金椰子', category: 'misc', description: '打开可获得随机稀有物品。', sellPrice: 800, edible: false },
-  // {
-  //   id: 'trade_desert_totem',
-  //   name: '沙漠图腾',
-  //   category: 'misc',
-  //   description: '立即传送至瀚海（不消耗时间）。',
-  //   sellPrice: 300,
-  //   edible: false
-  // },
   { id: 'trade_spice_bundle', name: '香料礼包', category: 'misc', description: '内含西域香料×5。', sellPrice: 750, edible: false },
   {
     id: 'trade_turquoise_pendant',
@@ -1885,8 +1876,6 @@ const ITEM_SOURCE_OVERRIDES: Record<string, string> = {
   brocade: '加工制作',
   spice_tea: '加工制作',
   trade_star_fragment: '通商积分兑换',
-  // trade_golden_coconut: '通商积分兑换',
-  // trade_desert_totem: '通商积分兑换',
   trade_spice_bundle: '通商积分兑换',
   trade_turquoise_pendant: '通商积分兑换',
   trade_silk_robe: '通商积分兑换',

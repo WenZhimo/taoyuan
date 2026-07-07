@@ -14,47 +14,6 @@ const ZONE_ORES: Record<MineFloorDef['zone'], string[]> = {
   abyss: ['gold_ore', 'void_ore', 'dragon_jade']
 }
 
-/** 蘑菇层奖励 */
-export const getMushroomRewards = (floor: number): { itemId: string; quantity: number }[] => {
-  if (floor <= 20) {
-    return [
-      { itemId: 'wild_mushroom', quantity: 2 },
-      { itemId: 'herb', quantity: 1 }
-    ]
-  }
-  if (floor <= 40) {
-    const rewards = [
-      { itemId: 'wild_mushroom', quantity: 2 },
-      { itemId: 'herb', quantity: 2 }
-    ]
-    if (Math.random() < 0.1) rewards.push({ itemId: 'ginseng', quantity: 1 })
-    return rewards
-  }
-  if (floor <= 60) {
-    return [
-      { itemId: 'wild_mushroom', quantity: 3 },
-      { itemId: 'ginseng', quantity: 1 }
-    ]
-  }
-  if (floor <= 80) {
-    return [
-      { itemId: 'wild_mushroom', quantity: 3 },
-      { itemId: 'ginseng', quantity: 1 },
-      { itemId: 'herb', quantity: 3 }
-    ]
-  }
-  if (floor <= 100) {
-    return [
-      { itemId: 'ginseng', quantity: 2 },
-      { itemId: 'wild_mushroom', quantity: 4 }
-    ]
-  }
-  return [
-    { itemId: 'ginseng', quantity: 3 },
-    { itemId: 'wild_mushroom', quantity: 5 }
-  ]
-}
-
 /** 宝箱层奖励 */
 export const getTreasureRewards = (floor: number): { items: { itemId: string; quantity: number }[]; money: number } => {
   const zoneIndex = Math.floor((floor - 1) / 20)
@@ -125,14 +84,6 @@ export const getDarkFloorTrapDamage = (floor: number): number => {
   const zoneIndex = Math.floor((floor - 1) / 20)
   const base = 5 + zoneIndex * 5
   const range = 10 + zoneIndex * 5
-  return base + Math.floor(Math.random() * (range + 1))
-}
-
-/** 暗河层隐藏宝藏铜钱 */
-export const getDarkFloorTreasureMoney = (floor: number): number => {
-  const zoneIndex = Math.floor((floor - 1) / 20)
-  const base = 50 + zoneIndex * 50
-  const range = 150 + zoneIndex * 50
   return base + Math.floor(Math.random() * (range + 1))
 }
 
