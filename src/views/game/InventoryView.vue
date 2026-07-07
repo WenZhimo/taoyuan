@@ -613,7 +613,10 @@
             </div>
             <div v-if="activeWeaponEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
               <span class="text-xs text-muted">附魔</span>
-              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeWeaponEnchantments) }}</span>
+              <div class="flex items-center justify-end gap-1 min-w-0">
+                <span class="text-xs text-accent text-right truncate">{{ formatEnchantmentList(activeWeaponEnchantments) }}</span>
+                <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeWeaponEnchantments)">详情</Button>
+              </div>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
@@ -704,7 +707,10 @@
             </div>
             <div v-if="activeRingEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
               <span class="text-xs text-muted">附魔</span>
-              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeRingEnchantments) }}</span>
+              <div class="flex items-center justify-end gap-1 min-w-0">
+                <span class="text-xs text-accent text-right truncate">{{ formatEnchantmentList(activeRingEnchantments) }}</span>
+                <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeRingEnchantments)">详情</Button>
+              </div>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
@@ -792,7 +798,10 @@
             </div>
             <div v-if="activeHatEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
               <span class="text-xs text-muted">附魔</span>
-              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeHatEnchantments) }}</span>
+              <div class="flex items-center justify-end gap-1 min-w-0">
+                <span class="text-xs text-accent text-right truncate">{{ formatEnchantmentList(activeHatEnchantments) }}</span>
+                <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeHatEnchantments)">详情</Button>
+              </div>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
@@ -865,7 +874,10 @@
             </div>
             <div v-if="activeShoeEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
               <span class="text-xs text-muted">附魔</span>
-              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeShoeEnchantments) }}</span>
+              <div class="flex items-center justify-end gap-1 min-w-0">
+                <span class="text-xs text-accent text-right truncate">{{ formatEnchantmentList(activeShoeEnchantments) }}</span>
+                <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeShoeEnchantments)">详情</Button>
+              </div>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
@@ -915,6 +927,31 @@
         </div>
       </div>
     </Transition>
+
+    <!-- 附魔详情弹窗 -->
+    <Transition name="panel-fade">
+      <div
+        v-if="showEnchantmentDetail"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4"
+        @click.self="showEnchantmentDetail = false"
+      >
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showEnchantmentDetail = false">
+            <X :size="14" />
+          </button>
+          <p class="text-sm text-accent mb-2">附魔详情</p>
+          <div class="flex flex-col space-y-1.5 max-h-72 overflow-y-auto">
+            <div v-for="enchant in enchantmentDetailList" :key="enchant.id" class="border border-accent/10 rounded-xs p-2">
+              <div class="flex items-center justify-between mb-0.5">
+                <span class="text-xs text-accent">{{ enchant.name }}</span>
+                <span v-if="enchant.count > 1" class="text-[10px] text-muted">x{{ enchant.count }}</span>
+              </div>
+              <p class="text-xs text-muted">{{ enchant.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -939,6 +976,8 @@
     getOwnedEquipmentEnchantments,
     getEnchantmentCost,
     getCustomEnchantmentCost,
+    formatEnchantmentSummary,
+    summarizeEnchantments,
     WEAPON_TYPE_NAMES
   } from '@/data/weapons'
   import { getRingById } from '@/data/rings'
@@ -946,7 +985,7 @@
   import { getShoeById } from '@/data/shoes'
   import { QUALITY_NAMES } from '@/composables/useFarmActions'
   import { addLog } from '@/composables/useGameLog'
-  import type { Quality, RingEffectType, ItemCategory } from '@/types'
+  import type { EnchantmentDef, Quality, RingEffectType, ItemCategory } from '@/types'
 
   const inventoryStore = useInventoryStore()
   const playerStore = usePlayerStore()
@@ -1224,8 +1263,16 @@
     selectedCustomEnchantments.value = next
   }
 
-  const formatEnchantmentList = (enchantments: { name: string; description: string }[]): string => {
-    return enchantments.map(enchant => `${enchant.name}：${enchant.description}`).join('；')
+  const showEnchantmentDetail = ref(false)
+  const enchantmentDetailList = ref<ReturnType<typeof summarizeEnchantments>>([])
+
+  const formatEnchantmentList = (enchantments: EnchantmentDef[]): string => {
+    return formatEnchantmentSummary(enchantments)
+  }
+
+  const openEnchantmentDetail = (enchantments: EnchantmentDef[]) => {
+    enchantmentDetailList.value = summarizeEnchantments(enchantments)
+    showEnchantmentDetail.value = true
   }
 
   const activeWeaponDef = computed(() => {

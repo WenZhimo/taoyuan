@@ -102,7 +102,7 @@
           <!-- 鱼列表 -->
           <div v-else class="flex flex-col space-y-1.5 max-h-80 overflow-auto">
             <div
-              v-for="group in fishPondStore.fishGroups"
+              v-for="group in pagedFishGroups"
               :key="group.fishId"
               class="border rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors mr-1"
               :class="group.sickCount > 0 ? 'border-danger/30' : 'border-accent/20'"
@@ -138,32 +138,36 @@
               </div>
             </div>
           </div>
+          <PaginationControls v-model:page="fishGroupPage" :total="fishPondStore.fishGroups.length" :page-size="PAGE_SIZE" />
         </div>
 
         <!-- 放入鱼苗 -->
         <div class="mb-3">
           <Divider label="放入鱼苗" />
-          <div v-if="pondableFishInBag.length > 0" class="flex flex-col space-y-1.5 max-h-80 overflow-auto">
-            <div
-              v-for="item in pondableFishInBag"
-              :key="item.itemId"
-              class="border border-accent/20 rounded-xs px-3 py-2 mr-1"
-            >
-              <div class="flex items-center justify-between mb-1.5">
-                <span class="text-xs">
-                  {{ item.name }}
-                  <span class="text-muted">&times;{{ item.count }}</span>
-                </span>
-              </div>
-              <div class="grid grid-cols-5 gap-1">
-                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, 1)">1</Button>
-                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 10" :icon-size="12" @click="handleAddFish(item.itemId, 10)">10</Button>
-                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 20" :icon-size="12" @click="handleAddFish(item.itemId, 20)">20</Button>
-                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 50" :icon-size="12" @click="handleAddFish(item.itemId, 50)">50</Button>
-                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, item.count)">全部</Button>
+          <template v-if="pondableFishInBag.length > 0">
+            <div class="flex flex-col space-y-1.5 max-h-80 overflow-auto">
+              <div
+                v-for="item in pagedPondableFishInBag"
+                :key="item.itemId"
+                class="border border-accent/20 rounded-xs px-3 py-2 mr-1"
+              >
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs">
+                    {{ item.name }}
+                    <span class="text-muted">&times;{{ item.count }}</span>
+                  </span>
+                </div>
+                <div class="grid grid-cols-5 gap-1">
+                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, 1)">1</Button>
+                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 10" :icon-size="12" @click="handleAddFish(item.itemId, 10)">10</Button>
+                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 20" :icon-size="12" @click="handleAddFish(item.itemId, 20)">20</Button>
+                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 50" :icon-size="12" @click="handleAddFish(item.itemId, 50)">50</Button>
+                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, item.count)">全部</Button>
+                </div>
               </div>
             </div>
-          </div>
+            <PaginationControls v-model:page="pondableFishPage" :total="pondableFishInBag.length" :page-size="PAGE_SIZE" />
+          </template>
           <div v-else class="border border-accent/10 rounded-xs py-6 flex flex-col items-center space-y-2">
             <Package :size="32" class="text-muted/30" />
             <p class="text-xs text-muted">背包中没有可养殖的鱼</p>
@@ -174,20 +178,23 @@
         <!-- 育苗塘 -->
         <div class="mb-3">
           <Divider label="育苗塘" />
-          <div v-if="fishPondStore.pond.nurseryBreeding.length > 0" class="flex flex-col space-y-1.5 mb-2">
-            <div v-for="pair in fishPondStore.pond.nurseryBreeding" :key="pair.id" class="border border-accent/20 rounded-xs px-3 py-2">
-              <div class="flex items-center justify-between mb-1">
-                <div class="flex items-center space-x-1.5">
-                  <Heart :size="12" class="text-accent" />
-                  <span class="text-xs text-accent">{{ getPondableFishName(pair.fishId) }}</span>
+          <template v-if="fishPondStore.pond.nurseryBreeding.length > 0">
+            <div class="flex flex-col space-y-1.5 mb-2">
+              <div v-for="pair in pagedNurseryBreeding" :key="pair.id" class="border border-accent/20 rounded-xs px-3 py-2">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center space-x-1.5">
+                    <Heart :size="12" class="text-accent" />
+                    <span class="text-xs text-accent">{{ getPondableFishName(pair.fishId) }}</span>
+                  </div>
+                  <span class="text-xs text-muted">{{ pair.daysLeft }}/{{ breedingTotalDays }}天</span>
                 </div>
-                <span class="text-xs text-muted">{{ pair.daysLeft }}/{{ breedingTotalDays }}天</span>
-              </div>
-              <div class="h-1 bg-bg rounded-xs border border-accent/10">
-                <div class="h-full rounded-xs bg-accent transition-all" :style="{ width: `${getBreedingProgress(pair.daysLeft)}%` }" />
+                <div class="h-1 bg-bg rounded-xs border border-accent/10">
+                  <div class="h-full rounded-xs bg-accent transition-all" :style="{ width: `${getBreedingProgress(pair.daysLeft)}%` }" />
+                </div>
               </div>
             </div>
-          </div>
+            <PaginationControls v-model:page="nurseryPage" :total="fishPondStore.pond.nurseryBreeding.length" :page-size="PAGE_SIZE" />
+          </template>
           <!-- 已选择一条 -->
           <div v-if="selectedBreedingFish" class="border border-accent/20 rounded-xs px-3 py-2">
             <div class="flex items-center justify-between mb-1">
@@ -215,25 +222,28 @@
         <!-- 繁衍塘 -->
         <div class="mb-3">
           <Divider label="繁衍塘" />
-          <div v-if="reproductionGroups.length > 0" class="flex flex-col space-y-1.5">
-            <div v-for="group in reproductionGroups" :key="group.fishId" class="border border-success/20 rounded-xs px-3 py-2">
-              <div class="flex items-center justify-between mb-1">
-                <div class="flex items-center space-x-1.5">
-                  <Waves :size="12" class="text-success" />
-                  <span class="text-xs">{{ group.name }}</span>
-                  <span class="text-[10px] text-muted">成熟{{ group.matureCount }}条</span>
+          <template v-if="reproductionGroups.length > 0">
+            <div class="flex flex-col space-y-1.5">
+              <div v-for="group in pagedReproductionGroups" :key="group.fishId" class="border border-success/20 rounded-xs px-3 py-2">
+                <div class="flex items-center justify-between mb-1">
+                  <div class="flex items-center space-x-1.5">
+                    <Waves :size="12" class="text-success" />
+                    <span class="text-xs">{{ group.name }}</span>
+                    <span class="text-[10px] text-muted">成熟{{ group.matureCount }}条</span>
+                  </div>
+                  <span class="text-[10px] text-success">+{{ group.pairPower }}/天</span>
                 </div>
-                <span class="text-[10px] text-success">+{{ group.pairPower }}/天</span>
-              </div>
-              <div class="flex items-center space-x-2 text-[10px] text-muted">
-                <div class="flex-1 h-1 bg-bg rounded-xs border border-accent/10">
-                  <div class="h-full rounded-xs bg-success transition-all" :style="{ width: `${group.progressPercent}%` }" />
+                <div class="flex items-center space-x-2 text-[10px] text-muted">
+                  <div class="flex-1 h-1 bg-bg rounded-xs border border-accent/10">
+                    <div class="h-full rounded-xs bg-success transition-all" :style="{ width: `${group.progressPercent}%` }" />
+                  </div>
+                  <span>{{ group.progress }}/{{ breedingTotalDays }}</span>
+                  <span>约{{ group.daysLeft }}天</span>
                 </div>
-                <span>{{ group.progress }}/{{ breedingTotalDays }}</span>
-                <span>约{{ group.daysLeft }}天</span>
               </div>
             </div>
-          </div>
+            <PaginationControls v-model:page="reproductionPage" :total="reproductionGroups.length" :page-size="PAGE_SIZE" />
+          </template>
           <div v-else class="border border-accent/10 rounded-xs py-6 flex flex-col items-center space-y-2">
             <Waves :size="32" class="text-muted/30" />
             <p class="text-xs text-muted">暂无可自然繁衍的鱼种</p>
@@ -527,6 +537,7 @@
   import { Waves, Droplets, Sparkles, HeartPulse, Package, ArrowUp, Hammer, Lock, Fish, Heart, X, Star } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
+  import PaginationControls from '@/components/game/PaginationControls.vue'
   import { useFishPondStore } from '@/stores/useFishPondStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
   import { useGameStore } from '@/stores/useGameStore'
@@ -550,6 +561,11 @@
   const detailGroupFishId = ref<string | null>(null)
   const detailBreedId = ref<string | null>(null)
   const compendiumGen = ref<1 | 2 | 3 | 4 | 5>(1)
+  const PAGE_SIZE = 50
+  const fishGroupPage = ref(1)
+  const pondableFishPage = ref(1)
+  const nurseryPage = ref(1)
+  const reproductionPage = ref(1)
 
   /** 建造/升级统一弹窗 */
   const pondModal = ref<'build' | 'upgrade' | null>(null)
@@ -624,6 +640,9 @@
         }
       })
   )
+  const paginate = <T>(items: T[], page: number): T[] => items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const pagedFishGroups = computed(() => paginate(fishPondStore.fishGroups, fishGroupPage.value))
+  const pagedReproductionGroups = computed(() => paginate(reproductionGroups.value, reproductionPage.value))
 
   // === 建造/升级统一弹窗 ===
 
@@ -691,6 +710,8 @@
     }
     return result
   })
+  const pagedPondableFishInBag = computed(() => paginate(pondableFishInBag.value, pondableFishPage.value))
+  const pagedNurseryBreeding = computed(() => paginate(fishPondStore.pond.nurseryBreeding, nurseryPage.value))
 
   /** 鱼详情弹窗属性条 */
   const fishAttributes = computed(() => {

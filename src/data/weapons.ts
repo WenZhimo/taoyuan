@@ -217,6 +217,40 @@ export const getOwnedWeaponEnchantments = (weapon: { enchantmentId?: string | nu
 export const getOwnedEquipmentEnchantments = (equipment: { enchantmentId?: string | null; enchantmentIds?: string[] }): EnchantmentDef[] =>
   getOwnedWeaponEnchantments(equipment)
 
+export interface EnchantmentSummary {
+  id: string
+  name: string
+  description: string
+  count: number
+}
+
+export const summarizeEnchantments = (input: WeaponEnchantInput | EnchantmentDef[]): EnchantmentSummary[] => {
+  const enchantments = Array.isArray(input) && input.length > 0 && typeof input[0] === 'object' ? (input as EnchantmentDef[]) : getWeaponEnchantments(input as WeaponEnchantInput)
+  const summary = new Map<string, EnchantmentSummary>()
+
+  for (const enchant of enchantments) {
+    const current = summary.get(enchant.id)
+    if (current) {
+      current.count += 1
+    } else {
+      summary.set(enchant.id, {
+        id: enchant.id,
+        name: enchant.name,
+        description: enchant.description,
+        count: 1
+      })
+    }
+  }
+
+  return [...summary.values()]
+}
+
+export const formatEnchantmentSummary = (input: WeaponEnchantInput | EnchantmentDef[]): string => {
+  return summarizeEnchantments(input)
+    .map(enchant => (enchant.count > 1 ? `${enchant.name}x${enchant.count}` : enchant.name))
+    .join('、')
+}
+
 export const getEnchantmentEffects = (enchantmentIds: WeaponEnchantInput): EquipmentEffect[] => {
   const effects: EquipmentEffect[] = []
   for (const id of normalizeEnchantmentIds(enchantmentIds)) {
@@ -699,8 +733,9 @@ export const getWeaponDisplayName = (defId: string, enchantment: WeaponEnchantIn
   if (!weapon) return defId
   const enchantments = getWeaponEnchantments(enchantment)
   if (enchantments.length === 0) return weapon.name
-  if (enchantments.length <= 2) return `${enchantments.map(enchant => enchant.name).join('·')}的${weapon.name}`
-  return `${enchantments[0]!.name}等${enchantments.length}附魔的${weapon.name}`
+  const summary = formatEnchantmentSummary(enchantments)
+  if (summarizeEnchantments(enchantments).length <= 2) return `${summary}的${weapon.name}`
+  return `${summary.split('、')[0]}等${enchantments.length}附魔的${weapon.name}`
 }
 
 /** 宝箱掉落武器（按矿洞区域） */

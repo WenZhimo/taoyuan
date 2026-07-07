@@ -44,9 +44,12 @@
           <span class="text-xs">类型 · 暴击</span>
           <span class="text-xs text-muted">{{ weaponTypeName }} · {{ critRateDisplay }}</span>
         </div>
-        <div v-if="weaponEnchantName" class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5">
+        <div v-if="weaponEnchantName" class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5 gap-2">
           <span class="text-xs">附魔</span>
-          <span class="text-xs text-success">{{ weaponEnchantName }}</span>
+          <div class="flex items-center justify-end gap-1 min-w-0">
+            <span class="text-xs text-success truncate">{{ weaponEnchantName }}</span>
+            <Button class="py-0 px-1 shrink-0" @click="viewWeaponEnchantmentDetail">详情</Button>
+          </div>
         </div>
         <div class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5">
           <span class="text-xs">HP</span>
@@ -880,7 +883,7 @@
   import { useSkillStore } from '@/stores/useSkillStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { ZONE_NAMES, getFloor, BOSS_MONSTERS } from '@/data'
-  import { getWeaponById, getOwnedWeaponEnchantments, getWeaponDisplayName, WEAPON_TYPE_NAMES } from '@/data/weapons'
+  import { getWeaponById, getOwnedWeaponEnchantments, getWeaponDisplayName, WEAPON_TYPE_NAMES, formatEnchantmentSummary, summarizeEnchantments } from '@/data/weapons'
   import { getRingById, getHatById, getShoeById } from '@/data'
   import type { EquipmentEffectType } from '@/types'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
@@ -1180,9 +1183,7 @@
   )
   const weaponEnchantName = computed(() => {
     const owned = inventoryStore.getEquippedWeapon()
-    return getOwnedWeaponEnchantments(owned)
-      .map(enchant => `${enchant.name} - ${enchant.description}`)
-      .join('；')
+    return formatEnchantmentSummary(getOwnedWeaponEnchantments(owned))
   })
 
   /** 电梯楼层按区域分组 */
@@ -1713,6 +1714,21 @@
   const viewPresetDetail = (id: string) => {
     detailPresetId.value = id
     showPresetDetailModal.value = true
+  }
+
+  const viewWeaponEnchantmentDetail = () => {
+    const summary = summarizeEnchantments(getOwnedWeaponEnchantments(inventoryStore.getEquippedWeapon()))
+    if (summary.length === 0) return
+    equipPropertyInfo.value = {
+      category: '武器附魔',
+      name: weaponDisplayName.value,
+      description: '同种附魔已合并显示。',
+      effects: summary.map(enchant => ({
+        label: enchant.count > 1 ? `${enchant.name}x${enchant.count}` : enchant.name,
+        value: enchant.description
+      }))
+    }
+    showEquipPropertyModal.value = true
   }
 
   const viewEquipProperty = (type: 'weapon' | 'ring' | 'hat' | 'shoe', defId: string) => {

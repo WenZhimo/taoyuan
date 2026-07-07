@@ -305,7 +305,7 @@
   import { useSkillStore } from '@/stores/useSkillStore'
   import { useWalletStore } from '@/stores/useWalletStore'
   import { TOOL_NAMES, TIER_NAMES, getNpcById } from '@/data'
-  import { getWeaponById, getEnchantmentById, getWeaponDisplayName } from '@/data/weapons'
+  import { formatEnchantmentSummary, getWeaponById, getEnchantmentById, getWeaponDisplayName } from '@/data/weapons'
   import { getRingById } from '@/data/rings'
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
@@ -354,7 +354,7 @@
 
   const getEnchantNames = (weapon: OwnedWeapon): string => {
     const ids = weapon.enchantmentIds && weapon.enchantmentIds.length > 0 ? weapon.enchantmentIds : weapon.enchantmentId ? [weapon.enchantmentId] : []
-    return ids.map(id => getEnchantmentById(id)?.name ?? '').filter(Boolean).join('、')
+    return formatEnchantmentSummary(ids)
   }
 
   const handleEquipWeapon = (index: number) => {

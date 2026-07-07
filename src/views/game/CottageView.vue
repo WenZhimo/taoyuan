@@ -249,30 +249,33 @@
           升级
         </Button>
       </div>
-      <div v-if="homeStore.cellarSlots.length > 0" class="flex flex-col space-y-1.5 mb-3">
-        <div v-for="(slot, idx) in homeStore.cellarSlots" :key="idx" class="border border-accent/10 rounded-xs p-2">
-          <div class="flex items-center justify-between mb-1">
+      <template v-if="homeStore.cellarSlots.length > 0">
+        <div class="flex flex-col space-y-1.5 mb-3">
+          <div v-for="entry in pagedCellarSlots" :key="entry.index" class="border border-accent/10 rounded-xs p-2">
+            <div class="flex items-center justify-between mb-1">
+              <div class="flex items-center space-x-1">
+                <span class="text-xs text-accent">{{ getItemName(entry.slot.itemId) }}</span>
+                <span v-if="entry.slot.upgradeCount >= 16" class="text-[10px] text-success">陈酿{{ Math.floor(entry.slot.upgradeCount / 16) }}年</span>
+              </div>
+              <Button class="py-0 px-1" @click="removeAgingConfirmIdx = entry.index">取出</Button>
+            </div>
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="text-[10px] text-muted">已增值+{{ entry.slot.addedValue }}文（提升{{ entry.slot.upgradeCount }}次）</span>
+            </div>
             <div class="flex items-center space-x-1">
-              <span class="text-xs text-accent">{{ getItemName(slot.itemId) }}</span>
-              <span v-if="slot.upgradeCount >= 16" class="text-[10px] text-success">陈酿{{ Math.floor(slot.upgradeCount / 16) }}年</span>
+              <span class="text-[10px] text-muted w-6">周期</span>
+              <div class="flex-1 h-1.5 bg-bg rounded-xs border border-accent/10">
+                <div
+                  class="h-full rounded-xs bg-accent transition-all"
+                  :style="{ width: Math.min(100, Math.floor((entry.slot.daysAging / 7) * 100)) + '%' }"
+                />
+              </div>
+              <span class="text-[10px] text-muted">{{ entry.slot.daysAging }}/7天</span>
             </div>
-            <Button class="py-0 px-1" @click="removeAgingConfirmIdx = idx">取出</Button>
-          </div>
-          <div class="flex items-center justify-between mb-0.5">
-            <span class="text-[10px] text-muted">已增值+{{ slot.addedValue }}文（提升{{ slot.upgradeCount }}次）</span>
-          </div>
-          <div class="flex items-center space-x-1">
-            <span class="text-[10px] text-muted w-6">周期</span>
-            <div class="flex-1 h-1.5 bg-bg rounded-xs border border-accent/10">
-              <div
-                class="h-full rounded-xs bg-accent transition-all"
-                :style="{ width: Math.min(100, Math.floor((slot.daysAging / 7) * 100)) + '%' }"
-              />
-            </div>
-            <span class="text-[10px] text-muted">{{ slot.daysAging }}/7天</span>
           </div>
         </div>
-      </div>
+        <PaginationControls v-model:page="cellarPage" :total="homeStore.cellarSlots.length" :page-size="PAGE_SIZE" />
+      </template>
       <div v-if="homeStore.cellarSlots.length === 0" class="flex flex-col items-center justify-center py-6 text-muted mb-3">
         <Wine :size="32" class="mb-2" />
         <p class="text-xs">酒窖空空如也</p>
@@ -681,6 +684,7 @@
   import { showChildProposal, triggerHeartEvent } from '@/composables/useDialogs'
   import { handleEndDay } from '@/composables/useEndDay'
   import Button from '@/components/game/Button.vue'
+  import PaginationControls from '@/components/game/PaginationControls.vue'
 
   const homeStore = useHomeStore()
   const inventoryStore = useInventoryStore()
@@ -699,6 +703,8 @@
   const dismissConfirmNpcId = ref<string | null>(null)
   const removeAgingConfirmIdx = ref<number | null>(null)
   const showCellarUpgradeModal = ref(false)
+  const PAGE_SIZE = 50
+  const cellarPage = ref(1)
   const cellarCapacityLabel = computed(() => (Number.isFinite(homeStore.cellarMaxSlots) ? String(homeStore.cellarMaxSlots) : '无限'))
   const cellarUpgradeCapacityLabel = computed(() => {
     const upgrade = homeStore.nextCellarUpgrade
@@ -712,6 +718,11 @@
   const hireableNpcs = computed(() => npcStore.getHireableNpcs())
   const currentHelpers = computed(() => npcStore.hiredHelpers)
   const hireConfirmNpc = computed(() => (hireConfirmNpcId.value ? getNpcById(hireConfirmNpcId.value) : null))
+  const pagedCellarSlots = computed(() =>
+    homeStore.cellarSlots
+      .map((slot, index) => ({ slot, index }))
+      .slice((cellarPage.value - 1) * PAGE_SIZE, cellarPage.value * PAGE_SIZE)
+  )
 
   const handleHire = (npcId: string) => {
     const result = npcStore.hireHelper(npcId, selectedHireTask.value)
