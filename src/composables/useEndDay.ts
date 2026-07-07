@@ -519,8 +519,8 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   }
 
   // 工具升级进度
-  const upgradeResult = inventoryStore.dailyUpgradeUpdate()
-  if (upgradeResult?.completed) {
+  const upgradeResults = inventoryStore.dailyUpgradeUpdate()
+  for (const upgradeResult of upgradeResults) {
     addLog(`小满完成了${TOOL_NAMES[upgradeResult.toolType]}的升级！现在是${TIER_NAMES[upgradeResult.targetTier]}级。`)
   }
 

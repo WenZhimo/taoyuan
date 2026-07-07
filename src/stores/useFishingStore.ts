@@ -98,6 +98,8 @@ export const useFishingStore = defineStore('fishing', () => {
   /** 当次钓鱼会话的鱼饵/浮漂 */
   const activeBaitDef = ref<BaitDef | null>(null)
   const activeTackleDef = ref<TackleDef | null>(null)
+  const activeConsumedBait = ref<BaitType | null>(null)
+  const activeConsumedTackle = ref<{ type: TackleType; durabilityBefore: number } | null>(null)
 
   /** 蟹笼 */
   const crabPots = ref<CrabPotState[]>([])
@@ -181,16 +183,23 @@ export const useFishingStore = defineStore('fishing', () => {
 
     // 消耗鱼饵（从背包扣除1个，用完才取消装备）
     activeBaitDef.value = baitDef ?? null
+    activeConsumedBait.value = null
     if (equippedBait.value) {
-      inventoryStore.removeItem(equippedBait.value, 1)
-      if (inventoryStore.getItemCount(equippedBait.value) <= 0) {
-        equippedBait.value = null
+      const consumedType = equippedBait.value
+      if (inventoryStore.removeItem(consumedType, 1)) {
+        activeConsumedBait.value = consumedType
+        if (inventoryStore.getItemCount(consumedType) <= 0) {
+          equippedBait.value = null
+        }
       }
     }
 
     // 浮漂耐久-1
     activeTackleDef.value = tackleDef ?? null
+    activeConsumedTackle.value = null
     if (equippedTackle.value && tackleDef) {
+      const consumedType = equippedTackle.value
+      activeConsumedTackle.value = { type: consumedType, durabilityBefore: tackleDurability.value }
       tackleDurability.value--
       if (tackleDurability.value <= 0) {
         equippedTackle.value = null
@@ -379,6 +388,23 @@ export const useFishingStore = defineStore('fishing', () => {
       const newIdx = Math.min(idx + 1, qualityOrder.length - 1)
       quality = qualityOrder[newIdx]!
     }
+    // 鱼竿越好，越容易提升鱼的品质
+    const rodTier = inventoryStore.getTool('fishingRod')?.tier ?? 'basic'
+    const rodQualityBoost: Record<ToolTier, { first: number; second: number }> = {
+      basic: { first: 0, second: 0 },
+      iron: { first: 0.15, second: 0 },
+      steel: { first: 0.3, second: 0.05 },
+      iridium: { first: 0.5, second: 0.15 }
+    }
+    const rodBoost = rodQualityBoost[rodTier]
+    if (Math.random() < rodBoost.first) {
+      const idx = qualityOrder.indexOf(quality)
+      quality = qualityOrder[Math.min(idx + 1, qualityOrder.length - 1)]!
+    }
+    if (Math.random() < rodBoost.second) {
+      const idx = qualityOrder.indexOf(quality)
+      quality = qualityOrder[Math.min(idx + 1, qualityOrder.length - 1)]!
+    }
     // 品质浮标：品质+1档
     if (activeTackleDef.value?.qualityBoost) {
       const idx = qualityOrder.indexOf(quality)
@@ -466,6 +492,9 @@ export const useFishingStore = defineStore('fishing', () => {
     }
 
     lastPerfect.value = rating === 'perfect'
+    if (rating === 'perfect') {
+      refundPerfectConsumables()
+    }
     endFishing()
     return {
       message,
@@ -521,6 +550,19 @@ export const useFishingStore = defineStore('fishing', () => {
     currentFish.value = null
     activeBaitDef.value = null
     activeTackleDef.value = null
+    activeConsumedBait.value = null
+    activeConsumedTackle.value = null
+  }
+
+  const refundPerfectConsumables = () => {
+    if (activeConsumedBait.value) {
+      inventoryStore.addItem(activeConsumedBait.value, 1)
+      if (!equippedBait.value) equippedBait.value = activeConsumedBait.value
+    }
+    if (activeConsumedTackle.value) {
+      equippedTackle.value = activeConsumedTackle.value.type
+      tackleDurability.value = activeConsumedTackle.value.durabilityBefore
+    }
   }
 
   // =========== 蟹笼系统 ===========

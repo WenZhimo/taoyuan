@@ -1806,6 +1806,18 @@ export const FERTILIZERS: FertilizerDef[] = [
     shopPrice: 100
   },
   {
+    id: 'super_hormone',
+    name: '超级激素',
+    description: '让任何植物只需一天成熟，第二天即可收获。',
+    growthSpeedup: 1,
+    craftCost: [
+      { itemId: 'ginseng', quantity: 1 },
+      { itemId: 'herb', quantity: 5 }
+    ],
+    craftMoney: 0,
+    shopPrice: 500
+  },
+  {
     id: 'retaining_soil',
     name: '保湿土',
     description: '50%概率隔夜保持浇水状态。',
@@ -1853,7 +1865,7 @@ export const BAITS: BaitDef[] = [
       { itemId: 'firewood', quantity: 2 }
     ],
     craftMoney: 0,
-    shopPrice: null
+    shopPrice: 25
   },
   {
     id: 'magic_bait',
@@ -1865,7 +1877,7 @@ export const BAITS: BaitDef[] = [
       { itemId: 'gold_ore', quantity: 1 }
     ],
     craftMoney: 0,
-    shopPrice: null
+    shopPrice: 120
   },
   {
     id: 'deluxe_bait',
@@ -1878,7 +1890,7 @@ export const BAITS: BaitDef[] = [
       { itemId: 'ginseng', quantity: 1 }
     ],
     craftMoney: 0,
-    shopPrice: null
+    shopPrice: 80
   },
   {
     id: 'targeted_bait',
@@ -1891,7 +1903,7 @@ export const BAITS: BaitDef[] = [
       { itemId: 'gold_ore', quantity: 1 }
     ],
     craftMoney: 0,
-    shopPrice: null
+    shopPrice: 180
   }
 ]
 

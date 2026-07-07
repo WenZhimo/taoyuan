@@ -551,10 +551,24 @@
 
             <!-- 可放入的背包物品 -->
             <div v-if="shippableItems.length > 0" class="border border-accent/10 rounded-xs p-2">
-              <p class="text-xs text-muted mb-1">背包物品</p>
+              <div class="flex items-center justify-between mb-1">
+                <p class="text-xs text-muted">背包物品</p>
+                <span class="text-[10px] text-muted">{{ filteredShippableItems.length }}/{{ shippableItems.length }}</span>
+              </div>
+              <div class="flex flex-wrap gap-1 mb-2">
+                <Button
+                  v-for="filter in shippingFilters"
+                  :key="filter.key"
+                  class="py-0 px-1.5 !text-[10px]"
+                  :class="shippingFilter === filter.key ? '!bg-accent/20 !text-accent !border-accent' : ''"
+                  @click="shippingFilter = filter.key"
+                >
+                  {{ filter.label }}
+                </Button>
+              </div>
               <div class="flex flex-col space-y-1 overflow-auto max-h-48">
                 <div
-                  v-for="item in shippableItems"
+                  v-for="item in filteredShippableItems"
                   :key="item.itemId + item.quality"
                   class="flex items-center justify-between border border-accent/10 rounded-xs px-2 py-1 mr-1"
                 >
@@ -577,6 +591,10 @@
                     <Button v-if="item.quantity > 1" @click="handleAddToBox(item.itemId, item.quantity, item.quality)">全部</Button>
                   </div>
                 </div>
+              </div>
+              <div v-if="filteredShippableItems.length === 0" class="flex flex-col items-center py-3 text-muted">
+                <Wheat :size="24" class="text-muted/30" />
+                <p class="text-xs mt-2">该分类没有可出货物品</p>
               </div>
             </div>
             <div v-else class="flex flex-col items-center py-3 text-muted">
@@ -1150,7 +1168,7 @@
     QUALITY_NAMES,
     applyCropBlessing
   } from '@/composables/useFarmActions'
-  import type { SprinklerType, FertilizerType, FruitTreeType, WildTreeType, Quality } from '@/types'
+  import type { SprinklerType, FertilizerType, FruitTreeType, WildTreeType, Quality, ItemCategory } from '@/types'
   import type { SeedGenetics } from '@/types/breeding'
   import { sfxHarvest, sfxPlant } from '@/composables/useAudio'
 
@@ -1236,6 +1254,22 @@
   // === 出货箱 ===
 
   const showShippingBox = ref(false)
+  type ShippingFilter = 'all' | ItemCategory
+  const shippingFilter = ref<ShippingFilter>('all')
+  const shippingFilters: { key: ShippingFilter; label: string }[] = [
+    { key: 'all', label: '全部' },
+    { key: 'crop', label: '作物' },
+    { key: 'fruit', label: '水果' },
+    { key: 'fish', label: '鱼类' },
+    { key: 'animal_product', label: '畜产' },
+    { key: 'processed', label: '加工' },
+    { key: 'ore', label: '矿石' },
+    { key: 'gem', label: '宝石' },
+    { key: 'material', label: '材料' },
+    { key: 'food', label: '食物' },
+    { key: 'gift', label: '礼物' },
+    { key: 'misc', label: '杂物' }
+  ]
   const showBatchPlant = ref(false)
   const showBatchFertilize = ref(false)
   const showBatchActions = ref(false)
@@ -1275,6 +1309,11 @@
     return inventoryStore.items
       .map(inv => ({ ...inv, def: getItemById(inv.itemId) }))
       .filter(item => item.def && item.def.category !== 'seed' && item.def.category !== 'machine' && item.def.category !== 'sprinkler')
+  })
+
+  const filteredShippableItems = computed(() => {
+    if (shippingFilter.value === 'all') return shippableItems.value
+    return shippableItems.value.filter(item => item.def?.category === shippingFilter.value)
   })
 
   const shippingBoxTotal = computed(() => {

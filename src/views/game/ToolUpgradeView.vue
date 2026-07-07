@@ -11,14 +11,20 @@
     <p class="text-xs text-muted mb-3">消耗金属锭和铜钱升级工具，需等待2天。</p>
 
     <!-- 正在升级提示 -->
-    <div v-if="inventoryStore.pendingUpgrade" class="border border-accent/30 rounded-xs px-3 py-2 mb-3 flex items-center justify-between">
-      <div class="flex items-center space-x-1.5">
-        <Clock :size="12" class="text-accent shrink-0" />
-        <span class="text-xs text-accent">
-          锻造中「{{ TOOL_NAMES[inventoryStore.pendingUpgrade.toolType] }}」→ {{ TIER_NAMES[inventoryStore.pendingUpgrade.targetTier] }}
-        </span>
+    <div v-if="inventoryStore.pendingUpgrades.length > 0" class="border border-accent/30 rounded-xs px-3 py-2 mb-3">
+      <div
+        v-for="upgrade in inventoryStore.pendingUpgrades"
+        :key="upgrade.toolType"
+        class="flex items-center justify-between mb-1 last:mb-0"
+      >
+        <div class="flex items-center space-x-1.5 min-w-0">
+          <Clock :size="12" class="text-accent shrink-0" />
+          <span class="text-xs text-accent truncate">
+            锻造中「{{ TOOL_NAMES[upgrade.toolType] }}」→ {{ TIER_NAMES[upgrade.targetTier] }}
+          </span>
+        </div>
+        <span class="text-xs text-muted whitespace-nowrap ml-2">剩{{ upgrade.daysRemaining }}天</span>
       </div>
-      <span class="text-xs text-muted whitespace-nowrap ml-2">剩{{ inventoryStore.pendingUpgrade.daysRemaining }}天</span>
     </div>
 
     <div class="flex flex-col space-y-1.5">
@@ -79,17 +85,17 @@
             </template>
             <div v-if="isUpgrading(selectedTool)" class="flex items-center justify-between mt-1">
               <span class="text-xs text-muted">锻造目标</span>
-              <span class="text-xs text-accent">{{ TIER_NAMES[inventoryStore.pendingUpgrade!.targetTier] }}</span>
+              <span class="text-xs text-accent">{{ TIER_NAMES[getPendingUpgrade(selectedTool)!.targetTier] }}</span>
             </div>
             <div v-if="isUpgrading(selectedTool)" class="flex items-center space-x-2 mt-1.5">
               <span class="text-xs text-muted shrink-0">进度</span>
               <div class="flex-1 h-1 bg-bg rounded-xs border border-accent/10">
                 <div
                   class="h-full rounded-xs bg-accent transition-all"
-                  :style="{ width: ((2 - inventoryStore.pendingUpgrade!.daysRemaining) / 2) * 100 + '%' }"
+                  :style="{ width: ((2 - getPendingUpgrade(selectedTool)!.daysRemaining) / 2) * 100 + '%' }"
                 />
               </div>
-              <span class="text-xs text-muted whitespace-nowrap">{{ 2 - inventoryStore.pendingUpgrade!.daysRemaining }}/2天</span>
+              <span class="text-xs text-muted whitespace-nowrap">{{ 2 - getPendingUpgrade(selectedTool)!.daysRemaining }}/2天</span>
             </div>
           </div>
 
@@ -244,12 +250,15 @@
 
   /** 该工具是否正在升级中 */
   const isUpgrading = (type: ToolType): boolean => {
-    return inventoryStore.pendingUpgrade?.toolType === type
+    return !!getPendingUpgrade(type)
+  }
+
+  const getPendingUpgrade = (type: ToolType) => {
+    return inventoryStore.pendingUpgrades.find(upgrade => upgrade.toolType === type) ?? null
   }
 
   const canUpgrade = (type: ToolType): boolean => {
-    // 已有工具在升级中，不能再升级
-    if (inventoryStore.pendingUpgrade) return false
+    if (isUpgrading(type)) return false
 
     const tool = inventoryStore.getTool(type)
     if (!tool) return false
@@ -268,7 +277,7 @@
 
   /** 返回升级被阻止的原因（用于 UI 提示），可升级时返回空字符串 */
   const getUpgradeBlockReason = (type: ToolType): string => {
-    if (inventoryStore.pendingUpgrade) return '小满正在锻造其他工具'
+    if (isUpgrading(type)) return '该工具正在锻造中'
 
     const tool = inventoryStore.getTool(type)
     if (!tool) return ''

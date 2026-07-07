@@ -469,9 +469,12 @@
   const fishTime = computed(() => {
     const baseMin = ACTION_TIME_COSTS.fishStart * 60
     const toolTier = inventoryStore.getTool('fishingRod')?.tier ?? 'basic'
+    if (toolTier === 'iridium') return 0
     const saving = TOOL_TIME_SAVINGS[toolTier] ?? 0
+    const rodReduction: Record<string, number> = { basic: 0, iron: 0.2, steel: 0.45, iridium: 1 }
     const skillReduction = skillStore.getSkill('fishing').level * SKILL_TIME_REDUCTION_PER_LEVEL
-    return Math.max(MIN_ACTION_MINUTES, Math.round((baseMin - saving) * (1 - skillReduction))) / 60
+    const minutes = Math.round((baseMin - saving) * (1 - skillReduction) * (1 - (rodReduction[toolTier] ?? 0)))
+    return Math.max(MIN_ACTION_MINUTES, minutes) / 60
   })
 
   const fishTimeLabel = computed(() => `${Math.round(fishTime.value * 60)}分钟`)

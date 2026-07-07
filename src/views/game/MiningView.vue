@@ -164,10 +164,19 @@
           </p>
           <p class="text-xs text-muted mb-2">安全点：{{ miningStore.safePointFloor > 0 ? `第${miningStore.safePointFloor}层` : '入口' }}</p>
 
+          <button
+            class="border rounded-xs px-3 py-1.5 mb-2 w-full text-xs"
+            :class="autoExploreOnEntry ? 'border-accent text-accent bg-accent/10' : 'border-accent/20 text-muted'"
+            type="button"
+            @click="autoExploreOnEntry = !autoExploreOnEntry"
+          >
+            自动探索：{{ autoExploreOnEntry ? '开启，选择起点后开始' : '关闭' }}
+          </button>
+
           <!-- 进入矿洞（前线） -->
           <div
             class="flex items-center justify-between border border-accent/30 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5 mb-2"
-            @click="handleEnterMine(undefined)"
+            @click="handleEnterMine(undefined, autoExploreOnEntry)"
           >
             <span class="text-xs text-accent">进入矿洞</span>
             <span class="text-xs text-muted">第{{ miningStore.safePointFloor + 1 }}层</span>
@@ -178,7 +187,7 @@
             <div v-for="zone in elevatorZones" :key="zone.name" class="mb-2 last:mb-0">
               <p class="text-[10px] text-muted mb-1">{{ zone.name }}</p>
               <div class="flex flex-wrap space-x-1">
-                <Button v-for="sp in zone.floors" :key="sp" class="py-0.5 px-0 min-w-9 justify-center" @click="handleEnterMine(sp)">
+                <Button v-for="sp in zone.floors" :key="sp" class="py-0.5 px-0 min-w-9 justify-center" @click="handleEnterMine(sp, autoExploreOnEntry)">
                   {{ sp + 1 }}
                 </Button>
               </div>
@@ -189,7 +198,7 @@
           <div v-if="miningStore.isSkullCavernUnlocked()">
             <div
               class="flex items-center justify-between border border-danger/30 rounded-xs px-3 py-1.5 mb-2 cursor-pointer hover:bg-danger/5"
-              @click="handleEnterSkullCavern(undefined)"
+              @click="handleEnterSkullCavern(undefined, autoExploreOnEntry)"
             >
               <span class="text-xs text-danger">
                 <Skull :size="12" class="inline" />
@@ -203,7 +212,7 @@
                 v-for="sp in skullElevatorFloors"
                 :key="sp"
                 class="py-0.5 px-0 min-w-9 justify-center !border-danger/30 !text-danger mb-1 mr-1"
-                @click="handleEnterSkullCavern(sp)"
+                @click="handleEnterSkullCavern(sp, autoExploreOnEntry)"
               >
                 {{ sp + 1 }}
               </Button>
@@ -246,6 +255,9 @@
           <!-- 感染层提示 -->
           <p v-if="currentFloorSpecial === 'infested' && remainingMonsters > 0" class="text-xs text-danger mb-2">
             感染层：还需击败 {{ remainingMonsters }} 只怪物
+          </p>
+          <p v-if="autoExploreActive" class="text-xs text-accent mb-2 border border-accent/30 rounded-xs px-2 py-1">
+            自动探索中：将自动连战并前往下一层
           </p>
 
           <!-- 炸弹模式指示 -->
@@ -295,6 +307,17 @@
                 连战本层
               </span>
               <span class="text-xs text-muted">{{ remainingCombatTiles }}个敌人</span>
+            </div>
+            <div
+              class="flex items-center justify-between border rounded-xs px-3 py-1.5 cursor-pointer"
+              :class="autoExploreActive ? 'border-danger/30 hover:bg-danger/5' : 'border-accent/20 hover:bg-accent/5'"
+              @click="autoExploreActive ? stopAutoExplore('自动探索已停止。') : startAutoExplore()"
+            >
+              <span class="text-xs" :class="autoExploreActive ? 'text-danger' : 'text-accent'">
+                <Swords :size="12" class="inline" />
+                {{ autoExploreActive ? '停止自动探索' : '自动探索' }}
+              </span>
+              <span class="text-xs text-muted">直到倒下或手动停止</span>
             </div>
             <div v-for="bombItem in availableBombs" :key="bombItem.id">
               <div
@@ -393,6 +416,7 @@
                   v-for="status in miningStore.combatPlayerStatuses"
                   :key="status.type"
                   class="text-[9px] border border-accent/20 rounded-xs px-1 text-accent"
+                  :title="getStatusDetail(status)"
                 >
                   {{ status.name }}{{ status.remainingTurns === null ? '' : status.remainingTurns }}
                 </span>
@@ -427,6 +451,7 @@
                   v-for="status in miningStore.combatMonsterStatuses"
                   :key="status.type"
                   class="text-[9px] border border-danger/20 rounded-xs px-1 text-danger"
+                  :title="getStatusDetail(status)"
                 >
                   {{ status.name }}{{ status.remainingTurns === null ? '' : status.remainingTurns }}
                 </span>
@@ -861,7 +886,7 @@
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { BOMBS } from '@/data/processing'
   import { getItemById } from '@/data/items'
-  import type { CombatAction, MineTile } from '@/types'
+  import type { CombatAction, CombatStatusEffect, MineTile } from '@/types'
   import { sfxMine, sfxAttack, sfxHurt, sfxClick, sfxEncounter, sfxDefend, sfxFlee, sfxVictory } from '@/composables/useAudio'
   import { useAudio } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
@@ -896,6 +921,9 @@
   type AutoCombatMode = 'off' | 'smart' | 'attack' | 'defend'
   const autoCombatMode = ref<AutoCombatMode>('off')
   let autoCombatTimer: ReturnType<typeof setTimeout> | null = null
+  const autoExploreOnEntry = ref(false)
+  const autoExploreActive = ref(false)
+  let autoExploreTimer: ReturnType<typeof setTimeout> | null = null
 
   /** 道具使用确认 */
   const BATCH_USABLE_ITEMS = new Set(['guild_badge', 'life_talisman', 'lucky_coin', 'defense_charm'])
@@ -1066,6 +1094,21 @@
   const sweepPreview = computed(() => miningStore.getSweepPreview())
   const canSweepToSafePoint = computed(() => sweepPreview.value.canSweep && sweepPreview.value.targetFloor !== null)
   const remainingCombatTiles = computed(() => miningStore.getRemainingCombatTileCount())
+
+  const getStatusDetail = (status: CombatStatusEffect): string => {
+    const turns = status.remainingTurns === null ? '持续到本次探索结束' : `剩余${status.remainingTurns}回合`
+    const percent = `${Math.round(status.power * 100)}%`
+    const sourceName = status.source === 'player' ? '武器' : status.source === 'monster' ? '怪物' : '道具'
+    const effectText: Record<CombatStatusEffect['type'], string> = {
+      poison: `每回合损失最大生命值的${percent}`,
+      burn: `每回合损失最大生命值的${percent}`,
+      radiation: `每回合损失最大生命值的${percent}`,
+      freeze: '暂时无法反击',
+      battle_rage: `攻击力+${status.power}`,
+      iron_skin: `受到伤害降低${percent}`
+    }
+    return `${status.name}：${effectText[status.type]}。${turns}。来源：${sourceName}。`
+  }
 
   const zoneName = computed(() => {
     const floor = getFloor(miningStore.currentFloor)
@@ -1313,22 +1356,24 @@
 
   // ==================== 事件处理 ====================
 
-  const handleEnterMine = (startFrom?: number) => {
+  const handleEnterMine = (startFrom?: number, autoExplore = false) => {
     showElevatorModal.value = false
     showCombatItems.value = false
     const msg = miningStore.enterMine(startFrom)
     exploreLog.value = [msg]
     sfxClick()
     addLog(msg)
+    if (autoExplore) startAutoExplore()
   }
 
-  const handleEnterSkullCavern = (startFrom?: number) => {
+  const handleEnterSkullCavern = (startFrom?: number, autoExplore = false) => {
     showElevatorModal.value = false
     showCombatItems.value = false
     const msg = miningStore.enterSkullCavern(startFrom)
     exploreLog.value = [msg]
     sfxClick()
     addLog(msg)
+    if (autoExplore) startAutoExplore()
   }
 
   const handleCombat = (action: CombatAction) => {
@@ -1361,6 +1406,8 @@
       if (result.won) {
         sfxVictory()
         triggerAnim('monster', 'anim-victory', 1500)
+      } else {
+        stopAutoExplore('自动探索已停止。')
       }
       resumeNormalBgm()
       showCombatItems.value = false
@@ -1446,6 +1493,81 @@
     }
   }
 
+  const clearAutoExploreTimer = () => {
+    if (autoExploreTimer) {
+      clearTimeout(autoExploreTimer)
+      autoExploreTimer = null
+    }
+  }
+
+  const stopAutoExplore = (message?: string) => {
+    clearAutoExploreTimer()
+    autoExploreActive.value = false
+    if (message) addLog(message)
+  }
+
+  const scheduleAutoExplore = (delay = 500) => {
+    clearAutoExploreTimer()
+    if (!autoExploreActive.value) return
+    autoExploreTimer = setTimeout(() => {
+      runAutoExplore()
+    }, delay)
+  }
+
+  const startAutoExplore = () => {
+    if (!miningStore.isExploring) return
+    autoExploreOnEntry.value = false
+    autoExploreActive.value = true
+    if (autoCombatMode.value === 'off') {
+      autoCombatMode.value = 'smart'
+    }
+    addLog('自动探索开始。')
+    scheduleAutoExplore(100)
+    scheduleAutoCombat()
+  }
+
+  const runAutoExplore = () => {
+    if (!autoExploreActive.value) return
+    if (!miningStore.isExploring || playerStore.hp <= 0) {
+      stopAutoExplore()
+      return
+    }
+    if (gameStore.isPastBedtime) {
+      stopAutoExplore('太晚了，自动探索已停止。')
+      handleSleepOrPassOut()
+      return
+    }
+    if (miningStore.inCombat) {
+      if (autoCombatMode.value === 'off') autoCombatMode.value = 'smart'
+      scheduleAutoCombat()
+      return
+    }
+
+    showCombatItems.value = false
+    if (remainingCombatTiles.value > 0) {
+      const result = miningStore.startChainBattle()
+      sfxClick()
+      addLog(result.message)
+      exploreLog.value.push(result.message)
+      if (result.startsCombat) {
+        startBattleBgm()
+        sfxEncounter()
+        scheduleAutoCombat()
+      } else {
+        scheduleAutoExplore()
+      }
+      return
+    }
+
+    if (miningStore.stairsUsable) {
+      handleNextFloor()
+      scheduleAutoExplore(700)
+      return
+    }
+
+    stopAutoExplore('本层没有可连战的敌人或可用楼梯，自动探索已停止。')
+  }
+
   const chooseAutoCombatAction = (): CombatAction => {
     if (autoCombatMode.value === 'attack') return 'attack'
     if (autoCombatMode.value === 'defend') return 'defend'
@@ -1494,6 +1616,7 @@
 
   const handleLeave = () => {
     if (miningStore.inCombat) resumeNormalBgm()
+    stopAutoExplore()
     showCombatItems.value = false
     showLeaveConfirm.value = false
     const msg = miningStore.leaveMine()
@@ -1645,12 +1768,14 @@
       } else {
         clearAutoCombatTimer()
         showCombatItems.value = false
+        scheduleAutoExplore()
       }
     }
   )
 
   onUnmounted(() => {
     clearAutoCombatTimer()
+    clearAutoExploreTimer()
   })
 </script>
 

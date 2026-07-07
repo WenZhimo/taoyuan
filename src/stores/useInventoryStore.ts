@@ -40,6 +40,7 @@ const TEMP_CAPACITY = 10
 export type EnchantableEquipmentType = 'weapon' | 'ring' | 'hat' | 'shoe'
 type EnchantableEquipment = OwnedWeapon | OwnedRing | OwnedHat | OwnedShoe
 type EnchantResult = { success: boolean; message: string; enchantmentId?: string; cost?: number }
+type PendingToolUpgrade = { toolType: ToolType; targetTier: ToolTier; daysRemaining: number }
 const WEAPON_EQUIPMENT_EFFECT_ENCHANT_IDS = new Set(['scholar', 'beloved', 'regenerating', 'treasure', 'swift', 'frugal'])
 
 export const useInventoryStore = defineStore('inventory', () => {
@@ -82,7 +83,8 @@ export const useInventoryStore = defineStore('inventory', () => {
   const activePresetId = ref<string | null>(null)
 
   /** 正在升级中的工具（2天等待期） */
-  const pendingUpgrade = ref<{ toolType: ToolType; targetTier: ToolTier; daysRemaining: number } | null>(null)
+  const pendingUpgrades = ref<PendingToolUpgrade[]>([])
+  const pendingUpgrade = computed(() => pendingUpgrades.value[0] ?? null)
 
   const isFull = computed(() => items.value.length >= capacity.value)
 
@@ -547,27 +549,32 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 检查工具是否可用（未在升级中） */
   const isToolAvailable = (type: ToolType): boolean => {
-    return !pendingUpgrade.value || pendingUpgrade.value.toolType !== type
+    return !pendingUpgrades.value.some(upgrade => upgrade.toolType === type)
   }
 
   /** 开始升级工具（进入2天等待期） */
   const startUpgrade = (type: ToolType, targetTier: ToolTier): boolean => {
-    if (pendingUpgrade.value) return false
-    pendingUpgrade.value = { toolType: type, targetTier, daysRemaining: 2 }
+    if (pendingUpgrades.value.some(upgrade => upgrade.toolType === type)) return false
+    pendingUpgrades.value.push({ toolType: type, targetTier, daysRemaining: 2 })
     return true
   }
 
-  /** 每日升级进度更新，返回完成的工具名（若有） */
-  const dailyUpgradeUpdate = (): { completed: boolean; toolType: ToolType; targetTier: ToolTier } | null => {
-    if (!pendingUpgrade.value) return null
-    pendingUpgrade.value.daysRemaining--
-    if (pendingUpgrade.value.daysRemaining <= 0) {
-      const { toolType, targetTier } = pendingUpgrade.value
-      upgradeTool(toolType)
-      pendingUpgrade.value = null
-      return { completed: true, toolType, targetTier }
+  /** 每日升级进度更新，返回完成的工具名 */
+  const dailyUpgradeUpdate = (): { completed: boolean; toolType: ToolType; targetTier: ToolTier }[] => {
+    const completed: { completed: boolean; toolType: ToolType; targetTier: ToolTier }[] = []
+    for (const upgrade of pendingUpgrades.value) {
+      upgrade.daysRemaining--
+      if (upgrade.daysRemaining <= 0) {
+        const { toolType, targetTier } = upgrade
+        upgradeTool(toolType)
+        completed.push({ completed: true, toolType, targetTier })
+      }
     }
-    return null
+    pendingUpgrades.value = pendingUpgrades.value.filter(upgrade => {
+      if (upgrade.daysRemaining > 0) return true
+      return false
+    })
+    return completed
   }
 
   // ============================================================
@@ -1104,6 +1111,7 @@ export const useInventoryStore = defineStore('inventory', () => {
       ownedWeapons: ownedWeapons.value,
       equippedWeaponIndex: equippedWeaponIndex.value,
       pendingUpgrade: pendingUpgrade.value,
+      pendingUpgrades: pendingUpgrades.value,
       ownedRings: ownedRings.value,
       equippedRingSlot1: equippedRingSlot1.value,
       equippedRingSlot2: equippedRingSlot2.value,
@@ -1167,7 +1175,9 @@ export const useInventoryStore = defineStore('inventory', () => {
       }
     }
 
-    pendingUpgrade.value = (data as any).pendingUpgrade ?? null
+    pendingUpgrades.value = ((data as any).pendingUpgrades ?? ((data as any).pendingUpgrade ? [(data as any).pendingUpgrade] : [])).filter(
+      (upgrade: PendingToolUpgrade) => upgrade?.toolType && upgrade?.targetTier && upgrade.daysRemaining > 0
+    )
 
     // 戒指系统（向后兼容旧存档）
     ownedRings.value = (((data as Record<string, unknown>).ownedRings as OwnedRing[]) ?? []).map(r => {
@@ -1208,6 +1218,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     ownedWeapons,
     equippedWeaponIndex,
     pendingUpgrade,
+    pendingUpgrades,
     isFull,
     tempItems,
     isTempFull,

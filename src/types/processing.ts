@@ -80,6 +80,7 @@ export type FertilizerType =
   | 'quality_fertilizer'
   | 'speed_gro'
   | 'deluxe_speed_gro'
+  | 'super_hormone'
   | 'retaining_soil'
   | 'quality_retaining_soil'
 
