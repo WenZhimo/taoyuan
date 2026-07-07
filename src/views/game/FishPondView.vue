@@ -147,13 +147,21 @@
             <div
               v-for="item in pondableFishInBag"
               :key="item.itemId"
-              class="border border-accent/20 rounded-xs px-3 py-2 flex items-center justify-between mr-1"
+              class="border border-accent/20 rounded-xs px-3 py-2 mr-1"
             >
-              <span class="text-xs">
-                {{ item.name }}
-                <span class="text-muted">&times;{{ item.count }}</span>
-              </span>
-              <Button :icon-size="12" @click="handleAddFish(item.itemId)">放入</Button>
+              <div class="flex items-center justify-between mb-1.5">
+                <span class="text-xs">
+                  {{ item.name }}
+                  <span class="text-muted">&times;{{ item.count }}</span>
+                </span>
+              </div>
+              <div class="grid grid-cols-5 gap-1">
+                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, 1)">1</Button>
+                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 10" :icon-size="12" @click="handleAddFish(item.itemId, 10)">10</Button>
+                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 20" :icon-size="12" @click="handleAddFish(item.itemId, 20)">20</Button>
+                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 50" :icon-size="12" @click="handleAddFish(item.itemId, 50)">50</Button>
+                <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, item.count)">全部</Button>
+              </div>
             </div>
           </div>
           <div v-else class="border border-accent/10 rounded-xs py-6 flex flex-col items-center space-y-2">
@@ -715,8 +723,8 @@
     }
   }
 
-  const handleAddFish = (fishId: string) => {
-    const added = fishPondStore.addFish(fishId, 1)
+  const handleAddFish = (fishId: string, quantity = 1) => {
+    const added = fishPondStore.addFish(fishId, quantity)
     if (added > 0) {
       const name = getPondableFishName(fishId)
       addLog(`放入了${added}条${name}。`)
