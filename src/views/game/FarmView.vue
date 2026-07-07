@@ -2010,6 +2010,8 @@
 
   // === 温室 ===
 
+  const GREENHOUSE_BATCH_LIMIT = 1000
+
   const showGreenhouse = computed(() => homeStore.greenhouseUnlocked)
 
   const ghHarvestableCount = computed(() => farmStore.greenhousePlots.filter(p => p.state === 'harvestable').length)
@@ -2171,13 +2173,15 @@
 
   const doGhBatchHarvest = () => {
     const skillStore = useSkillStore()
-    const results = farmStore.greenhouseBatchHarvest()
-    if (results.length === 0) return
     let harvested = 0
     let seedsReturned = 0
     let totalBonusMoney = 0
-    for (const { cropId, genetics } of results) {
+    for (const plot of farmStore.greenhousePlots) {
+      if (harvested >= GREENHOUSE_BATCH_LIMIT) break
+      if (plot.state !== 'harvestable') continue
       if (!playerStore.consumeStamina(1)) break
+      const { cropId, genetics } = farmStore.greenhouseHarvestPlot(plot.id)
+      if (!cropId) continue
       harvested++
       let quality = skillStore.rollCropQualityWithBonus(0)
       quality = applyCropBlessing(quality)
@@ -2210,6 +2214,7 @@
       showFloat(`温室收获 ×${harvested}`, 'success')
       let msg = `在温室一键收获了${harvested}株作物。(-${harvested}体力)`
       if (totalBonusMoney > 0) msg += ` 甜度加成+${totalBonusMoney}文`
+      if (harvested >= GREENHOUSE_BATCH_LIMIT && ghHarvestableCount.value > 0) msg += ` 本次最多处理${GREENHOUSE_BATCH_LIMIT}株，可再次点击继续。`
       addLog(msg)
     }
     if (seedsReturned > 0) {
@@ -2239,20 +2244,41 @@
   const doGhBatchPlant = (cropId: string) => {
     const crop = getCropById(cropId)
     if (!crop) return
-    const targets = farmStore.greenhousePlots.filter(p => p.state === 'tilled')
-    if (targets.length === 0) return
+    const seedCount = inventoryStore.getItemCount(crop.seedId)
+    const affordableByStamina = Math.max(0, Math.floor(playerStore.stamina))
+    const plantLimit = Math.min(seedCount, affordableByStamina, GREENHOUSE_BATCH_LIMIT)
+    if (plantLimit <= 0) {
+      addLog('体力不足或种子不够，无法种植。')
+      showGhBatchPlant.value = false
+      return
+    }
+
+    if (!inventoryStore.removeItem(crop.seedId, plantLimit)) {
+      addLog('背包中没有足够的种子。')
+      showGhBatchPlant.value = false
+      return
+    }
+
     let planted = 0
-    for (const plot of targets) {
-      if (!inventoryStore.hasItem(crop.seedId)) break
+    for (const plot of farmStore.greenhousePlots) {
+      if (planted >= plantLimit) break
+      if (plot.state !== 'tilled') continue
       if (!playerStore.consumeStamina(1)) break
-      inventoryStore.removeItem(crop.seedId)
       farmStore.greenhousePlantCrop(plot.id, cropId)
       planted++
     }
+    if (planted < plantLimit) {
+      inventoryStore.addItem(crop.seedId, plantLimit - planted)
+    }
+
     if (planted > 0) {
       sfxPlant()
       showFloat(`温室种植 ${crop.name} ×${planted}`, 'success')
-      addLog(`在温室一键种植了${planted}株${crop.name}。(-${planted}体力)`)
+      const capped = planted >= GREENHOUSE_BATCH_LIMIT && ghTilledEmptyCount.value > 0 && inventoryStore.getItemCount(crop.seedId) > 0
+      addLog(
+        `在温室一键种植了${planted}株${crop.name}。(-${planted}体力)` +
+          (capped ? ` 本次最多处理${GREENHOUSE_BATCH_LIMIT}株，可再次点击继续。` : '')
+      )
     } else {
       addLog('体力不足或种子不够，无法种植。')
     }
