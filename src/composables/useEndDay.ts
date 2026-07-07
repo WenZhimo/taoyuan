@@ -20,6 +20,7 @@ import { useFishPondStore } from '@/stores/useFishPondStore'
 import { useTutorialStore } from '@/stores/useTutorialStore'
 import { useHiddenNpcStore } from '@/stores/useHiddenNpcStore'
 import { useMiningStore } from '@/stores/useMiningStore'
+import { useWarehouseStore } from '@/stores/useWarehouseStore'
 import { getItemById, getTodayEvent, getNpcById, getCropById, getForageItems } from '@/data'
 import { getFertilizerById } from '@/data/processing'
 import { FISH } from '@/data/fish'
@@ -32,7 +33,7 @@ import { showEvent, showFestival, triggerWeddingEvent, triggerPetAdoption, showF
 import { sfxSleep, useAudio } from './useAudio'
 import { MORNING_NARRATIONS, NARRATIONS_NO_LOSS, MORNING_CHOICE_EVENTS, MORNING_EASTER_EGGS } from '@/data/farmEvents'
 import { MORNING_TIPS } from '@/data/tutorials'
-import { getLocationGroupName } from '@/data/timeConstants'
+import { TAB_TO_LOCATION_GROUP, getLocationGroupName } from '@/data/timeConstants'
 import type { MorningEffect } from '@/data/farmEvents'
 import type { LocationGroup } from '@/types'
 import router from '@/router'
@@ -51,12 +52,26 @@ const RESOURCE_SLEEP_WAKE_PANEL: Partial<Record<LocationGroup, string>> = {
   hanhai: 'hanhai'
 }
 
+const hasSleepingBag = (): boolean => {
+  const inventoryStore = useInventoryStore()
+  if (inventoryStore.hasCarriedItem(SLEEPING_BAG_ITEM_ID)) return true
+
+  const warehouseStore = useWarehouseStore()
+  return warehouseStore.chests.some(chest => chest.items.some(item => item.itemId === SLEEPING_BAG_ITEM_ID && item.quantity > 0))
+}
+
 export const getResourceSleepOptions = (): EndDayOptions | null => {
   const gameStore = useGameStore()
-  const inventoryStore = useInventoryStore()
-  const locationGroup = gameStore.currentLocationGroup
+  const routeName = router.currentRoute.value.name
+  const routeGroup = typeof routeName === 'string' ? TAB_TO_LOCATION_GROUP[routeName] : null
+  const locationGroup = routeGroup && RESOURCE_SLEEP_GROUPS.includes(routeGroup)
+    ? routeGroup
+    : RESOURCE_SLEEP_GROUPS.includes(gameStore.currentLocationGroup)
+      ? gameStore.currentLocationGroup
+      : null
+  if (!locationGroup) return null
   if (!RESOURCE_SLEEP_GROUPS.includes(locationGroup)) return null
-  if (!inventoryStore.hasItem(SLEEPING_BAG_ITEM_ID)) return null
+  if (!hasSleepingBag()) return null
   return {
     wakePanel: RESOURCE_SLEEP_WAKE_PANEL[locationGroup] ?? 'farm',
     wakeLocationGroup: locationGroup,
@@ -428,14 +443,15 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   const questStore = useQuestStore()
   const skillStore = useSkillStore()
   const tutorialStore = useTutorialStore()
+  const resolvedOptions = options.wakeLocationGroup ? options : (getResourceSleepOptions() ?? options)
 
   // 新手引导：记录体力低标记（在 dailyReset 之前）
   if (playerStore.stamina < 20) tutorialStore.setFlag('staminaWasLow')
 
   // 恢复模式
   let recoveryMode: 'normal' | 'late' | 'passout'
-  if (options.forceRecoveryMode) {
-    recoveryMode = options.forceRecoveryMode
+  if (resolvedOptions.forceRecoveryMode) {
+    recoveryMode = resolvedOptions.forceRecoveryMode
   } else if (playerStore.stamina <= 0 || gameStore.hour >= 26) {
     recoveryMode = 'passout'
   } else if (gameStore.hour >= 24) {
@@ -444,10 +460,11 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     recoveryMode = 'normal'
   }
 
-  // 矿洞强制退出：无论玩家是否在探索中，睡觉/晕厥后都重置矿洞状态
+  // 矿洞结算：睡袋过夜保留探索进度，普通睡觉/晕厥则离开矿洞
   const miningStore = useMiningStore()
   if (miningStore.isExploring) {
-    miningStore.leaveMine()
+    if (resolvedOptions.wakeLocationGroup === 'mine') miningStore.clearCombatForSleep()
+    else miningStore.leaveMine()
   }
 
   const pestResult = farmStore.dailyUpdate(gameStore.isRainy)
@@ -1246,12 +1263,12 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     triggerPetAdoption()
   }
 
-  if (options.wakeLocationGroup) {
-    gameStore.currentLocationGroup = options.wakeLocationGroup
+  if (resolvedOptions.wakeLocationGroup) {
+    gameStore.currentLocationGroup = resolvedOptions.wakeLocationGroup
   }
 
   // 回到指定页面（默认农场，防止留在商铺等页面继续操作）
-  void router.push({ name: options.wakePanel ?? 'farm' })
+  void router.push({ name: resolvedOptions.wakePanel ?? 'farm' })
 
   // 自动存档
   saveStore.autoSave()

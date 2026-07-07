@@ -284,6 +284,8 @@ export const useBreedingStore = defineStore('breeding', () => {
       mutationRate,
       parentA: a.id,
       parentB: b.id,
+      parentCropA: a.cropId,
+      parentCropB: b.cropId,
       isHybrid: a.isHybrid || b.isHybrid,
       hybridId: a.hybridId ?? b.hybridId
     }
@@ -338,6 +340,8 @@ export const useBreedingStore = defineStore('breeding', () => {
         mutationRate: clampMutationRate(Math.round(avgMutationRate)),
         parentA: a.id,
         parentB: b.id,
+        parentCropA: a.cropId,
+        parentCropB: b.cropId,
         isHybrid: true,
         hybridId: hybrid.id
       }

@@ -21,6 +21,7 @@ import {
   normalizeEnchantmentIds,
   getWeaponEnchantmentIds,
   getOwnedWeaponEnchantments,
+  getEnchantmentEffects,
   rollWeightedEnchantment,
   getEnchantmentCost,
   getCustomEnchantmentCost
@@ -34,8 +35,12 @@ import { useAchievementStore } from './useAchievementStore'
 
 const INITIAL_CAPACITY = 24
 const MAX_CAPACITY = 60
-const MAX_STACK = 999_999_999
+export const MAX_STACK = 999_999_999
 const TEMP_CAPACITY = 10
+export type EnchantableEquipmentType = 'weapon' | 'ring' | 'hat' | 'shoe'
+type EnchantableEquipment = OwnedWeapon | OwnedRing | OwnedHat | OwnedShoe
+type EnchantResult = { success: boolean; message: string; enchantmentId?: string; cost?: number }
+const WEAPON_EQUIPMENT_EFFECT_ENCHANT_IDS = new Set(['scholar', 'beloved', 'regenerating', 'treasure', 'swift', 'frugal'])
 
 export const useInventoryStore = defineStore('inventory', () => {
   const items = ref<InventoryItem[]>([])
@@ -142,52 +147,93 @@ export const useInventoryStore = defineStore('inventory', () => {
     return true
   }
 
-  const setWeaponEnchantments = (index: number, enchantmentIds: string[]): boolean => {
-    const weapon = ownedWeapons.value[index]
-    if (!weapon) return false
+  const getEquipmentInstance = (type: EnchantableEquipmentType, index: number): EnchantableEquipment | null => {
+    const collections = {
+      weapon: ownedWeapons.value,
+      ring: ownedRings.value,
+      hat: ownedHats.value,
+      shoe: ownedShoes.value
+    } satisfies Record<EnchantableEquipmentType, EnchantableEquipment[]>
+    return collections[type][index] ?? null
+  }
+
+  const getEquipmentTypeName = (type: EnchantableEquipmentType): string => {
+    return { weapon: '武器', ring: '戒指', hat: '帽子', shoe: '鞋子' }[type]
+  }
+
+  const getEquipmentBaseSellPrice = (type: EnchantableEquipmentType, equipment: EnchantableEquipment): number => {
+    if (type === 'weapon') return getWeaponSellPrice(equipment.defId, (equipment as OwnedWeapon).enchantmentIds ?? (equipment as OwnedWeapon).enchantmentId)
+    if (type === 'ring') return getRingById(equipment.defId)?.sellPrice ?? 0
+    if (type === 'hat') return getHatById(equipment.defId)?.sellPrice ?? 0
+    return getShoeById(equipment.defId)?.sellPrice ?? 0
+  }
+
+  const setEquipmentEnchantments = (type: EnchantableEquipmentType, index: number, enchantmentIds: string[]): boolean => {
+    const equipment = getEquipmentInstance(type, index)
+    if (!equipment) return false
     const normalized = normalizeEnchantmentIds(enchantmentIds)
-    weapon.enchantmentIds = normalized
-    weapon.enchantmentId = normalized[0] ?? null
+    equipment.enchantmentIds = normalized
+    equipment.enchantmentId = normalized[0] ?? null
     return true
   }
 
-  const randomlyEnchantWeapon = (index: number): { success: boolean; message: string; enchantmentId?: string; cost?: number } => {
-    const weapon = ownedWeapons.value[index]
-    if (!weapon) return { success: false, message: '无效武器。' }
+  const randomlyEnchantEquipment = (type: EnchantableEquipmentType, index: number): EnchantResult => {
+    const equipment = getEquipmentInstance(type, index)
+    if (!equipment) return { success: false, message: `无效${getEquipmentTypeName(type)}。` }
     const enchantmentId = rollWeightedEnchantment()
     const cost = getEnchantmentCost(enchantmentId)
     const playerStore = usePlayerStore()
     if (playerStore.money < cost) return { success: false, message: `铜钱不足（需要${cost}文）。`, enchantmentId, cost }
     playerStore.spendMoney(cost)
-    setWeaponEnchantments(index, [enchantmentId])
+    setEquipmentEnchantments(type, index, [enchantmentId])
     const enchant = getEnchantmentById(enchantmentId)
     return { success: true, message: `附魔完成：${enchant?.name ?? enchantmentId}。`, enchantmentId, cost }
   }
 
-  const disenchantWeapon = (index: number): { success: boolean; message: string; cost?: number } => {
-    const weapon = ownedWeapons.value[index]
-    if (!weapon) return { success: false, message: '无效武器。' }
-    if (getWeaponEnchantmentIds(weapon).length === 0) return { success: false, message: '这把武器没有附魔。' }
-    const cost = Math.max(300, Math.floor(getWeaponSellPrice(weapon.defId, weapon.enchantmentIds) * 0.15))
+  const disenchantEquipment = (type: EnchantableEquipmentType, index: number): EnchantResult => {
+    const equipment = getEquipmentInstance(type, index)
+    if (!equipment) return { success: false, message: `无效${getEquipmentTypeName(type)}。` }
+    const enchantmentIds = getWeaponEnchantmentIds(equipment)
+    if (enchantmentIds.length === 0) return { success: false, message: `这件${getEquipmentTypeName(type)}没有附魔。` }
+    const price = getEquipmentBaseSellPrice(type, equipment)
+    const enchantValue = enchantmentIds.reduce((sum, id) => sum + Math.floor(getEnchantmentCost(id) * 0.2), 0)
+    const cost = Math.max(300, Math.floor((price + enchantValue) * 0.15))
     const playerStore = usePlayerStore()
     if (playerStore.money < cost) return { success: false, message: `铜钱不足（需要${cost}文）。`, cost }
     playerStore.spendMoney(cost)
-    setWeaponEnchantments(index, [])
+    setEquipmentEnchantments(type, index, [])
     return { success: true, message: '附魔已祛除。', cost }
   }
 
-  const customizeWeaponEnchantments = (index: number, enchantmentIds: string[]): { success: boolean; message: string; cost?: number } => {
-    const weapon = ownedWeapons.value[index]
-    if (!weapon) return { success: false, message: '无效武器。' }
+  const customizeEquipmentEnchantments = (type: EnchantableEquipmentType, index: number, enchantmentIds: string[]): EnchantResult => {
+    const equipment = getEquipmentInstance(type, index)
+    if (!equipment) return { success: false, message: `无效${getEquipmentTypeName(type)}。` }
     const normalized = normalizeEnchantmentIds(enchantmentIds)
     if (normalized.length === 0) return { success: false, message: '请至少选择一种附魔。' }
     const cost = getCustomEnchantmentCost(normalized)
     const playerStore = usePlayerStore()
     if (playerStore.money < cost) return { success: false, message: `铜钱不足（需要${cost}文）。`, cost }
     playerStore.spendMoney(cost)
-    setWeaponEnchantments(index, normalized)
-    return { success: true, message: `定制附魔完成，共${normalized.length}种附魔。`, cost }
+    setEquipmentEnchantments(type, index, normalized)
+    return { success: true, message: `定制附魔完成，共${normalized.length}条附魔。`, cost }
   }
+
+  const getEquipmentEnchantmentEffects = (type: EnchantableEquipmentType, equipment: EnchantableEquipment) => {
+    const ids = getWeaponEnchantmentIds(equipment)
+    if (type !== 'weapon') return getEnchantmentEffects(ids)
+    return getEnchantmentEffects(ids.filter(id => WEAPON_EQUIPMENT_EFFECT_ENCHANT_IDS.has(id)))
+  }
+
+  const setWeaponEnchantments = (index: number, enchantmentIds: string[]): boolean => {
+    return setEquipmentEnchantments('weapon', index, enchantmentIds)
+  }
+
+  const randomlyEnchantWeapon = (index: number): EnchantResult => randomlyEnchantEquipment('weapon', index)
+
+  const disenchantWeapon = (index: number): EnchantResult => disenchantEquipment('weapon', index)
+
+  const customizeWeaponEnchantments = (index: number, enchantmentIds: string[]): EnchantResult =>
+    customizeEquipmentEnchantments('weapon', index, enchantmentIds)
 
   /** 卖出武器（不能卖装备中的武器，不能卖唯一武器） */
   const sellWeapon = (index: number): { success: boolean; message: string } => {
@@ -296,9 +342,48 @@ export const useInventoryStore = defineStore('inventory', () => {
       .reduce((sum, i) => sum + i.quantity, 0)
   }
 
+  /** 查询随身物品数量（主背包 + 临时背包） */
+  const getCarriedItemCount = (itemId: string, quality?: Quality): number => {
+    const mainCount = getItemCount(itemId, quality)
+    const tempCount = tempItems.value
+      .filter(i => i.itemId === itemId && (quality === undefined || i.quality === quality))
+      .reduce((sum, i) => sum + i.quantity, 0)
+    return mainCount + tempCount
+  }
+
   /** 检查是否拥有足够数量 */
   const hasItem = (itemId: string, quantity: number = 1): boolean => {
     return getItemCount(itemId) >= quantity
+  }
+
+  /** 检查随身是否携带足够数量（主背包 + 临时背包） */
+  const hasCarriedItem = (itemId: string, quantity: number = 1): boolean => {
+    return getCarriedItemCount(itemId) >= quantity
+  }
+
+  /** 查询当前还能放入多少同类物品（主背包 + 临时背包） */
+  const getAddableItemQuantity = (itemId: string, quality: Quality = 'normal'): number => {
+    if (!getItemById(itemId)) return 0
+    let space = 0
+    for (const slot of items.value) {
+      if (slot.itemId === itemId && slot.quality === quality && slot.quantity < MAX_STACK) {
+        space += MAX_STACK - slot.quantity
+      }
+    }
+    space += Math.max(0, capacity.value - items.value.length) * MAX_STACK
+
+    for (const slot of tempItems.value) {
+      if (slot.itemId === itemId && slot.quality === quality && slot.quantity < MAX_STACK) {
+        space += MAX_STACK - slot.quantity
+      }
+    }
+    space += Math.max(0, TEMP_CAPACITY - tempItems.value.length) * MAX_STACK
+    return space
+  }
+
+  /** 检查是否能完整放入物品，避免购买时先扣钱后部分溢出 */
+  const canAddItem = (itemId: string, quantity: number = 1, quality: Quality = 'normal'): boolean => {
+    return getAddableItemQuantity(itemId, quality) >= quantity
   }
 
   /** 物品分类排序优先级 */
@@ -491,7 +576,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 添加戒指到收藏 */
   const addRing = (defId: string): boolean => {
-    ownedRings.value.push({ defId })
+    ownedRings.value.push({ defId, enchantmentId: null, enchantmentIds: [] })
     useAchievementStore().discoverItem(defId)
     return true
   }
@@ -567,6 +652,9 @@ export const useInventoryStore = defineStore('inventory', () => {
           if (eff.type === effectType) total += eff.value
         }
       }
+      for (const eff of getEquipmentEnchantmentEffects('ring', ring)) {
+        if (eff.type === effectType) total += eff.value
+      }
     }
     // 帽子（1槽位）
     if (equippedHatIndex.value >= 0 && equippedHatIndex.value < ownedHats.value.length) {
@@ -577,6 +665,9 @@ export const useInventoryStore = defineStore('inventory', () => {
           if (eff.type === effectType) total += eff.value
         }
       }
+      for (const eff of getEquipmentEnchantmentEffects('hat', hat)) {
+        if (eff.type === effectType) total += eff.value
+      }
     }
     // 鞋子（1槽位）
     if (equippedShoeIndex.value >= 0 && equippedShoeIndex.value < ownedShoes.value.length) {
@@ -586,6 +677,16 @@ export const useInventoryStore = defineStore('inventory', () => {
         for (const eff of def.effects) {
           if (eff.type === effectType) total += eff.value
         }
+      }
+      for (const eff of getEquipmentEnchantmentEffects('shoe', shoe)) {
+        if (eff.type === effectType) total += eff.value
+      }
+    }
+    // 武器功能性附魔（攻击/暴击等基础战斗数值由武器专用 API 计算，避免重复叠加）
+    const weapon = ownedWeapons.value[equippedWeaponIndex.value]
+    if (weapon) {
+      for (const eff of getEquipmentEnchantmentEffects('weapon', weapon)) {
+        if (eff.type === effectType) total += eff.value
       }
     }
     // 套装奖励
@@ -701,7 +802,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 添加帽子到收藏 */
   const addHat = (defId: string): boolean => {
-    ownedHats.value.push({ defId })
+    ownedHats.value.push({ defId, enchantmentId: null, enchantmentIds: [] })
     useAchievementStore().discoverItem(defId)
     return true
   }
@@ -769,7 +870,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 添加鞋子到收藏 */
   const addShoe = (defId: string): boolean => {
-    ownedShoes.value.push({ defId })
+    ownedShoes.value.push({ defId, enchantmentId: null, enchantmentIds: [] })
     useAchievementStore().discoverItem(defId)
     return true
   }
@@ -1069,7 +1170,10 @@ export const useInventoryStore = defineStore('inventory', () => {
     pendingUpgrade.value = (data as any).pendingUpgrade ?? null
 
     // 戒指系统（向后兼容旧存档）
-    ownedRings.value = ((data as Record<string, unknown>).ownedRings as OwnedRing[]) ?? []
+    ownedRings.value = (((data as Record<string, unknown>).ownedRings as OwnedRing[]) ?? []).map(r => {
+      const enchantmentIds = normalizeEnchantmentIds(r.enchantmentIds && r.enchantmentIds.length > 0 ? r.enchantmentIds : r.enchantmentId)
+      return { defId: r.defId, enchantmentId: enchantmentIds[0] ?? null, enchantmentIds }
+    })
     equippedRingSlot1.value = ((data as Record<string, unknown>).equippedRingSlot1 as number | undefined) ?? -1
     equippedRingSlot2.value = ((data as Record<string, unknown>).equippedRingSlot2 as number | undefined) ?? -1
     // 修复无效索引
@@ -1077,12 +1181,18 @@ export const useInventoryStore = defineStore('inventory', () => {
     if (equippedRingSlot2.value >= ownedRings.value.length) equippedRingSlot2.value = -1
 
     // 帽子系统（向后兼容旧存档）
-    ownedHats.value = ((data as Record<string, unknown>).ownedHats as OwnedHat[]) ?? []
+    ownedHats.value = (((data as Record<string, unknown>).ownedHats as OwnedHat[]) ?? []).map(h => {
+      const enchantmentIds = normalizeEnchantmentIds(h.enchantmentIds && h.enchantmentIds.length > 0 ? h.enchantmentIds : h.enchantmentId)
+      return { defId: h.defId, enchantmentId: enchantmentIds[0] ?? null, enchantmentIds }
+    })
     equippedHatIndex.value = ((data as Record<string, unknown>).equippedHatIndex as number | undefined) ?? -1
     if (equippedHatIndex.value >= ownedHats.value.length) equippedHatIndex.value = -1
 
     // 鞋子系统（向后兼容旧存档）
-    ownedShoes.value = ((data as Record<string, unknown>).ownedShoes as OwnedShoe[]) ?? []
+    ownedShoes.value = (((data as Record<string, unknown>).ownedShoes as OwnedShoe[]) ?? []).map(s => {
+      const enchantmentIds = normalizeEnchantmentIds(s.enchantmentIds && s.enchantmentIds.length > 0 ? s.enchantmentIds : s.enchantmentId)
+      return { defId: s.defId, enchantmentId: enchantmentIds[0] ?? null, enchantmentIds }
+    })
     equippedShoeIndex.value = ((data as Record<string, unknown>).equippedShoeIndex as number | undefined) ?? -1
     if (equippedShoeIndex.value >= ownedShoes.value.length) equippedShoeIndex.value = -1
 
@@ -1105,7 +1215,11 @@ export const useInventoryStore = defineStore('inventory', () => {
     addItem,
     removeItem,
     getItemCount,
+    getCarriedItemCount,
     hasItem,
+    hasCarriedItem,
+    getAddableItemQuantity,
+    canAddItem,
     expandCapacity,
     expandCapacityExtra,
     MAX_CAPACITY,
@@ -1128,6 +1242,11 @@ export const useInventoryStore = defineStore('inventory', () => {
     hasWeapon,
     hasWeaponExact,
     equipWeapon,
+    getEquipmentInstance,
+    setEquipmentEnchantments,
+    randomlyEnchantEquipment,
+    disenchantEquipment,
+    customizeEquipmentEnchantments,
     setWeaponEnchantments,
     randomlyEnchantWeapon,
     disenchantWeapon,

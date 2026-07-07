@@ -389,7 +389,8 @@
     treasure_find: '宝箱',
     ore_bonus: '矿石',
     luck: '幸运',
-    travel_speed: '旅行加速'
+    travel_speed: '旅行加速',
+    combat_regen: '回合自愈'
   }
 
   const formatRingEffects = (defId: string): string => {

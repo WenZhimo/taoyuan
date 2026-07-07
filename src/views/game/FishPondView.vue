@@ -276,7 +276,12 @@
             v-for="breed in currentGenBreeds"
             :key="breed.breedId"
             class="border rounded-xs p-1.5 text-xs text-center transition-colors truncate"
-            :class="isDiscovered(breed.breedId) ? 'border-accent/20 ' + genColor(compendiumGen) : 'border-accent/10 text-muted/30'"
+            :class="
+              isDiscovered(breed.breedId)
+                ? 'border-accent/20 cursor-pointer hover:bg-accent/5 ' + genColor(compendiumGen)
+                : 'border-accent/10 text-muted/30'
+            "
+            @click="isDiscovered(breed.breedId) && (detailBreedId = breed.breedId)"
           >
             <template v-if="isDiscovered(breed.breedId)">{{ breed.name }}</template>
             <Lock v-else :size="12" class="mx-auto text-muted/30" />
@@ -346,6 +351,52 @@
                 <Button class="flex-1 justify-center py-0.5" @click="handleRemoveFish(fish.id)">取出</Button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 图鉴品种详情弹窗 -->
+    <Transition name="panel-fade">
+      <div v-if="detailBreed" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" @click.self="detailBreedId = null">
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="detailBreedId = null">
+            <X :size="14" />
+          </button>
+
+          <p class="text-sm mb-2" :class="genColor(detailBreed.generation)">{{ detailBreed.name }}</p>
+
+          <div class="border border-accent/10 rounded-xs p-2 mb-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-muted">代数</span>
+              <span class="text-xs text-accent">{{ detailBreed.generation }}代</span>
+            </div>
+            <div class="flex items-center justify-between mt-0.5">
+              <span class="text-xs text-muted">基础鱼种</span>
+              <span class="text-xs">{{ getPondableFishName(detailBreed.baseFishId) }}</span>
+            </div>
+          </div>
+
+          <div class="border border-accent/10 rounded-xs p-2">
+            <template v-if="detailBreed.generation === 1">
+              <p class="text-xs text-muted leading-relaxed">一代品种由基础鱼种入塘后自然发现。</p>
+            </template>
+            <template v-else>
+              <p class="text-xs text-muted mb-1">亲本组合</p>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-muted">亲本A</span>
+                <span class="text-xs" :class="detailParentA && isDiscovered(detailParentA.breedId) ? genColor(detailParentA.generation) : 'text-muted/50'">
+                  {{ detailParentA?.name ?? '未知品种' }}
+                </span>
+              </div>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="text-xs text-muted">亲本B</span>
+                <span class="text-xs" :class="detailParentB && isDiscovered(detailParentB.breedId) ? genColor(detailParentB.generation) : 'text-muted/50'">
+                  {{ detailParentB?.name ?? '未知品种' }}
+                </span>
+              </div>
+              <p class="text-[10px] text-muted/70 mt-2">将这两种亲鱼作为育苗亲本，有机会获得该品种。</p>
+            </template>
           </div>
         </div>
       </div>
@@ -484,7 +535,7 @@
   import { handleEndDay } from '@/composables/useEndDay'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { POND_BUILD_COST, POND_UPGRADE_COSTS, POND_CAPACITY, PONDABLE_FISH, getPondableFish, FISH_BREEDING_DAYS } from '@/data/fishPond'
-  import { getBreedsByGeneration, BREED_COUNTS } from '@/data/pondBreeds'
+  import { getBreedById, getBreedsByGeneration, BREED_COUNTS } from '@/data/pondBreeds'
   import { getItemById } from '@/data/items'
   import type { PondFish } from '@/types/fishPond'
 
@@ -497,6 +548,7 @@
   const selectedBreedingFish = ref<PondFish | null>(null)
   const detailFish = ref<PondFish | null>(null)
   const detailGroupFishId = ref<string | null>(null)
+  const detailBreedId = ref<string | null>(null)
   const compendiumGen = ref<1 | 2 | 3 | 4 | 5>(1)
 
   /** 建造/升级统一弹窗 */
@@ -515,6 +567,9 @@
   }
 
   const currentGenBreeds = computed(() => getBreedsByGeneration(compendiumGen.value))
+  const detailBreed = computed(() => (detailBreedId.value ? (getBreedById(detailBreedId.value) ?? null) : null))
+  const detailParentA = computed(() => (detailBreed.value?.parentBreedA ? (getBreedById(detailBreed.value.parentBreedA) ?? null) : null))
+  const detailParentB = computed(() => (detailBreed.value?.parentBreedB ? (getBreedById(detailBreed.value.parentBreedB) ?? null) : null))
 
   /** 图鉴完成度 */
   const completionPercent = computed(() => {

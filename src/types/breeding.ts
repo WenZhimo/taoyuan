@@ -20,6 +20,10 @@ export interface SeedGenetics {
   parentA: string | null
   /** 亲本B的ID（可溯源） */
   parentB: string | null
+  /** 亲本A的作物ID（用于详情展示，旧存档可能为空） */
+  parentCropA: string | null
+  /** 亲本B的作物ID（用于详情展示，旧存档可能为空） */
+  parentCropB: string | null
   /** 是否为杂交品种 */
   isHybrid: boolean
   /** 杂交品种ID（仅杂交种有值） */

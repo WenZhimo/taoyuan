@@ -575,6 +575,17 @@
     forestCombatRound.value = 0
   }
 
+  const applyForestCombatRegen = () => {
+    const regen = Math.floor(inventoryStore.getRingEffectValue('combat_regen'))
+    if (regen <= 0 || playerStore.hp >= playerStore.getMaxHp()) return
+    const beforeHp = playerStore.hp
+    playerStore.restoreHealth(regen)
+    const healed = playerStore.hp - beforeHp
+    if (healed > 0) {
+      forestCombatLog.value.push(`回春恢复${healed}HP。`)
+    }
+  }
+
   const handleForestCombat = (action: CombatAction) => {
     if (!inForestCombat.value || !forestCombatMonster.value) return
     forestCombatRound.value++
@@ -587,6 +598,8 @@
       endForestCombat(false)
       return
     }
+
+    applyForestCombatRegen()
 
     // 防御
     if (action === 'defend') {
@@ -628,7 +641,9 @@
       miningStore.guildBadgeBonusAttack
 
     // 暴击
-    const critChance = (weaponDef?.critRate ?? 0.05) + enchantments.reduce((sum, enchant) => sum + enchant.critBonus, 0)
+    const ringCritBonus = inventoryStore.getRingEffectValue('crit_rate_bonus')
+    const ringLuck = inventoryStore.getRingEffectValue('luck')
+    const critChance = (weaponDef?.critRate ?? 0.05) + enchantments.reduce((sum, enchant) => sum + enchant.critBonus, 0) + ringCritBonus + ringLuck * 0.5
     const isCrit = Math.random() < critChance
     const critMultiplier = isCrit ? 2.0 : 1.0
     const bruteBonus = skillStore.getSkill('combat').perk10 === 'brute' ? 1.25 : 1.0
@@ -637,11 +652,13 @@
     forestCombatMonsterHp.value -= playerDmg
     let atkMsg = isCrit ? `暴击！对${monster.name}造成${playerDmg}点伤害！` : `对${monster.name}造成${playerDmg}点伤害。`
 
-    // 吸血附魔
-    if (enchantments.some(enchant => enchant.special === 'vampiric') && isCrit) {
-      const heal = Math.floor(playerDmg * 0.2)
+    // 吸血附魔/装备效果
+    const vampiricEnchantCount = enchantments.filter(enchant => enchant.special === 'vampiric').length
+    const totalVampiric = vampiricEnchantCount * 0.15 + inventoryStore.getRingEffectValue('vampiric')
+    if (totalVampiric > 0) {
+      const heal = Math.floor(playerDmg * totalVampiric)
       playerStore.restoreHealth(heal)
-      atkMsg += ` 吸血恢复${heal}HP。`
+      if (heal > 0) atkMsg += ` 吸血恢复${heal}HP。`
     }
 
     forestCombatLog.value.push(atkMsg)

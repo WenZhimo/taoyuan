@@ -21,6 +21,10 @@ export interface HatDef {
 /** 拥有的帽子实例 */
 export interface OwnedHat {
   defId: string
+  /** 旧存档/旧逻辑兼容字段：等同于 enchantmentIds 的第一项 */
+  enchantmentId?: string | null
+  /** 当前附魔列表，允许重复附魔 */
+  enchantmentIds?: string[]
 }
 
 /** 鞋子定义 */
@@ -44,4 +48,8 @@ export interface ShoeDef {
 /** 拥有的鞋子实例 */
 export interface OwnedShoe {
   defId: string
+  /** 旧存档/旧逻辑兼容字段：等同于 enchantmentIds 的第一项 */
+  enchantmentId?: string | null
+  /** 当前附魔列表，允许重复附魔 */
+  enchantmentIds?: string[]
 }

@@ -613,7 +613,7 @@
             </div>
             <div v-if="activeWeaponEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
               <span class="text-xs text-muted">附魔</span>
-              <span class="text-xs text-accent text-right">{{ activeWeaponEnchantments.map(e => `${e.name}：${e.description}`).join('；') }}</span>
+              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeWeaponEnchantments) }}</span>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
@@ -639,17 +639,25 @@
               <span class="text-xs text-muted">定制附魔</span>
               <span class="text-xs" :class="playerStore.money >= customEnchantCost ? 'text-accent' : 'text-danger'">{{ customEnchantCost }}文</span>
             </div>
-            <div class="grid grid-cols-2 gap-1 max-h-28 overflow-y-auto mb-2">
-              <label
+            <div class="flex flex-col gap-1 max-h-32 overflow-y-auto mb-2">
+              <div
                 v-for="enchant in availableEnchantments"
                 :key="enchant.id"
-                class="border rounded-xs px-2 py-1 cursor-pointer"
-                :class="selectedCustomEnchantments.includes(enchant.id) ? 'border-accent text-accent bg-accent/10' : 'border-accent/10 text-muted'"
+                class="border rounded-xs px-2 py-1"
+                :class="getCustomEnchantCount(enchant.id) > 0 ? 'border-accent text-accent bg-accent/10' : 'border-accent/10 text-muted'"
               >
-                <input v-model="selectedCustomEnchantments" class="hidden" type="checkbox" :value="enchant.id" />
-                <span class="text-xs">{{ enchant.name }}</span>
-                <span class="text-[10px] block truncate">{{ enchant.description }}</span>
-              </label>
+                <div class="flex items-center justify-between gap-2">
+                  <div class="min-w-0">
+                    <span class="text-xs">{{ enchant.name }}</span>
+                    <span class="text-[10px] block truncate">{{ enchant.description }}</span>
+                  </div>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
+                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                  </div>
+                </div>
+              </div>
             </div>
             <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
               定制附魔
@@ -694,10 +702,46 @@
               <span class="text-xs text-muted">{{ RING_EFFECT_NAMES[eff.type] ?? eff.type }}</span>
               <span class="text-xs text-success">+{{ formatEffectValue(eff) }}</span>
             </div>
+            <div v-if="activeRingEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
+              <span class="text-xs text-muted">附魔</span>
+              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeRingEnchantments) }}</span>
+            </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeRingDef.sellPrice }}文</span>
             </div>
+          </div>
+          <div class="border border-accent/10 rounded-xs p-2 mb-2">
+            <div class="grid grid-cols-2 gap-1 mb-2">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">随机附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeRingEnchantments.length === 0" @click="handleDisenchant">
+                祛魔
+              </Button>
+            </div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-muted">定制附魔</span>
+              <span class="text-xs" :class="playerStore.money >= customEnchantCost ? 'text-accent' : 'text-danger'">{{ customEnchantCost }}文</span>
+            </div>
+            <div class="flex flex-col gap-1 max-h-28 overflow-y-auto mb-2">
+              <div
+                v-for="enchant in availableEnchantments"
+                :key="enchant.id"
+                class="border rounded-xs px-2 py-1"
+                :class="getCustomEnchantCount(enchant.id) > 0 ? 'border-accent text-accent bg-accent/10' : 'border-accent/10 text-muted'"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs truncate">{{ enchant.name }}</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
+                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+              定制附魔
+            </Button>
           </div>
           <div class="flex flex-col space-y-1.5">
             <div class="flex space-x-1.5">
@@ -746,10 +790,46 @@
               <span class="text-xs text-muted">{{ RING_EFFECT_NAMES[eff.type] ?? eff.type }}</span>
               <span class="text-xs text-success">+{{ formatEffectValue(eff) }}</span>
             </div>
+            <div v-if="activeHatEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
+              <span class="text-xs text-muted">附魔</span>
+              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeHatEnchantments) }}</span>
+            </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeHatDef.sellPrice }}文</span>
             </div>
+          </div>
+          <div class="border border-accent/10 rounded-xs p-2 mb-2">
+            <div class="grid grid-cols-2 gap-1 mb-2">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">随机附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeHatEnchantments.length === 0" @click="handleDisenchant">
+                祛魔
+              </Button>
+            </div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-muted">定制附魔</span>
+              <span class="text-xs" :class="playerStore.money >= customEnchantCost ? 'text-accent' : 'text-danger'">{{ customEnchantCost }}文</span>
+            </div>
+            <div class="flex flex-col gap-1 max-h-28 overflow-y-auto mb-2">
+              <div
+                v-for="enchant in availableEnchantments"
+                :key="enchant.id"
+                class="border rounded-xs px-2 py-1"
+                :class="getCustomEnchantCount(enchant.id) > 0 ? 'border-accent text-accent bg-accent/10' : 'border-accent/10 text-muted'"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs truncate">{{ enchant.name }}</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
+                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+              定制附魔
+            </Button>
           </div>
           <div class="flex flex-col space-y-1.5">
             <Button class="w-full justify-center" @click="handleToggleHatFromPopup">
@@ -783,10 +863,46 @@
               <span class="text-xs text-muted">{{ RING_EFFECT_NAMES[eff.type] ?? eff.type }}</span>
               <span class="text-xs text-success">+{{ formatEffectValue(eff) }}</span>
             </div>
+            <div v-if="activeShoeEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
+              <span class="text-xs text-muted">附魔</span>
+              <span class="text-xs text-accent text-right">{{ formatEnchantmentList(activeShoeEnchantments) }}</span>
+            </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeShoeDef.sellPrice }}文</span>
             </div>
+          </div>
+          <div class="border border-accent/10 rounded-xs p-2 mb-2">
+            <div class="grid grid-cols-2 gap-1 mb-2">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">随机附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeShoeEnchantments.length === 0" @click="handleDisenchant">
+                祛魔
+              </Button>
+            </div>
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-muted">定制附魔</span>
+              <span class="text-xs" :class="playerStore.money >= customEnchantCost ? 'text-accent' : 'text-danger'">{{ customEnchantCost }}文</span>
+            </div>
+            <div class="flex flex-col gap-1 max-h-28 overflow-y-auto mb-2">
+              <div
+                v-for="enchant in availableEnchantments"
+                :key="enchant.id"
+                class="border rounded-xs px-2 py-1"
+                :class="getCustomEnchantCount(enchant.id) > 0 ? 'border-accent text-accent bg-accent/10' : 'border-accent/10 text-muted'"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs truncate">{{ enchant.name }}</span>
+                  <div class="flex items-center gap-1 shrink-0">
+                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
+                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+              定制附魔
+            </Button>
           </div>
           <div class="flex flex-col space-y-1.5">
             <Button class="w-full justify-center" @click="handleToggleShoeFromPopup">
@@ -808,7 +924,7 @@
   import Button from '@/components/game/Button.vue'
   import { useCookingStore } from '@/stores/useCookingStore'
   import { useGameStore } from '@/stores/useGameStore'
-  import { useInventoryStore } from '@/stores/useInventoryStore'
+  import { useInventoryStore, type EnchantableEquipmentType } from '@/stores/useInventoryStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useSettingsStore } from '@/stores/useSettingsStore'
   import { useSkillStore } from '@/stores/useSkillStore'
@@ -820,7 +936,7 @@
     getWeaponDisplayName,
     getWeaponSellPrice,
     getWeaponEnchantmentIds,
-    getOwnedWeaponEnchantments,
+    getOwnedEquipmentEnchantments,
     getEnchantmentCost,
     getCustomEnchantmentCost,
     WEAPON_TYPE_NAMES
@@ -1037,7 +1153,8 @@
     treasure_find: '宝箱概率',
     ore_bonus: '矿石加成',
     luck: '幸运',
-    travel_speed: '旅行加速'
+    travel_speed: '旅行加速',
+    combat_regen: '回合自愈'
   }
 
   const PERCENTAGE_EFFECTS: Set<RingEffectType> = new Set([
@@ -1074,6 +1191,43 @@
   const availableEnchantments = Object.values(ENCHANTMENTS)
   const randomEnchantPreviewCost = Math.min(...availableEnchantments.map(enchant => getEnchantmentCost(enchant.id)))
 
+  const activeEnchantTarget = computed<{ type: EnchantableEquipmentType; index: number } | null>(() => {
+    if (activeWeaponIdx.value !== null) return { type: 'weapon', index: activeWeaponIdx.value }
+    if (activeRingIdx.value !== null) return { type: 'ring', index: activeRingIdx.value }
+    if (activeHatIdx.value !== null) return { type: 'hat', index: activeHatIdx.value }
+    if (activeShoeIdx.value !== null) return { type: 'shoe', index: activeShoeIdx.value }
+    return null
+  })
+
+  const getActiveEquipmentEnchantments = (type: EnchantableEquipmentType, index: number) => {
+    const equipment = inventoryStore.getEquipmentInstance(type, index)
+    return equipment ? getOwnedEquipmentEnchantments(equipment) : []
+  }
+
+  const syncCustomEnchantments = (type: EnchantableEquipmentType, index: number) => {
+    const equipment = inventoryStore.getEquipmentInstance(type, index)
+    selectedCustomEnchantments.value = equipment ? getWeaponEnchantmentIds(equipment) : []
+  }
+
+  const getCustomEnchantCount = (enchantmentId: string): number => {
+    return selectedCustomEnchantments.value.filter(id => id === enchantmentId).length
+  }
+
+  const incrementCustomEnchant = (enchantmentId: string) => {
+    selectedCustomEnchantments.value = [...selectedCustomEnchantments.value, enchantmentId]
+  }
+
+  const decrementCustomEnchant = (enchantmentId: string) => {
+    const next = [...selectedCustomEnchantments.value]
+    const idx = next.lastIndexOf(enchantmentId)
+    if (idx >= 0) next.splice(idx, 1)
+    selectedCustomEnchantments.value = next
+  }
+
+  const formatEnchantmentList = (enchantments: { name: string; description: string }[]): string => {
+    return enchantments.map(enchant => `${enchant.name}：${enchant.description}`).join('；')
+  }
+
   const activeWeaponDef = computed(() => {
     if (activeWeaponIdx.value === null) return null
     const weapon = inventoryStore.ownedWeapons[activeWeaponIdx.value]
@@ -1090,9 +1244,7 @@
 
   const activeWeaponEnchantments = computed(() => {
     if (activeWeaponIdx.value === null) return []
-    const weapon = inventoryStore.ownedWeapons[activeWeaponIdx.value]
-    if (!weapon) return []
-    return getOwnedWeaponEnchantments(weapon)
+    return getActiveEquipmentEnchantments('weapon', activeWeaponIdx.value)
   })
 
   const activeWeaponPrice = computed(() => {
@@ -1105,8 +1257,7 @@
   const customEnchantCost = computed(() => getCustomEnchantmentCost(selectedCustomEnchantments.value))
 
   watch(activeWeaponIdx, idx => {
-    const weapon = idx === null ? null : inventoryStore.ownedWeapons[idx]
-    selectedCustomEnchantments.value = weapon ? getWeaponEnchantmentIds(weapon) : []
+    if (idx !== null) syncCustomEnchantments('weapon', idx)
   })
 
   const handleEquipWeapon = () => {
@@ -1116,26 +1267,27 @@
   }
 
   const handleRandomEnchant = () => {
-    if (activeWeaponIdx.value === null) return
-    const result = inventoryStore.randomlyEnchantWeapon(activeWeaponIdx.value)
+    const target = activeEnchantTarget.value
+    if (!target) return
+    const result = inventoryStore.randomlyEnchantEquipment(target.type, target.index)
     addLog(result.message)
-    if (result.success) {
-      const weapon = inventoryStore.ownedWeapons[activeWeaponIdx.value]
-      selectedCustomEnchantments.value = weapon ? getWeaponEnchantmentIds(weapon) : []
-    }
+    if (result.success) syncCustomEnchantments(target.type, target.index)
   }
 
   const handleDisenchant = () => {
-    if (activeWeaponIdx.value === null) return
-    const result = inventoryStore.disenchantWeapon(activeWeaponIdx.value)
+    const target = activeEnchantTarget.value
+    if (!target) return
+    const result = inventoryStore.disenchantEquipment(target.type, target.index)
     addLog(result.message)
     if (result.success) selectedCustomEnchantments.value = []
   }
 
   const handleCustomEnchant = () => {
-    if (activeWeaponIdx.value === null) return
-    const result = inventoryStore.customizeWeaponEnchantments(activeWeaponIdx.value, selectedCustomEnchantments.value)
+    const target = activeEnchantTarget.value
+    if (!target) return
+    const result = inventoryStore.customizeEquipmentEnchantments(target.type, target.index, selectedCustomEnchantments.value)
     addLog(result.message)
+    if (result.success) syncCustomEnchantments(target.type, target.index)
   }
 
   const handleSellWeapon = () => {
@@ -1154,6 +1306,15 @@
     const ring = inventoryStore.ownedRings[activeRingIdx.value]
     if (!ring) return null
     return getRingById(ring.defId) ?? null
+  })
+
+  const activeRingEnchantments = computed(() => {
+    if (activeRingIdx.value === null) return []
+    return getActiveEquipmentEnchantments('ring', activeRingIdx.value)
+  })
+
+  watch(activeRingIdx, idx => {
+    if (idx !== null) syncCustomEnchantments('ring', idx)
   })
 
   const handleEquipRingFromPopup = (slot: 0 | 1) => {
@@ -1202,6 +1363,15 @@
     return getHatById(hat.defId) ?? null
   })
 
+  const activeHatEnchantments = computed(() => {
+    if (activeHatIdx.value === null) return []
+    return getActiveEquipmentEnchantments('hat', activeHatIdx.value)
+  })
+
+  watch(activeHatIdx, idx => {
+    if (idx !== null) syncCustomEnchantments('hat', idx)
+  })
+
   const handleToggleHatFromPopup = () => {
     if (activeHatIdx.value === null) return
     handleToggleHat(activeHatIdx.value)
@@ -1240,6 +1410,15 @@
     const shoe = inventoryStore.ownedShoes[activeShoeIdx.value]
     if (!shoe) return null
     return getShoeById(shoe.defId) ?? null
+  })
+
+  const activeShoeEnchantments = computed(() => {
+    if (activeShoeIdx.value === null) return []
+    return getActiveEquipmentEnchantments('shoe', activeShoeIdx.value)
+  })
+
+  watch(activeShoeIdx, idx => {
+    if (idx !== null) syncCustomEnchantments('shoe', idx)
   })
 
   const handleToggleShoeFromPopup = () => {

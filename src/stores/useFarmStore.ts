@@ -40,6 +40,51 @@ const createPlots = (size: FarmSize): FarmPlot[] => {
   }))
 }
 
+const createGreenhousePlot = (id: number): FarmPlot => ({
+  id,
+  state: 'tilled',
+  cropId: null,
+  growthDays: 0,
+  watered: false,
+  unwateredDays: 0,
+  fertilizer: null,
+  harvestCount: 0,
+  giantCropGroup: null,
+  seedGenetics: null,
+  infested: false,
+  infestedDays: 0,
+  weedy: false,
+  weedyDays: 0
+})
+
+const isDefaultGreenhousePlot = (plot: FarmPlot): boolean =>
+  plot.state === 'tilled' &&
+  plot.cropId === null &&
+  plot.growthDays === 0 &&
+  !plot.watered &&
+  plot.unwateredDays === 0 &&
+  plot.fertilizer === null &&
+  plot.harvestCount === 0 &&
+  plot.giantCropGroup === null &&
+  plot.seedGenetics === null &&
+  !plot.infested &&
+  plot.infestedDays === 0 &&
+  !plot.weedy &&
+  plot.weedyDays === 0
+
+const normalizeGreenhousePlot = (plot: any): FarmPlot => ({
+  ...createGreenhousePlot(plot.id ?? 0),
+  ...plot,
+  fertilizer: plot.fertilizer ?? null,
+  harvestCount: plot.harvestCount ?? 0,
+  giantCropGroup: plot.giantCropGroup ?? null,
+  seedGenetics: plot.seedGenetics ?? null,
+  infested: plot.infested ?? false,
+  infestedDays: plot.infestedDays ?? 0,
+  weedy: plot.weedy ?? false,
+  weedyDays: plot.weedyDays ?? 0
+})
+
 export const useFarmStore = defineStore('farm', () => {
   const farmSize = ref<FarmSize>(4)
   const plots = ref<FarmPlot[]>(createPlots(4))
@@ -834,22 +879,7 @@ export const useFarmStore = defineStore('farm', () => {
   /** 初始化温室地块 */
   const initGreenhouse = (): void => {
     if (greenhousePlots.value.length > 0) return
-    greenhousePlots.value = Array.from({ length: GREENHOUSE_PLOT_COUNT }, (_, i) => ({
-      id: i,
-      state: 'tilled' as const,
-      cropId: null,
-      growthDays: 0,
-      watered: false,
-      unwateredDays: 0,
-      fertilizer: null,
-      harvestCount: 0,
-      giantCropGroup: null,
-      seedGenetics: null,
-      infested: false,
-      infestedDays: 0,
-      weedy: false,
-      weedyDays: 0
-    }))
+    greenhousePlots.value = Array.from({ length: GREENHOUSE_PLOT_COUNT }, (_, i) => createGreenhousePlot(i))
   }
 
   /** 温室播种 */
@@ -948,22 +978,7 @@ export const useFarmStore = defineStore('farm', () => {
     const current = greenhousePlots.value.length
     if (newPlotCount <= current) return false
     for (let i = current; i < newPlotCount; i++) {
-      greenhousePlots.value.push({
-        id: i,
-        state: 'tilled' as const,
-        cropId: null,
-        growthDays: 0,
-        watered: false,
-        unwateredDays: 0,
-        fertilizer: null,
-        harvestCount: 0,
-        giantCropGroup: null,
-        seedGenetics: null,
-        infested: false,
-        infestedDays: 0,
-        weedy: false,
-        weedyDays: 0
-      })
+      greenhousePlots.value.push(createGreenhousePlot(i))
     }
     greenhouseLevel.value++
     return true
@@ -987,7 +1002,8 @@ export const useFarmStore = defineStore('farm', () => {
       plots: plots.value,
       sprinklers: sprinklers.value,
       fruitTrees: fruitTrees.value,
-      greenhousePlots: greenhousePlots.value,
+      greenhousePlots: greenhousePlots.value.filter(plot => !isDefaultGreenhousePlot(plot)),
+      greenhousePlotCount: greenhousePlots.value.length,
       greenhouseLevel: greenhouseLevel.value,
       wildTrees: wildTrees.value,
       nextFruitTreeId: nextFruitTreeId.value,
@@ -1032,15 +1048,15 @@ export const useFarmStore = defineStore('farm', () => {
     }))
     nextWildTreeId.value =
       (data as any).nextWildTreeId ?? (wildTrees.value.length > 0 ? Math.max(...wildTrees.value.map(t => t.id)) + 1 : 0)
-    greenhousePlots.value = ((data as any).greenhousePlots ?? []).map((p: any) => ({
-      ...p,
-      fertilizer: migrateFertilizer(p.fertilizer),
-      harvestCount: p.harvestCount ?? 0,
-      giantCropGroup: p.giantCropGroup ?? null,
-      seedGenetics: p.seedGenetics ?? null,
-      infested: p.infested ?? false,
-      infestedDays: p.infestedDays ?? 0
-    }))
+    greenhousePlots.value = Array.from({ length: GREENHOUSE_PLOT_COUNT }, (_, i) => createGreenhousePlot(i))
+    const savedGreenhousePlots = ((data as any).greenhousePlots ?? []).map((p: any, index: number) =>
+      normalizeGreenhousePlot({ ...p, id: p.id ?? index, fertilizer: migrateFertilizer(p.fertilizer) })
+    )
+    for (const plot of savedGreenhousePlots) {
+      if (plot.id >= 0 && plot.id < GREENHOUSE_PLOT_COUNT) {
+        greenhousePlots.value[plot.id] = plot
+      }
+    }
     greenhouseLevel.value = (data as any).greenhouseLevel ?? 0
     lightningRods.value = (data as any).lightningRods ?? 0
     scarecrows.value = (data as any).scarecrows ?? 0

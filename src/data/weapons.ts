@@ -1,4 +1,4 @@
-import type { WeaponDef, EnchantmentDef, WeaponType } from '@/types'
+import type { EquipmentEffect, WeaponDef, EnchantmentDef, WeaponType } from '@/types'
 
 export type WeaponEnchantInput = string | string[] | null | undefined
 
@@ -83,6 +83,54 @@ export const ENCHANTMENTS: Record<string, EnchantmentDef> = {
     attackBonus: 0,
     critBonus: 0,
     special: 'radiation'
+  },
+  scholar: {
+    id: 'scholar',
+    name: '学识',
+    description: '技能经验+20%',
+    attackBonus: 0,
+    critBonus: 0,
+    special: null
+  },
+  beloved: {
+    id: 'beloved',
+    name: '亲和',
+    description: '聊天与送礼好感+25%',
+    attackBonus: 0,
+    critBonus: 0,
+    special: null
+  },
+  regenerating: {
+    id: 'regenerating',
+    name: '回春',
+    description: '战斗中每回合回复3HP',
+    attackBonus: 0,
+    critBonus: 0,
+    special: null
+  },
+  treasure: {
+    id: 'treasure',
+    name: '寻宝',
+    description: '宝箱与稀有发现概率+10%',
+    attackBonus: 0,
+    critBonus: 0,
+    special: null
+  },
+  swift: {
+    id: 'swift',
+    name: '轻捷',
+    description: '旅行时间-8%',
+    attackBonus: 0,
+    critBonus: 0,
+    special: null
+  },
+  frugal: {
+    id: 'frugal',
+    name: '节用',
+    description: '体力消耗-5%',
+    attackBonus: 0,
+    critBonus: 0,
+    special: null
   }
 }
 
@@ -97,11 +145,52 @@ export const ENCHANTMENT_RARITY: Record<string, number> = {
   vampiric: 4,
   lucky: 4,
   frost: 4,
+  scholar: 4,
+  beloved: 4,
+  regenerating: 4,
+  treasure: 4,
+  swift: 3,
+  frugal: 3,
   irradiated: 5
 }
 
 /** 可用于随机附魔的 ID 列表 */
-export const RANDOM_ENCHANT_IDS = ['sharp', 'fierce', 'precise', 'venom', 'flame', 'sturdy', 'vampiric', 'lucky', 'frost', 'irradiated']
+export const RANDOM_ENCHANT_IDS = [
+  'sharp',
+  'fierce',
+  'precise',
+  'venom',
+  'flame',
+  'sturdy',
+  'swift',
+  'frugal',
+  'vampiric',
+  'lucky',
+  'frost',
+  'scholar',
+  'beloved',
+  'regenerating',
+  'treasure',
+  'irradiated'
+]
+
+export const ENCHANTMENT_EFFECTS: Partial<Record<string, EquipmentEffect[]>> = {
+  sharp: [{ type: 'attack_bonus', value: 3 }],
+  fierce: [{ type: 'attack_bonus', value: 5 }],
+  precise: [{ type: 'crit_rate_bonus', value: 0.1 }],
+  vampiric: [{ type: 'vampiric', value: 0.15 }],
+  sturdy: [{ type: 'defense_bonus', value: 0.15 }],
+  lucky: [
+    { type: 'monster_drop_bonus', value: 0.2 },
+    { type: 'luck', value: 0.05 }
+  ],
+  scholar: [{ type: 'exp_bonus', value: 0.2 }],
+  beloved: [{ type: 'gift_friendship', value: 0.25 }],
+  regenerating: [{ type: 'combat_regen', value: 3 }],
+  treasure: [{ type: 'treasure_find', value: 0.1 }],
+  swift: [{ type: 'travel_speed', value: 0.08 }],
+  frugal: [{ type: 'stamina_reduction', value: 0.05 }]
+}
 
 export const normalizeEnchantmentIds = (input: WeaponEnchantInput): string[] => {
   if (!input) return []
@@ -123,6 +212,17 @@ export const getOwnedWeaponEnchantments = (weapon: { enchantmentId?: string | nu
   return getWeaponEnchantmentIds(weapon)
     .map(id => ENCHANTMENTS[id])
     .filter((enchant): enchant is EnchantmentDef => Boolean(enchant))
+}
+
+export const getOwnedEquipmentEnchantments = (equipment: { enchantmentId?: string | null; enchantmentIds?: string[] }): EnchantmentDef[] =>
+  getOwnedWeaponEnchantments(equipment)
+
+export const getEnchantmentEffects = (enchantmentIds: WeaponEnchantInput): EquipmentEffect[] => {
+  const effects: EquipmentEffect[] = []
+  for (const id of normalizeEnchantmentIds(enchantmentIds)) {
+    effects.push(...(ENCHANTMENT_EFFECTS[id] ?? []))
+  }
+  return effects
 }
 
 export const getEnchantmentCost = (enchantmentId: string): number => {

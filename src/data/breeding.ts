@@ -141,6 +141,8 @@ export const getDefaultGenetics = (cropId: string): Omit<SeedGenetics, 'id'> => 
       mutationRate: 10,
       parentA: null,
       parentB: null,
+      parentCropA: null,
+      parentCropB: null,
       isHybrid: false,
       hybridId: null
     }
@@ -164,6 +166,8 @@ export const getDefaultGenetics = (cropId: string): Omit<SeedGenetics, 'id'> => 
     mutationRate: 10,
     parentA: null,
     parentB: null,
+    parentCropA: null,
+    parentCropB: null,
     isHybrid: false,
     hybridId: null
   }

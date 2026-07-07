@@ -1544,7 +1544,8 @@
     treasure_find: '宝箱概率',
     ore_bonus: '矿石加成',
     luck: '幸运',
-    travel_speed: '旅行加速'
+    travel_speed: '旅行加速',
+    combat_regen: '回合自愈'
   }
 
   const PCTG_EFFECTS: Set<EquipmentEffectType> = new Set([

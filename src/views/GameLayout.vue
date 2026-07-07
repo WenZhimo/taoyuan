@@ -486,7 +486,7 @@
   import { useFarmStore } from '@/stores/useFarmStore'
   import { useDialogs } from '@/composables/useDialogs'
   import type { MorningChoiceEvent } from '@/data/farmEvents'
-  import { handleEndDay } from '@/composables/useEndDay'
+  import { getResourceSleepOptions, handleEndDay, handleSleepOrPassOut } from '@/composables/useEndDay'
   import { addLog, logHistory, clearAllLogs, clearDayLogs, _registerDayLabelGetter } from '@/composables/useGameLog'
   import {
     LATE_NIGHT_RECOVERY_MAX,
@@ -502,7 +502,7 @@
   import { CHEST_DEFS } from '@/data/items'
   import { useGameClock } from '@/composables/useGameClock'
   import { useAudio } from '@/composables/useAudio'
-  import type { LocationGroup, Quality } from '@/types'
+  import type { Quality } from '@/types'
   import { Moon, X, Map, Settings as SettingsIcon, Archive, ArrowDown, ArrowDownToLine, History, Trash2, Coffee } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
@@ -560,14 +560,6 @@
   const warehouseStore = useWarehouseStore()
 
   const { startClock, stopClock, pauseClock, resumeClock } = useGameClock()
-
-  const SLEEPING_BAG_ITEM_ID = 'sleeping_bag'
-  const RESOURCE_SLEEP_GROUPS: LocationGroup[] = ['nature', 'mine', 'hanhai']
-  const RESOURCE_SLEEP_WAKE_PANEL: Partial<Record<LocationGroup, string>> = {
-    nature: 'forage',
-    mine: 'mining',
-    hanhai: 'hanhai'
-  }
 
   /** 移动端地图菜单 */
   const showMobileMap = ref(false)
@@ -648,10 +640,10 @@
     return (route.name as string) ?? 'farm'
   })
 
-  const isResourceSleepLocation = computed(() => RESOURCE_SLEEP_GROUPS.includes(gameStore.currentLocationGroup))
-  const hasSleepingBag = computed(() => inventoryStore.hasItem(SLEEPING_BAG_ITEM_ID))
-  const canUseSleepingBag = computed(() => isResourceSleepLocation.value && hasSleepingBag.value)
-  const currentLocationGroupName = computed(() => getLocationGroupName(gameStore.currentLocationGroup))
+  const resourceSleepOptions = computed(() => getResourceSleepOptions())
+  const isResourceSleepLocation = computed(() => !!resourceSleepOptions.value || ['nature', 'mine', 'hanhai'].includes(gameStore.currentLocationGroup))
+  const canUseSleepingBag = computed(() => !!resourceSleepOptions.value)
+  const currentLocationGroupName = computed(() => getLocationGroupName(resourceSleepOptions.value?.wakeLocationGroup ?? gameStore.currentLocationGroup))
 
   const sleepLabel = computed(() => {
     if (canUseSleepingBag.value) return '睡袋休息'
@@ -975,14 +967,12 @@
   }
 
   const confirmSleep = () => {
-    const useSleepingBag = canUseSleepingBag.value
-    const wakeLocationGroup = gameStore.currentLocationGroup
-    const wakePanel = RESOURCE_SLEEP_WAKE_PANEL[wakeLocationGroup] ?? 'farm'
+    const sleepOptions = resourceSleepOptions.value
     showSleepConfirm.value = false
     pauseClock()
-    if (useSleepingBag) {
-      addLog(`在${getLocationGroupName(wakeLocationGroup)}铺开睡袋过夜。`)
-      handleEndDay({ wakePanel, wakeLocationGroup, forceRecoveryMode: gameStore.hour >= 24 ? 'late' : 'normal' })
+    if (sleepOptions?.wakeLocationGroup) {
+      addLog(`在${getLocationGroupName(sleepOptions.wakeLocationGroup)}铺开睡袋过夜。`)
+      handleEndDay({ ...sleepOptions, forceRecoveryMode: gameStore.hour >= 24 ? 'late' : 'normal' })
     } else {
       handleEndDay()
     }
@@ -1014,9 +1004,9 @@
     const wakeText = interrupted ? '小憩被打断' : '小憩醒来'
     addLog(`${wakeText}，过去了${formatNapDuration(elapsedMinutes)}，恢复${actualRecovery}体力。`)
 
-    if (result.message) addLog(result.message)
     if (result.passedOut) {
-      handleEndDay()
+      if (result.message && !getResourceSleepOptions()) addLog(result.message)
+      handleSleepOrPassOut()
       switchToSeasonalBgm()
     }
 

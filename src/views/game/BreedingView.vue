@@ -290,6 +290,21 @@
             </div>
           </div>
 
+          <div class="border border-accent/10 rounded-xs p-2 mb-3">
+            <p class="text-xs text-muted mb-1">亲本来源</p>
+            <template v-if="detailSeed.genetics.parentCropA || detailSeed.genetics.parentCropB">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-muted">亲本A</span>
+                <span class="text-xs">{{ detailSeed.genetics.parentCropA ? getCropName(detailSeed.genetics.parentCropA) : '未知' }}</span>
+              </div>
+              <div class="flex items-center justify-between mt-0.5">
+                <span class="text-xs text-muted">亲本B</span>
+                <span class="text-xs">{{ detailSeed.genetics.parentCropB ? getCropName(detailSeed.genetics.parentCropB) : '未知' }}</span>
+              </div>
+            </template>
+            <p v-else class="text-xs text-muted/70">种子制造机或旧存档种子，无亲本记录。</p>
+          </div>
+
           <!-- 操作按钮 -->
           <div class="flex flex-col space-y-1">
             <Button class="w-full justify-center text-danger" :icon="Trash2" :icon-size="12" @click="handleDiscard">丢弃</Button>

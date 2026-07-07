@@ -339,7 +339,8 @@ export const useNpcStore = defineStore('npc', () => {
     if (state.talkedToday) return null
 
     state.talkedToday = true
-    const friendshipGain = 20 * FRIENDSHIP_GAIN_MULTIPLIER
+    const friendshipBonus = useInventoryStore().getRingEffectValue('gift_friendship')
+    const friendshipGain = Math.floor(20 * FRIENDSHIP_GAIN_MULTIPLIER * (1 + friendshipBonus))
     state.friendship += friendshipGain
 
     const npcDef = getNpcById(npcId)

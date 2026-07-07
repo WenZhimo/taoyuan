@@ -22,6 +22,7 @@ export type EquipmentEffectType =
   | 'ore_bonus'
   | 'luck'
   | 'travel_speed'
+  | 'combat_regen'
 
 /** 兼容别名 */
 export type RingEffectType = EquipmentEffectType
@@ -54,4 +55,8 @@ export interface RingDef {
 /** 拥有的戒指实例（存储用） */
 export interface OwnedRing {
   defId: string
+  /** 旧存档/旧逻辑兼容字段：等同于 enchantmentIds 的第一项 */
+  enchantmentId?: string | null
+  /** 当前附魔列表，允许重复附魔 */
+  enchantmentIds?: string[]
 }

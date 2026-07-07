@@ -1179,6 +1179,15 @@ export const useMiningStore = defineStore('mining', () => {
     return null
   }
 
+  const applyCombatRegen = (): string | null => {
+    const regen = Math.floor(inventoryStore.getRingEffectValue('combat_regen'))
+    if (regen <= 0 || playerStore.hp >= playerStore.getMaxHp()) return null
+    const beforeHp = playerStore.hp
+    playerStore.restoreHealth(regen)
+    const healed = playerStore.hp - beforeHp
+    return healed > 0 ? `回春恢复${healed}HP。` : null
+  }
+
   /** 战斗操作 */
   const combatAction = (action: CombatAction): { message: string; combatOver: boolean; won: boolean } => {
     if (!inCombat.value || !combatMonster.value) {
@@ -1216,6 +1225,11 @@ export const useMiningStore = defineStore('mining', () => {
     }
     if (playerStore.hp <= 0) {
       return handleDefeat()
+    }
+
+    const regenLine = applyCombatRegen()
+    if (regenLine) {
+      combatLog.value.push(regenLine)
     }
 
     if (action === 'defend') {
@@ -1750,6 +1764,21 @@ export const useMiningStore = defineStore('mining', () => {
     return '你离开了矿洞。'
   }
 
+  /** 睡袋过夜：保留矿洞探索状态，但清除当前战斗 */
+  const clearCombatForSleep = (): void => {
+    inCombat.value = false
+    combatMonster.value = null
+    combatMonsterHp.value = 0
+    combatRound.value = 0
+    combatLog.value = []
+    combatIsBoss.value = false
+    combatMonsterStatuses.value = []
+    combatPlayerStatuses.value = []
+    chainCombatActive.value = false
+    chainCombatQueue.value = []
+    _combatTileIndex.value = -1
+  }
+
   // ==================== 道具使用 ====================
 
   /** 在战斗/探索中使用道具 */
@@ -2042,6 +2071,7 @@ export const useMiningStore = defineStore('mining', () => {
     useMonsterLure,
     goNextFloor,
     leaveMine,
+    clearCombatForSleep,
     serialize,
     deserialize
   }

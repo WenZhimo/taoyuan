@@ -850,19 +850,53 @@
             </Button>
           </div>
 
-          <!-- 温室地块网格 -->
-          <div class="grid gap-1 max-w-full" :style="{ gridTemplateColumns: `repeat(${ghGridCols}, minmax(0, 1fr))` }">
+          <!-- 温室统计列表 -->
+          <div class="grid grid-cols-2 gap-1.5 mb-3">
             <button
-              v-for="plot in farmStore.greenhousePlots"
-              :key="plot.id"
-              class="aspect-square border border-accent/20 rounded-xs flex flex-col items-center justify-center cursor-pointer transition-colors hover:border-accent/60 hover:bg-panel/80 leading-tight"
-              :class="getPlotDisplay(plot).color"
-              :title="getPlotTooltip(plot)"
-              @click="activeGhPlotId = plot.id"
+              v-for="stat in ghStateStats"
+              :key="stat.key"
+              class="border border-accent/10 rounded-xs px-3 py-2 text-left"
+              :class="stat.firstPlotId !== null ? 'cursor-pointer hover:bg-accent/5' : 'opacity-70'"
+              @click="stat.firstPlotId !== null && (activeGhPlotId = stat.firstPlotId)"
             >
-              <component :is="getPlotDisplay(plot).icon" :size="14" />
-              <span v-if="plot.cropId" class="text-[10px] opacity-70 truncate max-w-full px-0.5">{{ getCropName(plot.cropId) }}</span>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-muted">{{ stat.label }}</span>
+                <span class="text-xs text-accent">{{ stat.count }}</span>
+              </div>
             </button>
+          </div>
+
+          <div class="border border-accent/10 rounded-xs p-2">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs text-muted">植物统计</span>
+              <span class="text-xs text-accent">{{ ghPlantedCount }}株</span>
+            </div>
+            <div v-if="ghCropStats.length > 0" class="flex flex-col space-y-1 max-h-72 overflow-y-auto">
+              <button
+                v-for="item in ghCropStats"
+                :key="item.key"
+                class="border border-accent/10 rounded-xs px-3 py-1.5 text-left cursor-pointer hover:bg-accent/5 mr-1"
+                @click="activeGhPlotId = item.firstPlotId"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-xs">
+                    {{ item.name }}
+                    <span v-if="item.generation !== null" class="text-accent ml-1">G{{ item.generation }}</span>
+                  </span>
+                  <span class="text-xs text-muted">×{{ item.count }}</span>
+                </div>
+                <div class="flex items-center justify-between mt-0.5">
+                  <span class="text-[10px] text-muted">
+                    可收获 {{ item.harvestable }} · 生长中 {{ item.growing }}
+                  </span>
+                  <span v-if="item.avgProgress !== null" class="text-[10px] text-success">{{ item.avgProgress }}%</span>
+                </div>
+              </button>
+            </div>
+            <div v-else class="flex flex-col items-center justify-center py-5">
+              <Sprout :size="28" class="text-muted/30" />
+              <p class="text-xs text-muted mt-2">温室里还没有作物</p>
+            </div>
           </div>
         </div>
       </div>
@@ -1943,12 +1977,80 @@
 
   const ghTilledEmptyCount = computed(() => farmStore.greenhousePlots.filter(p => p.state === 'tilled').length)
 
-  const ghGridCols = computed(() => {
-    const upgradeDef = GREENHOUSE_UPGRADES[farmStore.greenhouseLevel - 1]
-    return upgradeDef?.gridCols ?? 4
+  const nextGhUpgrade = computed(() => GREENHOUSE_UPGRADES[farmStore.greenhouseLevel] ?? null)
+
+  const ghPlantedCount = computed(() => farmStore.greenhousePlots.length - ghTilledEmptyCount.value)
+
+  const ghStateStats = computed(() => {
+    const stats: Record<string, { key: string; label: string; count: number; firstPlotId: number | null }> = {
+      tilled: { key: 'tilled', label: '空耕地', count: 0, firstPlotId: null },
+      planted: { key: 'planted', label: '已种', count: 0, firstPlotId: null },
+      growing: { key: 'growing', label: '生长中', count: 0, firstPlotId: null },
+      harvestable: { key: 'harvestable', label: '可收获', count: 0, firstPlotId: null }
+    }
+    for (const plot of farmStore.greenhousePlots) {
+      const stat = stats[plot.state]
+      if (!stat) continue
+      stat.count++
+      if (stat.firstPlotId === null) stat.firstPlotId = plot.id
+    }
+    return [stats.tilled!, stats.planted!, stats.growing!, stats.harvestable!]
   })
 
-  const nextGhUpgrade = computed(() => GREENHOUSE_UPGRADES[farmStore.greenhouseLevel] ?? null)
+  const ghCropStats = computed(() => {
+    type GhCropStat = {
+      key: string
+      name: string
+      generation: number | null
+      count: number
+      harvestable: number
+      growing: number
+      firstPlotId: number
+      progressSum: number
+      progressCount: number
+      avgProgress: number | null
+    }
+    const map = new Map<string, GhCropStat>()
+    const walletGrowth = useWalletStore().getCropGrowthBonus()
+    for (const plot of farmStore.greenhousePlots) {
+      if (!plot.cropId) continue
+      const crop = getCropById(plot.cropId)
+      const generation = plot.seedGenetics?.generation ?? null
+      const key = `${plot.cropId}:${generation ?? 'base'}`
+      let stat = map.get(key)
+      if (!stat) {
+        stat = {
+          key,
+          name: crop?.name ?? plot.cropId,
+          generation,
+          count: 0,
+          harvestable: 0,
+          growing: 0,
+          firstPlotId: plot.id,
+          progressSum: 0,
+          progressCount: 0,
+          avgProgress: null
+        }
+        map.set(key, stat)
+      }
+      stat.count++
+      if (plot.state === 'harvestable') stat.harvestable++
+      if (plot.state === 'planted' || plot.state === 'growing') {
+        stat.growing++
+        const fertDef = plot.fertilizer ? getFertilizerById(plot.fertilizer) : null
+        const speedup = (fertDef?.growthSpeedup ?? 0) + walletGrowth
+        const effectiveDays = crop ? Math.max(1, Math.floor(crop.growthDays * (1 - speedup))) : 1
+        stat.progressSum += Math.min(100, Math.floor((plot.growthDays / effectiveDays) * 100))
+        stat.progressCount++
+      }
+    }
+    return Array.from(map.values())
+      .map(stat => ({
+        ...stat,
+        avgProgress: stat.progressCount > 0 ? Math.round(stat.progressSum / stat.progressCount) : null
+      }))
+      .sort((a, b) => b.harvestable - a.harvestable || b.count - a.count || a.name.localeCompare(b.name))
+  })
 
   const allSeeds = computed(() => {
     return CROPS.filter(crop => inventoryStore.hasItem(crop.seedId)).map(crop => ({
