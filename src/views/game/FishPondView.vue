@@ -203,6 +203,35 @@
             <p class="text-xs text-muted/60">可同时进行多组育苗</p>
           </div>
         </div>
+
+        <!-- 繁衍塘 -->
+        <div class="mb-3">
+          <Divider label="繁衍塘" />
+          <div v-if="reproductionGroups.length > 0" class="flex flex-col space-y-1.5">
+            <div v-for="group in reproductionGroups" :key="group.fishId" class="border border-success/20 rounded-xs px-3 py-2">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center space-x-1.5">
+                  <Waves :size="12" class="text-success" />
+                  <span class="text-xs">{{ group.name }}</span>
+                  <span class="text-[10px] text-muted">成熟{{ group.matureCount }}条</span>
+                </div>
+                <span class="text-[10px] text-success">+{{ group.pairPower }}/天</span>
+              </div>
+              <div class="flex items-center space-x-2 text-[10px] text-muted">
+                <div class="flex-1 h-1 bg-bg rounded-xs border border-accent/10">
+                  <div class="h-full rounded-xs bg-success transition-all" :style="{ width: `${group.progressPercent}%` }" />
+                </div>
+                <span>{{ group.progress }}/{{ breedingTotalDays }}</span>
+                <span>约{{ group.daysLeft }}天</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="border border-accent/10 rounded-xs py-6 flex flex-col items-center space-y-2">
+            <Waves :size="32" class="text-muted/30" />
+            <p class="text-xs text-muted">暂无可自然繁衍的鱼种</p>
+            <p class="text-xs text-muted/60">每种至少两条成熟健康鱼会自动累积新鱼进度</p>
+          </div>
+        </div>
       </template>
 
       <!-- ===== 图鉴 Tab ===== -->
@@ -514,6 +543,24 @@
   const getBreedingProgress = (daysLeft: number): number => ((breedingTotalDays - daysLeft) / breedingTotalDays) * 100
   const pondCapacityLabel = computed(() => formatCapacity(fishPondStore.capacity))
   const detailGroup = computed(() => fishPondStore.fishGroups.find(group => group.fishId === detailGroupFishId.value) ?? null)
+  const reproductionGroups = computed(() =>
+    fishPondStore.fishGroups
+      .filter(group => group.matureCount >= 2)
+      .map(group => {
+        const pairPower = Math.floor(group.matureCount / 2)
+        const progress = fishPondStore.pond.reproductionProgress[group.fishId] ?? 0
+        const daysLeft = pairPower > 0 ? Math.max(1, Math.ceil((breedingTotalDays - progress) / pairPower)) : breedingTotalDays
+        return {
+          fishId: group.fishId,
+          name: group.name,
+          matureCount: group.matureCount,
+          pairPower,
+          progress,
+          progressPercent: Math.min(100, (progress / breedingTotalDays) * 100),
+          daysLeft
+        }
+      })
+  )
 
   // === 建造/升级统一弹窗 ===
 
