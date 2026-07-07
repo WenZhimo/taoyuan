@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { MonsterDef, CombatAction, MineFloorDef, MineTile, Quality } from '@/types'
+import type { MonsterDef, CombatAction, CombatStatusEffect, CombatStatusType, MineFloorDef, MineTile, Quality } from '@/types'
 import {
   getFloor,
   getRewardNames,
@@ -48,6 +48,63 @@ const DEFEAT_MONEY_PENALTY_RATE = 0.1
 const DEFEAT_MONEY_PENALTY_CAP = 15000
 const DEFEAT_MAX_ITEM_LOSS = 3
 
+const rollChanceQuantity = (chance: number): number => {
+  const safeChance = Math.max(0, chance)
+  const guaranteed = Math.floor(safeChance)
+  const fractional = safeChance - guaranteed
+  return guaranteed + (Math.random() < fractional ? 1 : 0)
+}
+
+const COMBAT_STATUS_NAMES: Record<CombatStatusType, string> = {
+  poison: '中毒',
+  burn: '燃烧',
+  freeze: '冻结',
+  radiation: '辐射',
+  battle_rage: '战意',
+  iron_skin: '铁皮'
+}
+
+const COMBAT_ITEM_EFFECTS: Record<
+  string,
+  | { kind: 'damage'; percent?: number; flat?: number; ignoreDefense?: boolean; status?: CombatStatusType; turns?: number | null; power?: number }
+  | { kind: 'playerStatus'; status: CombatStatusType; turns: number | null; power: number }
+> = {
+  bomb: { kind: 'damage', flat: 50, ignoreDefense: true },
+  mega_bomb: { kind: 'damage', percent: 0.35, flat: 120, ignoreDefense: true, status: 'burn', turns: 3, power: 0.06 },
+  poison_arrow: { kind: 'damage', flat: 25, ignoreDefense: false, status: 'poison', turns: 4, power: 0.05 },
+  ice_bomb: { kind: 'damage', percent: 0.18, flat: 40, ignoreDefense: true, status: 'freeze', turns: 2, power: 0.35 },
+  nuclear_bomb: { kind: 'damage', percent: 0.65, flat: 300, ignoreDefense: true, status: 'radiation', turns: null, power: 0.08 },
+  attack_potion: { kind: 'playerStatus', status: 'battle_rage', turns: 60, power: 500 },
+  guardian_potion: { kind: 'playerStatus', status: 'iron_skin', turns: 60, power: 0.35 }
+}
+
+const createCombatStatus = (
+  type: CombatStatusType,
+  remainingTurns: number | null,
+  power: number,
+  source: CombatStatusEffect['source']
+): CombatStatusEffect => ({
+  type,
+  name: COMBAT_STATUS_NAMES[type],
+  remainingTurns,
+  power,
+  source
+})
+
+interface ChainCombatEntry {
+  tileIndex: number
+  monster: MonsterDef
+  isBoss: boolean
+}
+
+interface SweepPreview {
+  canSweep: boolean
+  targetFloor: number | null
+  estimatedDamage: number
+  remainingMonsters: number
+  message: string
+}
+
 export const useMiningStore = defineStore('mining', () => {
   const playerStore = usePlayerStore()
   const inventoryStore = useInventoryStore()
@@ -72,6 +129,10 @@ export const useMiningStore = defineStore('mining', () => {
   const combatRound = ref(0)
   const combatLog = ref<string[]>([])
   const combatIsBoss = ref(false)
+  const combatMonsterStatuses = ref<CombatStatusEffect[]>([])
+  const combatPlayerStatuses = ref<CombatStatusEffect[]>([])
+  const chainCombatActive = ref(false)
+  const chainCombatQueue = ref<ChainCombatEntry[]>([])
 
   /** 已击败的 BOSS（首杀记录） */
   const defeatedBosses = ref<string[]>([])
@@ -208,6 +269,7 @@ export const useMiningStore = defineStore('mining', () => {
     combatMonster.value = { ...monster }
     combatMonsterHp.value = monster.hp
     combatRound.value = 0
+    combatMonsterStatuses.value = []
 
     if (tile.type === 'boss') {
       const isFirstKill = !defeatedBosses.value.includes(monster.id)
@@ -362,6 +424,7 @@ export const useMiningStore = defineStore('mining', () => {
     combatMonster.value = { ...monster }
     combatMonsterHp.value = monster.hp
     combatRound.value = 0
+    combatMonsterStatuses.value = []
     combatLog.value = [`遭遇了${monster.name}！(HP: ${monster.hp})  (-${staminaCost}体力)`]
     combatIsBoss.value = false
     inCombat.value = true
@@ -381,6 +444,7 @@ export const useMiningStore = defineStore('mining', () => {
     combatMonster.value = { ...monster }
     combatMonsterHp.value = monster.hp
     combatRound.value = 0
+    combatMonsterStatuses.value = []
 
     const isFirstKill = !defeatedBosses.value.includes(monster.id)
     combatLog.value = [`BOSS战！遭遇了${monster.name}！(HP: ${monster.hp})${isFirstKill ? '' : '（弱化版）'}  (-${staminaCost}体力)`]
@@ -446,7 +510,8 @@ export const useMiningStore = defineStore('mining', () => {
     if (treasureRings) {
       const ringTreasureBonus = inventoryStore.getRingEffectValue('treasure_find')
       for (const tr of treasureRings) {
-        if (Math.random() < tr.chance + ringTreasureBonus * tr.chance) {
+        const attempts = rollChanceQuantity(tr.chance + ringTreasureBonus * tr.chance)
+        for (let i = 0; i < attempts; i++) {
           if (inventoryStore.hasRing(tr.ringId)) {
             const price = getRingById(tr.ringId)?.sellPrice ?? 0
             playerStore.earnMoney(price)
@@ -464,7 +529,8 @@ export const useMiningStore = defineStore('mining', () => {
     if (treasureHats) {
       const treasureBonus = inventoryStore.getRingEffectValue('treasure_find')
       for (const th of treasureHats) {
-        if (Math.random() < th.chance + treasureBonus * th.chance) {
+        const attempts = rollChanceQuantity(th.chance + treasureBonus * th.chance)
+        for (let i = 0; i < attempts; i++) {
           if (inventoryStore.hasHat(th.hatId)) {
             const price = getHatById(th.hatId)?.sellPrice ?? 0
             playerStore.earnMoney(price)
@@ -482,7 +548,8 @@ export const useMiningStore = defineStore('mining', () => {
     if (treasureShoes) {
       const treasureBonus = inventoryStore.getRingEffectValue('treasure_find')
       for (const ts of treasureShoes) {
-        if (Math.random() < ts.chance + treasureBonus * ts.chance) {
+        const attempts = rollChanceQuantity(ts.chance + treasureBonus * ts.chance)
+        for (let i = 0; i < attempts; i++) {
           if (inventoryStore.hasShoe(ts.shoeId)) {
             const price = getShoeById(ts.shoeId)?.sellPrice ?? 0
             playerStore.earnMoney(price)
@@ -500,7 +567,8 @@ export const useMiningStore = defineStore('mining', () => {
     if (treasureWeapons) {
       const treasureBonus = inventoryStore.getRingEffectValue('treasure_find')
       for (const tw of treasureWeapons) {
-        if (Math.random() < tw.chance + treasureBonus * tw.chance) {
+        const attempts = rollChanceQuantity(tw.chance + treasureBonus * tw.chance)
+        for (let i = 0; i < attempts; i++) {
           const enchantId = rollRandomEnchantment()
           if (inventoryStore.hasWeaponExact(tw.weaponId, enchantId)) {
             const price = getWeaponSellPrice(tw.weaponId, enchantId)
@@ -677,6 +745,8 @@ export const useMiningStore = defineStore('mining', () => {
     const baseFloor = startFromSafePoint ?? safePointFloor.value
     currentFloor.value = baseFloor + 1
     sessionLoot.value = []
+    combatPlayerStatuses.value = []
+    combatMonsterStatuses.value = []
 
     _generateGrid()
 
@@ -695,6 +765,8 @@ export const useMiningStore = defineStore('mining', () => {
     skullCavernFloor.value = baseFloor + 1
     cacheSkullFloor(skullCavernFloor.value)
     sessionLoot.value = []
+    combatPlayerStatuses.value = []
+    combatMonsterStatuses.value = []
 
     _generateGrid()
 
@@ -726,7 +798,387 @@ export const useMiningStore = defineStore('mining', () => {
     return points
   }
 
+  const getRemainingCombatEntries = (): ChainCombatEntry[] => {
+    return floorGrid.value
+      .filter(t => (t.type === 'monster' || t.type === 'boss') && t.state !== 'defeated' && t.data?.monster)
+      .map(t => ({
+        tileIndex: t.index,
+        monster: { ...t.data!.monster! },
+        isBoss: t.type === 'boss'
+      }))
+  }
+
+  const getRemainingCombatTileCount = (): number => {
+    return getRemainingCombatEntries().length
+  }
+
+  const getNextSafePointFloor = (): number | null => {
+    const current = getActiveFloorNum()
+    const interval = isInSkullCavern.value ? 10 : 5
+    const target = Math.ceil((current + 1) / interval) * interval
+    if (!isInSkullCavern.value && target > MAX_MINE_FLOOR) return null
+    return target
+  }
+
+  const getSweepPreview = (): SweepPreview => {
+    if (!isExploring.value) {
+      return { canSweep: false, targetFloor: null, estimatedDamage: 0, remainingMonsters: 0, message: '不在矿洞中。' }
+    }
+    if (inCombat.value) {
+      return { canSweep: false, targetFloor: null, estimatedDamage: 0, remainingMonsters: 0, message: '战斗中无法扫荡。' }
+    }
+
+    const targetFloor = getNextSafePointFloor()
+    if (targetFloor === null) {
+      return { canSweep: false, targetFloor: null, estimatedDamage: 0, remainingMonsters: 0, message: '没有可抵达的下一个安全点。' }
+    }
+
+    const current = getActiveFloorNum()
+    const floorSpan = Math.max(1, targetFloor - current + 1)
+    const currentMonsters = getRemainingCombatEntries()
+    const currentAttackTotal = currentMonsters.reduce((sum, entry) => sum + entry.monster.attack, 0)
+    const currentAvgAttack = currentMonsters.length > 0 ? currentAttackTotal / currentMonsters.length : getActiveFloorNum() * 0.45 + 8
+    const expectedMonsters = currentMonsters.length + Math.max(0, floorSpan - 1) * (isInSkullCavern.value ? 4 : 3)
+    const defenseBonus = Math.min(0.8, inventoryStore.getRingEffectValue('defense_bonus') + guildBonusDefense.value)
+    const playerPower =
+      inventoryStore.getWeaponAttack() +
+      skillStore.combatLevel * 2 +
+      inventoryStore.getRingEffectValue('attack_bonus') +
+      guildBadgeBonusAttack.value +
+      useGuildStore().getGuildAttackBonus()
+    const depthPressure = isInSkullCavern.value ? 1.25 + current / 120 : 1 + current / 180
+    const estimatedDamage = Math.max(
+      1,
+      Math.floor((currentAvgAttack * expectedMonsters * depthPressure - playerPower * 0.8) * (1 - defenseBonus))
+    )
+
+    return {
+      canSweep: playerStore.hp > estimatedDamage,
+      targetFloor,
+      estimatedDamage,
+      remainingMonsters: expectedMonsters,
+      message:
+        playerStore.hp > estimatedDamage
+          ? `预计损失${estimatedDamage}HP，抵达第${targetFloor}层安全点。`
+          : `预计损失${estimatedDamage}HP，当前生命值不足。`
+    }
+  }
+
+  const sweepToNextSafePoint = (): { success: boolean; message: string } => {
+    const preview = getSweepPreview()
+    if (!preview.targetFloor) return { success: false, message: preview.message }
+    if (!preview.canSweep) return { success: false, message: preview.message }
+
+    playerStore.takeDamage(preview.estimatedDamage)
+    chainCombatActive.value = false
+    chainCombatQueue.value = []
+    inCombat.value = false
+    combatIsBoss.value = false
+    _combatTileIndex.value = -1
+
+    if (isInSkullCavern.value) {
+      skullCavernFloor.value = preview.targetFloor
+      cacheSkullFloor(skullCavernFloor.value)
+      skullSafePointFloor.value = Math.max(skullSafePointFloor.value, skullCavernFloor.value)
+      if (skullCavernFloor.value > skullCavernBestFloor.value) {
+        skullCavernBestFloor.value = skullCavernFloor.value
+        useAchievementStore().recordSkullCavernFloor(skullCavernFloor.value)
+      }
+    } else {
+      currentFloor.value = preview.targetFloor
+      safePointFloor.value = Math.max(safePointFloor.value, currentFloor.value)
+      useAchievementStore().recordMineFloor(currentFloor.value)
+    }
+
+    _generateGrid()
+    return {
+      success: true,
+      message: `你扫荡穿过矿道，损失${preview.estimatedDamage}HP，抵达第${preview.targetFloor}层安全点。本次扫荡跳过了沿途战利品。`
+    }
+  }
+
+  const revealWholeFloorNoTime = (): string => {
+    let oreCount = 0
+    let treasureCount = 0
+    let mushroomCount = 0
+    let money = 0
+    let treasureGearCount = 0
+    let treasureAutoSoldMoney = 0
+    const floor = getActiveFloorData()
+
+    for (const tile of floorGrid.value) {
+      if (tile.state === 'defeated' || tile.state === 'collected' || tile.state === 'triggered') continue
+
+      switch (tile.type) {
+        case 'empty':
+          tile.state = 'revealed'
+          break
+        case 'ore': {
+          const oreId = tile.data?.oreId ?? 'copper_ore'
+          const quantity = tile.data?.oreQuantity ?? 1
+          inventoryStore.addItem(oreId, quantity)
+          sessionLoot.value.push({ itemId: oreId, quantity })
+          useAchievementStore().discoverItem(oreId)
+          oreCount += quantity
+          tile.state = 'collected'
+          break
+        }
+        case 'treasure': {
+          const items = tile.data?.treasureItems ?? []
+          const tileMoney = tile.data?.treasureMoney ?? 0
+          for (const r of items) {
+            inventoryStore.addItem(r.itemId, r.quantity)
+            sessionLoot.value.push(r)
+            useAchievementStore().discoverItem(r.itemId)
+          }
+          if (tileMoney > 0) {
+            playerStore.earnMoney(tileMoney)
+            money += tileMoney
+          }
+
+          const zone = floor?.zone ?? 'shallow'
+          const treasureBonus = inventoryStore.getRingEffectValue('treasure_find')
+          const ringDrops = TREASURE_DROP_RINGS[zone] ?? []
+          for (const drop of ringDrops) {
+            const attempts = rollChanceQuantity(drop.chance + treasureBonus * drop.chance)
+            for (let i = 0; i < attempts; i++) {
+              if (inventoryStore.hasRing(drop.ringId)) {
+                const price = getRingById(drop.ringId)?.sellPrice ?? 0
+                playerStore.earnMoney(price)
+                treasureAutoSoldMoney += price
+              } else {
+                inventoryStore.addRing(drop.ringId)
+                treasureGearCount++
+              }
+            }
+          }
+
+          const hatDrops = TREASURE_DROP_HATS[zone] ?? []
+          for (const drop of hatDrops) {
+            const attempts = rollChanceQuantity(drop.chance + treasureBonus * drop.chance)
+            for (let i = 0; i < attempts; i++) {
+              if (inventoryStore.hasHat(drop.hatId)) {
+                const price = getHatById(drop.hatId)?.sellPrice ?? 0
+                playerStore.earnMoney(price)
+                treasureAutoSoldMoney += price
+              } else {
+                inventoryStore.addHat(drop.hatId)
+                treasureGearCount++
+              }
+            }
+          }
+
+          const shoeDrops = TREASURE_DROP_SHOES[zone] ?? []
+          for (const drop of shoeDrops) {
+            const attempts = rollChanceQuantity(drop.chance + treasureBonus * drop.chance)
+            for (let i = 0; i < attempts; i++) {
+              if (inventoryStore.hasShoe(drop.shoeId)) {
+                const price = getShoeById(drop.shoeId)?.sellPrice ?? 0
+                playerStore.earnMoney(price)
+                treasureAutoSoldMoney += price
+              } else {
+                inventoryStore.addShoe(drop.shoeId)
+                treasureGearCount++
+              }
+            }
+          }
+
+          const weaponDrops = TREASURE_DROP_WEAPONS[zone] ?? []
+          for (const drop of weaponDrops) {
+            const attempts = rollChanceQuantity(drop.chance + treasureBonus * drop.chance)
+            for (let i = 0; i < attempts; i++) {
+              const enchantId = rollRandomEnchantment()
+              if (inventoryStore.hasWeaponExact(drop.weaponId, enchantId)) {
+                const price = getWeaponSellPrice(drop.weaponId, enchantId)
+                playerStore.earnMoney(price)
+                treasureAutoSoldMoney += price
+              } else {
+                inventoryStore.addWeapon(drop.weaponId, enchantId)
+                treasureGearCount++
+              }
+            }
+          }
+
+          treasureCount++
+          tile.state = 'collected'
+          break
+        }
+        case 'mushroom': {
+          const items = tile.data?.mushroomItems ?? []
+          for (const r of items) {
+            inventoryStore.addItem(r.itemId, r.quantity)
+            sessionLoot.value.push(r)
+            useAchievementStore().discoverItem(r.itemId)
+          }
+          mushroomCount += items.reduce((sum, r) => sum + r.quantity, 0)
+          tile.state = 'collected'
+          break
+        }
+        case 'stairs':
+          tile.state = 'revealed'
+          stairsFound.value = true
+          break
+        case 'trap':
+          tile.state = 'triggered'
+          break
+        case 'monster':
+        case 'boss':
+          tile.state = 'revealed'
+          break
+      }
+    }
+
+    if (oreCount > 0) skillStore.addExp('mining', 5 * oreCount)
+    if (mushroomCount > 0) skillStore.addExp('foraging', 3)
+    if (monstersDefeatedCount.value >= totalMonstersOnFloor.value && totalMonstersOnFloor.value > 0) {
+      stairsUsable.value = true
+    }
+
+    const parts: string[] = []
+    if (oreCount > 0) parts.push(`矿石×${oreCount}`)
+    if (treasureCount > 0) parts.push(`宝箱×${treasureCount}`)
+    if (treasureGearCount > 0) parts.push(`装备×${treasureGearCount}`)
+    if (mushroomCount > 0) parts.push(`蘑菇×${mushroomCount}`)
+    if (money > 0) parts.push(`${money}文`)
+    if (treasureAutoSoldMoney > 0) parts.push(`重复装备售出${treasureAutoSoldMoney}文`)
+    return parts.length > 0 ? `连战胜利后自动探索了本层，获得${parts.join('、')}。` : '连战胜利后自动探索了本层。'
+  }
+
+  const startCombatFromEntry = (entry: ChainCombatEntry, appendLog = false) => {
+    _combatTileIndex.value = entry.tileIndex
+    combatMonster.value = { ...entry.monster }
+    combatMonsterHp.value = entry.monster.hp
+    combatRound.value = 0
+    combatMonsterStatuses.value = []
+    combatIsBoss.value = entry.isBoss
+    inCombat.value = true
+
+    const label = entry.isBoss ? 'BOSS战' : '连战'
+    const line = `${label}：${entry.monster.name}出现！（HP: ${entry.monster.hp}）`
+    if (appendLog) {
+      combatLog.value.push(line)
+    } else {
+      combatLog.value = [line]
+    }
+  }
+
+  const startChainBattle = (): { success: boolean; message: string; startsCombat: boolean } => {
+    if (!isExploring.value) return { success: false, message: '你不在矿洞中。', startsCombat: false }
+    if (inCombat.value) return { success: false, message: '已经在战斗中。', startsCombat: false }
+
+    const entries = getRemainingCombatEntries()
+    if (entries.length === 0) return { success: false, message: '本层已经没有可连战的怪物。', startsCombat: false }
+
+    chainCombatActive.value = true
+    chainCombatQueue.value = entries.slice(1)
+    startCombatFromEntry(entries[0]!)
+    return { success: true, message: `连战开始，本层共有${entries.length}个敌人。`, startsCombat: true }
+  }
+
   // ==================== 战斗 ====================
+
+  const getPlayerStatusPower = (type: CombatStatusType): number => {
+    return combatPlayerStatuses.value.filter(s => s.type === type).reduce((sum, status) => sum + status.power, 0)
+  }
+
+  const addStatus = (target: 'monster' | 'player', status: CombatStatusEffect): string => {
+    const list = target === 'monster' ? combatMonsterStatuses.value : combatPlayerStatuses.value
+    const existing = list.find(s => s.type === status.type)
+    if (existing) {
+      existing.power = Math.max(existing.power, status.power)
+      if (existing.remainingTurns === null || status.remainingTurns === null) {
+        existing.remainingTurns = null
+      } else {
+        existing.remainingTurns = Math.max(existing.remainingTurns, status.remainingTurns)
+      }
+    } else {
+      list.push(status)
+    }
+    const targetName = target === 'monster' ? (combatMonster.value?.name ?? '敌人') : '你'
+    return `${targetName}陷入了[${status.name}]状态！`
+  }
+
+  const tickStatuses = (target: 'monster' | 'player'): string[] => {
+    const list = target === 'monster' ? combatMonsterStatuses.value : combatPlayerStatuses.value
+    const lines: string[] = []
+    const maxHp = target === 'monster' ? (combatMonster.value?.hp ?? 0) : playerStore.getMaxHp()
+
+    for (const status of list) {
+      let damage = 0
+      if (status.type === 'poison') damage = Math.max(1, Math.floor(maxHp * status.power))
+      if (status.type === 'burn') damage = Math.max(1, Math.floor(maxHp * status.power))
+      if (status.type === 'radiation') damage = Math.max(1, Math.floor(maxHp * status.power))
+
+      if (damage > 0) {
+        if (target === 'monster') {
+          combatMonsterHp.value = Math.max(0, combatMonsterHp.value - damage)
+          lines.push(`${combatMonster.value?.name ?? '敌人'}受到[${status.name}]影响，损失${damage}HP。`)
+        } else {
+          playerStore.takeDamage(damage)
+          lines.push(`你受到[${status.name}]影响，损失${damage}HP。`)
+        }
+      }
+
+      if (status.remainingTurns !== null) {
+        status.remainingTurns--
+      }
+    }
+
+    const kept = list.filter(status => status.remainingTurns === null || status.remainingTurns > 0)
+    if (target === 'monster') combatMonsterStatuses.value = kept
+    else combatPlayerStatuses.value = kept
+    return lines
+  }
+
+  const hasStatus = (target: 'monster' | 'player', type: CombatStatusType): boolean => {
+    const list = target === 'monster' ? combatMonsterStatuses.value : combatPlayerStatuses.value
+    return list.some(status => status.type === type)
+  }
+
+  const buildPlayerAttack = (): number => {
+    const cookingStore = useCookingStore()
+    const guildStore = useGuildStore()
+    const ringAttackBonus = inventoryStore.getRingEffectValue('attack_bonus')
+    const allSkillsBuff = cookingStore.activeBuff?.type === 'all_skills' ? cookingStore.activeBuff.value : 0
+    return (
+      inventoryStore.getWeaponAttack() +
+      (skillStore.combatLevel + allSkillsBuff) * 2 +
+      ringAttackBonus +
+      guildBadgeBonusAttack.value +
+      guildStore.getGuildAttackBonus() +
+      getPlayerStatusPower('battle_rage')
+    )
+  }
+
+  const buildIncomingDamage = (baseDamage: number, defendMultiplier = 1): number => {
+    const cookingStore = useCookingStore()
+    const defenseReduction = cookingStore.activeBuff?.type === 'defense' ? cookingStore.activeBuff.value / 100 : 0
+    const owned = inventoryStore.getEquippedWeapon()
+    const enchant = owned.enchantmentId ? getEnchantmentById(owned.enchantmentId) : null
+    const sturdyReduction = enchant?.special === 'sturdy' ? 0.85 : 1.0
+    const ringDefenseBonus = inventoryStore.getRingEffectValue('defense_bonus')
+    const ironSkinReduction = getPlayerStatusPower('iron_skin')
+    return Math.max(
+      1,
+      Math.floor(
+        baseDamage *
+          defendMultiplier *
+          (1 - defenseReduction) *
+          sturdyReduction *
+          (1 - ringDefenseBonus) *
+          (1 - guildBonusDefense.value) *
+          (1 - ironSkinReduction)
+      )
+    )
+  }
+
+  const getEnchantmentStatus = (special: NonNullable<ReturnType<typeof getEnchantmentById>>['special']) => {
+    if (special === 'poison') return createCombatStatus('poison', 4, 0.04, 'player')
+    if (special === 'burn') return createCombatStatus('burn', 3, 0.06, 'player')
+    if (special === 'freeze') return createCombatStatus('freeze', 1, 1, 'player')
+    if (special === 'radiation') return createCombatStatus('radiation', null, 0.04, 'player')
+    return null
+  }
 
   /** 战斗操作 */
   const combatAction = (action: CombatAction): { message: string; combatOver: boolean; won: boolean } => {
@@ -743,6 +1195,8 @@ export const useMiningStore = defineStore('mining', () => {
         combatLog.value.push('BOSS战无法逃跑！')
         return { message: 'BOSS战无法逃跑！', combatOver: false, won: false }
       }
+      chainCombatActive.value = false
+      chainCombatQueue.value = []
       inCombat.value = false
       // 逃跑时格子标记为 revealed（怪物还在但已翻开）
       if (_combatTileIndex.value >= 0) {
@@ -754,27 +1208,21 @@ export const useMiningStore = defineStore('mining', () => {
       return { message: '成功逃离了战斗。', combatOver: true, won: false }
     }
 
+    const statusLines = [...tickStatuses('monster'), ...tickStatuses('player')]
+    if (statusLines.length > 0) {
+      combatLog.value.push(statusLines.join(' '))
+    }
+    if (combatMonsterHp.value <= 0) {
+      return handleMonsterDefeat(monster, `${statusLines.join(' ')} ${monster.name}被状态击倒！`, 0)
+    }
+    if (playerStore.hp <= 0) {
+      return handleDefeat()
+    }
+
     if (action === 'defend') {
       // 防御减少受到的伤害（重甲者专精：70%减伤，默认60%）
-      const cookingStore = useCookingStore()
-      const defenseReduction = cookingStore.activeBuff?.type === 'defense' ? cookingStore.activeBuff.value / 100 : 0
       const tankReduction = skillStore.getSkill('combat').perk10 === 'tank' ? 0.7 : 0.6
-      // 坚韧附魔
-      const owned = inventoryStore.getEquippedWeapon()
-      const enchant = owned.enchantmentId ? getEnchantmentById(owned.enchantmentId) : null
-      const sturdyReduction = enchant?.special === 'sturdy' ? 0.85 : 1.0
-      const ringDefenseBonus = inventoryStore.getRingEffectValue('defense_bonus')
-      const damage = Math.max(
-        1,
-        Math.floor(
-          monster.attack *
-            (1 - tankReduction) *
-            (1 - defenseReduction) *
-            sturdyReduction *
-            (1 - ringDefenseBonus) *
-            (1 - guildBonusDefense.value)
-        )
-      )
+      const damage = buildIncomingDamage(monster.attack, 1 - tankReduction)
       playerStore.takeDamage(damage)
       let defendMsg = `你举盾防御，受到${damage}点伤害。`
 
@@ -793,21 +1241,12 @@ export const useMiningStore = defineStore('mining', () => {
     }
 
     // === 攻击 ===
-    const cookingStore = useCookingStore()
     const owned = inventoryStore.getEquippedWeapon()
     const weaponDef = getWeaponById(owned.defId)
     const enchant = owned.enchantmentId ? getEnchantmentById(owned.enchantmentId) : null
 
     // 基础攻击力（含戒指加成 + 料理全技能加成）
-    const ringAttackBonus = inventoryStore.getRingEffectValue('attack_bonus')
-    const allSkillsBuff = cookingStore.activeBuff?.type === 'all_skills' ? cookingStore.activeBuff.value : 0
-    const guildStore = useGuildStore()
-    const baseAttack =
-      inventoryStore.getWeaponAttack() +
-      (skillStore.combatLevel + allSkillsBuff) * 2 +
-      ringAttackBonus +
-      guildBadgeBonusAttack.value +
-      guildStore.getGuildAttackBonus()
+    const baseAttack = buildPlayerAttack()
     const bruteBonus = skillStore.getSkill('combat').perk10 === 'brute' ? 1.25 : 1.0
 
     // 暴击判定（含戒指加成 + 幸运加成）
@@ -836,6 +1275,11 @@ export const useMiningStore = defineStore('mining', () => {
     // 锤眩晕判定（20%概率跳过怪物反击）
     const isStunned = weaponDef?.type === 'club' && Math.random() < 0.2
 
+    const enchantStatus = enchant ? getEnchantmentStatus(enchant.special) : null
+    if (enchantStatus && Math.random() < 0.35) {
+      msg += ` ${addStatus('monster', enchantStatus)}`
+    }
+
     // 吸血（附魔 + 戒指叠加）
     const ringVampiric = inventoryStore.getRingEffectValue('vampiric')
     const totalVampiric = (enchant?.special === 'vampiric' ? 0.15 : 0) + ringVampiric
@@ -849,11 +1293,18 @@ export const useMiningStore = defineStore('mining', () => {
 
     if (combatMonsterHp.value <= 0) {
       // 怪物被击败
+      combatMonsterHp.value = 0
       return handleMonsterDefeat(monster, msg, totalDamageDealt + extraDamage)
     }
 
     if (isStunned) {
       msg += ` ${monster.name}被震晕了！`
+      combatLog.value.push(msg)
+      return { message: msg, combatOver: false, won: false }
+    }
+
+    if (hasStatus('monster', 'freeze')) {
+      msg += ` ${monster.name}被冻结，无法反击！`
       combatLog.value.push(msg)
       return { message: msg, combatOver: false, won: false }
     }
@@ -865,22 +1316,9 @@ export const useMiningStore = defineStore('mining', () => {
       return { message: msg, combatOver: false, won: false }
     }
 
-    // 怪物反击（含戒指减伤）
-    const defenseReduction = cookingStore.activeBuff?.type === 'defense' ? cookingStore.activeBuff.value / 100 : 0
+    // 怪物反击（含戒指/状态减伤）
     const fighterReduction = skillStore.getSkill('combat').perk5 === 'fighter' ? 0.15 : 0
-    const sturdyReduction = enchant?.special === 'sturdy' ? 0.85 : 1.0
-    const ringDefenseBonus = inventoryStore.getRingEffectValue('defense_bonus')
-    const monsterDamage = Math.max(
-      1,
-      Math.floor(
-        monster.attack *
-          (1 - fighterReduction) *
-          (1 - defenseReduction) *
-          sturdyReduction *
-          (1 - ringDefenseBonus) *
-          (1 - guildBonusDefense.value)
-      )
-    )
+    const monsterDamage = buildIncomingDamage(monster.attack, 1 - fighterReduction)
     playerStore.takeDamage(monsterDamage)
     msg += ` ${monster.name}反击，你受到${monsterDamage}点伤害。`
     combatLog.value.push(msg)
@@ -921,11 +1359,12 @@ export const useMiningStore = defineStore('mining', () => {
     // 普通掉落
     const drops: string[] = []
     for (const drop of monster.drops) {
-      if (Math.random() < drop.chance + luckyBonus) {
-        inventoryStore.addItem(drop.itemId)
-        sessionLoot.value.push({ itemId: drop.itemId, quantity: 1 })
+      const quantity = rollChanceQuantity(drop.chance + luckyBonus)
+      if (quantity > 0) {
+        inventoryStore.addItem(drop.itemId, quantity)
+        sessionLoot.value.push({ itemId: drop.itemId, quantity })
         useAchievementStore().discoverItem(drop.itemId)
-        drops.push(drop.itemId)
+        for (let i = 0; i < quantity; i++) drops.push(drop.itemId)
       }
     }
 
@@ -946,7 +1385,8 @@ export const useMiningStore = defineStore('mining', () => {
       if (weaponDrops) {
         for (const wd of weaponDrops) {
           const dropChance = wd.chance + luckyBonus * wd.chance
-          if (Math.random() < dropChance) {
+          const attempts = rollChanceQuantity(dropChance)
+          for (let i = 0; i < attempts; i++) {
             const enchantId = rollRandomEnchantment()
             if (inventoryStore.hasWeaponExact(wd.weaponId, enchantId)) {
               const price = getWeaponSellPrice(wd.weaponId, enchantId)
@@ -964,7 +1404,8 @@ export const useMiningStore = defineStore('mining', () => {
       const ringDrops = MONSTER_DROP_RINGS[floor.zone]
       if (ringDrops) {
         for (const rd of ringDrops) {
-          if (Math.random() < rd.chance + luckyBonus * rd.chance) {
+          const attempts = rollChanceQuantity(rd.chance + luckyBonus * rd.chance)
+          for (let i = 0; i < attempts; i++) {
             if (inventoryStore.hasRing(rd.ringId)) {
               const price = getRingById(rd.ringId)?.sellPrice ?? 0
               playerStore.earnMoney(price)
@@ -981,7 +1422,8 @@ export const useMiningStore = defineStore('mining', () => {
       const hatDrops = MONSTER_DROP_HATS[floor.zone]
       if (hatDrops) {
         for (const hd of hatDrops) {
-          if (Math.random() < hd.chance + luckyBonus * hd.chance) {
+          const attempts = rollChanceQuantity(hd.chance + luckyBonus * hd.chance)
+          for (let i = 0; i < attempts; i++) {
             if (inventoryStore.hasHat(hd.hatId)) {
               const price = getHatById(hd.hatId)?.sellPrice ?? 0
               playerStore.earnMoney(price)
@@ -998,7 +1440,8 @@ export const useMiningStore = defineStore('mining', () => {
       const shoeDrops = MONSTER_DROP_SHOES[floor.zone]
       if (shoeDrops) {
         for (const sd of shoeDrops) {
-          if (Math.random() < sd.chance + luckyBonus * sd.chance) {
+          const attempts = rollChanceQuantity(sd.chance + luckyBonus * sd.chance)
+          for (let i = 0; i < attempts; i++) {
             if (inventoryStore.hasShoe(sd.shoeId)) {
               const price = getShoeById(sd.shoeId)?.sellPrice ?? 0
               playerStore.earnMoney(price)
@@ -1119,6 +1562,18 @@ export const useMiningStore = defineStore('mining', () => {
       msg += ` 还剩${remaining}只怪物！`
     }
 
+    if (chainCombatActive.value) {
+      const next = chainCombatQueue.value.shift()
+      if (next) {
+        startCombatFromEntry(next, true)
+        return { message: `${msg} 下一战：${next.monster.name}。`, combatOver: false, won: true }
+      }
+
+      chainCombatActive.value = false
+      msg += ` ${revealWholeFloorNoTime()}`
+      combatLog.value[combatLog.value.length - 1] = msg
+    }
+
     combatIsBoss.value = false
     return { message: msg, combatOver: true, won: true }
   }
@@ -1127,9 +1582,13 @@ export const useMiningStore = defineStore('mining', () => {
   const handleDefeat = (): { message: string; combatOver: boolean; won: boolean } => {
     inCombat.value = false
     combatIsBoss.value = false
+    chainCombatActive.value = false
+    chainCombatQueue.value = []
     const wasInSkullCavern = isInSkullCavern.value
     isExploring.value = false
     slayerCharmActive.value = false
+    combatPlayerStatuses.value = []
+    combatMonsterStatuses.value = []
 
     // 清空格子
     floorGrid.value = []
@@ -1274,9 +1733,13 @@ export const useMiningStore = defineStore('mining', () => {
     }
     isExploring.value = false
     combatIsBoss.value = false
+    chainCombatActive.value = false
+    chainCombatQueue.value = []
     floorGrid.value = []
     _combatTileIndex.value = -1
     slayerCharmActive.value = false
+    combatPlayerStatuses.value = []
+    combatMonsterStatuses.value = []
     if (isInSkullCavern.value) {
       isInSkullCavern.value = false
       cachedSkullFloorData.value = null
@@ -1342,6 +1805,44 @@ export const useMiningStore = defineStore('mining', () => {
       slayerCharmActive.value = true
       const msg = '使用了猎魔符，本次探索怪物掉落率+20%！'
       if (inCombat.value) combatLog.value.push(msg)
+      return { success: true, message: msg }
+    }
+
+    const combatEffect = COMBAT_ITEM_EFFECTS[itemId]
+    if (combatEffect) {
+      const def = getItemById(itemId)
+      const itemName = def?.name ?? itemId
+      if (!inventoryStore.removeItem(itemId)) return { success: false, message: `没有${itemName}。` }
+
+      if (combatEffect.kind === 'playerStatus') {
+        const msg = `使用了${itemName}，${addStatus('player', createCombatStatus(combatEffect.status, combatEffect.turns, combatEffect.power, 'item'))}`
+        if (inCombat.value) combatLog.value.push(msg)
+        return { success: true, message: msg }
+      }
+
+      if (!inCombat.value || !combatMonster.value) {
+        inventoryStore.addItem(itemId, 1)
+        return { success: false, message: `${itemName}只能在战斗中使用。` }
+      }
+
+      const monster = combatMonster.value
+      const percentDamage = combatEffect.percent ? Math.floor(monster.hp * combatEffect.percent) : 0
+      const flatDamage = combatEffect.flat ?? 0
+      const rawDamage = Math.max(1, percentDamage + flatDamage)
+      const damage = combatEffect.ignoreDefense ? rawDamage : Math.max(1, rawDamage - monster.defense)
+      combatMonsterHp.value = Math.max(0, combatMonsterHp.value - damage)
+      let msg = `使用了${itemName}，对${monster.name}造成${damage}点${combatEffect.ignoreDefense ? '无视防御' : ''}伤害。`
+      if (combatEffect.status) {
+        const turns = combatEffect.turns === undefined ? 3 : combatEffect.turns
+        msg += ` ${addStatus('monster', createCombatStatus(combatEffect.status, turns, combatEffect.power ?? 0.05, 'item'))}`
+      }
+
+      if (combatMonsterHp.value <= 0) {
+        const defeat = handleMonsterDefeat(monster, msg, damage)
+        return { success: true, message: defeat.message }
+      }
+
+      combatLog.value.push(msg)
       return { success: true, message: msg }
     }
 
@@ -1503,6 +2004,8 @@ export const useMiningStore = defineStore('mining', () => {
     combatRound,
     combatLog,
     combatIsBoss,
+    combatMonsterStatuses,
+    combatPlayerStatuses,
     defeatedBosses,
     // 格子系统
     floorGrid,
@@ -1522,6 +2025,9 @@ export const useMiningStore = defineStore('mining', () => {
     getActiveFloorData,
     getUnlockedSafePoints,
     getUnlockedSkullSafePoints,
+    getSweepPreview,
+    sweepToNextSafePoint,
+    getRemainingCombatTileCount,
     canRevealTile,
     engageRevealedMonster,
     revealTile,
@@ -1529,6 +2035,7 @@ export const useMiningStore = defineStore('mining', () => {
     enterMine,
     enterSkullCavern,
     combatAction,
+    startChainBattle,
     useCombatItem,
     useMonsterLure,
     goNextFloor,

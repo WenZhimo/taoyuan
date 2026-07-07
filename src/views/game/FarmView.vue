@@ -1048,7 +1048,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, type Component } from 'vue'
+  import { ref, computed, nextTick, type Component } from 'vue'
   import {
     Droplets,
     Droplet,
@@ -1466,16 +1466,51 @@
     return list
   })
 
+  const hasAvailableBatchAction = computed(() => {
+    return (
+      unwateredCount.value > 0 ||
+      wastelandCount.value > 0 ||
+      harvestableCount.value > 0 ||
+      (tilledEmptyCount.value > 0 && (plantableSeeds.value.length > 0 || plantableBreedingSeeds.value.length > 0)) ||
+      (fertilizableCount.value > 0 && fertilizerItems.value.length > 0) ||
+      infestedCount.value > 0 ||
+      weedyCount.value > 0
+    )
+  })
+
+  const closeBatchActionsIfDone = async () => {
+    await nextTick()
+    if (!hasAvailableBatchAction.value) {
+      showBatchActions.value = false
+    }
+  }
+
   const doBatchAction = (action: 'water' | 'till' | 'harvest' | 'plant' | 'fertilize' | 'curePest' | 'clearWeed') => {
-    showBatchActions.value = false
     if (action === 'water') handleBatchWater()
     else if (action === 'till') handleBatchTill()
     else if (action === 'harvest') handleBatchHarvest()
-    else if (action === 'plant') showBatchPlant.value = true
-    else if (action === 'fertilize') showBatchFertilize.value = true
+    else if (action === 'plant') {
+      showBatchActions.value = false
+      showBatchPlant.value = true
+      return
+    }
+    else if (action === 'fertilize') {
+      showBatchActions.value = false
+      showBatchFertilize.value = true
+      return
+    }
     else if (action === 'curePest') handleBatchCurePest()
     else if (action === 'clearWeed') handleBatchClearWeed()
+    void closeBatchActionsIfDone()
   }
+
+  const returnToBatchActionsIfAvailable = async () => {
+    showBatchPlant.value = false
+    showBatchFertilize.value = false
+    await nextTick()
+    showBatchActions.value = hasAvailableBatchAction.value
+  }
+
   /** 按cropId分组的当季育种种子（用于一键种植弹窗） */
   const batchBreedingSeedGroups = computed(() => {
     const groups: Record<string, { cropId: string; name: string; count: number; minGen: number; maxGen: number }> = {}
@@ -1493,7 +1528,7 @@
 
   const doBatchPlant = (cropId: string) => {
     handleBatchPlant(cropId)
-    showBatchPlant.value = false
+    void returnToBatchActionsIfAvailable()
   }
 
   const doBatchPlantBreeding = (cropId: string) => {
@@ -1502,7 +1537,7 @@
     const targets = farmStore.plots.filter(p => p.state === 'tilled')
     if (targets.length === 0) {
       addLog('没有可种植的空耕地。')
-      showBatchPlant.value = false
+      void returnToBatchActionsIfAvailable()
       return
     }
     const seeds = plantableBreedingSeeds.value.filter(s => s.genetics.cropId === cropId)
@@ -1537,11 +1572,11 @@
     } else {
       addLog('体力不足，无法种植。')
     }
-    showBatchPlant.value = false
+    void returnToBatchActionsIfAvailable()
   }
   const doBatchFertilize = (type: FertilizerType) => {
     handleBatchFertilize(type)
-    showBatchFertilize.value = false
+    void returnToBatchActionsIfAvailable()
   }
 
   const doRemoveCrop = () => {

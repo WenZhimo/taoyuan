@@ -3,6 +3,33 @@ import path from 'node:path'
 import fs from 'node:fs'
 import pkg from '../package.json'
 
+const configurePackagedUserData = () => {
+  if (!app.isPackaged) return
+
+  const defaultUserDataPath = app.getPath('userData')
+  const executableDir = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
+  const localUserDataPath = path.join(executableDir, 'userdata')
+
+  if (path.resolve(defaultUserDataPath) === path.resolve(localUserDataPath)) return
+
+  try {
+    fs.mkdirSync(localUserDataPath, { recursive: true })
+    fs.accessSync(localUserDataPath, fs.constants.W_OK)
+    for (const name of ['Local Storage', 'settings.json']) {
+      const source = path.join(defaultUserDataPath, name)
+      const target = path.join(localUserDataPath, name)
+      if (fs.existsSync(source) && !fs.existsSync(target)) {
+        fs.cpSync(source, target, { recursive: true })
+      }
+    }
+    app.setPath('userData', localUserDataPath)
+  } catch (e) {
+    console.error('Failed to use local user data path, falling back to default:', e)
+  }
+}
+
+configurePackagedUserData()
+
 // 应用根目录（开发时是项目根目录，打包后是 app.asar）
 const appRoot = app.getAppPath()
 

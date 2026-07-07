@@ -1,0 +1,1501 @@
+﻿[
+  {
+    "rel": "src/stores/useGameStore.ts",
+    "lines": 323,
+    "imports": [
+      "@/data/timeConstants"
+    ],
+    "symbols": [
+      "year",
+      "season",
+      "day",
+      "hour",
+      "weather",
+      "tomorrowWeather",
+      "currentLocation",
+      "currentLocationGroup",
+      "isGameStarted",
+      "farmMapType",
+      "midnightWarned",
+      "dailyLuck",
+      "surfaceOrePatch",
+      "creekCatch",
+      "seasonIndex",
+      "seasonName",
+      "weatherName",
+      "isRainy",
+      "weekday",
+      "weekdayName",
+      "timeDisplay",
+      "timePeriod",
+      "isLateNight",
+      "isPastBedtime",
+      "goTo",
+      "setTomorrowWeather",
+      "startNewGame",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "ok",
+      "const cookingStore = useCookingStore",
+      "const speedBuff = cookingStore.activeBuff?.type === 'speed' ? cookingStore.activeBuff.value / 100",
+      "const effectiveHours = hours *",
+      "const prevHour = hour.value",
+      "const newHour = hour.value + effectiveHours",
+      "if",
+      "hour.value = PASSOUT_HOUR",
+      "return { ok"
+    ]
+  },
+  {
+    "rel": "src/stores/usePlayerStore.ts",
+    "lines": 244,
+    "imports": [
+      "@/data/timeConstants"
+    ],
+    "symbols": [
+      "playerName",
+      "gender",
+      "needsIdentitySetup",
+      "money",
+      "stamina",
+      "maxStamina",
+      "staminaCapLevel",
+      "bonusMaxStamina",
+      "hp",
+      "baseMaxHp",
+      "isExhausted",
+      "staminaPercent",
+      "honorific",
+      "restoreStamina",
+      "restoreHealth",
+      "addBonusMaxStamina",
+      "earnMoney",
+      "setIdentity",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "moneyLost, recoveryPct }"
+    ]
+  },
+  {
+    "rel": "src/stores/useFarmStore.ts",
+    "lines": 1104,
+    "imports": [
+      "@/data",
+      "@/data/processing",
+      "@/data/fruitTrees",
+      "@/data/wildTrees",
+      "@/data/buildings"
+    ],
+    "symbols": [
+      "farmSize",
+      "plots",
+      "sprinklers",
+      "fruitTrees",
+      "greenhousePlots",
+      "greenhouseLevel",
+      "wildTrees",
+      "nextFruitTreeId",
+      "nextWildTreeId",
+      "lightningRods",
+      "scarecrows",
+      "giantCropCounter",
+      "tilledPlots",
+      "harvestableCount",
+      "resetFarm",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "cropId",
+      "const cropId = plot.cropId",
+      "const crop = cropId ? getCropById",
+      "const genetics = plot.seedGenetics",
+      "if",
+      "const groupId = plot.giantCropGroup",
+      "for",
+      "if"
+    ]
+  },
+  {
+    "rel": "src/stores/useInventoryStore.ts",
+    "lines": 1108,
+    "imports": [
+      "@/composables/useGameLog",
+      "@/data/items",
+      "@/data/weapons",
+      "@/data/rings",
+      "@/data/hats",
+      "@/data/shoes",
+      "@/data/equipmentSets"
+    ],
+    "symbols": [
+      "items",
+      "capacity",
+      "tools",
+      "ownedWeapons",
+      "equippedWeaponIndex",
+      "ownedRings",
+      "equippedRingSlot1",
+      "equippedRingSlot2",
+      "ownedHats",
+      "equippedHatIndex",
+      "ownedShoes",
+      "equippedShoeIndex",
+      "equipmentPresets",
+      "activePresetId",
+      "pendingUpgrade",
+      "isFull",
+      "tempItems",
+      "isTempFull",
+      "isAllFull",
+      "activeSetBonuses",
+      "activeSets",
+      "matchQuality",
+      "toggleLock",
+      "sortItems",
+      "deleteEquipmentPreset",
+      "renameEquipmentPreset",
+      "saveCurrentToPreset",
+      "sortEquipment",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "if",
+      "if",
+      "const weapon = ownedWeapons.value[index]!",
+      "const price = getWeaponSellPrice",
+      "const playerStore = usePlayerStore",
+      "playerStore.earnMoney",
+      "ownedWeapons.value.splice",
+      "if",
+      "equippedWeaponIndex.value--"
+    ]
+  },
+  {
+    "rel": "src/stores/useWarehouseStore.ts",
+    "lines": 377,
+    "imports": [
+      "@/data/items"
+    ],
+    "symbols": [
+      "unlocked",
+      "chests",
+      "maxChests",
+      "hasVoidChest",
+      "matchQuality",
+      "sortChest",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "unlocked",
+      "chests",
+      "maxChests"
+    ]
+  },
+  {
+    "rel": "src/stores/useSkillStore.ts",
+    "lines": 161,
+    "imports": [],
+    "symbols": [
+      "skills",
+      "farmingLevel",
+      "fishingLevel",
+      "miningLevel",
+      "foragingLevel",
+      "combatLevel",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "type, exp"
+    ]
+  },
+  {
+    "rel": "src/stores/useAchievementStore.ts",
+    "lines": 422,
+    "imports": [
+      "@/data/achievements",
+      "@/data/items",
+      "@/data/breeding"
+    ],
+    "symbols": [
+      "discoveredItems",
+      "discoveryTimes",
+      "completedAchievements",
+      "bundleSubmissions",
+      "completedBundles",
+      "stats",
+      "discoveredCount",
+      "perfectionPercent",
+      "discoverItem",
+      "recordCropHarvest",
+      "recordFishCaught",
+      "recordMoneyEarned",
+      "recordMineFloor",
+      "recordRecipeCooked",
+      "recordSkullCavernFloor",
+      "recordMonsterKill",
+      "recordBreeding",
+      "recordHybridDiscovered",
+      "recordHybridTier",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "discoveredItems",
+      "discoveryTimes",
+      "completedAchievements",
+      "bundleSubmissions",
+      "completedBundles",
+      "stats"
+    ]
+  },
+  {
+    "rel": "src/stores/useQuestStore.ts",
+    "lines": 454,
+    "imports": [
+      "@/data/quests",
+      "@/data/storyQuests",
+      "@/data/npcs"
+    ],
+    "symbols": [
+      "boardQuests",
+      "activeQuests",
+      "completedQuestCount",
+      "specialOrder",
+      "mainQuest",
+      "completedMainQuests",
+      "generateDailyQuests",
+      "generateSpecialOrder",
+      "onItemObtained",
+      "dailyUpdate",
+      "initMainQuest",
+      "updateMainQuestProgress",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success"
+    ]
+  },
+  {
+    "rel": "src/stores/useNpcStore.ts",
+    "lines": 1145,
+    "imports": [
+      "@/data",
+      "@/data/npcTips",
+      "@/data/items"
+    ],
+    "symbols": [
+      "npcStates",
+      "tipGivenToday",
+      "children",
+      "nextChildId",
+      "daysMarried",
+      "daysZhiji",
+      "pregnancy",
+      "childProposalPending",
+      "childProposalDeclinedCount",
+      "daysSinceProposalDecline",
+      "weddingCountdown",
+      "weddingNpcId",
+      "hiredHelpers",
+      "markHeartEventTriggered",
+      "adjustFriendship",
+      "cancelWedding",
+      "triggerChildProposal",
+      "dailyChildUpdate",
+      "dailyReset",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "npcId"
+    ]
+  },
+  {
+    "rel": "src/stores/useHiddenNpcStore.ts",
+    "lines": 615,
+    "imports": [
+      "@/data/hiddenNpcs",
+      "@/data/hiddenNpcHeartEvents"
+    ],
+    "symbols": [
+      "hiddenNpcStates",
+      "getRevealedNpcs",
+      "getRumorNpcs",
+      "getBondedNpc",
+      "getActiveAbilities",
+      "addAffinity",
+      "markHeartEventTriggered",
+      "dailyReset",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "if",
+      "if",
+      "if",
+      "const inventoryStore = useInventoryStore",
+      "if",
+      "return { success"
+    ]
+  },
+  {
+    "rel": "src/stores/useAnimalStore.ts",
+    "lines": 819,
+    "imports": [
+      "@/data",
+      "@/composables/useCombinedInventory"
+    ],
+    "symbols": [
+      "buildings",
+      "animals",
+      "incubating",
+      "barnIncubating",
+      "pet",
+      "grazedToday",
+      "autoPetterBuildings",
+      "coopBuilt",
+      "barnBuilt",
+      "stableBuilt",
+      "coopAnimals",
+      "barnAnimals",
+      "getHorse",
+      "hasHorse",
+      "markAllFed",
+      "adoptPet",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "fedCount, noFeedCount }"
+    ]
+  },
+  {
+    "rel": "src/stores/useBreedingStore.ts",
+    "lines": 504,
+    "imports": [
+      "@/data/breeding",
+      "@/data/crops",
+      "@/composables/useGameLog"
+    ],
+    "symbols": [
+      "breedingBox",
+      "stations",
+      "stationCount",
+      "compendium",
+      "unlocked",
+      "seedBoxLevel",
+      "maxSeedBox",
+      "boxCount",
+      "boxFull",
+      "craftStation",
+      "canCraftStation",
+      "getNextSeedBoxUpgrade",
+      "canUpgradeSeedBox",
+      "upgradeSeedBox",
+      "serialize",
+      "deserialize",
+      "reset",
+      "spendMoney",
+      "removeItem",
+      "getItemCount"
+    ],
+    "returns": [
+      "success",
+      "spendMoney",
+      "for",
+      "removeItem"
+    ]
+  },
+  {
+    "rel": "src/stores/useFishingStore.ts",
+    "lines": 691,
+    "imports": [
+      "@/data",
+      "@/data/fish"
+    ],
+    "symbols": [
+      "fishingLocation",
+      "availableFish",
+      "currentFish",
+      "lastTreasure",
+      "lastPerfect",
+      "equippedBait",
+      "equippedTackle",
+      "tackleDurability",
+      "activeBaitDef",
+      "activeTackleDef",
+      "crabPots",
+      "crabPotsByLocation",
+      "setLocation",
+      "endFishing",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "if",
+      "equippedBait.value = type",
+      "return { success"
+    ]
+  },
+  {
+    "rel": "src/stores/useFishPondStore.ts",
+    "lines": 516,
+    "imports": [
+      "@/data/fishPond",
+      "@/data/pondBreeds",
+      "@/composables/useCombinedInventory"
+    ],
+    "symbols": [
+      "pond",
+      "discoveredBreeds",
+      "capacity",
+      "fishCount",
+      "isFull",
+      "sickFish",
+      "matureFish",
+      "density",
+      "pendingProducts",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "weight",
+      "growthRate",
+      "diseaseRes",
+      "qualityGene",
+      "mutationRate"
+    ]
+  },
+  {
+    "rel": "src/stores/useMiningStore.ts",
+    "lines": 1540,
+    "imports": [
+      "@/data",
+      "@/data/processing",
+      "@/data/items",
+      "@/data/weapons",
+      "@/data/rings",
+      "@/data/hats",
+      "@/data/shoes",
+      "@/data/mine"
+    ],
+    "symbols": [
+      "currentFloor",
+      "safePointFloor",
+      "isExploring",
+      "isInSkullCavern",
+      "skullCavernFloor",
+      "skullCavernBestFloor",
+      "skullSafePointFloor",
+      "cachedSkullFloorData",
+      "inCombat",
+      "combatMonster",
+      "combatMonsterHp",
+      "combatRound",
+      "combatLog",
+      "combatIsBoss",
+      "defeatedBosses",
+      "sessionLoot",
+      "slayerCharmActive",
+      "guildBadgeBonusAttack",
+      "guildBonusMaxHp",
+      "guildBonusDropRate",
+      "guildBonusDefense",
+      "floorGrid",
+      "entryIndex",
+      "stairsFound",
+      "stairsUsable",
+      "totalMonstersOnFloor",
+      "monstersDefeatedCount",
+      "_combatTileIndex",
+      "cacheSkullFloor",
+      "_generateGrid",
+      "_checkAutoBossCombat",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "floor",
+      "zone",
+      "ores",
+      "monsters",
+      "isSafePoint",
+      "specialType"
+    ]
+  },
+  {
+    "rel": "src/stores/useProcessingStore.ts",
+    "lines": 485,
+    "imports": [
+      "@/data/processing",
+      "@/composables/useGameLog",
+      "@/composables/useCombinedInventory"
+    ],
+    "symbols": [
+      "machines",
+      "workshopLevel",
+      "maxMachines",
+      "machineCount",
+      "collapsedGroups",
+      "getAvailableRecipes",
+      "dailyUpdate",
+      "getNextUpgrade",
+      "toggleGroup",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "if",
+      "workshopLevel.value = next",
+      "return { success"
+    ]
+  },
+  {
+    "rel": "src/stores/useCookingStore.ts",
+    "lines": 216,
+    "imports": [
+      "@/data",
+      "@/composables/useCombinedInventory"
+    ],
+    "symbols": [
+      "unlockedRecipes",
+      "activeBuff",
+      "recipes",
+      "dailyReset",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "if",
+      "let maxPossible = quantity",
+      "for",
+      "const available = getCombinedItemCount",
+      "maxPossible = Math.min"
+    ]
+  },
+  {
+    "rel": "src/stores/useShopStore.ts",
+    "lines": 432,
+    "imports": [
+      "@/data",
+      "@/data/processing",
+      "@/data/travelingMerchant",
+      "@/data/market",
+      "@/data/market",
+      "@/data/travelingMerchant"
+    ],
+    "symbols": [
+      "currentShopId",
+      "availableSeeds",
+      "blacksmithItems",
+      "shopFertilizers",
+      "apothecaryItems",
+      "shopBaits",
+      "shopTackles",
+      "fishingShopItems",
+      "textileItems",
+      "travelingStock",
+      "travelingStockKey",
+      "isMerchantHere",
+      "shippingBox",
+      "shippedItems",
+      "shippingHistory",
+      "refreshMerchantStock",
+      "_pruneShippingHistory",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "currentShopId",
+      "applyDiscount",
+      "availableSeeds",
+      "buySeed",
+      "blacksmithItems",
+      "shopBaits",
+      "shopTackles",
+      "fishingShopItems",
+      "shopFertilizers",
+      "apothecaryItems",
+      "textileItems",
+      "buyItem",
+      "sellItem",
+      "calculateSellPrice",
+      "calculateBaseSellPrice",
+      "travelingStock",
+      "isMerchantHere",
+      "refreshMerchantStock",
+      "buyFromTraveler",
+      "shippingBox",
+      "addToShippingBox",
+      "removeFromShippingBox",
+      "processShippingBox",
+      "shippedItems",
+      "getRecentShipping",
+      "serialize",
+      "deserialize"
+    ]
+  },
+  {
+    "rel": "src/stores/useMuseumStore.ts",
+    "lines": 108,
+    "imports": [
+      "@/data/museum"
+    ],
+    "symbols": [
+      "donatedItems",
+      "claimedMilestones",
+      "donatedCount",
+      "totalCount",
+      "donatableItems",
+      "claimableMilestones",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "donatedItems",
+      "claimedMilestones",
+      "donatedCount",
+      "totalCount",
+      "isDonated",
+      "canDonate",
+      "donatableItems",
+      "donateItem",
+      "claimableMilestones",
+      "claimMilestone",
+      "serialize",
+      "deserialize"
+    ]
+  },
+  {
+    "rel": "src/stores/useGuildStore.ts",
+    "lines": 361,
+    "imports": [
+      "@/data/guild",
+      "@/composables/useGameLog"
+    ],
+    "symbols": [
+      "monsterKills",
+      "claimedGoals",
+      "encounteredMonsters",
+      "contributionPoints",
+      "guildExp",
+      "guildLevel",
+      "dailyPurchases",
+      "lastResetDay",
+      "weeklyPurchases",
+      "lastResetWeek",
+      "totalPurchases",
+      "completedGoalCount",
+      "claimableGoals",
+      "recordKill",
+      "recordEncounter",
+      "ensureDailyReset",
+      "ensureWeeklyReset",
+      "checkLevelUp",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "const inventoryStore = useInventoryStore",
+      "const available = inventoryStore.getItemCount",
+      "const actual = Math.min",
+      "if",
+      "inventoryStore.removeItem",
+      "const points = donation.points * actual",
+      "contributionPoints.value += points",
+      "guildExp.value += points",
+      "checkLevelUp",
+      "return { success"
+    ]
+  },
+  {
+    "rel": "src/stores/useHanhaiStore.ts",
+    "lines": 569,
+    "imports": [
+      "@/data/hanhai",
+      "@/data/items",
+      "@/composables/useCombinedInventory",
+      "@/composables/useGameLog"
+    ],
+    "symbols": [
+      "unlocked",
+      "casinoBetsToday",
+      "weeklyPurchases",
+      "tradePoints",
+      "tradeShopLevel",
+      "tradeSlots",
+      "weeklyRotatingStock",
+      "weeklyExchangePurchases",
+      "totalExchangePurchases",
+      "tradeShopConfig",
+      "nextTradeShopUpgrade",
+      "canBet",
+      "betsRemaining",
+      "endTexas",
+      "endBuckshot",
+      "refreshRotatingStock",
+      "resetDailyBets",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "const playerStore = usePlayerStore",
+      "if",
+      "return { success"
+    ]
+  },
+  {
+    "rel": "src/stores/useHomeStore.ts",
+    "lines": 343,
+    "imports": [
+      "@/data/buildings",
+      "@/composables/useCombinedInventory"
+    ],
+    "symbols": [
+      "farmhouseLevel",
+      "caveChoice",
+      "caveUnlocked",
+      "greenhouseUnlocked",
+      "cellarSlots",
+      "cellarLevel",
+      "caveLevel",
+      "caveDaysActive",
+      "farmhouseName",
+      "nextUpgrade",
+      "hasCellar",
+      "cellarMaxSlots",
+      "cellarValuePerCycle",
+      "nextCellarUpgrade",
+      "caveName",
+      "caveQuality",
+      "nextCaveUpgrade",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "itemId"
+    ]
+  },
+  {
+    "rel": "src/stores/useSecretNoteStore.ts",
+    "lines": 97,
+    "imports": [
+      "@/data/secretNotes",
+      "@/composables/useGameLog"
+    ],
+    "symbols": [
+      "collectedNotes",
+      "usedNotes",
+      "totalNotes",
+      "collectedCount",
+      "hasUncollectedNotes",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "success",
+      "if",
+      "const noteDef = SECRET_NOTES.find",
+      "if",
+      "usedNotes.value.push",
+      "const playerStore = usePlayerStore",
+      "const inventoryStore = useInventoryStore",
+      "const rewards",
+      "if",
+      "playerStore.earnMoney",
+      "rewards.push"
+    ]
+  },
+  {
+    "rel": "src/stores/useWalletStore.ts",
+    "lines": 142,
+    "imports": [
+      "@/data/wallet",
+      "@/data/fish"
+    ],
+    "symbols": [
+      "unlockedItems",
+      "unlockedDefs",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "unlockedItems"
+    ]
+  },
+  {
+    "rel": "src/stores/useSaveStore.ts",
+    "lines": 303,
+    "imports": [],
+    "symbols": [
+      "activeSlot"
+    ],
+    "returns": [
+      "activeSlot, getSlots, assignNewSlot, saveToSlot, autoSave, loadFromSlot, deleteSlot, exportSave, importSave }"
+    ]
+  },
+  {
+    "rel": "src/stores/useSettingsStore.ts",
+    "lines": 151,
+    "imports": [
+      "@/composables/useAudio",
+      "@/data/themes",
+      "@/composables/useGameLog"
+    ],
+    "symbols": [
+      "fontSize",
+      "theme",
+      "qmsgPosition",
+      "qmsgTimeout",
+      "qmsgMaxNums",
+      "qmsgIsLimitWidth",
+      "qmsgLimitWidthNum",
+      "qmsgLimitWidthWrap",
+      "qmsgAnimation",
+      "qmsgAutoClose",
+      "qmsgShowClose",
+      "qmsgShowIcon",
+      "qmsgShowReverse",
+      "inventoryFilter",
+      "applyFontSize",
+      "applyTheme",
+      "changeFontSize",
+      "changeTheme",
+      "changeQmsgPosition",
+      "syncQmsgConfig",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "fontSize",
+      "sfxEnabled",
+      "bgmEnabled",
+      "theme",
+      "qmsgPosition",
+      "qmsgTimeout",
+      "qmsgMaxNums",
+      "qmsgIsLimitWidth",
+      "qmsgLimitWidthNum",
+      "qmsgLimitWidthWrap",
+      "qmsgAnimation",
+      "qmsgAutoClose",
+      "qmsgShowClose",
+      "qmsgShowIcon",
+      "qmsgShowReverse",
+      "inventoryFilter"
+    ]
+  },
+  {
+    "rel": "src/stores/useTutorialStore.ts",
+    "lines": 56,
+    "imports": [],
+    "symbols": [
+      "enabled",
+      "shownTipIds",
+      "visitedPanels",
+      "flags",
+      "isTipShown",
+      "markTipShown",
+      "hasPanelVisited",
+      "markPanelVisited",
+      "setFlag",
+      "getFlag",
+      "serialize",
+      "deserialize"
+    ],
+    "returns": [
+      "enabled",
+      "shownTipIds",
+      "visitedPanels",
+      "flags",
+      "isTipShown",
+      "markTipShown",
+      "hasPanelVisited",
+      "markPanelVisited",
+      "setFlag",
+      "getFlag",
+      "serialize",
+      "deserialize"
+    ]
+  },
+  {
+    "rel": "src/composables/useEndDay.ts",
+    "lines": 1206,
+    "imports": [
+      "@/stores/useGameStore",
+      "@/stores/usePlayerStore",
+      "@/stores/useFarmStore",
+      "@/stores/useInventoryStore",
+      "@/stores/useSaveStore",
+      "@/stores/useSkillStore",
+      "@/stores/useNpcStore",
+      "@/stores/useCookingStore",
+      "@/stores/useProcessingStore",
+      "@/stores/useAchievementStore",
+      "@/stores/useAnimalStore",
+      "@/stores/useHomeStore",
+      "@/stores/useWalletStore",
+      "@/stores/useShopStore",
+      "@/stores/useQuestStore",
+      "@/stores/useFishingStore",
+      "@/stores/useBreedingStore",
+      "@/stores/useHanhaiStore",
+      "@/stores/useFishPondStore",
+      "@/stores/useTutorialStore",
+      "@/stores/useHiddenNpcStore",
+      "@/stores/useMiningStore",
+      "@/data",
+      "@/data/processing",
+      "@/data/fish",
+      "@/data/recipes",
+      "@/data/buildings",
+      "@/data/upgrades",
+      "@/data/market",
+      "@/data/farmEvents",
+      "@/data/tutorials",
+      "@/data/farmEvents"
+    ],
+    "symbols": [
+      "checkRecipeUnlocks",
+      "checkAchievementRecipes",
+      "applyEventEffects",
+      "applyMorningEffect",
+      "handleEndDay",
+      "useEndDay",
+      "earlyFirstDay",
+      "allWasteland",
+      "tilledNoPlanted",
+      "plantedUnwatered",
+      "hasHarvestable",
+      "harvestedNeverSold",
+      "earlyGame",
+      "staminaWasLow",
+      "neverVisitedShop",
+      "neverFished",
+      "neverMined",
+      "neverTalkedNpc",
+      "neverCheckedQuests",
+      "neverCooked",
+      "firstRainyDay",
+      "justChangedSeason",
+      "hasCropNoSprinkler",
+      "neverHadAnimal"
+    ],
+    "returns": [
+      "type"
+    ]
+  },
+  {
+    "rel": "src/composables/useFarmActions.ts",
+    "lines": 933,
+    "imports": [
+      "@/stores/useAchievementStore",
+      "@/stores/useBreedingStore",
+      "@/stores/useCookingStore",
+      "@/stores/useFarmStore",
+      "@/stores/useGameStore",
+      "@/stores/useInventoryStore",
+      "@/stores/usePlayerStore",
+      "@/stores/useQuestStore",
+      "@/stores/useShopStore",
+      "@/stores/useSkillStore",
+      "@/stores/useWalletStore",
+      "@/stores/useHiddenNpcStore",
+      "@/data",
+      "@/data/processing",
+      "@/data/timeConstants",
+      "@/data/breeding"
+    ],
+    "symbols": [
+      "selectedSeed",
+      "handlePlotClick",
+      "handleBuySeed",
+      "handleSellItem",
+      "handleSellItemAll",
+      "handleSellAll",
+      "handleBatchWater",
+      "handleBatchTill",
+      "handleBatchHarvest",
+      "handleBatchPlant",
+      "handleBatchFertilize",
+      "handleRemoveCrop",
+      "handleCurePest",
+      "handleBatchCurePest",
+      "handleClearWeed",
+      "handleBatchClearWeed",
+      "useFarmActions"
+    ],
+    "returns": [
+      "selectedSeed",
+      "handlePlotClick",
+      "handleBuySeed",
+      "handleSellItem",
+      "handleSellItemAll",
+      "handleSellAll",
+      "handleBatchWater",
+      "handleBatchTill",
+      "handleBatchHarvest",
+      "QUALITY_NAMES"
+    ]
+  },
+  {
+    "rel": "src/composables/useAudio.ts",
+    "lines": 1211,
+    "imports": [
+      "@/stores/useGameStore",
+      "@/data/timeConstants"
+    ],
+    "symbols": [
+      "sfxEnabled",
+      "bgmEnabled",
+      "playSfx",
+      "sfxClick",
+      "sfxWater",
+      "sfxPlant",
+      "sfxHarvest",
+      "sfxDig",
+      "sfxBuy",
+      "sfxCoin",
+      "sfxLevelUp",
+      "sfxAttack",
+      "sfxHurt",
+      "sfxEncounter",
+      "sfxDefend",
+      "sfxFlee",
+      "sfxVictory",
+      "sfxReel",
+      "sfxFishCatch",
+      "sfxLineBroken",
+      "sfxMine",
+      "sfxSleep",
+      "sfxError",
+      "sfxForage",
+      "sfxGameStart",
+      "sfxCountdownTick",
+      "sfxCountdownFinal",
+      "sfxGameAction",
+      "sfxRewardClaim",
+      "sfxMiniPerfect",
+      "sfxMiniGood",
+      "sfxMiniPoor",
+      "sfxMiniFail",
+      "sfxRankFirst",
+      "sfxRankSecond",
+      "sfxRankThird",
+      "sfxRankLose",
+      "sfxGameActionLight",
+      "sfxFishBite",
+      "sfxCastLine",
+      "sfxPaddle",
+      "sfxRaceFinish",
+      "sfxRiddleReveal",
+      "sfxRiddleWrong",
+      "sfxTeaPour",
+      "sfxTeaBell",
+      "sfxItemSelect",
+      "sfxJudging",
+      "sfxArrowFly",
+      "sfxPotClang",
+      "sfxWindGust",
+      "sfxKitePull",
+      "sfxDoughStep",
+      "sfxDumplingDone",
+      "sfxFireworkLaunch",
+      "sfxFireworkBoom",
+      "sfxRouletteTick",
+      "sfxRouletteSpin",
+      "sfxRouletteStop",
+      "sfxDiceTick",
+      "sfxDiceRoll",
+      "sfxDiceLand",
+      "sfxCupTick",
+      "sfxCupShuffle",
+      "sfxCupReveal",
+      "sfxCricketTick",
+      "sfxCricketChirp",
+      "sfxCricketClash",
+      "sfxCardFlip",
+      "sfxChipBet",
+      "sfxFoldCards",
+      "sfxGunshot",
+      "sfxGunEmpty",
+      "sfxCasinoWin",
+      "sfxCasinoLose",
+      "safeDispose",
+      "stopAmbient",
+      "cleanupBgm",
+      "playBgmLoop",
+      "playNext"
+    ],
+    "returns": [
+      "type"
+    ]
+  },
+  {
+    "rel": "src/composables/useDialogs.ts",
+    "lines": 230,
+    "imports": [
+      "@/data/events",
+      "@/data/farmEvents",
+      "@/data/heartEvents",
+      "@/data/hiddenNpcs",
+      "@/stores/useGameStore",
+      "@/stores/useNpcStore",
+      "@/stores/useHiddenNpcStore",
+      "@/stores/usePlayerStore",
+      "@/stores/useSkillStore"
+    ],
+    "symbols": [
+      "currentEvent",
+      "pendingHeartEvent",
+      "currentFestival",
+      "pendingPerk",
+      "pendingPetAdoption",
+      "childProposalVisible",
+      "pendingFarmEvent",
+      "pendingDiscoveryScenes",
+      "pendingDiscoveryScene",
+      "checkAllPerks",
+      "handlePerkSelect",
+      "triggerHeartEvent",
+      "closeHeartEvent",
+      "triggerWeddingEvent",
+      "showEvent",
+      "closeEvent",
+      "showFestival",
+      "closeFestival",
+      "triggerPetAdoption",
+      "closePetAdoption",
+      "showChildProposal",
+      "closeChildProposal",
+      "showFarmEvent",
+      "closeFarmEvent",
+      "showDiscoveryScene",
+      "closeDiscoveryScene",
+      "useDialogs"
+    ],
+    "returns": [
+      "currentEvent",
+      "pendingHeartEvent",
+      "currentFestival",
+      "pendingPerk",
+      "pendingPetAdoption",
+      "childProposalVisible",
+      "checkAllPerks",
+      "handlePerkSelect",
+      "triggerHeartEvent",
+      "triggerWeddingEvent",
+      "closeHeartEvent",
+      "showEvent",
+      "closeEvent",
+      "showFestival",
+      "closeFestival",
+      "triggerPetAdoption",
+      "closePetAdoption",
+      "showChildProposal",
+      "closeChildProposal",
+      "pendingFarmEvent",
+      "showFarmEvent",
+      "closeFarmEvent",
+      "pendingDiscoveryScene",
+      "showDiscoveryScene",
+      "closeDiscoveryScene"
+    ]
+  },
+  {
+    "rel": "src/composables/useNavigation.ts",
+    "lines": 141,
+    "imports": [
+      "@/stores/useGameStore",
+      "@/data/timeConstants",
+      "@/stores/useTutorialStore",
+      "@/stores/useNpcStore"
+    ],
+    "symbols": [
+      "navigateToPanel",
+      "useNavigation",
+      "getIcon"
+    ],
+    "returns": [
+      "TABS",
+      "navigateToPanel"
+    ]
+  },
+  {
+    "rel": "src/composables/useCombinedInventory.ts",
+    "lines": 78,
+    "imports": [
+      "@/stores/useInventoryStore",
+      "@/stores/useWarehouseStore"
+    ],
+    "symbols": [],
+    "returns": []
+  },
+  {
+    "rel": "src/composables/useWebdav.ts",
+    "lines": 423,
+    "imports": [
+      "@/stores/useSaveStore"
+    ],
+    "symbols": [
+      "config",
+      "testStatus",
+      "testError",
+      "traceLogs",
+      "webdavReady",
+      "pushTrace",
+      "clearTrace",
+      "useWebdav",
+      "saveConfig",
+      "setTestErrorByStatus"
+    ],
+    "returns": []
+  },
+  {
+    "rel": "src/composables/useResetGame.ts",
+    "lines": 56,
+    "imports": [
+      "@/stores/useAchievementStore",
+      "@/stores/useAnimalStore",
+      "@/stores/useBreedingStore",
+      "@/stores/useCookingStore",
+      "@/stores/useFarmStore",
+      "@/stores/useFishPondStore",
+      "@/stores/useFishingStore",
+      "@/stores/useGameStore",
+      "@/stores/useGuildStore",
+      "@/stores/useHanhaiStore",
+      "@/stores/useHomeStore",
+      "@/stores/useInventoryStore",
+      "@/stores/useMiningStore",
+      "@/stores/useMuseumStore",
+      "@/stores/useNpcStore",
+      "@/stores/usePlayerStore",
+      "@/stores/useProcessingStore",
+      "@/stores/useQuestStore",
+      "@/stores/useSecretNoteStore",
+      "@/stores/useShopStore",
+      "@/stores/useSkillStore",
+      "@/stores/useTutorialStore",
+      "@/stores/useWalletStore",
+      "@/stores/useWarehouseStore"
+    ],
+    "symbols": [
+      "resetAllStoresForNewGame"
+    ],
+    "returns": []
+  },
+  {
+    "rel": "src/composables/useGameClock.ts",
+    "lines": 120,
+    "imports": [
+      "@/stores/useGameStore",
+      "@/data/timeConstants"
+    ],
+    "symbols": [
+      "gameSpeed",
+      "isPaused",
+      "tick",
+      "useGameClock",
+      "startClock",
+      "stopClock",
+      "pauseClock",
+      "resumeClock",
+      "setSpeed",
+      "cycleSpeed",
+      "togglePause"
+    ],
+    "returns": [
+      "gameSpeed",
+      "isPaused",
+      "startClock",
+      "stopClock",
+      "pauseClock",
+      "resumeClock",
+      "setSpeed",
+      "cycleSpeed",
+      "togglePause"
+    ]
+  },
+  {
+    "rel": "src/composables/useGameLog.ts",
+    "lines": 126,
+    "imports": [],
+    "symbols": [
+      "logHistory",
+      "applyQmsgConfig",
+      "_registerPerkChecker",
+      "_registerDayLabelGetter",
+      "addLog",
+      "showFloat",
+      "resetLogs",
+      "clearAllLogs",
+      "clearDayLogs",
+      "useGameLog",
+      "_perkChecker",
+      "fn",
+      "_dayLabelGetter"
+    ],
+    "returns": [
+      "addLog",
+      "showFloat",
+      "resetLogs",
+      "clearAllLogs",
+      "clearDayLogs",
+      "logHistory"
+    ]
+  },
+  {
+    "rel": "src/composables/useHiddenNpcActions.ts",
+    "lines": 103,
+    "imports": [
+      "@/stores/useHiddenNpcStore",
+      "@/stores/useGameStore",
+      "@/data/hiddenNpcs"
+    ],
+    "symbols": [],
+    "returns": []
+  },
+  {
+    "rel": "src/router/index.ts",
+    "lines": 41,
+    "imports": [],
+    "symbols": [
+      "component"
+    ],
+    "returns": []
+  },
+  {
+    "rel": "src/views/GameLayout.vue",
+    "lines": 950,
+    "imports": [
+      "@/stores/useAnimalStore",
+      "@/stores/useGameStore",
+      "@/stores/useHomeStore",
+      "@/stores/useInventoryStore",
+      "@/stores/useNpcStore",
+      "@/stores/usePlayerStore",
+      "@/stores/useWarehouseStore",
+      "@/stores/useFarmStore",
+      "@/composables/useDialogs",
+      "@/data/farmEvents",
+      "@/composables/useEndDay",
+      "@/composables/useGameLog",
+      "@/data/timeConstants",
+      "@/data",
+      "@/data/items",
+      "@/composables/useGameClock",
+      "@/composables/useAudio"
+    ],
+    "symbols": [
+      "showMobileMap",
+      "showSleepConfirm",
+      "showSettings",
+      "showLogModal",
+      "clearLogTarget",
+      "groupedLogs",
+      "currentPanel",
+      "sleepLabel",
+      "sleepSummary",
+      "sleepWarning",
+      "petChoice",
+      "petNameInput",
+      "proposalSpouseName",
+      "showVoidModal",
+      "showVoidDepositModal",
+      "expandedVoidChestId",
+      "voidDepositChestId",
+      "voidChests",
+      "voidDepositableItems",
+      "voidDuplicateDepositItems",
+      "voidItemDetail",
+      "voidItemDef",
+      "voidQtyModal",
+      "voidQty",
+      "requestClearLogs",
+      "executeClearLogs",
+      "confirmPetAdoption",
+      "handleChildProposalResponse",
+      "handleFarmEventChoice",
+      "toggleVoidChest",
+      "openVoidDeposit",
+      "handleVoidDepositDuplicates",
+      "openVoidQtyModal",
+      "setVoidQty",
+      "addVoidQty",
+      "onVoidQtyInput",
+      "executeVoidWithdraw",
+      "executeVoidDeposit",
+      "confirmVoidQty",
+      "confirmSleep"
+    ],
+    "returns": []
+  },
+  {
+    "rel": "src/views/MainMenu.vue",
+    "lines": 584,
+    "imports": [
+      "@/stores/useGameStore",
+      "@/stores/useSaveStore",
+      "@/stores/useFarmStore",
+      "@/stores/useAnimalStore",
+      "@/stores/usePlayerStore",
+      "@/stores/useQuestStore",
+      "@/stores/useInventoryStore",
+      "@/data/farmMaps",
+      "@/composables/useAudio",
+      "@/composables/useGameLog",
+      "@/composables/useResetGame",
+      "@/stores/useTutorialStore"
+    ],
+    "symbols": [
+      "slots",
+      "showCharCreate",
+      "showFarmSelect",
+      "showIdentitySetup",
+      "showAbout",
+      "aboutTab",
+      "slotMenuOpen",
+      "selectedMap",
+      "charName",
+      "charGender",
+      "showPrivacy",
+      "showFarmConfirm",
+      "deleteTargetSlot",
+      "selectedFarmDef",
+      "fileInputRef",
+      "handleSelectFarm",
+      "handlePrivacyAgree",
+      "handlePrivacyDecline",
+      "refreshSlots",
+      "handleBackToMenu",
+      "handleCharCreateNext",
+      "handleBackToCharCreate",
+      "handleNewGame",
+      "handleLoadGame",
+      "handleIdentityConfirm",
+      "handleDeleteSlot",
+      "confirmDeleteSlot",
+      "handleExportSlot",
+      "triggerImport",
+      "handleImportFile"
+    ],
+    "returns": []
+  }
+]

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>桃源乡存档编辑器</title>
+    <link rel="stylesheet" href="./save-editor.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div>
+        <p class="eyebrow">Taoyuan Save Editor</p>
+        <h1>桃源乡存档编辑器</h1>
+      </div>
+      <div id="status" class="status">等待打开 .tyx 存档</div>
+    </header>
+
+    <main class="layout">
+      <section class="panel">
+        <h2>打开与导出</h2>
+        <div class="file-row">
+          <input id="saveFile" type="file" accept=".tyx,text/plain" />
+          <button id="loadExample" type="button">清空当前内容</button>
+        </div>
+        <p class="hint">
+          先在游戏里导出存档，打开导出的 .tyx 文件；编辑后导出新的 .tyx，再回游戏里导入。
+        </p>
+        <div id="summary" class="summary empty">尚未载入存档。</div>
+        <div class="actions">
+          <button id="applyForm" type="button" disabled>应用表单修改</button>
+          <button id="exportSave" type="button" disabled>导出加密 .tyx</button>
+          <button id="exportJson" type="button" disabled>导出明文 JSON</button>
+        </div>
+        <label class="check-line">
+          <input id="updateSavedAt" type="checkbox" checked />
+          导出时更新 savedAt 时间
+        </label>
+      </section>
+
+      <section class="panel">
+        <h2>角色与资源</h2>
+        <div class="grid">
+          <label>角色名<input id="playerName" data-path="player.playerName" type="text" /></label>
+          <label>性别
+            <select id="gender" data-path="player.gender">
+              <option value="male">男</option>
+              <option value="female">女</option>
+            </select>
+          </label>
+          <label>铜钱<input data-path="player.money" type="number" min="0" step="1" /></label>
+          <label>当前体力<input data-path="player.stamina" type="number" min="0" step="1" /></label>
+          <label>体力上限<input data-path="player.maxStamina" type="number" min="1" step="1" /></label>
+          <label>额外体力上限<input data-path="player.bonusMaxStamina" type="number" min="0" step="1" /></label>
+          <label>当前生命<input data-path="player.hp" type="number" min="0" step="1" /></label>
+          <label>基础生命上限<input data-path="player.baseMaxHp" type="number" min="1" step="1" /></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>日期与位置</h2>
+        <div class="grid">
+          <label>年份<input data-path="game.year" type="number" min="1" step="1" /></label>
+          <label>季节
+            <select data-path="game.season">
+              <option value="spring">春</option>
+              <option value="summer">夏</option>
+              <option value="autumn">秋</option>
+              <option value="winter">冬</option>
+            </select>
+          </label>
+          <label>日期<input data-path="game.day" type="number" min="1" max="28" step="1" /></label>
+          <label>小时<input data-path="game.hour" type="number" min="6" max="26" step="0.5" /></label>
+          <label>今日天气
+            <select data-path="game.weather">
+              <option value="sunny">晴</option>
+              <option value="rainy">雨</option>
+              <option value="stormy">雷雨</option>
+              <option value="snowy">雪</option>
+              <option value="windy">大风</option>
+              <option value="green_rain">绿雨</option>
+            </select>
+          </label>
+          <label>明日天气
+            <select data-path="game.tomorrowWeather">
+              <option value="sunny">晴</option>
+              <option value="rainy">雨</option>
+              <option value="stormy">雷雨</option>
+              <option value="snowy">雪</option>
+              <option value="windy">大风</option>
+              <option value="green_rain">绿雨</option>
+            </select>
+          </label>
+          <label>当前位置<input data-path="game.currentLocation" type="text" /></label>
+          <label>地点分组<input data-path="game.currentLocationGroup" type="text" /></label>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>背包</h2>
+        <div class="grid compact">
+          <label>背包容量<input data-path="inventory.capacity" type="number" min="1" step="1" /></label>
+          <label>物品 ID<input id="itemId" type="text" placeholder="例如 wood、stone、seed_parsnip" /></label>
+          <label>数量<input id="itemQty" type="number" min="1" step="1" value="1" /></label>
+          <label>品质
+            <select id="itemQuality">
+              <option value="normal">普通</option>
+              <option value="fine">优质</option>
+              <option value="excellent">精品</option>
+              <option value="supreme">极品</option>
+            </select>
+          </label>
+        </div>
+        <div class="actions">
+          <button id="addItem" type="button" disabled>加入/叠加物品</button>
+          <button id="addManualItem" type="button" disabled>按当前 ID 直接加入</button>
+        </div>
+        <div id="inventoryList" class="inventory-list empty">载入存档后显示背包物品。</div>
+      </section>
+
+      <section class="panel wide">
+        <div class="section-head">
+          <h2>高级 JSON 编辑</h2>
+          <div class="actions inline">
+            <button id="formatJson" type="button" disabled>格式化</button>
+            <button id="applyJson" type="button" disabled>从 JSON 应用</button>
+          </div>
+        </div>
+        <textarea id="jsonEditor" spellcheck="false" placeholder="载入存档后会显示解密后的 JSON。"></textarea>
+        <p class="hint">
+          高级编辑会直接影响存档结构。改坏时请回到原始导出文件，或者先导出明文 JSON 备份。
+        </p>
+      </section>
+    </main>
+
+    <div id="itemPicker" class="modal" hidden>
+      <div class="modal-backdrop" data-close-picker></div>
+      <section class="modal-window" role="dialog" aria-modal="true" aria-labelledby="itemPickerTitle">
+        <div class="modal-head">
+          <div>
+            <p class="eyebrow">Item Catalog</p>
+            <h2 id="itemPickerTitle">选择要加入的物品</h2>
+          </div>
+          <button class="ghost-button" type="button" data-close-picker>关闭</button>
+        </div>
+        <div class="picker-controls">
+          <label>搜索
+            <input id="itemSearch" type="search" placeholder="输入物品 ID 或名称" />
+          </label>
+          <label>分类
+            <select id="itemCategory"></select>
+          </label>
+        </div>
+        <div id="itemPickerMeta" class="hint"></div>
+        <div id="itemPickerList" class="picker-list"></div>
+      </section>
+    </div>
+
+    <script src="./vendor/crypto-js.js"></script>
+    <script src="./items-catalog.js"></script>
+    <script src="./save-editor.js"></script>
+  </body>
+</html>

@@ -284,6 +284,29 @@
               <span class="text-xs text-accent whitespace-nowrap">{{ discounted(WOOD_PRICE) }}文</span>
             </div>
 
+            <!-- 睡袋 -->
+            <div
+              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5"
+              @click="
+                openBatchBuyModal(
+                  '睡袋',
+                  '在资源地点可直接过夜，醒来后留在原地',
+                  discounted(SLEEPING_BAG_PRICE),
+                  () => handleBuyItem('sleeping_bag', SLEEPING_BAG_PRICE, '睡袋'),
+                  () => playerStore.money >= discounted(SLEEPING_BAG_PRICE),
+                  count => handleBatchBuyItem('sleeping_bag', SLEEPING_BAG_PRICE, '睡袋', count),
+                  () => getMaxBuyable(discounted(SLEEPING_BAG_PRICE)),
+                  'sleeping_bag'
+                )
+              "
+            >
+              <div>
+                <p class="text-sm">睡袋</p>
+                <p class="text-muted text-xs">资源地点可原地过夜</p>
+              </div>
+              <span class="text-xs text-accent whitespace-nowrap">{{ discounted(SLEEPING_BAG_PRICE) }}文</span>
+            </div>
+
             <!-- 雨图腾 -->
             <div
               class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5"
@@ -1046,6 +1069,7 @@
 
   const RAIN_TOTEM_PRICE = 300
   const WOOD_PRICE = 50
+  const SLEEPING_BAG_PRICE = 1200
 
   const shopStore = useShopStore()
   const playerStore = usePlayerStore()

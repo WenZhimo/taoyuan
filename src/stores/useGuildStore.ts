@@ -171,11 +171,6 @@ export const useGuildStore = defineStore('guild', () => {
     return weeklyLimit - (weeklyPurchases.value[itemId] ?? 0)
   }
 
-  /** 获取永久剩余购买次数 */
-  const getTotalRemaining = (itemId: string, totalLimit: number): number => {
-    return totalLimit - (totalPurchases.value[itemId] ?? 0)
-  }
-
   /** 获取公会等级被动攻击加成 */
   const getGuildAttackBonus = (): number => {
     return guildLevel.value * GUILD_BONUS_PER_LEVEL.attack
@@ -213,11 +208,7 @@ export const useGuildStore = defineStore('guild', () => {
       ensureWeeklyReset()
       if ((weeklyPurchases.value[itemId] ?? 0) >= item.weeklyLimit) return false
     }
-
-    // 永久总限购检查
-    if (item.totalLimit) {
-      if ((totalPurchases.value[itemId] ?? 0) >= item.totalLimit) return false
-    }
+    if (item.totalLimit && (totalPurchases.value[itemId] ?? 0) >= item.totalLimit) return false
 
     const playerStore = usePlayerStore()
     const inventoryStore = useInventoryStore()
@@ -349,7 +340,6 @@ export const useGuildStore = defineStore('guild', () => {
     donateItem,
     getDailyRemaining,
     getWeeklyRemaining,
-    getTotalRemaining,
     getGuildAttackBonus,
     getGuildHpBonus,
     isShopItemUnlocked,

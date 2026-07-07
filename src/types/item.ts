@@ -90,7 +90,7 @@ export interface EnchantmentDef {
   description: string
   attackBonus: number
   critBonus: number
-  special: 'vampiric' | 'sturdy' | 'lucky' | null
+  special: 'vampiric' | 'sturdy' | 'lucky' | 'poison' | 'burn' | 'freeze' | 'radiation' | null
 }
 
 /** 拥有的武器实例 */

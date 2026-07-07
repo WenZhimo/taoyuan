@@ -17,7 +17,7 @@
       </span>
     </div>
 
-    <!-- 第二行：状态条 + 音频控制 -->
+    <!-- 第二行：状态条 + 时间操作 -->
     <div class="flex items-center justify-between text-xs flex-wrap">
       <div class="flex items-center space-x-2 md:space-x-4 flex-wrap">
         <!-- 体力 -->
@@ -56,6 +56,9 @@
           </div>
         </div>
       </div>
+      <div class="flex items-center space-x-2 mt-1 md:mt-0">
+        <Button class="py-1 px-2" :icon="Coffee" :icon-size="12" @click="emit('request-nap')">小憩</Button>
+      </div>
     </div>
   </div>
 </template>
@@ -65,7 +68,13 @@
   import { useGameStore, SEASON_NAMES, WEATHER_NAMES } from '@/stores/useGameStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { DAY_START_HOUR, DAY_END_HOUR } from '@/data/timeConstants'
-  import { Zap, Heart, Clock, Coins } from 'lucide-vue-next'
+  import { Zap, Heart, Clock, Coins, Coffee } from 'lucide-vue-next'
+  import Button from '@/components/game/Button.vue'
+
+  const emit = defineEmits<{
+    (e: 'request-sleep'): void
+    (e: 'request-nap'): void
+  }>()
 
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()

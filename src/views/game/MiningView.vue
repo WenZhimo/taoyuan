@@ -104,7 +104,7 @@
     <Transition name="panel-fade">
       <div
         v-if="showMapModal"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[30] p-4"
         @click.self="showMapModal = false"
       >
         <div class="game-panel max-w-xs w-full">
@@ -150,7 +150,7 @@
     <Transition name="panel-fade">
       <div
         v-if="showElevatorModal"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[30] p-4"
         @click.self="showElevatorModal = false"
       >
         <div class="game-panel max-w-xs w-full relative">
@@ -217,7 +217,7 @@
     <Transition name="panel-fade">
       <div
         v-if="miningStore.isExploring && !miningStore.inCombat"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[30] p-4"
       >
         <div class="game-panel max-w-sm w-full">
           <!-- 标题栏 -->
@@ -273,6 +273,29 @@
 
           <!-- 操作区 -->
           <div class="flex flex-col space-y-1 mb-3">
+            <div
+              v-if="sweepPreview.targetFloor"
+              class="flex items-center justify-between border rounded-xs px-3 py-1.5"
+              :class="canSweepToSafePoint ? 'border-accent/30 cursor-pointer hover:bg-accent/5' : 'border-danger/20 opacity-60'"
+              @click="canSweepToSafePoint && handleSweepToSafePoint()"
+            >
+              <span class="text-xs" :class="canSweepToSafePoint ? 'text-accent' : 'text-danger'">
+                <ChevronDown :size="12" class="inline" />
+                扫荡至安全点
+              </span>
+              <span class="text-xs text-muted">HP-{{ sweepPreview.estimatedDamage }} · 第{{ sweepPreview.targetFloor }}层</span>
+            </div>
+            <div
+              v-if="remainingCombatTiles > 0"
+              class="flex items-center justify-between border border-danger/30 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-danger/5"
+              @click="handleStartChainBattle"
+            >
+              <span class="text-xs text-danger">
+                <Swords :size="12" class="inline" />
+                连战本层
+              </span>
+              <span class="text-xs text-muted">{{ remainingCombatTiles }}个敌人</span>
+            </div>
             <div v-for="bombItem in availableBombs" :key="bombItem.id">
               <div
                 class="flex items-center justify-between border rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
@@ -341,7 +364,7 @@
 
     <!-- 战斗弹窗 -->
     <Transition name="panel-fade">
-      <div v-if="miningStore.inCombat" class="fixed inset-0 bg-black/60 flex items-center justify-center z-60 p-4">
+      <div v-if="miningStore.inCombat" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[31] p-4">
         <div class="game-panel max-w-xs w-full">
           <!-- 标题 -->
           <div class="flex items-center justify-between mb-2">
@@ -365,6 +388,15 @@
               <p class="text-[10px]" :class="playerStore.getIsLowHp() ? 'text-danger' : 'text-muted'">
                 {{ playerStore.hp }}/{{ playerStore.getMaxHp() }}
               </p>
+              <div v-if="miningStore.combatPlayerStatuses.length > 0" class="flex flex-wrap gap-0.5 mt-1">
+                <span
+                  v-for="status in miningStore.combatPlayerStatuses"
+                  :key="status.type"
+                  class="text-[9px] border border-accent/20 rounded-xs px-1 text-accent"
+                >
+                  {{ status.name }}{{ status.remainingTurns === null ? '' : status.remainingTurns }}
+                </span>
+              </div>
               <span
                 v-if="playerFloat"
                 :key="playerFloat.key"
@@ -385,11 +417,20 @@
                 <div
                   class="h-1.5 bg-danger rounded-xs transition-all"
                   :style="{
-                    width: `${miningStore.combatMonster ? (miningStore.combatMonsterHp / miningStore.combatMonster.hp) * 100 : 0}%`
+                    width: `${Math.max(0, Math.min(100, miningStore.combatMonster ? (miningStore.combatMonsterHp / miningStore.combatMonster.hp) * 100 : 0))}%`
                   }"
                 />
               </div>
               <p class="text-[10px] text-muted">{{ miningStore.combatMonsterHp }}/{{ miningStore.combatMonster?.hp }}</p>
+              <div v-if="miningStore.combatMonsterStatuses.length > 0" class="flex flex-wrap gap-0.5 mt-1">
+                <span
+                  v-for="status in miningStore.combatMonsterStatuses"
+                  :key="status.type"
+                  class="text-[9px] border border-danger/20 rounded-xs px-1 text-danger"
+                >
+                  {{ status.name }}{{ status.remainingTurns === null ? '' : status.remainingTurns }}
+                </span>
+              </div>
               <span
                 v-if="monsterFloat"
                 :key="monsterFloat.key"
@@ -442,6 +483,41 @@
                 <span v-if="miningStore.combatIsBoss" class="text-[10px] text-muted/40">BOSS战</span>
               </div>
             </div>
+            <!-- 自动战斗 -->
+            <div class="grid grid-cols-4 gap-1">
+              <button
+                class="border rounded-xs py-1 text-[10px]"
+                :class="autoCombatMode === 'smart' ? 'border-accent text-accent bg-accent/10' : 'border-accent/20 text-muted'"
+                type="button"
+                @click="setAutoCombatMode(autoCombatMode === 'smart' ? 'off' : 'smart')"
+              >
+                智能
+              </button>
+              <button
+                class="border rounded-xs py-1 text-[10px]"
+                :class="autoCombatMode === 'attack' ? 'border-danger text-danger bg-danger/10' : 'border-accent/20 text-muted'"
+                type="button"
+                @click="setAutoCombatMode(autoCombatMode === 'attack' ? 'off' : 'attack')"
+              >
+                攻击
+              </button>
+              <button
+                class="border rounded-xs py-1 text-[10px]"
+                :class="autoCombatMode === 'defend' ? 'border-success text-success bg-success/10' : 'border-accent/20 text-muted'"
+                type="button"
+                @click="setAutoCombatMode(autoCombatMode === 'defend' ? 'off' : 'defend')"
+              >
+                防御
+              </button>
+              <button
+                class="border rounded-xs py-1 text-[10px]"
+                :class="autoCombatMode === 'off' ? 'border-accent/20 text-muted' : 'border-accent text-accent'"
+                type="button"
+                @click="setAutoCombatMode('off')"
+              >
+                关闭
+              </button>
+            </div>
             <!-- 使用道具 -->
             <div
               v-if="availableCombatItems.length > 0"
@@ -488,7 +564,7 @@
     <Transition name="panel-fade">
       <div
         v-if="showCombatItems"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
         @click.self="showCombatItems = false"
       >
         <div class="game-panel max-w-xs w-full">
@@ -522,7 +598,7 @@
     <Transition name="panel-fade">
       <div
         v-if="pendingItem"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
         @click.self="pendingItemId = null"
       >
         <div class="game-panel max-w-xs w-full relative">
@@ -592,7 +668,7 @@
     <Transition name="panel-fade">
       <div
         v-if="showLeaveConfirm"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[70] p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
         @click.self="showLeaveConfirm = false"
       >
         <div class="game-panel max-w-xs w-full">
@@ -610,7 +686,7 @@
     <Transition name="panel-fade">
       <div
         v-if="showPresetListModal"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-70 p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
         @click.self="showPresetListModal = false"
       >
         <div class="game-panel max-w-xs w-full relative">
@@ -657,7 +733,7 @@
     <Transition name="panel-fade">
       <div
         v-if="showPresetDetailModal && detailPreset"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-80 p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[33] p-4"
         @click.self="showPresetDetailModal = false"
       >
         <div class="game-panel max-w-xs w-full relative">
@@ -725,7 +801,7 @@
     <Transition name="panel-fade">
       <div
         v-if="showEquipPropertyModal && equipPropertyInfo"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-90 p-4"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[34] p-4"
         @click.self="showEquipPropertyModal = false"
       >
         <div class="game-panel max-w-xs w-full relative">
@@ -752,7 +828,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { computed, onUnmounted, ref, watch } from 'vue'
   import {
     Mountain,
     Pickaxe,
@@ -817,9 +893,21 @@
 
   /** 战斗道具面板 */
   const showCombatItems = ref(false)
+  type AutoCombatMode = 'off' | 'smart' | 'attack' | 'defend'
+  const autoCombatMode = ref<AutoCombatMode>('off')
+  let autoCombatTimer: ReturnType<typeof setTimeout> | null = null
 
   /** 道具使用确认 */
   const BATCH_USABLE_ITEMS = new Set(['guild_badge', 'life_talisman', 'lucky_coin', 'defense_charm'])
+  const COMBAT_ITEM_DESCRIPTIONS: Record<string, string> = {
+    bomb: '战斗中造成50点无视防御伤害',
+    mega_bomb: '战斗中造成大量无视防御伤害并燃烧',
+    poison_arrow: '造成伤害并附加中毒',
+    ice_bomb: '造成无视防御伤害并冻结',
+    nuclear_bomb: '大量百分比伤害并永久辐射',
+    attack_potion: '本次探索攻击力+500',
+    guardian_potion: '本次探索受到伤害-35%'
+  }
   const pendingItemId = ref<string | null>(null)
   const pendingUseQty = ref(1)
   const pendingItem = computed(() => {
@@ -934,8 +1022,23 @@
       }
     }
 
+    for (const [itemId, desc] of Object.entries(COMBAT_ITEM_DESCRIPTIONS)) {
+      const count = inventoryStore.getItemCount(itemId)
+      if (count <= 0) continue
+      const def = getItemById(itemId)
+      items.push({ itemId, name: def?.name ?? itemId, desc, count })
+    }
+
     // 所有可食用的恢复类道具
-    const seen = new Set<string>(['guild_badge', 'slayer_charm', 'monster_lure', 'life_talisman', 'lucky_coin', 'defense_charm'])
+    const seen = new Set<string>([
+      'guild_badge',
+      'slayer_charm',
+      'monster_lure',
+      'life_talisman',
+      'lucky_coin',
+      'defense_charm',
+      ...Object.keys(COMBAT_ITEM_DESCRIPTIONS)
+    ])
     for (const invItem of inventoryStore.items) {
       if (invItem.quantity <= 0 || seen.has(invItem.itemId)) continue
       const def = getItemById(invItem.itemId)
@@ -960,6 +1063,9 @@
 
   /** 是否有怪物诱饵 */
   const hasMonsterLure = computed(() => inventoryStore.getItemCount('monster_lure') > 0)
+  const sweepPreview = computed(() => miningStore.getSweepPreview())
+  const canSweepToSafePoint = computed(() => sweepPreview.value.canSweep && sweepPreview.value.targetFloor !== null)
+  const remainingCombatTiles = computed(() => miningStore.getRemainingCombatTileCount())
 
   const zoneName = computed(() => {
     const floor = getFloor(miningStore.currentFloor)
@@ -1261,13 +1367,14 @@
       }
       resumeNormalBgm()
       showCombatItems.value = false
-      if (!miningStore.isExploring) {
+      if (result.won || !miningStore.isExploring) {
         exploreLog.value.push(result.message)
       }
     }
 
     setTimeout(() => {
       combatAnimLock.value = false
+      scheduleAutoCombat()
     }, 400)
   }
 
@@ -1296,6 +1403,77 @@
     if (result.success) {
       exploreLog.value.push(result.message)
     }
+  }
+
+  const handleSweepToSafePoint = () => {
+    if (gameStore.isPastBedtime) {
+      addLog('太晚了，没法继续探索了。')
+      handleEndDay()
+      return
+    }
+
+    showCombatItems.value = false
+    const result = miningStore.sweepToNextSafePoint()
+    sfxClick()
+    addLog(result.message)
+    if (result.success) {
+      exploreLog.value = [result.message]
+      bombModeId.value = null
+    } else {
+      exploreLog.value.push(result.message)
+    }
+  }
+
+  const handleStartChainBattle = () => {
+    if (gameStore.isPastBedtime) {
+      addLog('太晚了，没法继续战斗了。')
+      handleEndDay()
+      return
+    }
+
+    showCombatItems.value = false
+    const result = miningStore.startChainBattle()
+    sfxClick()
+    addLog(result.message)
+    exploreLog.value.push(result.message)
+    if (result.startsCombat) {
+      startBattleBgm()
+      sfxEncounter()
+    }
+  }
+
+  const clearAutoCombatTimer = () => {
+    if (autoCombatTimer) {
+      clearTimeout(autoCombatTimer)
+      autoCombatTimer = null
+    }
+  }
+
+  const chooseAutoCombatAction = (): CombatAction => {
+    if (autoCombatMode.value === 'attack') return 'attack'
+    if (autoCombatMode.value === 'defend') return 'defend'
+
+    const monsterAttack = miningStore.combatMonster?.attack ?? 0
+    const hp = playerStore.hp
+    const maxHp = playerStore.getMaxHp()
+    const dangerLine = Math.max(maxHp * 0.35, monsterAttack * 2.2)
+    if (hp <= dangerLine) return 'defend'
+    if (miningStore.combatMonsterHp <= Math.max(1, weaponAttack.value * 1.2)) return 'attack'
+    return 'attack'
+  }
+
+  const scheduleAutoCombat = () => {
+    clearAutoCombatTimer()
+    if (autoCombatMode.value === 'off' || !miningStore.inCombat || combatAnimLock.value) return
+    autoCombatTimer = setTimeout(() => {
+      if (autoCombatMode.value === 'off' || !miningStore.inCombat || combatAnimLock.value) return
+      handleCombat(chooseAutoCombatAction())
+    }, 450)
+  }
+
+  const setAutoCombatMode = (mode: AutoCombatMode) => {
+    autoCombatMode.value = mode
+    scheduleAutoCombat()
   }
 
   const handleNextFloor = () => {
@@ -1461,6 +1639,22 @@
     }
     showEquipPropertyModal.value = true
   }
+
+  watch(
+    () => miningStore.inCombat,
+    inCombat => {
+      if (inCombat) {
+        scheduleAutoCombat()
+      } else {
+        clearAutoCombatTimer()
+        showCombatItems.value = false
+      }
+    }
+  )
+
+  onUnmounted(() => {
+    clearAutoCombatTimer()
+  })
 </script>
 
 <style scoped>

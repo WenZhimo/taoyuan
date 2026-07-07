@@ -6,7 +6,7 @@
         <Waves :size="14" />
         <span>鱼塘</span>
       </div>
-      <span v-if="!fishPondStore.pond.built" class="text-xs text-muted">{{ fishPondStore.fishCount }}/{{ fishPondStore.capacity }}</span>
+      <span v-if="!fishPondStore.pond.built" class="text-xs text-muted">{{ fishPondStore.fishCount }}/{{ pondCapacityLabel }}</span>
     </div>
 
     <!-- 未建造 -->
@@ -40,7 +40,7 @@
           <div class="flex items-center justify-between mb-1.5">
             <Divider>鱼塘 Lv.{{ fishPondStore.pond.level }}</Divider>
             <div class="flex items-center space-x-2">
-              <span class="text-xs text-muted">{{ fishPondStore.fishCount }}/{{ fishPondStore.capacity }}</span>
+              <span class="text-xs text-muted">{{ fishPondStore.fishCount }}/{{ pondCapacityLabel }}</span>
               <Button v-if="fishPondStore.pond.level < 3" :icon="ArrowUp" :icon-size="12" @click="pondModal = 'upgrade'">升级</Button>
             </div>
           </div>
@@ -456,6 +456,7 @@
     if (!fishPondStore.pond.breeding) return 0
     return ((breedingTotalDays - fishPondStore.pond.breeding.daysLeft) / breedingTotalDays) * 100
   })
+  const pondCapacityLabel = computed(() => (Number.isFinite(fishPondStore.capacity) ? String(fishPondStore.capacity) : '无限'))
 
   // === 建造/升级统一弹窗 ===
 

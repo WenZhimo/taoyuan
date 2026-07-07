@@ -1,0 +1,728 @@
+# NPC关系剧情与事件系统
+
+> 本文档基于当前 `src/` 源码重新调研生成，并已补充状态字段说明与更完整的核心机制流程。`docs/` 是构建输出目录，请继续在 `docs-source/game-systems/` 维护手写文档。
+
+## 系统定位
+
+说明 NPC、隐藏 NPC、好感度、送礼、生日、红心事件、任务、婚姻和每日事件。
+
+## 核心机制
+
+- NPC 状态不只是好感数字，还包含每日送礼限制、生日、关系阶段、红心事件观看记录、婚姻/知己状态、雇工和家庭事件。剧情触发必须同时看时间、地点、天气、季节、好感和任务条件，不能只靠一个好感阈值。
+- 送礼是关系系统的主要输入：物品偏好、生日倍率、每日/每周限制共同决定好感变化。好感提高后可能解锁食谱、剧情、帮忙行为、婚姻或知己加成；这些奖励通常跨到烹饪、农田、畜牧或家园。
+- 任务系统分普通任务、特殊订单和主线任务。普通任务有每日生成和过期，特殊订单有更高门槛，主线任务由剧情阶段推动；提交时会扣物品或检查统计进度并发奖励。任务状态既需要即时响应获得物品，也需要跨日处理过期。
+- 隐藏 NPC 有单独的显现、传闻、羁绊和能力机制。它们与常规 NPC 共享好感/事件思想，但触发条件更依赖特殊物品、日期、地点或前置发现。
+- 婚姻、子女和雇工让 NPC 从叙事层进入生产层。配偶或知己可能在跨日帮助浇水、喂食、送礼或提供加成，因此 NPC 关系会直接影响农场和畜牧效率。
+
+## 关键约束
+
+- 事件触发条件应写在数据或 store 中统一判断，避免视图层散落条件。
+- 每日送礼、生日、婚姻、子女和雇工都依赖跨日重置/推进。
+
+## 源码入口
+
+### Store / 状态说明
+
+- `src/stores/useNpcStore.ts`（store `npc`，约 1145 行）
+  - 状态：
+    - 该 store 的核心集合多通过数组/对象工厂或外部常量初始化，未全部以顶层 `ref` 呈现
+    - 阅读动作接口时需要关注其内部状态集合
+  - 行为接口：
+    - `getHireableNpcs`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `hireHelper`：行为接口 `hireHelper`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `dismissHelper`：行为接口 `dismissHelper`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `processDailyHelpers`：行为接口 `processDailyHelpers`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `unwatered`：行为接口 `unwatered`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `harvestable`：行为接口 `harvestable`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `getNpcState`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `getFriendshipLevel`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `isBirthday`：行为接口 `isBirthday`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `getTodayBirthdayNpc`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图
+  - 生命周期：
+    - 每日/跨日接口：`dailyChildUpdate`, `dailyLuck`, `dailyPregnancyUpdate`, `dailyReset`, `dailyWage`, `dailyWeddingUpdate`, `getDailyTip`, `hasDailyTip`
+    - 参与存档序列化
+- `src/stores/useHiddenNpcStore.ts`（store `hiddenNpc`，约 615 行）
+  - 状态：
+    - 该 store 的核心集合多通过数组/对象工厂或外部常量初始化，未全部以顶层 `ref` 呈现
+    - 阅读动作接口时需要关注其内部状态集合
+  - 派生状态：
+    - `getRevealedNpcs`：状态字段 `getRevealedNpcs`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `getRumorNpcs`：状态字段 `getRumorNpcs`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `getBondedNpc`：状态字段 `getBondedNpc`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `getActiveAbilities`：状态字段 `getActiveAbilities`，具体含义需结合所在 store 的动作和 UI 使用场景理解
+  - 行为接口：
+    - `defaultState`：行为接口 `defaultState`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `hiddenNpcStates`：行为接口 `hiddenNpcStates`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `getHiddenNpcState`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `getAffinityLevel`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `isManifestationDay`：行为接口 `isManifestationDay`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `evaluateCondition`：行为接口 `evaluateCondition`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `checkDiscoveryConditions`：行为接口 `checkDiscoveryConditions`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `addAffinity`：行为接口 `addAffinity`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `performSpecialInteraction`：行为接口 `performSpecialInteraction`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `startCourting`：行为接口 `startCourting`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 每日/跨日接口：`dailyBondBonus`, `dailyReset`
+    - 参与存档序列化
+- `src/stores/useQuestStore.ts`（store `quest`，约 454 行）
+  - 状态：
+    - 该 store 的核心集合多通过数组/对象工厂或外部常量初始化，未全部以顶层 `ref` 呈现
+    - 阅读动作接口时需要关注其内部状态集合
+  - 行为接口：
+    - `generateDailyQuests`：行为接口 `generateDailyQuests`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `generateSpecialOrder`：行为接口 `generateSpecialOrder`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `acceptQuest`：接取任务并加入活动任务列表。
+    - `acceptSpecialOrder`：行为接口 `acceptSpecialOrder`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `submitQuest`：提交任务目标，扣除物品或读取进度并发放奖励。
+    - `itemNames`：行为接口 `itemNames`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `onItemObtained`：获得物品时同步推进任务收集进度。
+    - `dailyUpdate`：推进跨日生产、生长、过期、产物或风险结算。
+    - `hasActiveQuestFor`：行为接口 `hasActiveQuestFor`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `meetsLevel`：行为接口 `meetsLevel`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 每日/跨日接口：`dailyUpdate`, `generateDailyQuests`
+    - 参与存档序列化
+- `src/stores/useAchievementStore.ts`（store `achievement`，约 422 行）
+  - 状态：
+    - `stats`：成就统计总表，记录作物、鱼、矿洞、烹饪、击杀、育种、赚钱等长期计数
+  - 派生状态：
+    - `discoveredCount`：数量计数状态，用于容量、进度或统计判断。
+    - `perfectionPercent`：状态字段 `perfectionPercent`，具体含义需结合所在 store 的动作和 UI 使用场景理解
+  - 行为接口：
+    - `discoverItem`：记录物品首次发现，用于图鉴、成就和完美度。
+    - `getDiscoveryTime`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `isDiscovered`：行为接口 `isDiscovered`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `recordCropHarvest`：记录型接口，用于写入统计、图鉴或历史进度。
+    - `recordFishCaught`：记录型接口，用于写入统计、图鉴或历史进度。
+    - `recordMoneyEarned`：记录型接口，用于写入统计、图鉴或历史进度。
+    - `recordMineFloor`：记录型接口，用于写入统计、图鉴或历史进度。
+    - `recordRecipeCooked`：记录型接口，用于写入统计、图鉴或历史进度。
+    - `recordSkullCavernFloor`：记录型接口，用于写入统计、图鉴或历史进度。
+    - `recordMonsterKill`：记录型接口，用于写入统计、图鉴或历史进度
+  - 生命周期：
+    - 参与存档序列化
+- `src/stores/useAnimalStore.ts`（store `animal`，约 819 行）
+  - 状态：
+    - `grazedToday`：今日是否已经放牧/吃草的标记，避免同日重复结算
+  - 派生状态：
+    - `coopBuilt`：状态字段 `coopBuilt`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `barnBuilt`：状态字段 `barnBuilt`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `stableBuilt`：状态字段 `stableBuilt`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `coopAnimals`：状态字段 `coopAnimals`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `barnAnimals`：状态字段 `barnAnimals`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `getHorse`：状态字段 `getHorse`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `hasHorse`：布尔/派生判断：用于判断“hasHorse”对应条件是否成立
+  - 行为接口：
+    - `buildBuilding`：建造动物建筑或功能建筑，扣除材料并解锁容量。
+    - `upgradeBuilding`：行为接口 `upgradeBuilding`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `buyAnimal`：购买动物并放入对应建筑。
+    - `currentCount`：行为接口 `currentCount`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `unfed`：行为接口 `unfed`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `animal`：行为接口 `animal`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `markAllFed`：行为接口 `markAllFed`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `petAnimal`：行为接口 `petAnimal`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `petAllAnimals`：行为接口 `petAllAnimals`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `startIncubation`：行为接口 `startIncubation`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 每日/跨日接口：`dailyBarnIncubatorUpdate`, `dailyIncubatorUpdate`, `dailyPetUpdate`, `dailyUpdate`
+    - 参与存档序列化
+- `src/stores/useSaveStore.ts`（store `save`，约 303 行）
+  - 状态：
+    - `activeSlot`：当前存档槽位，自动保存和读档以此作为默认目标
+  - 行为接口：
+    - `encrypt`：行为接口 `encrypt`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `decrypt`：行为接口 `decrypt`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `getSlots`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `assignNewSlot`：行为接口 `assignNewSlot`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `saveToSlot`：写入指定存档槽。
+    - `autoSave`：行为接口 `autoSave`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `loadFromSlot`：从指定槽读取并分发给各 store。
+    - `deleteSlot`：行为接口 `deleteSlot`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `exportSave`：导出存档文本或文件。
+    - `info`：行为接口 `info`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 参与存档序列化
+- `src/stores/useFishingStore.ts`（store `fishing`，约 691 行）
+  - 状态：
+    - `lastPerfect`：上次钓鱼是否完美，用于奖励、日志或成就判断。
+    - `tackleDurability`：钓具耐久度，钓鱼使用后递减，耗尽后失效
+  - 派生状态：
+    - `availableFish`：状态字段 `availableFish`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `crabPotsByLocation`：状态字段 `crabPotsByLocation`，具体含义需结合所在 store 的动作和 UI 使用场景理解
+  - 行为接口：
+    - `setLocation`：行为接口 `setLocation`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `equipBait`：行为接口 `equipBait`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `unequipBait`：行为接口 `unequipBait`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `equipTackle`：行为接口 `equipTackle`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `unequipTackle`：行为接口 `unequipTackle`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `startFishing`：开始钓鱼并抽取目标鱼/小游戏参数。
+    - `calculateMiniGameParams`：行为接口 `calculateMiniGameParams`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `pickRandomFish`：行为接口 `pickRandomFish`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `total`：行为接口 `total`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `treasureNames`：行为接口 `treasureNames`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 参与存档序列化
+- `src/stores/useMiningStore.ts`（store `mining`，约 1540 行）
+  - 状态：
+    - `currentFloor`：普通矿洞当前楼层。
+    - `safePointFloor`：普通矿洞安全点楼层，用于快速回到阶段性进度。
+    - `isExploring`：是否正在矿洞探索，决定是否允许揭开格子、前进或离开。
+    - `isInSkullCavern`：是否处于骷髅矿穴，影响楼层生成、风险和奖励。
+    - `skullCavernFloor`：骷髅矿穴当前楼层。
+    - `skullCavernBestFloor`：骷髅矿穴历史最深层，常用于成就或进度。
+    - `skullSafePointFloor`：骷髅矿穴安全点楼层。
+    - `inCombat`：是否处于战斗中，限制移动、炸弹和矿洞交互。
+    - `combatMonsterHp`：当前战斗怪物生命值。
+    - `combatRound`：当前战斗回合数，用于技能、逃跑或回合效果
+  - 行为接口：
+    - `isSkullCavernUnlocked`：行为接口 `isSkullCavernUnlocked`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `getActiveFloorNum`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `getActiveFloorData`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `cacheSkullFloor`：行为接口 `cacheSkullFloor`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `_generateGrid`：行为接口 `_generateGrid`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `engageRevealedMonster`：行为接口 `engageRevealedMonster`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `canRevealTile`：可用性判断接口，通常在执行动作前给出按钮禁用或失败原因。
+    - `revealTile`：矿洞探索揭开格子，可能触发矿石、怪物、陷阱或楼梯。
+    - `_handleEmptyTile`：行为接口 `_handleEmptyTile`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `_handleOreTile`：行为接口 `_handleOreTile`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 参与存档序列化
+- `src/stores/useFarmStore.ts`（store `farm`，约 1104 行）
+  - 状态：
+    - `greenhouseLevel`：温室等级，影响温室容量或可用能力。
+    - `nextFruitTreeId`：下一个果树唯一 ID，用于稳定追踪树对象。
+    - `nextWildTreeId`：下一个野树唯一 ID，用于稳定追踪树对象。
+    - `lightningRods`：避雷针数量，影响雷雨等事件中的保护或产出。
+    - `scarecrows`：稻草人数量，用于降低乌鸦袭击作物的风险。
+    - `giantCropCounter`：巨型作物计数器，用于记录或生成巨型作物
+  - 派生状态：
+    - `tilledPlots`：状态字段 `tilledPlots`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `harvestableCount`：数量计数状态，用于容量、进度或统计判断
+  - 行为接口：
+    - `createPlots`：行为接口 `createPlots`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `resetFarm`：重置型接口，用于新档、跨日或重新初始化状态。
+    - `tillPlot`：行为接口 `tillPlot`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `plantCrop`：在地块播种普通种子。
+    - `plantGeneticSeed`：行为接口 `plantGeneticSeed`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `waterPlot`：浇水地块，影响跨日成长。
+    - `harvestPlot`：收获成熟作物并清理地块或进入再生阶段。
+    - `removeCrop`：行为接口 `removeCrop`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `curePest`：行为接口 `curePest`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `clearWeed`：行为接口 `clearWeed`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 每日/跨日接口：`dailyFruitTreeUpdate`, `dailyUpdate`, `dailyWildTreeUpdate`, `greenhouseDailyUpdate`
+    - 参与存档序列化
+- `src/stores/useShopStore.ts`（store `shop`，约 432 行）
+  - 状态：
+    - `travelingStockKey`：旅行商人库存种子键，确保同一天库存稳定而非每次刷新变化
+  - 派生状态：
+    - `availableSeeds`：状态字段 `availableSeeds`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `shopFertilizers`：状态字段 `shopFertilizers`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `shopBaits`：状态字段 `shopBaits`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `shopTackles`：状态字段 `shopTackles`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `isMerchantHere`：布尔/派生判断：用于判断“isMerchantHere”对应条件是否成立
+  - 行为接口：
+    - `applyDiscount`：行为接口 `applyDiscount`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `blacksmithItems`：行为接口 `blacksmithItems`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `apothecaryItems`：行为接口 `apothecaryItems`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `fishingShopItems`：行为接口 `fishingShopItems`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `textileItems`：行为接口 `textileItems`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `_basePrice`：行为接口 `_basePrice`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `calculateSellPrice`：行为接口 `calculateSellPrice`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `calculateBaseSellPrice`：行为接口 `calculateBaseSellPrice`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `refreshMerchantStock`：行为接口 `refreshMerchantStock`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `existingIds`：行为接口 `existingIds`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 参与存档序列化
+- `src/stores/usePlayerStore.ts`（store `player`，约 244 行）
+  - 状态：
+    - `playerName`：玩家姓名，显示于角色信息、存档和剧情文本。
+    - `needsIdentitySetup`：是否仍需设置身份，用于新档初始化流程。
+    - `money`：玩家铜钱余额，是购买、升级、雇佣、奖励和惩罚的资金来源。
+    - `stamina`：当前体力，行动消耗和恢复都围绕该值结算。
+    - `maxStamina`：基础体力上限，受升级、奖励和额外加成影响。
+    - `staminaCapLevel`：体力上限升级档位，决定基础上限成长曲线。
+    - `bonusMaxStamina`：额外体力上限奖励，独立于档位升级叠加。
+    - `hp`：当前生命值，矿洞战斗和受伤事件会扣减。
+    - `baseMaxHp`：基础生命上限，决定生命恢复和生命百分比计算
+  - 派生状态：
+    - `isExhausted`：布尔/派生判断：用于判断“isExhausted”对应条件是否成立。
+    - `staminaPercent`：状态字段 `staminaPercent`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `honorific`：状态字段 `honorific`，具体含义需结合所在 store 的动作和 UI 使用场景理解
+  - 行为接口：
+    - `getMaxHp`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `getHpPercent`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `getIsLowHp`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `consumeStamina`：扣除体力并返回是否足够，行动前置校验常用。
+    - `restoreStamina`：恢复体力但不超过上限，小憩、食物、跨日会调用。
+    - `takeDamage`：扣除生命值并处理死亡/失败边界。
+    - `restoreHealth`：恢复生命值但不超过上限。
+    - `dailyReset`：重置每日限制、恢复或状态标记。
+    - `upgradeMaxStamina`：行为接口 `upgradeMaxStamina`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `addBonusMaxStamina`：行为接口 `addBonusMaxStamina`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 每日/跨日接口：`dailyReset`
+    - 参与存档序列化
+- `src/stores/useProcessingStore.ts`（store `processing`，约 485 行）
+  - 状态：
+    - `workshopLevel`：工坊等级，决定机器上限和加工能力。
+    - `collapsedGroups`：加工界面折叠分组状态，是 UI 偏好而非经济状态
+  - 派生状态：
+    - `maxMachines`：状态字段 `maxMachines`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `machineCount`：数量计数状态，用于容量、进度或统计判断
+  - 行为接口：
+    - `canCraft`：可用性判断接口，通常在执行动作前给出按钮禁用或失败原因。
+    - `consumeCraftMaterials`：行为接口 `consumeCraftMaterials`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `craftMachine`：消耗材料制作加工机器。
+    - `craftSprinkler`：行为接口 `craftSprinkler`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `craftFertilizer`：行为接口 `craftFertilizer`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `craftBait`：行为接口 `craftBait`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `craftTackle`：行为接口 `craftTackle`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `craftTapper`：行为接口 `craftTapper`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `craftCrabPot`：行为接口 `craftCrabPot`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `craftBomb`：行为接口 `craftBomb`，由视图、跨日流程或其他 store 调用以改变状态
+  - 生命周期：
+    - 每日/跨日接口：`dailyUpdate`
+    - 参与存档序列化
+- `src/stores/useCookingStore.ts`（store `cooking`，约 216 行）
+  - 状态：
+    - 该 store 的核心集合多通过数组/对象工厂或外部常量初始化，未全部以顶层 `ref` 呈现
+    - 阅读动作接口时需要关注其内部状态集合
+  - 派生状态：
+    - `recipes`：状态字段 `recipes`，具体含义需结合所在 store 的动作和 UI 使用场景理解
+  - 行为接口：
+    - `canCook`：可用性判断接口，通常在执行动作前给出按钮禁用或失败原因。
+    - `maxCookable`：行为接口 `maxCookable`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `previewCookQuality`：行为接口 `previewCookQuality`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `unlockRecipe`：解锁食谱，来源包括技能、NPC、节日、成就和瀚海物品。
+    - `dailyReset`：重置每日限制、恢复或状态标记。
+    - `serialize`：导出可持久化状态。
+    - `deserialize`：从存档恢复状态，并为旧档补默认值
+  - 生命周期：
+    - 每日/跨日接口：`dailyReset`
+    - 参与存档序列化
+- `src/stores/useGameStore.ts`（store `game`，约 323 行）
+  - 状态：
+    - `year`：当前游戏年份，是季节轮转和长期进度判断的上层时间单位。
+    - `day`：当前季节内日期，用于节日、生日、旅行商人、每周刷新和跨日结算。
+    - `hour`：当前小时，使用 24+ 制表示凌晨，2:00 对应 26，是晕倒和小憩截断的重要边界。
+    - `isGameStarted`：是否已进入正式游戏，用于菜单、存档和实时钟启动判断。
+    - `midnightWarned`：午夜提醒标记，避免过晚提示重复触发。
+    - `dailyLuck`：每日运势，影响矿洞、采集、钓鱼或事件概率类行为
+  - 派生状态：
+    - `seasonIndex`：索引状态，用于指向当前选择或装备对象。
+    - `seasonName`：状态字段 `seasonName`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `weatherName`：状态字段 `weatherName`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `isRainy`：布尔/派生判断：用于判断“isRainy”对应条件是否成立。
+    - `weekday`：状态字段 `weekday`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `weekdayName`：状态字段 `weekdayName`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `timeDisplay`：状态字段 `timeDisplay`，具体含义需结合所在 store 的动作和 UI 使用场景理解。
+    - `timePeriod`：状态字段 `timePeriod`，具体含义需结合所在 store 的动作和 UI 使用场景理解
+  - 行为接口：
+    - `rollWeather`：行为接口 `rollWeather`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `advanceTime`：推进小时并处理速度 buff、午夜提醒和 2:00 晕倒边界。
+    - `getTravelCost`：读取/派生查询接口，为 UI 或其他 store 提供当前状态视图。
+    - `travelTo`：按地点分组计算旅行时间/体力后切换地点。
+    - `nextDay`：进入下一天，滚动季节、日期、天气和每日标记。
+    - `goTo`：直接切换当前地点，通常用于路由或无需旅行成本的界面切换。
+    - `setTomorrowWeather`：行为接口 `setTomorrowWeather`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `startNewGame`：行为接口 `startNewGame`，由视图、跨日流程或其他 store 调用以改变状态。
+    - `serialize`：导出可持久化状态。
+    - `deserialize`：从存档恢复状态，并为旧档补默认值
+  - 生命周期：
+    - 每日/跨日接口：`dailyLuck`
+    - 参与存档序列化
+
+### View / 交互界面
+
+- `src/views/game/NpcView.vue`
+  - 约 881 行
+  - 关键入口：
+    - `text`
+    - `className`
+  - 每日相关：
+    - `getDailyTip`
+    - `handleDailyTip`
+    - `hasDailyTip`
+- `src/views/game/CottageView.vue`
+  - 约 1017 行
+  - 关键入口：
+    - `ageableInInventory`
+    - `calendarDays`
+    - `calendarSeason`
+    - `canUpgradeCellar`
+    - `canUpgradeFarmhouse`
+    - `closeHireModal`
+  - 每日相关：
+    - `dailyWage`
+- `src/views/game/QuestView.vue`
+  - 约 398 行
+  - 关键入口：
+    - `canSubmit`
+    - `chapterTitle`
+    - `getEffectiveProgress`
+    - `getItemName`
+    - `handleAccept`
+    - `handleAcceptMain`
+- `src/views/GameLayout.vue`
+  - 约 1083 行
+  - 关键入口：
+    - `actualNapMinutes`
+    - `addVoidQty`
+    - `calcNapRecovery`
+    - `canNap`
+    - `clearLogTarget`
+    - `confirmNap`
+- `src/views/game/AchievementView.vue`
+  - 约 1028 行
+  - 关键入口：
+    - `start`
+    - `end`
+- `src/views/game/ToolUpgradeView.vue`
+  - 约 319 行
+  - 关键入口：
+    - `canUpgrade`
+    - `getUpgradeBlockReason`
+    - `handleUpgradeAndClose`
+    - `isUpgrading`
+    - `meetsLevel`
+    - `selectedFriendshipReq`
+- `src/views/game/CharInfoView.vue`
+  - 约 603 行
+  - 关键入口：
+    - `index`
+    - `name`
+    - `effectText`
+- `src/views/game/ForageView.vue`
+  - 约 748 行
+  - 关键入口：
+    - `cookingLuckBuff`
+    - `critChance`
+    - `currentForage`
+    - `encounter`
+    - `endForestCombat`
+    - `forageCost`
+- `src/views/game/ShopView.vue`
+  - 约 1872 行
+  - 关键入口：
+    - `def`
+    - `originalIndex`
+  - 每日相关：
+    - `getDailyMarketInfo`
+- `src/views/MainMenu.vue`
+  - 约 584 行
+  - 关键入口：
+    - `aboutTab`
+    - `charGender`
+    - `charName`
+    - `confirmDeleteSlot`
+    - `deleteTargetSlot`
+    - `fileInputRef`
+- `src/views/game/FishPondView.vue`
+  - 约 662 行
+  - 关键入口：
+    - `breedingProgress`
+    - `canConfirmModal`
+    - `compendiumGen`
+    - `completionPercent`
+    - `currentGenBreeds`
+    - `currentTab`
+- `src/views/game/GuildView.vue`
+  - 约 800 行
+  - 关键入口：
+    - `itemId`
+    - `name`
+    - `count`
+    - `points`
+  - 每日相关：
+    - `dailyLimit`
+    - `getDailyRemaining`
+- `src/views/game/MiningView.vue`
+  - 约 1570 行
+  - 关键入口：
+    - `reached`
+    - `bossName`
+    - `bossDefeated`
+    - `progress`
+    - `isCurrentZone`
+    - `barColor`
+- `src/views/game/AnimalView.vue`
+  - 约 1046 行
+  - 关键入口：
+    - `barnIncubatableEggs`
+    - `buyListBuilding`
+    - `buyModal`
+    - `canConfirmUpgrade`
+    - `canGraze`
+    - `cancelRename`
+
+### Data / 配置
+
+- `src/data/heartEvents.ts`
+  - 约 1993 行
+  - 关键入口：
+    - `HEART_EVENTS`
+    - `WEDDING_EVENT`
+    - `getHeartEventById`
+    - `getHeartEventsForNpc`
+- `src/data/storyQuests.ts`
+  - 约 628 行
+  - 关键入口：
+    - `CHAPTER_TITLES`
+    - `STORY_QUESTS`
+    - `getChapterQuests`
+    - `getFirstStoryQuest`
+    - `getNextStoryQuest`
+    - `getStoryQuestById`
+- `src/data/npcs.ts`
+  - 约 758 行
+  - 关键入口：
+    - `NPCS`
+    - `getNpcById`
+- `src/data/hiddenNpcHeartEvents.ts`
+  - 约 475 行
+  - 关键入口：
+    - `HIDDEN_NPC_HEART_EVENTS`
+    - `getHiddenNpcHeartEventById`
+    - `getHiddenNpcHeartEvents`
+- `src/data/hiddenNpcs.ts`
+  - 约 793 行
+  - 关键入口：
+    - `HIDDEN_NPCS`
+    - `getHiddenNpcById`
+- `src/data/quests.ts`
+  - 约 396 行
+  - 关键入口：
+    - `id`
+    - `type`
+    - `npcId`
+    - `npcName`
+    - `description`
+    - `targetItemId`
+- `src/data/timeConstants.ts`
+  - 约 336 行
+  - 关键入口：
+    - `open`
+- `src/data/achievements.ts`
+  - 约 1301 行
+  - 关键入口：
+    - `ACHIEVEMENTS`
+    - `COMMUNITY_BUNDLES`
+    - `getAchievementById`
+    - `getBundleById`
+- `src/data/events.ts`
+  - 约 378 行
+  - 关键入口：
+    - `SEASON_EVENTS`
+    - `getTodayEvent`
+- `src/data/animals.ts`
+  - 约 342 行
+  - 关键入口：
+    - `ANIMAL_BUILDINGS`
+    - `ANIMAL_DEFS`
+    - `BUILDING_UPGRADES`
+    - `FEED_DEFS`
+    - `HAY_ITEM_ID`
+    - `HAY_PRICE`
+- `src/data/recipes.ts`
+  - 约 2226 行
+  - 关键入口：
+    - `RECIPES`
+    - `getRecipeById`
+- `src/data/index.ts`
+  - 约 39 行
+- `src/data/farmEvents.ts`
+  - 约 271 行
+  - 关键入口：
+    - `MORNING_CHOICE_EVENTS`
+    - `MORNING_EASTER_EGGS`
+    - `MORNING_NARRATIONS`
+    - `NARRATIONS_NO_LOSS`
+- `src/data/items.ts`
+  - 约 1944 行
+  - 关键入口：
+    - `id`
+    - `name`
+    - `category`
+    - `description`
+    - `sellPrice`
+    - `edible`
+- `src/data/npcTips.ts`
+  - 约 86 行
+  - 关键入口：
+    - `FORTUNE_TIERS`
+    - `LIVING_TIPS`
+    - `NO_RECIPE_TIP`
+    - `TIP_NPC_IDS`
+    - `TIP_NPC_LABELS`
+    - `WEATHER_TIPS`
+  - 每日相关：
+    - `dailyLuck`
+- `src/data/shops.ts`
+  - 约 122 行
+  - 关键入口：
+    - `SHOPS`
+    - `getShopById`
+    - `getShopClosedReason`
+    - `isShopAvailable`
+- `src/data/secretNotes.ts`
+  - 约 215 行
+  - 关键入口：
+    - `SECRET_NOTES`
+
+### Composable / Component / 其他
+
+- `src/composables/useEndDay.ts`
+  - 约 1206 行
+  - 关键入口：
+    - `handleEndDay`
+  - 每日相关：
+    - `dailyBarnIncubatorUpdate`
+    - `dailyBondBonus`
+    - `dailyCaveUpdate`
+    - `dailyCellarUpdate`
+- `src/composables/useDialogs.ts`
+  - 约 230 行
+  - 关键入口：
+    - `currentEvent`
+    - `pendingHeartEvent`
+    - `currentFestival`
+    - `pendingPerk`
+    - `pendingPetAdoption`
+    - `childProposalVisible`
+- `src/components/game/HiddenNpcModal.vue`
+  - 约 420 行
+  - 关键入口：
+    - `affinityLevelColor`
+    - `canBond`
+    - `canCourt`
+    - `canCraftBond`
+    - `canCraftCourtship`
+    - `checkAndTriggerHeartEvent`
+- `src/composables/useHiddenNpcActions.ts`
+  - 约 103 行
+  - 关键入口：
+    - `OFFERING_PREF_CLASS`
+    - `OFFERING_PREF_LABELS`
+    - `OFFERING_PREF_ORDER`
+    - `doBond`
+    - `doCourting`
+    - `doDissolve`
+- `src/components/game/LanternRiddleView.vue`
+  - 约 420 行
+  - 关键入口：
+    - `answer`
+    - `answered`
+    - `correctCount`
+    - `countdown`
+    - `currentIndex`
+    - `currentRiddle`
+- `src/components/game/DiscoveryScene.vue`
+  - 约 97 行
+  - 关键入口：
+    - `choiceResponse`
+    - `currentIndex`
+    - `currentScene`
+    - `handleChoice`
+    - `hasChosen`
+    - `isLastScene`
+- `src/components/game/HeartEventDialog.vue`
+  - 约 96 行
+  - 关键入口：
+    - `choiceResponse`
+    - `currentIndex`
+    - `currentScene`
+    - `friendshipChanges`
+    - `handleChoice`
+    - `hasChosen`
+- `src/components/game/FishingContestView.vue`
+  - 约 545 行
+  - 关键入口：
+    - `name`
+    - `score`
+- `src/components/game/FishingMiniGame.vue`
+  - 约 232 行
+  - 关键入口：
+    - `elapsed`
+    - `endGame`
+    - `fishPos`
+    - `gameActive`
+    - `gameLoop`
+    - `handleKeyDown`
+- `src/composables/useFarmActions.ts`
+  - 约 933 行
+  - 关键入口：
+    - `selectedSeed`
+    - `handlePlotClick`
+    - `handleBuySeed`
+    - `handleSellItem`
+    - `handleSellItemAll`
+    - `handleSellAll`
+- `src/components/game/EventDialog.vue`
+  - 约 47 行
+  - 关键入口：
+    - `allLinesShown`
+    - `displayedLines`
+    - `lineIndex`
+    - `showNextLine`
+- `src/composables/useNavigation.ts`
+  - 约 141 行
+  - 关键入口：
+    - `TABS`
+    - `navigateToPanel`
+- `src/composables/useResetGame.ts`
+  - 约 56 行
+  - 关键入口：
+    - `resetAllStoresForNewGame`
+- `src/components/game/StatusBar.vue`
+  - 约 134 行
+  - 关键入口：
+    - `hpBarColor`
+    - `showHpBar`
+    - `staminaBarColor`
+    - `timeBarColor`
+    - `timePercent`
+
+## 关键源码证据
+
+- `src/stores/useNpcStore.ts`
+  - L5 `FriendshipLevel,`
+  - L15 `import { NPCS, getNpcById, getHeartEventsForNpc, RECIPES } from '@/data'`
+  - L16 `import { WEATHER_TIPS, getFortuneTip, getLivingTip, getRecipeTipMessage, NO_RECIPE_TIP, TIP_NPC_IDS } from '@/data/npcTips'`
+  - L18 `import { useInventoryStore } from './useInventoryStore'`
+  - L23 `import { useAnimalStore } from './useAnimalStore'`
+  - L24 `import { useFishPondStore } from './useFishPondStore'`
+- `src/stores/useHiddenNpcStore.ts`
+  - L6 `import { useSkillStore } from './useSkillStore'`
+  - L7 `import { useAchievementStore } from './useAchievementStore'`
+  - L9 `import { useQuestStore } from './useQuestStore'`
+  - L10 `import { useInventoryStore } from './useInventoryStore'`
+  - L97 `const skillStore = useSkillStore()`
+  - L98 `const achievementStore = useAchievementStore()`
+- `src/stores/useQuestStore.ts`
+  - L3 `import type { QuestInstance, Season, MainQuestState, MainQuestObjective } from '@/types'`
+  - L4 `import { generateQuest, generateSpecialOrder as _generateSpecialOrder } from '@/data/quests'`
+  - L5 `import { getStoryQuestById, getNextStoryQuest, getFirstStoryQuest, STORY_QUESTS } from '@/data/storyQuests'`
+  - L7 `import { useInventoryStore } from './useInventoryStore'`
+  - L10 `import { useAchievementStore } from './useAchievementStore'`
+  - L11 `import { useSkillStore } from './useSkillStore'`
+- `src/composables/useEndDay.ts`
+  - L1 `import { useGameStore, SEASON_NAMES, WEATHER_NAMES } from '@/stores/useGameStore'`
+  - L4 `import { useInventoryStore } from '@/stores/useInventoryStore'`
+  - L5 `import { useSaveStore } from '@/stores/useSaveStore'`
+  - L6 `import { useSkillStore } from '@/stores/useSkillStore'`
+  - L9 `import { useProcessingStore } from '@/stores/useProcessingStore'`
+  - L10 `import { useAchievementStore } from '@/stores/useAchievementStore'`
+
+## 跨系统联动
+
+- 与时间系统联动：动作消耗、跨日推进、每日重置或过晚边界需要保持一致。
+- 与背包/经济联动：奖励、材料扣除、购买出售和容量失败需要走统一 store。
+- 与长期进度联动：新增动作应考虑技能经验、成就统计、任务进度、图鉴发现或博物馆捐赠。
+
+## 维护清单
+
+- 修改状态字段时，检查对应 `serialize` / `deserialize` 是否需要更新。
+- 修改每日推进时，检查 `useEndDay.ts` 中的调用顺序和日志。
+- 修改数据配置时，检查商店、图鉴、成就、任务和 UI 展示是否引用同一 itemId。
+- 新增 UI 弹窗时，检查 `GameLayout.vue` 是否需要暂停实时计时或处理全局状态。

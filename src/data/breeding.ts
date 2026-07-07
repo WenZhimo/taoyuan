@@ -109,7 +109,7 @@ export const BREEDING_STATION_COST = {
 }
 
 /** 育种台最大数量 */
-export const MAX_BREEDING_STATIONS = 3
+export const MAX_BREEDING_STATIONS = 10
 
 // === 辅助函数 ===
 

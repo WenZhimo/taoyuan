@@ -38,6 +38,9 @@ export const useAnimalStore = defineStore('animal', () => {
   /** 今天是否已放牧 */
   const grazedToday = ref(false)
 
+  /** 牧场界面当前选择的饲料 */
+  const selectedFeedId = ref<string>(HAY_ITEM_ID)
+
   /** 已安装自动抚摸机的建筑类型 */
   const autoPetterBuildings = ref<AnimalBuildingType[]>([])
 
@@ -740,6 +743,7 @@ export const useAnimalStore = defineStore('animal', () => {
       barnIncubating: barnIncubating.value,
       pet: pet.value,
       grazedToday: grazedToday.value,
+      selectedFeedId: selectedFeedId.value,
       autoPetterBuildings: autoPetterBuildings.value
     }
   }
@@ -770,6 +774,7 @@ export const useAnimalStore = defineStore('animal', () => {
     barnIncubating.value = data.barnIncubating ?? null
     pet.value = data.pet ?? null
     grazedToday.value = data.grazedToday ?? false
+    selectedFeedId.value = data.selectedFeedId ?? HAY_ITEM_ID
     autoPetterBuildings.value = data.autoPetterBuildings ?? []
   }
 
@@ -780,6 +785,7 @@ export const useAnimalStore = defineStore('animal', () => {
     barnIncubating,
     pet,
     grazedToday,
+    selectedFeedId,
     coopBuilt,
     barnBuilt,
     stableBuilt,

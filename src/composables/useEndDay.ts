@@ -33,7 +33,13 @@ import { sfxSleep, useAudio } from './useAudio'
 import { MORNING_NARRATIONS, NARRATIONS_NO_LOSS, MORNING_CHOICE_EVENTS, MORNING_EASTER_EGGS } from '@/data/farmEvents'
 import { MORNING_TIPS } from '@/data/tutorials'
 import type { MorningEffect } from '@/data/farmEvents'
+import type { LocationGroup } from '@/types'
 import router from '@/router'
+
+interface EndDayOptions {
+  wakePanel?: string
+  wakeLocationGroup?: LocationGroup
+}
 
 const NPC_NAME_MAP: Record<string, string> = {
   chen_bo: '陈伯',
@@ -363,7 +369,7 @@ const rollMorningEvent = ():
 }
 
 /** 日结算处理 */
-export const handleEndDay = () => {
+export const handleEndDay = (options: EndDayOptions = {}) => {
   sfxSleep()
 
   const gameStore = useGameStore()
@@ -1193,8 +1199,12 @@ export const handleEndDay = () => {
     triggerPetAdoption()
   }
 
-  // 回到农场页面（防止留在商铺等页面继续操作）
-  void router.push({ name: 'farm' })
+  if (options.wakeLocationGroup) {
+    gameStore.currentLocationGroup = options.wakeLocationGroup
+  }
+
+  // 回到指定页面（默认农场，防止留在商铺等页面继续操作）
+  void router.push({ name: options.wakePanel ?? 'farm' })
 
   // 自动存档
   saveStore.autoSave()

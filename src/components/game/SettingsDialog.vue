@@ -352,7 +352,7 @@
 
   <!-- 存档管理弹窗 -->
   <Transition name="panel-fade">
-    <SaveManager v-if="showSaveManager" @close="showSaveManager = false" />
+    <SaveManager v-if="showSaveManager" :allow-load="true" @close="showSaveManager = false" @load="handleLoadSlot" />
   </Transition>
 </template>
 
@@ -388,6 +388,7 @@
   import { useGameClock } from '@/composables/useGameClock'
   import { useGameLog } from '@/composables/useGameLog'
   import { useSettingsStore, type QmsgPosition, type QmsgLimitWidthWrap } from '@/stores/useSettingsStore'
+  import { useSaveStore } from '@/stores/useSaveStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { useWebdav } from '@/composables/useWebdav'
   import { THEMES } from '@/data/themes'
@@ -431,13 +432,14 @@
   ]
 
   defineProps<{ open: boolean }>()
-  defineEmits<{ close: [] }>()
+  const emit = defineEmits<{ close: [] }>()
 
   const activeTab = ref<SettingsTab>('general')
   const { sfxEnabled, bgmEnabled, toggleSfx, toggleBgm } = useAudio()
   const { isPaused, gameSpeed, togglePause, cycleSpeed } = useGameClock()
   const { showFloat } = useGameLog()
   const settingsStore = useSettingsStore()
+  const saveStore = useSaveStore()
   const tutorialStore = useTutorialStore()
   const {
     webdavConfig,
@@ -451,6 +453,16 @@
 
   const showSaveManager = ref(false)
   let clipboard: ClipboardJS | null = null
+
+  const handleLoadSlot = (slot: number) => {
+    if (saveStore.loadFromSlot(slot)) {
+      showSaveManager.value = false
+      emit('close')
+      showFloat(`已切换到存档 ${slot + 1}。`, 'success')
+    } else {
+      showFloat('读取存档失败。', 'danger')
+    }
+  }
 
   onMounted(() => {
     clipboard = new ClipboardJS('.webdav-log-copy', {

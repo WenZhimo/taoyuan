@@ -16,6 +16,7 @@ dist
 dist-ssr
 dist-electron
 docs
+pkg
 *.local
 
 # Editor directories and files

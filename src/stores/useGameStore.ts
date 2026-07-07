@@ -121,12 +121,12 @@ export const useGameStore = defineStore('game', () => {
   }
 
   /** 推进时间（小时），返回结果 */
-  const advanceTime = (hours: number): { ok: boolean; passedOut: boolean; message: string } => {
+  const advanceTime = (hours: number, options?: { ignoreSpeedBuff?: boolean }): { ok: boolean; passedOut: boolean; message: string } => {
     if (hours <= 0) return { ok: true, passedOut: false, message: '' }
 
     // 速度增益减少时间消耗
     const cookingStore = useCookingStore()
-    const speedBuff = cookingStore.activeBuff?.type === 'speed' ? cookingStore.activeBuff.value / 100 : 0
+    const speedBuff = !options?.ignoreSpeedBuff && cookingStore.activeBuff?.type === 'speed' ? cookingStore.activeBuff.value / 100 : 0
     const effectiveHours = hours * (1 - speedBuff)
 
     const prevHour = hour.value

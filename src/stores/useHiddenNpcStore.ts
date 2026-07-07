@@ -19,6 +19,7 @@ const OFFERING_RESONANT = 100
 const OFFERING_PLEASED = 50
 const OFFERING_NEUTRAL = 10
 const OFFERING_REPELLED = -40
+const FUMO_ITEM_ID = 'momo_fumo'
 
 /** 品质乘数 */
 const QUALITY_MULTIPLIER: Record<Quality, number> = {
@@ -191,7 +192,7 @@ export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
     }
 
     let base = OFFERING_NEUTRAL
-    if (def.resonantOfferings.includes(itemId)) base = OFFERING_RESONANT
+    if (itemId === FUMO_ITEM_ID || def.resonantOfferings.includes(itemId)) base = OFFERING_RESONANT
     else if (def.pleasedOfferings.includes(itemId)) base = OFFERING_PLEASED
     else if (def.repelledOfferings.includes(itemId)) base = OFFERING_REPELLED
 

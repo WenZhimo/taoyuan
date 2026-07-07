@@ -242,7 +242,7 @@
         <p class="text-sm text-accent">
           <Wine :size="14" class="inline" />
           酒窖·Lv.{{ homeStore.cellarLevel }}
-          <span class="text-[10px] text-muted ml-1">（{{ homeStore.cellarSlots.length }}/{{ homeStore.cellarMaxSlots }}）</span>
+          <span class="text-[10px] text-muted ml-1">（{{ homeStore.cellarSlots.length }}/{{ cellarCapacityLabel }}）</span>
         </p>
         <Button v-if="homeStore.nextCellarUpgrade" class="py-0 px-1" @click="showCellarUpgradeModal = true">
           <ArrowUp :size="12" class="inline" />
@@ -625,7 +625,7 @@
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <p class="text-xs">升级为「{{ homeStore.nextCellarUpgrade.name }}」</p>
             <p class="text-xs text-muted mt-0.5">
-              每次增值{{ homeStore.nextCellarUpgrade.valuePerCycle }}文，最大容量{{ homeStore.nextCellarUpgrade.maxSlots }}个
+              每次增值{{ homeStore.nextCellarUpgrade.valuePerCycle }}文，最大容量{{ cellarUpgradeCapacityLabel }}个
             </p>
           </div>
 
@@ -699,6 +699,12 @@
   const dismissConfirmNpcId = ref<string | null>(null)
   const removeAgingConfirmIdx = ref<number | null>(null)
   const showCellarUpgradeModal = ref(false)
+  const cellarCapacityLabel = computed(() => (Number.isFinite(homeStore.cellarMaxSlots) ? String(homeStore.cellarMaxSlots) : '无限'))
+  const cellarUpgradeCapacityLabel = computed(() => {
+    const upgrade = homeStore.nextCellarUpgrade
+    if (!upgrade) return ''
+    return upgrade.level >= 5 ? '无限' : String(upgrade.maxSlots)
+  })
   const removeAgingConfirmSlot = computed(() =>
     removeAgingConfirmIdx.value !== null ? (homeStore.cellarSlots[removeAgingConfirmIdx.value] ?? null) : null
   )
@@ -1007,7 +1013,8 @@
     const upgrade = homeStore.nextCellarUpgrade
     if (!upgrade) return
     if (homeStore.upgradeCellar()) {
-      addLog(`酒窖升级为「${upgrade.name}」！每次增值${upgrade.valuePerCycle}文，最大容量${upgrade.maxSlots}个。`)
+      const capacityText = upgrade.level >= 5 ? '无限' : `${upgrade.maxSlots}个`
+      addLog(`酒窖升级为「${upgrade.name}」！每次增值${upgrade.valuePerCycle}文，最大容量${capacityText}。`)
       showCellarUpgradeModal.value = false
     } else {
       addLog('铜钱或材料不足，无法升级酒窖。')

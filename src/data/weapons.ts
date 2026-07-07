@@ -49,11 +49,43 @@ export const ENCHANTMENTS: Record<string, EnchantmentDef> = {
     attackBonus: 0,
     critBonus: 0,
     special: 'lucky'
+  },
+  venom: {
+    id: 'venom',
+    name: '淬毒',
+    description: '攻击时有概率使敌人中毒',
+    attackBonus: 0,
+    critBonus: 0,
+    special: 'poison'
+  },
+  flame: {
+    id: 'flame',
+    name: '燃焰',
+    description: '攻击时有概率点燃敌人',
+    attackBonus: 2,
+    critBonus: 0,
+    special: 'burn'
+  },
+  frost: {
+    id: 'frost',
+    name: '霜寒',
+    description: '攻击时有概率冻结敌人',
+    attackBonus: 0,
+    critBonus: 0.05,
+    special: 'freeze'
+  },
+  irradiated: {
+    id: 'irradiated',
+    name: '辐照',
+    description: '攻击时有概率附加辐射',
+    attackBonus: 0,
+    critBonus: 0,
+    special: 'radiation'
   }
 }
 
 /** 可用于随机附魔的 ID 列表 */
-const RANDOM_ENCHANT_IDS = ['sharp', 'fierce', 'precise', 'vampiric', 'sturdy', 'lucky']
+const RANDOM_ENCHANT_IDS = ['sharp', 'fierce', 'precise', 'vampiric', 'sturdy', 'lucky', 'venom', 'flame', 'frost']
 
 /** 随机获取一个附魔（30% 概率触发） */
 export const rollRandomEnchantment = (): string | null => {
@@ -181,7 +213,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     description: '冰霜女王遗留的利刺，百发百中。',
     shopPrice: null,
     shopMaterials: [],
-    fixedEnchantment: 'precise'
+    fixedEnchantment: 'frost'
   },
   lava_lord_maul: {
     id: 'lava_lord_maul',
@@ -192,7 +224,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     description: '熔岩君主的权杖，炽热如焰。',
     shopPrice: null,
     shopMaterials: [],
-    fixedEnchantment: 'fierce'
+    fixedEnchantment: 'flame'
   },
   // === 新区域怪物掉落 ===
   crystal_shard_dagger: {
@@ -386,7 +418,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     description: '深渊巨蟒的毒牙，蕴含腐蚀之力。',
     shopPrice: null,
     shopMaterials: [],
-    fixedEnchantment: null
+    fixedEnchantment: 'venom'
   },
 
   // === 新增宝箱掉落武器 ===

@@ -190,7 +190,7 @@
               <div class="bg-bg rounded-xs h-1.5 mb-1">
                 <div
                   class="h-1.5 bg-danger rounded-xs transition-all"
-                  :style="{ width: `${(forestCombatMonsterHp / forestCombatMonster.hp) * 100}%` }"
+                  :style="{ width: `${forestCombatMonsterHpPercent}%` }"
                 />
               </div>
               <p class="text-[10px] text-muted">{{ forestCombatMonsterHp }}/{{ forestCombatMonster.hp }}</p>
@@ -555,6 +555,10 @@
   const forestCombatLog = ref<string[]>([])
   const forestCombatRound = ref(0)
   const forestCombatAnimLock = ref(false)
+  const forestCombatMonsterHpPercent = computed(() => {
+    if (!forestCombatMonster.value) return 0
+    return Math.max(0, Math.min(100, Math.round((forestCombatMonsterHp.value / forestCombatMonster.value.hp) * 100)))
+  })
 
   const forestWeaponAttack = computed(() => {
     const cookingAllSkillsBuff = cookingStore.activeBuff?.type === 'all_skills' ? cookingStore.activeBuff.value : 0
@@ -648,6 +652,7 @@
 
     // 检查野兽死亡
     if (forestCombatMonsterHp.value <= 0) {
+      forestCombatMonsterHp.value = 0
       handleForestVictory()
       return
     }
@@ -668,6 +673,7 @@
       forestCombatMonsterHp.value -= counterDmg
       forestCombatLog.value.push(`杂技师闪避反击！造成${counterDmg}点伤害！`)
       if (forestCombatMonsterHp.value <= 0) {
+        forestCombatMonsterHp.value = 0
         handleForestVictory()
         return
       }
@@ -678,6 +684,13 @@
     }
   }
 
+  const rollChanceQuantity = (chance: number): number => {
+    const safeChance = Math.max(0, chance)
+    const guaranteed = Math.floor(safeChance)
+    const fractional = safeChance - guaranteed
+    return guaranteed + (Math.random() < fractional ? 1 : 0)
+  }
+
   const handleForestVictory = () => {
     const monster = forestCombatMonster.value!
     forestCombatLog.value.push(`你击败了${monster.name}！`)
@@ -686,11 +699,13 @@
     const drops: string[] = []
     const dropRateBonus = miningStore.guildBonusDropRate
     for (const drop of monster.drops) {
-      if (Math.random() < drop.chance + dropRateBonus) {
-        inventoryStore.addItem(drop.itemId)
+      const quantity = rollChanceQuantity(drop.chance + dropRateBonus)
+      if (quantity > 0) {
+        inventoryStore.addItem(drop.itemId, quantity)
         achievementStore.discoverItem(drop.itemId)
         const itemDef = getItemById(drop.itemId)
-        drops.push(itemDef?.name ?? drop.itemId)
+        const itemName = itemDef?.name ?? drop.itemId
+        drops.push(quantity > 1 ? `${itemName}×${quantity}` : itemName)
       }
     }
 

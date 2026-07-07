@@ -4,6 +4,8 @@ import { addLog, showFloat } from './useGameLog'
 import { getHiddenNpcById } from '@/data/hiddenNpcs'
 import type { Quality } from '@/types'
 
+const FUMO_ITEM_ID = 'momo_fumo'
+
 /** 执行供奉 */
 export const doOffering = (npcId: string, itemId: string, quality: Quality): boolean => {
   const hiddenNpcStore = useHiddenNpcStore()
@@ -74,6 +76,7 @@ export const doDissolve = (npcId: string): boolean => {
 export const getOfferingPreference = (npcId: string, itemId: string): 'resonant' | 'pleased' | 'repelled' | 'neutral' => {
   const def = getHiddenNpcById(npcId)
   if (!def) return 'neutral'
+  if (itemId === FUMO_ITEM_ID) return 'resonant'
   if (def.resonantOfferings.includes(itemId)) return 'resonant'
   if (def.pleasedOfferings.includes(itemId)) return 'pleased'
   if (def.repelledOfferings.includes(itemId)) return 'repelled'

@@ -54,7 +54,11 @@ export const useFishPondStore = defineStore('fishPond', () => {
 
   // === 计算属性 ===
 
-  const capacity = computed(() => (pond.value.built ? POND_CAPACITY[pond.value.level] : 0))
+  const capacity = computed(() => {
+    if (!pond.value.built) return 0
+    if (pond.value.level >= 3) return Number.POSITIVE_INFINITY
+    return POND_CAPACITY[pond.value.level]
+  })
   const fishCount = computed(() => pond.value.fish.length)
   const isFull = computed(() => fishCount.value >= capacity.value)
   const sickFish = computed(() => pond.value.fish.filter(f => f.sick))

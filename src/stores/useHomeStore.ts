@@ -60,6 +60,7 @@ export const useHomeStore = defineStore('home', () => {
   const hasCellar = computed(() => farmhouseLevel.value >= 3)
 
   const cellarMaxSlots = computed(() => {
+    if (cellarLevel.value >= CELLAR_UPGRADES[CELLAR_UPGRADES.length - 1]!.level) return Number.POSITIVE_INFINITY
     const def = CELLAR_UPGRADES.find(u => u.level === cellarLevel.value)
     return def?.maxSlots ?? 6
   })

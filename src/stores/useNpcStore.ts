@@ -32,6 +32,9 @@ const FRIENDSHIP_THRESHOLDS: { level: FriendshipLevel; min: number }[] = [
   { level: 'stranger', min: 0 }
 ]
 
+const FRIENDSHIP_GAIN_MULTIPLIER = 3
+const FUMO_ITEM_ID = 'momo_fumo'
+
 export const useNpcStore = defineStore('npc', () => {
   const npcStates = ref<NpcState[]>(
     NPCS.map(npc => ({
@@ -329,14 +332,15 @@ export const useNpcStore = defineStore('npc', () => {
     return text.replace(/\{player\}/g, playerStore.playerName).replace(/\{title\}/g, playerStore.honorific)
   }
 
-  /** 与NPC对话 (+20好感) */
+  /** 与NPC对话 */
   const talkTo = (npcId: string): { message: string; friendshipGain: number } | null => {
     const state = getNpcState(npcId)
     if (!state) return null
     if (state.talkedToday) return null
 
     state.talkedToday = true
-    state.friendship += 20
+    const friendshipGain = 20 * FRIENDSHIP_GAIN_MULTIPLIER
+    state.friendship += friendshipGain
 
     const npcDef = getNpcById(npcId)
     if (!npcDef) return null
@@ -380,21 +384,21 @@ export const useNpcStore = defineStore('npc', () => {
       if (weatherLine) pool.push(weatherLine)
 
       const message = pool[Math.floor(Math.random() * pool.length)]!
-      return { message, friendshipGain: 20 }
+      return { message, friendshipGain }
     }
 
     // 知己NPC使用知己专属对话
     if (state.zhiji && npcDef.zhijiDialogues?.length) {
       const raw = npcDef.zhijiDialogues[Math.floor(Math.random() * npcDef.zhijiDialogues.length)]!
       const message = replaceDialoguePlaceholders(raw)
-      return { message, friendshipGain: 20 }
+      return { message, friendshipGain }
     }
 
     // 约会中NPC使用约会对话
     if (state.dating && npcDef.datingDialogues && npcDef.datingDialogues.length > 0) {
       const raw = npcDef.datingDialogues[Math.floor(Math.random() * npcDef.datingDialogues.length)]!
       const message = replaceDialoguePlaceholders(raw)
-      return { message, friendshipGain: 20 }
+      return { message, friendshipGain }
     }
 
     const level = getFriendshipLevel(npcId)
@@ -402,7 +406,7 @@ export const useNpcStore = defineStore('npc', () => {
     const raw = dialogues[Math.floor(Math.random() * dialogues.length)]!
     const message = replaceDialoguePlaceholders(raw)
 
-    return { message, friendshipGain: 20 }
+    return { message, friendshipGain }
   }
 
   /** 送礼给NPC (每天1次, 每周2次) */
@@ -428,7 +432,7 @@ export const useNpcStore = defineStore('npc', () => {
     let gain: number
     let reaction: string
 
-    if (npcDef.lovedItems.includes(itemId)) {
+    if (itemId === FUMO_ITEM_ID || npcDef.lovedItems.includes(itemId)) {
       gain = 80
       reaction = '非常喜欢'
     } else if (npcDef.likedItems.includes(itemId)) {
@@ -447,7 +451,7 @@ export const useNpcStore = defineStore('npc', () => {
     // 生日加成 (4倍)
     const birthdayMultiplier = isBirthday(npcId) ? 4 : 1
 
-    gain = Math.floor(gain * qualityMultiplier[quality] * birthdayMultiplier * giftBonusMultiplier)
+    gain = Math.floor(gain * qualityMultiplier[quality] * birthdayMultiplier * giftBonusMultiplier * FRIENDSHIP_GAIN_MULTIPLIER)
     state.friendship = Math.max(0, state.friendship + gain)
 
     return { gain, reaction }

@@ -163,6 +163,13 @@ export const GUILD_SHOP_ITEMS: GuildShopItemDef[] = [
   { itemId: 'slayer_charm', name: '猎魔符', price: 1500, description: '怪物掉落率+20%（当次探索）。', unlockGuildLevel: 3 },
   { itemId: 'stamina_elixir', name: '精力药剂', price: 600, description: '恢复120点体力。', unlockGuildLevel: 4 },
   { itemId: 'monster_lure', name: '怪物诱饵', price: 2000, description: '本层怪物数量翻倍。', unlockGuildLevel: 7 },
+  { itemId: 'bomb', name: '炸弹', price: 600, description: '可炸开矿洞格子，也可在战斗中造成无视防御伤害。', unlockGuildLevel: 2 },
+  { itemId: 'mega_bomb', name: '超级炸弹', price: 1800, description: '大型爆炸物，战斗中造成大量伤害并附加[燃烧]。', unlockGuildLevel: 6 },
+  { itemId: 'poison_arrow', name: '毒箭', price: 500, description: '战斗中造成伤害并附加[中毒]。', unlockGuildLevel: 3 },
+  { itemId: 'ice_bomb', name: '冰弹', price: 1200, description: '战斗中造成无视防御伤害并附加[冻结]。', unlockGuildLevel: 5 },
+  { itemId: 'attack_potion', name: '狂战药剂', price: 2500, description: '本次探索攻击力+500。', unlockGuildLevel: 6, dailyLimit: 2 },
+  { itemId: 'guardian_potion', name: '守护药剂', price: 2200, description: '本次探索受到的伤害降低35%。', unlockGuildLevel: 6, dailyLimit: 2 },
+  { itemId: 'nuclear_bomb', name: '核弹', price: 12000, description: '大量无视防御百分比伤害，并附加永久[辐射]。', unlockGuildLevel: 10, weeklyLimit: 1 },
   // --- 装备（贡献点+材料，限购1件）---
   {
     itemId: 'guild_war_ring',

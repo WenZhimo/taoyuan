@@ -26,6 +26,15 @@
     <div v-if="activeTab === 'villager'">
       <p v-if="tutorialHint" class="text-[10px] text-muted/50 mb-2">{{ tutorialHint }}</p>
 
+      <div class="grid grid-cols-2 gap-2 mb-3">
+        <Button class="justify-center" :icon="MessageCircle" :disabled="oneClickTalkCount === 0" @click="handleTalkAll">
+          一键聊天 {{ oneClickTalkCount }}
+        </Button>
+        <Button class="justify-center" :icon="Gift" :disabled="oneClickGiftPlans.length === 0" @click="handleGiftAll">
+          一键送礼 {{ oneClickGiftPlans.length }}
+        </Button>
+      </div>
+
       <!-- NPC 网格：移动端紧凑，桌面端详细 -->
       <div class="grid grid-cols-4 md:grid-cols-3 gap-1.5 md:gap-2">
         <div
@@ -143,7 +152,12 @@
       <div v-if="rumorHiddenNpcs.length > 0" :class="{ 'mt-4': revealedHiddenNpcs.length > 0 }">
         <h3 class="text-muted/60 text-sm mb-2">传闻</h3>
         <div class="flex flex-col space-y-1">
-          <div v-for="npc in rumorHiddenNpcs" :key="npc.id" class="border border-muted/10 rounded-xs px-2 py-1 text-[10px] text-muted/50">
+          <div
+            v-for="npc in rumorHiddenNpcs"
+            :key="npc.id"
+            class="border border-muted/10 rounded-xs px-2 py-1 text-[10px] text-muted/50 cursor-pointer hover:border-accent/30 hover:text-muted"
+            @click="selectedRumorNpc = npc.id"
+          >
             <span v-if="hiddenNpcStore.getHiddenNpcState(npc.id)?.discoveryPhase === 'rumor'">
               {{ getLastDiscoveryLog(npc.id) ?? '似乎有什么隐约的传说……' }}
             </span>
@@ -167,6 +181,37 @@
     <!-- 仙灵交互弹窗 -->
     <Transition name="panel-fade">
       <HiddenNpcModal v-if="selectedHiddenNpc" :npc-id="selectedHiddenNpc" @close="selectedHiddenNpc = null" />
+    </Transition>
+
+    <!-- 传闻详情弹窗 -->
+    <Transition name="panel-fade">
+      <div v-if="selectedRumorNpcDef" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4" @click.self="selectedRumorNpc = null">
+        <div class="game-panel max-w-md w-full max-h-[80vh] overflow-y-auto relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="selectedRumorNpc = null">
+            <X :size="14" />
+          </button>
+
+          <p class="text-sm text-accent mb-1">传闻 · {{ selectedRumorNpcDef.title }}</p>
+          <p class="text-[10px] text-muted mb-3">
+            阶段：{{ selectedRumorPhaseLabel }}
+          </p>
+
+          <div class="border border-accent/10 rounded-xs p-2 mb-3">
+            <p class="text-xs leading-relaxed">{{ getLastDiscoveryLog(selectedRumorNpcDef.id) ?? '你只捕捉到一些零散的传言。' }}</p>
+          </div>
+
+          <div v-if="selectedRumorSteps.length > 0" class="space-y-2">
+            <div v-for="step in selectedRumorSteps" :key="step.id" class="border border-muted/10 rounded-xs p-2">
+              <p class="text-[10px] text-muted mb-1">{{ DISCOVERY_PHASE_LABELS[step.phase] }}</p>
+              <p v-for="(scene, idx) in step.scenes" :key="idx" class="text-xs leading-relaxed mb-1">
+                {{ scene.text }}
+              </p>
+            </div>
+          </div>
+
+          <p v-else class="text-xs text-muted">暂时还没有更具体的线索。</p>
+        </div>
+      </div>
     </Transition>
 
     <!-- NPC 交互弹窗 -->
@@ -530,6 +575,7 @@
   import { triggerHeartEvent } from '@/composables/useDialogs'
   import { handleEndDay } from '@/composables/useEndDay'
   import type { FriendshipLevel, Quality } from '@/types'
+  import type { DiscoveryPhase, DiscoveryStep } from '@/types/hiddenNpc'
   import Button from '@/components/game/Button.vue'
   import HiddenNpcModal from '@/components/game/HiddenNpcModal.vue'
 
@@ -543,9 +589,28 @@
 
   const activeTab = ref<'villager' | 'spirit'>('villager')
   const selectedHiddenNpc = ref<string | null>(null)
+  const selectedRumorNpc = ref<string | null>(null)
 
   const revealedHiddenNpcs = computed(() => hiddenNpcStore.getRevealedNpcs)
   const rumorHiddenNpcs = computed(() => hiddenNpcStore.getRumorNpcs)
+
+  const DISCOVERY_PHASE_LABELS: Record<DiscoveryPhase, string> = {
+    unknown: '未发现',
+    rumor: '传闻',
+    glimpse: '异象',
+    encounter: '相遇',
+    revealed: '显现'
+  }
+
+  const selectedRumorNpcDef = computed(() => (selectedRumorNpc.value ? getHiddenNpcById(selectedRumorNpc.value) : null))
+  const selectedRumorState = computed(() => (selectedRumorNpc.value ? hiddenNpcStore.getHiddenNpcState(selectedRumorNpc.value) : null))
+  const selectedRumorPhaseLabel = computed(() => DISCOVERY_PHASE_LABELS[selectedRumorState.value?.discoveryPhase ?? 'unknown'])
+  const selectedRumorSteps = computed<DiscoveryStep[]>(() => {
+    const def = selectedRumorNpcDef.value
+    const state = selectedRumorState.value
+    if (!def || !state) return []
+    return state.completedSteps.map(stepId => def.discoverySteps.find(step => step.id === stepId)).filter((step): step is DiscoveryStep => !!step)
+  })
 
   const hiddenHeartCount = (npcId: string): number => {
     const affinity = hiddenNpcStore.getHiddenNpcState(npcId)?.affinity ?? 0
@@ -646,6 +711,49 @@
     return [...filtered].sort((a, b) => GIFT_PREF_ORDER[getGiftPreference(a.itemId)] - GIFT_PREF_ORDER[getGiftPreference(b.itemId)])
   })
 
+  const oneClickTalkTargets = computed(() => NPCS.filter(npc => npcAvailable(npc.id) && !npcStore.getNpcState(npc.id)?.talkedToday))
+  const oneClickTalkCount = computed(() => oneClickTalkTargets.value.length)
+  const FUMO_ITEM_ID = 'momo_fumo'
+
+  const QUALITY_SCORE: Record<Quality, number> = {
+    normal: 0,
+    fine: 1,
+    excellent: 2,
+    supreme: 3
+  }
+
+  const getGiftPreferenceForNpc = (npcDef: NonNullable<ReturnType<typeof getNpcById>>, itemId: string): GiftPreference => {
+    if (itemId === FUMO_ITEM_ID) return 'loved'
+    if (npcDef.lovedItems.includes(itemId)) return 'loved'
+    if (npcDef.likedItems.includes(itemId)) return 'liked'
+    if (npcDef.hatedItems.includes(itemId)) return 'hated'
+    return 'neutral'
+  }
+
+  const getBestGiftForNpc = (npcDef: NonNullable<ReturnType<typeof getNpcById>>) => {
+    return inventoryStore.items
+      .filter(item => {
+        const def = getItemById(item.itemId)
+        if (!def || def.category === 'seed' || item.quantity <= 0) return false
+        const pref = getGiftPreferenceForNpc(npcDef, item.itemId)
+        return pref === 'loved' || pref === 'liked'
+      })
+      .sort((a, b) => {
+        const prefDiff = GIFT_PREF_ORDER[getGiftPreferenceForNpc(npcDef, a.itemId)] - GIFT_PREF_ORDER[getGiftPreferenceForNpc(npcDef, b.itemId)]
+        if (prefDiff !== 0) return prefDiff
+        return QUALITY_SCORE[b.quality] - QUALITY_SCORE[a.quality]
+      })[0]
+  }
+
+  const oneClickGiftPlans = computed(() =>
+    NPCS.map(npc => {
+      const state = npcStore.getNpcState(npc.id)
+      if (!state || !npcAvailable(npc.id) || state.giftedToday || state.giftsThisWeek >= 2) return null
+      const gift = getBestGiftForNpc(npc)
+      return gift ? { npc, gift } : null
+    }).filter((plan): plan is { npc: (typeof NPCS)[number]; gift: NonNullable<ReturnType<typeof getBestGiftForNpc>> } => !!plan)
+  )
+
   /** 是否可以赠帕开始约会 */
   const canStartDating = computed(() => {
     if (!selectedNpcDef.value?.marriageable) return false
@@ -705,10 +813,7 @@
   const getGiftPreference = (itemId: string): GiftPreference => {
     const npcDef = selectedNpcDef.value
     if (!npcDef) return 'neutral'
-    if (npcDef.lovedItems.includes(itemId)) return 'loved'
-    if (npcDef.likedItems.includes(itemId)) return 'liked'
-    if (npcDef.hatedItems.includes(itemId)) return 'hated'
-    return 'neutral'
+    return getGiftPreferenceForNpc(npcDef, itemId)
   }
 
   const GIFT_PREF_LABELS: Record<GiftPreference, string> = {
@@ -786,6 +891,37 @@
     }
   }
 
+  const handleTalkAll = () => {
+    if (gameStore.isPastBedtime) {
+      addLog('太晚了，人家都睡了。')
+      handleEndDay()
+      return
+    }
+
+    let talked = 0
+    for (const npc of oneClickTalkTargets.value) {
+      const result = npcStore.talkTo(npc.id)
+      if (!result) continue
+      talked++
+      addLog(`与${npc.name}聊天。(+${result.friendshipGain}好感)`)
+
+      const tr = gameStore.advanceTime(ACTION_TIME_COSTS.talk)
+      if (tr.message) addLog(tr.message)
+      if (tr.passedOut) {
+        handleEndDay()
+        break
+      }
+
+      const heartEvent = npcStore.checkHeartEvent(npc.id)
+      if (heartEvent) {
+        triggerHeartEvent(heartEvent)
+      }
+    }
+
+    if (talked === 0) addLog('今天没有可聊天的村民。')
+    else addLog(`一口气和${talked}位村民聊了天。`)
+  }
+
   const handleDailyTip = () => {
     if (!selectedNpc.value) return
     const tip = npcStore.getDailyTip(selectedNpc.value)
@@ -821,6 +957,33 @@
         triggerHeartEvent(heartEvent)
       }
     }
+  }
+
+  const handleGiftAll = () => {
+    const cookingGiftBonus = cookingStore.activeBuff?.type === 'giftBonus' ? cookingStore.activeBuff.value : 1
+    const ringGiftBonus = inventoryStore.getRingEffectValue('gift_friendship')
+    const giftMultiplier = cookingGiftBonus * (1 + ringGiftBonus)
+
+    let gifted = 0
+    for (const npc of NPCS) {
+      const state = npcStore.getNpcState(npc.id)
+      if (!state || !npcAvailable(npc.id) || state.giftedToday || state.giftsThisWeek >= 2) continue
+      const gift = getBestGiftForNpc(npc)
+      if (!gift) continue
+      const result = npcStore.giveGift(npc.id, gift.itemId, giftMultiplier, gift.quality)
+      if (!result) continue
+      gifted++
+      const itemName = getItemById(gift.itemId)?.name ?? gift.itemId
+      addLog(`送给${npc.name}${itemName}，${npc.name}觉得${result.reaction}。(+${result.gain}好感)`)
+
+      const heartEvent = npcStore.checkHeartEvent(npc.id)
+      if (heartEvent) {
+        triggerHeartEvent(heartEvent)
+      }
+    }
+
+    if (gifted === 0) addLog('没有可自动送出的喜欢礼物。')
+    else addLog(`已为${gifted}位村民送出合适的礼物。`)
   }
 
   const handlePropose = () => {

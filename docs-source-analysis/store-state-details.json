@@ -1,0 +1,5111 @@
+{
+  "stores": [
+    {
+      "rel": "src/stores/useAchievementStore.ts",
+      "storeId": "achievement",
+      "lines": 422,
+      "refs": [
+        {
+          "line": 41,
+          "name": "stats",
+          "kind": "ref",
+          "expr": "{"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 54,
+          "name": "discoveredCount",
+          "kind": "computed",
+          "expr": "() => discoveredItems.value.length)"
+        },
+        {
+          "line": 307,
+          "name": "perfectionPercent",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 58,
+          "name": "discoverItem",
+          "kind": "action",
+          "expr": "itemId: string"
+        },
+        {
+          "line": 67,
+          "name": "getDiscoveryTime",
+          "kind": "action",
+          "expr": "(itemId: string): string | null "
+        },
+        {
+          "line": 71,
+          "name": "isDiscovered",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 77,
+          "name": "recordCropHarvest",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 81,
+          "name": "recordFishCaught",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 85,
+          "name": "recordMoneyEarned",
+          "kind": "action",
+          "expr": "amount: number"
+        },
+        {
+          "line": 89,
+          "name": "recordMineFloor",
+          "kind": "action",
+          "expr": "floor: number"
+        },
+        {
+          "line": 95,
+          "name": "recordRecipeCooked",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 99,
+          "name": "recordSkullCavernFloor",
+          "kind": "action",
+          "expr": "floor: number"
+        },
+        {
+          "line": 105,
+          "name": "recordMonsterKill",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 109,
+          "name": "recordBreeding",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 113,
+          "name": "recordHybridDiscovered",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 117,
+          "name": "recordHybridTier",
+          "kind": "action",
+          "expr": "tier: number"
+        },
+        {
+          "line": 126,
+          "name": "isConditionMet",
+          "kind": "action",
+          "expr": "(c: AchievementCondition): boolean "
+        },
+        {
+          "line": 143,
+          "name": "skill",
+          "kind": "action",
+          "expr": "skillStore.skills.find(s "
+        },
+        {
+          "line": 156,
+          "name": "bestFriendCount",
+          "kind": "action",
+          "expr": "npcStore.npcStates.filter(n "
+        },
+        {
+          "line": 189,
+          "name": "shippableCount",
+          "kind": "action",
+          "expr": "ITEMS.filter(i "
+        },
+        {
+          "line": 208,
+          "name": "hybridItemIds",
+          "kind": "action",
+          "expr": "new Set(HYBRID_DEFS.map(h "
+        },
+        {
+          "line": 209,
+          "name": "shippedHybridCount",
+          "kind": "action",
+          "expr": "shopStore.shippedItems.filter(id "
+        },
+        {
+          "line": 233,
+          "name": "checkAchievements",
+          "kind": "action",
+          "expr": "(): AchievementDef[] "
+        },
+        {
+          "line": 259,
+          "name": "submitToBundle",
+          "kind": "action",
+          "expr": "(bundleId: string, itemId: string, quantity: number): boolean "
+        },
+        {
+          "line": 261,
+          "name": "bundle",
+          "kind": "action",
+          "expr": "COMMUNITY_BUNDLES.find(b "
+        },
+        {
+          "line": 264,
+          "name": "req",
+          "kind": "action",
+          "expr": "bundle.requiredItems.find(r "
+        },
+        {
+          "line": 276,
+          "name": "allMet",
+          "kind": "action",
+          "expr": "bundle.requiredItems.every(r "
+        },
+        {
+          "line": 294,
+          "name": "getBundleProgress",
+          "kind": "action",
+          "expr": "(bundleId: string): Record<string, number> "
+        },
+        {
+          "line": 298,
+          "name": "isBundleComplete",
+          "kind": "action",
+          "expr": "(bundleId: string): boolean "
+        },
+        {
+          "line": 305,
+          "name": "shippableItemCount",
+          "kind": "action",
+          "expr": "ITEMS.filter(i "
+        },
+        {
+          "line": 319,
+          "name": "avgSkillLevel",
+          "kind": "action",
+          "expr": "skillStore.skills.reduce((sum, s) "
+        },
+        {
+          "line": 322,
+          "name": "friendlyCount",
+          "kind": "action",
+          "expr": "npcStore.npcStates.filter(n "
+        },
+        {
+          "line": 335,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 346,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useAnimalStore.ts",
+      "storeId": "animal",
+      "lines": 819,
+      "refs": [
+        {
+          "line": 39,
+          "name": "grazedToday",
+          "kind": "ref",
+          "expr": "false)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 44,
+          "name": "coopBuilt",
+          "kind": "computed",
+          "expr": "() => buildings.value.find(b => b.type === 'coop')?.built ?? false)"
+        },
+        {
+          "line": 45,
+          "name": "barnBuilt",
+          "kind": "computed",
+          "expr": "() => buildings.value.find(b => b.type === 'barn')?.built ?? false)"
+        },
+        {
+          "line": 46,
+          "name": "stableBuilt",
+          "kind": "computed",
+          "expr": "() => buildings.value.find(b => b.type === 'stable')?.built ?? false)"
+        },
+        {
+          "line": 48,
+          "name": "coopAnimals",
+          "kind": "computed",
+          "expr": "() =>"
+        },
+        {
+          "line": 55,
+          "name": "barnAnimals",
+          "kind": "computed",
+          "expr": "() =>"
+        },
+        {
+          "line": 63,
+          "name": "getHorse",
+          "kind": "computed",
+          "expr": "() => animals.value.find(a => a.type === 'horse') ?? null)"
+        },
+        {
+          "line": 66,
+          "name": "hasHorse",
+          "kind": "computed",
+          "expr": "() => getHorse.value !== null)"
+        }
+      ],
+      "actions": [
+        {
+          "line": 50,
+          "name": "def",
+          "kind": "action",
+          "expr": "ANIMAL_DEFS.find(d "
+        },
+        {
+          "line": 69,
+          "name": "buildBuilding",
+          "kind": "action",
+          "expr": "(type: AnimalBuildingType): boolean "
+        },
+        {
+          "line": 72,
+          "name": "b",
+          "kind": "action",
+          "expr": "buildings.value.find(b "
+        },
+        {
+          "line": 96,
+          "name": "upgradeBuilding",
+          "kind": "action",
+          "expr": "(type: AnimalBuildingType): boolean "
+        },
+        {
+          "line": 119,
+          "name": "buyAnimal",
+          "kind": "action",
+          "expr": "(animalType: AnimalType, customName: string): boolean "
+        },
+        {
+          "line": 126,
+          "name": "building",
+          "kind": "action",
+          "expr": "buildings.value.find(b "
+        },
+        {
+          "line": 129,
+          "name": "currentCount",
+          "kind": "action",
+          "expr": "animals.value.filter(a "
+        },
+        {
+          "line": 130,
+          "name": "aDef",
+          "kind": "action",
+          "expr": "ANIMAL_DEFS.find(d "
+        },
+        {
+          "line": 160,
+          "name": "unfed",
+          "kind": "action",
+          "expr": "animals.value.filter(a "
+        },
+        {
+          "line": 177,
+          "name": "animal",
+          "kind": "action",
+          "expr": "animals.value.find(a "
+        },
+        {
+          "line": 187,
+          "name": "markAllFed",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 198,
+          "name": "petAnimal",
+          "kind": "action",
+          "expr": "(animalId: string): boolean "
+        },
+        {
+          "line": 208,
+          "name": "petAllAnimals",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 230,
+          "name": "startIncubation",
+          "kind": "action",
+          "expr": "(itemId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 231,
+          "name": "coopBuilding",
+          "kind": "action",
+          "expr": "buildings.value.find(b "
+        },
+        {
+          "line": 254,
+          "name": "animalDef",
+          "kind": "action",
+          "expr": "ANIMAL_DEFS.find(d "
+        },
+        {
+          "line": 259,
+          "name": "dailyIncubatorUpdate",
+          "kind": "action",
+          "expr": "(): { hatched?: { type: AnimalType; name: string } } "
+        },
+        {
+          "line": 280,
+          "name": "count",
+          "kind": "action",
+          "expr": "animals.value.filter(a "
+        },
+        {
+          "line": 305,
+          "name": "startBarnIncubation",
+          "kind": "action",
+          "expr": "(itemId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 306,
+          "name": "barnBuilding",
+          "kind": "action",
+          "expr": "buildings.value.find(b "
+        },
+        {
+          "line": 333,
+          "name": "dailyBarnIncubatorUpdate",
+          "kind": "action",
+          "expr": "(): { hatched?: { type: AnimalType; name: string } } "
+        },
+        {
+          "line": 381,
+          "name": "adoptPet",
+          "kind": "action",
+          "expr": "type: PetType, name: string"
+        },
+        {
+          "line": 386,
+          "name": "petThePet",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 394,
+          "name": "dailyPetUpdate",
+          "kind": "action",
+          "expr": "(): { item?: string } "
+        },
+        {
+          "line": 419,
+          "name": "grazeAnimals",
+          "kind": "action",
+          "expr": "(): { success: boolean; count: number; message: string; bonusProducts?: { itemId: string; quality: Quality }[] } "
+        },
+        {
+          "line": 484,
+          "name": "dailyUpdate",
+          "kind": "action",
+          "expr": "(): { products: { itemId: string; quality: Quality }[]; died: string[]; gotSick: string[]; healed: string[] } "
+        },
+        {
+          "line": 652,
+          "name": "sellAnimal",
+          "kind": "action",
+          "expr": "(animalId: string): { success: boolean; refund: number; name: string } "
+        },
+        {
+          "line": 653,
+          "name": "idx",
+          "kind": "action",
+          "expr": "animals.value.findIndex(a "
+        },
+        {
+          "line": 668,
+          "name": "healAnimal",
+          "kind": "action",
+          "expr": "(animalId: string): boolean "
+        },
+        {
+          "line": 679,
+          "name": "healAllSick",
+          "kind": "action",
+          "expr": "(): { healedCount: number; noMedicineCount: number } "
+        },
+        {
+          "line": 696,
+          "name": "getAnimalProductQuality",
+          "kind": "action",
+          "expr": "(friendship: number): Quality "
+        },
+        {
+          "line": 704,
+          "name": "renameAnimal",
+          "kind": "action",
+          "expr": "(id: string, newName: string): boolean "
+        },
+        {
+          "line": 720,
+          "name": "hasAutoPetter",
+          "kind": "action",
+          "expr": "(buildingType: AnimalBuildingType): boolean "
+        },
+        {
+          "line": 725,
+          "name": "installAutoPetter",
+          "kind": "action",
+          "expr": "(buildingType: AnimalBuildingType): { success: boolean; message: string } "
+        },
+        {
+          "line": 735,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 747,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        },
+        {
+          "line": 749,
+          "name": "savedBuildings",
+          "kind": "action",
+          "expr": "data.buildings.map((b: any) "
+        },
+        {
+          "line": 754,
+          "name": "savedTypes",
+          "kind": "action",
+          "expr": "new Set(savedBuildings.map((b: any) "
+        }
+      ],
+      "daily": [
+        "dailyBarnIncubatorUpdate",
+        "dailyIncubatorUpdate",
+        "dailyPetUpdate",
+        "dailyUpdate"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useBreedingStore.ts",
+      "storeId": "breeding",
+      "lines": 504,
+      "refs": [
+        {
+          "line": 44,
+          "name": "stationCount",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 50,
+          "name": "unlocked",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 53,
+          "name": "seedBoxLevel",
+          "kind": "ref",
+          "expr": "0)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 58,
+          "name": "maxSeedBox",
+          "kind": "computed",
+          "expr": "() => BASE_BREEDING_BOX + seedBoxLevel.value * SEED_BOX_UPGRADE_INCREMENT)"
+        },
+        {
+          "line": 60,
+          "name": "boxCount",
+          "kind": "computed",
+          "expr": "() => breedingBox.value.length)"
+        },
+        {
+          "line": 61,
+          "name": "boxFull",
+          "kind": "computed",
+          "expr": "() => breedingBox.value.length >= maxSeedBox.value)"
+        }
+      ],
+      "actions": [
+        {
+          "line": 65,
+          "name": "addToBox",
+          "kind": "action",
+          "expr": "(genetics: SeedGenetics): boolean "
+        },
+        {
+          "line": 74,
+          "name": "removeFromBox",
+          "kind": "action",
+          "expr": "(geneticsId: string): BreedingSeed | null "
+        },
+        {
+          "line": 75,
+          "name": "idx",
+          "kind": "action",
+          "expr": "breedingBox.value.findIndex(s "
+        },
+        {
+          "line": 82,
+          "name": "trySeedMakerGeneticSeed",
+          "kind": "action",
+          "expr": "(cropId: string, farmingLevel: number): boolean "
+        },
+        {
+          "line": 105,
+          "name": "craftStation",
+          "kind": "action",
+          "expr": "spendMoney: (amount: number"
+        },
+        {
+          "line": 123,
+          "name": "canCraftStation",
+          "kind": "action",
+          "expr": "money: number, getItemCount: (id: string"
+        },
+        {
+          "line": 134,
+          "name": "getNextSeedBoxUpgrade",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 139,
+          "name": "canUpgradeSeedBox",
+          "kind": "action",
+          "expr": "money: number, getItemCount: (id: string"
+        },
+        {
+          "line": 163,
+          "name": "startBreeding",
+          "kind": "action",
+          "expr": "(slotIndex: number, seedAId: string, seedBId: string): boolean "
+        },
+        {
+          "line": 185,
+          "name": "collectResult",
+          "kind": "action",
+          "expr": "(slotIndex: number): SeedGenetics | null "
+        },
+        {
+          "line": 198,
+          "name": "existing",
+          "kind": "action",
+          "expr": "compendium.value.find(e "
+        },
+        {
+          "line": 223,
+          "name": "breedSeeds",
+          "kind": "action",
+          "expr": "(parentA: SeedGenetics, parentB: SeedGenetics): SeedGenetics "
+        },
+        {
+          "line": 234,
+          "name": "breedSameCrop",
+          "kind": "action",
+          "expr": "(a: SeedGenetics, b: SeedGenetics): SeedGenetics "
+        },
+        {
+          "line": 240,
+          "name": "fluctuate",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 315,
+          "name": "breedDifferentCrop",
+          "kind": "action",
+          "expr": "(a: SeedGenetics, b: SeedGenetics): SeedGenetics "
+        },
+        {
+          "line": 392,
+          "name": "dailyUpdate",
+          "kind": "action",
+          "expr": "(): void "
+        },
+        {
+          "line": 417,
+          "name": "recordHybridGrown",
+          "kind": "action",
+          "expr": "(hybridId: string): void "
+        },
+        {
+          "line": 418,
+          "name": "entry",
+          "kind": "action",
+          "expr": "compendium.value.find(e "
+        },
+        {
+          "line": 426,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 445,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        },
+        {
+          "line": 464,
+          "name": "reset",
+          "kind": "action",
+          "expr": ""
+        }
+      ],
+      "daily": [
+        "dailyUpdate"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useCookingStore.ts",
+      "storeId": "cooking",
+      "lines": 216,
+      "refs": [],
+      "computeds": [
+        {
+          "line": 47,
+          "name": "recipes",
+          "kind": "computed",
+          "expr": "() => unlockedRecipes.value.map(id => getRecipeById(id)).filter((r): r is RecipeDef => r !== undefined))"
+        }
+      ],
+      "actions": [
+        {
+          "line": 50,
+          "name": "canCook",
+          "kind": "action",
+          "expr": "(recipeId: string): boolean "
+        },
+        {
+          "line": 63,
+          "name": "maxCookable",
+          "kind": "action",
+          "expr": "(recipeId: string): number "
+        },
+        {
+          "line": 80,
+          "name": "previewCookQuality",
+          "kind": "action",
+          "expr": "(recipeId: string): Quality "
+        },
+        {
+          "line": 179,
+          "name": "unlockRecipe",
+          "kind": "action",
+          "expr": "(recipeId: string): boolean "
+        },
+        {
+          "line": 188,
+          "name": "dailyReset",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 192,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 196,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [
+        "dailyReset"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useFarmStore.ts",
+      "storeId": "farm",
+      "lines": 1104,
+      "refs": [
+        {
+          "line": 49,
+          "name": "greenhouseLevel",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 51,
+          "name": "nextFruitTreeId",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 52,
+          "name": "nextWildTreeId",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 53,
+          "name": "lightningRods",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 54,
+          "name": "scarecrows",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 55,
+          "name": "giantCropCounter",
+          "kind": "ref",
+          "expr": "0)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 56,
+          "name": "tilledPlots",
+          "kind": "computed",
+          "expr": "() => plots.value.filter(p => p.state !== 'wasteland'))"
+        },
+        {
+          "line": 57,
+          "name": "harvestableCount",
+          "kind": "computed",
+          "expr": "() => plots.value.filter(p => p.state === 'harvestable').length)"
+        }
+      ],
+      "actions": [
+        {
+          "line": 23,
+          "name": "createPlots",
+          "kind": "action",
+          "expr": "(size: FarmSize): FarmPlot[] "
+        },
+        {
+          "line": 60,
+          "name": "resetFarm",
+          "kind": "action",
+          "expr": "size: FarmSize"
+        },
+        {
+          "line": 72,
+          "name": "tillPlot",
+          "kind": "action",
+          "expr": "(plotId: number): boolean "
+        },
+        {
+          "line": 80,
+          "name": "plantCrop",
+          "kind": "action",
+          "expr": "(plotId: number, cropId: string): boolean "
+        },
+        {
+          "line": 100,
+          "name": "plantGeneticSeed",
+          "kind": "action",
+          "expr": "(plotId: number, genetics: SeedGenetics): boolean "
+        },
+        {
+          "line": 120,
+          "name": "waterPlot",
+          "kind": "action",
+          "expr": "(plotId: number): boolean "
+        },
+        {
+          "line": 130,
+          "name": "harvestPlot",
+          "kind": "action",
+          "expr": "(plotId: number): { cropId: string | null; genetics: SeedGenetics | null } "
+        },
+        {
+          "line": 191,
+          "name": "removeCrop",
+          "kind": "action",
+          "expr": "(plotId: number): { cropId: string | null } "
+        },
+        {
+          "line": 221,
+          "name": "curePest",
+          "kind": "action",
+          "expr": "(plotId: number): boolean "
+        },
+        {
+          "line": 230,
+          "name": "clearWeed",
+          "kind": "action",
+          "expr": "(plotId: number): boolean "
+        },
+        {
+          "line": 241,
+          "name": "getSprinklerCoverage",
+          "kind": "action",
+          "expr": "(plotId: number, range: number): number[] "
+        },
+        {
+          "line": 291,
+          "name": "placeSprinkler",
+          "kind": "action",
+          "expr": "(plotId: number, sprinklerType: SprinklerType): boolean "
+        },
+        {
+          "line": 304,
+          "name": "removeSprinkler",
+          "kind": "action",
+          "expr": "(plotId: number): SprinklerType | null "
+        },
+        {
+          "line": 305,
+          "name": "idx",
+          "kind": "action",
+          "expr": "sprinklers.value.findIndex(s "
+        },
+        {
+          "line": 313,
+          "name": "getAllWateredBySprinklers",
+          "kind": "action",
+          "expr": "(): Set<number> "
+        },
+        {
+          "line": 316,
+          "name": "def",
+          "kind": "action",
+          "expr": "SPRINKLERS.find(d "
+        },
+        {
+          "line": 329,
+          "name": "applyFertilizer",
+          "kind": "action",
+          "expr": "(plotId: number, fertilizerType: FertilizerType): boolean "
+        },
+        {
+          "line": 339,
+          "name": "applyFertileSoil",
+          "kind": "action",
+          "expr": "(farmingLevel: number): { count: number; fertilizerName: string } "
+        },
+        {
+          "line": 359,
+          "name": "dailyUpdate",
+          "kind": "action",
+          "expr": "(isRainy: boolean): { newInfestations: number; pestDeaths: number; newWeeds: number; weedDeaths: number } "
+        },
+        {
+          "line": 493,
+          "name": "onSeasonChange",
+          "kind": "action",
+          "expr": "(newSeason: Season): { witheredCount: number; reclaimedCount: number } "
+        },
+        {
+          "line": 498,
+          "name": "preExistingTilled",
+          "kind": "action",
+          "expr": "new Set(plots.value.filter(p "
+        },
+        {
+          "line": 538,
+          "name": "lightningStrike",
+          "kind": "action",
+          "expr": "(): { hit: boolean; absorbed: boolean; cropName?: string } "
+        },
+        {
+          "line": 546,
+          "name": "croppedPlots",
+          "kind": "action",
+          "expr": "plots.value.filter(p "
+        },
+        {
+          "line": 570,
+          "name": "crowAttack",
+          "kind": "action",
+          "expr": "(): { attacked: boolean; cropName?: string } "
+        },
+        {
+          "line": 594,
+          "name": "checkGiantCrops",
+          "kind": "action",
+          "expr": "(): { cropId: string; cropName: string }[] "
+        },
+        {
+          "line": 632,
+          "name": "harvestGiantCrop",
+          "kind": "action",
+          "expr": "(plotId: number): { cropId: string; quantity: number } | null "
+        },
+        {
+          "line": 638,
+          "name": "groupPlots",
+          "kind": "action",
+          "expr": "plots.value.filter(p "
+        },
+        {
+          "line": 658,
+          "name": "expandFarm",
+          "kind": "action",
+          "expr": "(): FarmSize | null "
+        },
+        {
+          "line": 691,
+          "name": "plantFruitTree",
+          "kind": "action",
+          "expr": "(treeType: FruitTreeType): boolean "
+        },
+        {
+          "line": 705,
+          "name": "dailyFruitTreeUpdate",
+          "kind": "action",
+          "expr": "(currentSeason: Season): { fruits: { fruitId: string; quality: Quality }[] } "
+        },
+        {
+          "line": 733,
+          "name": "getFruitQuality",
+          "kind": "action",
+          "expr": "(yearAge: number): Quality "
+        },
+        {
+          "line": 741,
+          "name": "removeFruitTree",
+          "kind": "action",
+          "expr": "(treeId: number): number "
+        },
+        {
+          "line": 751,
+          "name": "fruitTreeSeasonUpdate",
+          "kind": "action",
+          "expr": "(isNewYear: boolean): void "
+        },
+        {
+          "line": 761,
+          "name": "plantWildTree",
+          "kind": "action",
+          "expr": "(treeType: WildTreeType): boolean "
+        },
+        {
+          "line": 777,
+          "name": "attachTapper",
+          "kind": "action",
+          "expr": "(treeId: number): boolean "
+        },
+        {
+          "line": 778,
+          "name": "tree",
+          "kind": "action",
+          "expr": "wildTrees.value.find(t "
+        },
+        {
+          "line": 787,
+          "name": "collectTapProduct",
+          "kind": "action",
+          "expr": "(treeId: number): string | null "
+        },
+        {
+          "line": 798,
+          "name": "chopWildTree",
+          "kind": "action",
+          "expr": "(treeId: number): { removed: boolean } "
+        },
+        {
+          "line": 810,
+          "name": "dailyWildTreeUpdate",
+          "kind": "action",
+          "expr": "(): { products: { treeId: number; productId: string; productName: string }[] } "
+        },
+        {
+          "line": 835,
+          "name": "initGreenhouse",
+          "kind": "action",
+          "expr": "(): void "
+        },
+        {
+          "line": 856,
+          "name": "greenhousePlantCrop",
+          "kind": "action",
+          "expr": "(plotId: number, cropId: string): boolean "
+        },
+        {
+          "line": 871,
+          "name": "greenhousePlantGeneticSeed",
+          "kind": "action",
+          "expr": "(plotId: number, genetics: SeedGenetics): boolean "
+        },
+        {
+          "line": 886,
+          "name": "greenhouseHarvestPlot",
+          "kind": "action",
+          "expr": "(plotId: number): { cropId: string | null; genetics: SeedGenetics | null } "
+        },
+        {
+          "line": 925,
+          "name": "greenhouseDailyUpdate",
+          "kind": "action",
+          "expr": "(): void "
+        },
+        {
+          "line": 947,
+          "name": "upgradeGreenhouse",
+          "kind": "action",
+          "expr": "(newPlotCount: number): boolean "
+        },
+        {
+          "line": 973,
+          "name": "greenhouseBatchHarvest",
+          "kind": "action",
+          "expr": "(): { cropId: string; genetics: SeedGenetics | null }[] "
+        },
+        {
+          "line": 984,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 1002,
+          "name": "migrateFertilizer",
+          "kind": "action",
+          "expr": "(f: string | null): FertilizerType | null "
+        },
+        {
+          "line": 1009,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [
+        "dailyFruitTreeUpdate",
+        "dailyUpdate",
+        "dailyWildTreeUpdate",
+        "greenhouseDailyUpdate"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useFishingStore.ts",
+      "storeId": "fishing",
+      "lines": 691,
+      "refs": [
+        {
+          "line": 91,
+          "name": "lastPerfect",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 96,
+          "name": "tackleDurability",
+          "kind": "ref",
+          "expr": "0)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 82,
+          "name": "availableFish",
+          "kind": "computed",
+          "expr": "() => getAvailableFish(gameStore.season, gameStore.weather, fishingLocation.value))"
+        },
+        {
+          "line": 586,
+          "name": "crabPotsByLocation",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 77,
+          "name": "setLocation",
+          "kind": "action",
+          "expr": "loc: FishingLocation"
+        },
+        {
+          "line": 106,
+          "name": "equipBait",
+          "kind": "action",
+          "expr": "(type: BaitType): { success: boolean; message: string } "
+        },
+        {
+          "line": 115,
+          "name": "unequipBait",
+          "kind": "action",
+          "expr": "(): string "
+        },
+        {
+          "line": 123,
+          "name": "equipTackle",
+          "kind": "action",
+          "expr": "(type: TackleType): { success: boolean; message: string } "
+        },
+        {
+          "line": 136,
+          "name": "unequipTackle",
+          "kind": "action",
+          "expr": "(): string "
+        },
+        {
+          "line": 148,
+          "name": "startFishing",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string; junk?: boolean } "
+        },
+        {
+          "line": 225,
+          "name": "calculateMiniGameParams",
+          "kind": "action",
+          "expr": "(): MiniGameParams "
+        },
+        {
+          "line": 297,
+          "name": "pickRandomFish",
+          "kind": "action",
+          "expr": "(pool?: FishDef[]): FishDef "
+        },
+        {
+          "line": 328,
+          "name": "total",
+          "kind": "action",
+          "expr": "weights.reduce((a, b) "
+        },
+        {
+          "line": 460,
+          "name": "treasureNames",
+          "kind": "action",
+          "expr": "treasure.items.map(t "
+        },
+        {
+          "line": 484,
+          "name": "rollTreasureChest",
+          "kind": "action",
+          "expr": "(): { items: { itemId: string; name: string; quantity: number }[]; money: number } | null "
+        },
+        {
+          "line": 498,
+          "name": "totalWeight",
+          "kind": "action",
+          "expr": "TREASURE_POOL.reduce((a, b) "
+        },
+        {
+          "line": 520,
+          "name": "endFishing",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 529,
+          "name": "placeCrabPot",
+          "kind": "action",
+          "expr": "(location: FishingLocation): { success: boolean; message: string } "
+        },
+        {
+          "line": 533,
+          "name": "atLocation",
+          "kind": "action",
+          "expr": "crabPots.value.filter(p "
+        },
+        {
+          "line": 545,
+          "name": "removeCrabPot",
+          "kind": "action",
+          "expr": "(location: FishingLocation): { success: boolean; message: string } "
+        },
+        {
+          "line": 546,
+          "name": "idx",
+          "kind": "action",
+          "expr": "crabPots.value.findIndex(p "
+        },
+        {
+          "line": 554,
+          "name": "baitCrabPots",
+          "kind": "action",
+          "expr": "(location: FishingLocation): { success: boolean; message: string } "
+        },
+        {
+          "line": 555,
+          "name": "pots",
+          "kind": "action",
+          "expr": "crabPots.value.filter(p "
+        },
+        {
+          "line": 571,
+          "name": "baitAllCrabPots",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 597,
+          "name": "collectCrabPots",
+          "kind": "action",
+          "expr": "(): { itemId: string; name: string }[] "
+        },
+        {
+          "line": 608,
+          "name": "overrides",
+          "kind": "action",
+          "expr": "pool.filter(l "
+        },
+        {
+          "line": 610,
+          "name": "replaceIds",
+          "kind": "action",
+          "expr": "new Set(overrides.map(o "
+        },
+        {
+          "line": 644,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 654,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useFishPondStore.ts",
+      "storeId": "fishPond",
+      "lines": 516,
+      "refs": [],
+      "computeds": [
+        {
+          "line": 57,
+          "name": "capacity",
+          "kind": "computed",
+          "expr": "() => (pond.value.built ? POND_CAPACITY[pond.value.level] : 0))"
+        },
+        {
+          "line": 58,
+          "name": "fishCount",
+          "kind": "computed",
+          "expr": "() => pond.value.fish.length)"
+        },
+        {
+          "line": 59,
+          "name": "isFull",
+          "kind": "computed",
+          "expr": "() => fishCount.value >= capacity.value)"
+        },
+        {
+          "line": 60,
+          "name": "sickFish",
+          "kind": "computed",
+          "expr": "() => pond.value.fish.filter(f => f.sick))"
+        },
+        {
+          "line": 61,
+          "name": "matureFish",
+          "kind": "computed",
+          "expr": "() => pond.value.fish.filter(f => f.mature))"
+        },
+        {
+          "line": 64,
+          "name": "density",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 32,
+          "name": "generateFishId",
+          "kind": "action",
+          "expr": "(): string "
+        },
+        {
+          "line": 37,
+          "name": "clamp",
+          "kind": "action",
+          "expr": "(v: number, min: number, max: number): number "
+        },
+        {
+          "line": 71,
+          "name": "buildPond",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 89,
+          "name": "upgradePond",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 142,
+          "name": "removeFish",
+          "kind": "action",
+          "expr": "(pondFishId: string): boolean "
+        },
+        {
+          "line": 143,
+          "name": "idx",
+          "kind": "action",
+          "expr": "pond.value.fish.findIndex(f "
+        },
+        {
+          "line": 159,
+          "name": "feedFish",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 169,
+          "name": "cleanPond",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 177,
+          "name": "treatSickFish",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 180,
+          "name": "sick",
+          "kind": "action",
+          "expr": "pond.value.fish.filter(f "
+        },
+        {
+          "line": 192,
+          "name": "startBreeding",
+          "kind": "action",
+          "expr": "(fishIdA: string, fishIdB: string): boolean "
+        },
+        {
+          "line": 197,
+          "name": "fishA",
+          "kind": "action",
+          "expr": "pond.value.fish.find(f "
+        },
+        {
+          "line": 198,
+          "name": "fishB",
+          "kind": "action",
+          "expr": "pond.value.fish.find(f "
+        },
+        {
+          "line": 214,
+          "name": "_breedGenetics",
+          "kind": "action",
+          "expr": "(a: FishGenetics, b: FishGenetics): FishGenetics "
+        },
+        {
+          "line": 219,
+          "name": "inherit",
+          "kind": "action",
+          "expr": "(va: number, vb: number, min: number, max: number): number "
+        },
+        {
+          "line": 244,
+          "name": "_getProductQuality",
+          "kind": "action",
+          "expr": "(qualityGene: number): Quality "
+        },
+        {
+          "line": 257,
+          "name": "collectProducts",
+          "kind": "action",
+          "expr": "(): { itemId: string; quality: Quality }[] "
+        },
+        {
+          "line": 267,
+          "name": "dailyUpdate",
+          "kind": "action",
+          "expr": "(): PondDailyResult "
+        },
+        {
+          "line": 377,
+          "name": "parentA",
+          "kind": "action",
+          "expr": "pond.value.fish.find(f "
+        },
+        {
+          "line": 378,
+          "name": "parentB",
+          "kind": "action",
+          "expr": "pond.value.fish.find(f "
+        },
+        {
+          "line": 403,
+          "name": "sameGenBreeds",
+          "kind": "action",
+          "expr": "getBreedsByGeneration(parentGen).filter(b "
+        },
+        {
+          "line": 442,
+          "name": "getGeneticStarRating",
+          "kind": "action",
+          "expr": "(genetics: FishGenetics): number "
+        },
+        {
+          "line": 453,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 459,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [
+        "PondDailyResult",
+        "dailyUpdate"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useGameStore.ts",
+      "storeId": "game",
+      "lines": 323,
+      "refs": [
+        {
+          "line": 59,
+          "name": "year",
+          "kind": "ref",
+          "expr": "1)"
+        },
+        {
+          "line": 61,
+          "name": "day",
+          "kind": "ref",
+          "expr": "1)"
+        },
+        {
+          "line": 62,
+          "name": "hour",
+          "kind": "ref",
+          "expr": "DAY_START_HOUR)"
+        },
+        {
+          "line": 67,
+          "name": "isGameStarted",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 69,
+          "name": "midnightWarned",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 70,
+          "name": "dailyLuck",
+          "kind": "ref",
+          "expr": "0)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 78,
+          "name": "seasonIndex",
+          "kind": "computed",
+          "expr": "() => SEASON_ORDER.indexOf(season.value))"
+        },
+        {
+          "line": 79,
+          "name": "seasonName",
+          "kind": "computed",
+          "expr": "() => SEASON_NAMES[season.value])"
+        },
+        {
+          "line": 80,
+          "name": "weatherName",
+          "kind": "computed",
+          "expr": "() => WEATHER_NAMES[weather.value])"
+        },
+        {
+          "line": 81,
+          "name": "isRainy",
+          "kind": "computed",
+          "expr": "() => weather.value === 'rainy' || weather.value === 'stormy' || weather.value === 'green_rain')"
+        },
+        {
+          "line": 84,
+          "name": "weekday",
+          "kind": "computed",
+          "expr": "() => getWeekday(day.value))"
+        },
+        {
+          "line": 85,
+          "name": "weekdayName",
+          "kind": "computed",
+          "expr": "() => WEEKDAY_NAMES[weekday.value])"
+        },
+        {
+          "line": 86,
+          "name": "timeDisplay",
+          "kind": "computed",
+          "expr": "() => formatTime(hour.value))"
+        },
+        {
+          "line": 87,
+          "name": "timePeriod",
+          "kind": "computed",
+          "expr": "() => getTimePeriod(hour.value))"
+        },
+        {
+          "line": 88,
+          "name": "isLateNight",
+          "kind": "computed",
+          "expr": "() => hour.value >= MIDNIGHT_HOUR)"
+        },
+        {
+          "line": 89,
+          "name": "isPastBedtime",
+          "kind": "computed",
+          "expr": "() => hour.value >= PASSOUT_HOUR)"
+        }
+      ],
+      "actions": [
+        {
+          "line": 92,
+          "name": "rollWeather",
+          "kind": "action",
+          "expr": "(s?: Season, d?: number): Weather "
+        },
+        {
+          "line": 124,
+          "name": "advanceTime",
+          "kind": "action",
+          "expr": "(hours: number, options?: { ignoreSpeedBuff?: boolean }): { ok: boolean; passedOut: boolean; message: string } "
+        },
+        {
+          "line": 152,
+          "name": "getTravelCost",
+          "kind": "action",
+          "expr": "(targetTab: string): number "
+        },
+        {
+          "line": 171,
+          "name": "travelTo",
+          "kind": "action",
+          "expr": "(targetTab: string): { ok: boolean; timeCost: number; passedOut: boolean; message: string } "
+        },
+        {
+          "line": 200,
+          "name": "nextDay",
+          "kind": "action",
+          "expr": "(): { seasonChanged: boolean; oldSeason: Season } "
+        },
+        {
+          "line": 227,
+          "name": "goTo",
+          "kind": "action",
+          "expr": "location: Location"
+        },
+        {
+          "line": 232,
+          "name": "setTomorrowWeather",
+          "kind": "action",
+          "expr": "w: Weather"
+        },
+        {
+          "line": 237,
+          "name": "startNewGame",
+          "kind": "action",
+          "expr": "mapType: FarmMapType = 'standard'"
+        },
+        {
+          "line": 252,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 270,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [
+        "dailyLuck"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useGuildStore.ts",
+      "storeId": "guild",
+      "lines": 361,
+      "refs": [
+        {
+          "line": 20,
+          "name": "contributionPoints",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 23,
+          "name": "guildExp",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 26,
+          "name": "guildLevel",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 32,
+          "name": "lastResetDay",
+          "kind": "ref",
+          "expr": "-1)"
+        },
+        {
+          "line": 38,
+          "name": "lastResetWeek",
+          "kind": "ref",
+          "expr": "-1)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 69,
+          "name": "completedGoalCount",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 74,
+          "name": "claimableGoals",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 44,
+          "name": "recordKill",
+          "kind": "action",
+          "expr": "monsterId: string"
+        },
+        {
+          "line": 52,
+          "name": "recordEncounter",
+          "kind": "action",
+          "expr": "monsterId: string"
+        },
+        {
+          "line": 59,
+          "name": "getKillCount",
+          "kind": "action",
+          "expr": "(monsterId: string): number "
+        },
+        {
+          "line": 64,
+          "name": "isEncountered",
+          "kind": "action",
+          "expr": "(monsterId: string): boolean "
+        },
+        {
+          "line": 79,
+          "name": "claimGoal",
+          "kind": "action",
+          "expr": "(monsterId: string): boolean "
+        },
+        {
+          "line": 80,
+          "name": "goal",
+          "kind": "action",
+          "expr": "MONSTER_GOALS.find(g "
+        },
+        {
+          "line": 107,
+          "name": "getCurrentDay",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 114,
+          "name": "ensureDailyReset",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 123,
+          "name": "getCurrentWeek",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 128,
+          "name": "ensureWeeklyReset",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 137,
+          "name": "checkLevelUp",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 147,
+          "name": "donateItem",
+          "kind": "action",
+          "expr": "(itemId: string, quantity: number): { success: boolean; pointsGained: number } "
+        },
+        {
+          "line": 148,
+          "name": "donation",
+          "kind": "action",
+          "expr": "GUILD_DONATIONS.find(d "
+        },
+        {
+          "line": 163,
+          "name": "getDailyRemaining",
+          "kind": "action",
+          "expr": "(itemId: string, dailyLimit: number): number "
+        },
+        {
+          "line": 169,
+          "name": "getWeeklyRemaining",
+          "kind": "action",
+          "expr": "(itemId: string, weeklyLimit: number): number "
+        },
+        {
+          "line": 175,
+          "name": "getTotalRemaining",
+          "kind": "action",
+          "expr": "(itemId: string, totalLimit: number): number "
+        },
+        {
+          "line": 180,
+          "name": "getGuildAttackBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 185,
+          "name": "getGuildHpBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 192,
+          "name": "isShopItemUnlocked",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 193,
+          "name": "item",
+          "kind": "action",
+          "expr": "GUILD_SHOP_ITEMS.find(i "
+        },
+        {
+          "line": 200,
+          "name": "buyShopItem",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 290,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 305,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [
+        "dailyLimit",
+        "dailyPurchases",
+        "ensureDailyReset",
+        "getDailyRemaining"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useHanhaiStore.ts",
+      "storeId": "hanhai",
+      "lines": 569,
+      "refs": [
+        {
+          "line": 43,
+          "name": "unlocked",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 45,
+          "name": "casinoBetsToday",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 51,
+          "name": "tradePoints",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 53,
+          "name": "tradeShopLevel",
+          "kind": "ref",
+          "expr": "1)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 64,
+          "name": "tradeShopConfig",
+          "kind": "computed",
+          "expr": "() => TRADE_SHOP_UPGRADES.find(u => u.level === tradeShopLevel.value) ?? TRADE_SHOP_UPGRADES[0]!)"
+        },
+        {
+          "line": 66,
+          "name": "nextTradeShopUpgrade",
+          "kind": "computed",
+          "expr": "() => TRADE_SHOP_UPGRADES.find(u => u.level === tradeShopLevel.value + 1))"
+        },
+        {
+          "line": 68,
+          "name": "canBet",
+          "kind": "computed",
+          "expr": "() => casinoBetsToday.value < MAX_DAILY_BETS)"
+        },
+        {
+          "line": 69,
+          "name": "betsRemaining",
+          "kind": "computed",
+          "expr": "() => MAX_DAILY_BETS - casinoBetsToday.value)"
+        }
+      ],
+      "actions": [
+        {
+          "line": 72,
+          "name": "unlockHanhai",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 84,
+          "name": "getWeeklyRemaining",
+          "kind": "action",
+          "expr": "(itemId: string): number "
+        },
+        {
+          "line": 86,
+          "name": "item",
+          "kind": "action",
+          "expr": "allAvailable.find(i "
+        },
+        {
+          "line": 92,
+          "name": "buyShopItem",
+          "kind": "action",
+          "expr": "(itemId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 114,
+          "name": "useTreasureMap",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string; rewards: { name: string; quantity: number }[] } "
+        },
+        {
+          "line": 146,
+          "name": "rewardText",
+          "kind": "action",
+          "expr": "rewards.map(r "
+        },
+        {
+          "line": 152,
+          "name": "playRoulette",
+          "kind": "action",
+          "expr": "(betTier: number): { success: boolean; message: string; multiplier: number; winnings: number } "
+        },
+        {
+          "line": 202,
+          "name": "playCup",
+          "kind": "action",
+          "expr": "(guess: number): { success: boolean; message: string; correctCup: number; won: boolean; winnings: number } "
+        },
+        {
+          "line": 258,
+          "name": "playCardFlip",
+          "kind": "action",
+          "expr": "(pick: number): { success: boolean; message: string; treasures: number[]; won: boolean; winnings: number } "
+        },
+        {
+          "line": 278,
+          "name": "startTexas",
+          "kind": "action",
+          "expr": "(tierId: TexasTierId): { success: boolean; message: string } & Partial<TexasSetup> "
+        },
+        {
+          "line": 302,
+          "name": "endTexas",
+          "kind": "action",
+          "expr": "finalChips: number, tierName: string"
+        },
+        {
+          "line": 311,
+          "name": "startBuckshot",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } & Partial<BuckshotSetup> "
+        },
+        {
+          "line": 328,
+          "name": "endBuckshot",
+          "kind": "action",
+          "expr": "won: boolean, draw: boolean"
+        },
+        {
+          "line": 344,
+          "name": "refreshRotatingStock",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 350,
+          "name": "addTradeSlot",
+          "kind": "action",
+          "expr": "(itemId: string, quality: string, quantity: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 381,
+          "name": "dailyTradeUpdate",
+          "kind": "action",
+          "expr": "(): { completed: { itemId: string; points: number }[] } "
+        },
+        {
+          "line": 400,
+          "name": "upgradeTradeShop",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 426,
+          "name": "exchangeItem",
+          "kind": "action",
+          "expr": "(itemId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 427,
+          "name": "exchangeDef",
+          "kind": "action",
+          "expr": "TRADE_EXCHANGE_ITEMS.find(e "
+        },
+        {
+          "line": 494,
+          "name": "resetDailyBets",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 504,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 515,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [
+        "dailyTradeUpdate",
+        "resetDailyBets"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useHiddenNpcStore.ts",
+      "storeId": "hiddenNpc",
+      "lines": 615,
+      "refs": [],
+      "computeds": [
+        {
+          "line": 65,
+          "name": "getRevealedNpcs",
+          "kind": "computed",
+          "expr": "() =>"
+        },
+        {
+          "line": 72,
+          "name": "getRumorNpcs",
+          "kind": "computed",
+          "expr": "() =>"
+        },
+        {
+          "line": 79,
+          "name": "getBondedNpc",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 453,
+          "name": "getActiveAbilities",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 34,
+          "name": "defaultState",
+          "kind": "action",
+          "expr": "(npcId: string): HiddenNpcState "
+        },
+        {
+          "line": 50,
+          "name": "hiddenNpcStates",
+          "kind": "action",
+          "expr": "ref<HiddenNpcState[]>(HIDDEN_NPCS.map(n "
+        },
+        {
+          "line": 54,
+          "name": "getHiddenNpcState",
+          "kind": "action",
+          "expr": "(npcId: string): HiddenNpcState | undefined "
+        },
+        {
+          "line": 56,
+          "name": "getAffinityLevel",
+          "kind": "action",
+          "expr": "(npcId: string): AffinityLevel "
+        },
+        {
+          "line": 80,
+          "name": "state",
+          "kind": "action",
+          "expr": "hiddenNpcStates.value.find(s "
+        },
+        {
+          "line": 85,
+          "name": "isManifestationDay",
+          "kind": "action",
+          "expr": "(npcId: string): boolean "
+        },
+        {
+          "line": 95,
+          "name": "evaluateCondition",
+          "kind": "action",
+          "expr": "(cond: DiscoveryCondition): boolean "
+        },
+        {
+          "line": 141,
+          "name": "checkDiscoveryConditions",
+          "kind": "action",
+          "expr": "(): { npcId: string; step: DiscoveryStep }[] "
+        },
+        {
+          "line": 169,
+          "name": "addAffinity",
+          "kind": "action",
+          "expr": "npcId: string, amount: number"
+        },
+        {
+          "line": 216,
+          "name": "performSpecialInteraction",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string; affinityChange: number } "
+        },
+        {
+          "line": 284,
+          "name": "startCourting",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 294,
+          "name": "existingBond",
+          "kind": "action",
+          "expr": "hiddenNpcStates.value.find(s "
+        },
+        {
+          "line": 308,
+          "name": "formBond",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 325,
+          "name": "dissolveBond",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 343,
+          "name": "craftSpiritItem",
+          "kind": "action",
+          "expr": "(npcId: string, type: 'courtship' | 'bond'): { success: boolean; message: string } "
+        },
+        {
+          "line": 371,
+          "name": "checkHeartEvent",
+          "kind": "action",
+          "expr": "(npcId: string): HeartEventDef | null "
+        },
+        {
+          "line": 386,
+          "name": "markHeartEventTriggered",
+          "kind": "action",
+          "expr": "npcId: string, eventId: string"
+        },
+        {
+          "line": 395,
+          "name": "checkAbilityUnlocks",
+          "kind": "action",
+          "expr": "(): { id: string; npcId: string; name: string; description: string }[] "
+        },
+        {
+          "line": 414,
+          "name": "isAbilityActive",
+          "kind": "action",
+          "expr": "(abilityId: string): boolean "
+        },
+        {
+          "line": 419,
+          "name": "getAbilityValue",
+          "kind": "action",
+          "expr": "(abilityId: string): number "
+        },
+        {
+          "line": 420,
+          "name": "ability",
+          "kind": "action",
+          "expr": "getActiveAbilities.value.find(a "
+        },
+        {
+          "line": 425,
+          "name": "getBondBonusType",
+          "kind": "action",
+          "expr": "(): string | null "
+        },
+        {
+          "line": 426,
+          "name": "bondedState",
+          "kind": "action",
+          "expr": "hiddenNpcStates.value.find(s "
+        },
+        {
+          "line": 433,
+          "name": "getBondBonusByType",
+          "kind": "action",
+          "expr": "(type: string): BondBonusType | null "
+        },
+        {
+          "line": 438,
+          "name": "found",
+          "kind": "action",
+          "expr": "def.bondBonuses.find(b "
+        },
+        {
+          "line": 445,
+          "name": "getBondBonus",
+          "kind": "action",
+          "expr": "(): BondBonusType | null "
+        },
+        {
+          "line": 478,
+          "name": "dailyBondBonus",
+          "kind": "action",
+          "expr": "(): { messages: string[] } "
+        },
+        {
+          "line": 535,
+          "name": "dailyReset",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 568,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 572,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        },
+        {
+          "line": 573,
+          "name": "savedStates",
+          "kind": "action",
+          "expr": "(data.hiddenNpcStates ?? []).map((s: any) "
+        },
+        {
+          "line": 578,
+          "name": "savedIds",
+          "kind": "action",
+          "expr": "new Set(savedStates.map((s: HiddenNpcState) "
+        },
+        {
+          "line": 579,
+          "name": "newStates",
+          "kind": "action",
+          "expr": "HIDDEN_NPCS.filter(n "
+        }
+      ],
+      "daily": [
+        "dailyBondBonus",
+        "dailyReset"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useHomeStore.ts",
+      "storeId": "home",
+      "lines": 343,
+      "refs": [
+        {
+          "line": 43,
+          "name": "caveUnlocked",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 44,
+          "name": "greenhouseUnlocked",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 46,
+          "name": "cellarLevel",
+          "kind": "ref",
+          "expr": "1)"
+        },
+        {
+          "line": 47,
+          "name": "caveLevel",
+          "kind": "ref",
+          "expr": "1)"
+        },
+        {
+          "line": 48,
+          "name": "caveDaysActive",
+          "kind": "ref",
+          "expr": "0)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 50,
+          "name": "farmhouseName",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 55,
+          "name": "nextUpgrade",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 60,
+          "name": "hasCellar",
+          "kind": "computed",
+          "expr": "() => farmhouseLevel.value >= 3)"
+        },
+        {
+          "line": 62,
+          "name": "cellarMaxSlots",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 67,
+          "name": "cellarValuePerCycle",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 72,
+          "name": "nextCellarUpgrade",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 76,
+          "name": "caveName",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 81,
+          "name": "caveQuality",
+          "kind": "computed",
+          "expr": "() => getCaveQuality(caveDaysActive.value))"
+        },
+        {
+          "line": 83,
+          "name": "nextCaveUpgrade",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 63,
+          "name": "def",
+          "kind": "action",
+          "expr": "CELLAR_UPGRADES.find(u "
+        },
+        {
+          "line": 88,
+          "name": "upgradeFarmhouse",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 110,
+          "name": "unlockCave",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 117,
+          "name": "chooseCave",
+          "kind": "action",
+          "expr": "(choice: 'mushroom' | 'fruit_bat'): boolean "
+        },
+        {
+          "line": 125,
+          "name": "dailyCaveUpdate",
+          "kind": "action",
+          "expr": "(): { itemId: string; quantity: number; quality: Quality }[] "
+        },
+        {
+          "line": 135,
+          "name": "totalWeight",
+          "kind": "action",
+          "expr": "def.mushroomPool.reduce((sum, p) "
+        },
+        {
+          "line": 160,
+          "name": "unlockGreenhouse",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 182,
+          "name": "startAging",
+          "kind": "action",
+          "expr": "(itemId: string, quality: Quality): boolean "
+        },
+        {
+          "line": 195,
+          "name": "removeAging",
+          "kind": "action",
+          "expr": "(index: number): { itemId: string; quality: Quality; addedValue: number; upgradeCount: number } | null "
+        },
+        {
+          "line": 208,
+          "name": "dailyCellarUpdate",
+          "kind": "action",
+          "expr": "(): { upgraded: { itemId: string; addedValue: number; upgradeCount: number }[] } "
+        },
+        {
+          "line": 225,
+          "name": "upgradeCellar",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 244,
+          "name": "upgradeCave",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 264,
+          "name": "getKitchenBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 269,
+          "name": "getStaminaRecoveryBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 273,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 286,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [
+        "dailyCaveUpdate",
+        "dailyCellarUpdate"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useInventoryStore.ts",
+      "storeId": "inventory",
+      "lines": 1108,
+      "refs": [
+        {
+          "line": 32,
+          "name": "capacity",
+          "kind": "ref",
+          "expr": "INITIAL_CAPACITY)"
+        },
+        {
+          "line": 46,
+          "name": "equippedWeaponIndex",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 51,
+          "name": "equippedRingSlot1",
+          "kind": "ref",
+          "expr": "-1)"
+        },
+        {
+          "line": 52,
+          "name": "equippedRingSlot2",
+          "kind": "ref",
+          "expr": "-1)"
+        },
+        {
+          "line": 57,
+          "name": "equippedHatIndex",
+          "kind": "ref",
+          "expr": "-1)"
+        },
+        {
+          "line": 62,
+          "name": "equippedShoeIndex",
+          "kind": "ref",
+          "expr": "-1)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 72,
+          "name": "isFull",
+          "kind": "computed",
+          "expr": "() => items.value.length >= capacity.value)"
+        },
+        {
+          "line": 76,
+          "name": "isTempFull",
+          "kind": "computed",
+          "expr": "() => tempItems.value.length >= TEMP_CAPACITY)"
+        },
+        {
+          "line": 78,
+          "name": "isAllFull",
+          "kind": "computed",
+          "expr": "() => isFull.value && isTempFull.value)"
+        },
+        {
+          "line": 582,
+          "name": "activeSetBonuses",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 594,
+          "name": "activeSets",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 81,
+          "name": "getEquippedWeapon",
+          "kind": "action",
+          "expr": "(): OwnedWeapon "
+        },
+        {
+          "line": 86,
+          "name": "getWeaponAttack",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 99,
+          "name": "getWeaponCritRate",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 119,
+          "name": "hasWeapon",
+          "kind": "action",
+          "expr": "(defId: string): boolean "
+        },
+        {
+          "line": 124,
+          "name": "hasWeaponExact",
+          "kind": "action",
+          "expr": "(defId: string, enchantmentId: string | null): boolean "
+        },
+        {
+          "line": 129,
+          "name": "equipWeapon",
+          "kind": "action",
+          "expr": "(index: number): boolean "
+        },
+        {
+          "line": 136,
+          "name": "sellWeapon",
+          "kind": "action",
+          "expr": "(index: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 212,
+          "name": "matchQuality",
+          "kind": "action",
+          "expr": "i: { itemId: string; quality: Quality }"
+        },
+        {
+          "line": 214,
+          "name": "total",
+          "kind": "action",
+          "expr": "items.value.filter(matchQuality).reduce((sum, i) "
+        },
+        {
+          "line": 236,
+          "name": "getItemCount",
+          "kind": "action",
+          "expr": "(itemId: string, quality?: Quality): number "
+        },
+        {
+          "line": 273,
+          "name": "toggleLock",
+          "kind": "action",
+          "expr": "itemId: string, quality: Quality"
+        },
+        {
+          "line": 274,
+          "name": "slot",
+          "kind": "action",
+          "expr": "items.value.find(i "
+        },
+        {
+          "line": 279,
+          "name": "sortItems",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 283,
+          "name": "existing",
+          "kind": "action",
+          "expr": "merged.find(m "
+        },
+        {
+          "line": 316,
+          "name": "expandCapacity",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 323,
+          "name": "expandCapacityExtra",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 329,
+          "name": "moveFromTemp",
+          "kind": "action",
+          "expr": "(index: number): boolean "
+        },
+        {
+          "line": 358,
+          "name": "moveAllFromTemp",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 368,
+          "name": "discardTempItem",
+          "kind": "action",
+          "expr": "(index: number): boolean "
+        },
+        {
+          "line": 375,
+          "name": "getTool",
+          "kind": "action",
+          "expr": "(type: ToolType): Tool | undefined "
+        },
+        {
+          "line": 380,
+          "name": "getToolStaminaMultiplier",
+          "kind": "action",
+          "expr": "(type: ToolType): number "
+        },
+        {
+          "line": 388,
+          "name": "getToolBatchCount",
+          "kind": "action",
+          "expr": "(type: ToolType): number "
+        },
+        {
+          "line": 396,
+          "name": "upgradeTool",
+          "kind": "action",
+          "expr": "(type: ToolType): boolean "
+        },
+        {
+          "line": 407,
+          "name": "isToolAvailable",
+          "kind": "action",
+          "expr": "(type: ToolType): boolean "
+        },
+        {
+          "line": 412,
+          "name": "startUpgrade",
+          "kind": "action",
+          "expr": "(type: ToolType, targetTier: ToolTier): boolean "
+        },
+        {
+          "line": 419,
+          "name": "dailyUpgradeUpdate",
+          "kind": "action",
+          "expr": "(): { completed: boolean; toolType: ToolType; targetTier: ToolTier } | null "
+        },
+        {
+          "line": 436,
+          "name": "addRing",
+          "kind": "action",
+          "expr": "(defId: string): boolean "
+        },
+        {
+          "line": 443,
+          "name": "hasRing",
+          "kind": "action",
+          "expr": "(defId: string): boolean "
+        },
+        {
+          "line": 448,
+          "name": "equipRing",
+          "kind": "action",
+          "expr": "(ringIndex: number, slot: 0 | 1): boolean "
+        },
+        {
+          "line": 470,
+          "name": "unequipRing",
+          "kind": "action",
+          "expr": "(slot: 0 | 1): boolean "
+        },
+        {
+          "line": 482,
+          "name": "sellRing",
+          "kind": "action",
+          "expr": "(index: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 500,
+          "name": "getEquipmentBonus",
+          "kind": "action",
+          "expr": "(effectType: RingEffectType): number "
+        },
+        {
+          "line": 542,
+          "name": "getRingEffectValue",
+          "kind": "action",
+          "expr": "(effectType: RingEffectType): number "
+        },
+        {
+          "line": 551,
+          "name": "_getSetPieceCount",
+          "kind": "action",
+          "expr": "(set: (typeof EQUIPMENT_SETS)[number]): number "
+        },
+        {
+          "line": 612,
+          "name": "craftRing",
+          "kind": "action",
+          "expr": "(defId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 646,
+          "name": "addHat",
+          "kind": "action",
+          "expr": "(defId: string): boolean "
+        },
+        {
+          "line": 653,
+          "name": "hasHat",
+          "kind": "action",
+          "expr": "(defId: string): boolean "
+        },
+        {
+          "line": 658,
+          "name": "equipHat",
+          "kind": "action",
+          "expr": "(index: number): boolean "
+        },
+        {
+          "line": 665,
+          "name": "unequipHat",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 672,
+          "name": "sellHat",
+          "kind": "action",
+          "expr": "(index: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 688,
+          "name": "craftHat",
+          "kind": "action",
+          "expr": "(defId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 714,
+          "name": "addShoe",
+          "kind": "action",
+          "expr": "(defId: string): boolean "
+        },
+        {
+          "line": 721,
+          "name": "hasShoe",
+          "kind": "action",
+          "expr": "(defId: string): boolean "
+        },
+        {
+          "line": 726,
+          "name": "equipShoe",
+          "kind": "action",
+          "expr": "(index: number): boolean "
+        },
+        {
+          "line": 733,
+          "name": "unequipShoe",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 740,
+          "name": "sellShoe",
+          "kind": "action",
+          "expr": "(index: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 756,
+          "name": "craftShoe",
+          "kind": "action",
+          "expr": "(defId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 782,
+          "name": "createEquipmentPreset",
+          "kind": "action",
+          "expr": "(name: string): boolean "
+        },
+        {
+          "line": 797,
+          "name": "deleteEquipmentPreset",
+          "kind": "action",
+          "expr": "id: string"
+        },
+        {
+          "line": 798,
+          "name": "idx",
+          "kind": "action",
+          "expr": "equipmentPresets.value.findIndex(p "
+        },
+        {
+          "line": 804,
+          "name": "renameEquipmentPreset",
+          "kind": "action",
+          "expr": "id: string, name: string"
+        },
+        {
+          "line": 805,
+          "name": "preset",
+          "kind": "action",
+          "expr": "equipmentPresets.value.find(p "
+        },
+        {
+          "line": 810,
+          "name": "saveCurrentToPreset",
+          "kind": "action",
+          "expr": "id: string"
+        },
+        {
+          "line": 821,
+          "name": "applyEquipmentPreset",
+          "kind": "action",
+          "expr": "(id: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 890,
+          "name": "sortEquipment",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 940,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 961,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [
+        "dailyUpgradeUpdate"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useMiningStore.ts",
+      "storeId": "mining",
+      "lines": 1540,
+      "refs": [
+        {
+          "line": 57,
+          "name": "currentFloor",
+          "kind": "ref",
+          "expr": "1)"
+        },
+        {
+          "line": 58,
+          "name": "safePointFloor",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 59,
+          "name": "isExploring",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 62,
+          "name": "isInSkullCavern",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 63,
+          "name": "skullCavernFloor",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 64,
+          "name": "skullCavernBestFloor",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 65,
+          "name": "skullSafePointFloor",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 69,
+          "name": "inCombat",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 71,
+          "name": "combatMonsterHp",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 72,
+          "name": "combatRound",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 74,
+          "name": "combatIsBoss",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 83,
+          "name": "slayerCharmActive",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 85,
+          "name": "guildBadgeBonusAttack",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 87,
+          "name": "guildBonusMaxHp",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 89,
+          "name": "guildBonusDropRate",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 91,
+          "name": "guildBonusDefense",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 98,
+          "name": "entryIndex",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 100,
+          "name": "stairsFound",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 102,
+          "name": "stairsUsable",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 104,
+          "name": "totalMonstersOnFloor",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 106,
+          "name": "monstersDefeatedCount",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 108,
+          "name": "_combatTileIndex",
+          "kind": "ref",
+          "expr": "-1)"
+        }
+      ],
+      "computeds": [],
+      "actions": [
+        {
+          "line": 113,
+          "name": "isSkullCavernUnlocked",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 118,
+          "name": "getActiveFloorNum",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 123,
+          "name": "getActiveFloorData",
+          "kind": "action",
+          "expr": "(): MineFloorDef | undefined "
+        },
+        {
+          "line": 140,
+          "name": "cacheSkullFloor",
+          "kind": "action",
+          "expr": "floor: number"
+        },
+        {
+          "line": 147,
+          "name": "_generateGrid",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 196,
+          "name": "engageRevealedMonster",
+          "kind": "action",
+          "expr": "(index: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 226,
+          "name": "canRevealTile",
+          "kind": "action",
+          "expr": "(index: number): boolean "
+        },
+        {
+          "line": 238,
+          "name": "revealTile",
+          "kind": "action",
+          "expr": "(index: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 308,
+          "name": "_handleEmptyTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 314,
+          "name": "_handleOreTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 354,
+          "name": "_handleMonsterTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 373,
+          "name": "_handleBossTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 394,
+          "name": "_handleStairsTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 417,
+          "name": "_handleTrapTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 431,
+          "name": "_handleTreasureTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 528,
+          "name": "_handleMushroomTile",
+          "kind": "action",
+          "expr": "(tile: MineTile, staminaCost: number): { success: boolean; message: string; startsCombat: boolean } "
+        },
+        {
+          "line": 545,
+          "name": "useBombOnGrid",
+          "kind": "action",
+          "expr": "(bombId: string, centerIndex: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 674,
+          "name": "enterMine",
+          "kind": "action",
+          "expr": "(startFromSafePoint?: number): string "
+        },
+        {
+          "line": 690,
+          "name": "enterSkullCavern",
+          "kind": "action",
+          "expr": "(startFromSafePoint?: number): string "
+        },
+        {
+          "line": 707,
+          "name": "_checkAutoBossCombat",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 712,
+          "name": "getUnlockedSafePoints",
+          "kind": "action",
+          "expr": "(): number[] "
+        },
+        {
+          "line": 721,
+          "name": "getUnlockedSkullSafePoints",
+          "kind": "action",
+          "expr": "(): number[] "
+        },
+        {
+          "line": 732,
+          "name": "combatAction",
+          "kind": "action",
+          "expr": "(action: CombatAction): { message: string; combatOver: boolean; won: boolean } "
+        },
+        {
+          "line": 1127,
+          "name": "handleDefeat",
+          "kind": "action",
+          "expr": "(): { message: string; combatOver: boolean; won: boolean } "
+        },
+        {
+          "line": 1147,
+          "name": "availableItems",
+          "kind": "action",
+          "expr": "inventoryStore.items.filter(i "
+        },
+        {
+          "line": 1150,
+          "name": "candidates",
+          "kind": "action",
+          "expr": "inventoryStore.items.filter(i "
+        },
+        {
+          "line": 1186,
+          "name": "goNextFloor",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 1260,
+          "name": "leaveMine",
+          "kind": "action",
+          "expr": "(): string "
+        },
+        {
+          "line": 1362,
+          "name": "foodQuality",
+          "kind": "action",
+          "expr": "qualityOrder.find(q "
+        },
+        {
+          "line": 1405,
+          "name": "useMonsterLure",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 1414,
+          "name": "existingMonsters",
+          "kind": "action",
+          "expr": "floorGrid.value.filter(t "
+        },
+        {
+          "line": 1417,
+          "name": "hiddenEmpty",
+          "kind": "action",
+          "expr": "floorGrid.value.filter(t "
+        },
+        {
+          "line": 1425,
+          "name": "shuffled",
+          "kind": "action",
+          "expr": "[...hiddenEmpty].sort(() "
+        },
+        {
+          "line": 1442,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 1458,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useMuseumStore.ts",
+      "storeId": "museum",
+      "lines": 108,
+      "refs": [],
+      "computeds": [
+        {
+          "line": 15,
+          "name": "donatedCount",
+          "kind": "computed",
+          "expr": "() => donatedItems.value.length)"
+        },
+        {
+          "line": 18,
+          "name": "totalCount",
+          "kind": "computed",
+          "expr": "() => MUSEUM_ITEMS.length)"
+        },
+        {
+          "line": 34,
+          "name": "donatableItems",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 55,
+          "name": "claimableMilestones",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 21,
+          "name": "isDonated",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 26,
+          "name": "canDonate",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 38,
+          "name": "museumItem",
+          "kind": "action",
+          "expr": "MUSEUM_ITEMS.find(m "
+        },
+        {
+          "line": 45,
+          "name": "donateItem",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 60,
+          "name": "claimMilestone",
+          "kind": "action",
+          "expr": "(count: number): boolean "
+        },
+        {
+          "line": 61,
+          "name": "milestone",
+          "kind": "action",
+          "expr": "MUSEUM_MILESTONES.find(m "
+        },
+        {
+          "line": 82,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 88,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useNpcStore.ts",
+      "storeId": "npc",
+      "lines": 1145,
+      "refs": [],
+      "computeds": [],
+      "actions": [
+        {
+          "line": 109,
+          "name": "getHireableNpcs",
+          "kind": "action",
+          "expr": "(): { npcId: string; name: string; friendship: number }[] "
+        },
+        {
+          "line": 124,
+          "name": "hireHelper",
+          "kind": "action",
+          "expr": "(npcId: string, task: FarmHelperTask): { success: boolean; message: string } "
+        },
+        {
+          "line": 139,
+          "name": "dismissHelper",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 140,
+          "name": "idx",
+          "kind": "action",
+          "expr": "hiredHelpers.value.findIndex(h "
+        },
+        {
+          "line": 150,
+          "name": "processDailyHelpers",
+          "kind": "action",
+          "expr": "(taskFilter?: FarmHelperTask[]): { messages: string[]; dismissedNpcs: string[]; allFed: boolean } "
+        },
+        {
+          "line": 187,
+          "name": "unwatered",
+          "kind": "action",
+          "expr": "farmStore.plots.filter(p "
+        },
+        {
+          "line": 213,
+          "name": "harvestable",
+          "kind": "action",
+          "expr": "farmStore.plots.filter(p "
+        },
+        {
+          "line": 260,
+          "name": "getNpcState",
+          "kind": "action",
+          "expr": "(npcId: string): NpcState | undefined "
+        },
+        {
+          "line": 265,
+          "name": "getFriendshipLevel",
+          "kind": "action",
+          "expr": "(npcId: string): FriendshipLevel "
+        },
+        {
+          "line": 275,
+          "name": "isBirthday",
+          "kind": "action",
+          "expr": "(npcId: string): boolean "
+        },
+        {
+          "line": 283,
+          "name": "getTodayBirthdayNpc",
+          "kind": "action",
+          "expr": "(): string | null "
+        },
+        {
+          "line": 294,
+          "name": "checkHeartEvent",
+          "kind": "action",
+          "expr": "(npcId: string): HeartEventDef | null "
+        },
+        {
+          "line": 311,
+          "name": "markHeartEventTriggered",
+          "kind": "action",
+          "expr": "npcId: string, eventId: string"
+        },
+        {
+          "line": 319,
+          "name": "adjustFriendship",
+          "kind": "action",
+          "expr": "npcId: string, amount: number"
+        },
+        {
+          "line": 327,
+          "name": "replaceDialoguePlaceholders",
+          "kind": "action",
+          "expr": "(text: string): string "
+        },
+        {
+          "line": 333,
+          "name": "talkTo",
+          "kind": "action",
+          "expr": "(npcId: string): { message: string; friendshipGain: number } | null "
+        },
+        {
+          "line": 457,
+          "name": "startDating",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 485,
+          "name": "propose",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 499,
+          "name": "alreadyMarried",
+          "kind": "action",
+          "expr": "npcStates.value.some(s "
+        },
+        {
+          "line": 523,
+          "name": "getSpouse",
+          "kind": "action",
+          "expr": "(): NpcState | null "
+        },
+        {
+          "line": 528,
+          "name": "getZhiji",
+          "kind": "action",
+          "expr": "(): NpcState | null "
+        },
+        {
+          "line": 533,
+          "name": "becomeZhiji",
+          "kind": "action",
+          "expr": "(npcId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 562,
+          "name": "dissolveZhiji",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 580,
+          "name": "dailyWeddingUpdate",
+          "kind": "action",
+          "expr": "(): { weddingToday: boolean; npcId: string | null } "
+        },
+        {
+          "line": 600,
+          "name": "cancelWedding",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 606,
+          "name": "divorce",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 628,
+          "name": "releaseChild",
+          "kind": "action",
+          "expr": "(childId: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 629,
+          "name": "child",
+          "kind": "action",
+          "expr": "children.value.find(c "
+        },
+        {
+          "line": 662,
+          "name": "checkChildProposal",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 679,
+          "name": "triggerChildProposal",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 684,
+          "name": "respondToChildProposal",
+          "kind": "action",
+          "expr": "(response: ProposalResponse): { message: string; friendshipChange: number } "
+        },
+        {
+          "line": 787,
+          "name": "chooseMedicalPlan",
+          "kind": "action",
+          "expr": "(plan: 'normal' | 'advanced' | 'luxury'): { success: boolean; message: string } "
+        },
+        {
+          "line": 832,
+          "name": "usedNames",
+          "kind": "action",
+          "expr": "children.value.map(c "
+        },
+        {
+          "line": 833,
+          "name": "availableNames",
+          "kind": "action",
+          "expr": "namePool.filter(n "
+        },
+        {
+          "line": 896,
+          "name": "dailyChildUpdate",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 911,
+          "name": "interactWithChild",
+          "kind": "action",
+          "expr": "(childId: number): { message: string; item?: string } | null "
+        },
+        {
+          "line": 930,
+          "name": "hasDailyTip",
+          "kind": "action",
+          "expr": "(npcId: string): boolean "
+        },
+        {
+          "line": 935,
+          "name": "isTipGivenToday",
+          "kind": "action",
+          "expr": "(npcId: string): boolean "
+        },
+        {
+          "line": 940,
+          "name": "getDailyTip",
+          "kind": "action",
+          "expr": "(npcId: string): string | null "
+        },
+        {
+          "line": 954,
+          "name": "unlockedRecipes",
+          "kind": "action",
+          "expr": "RECIPES.filter(r "
+        },
+        {
+          "line": 960,
+          "name": "ingredientNames",
+          "kind": "action",
+          "expr": "recipe.ingredients.map(ing "
+        },
+        {
+          "line": 974,
+          "name": "dailyReset",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 1001,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 1022,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        },
+        {
+          "line": 1024,
+          "name": "savedStates",
+          "kind": "action",
+          "expr": "data.npcStates.map(s "
+        },
+        {
+          "line": 1035,
+          "name": "savedIds",
+          "kind": "action",
+          "expr": "new Set(savedStates.map(s "
+        }
+      ],
+      "daily": [
+        "dailyChildUpdate",
+        "dailyLuck",
+        "dailyPregnancyUpdate",
+        "dailyReset",
+        "dailyWage",
+        "dailyWeddingUpdate",
+        "getDailyTip",
+        "hasDailyTip",
+        "processDailyHelpers"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/usePlayerStore.ts",
+      "storeId": "player",
+      "lines": 244,
+      "refs": [
+        {
+          "line": 29,
+          "name": "playerName",
+          "kind": "ref",
+          "expr": "'未命名')"
+        },
+        {
+          "line": 32,
+          "name": "needsIdentitySetup",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 33,
+          "name": "money",
+          "kind": "ref",
+          "expr": "500)"
+        },
+        {
+          "line": 34,
+          "name": "stamina",
+          "kind": "ref",
+          "expr": "120)"
+        },
+        {
+          "line": 35,
+          "name": "maxStamina",
+          "kind": "ref",
+          "expr": "120)"
+        },
+        {
+          "line": 36,
+          "name": "staminaCapLevel",
+          "kind": "ref",
+          "expr": "0) // 0=120, 1=160, 2=200, 3=250, 4=300"
+        },
+        {
+          "line": 38,
+          "name": "bonusMaxStamina",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 41,
+          "name": "hp",
+          "kind": "ref",
+          "expr": "BASE_MAX_HP)"
+        },
+        {
+          "line": 42,
+          "name": "baseMaxHp",
+          "kind": "ref",
+          "expr": "BASE_MAX_HP)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 44,
+          "name": "isExhausted",
+          "kind": "computed",
+          "expr": "() => stamina.value <= 5)"
+        },
+        {
+          "line": 45,
+          "name": "staminaPercent",
+          "kind": "computed",
+          "expr": "() => Math.round((stamina.value / maxStamina.value) * 100))"
+        },
+        {
+          "line": 47,
+          "name": "honorific",
+          "kind": "computed",
+          "expr": "() => (gender.value === 'male' ? '小哥' : '姑娘'))"
+        }
+      ],
+      "actions": [
+        {
+          "line": 50,
+          "name": "getMaxHp",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 67,
+          "name": "getHpPercent",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 71,
+          "name": "getIsLowHp",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 76,
+          "name": "consumeStamina",
+          "kind": "action",
+          "expr": "(amount: number): boolean "
+        },
+        {
+          "line": 87,
+          "name": "restoreStamina",
+          "kind": "action",
+          "expr": "amount: number"
+        },
+        {
+          "line": 92,
+          "name": "takeDamage",
+          "kind": "action",
+          "expr": "(amount: number): number "
+        },
+        {
+          "line": 99,
+          "name": "restoreHealth",
+          "kind": "action",
+          "expr": "amount: number"
+        },
+        {
+          "line": 109,
+          "name": "dailyReset",
+          "kind": "action",
+          "expr": "(mode: 'normal' | 'late' | 'passout', bedHour?: number): { moneyLost: number; recoveryPct: number } "
+        },
+        {
+          "line": 141,
+          "name": "upgradeMaxStamina",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 149,
+          "name": "addBonusMaxStamina",
+          "kind": "action",
+          "expr": "amount: number"
+        },
+        {
+          "line": 155,
+          "name": "spendMoney",
+          "kind": "action",
+          "expr": "(amount: number): boolean "
+        },
+        {
+          "line": 162,
+          "name": "earnMoney",
+          "kind": "action",
+          "expr": "amount: number"
+        },
+        {
+          "line": 168,
+          "name": "setIdentity",
+          "kind": "action",
+          "expr": "name: string, g: Gender"
+        },
+        {
+          "line": 174,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 188,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [
+        "dailyReset"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useProcessingStore.ts",
+      "storeId": "processing",
+      "lines": 485,
+      "refs": [
+        {
+          "line": 54,
+          "name": "workshopLevel",
+          "kind": "ref",
+          "expr": "0)"
+        },
+        {
+          "line": 429,
+          "name": "collapsedGroups",
+          "kind": "ref",
+          "expr": "new Set<MachineType>())"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 57,
+          "name": "maxMachines",
+          "kind": "computed",
+          "expr": "() => 15 + workshopLevel.value * 5)"
+        },
+        {
+          "line": 60,
+          "name": "machineCount",
+          "kind": "computed",
+          "expr": "() => machines.value.length)"
+        }
+      ],
+      "actions": [
+        {
+          "line": 65,
+          "name": "canCraft",
+          "kind": "action",
+          "expr": "(craftCost: { itemId: string; quantity: number }[], craftMoney: number): boolean "
+        },
+        {
+          "line": 71,
+          "name": "consumeCraftMaterials",
+          "kind": "action",
+          "expr": "(craftCost: { itemId: string; quantity: number }[], craftMoney: number): boolean "
+        },
+        {
+          "line": 85,
+          "name": "craftMachine",
+          "kind": "action",
+          "expr": "(machineType: MachineType): boolean "
+        },
+        {
+          "line": 87,
+          "name": "def",
+          "kind": "action",
+          "expr": "PROCESSING_MACHINES.find(m "
+        },
+        {
+          "line": 102,
+          "name": "craftSprinkler",
+          "kind": "action",
+          "expr": "(sprinklerId: string): boolean "
+        },
+        {
+          "line": 111,
+          "name": "craftFertilizer",
+          "kind": "action",
+          "expr": "(fertilizerId: string): boolean "
+        },
+        {
+          "line": 120,
+          "name": "craftBait",
+          "kind": "action",
+          "expr": "(baitId: string): boolean "
+        },
+        {
+          "line": 129,
+          "name": "craftTackle",
+          "kind": "action",
+          "expr": "(tackleId: string): boolean "
+        },
+        {
+          "line": 138,
+          "name": "craftTapper",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 145,
+          "name": "craftCrabPot",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 152,
+          "name": "craftBomb",
+          "kind": "action",
+          "expr": "(bombId: string): boolean "
+        },
+        {
+          "line": 163,
+          "name": "getLowestQuality",
+          "kind": "action",
+          "expr": "(itemId: string): Quality "
+        },
+        {
+          "line": 168,
+          "name": "startProcessing",
+          "kind": "action",
+          "expr": "(slotIndex: number, recipeId: string, specifiedQuality?: Quality): boolean "
+        },
+        {
+          "line": 200,
+          "name": "collectProduct",
+          "kind": "action",
+          "expr": "(slotIndex: number): string | null "
+        },
+        {
+          "line": 236,
+          "name": "removeMachine",
+          "kind": "action",
+          "expr": "(slotIndex: number): boolean "
+        },
+        {
+          "line": 261,
+          "name": "machineDef",
+          "kind": "action",
+          "expr": "PROCESSING_MACHINES.find(m "
+        },
+        {
+          "line": 274,
+          "name": "cancelProcessing",
+          "kind": "action",
+          "expr": "(slotIndex: number): boolean "
+        },
+        {
+          "line": 295,
+          "name": "getAvailableRecipes",
+          "kind": "action",
+          "expr": "machineType: MachineType"
+        },
+        {
+          "line": 301,
+          "name": "dailyUpdate",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 363,
+          "name": "newQuality",
+          "kind": "action",
+          "expr": "qOrder.find(q "
+        },
+        {
+          "line": 413,
+          "name": "upgradeWorkshop",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 415,
+          "name": "upgrade",
+          "kind": "action",
+          "expr": "WORKSHOP_UPGRADES.find(u "
+        },
+        {
+          "line": 423,
+          "name": "getNextUpgrade",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 431,
+          "name": "toggleGroup",
+          "kind": "action",
+          "expr": "type: MachineType"
+        },
+        {
+          "line": 441,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 449,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [
+        "dailyUpdate"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useQuestStore.ts",
+      "storeId": "quest",
+      "lines": 454,
+      "refs": [],
+      "computeds": [],
+      "actions": [
+        {
+          "line": 37,
+          "name": "generateDailyQuests",
+          "kind": "action",
+          "expr": "season: Season, day: number"
+        },
+        {
+          "line": 49,
+          "name": "generateSpecialOrder",
+          "kind": "action",
+          "expr": "season: Season, tier: number"
+        },
+        {
+          "line": 55,
+          "name": "acceptQuest",
+          "kind": "action",
+          "expr": "(questId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 59,
+          "name": "idx",
+          "kind": "action",
+          "expr": "boardQuests.value.findIndex(q "
+        },
+        {
+          "line": 76,
+          "name": "acceptSpecialOrder",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 92,
+          "name": "submitQuest",
+          "kind": "action",
+          "expr": "(questId: string): { success: boolean; message: string } "
+        },
+        {
+          "line": 131,
+          "name": "itemNames",
+          "kind": "action",
+          "expr": "quest.itemReward.map(i "
+        },
+        {
+          "line": 139,
+          "name": "onItemObtained",
+          "kind": "action",
+          "expr": "itemId: string, quantity: number = 1"
+        },
+        {
+          "line": 162,
+          "name": "dailyUpdate",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 186,
+          "name": "hasActiveQuestFor",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 202,
+          "name": "meetsLevel",
+          "kind": "action",
+          "expr": "(current: string, required: string): boolean "
+        },
+        {
+          "line": 207,
+          "name": "evaluateObjective",
+          "kind": "action",
+          "expr": "(obj: MainQuestObjective): boolean "
+        },
+        {
+          "line": 268,
+          "name": "initMainQuest",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 288,
+          "name": "acceptMainQuest",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 308,
+          "name": "updateMainQuestProgress",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 322,
+          "name": "canSubmitMainQuest",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 339,
+          "name": "submitMainQuest",
+          "kind": "action",
+          "expr": "(): { success: boolean; message: string } "
+        },
+        {
+          "line": 407,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 418,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [
+        "dailyUpdate",
+        "generateDailyQuests"
+      ],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useSaveStore.ts",
+      "storeId": "save",
+      "lines": 303,
+      "refs": [
+        {
+          "line": 77,
+          "name": "activeSlot",
+          "kind": "ref",
+          "expr": "-1)"
+        }
+      ],
+      "computeds": [],
+      "actions": [
+        {
+          "line": 38,
+          "name": "encrypt",
+          "kind": "action",
+          "expr": "(json: string): string "
+        },
+        {
+          "line": 43,
+          "name": "decrypt",
+          "kind": "action",
+          "expr": "(cipher: string): string | null "
+        },
+        {
+          "line": 80,
+          "name": "getSlots",
+          "kind": "action",
+          "expr": "(): SaveSlotInfo[] "
+        },
+        {
+          "line": 112,
+          "name": "assignNewSlot",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 114,
+          "name": "empty",
+          "kind": "action",
+          "expr": "slots.find(s "
+        },
+        {
+          "line": 121,
+          "name": "saveToSlot",
+          "kind": "action",
+          "expr": "(slot: number): boolean "
+        },
+        {
+          "line": 189,
+          "name": "autoSave",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 195,
+          "name": "loadFromSlot",
+          "kind": "action",
+          "expr": "(slot: number): boolean "
+        },
+        {
+          "line": 263,
+          "name": "deleteSlot",
+          "kind": "action",
+          "expr": "(slot: number): boolean "
+        },
+        {
+          "line": 271,
+          "name": "exportSave",
+          "kind": "action",
+          "expr": "(slot: number): boolean "
+        },
+        {
+          "line": 276,
+          "name": "info",
+          "kind": "action",
+          "expr": "getSlots().find(s "
+        },
+        {
+          "line": 288,
+          "name": "importSave",
+          "kind": "action",
+          "expr": "(slot: number, fileContent: string): boolean "
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useSecretNoteStore.ts",
+      "storeId": "secretNote",
+      "lines": 97,
+      "refs": [],
+      "computeds": [
+        {
+          "line": 14,
+          "name": "totalNotes",
+          "kind": "computed",
+          "expr": "() => SECRET_NOTES.length)"
+        },
+        {
+          "line": 15,
+          "name": "collectedCount",
+          "kind": "computed",
+          "expr": "() => collectedNotes.value.length)"
+        },
+        {
+          "line": 28,
+          "name": "hasUncollectedNotes",
+          "kind": "computed",
+          "expr": "() => {"
+        }
+      ],
+      "actions": [
+        {
+          "line": 18,
+          "name": "isCollected",
+          "kind": "action",
+          "expr": "(noteId: number): boolean "
+        },
+        {
+          "line": 23,
+          "name": "isUsed",
+          "kind": "action",
+          "expr": "(noteId: number): boolean "
+        },
+        {
+          "line": 33,
+          "name": "tryCollectNote",
+          "kind": "action",
+          "expr": "(): number | null "
+        },
+        {
+          "line": 35,
+          "name": "uncollected",
+          "kind": "action",
+          "expr": "SECRET_NOTES.filter(n "
+        },
+        {
+          "line": 44,
+          "name": "useNote",
+          "kind": "action",
+          "expr": "(noteId: number): { success: boolean; message: string } "
+        },
+        {
+          "line": 48,
+          "name": "noteDef",
+          "kind": "action",
+          "expr": "SECRET_NOTES.find(n "
+        },
+        {
+          "line": 73,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 78,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useSettingsStore.ts",
+      "storeId": "settings",
+      "lines": 151,
+      "refs": [
+        {
+          "line": 16,
+          "name": "fontSize",
+          "kind": "ref",
+          "expr": "DEFAULT_FONT_SIZE)"
+        },
+        {
+          "line": 19,
+          "name": "qmsgTimeout",
+          "kind": "ref",
+          "expr": "2500)"
+        },
+        {
+          "line": 20,
+          "name": "qmsgMaxNums",
+          "kind": "ref",
+          "expr": "5)"
+        },
+        {
+          "line": 21,
+          "name": "qmsgIsLimitWidth",
+          "kind": "ref",
+          "expr": "true)"
+        },
+        {
+          "line": 22,
+          "name": "qmsgLimitWidthNum",
+          "kind": "ref",
+          "expr": "200)"
+        },
+        {
+          "line": 24,
+          "name": "qmsgAnimation",
+          "kind": "ref",
+          "expr": "true)"
+        },
+        {
+          "line": 25,
+          "name": "qmsgAutoClose",
+          "kind": "ref",
+          "expr": "true)"
+        },
+        {
+          "line": 26,
+          "name": "qmsgShowClose",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 27,
+          "name": "qmsgShowIcon",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 28,
+          "name": "qmsgShowReverse",
+          "kind": "ref",
+          "expr": "false)"
+        }
+      ],
+      "computeds": [],
+      "actions": [
+        {
+          "line": 33,
+          "name": "applyFontSize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 37,
+          "name": "applyTheme",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 44,
+          "name": "changeFontSize",
+          "kind": "action",
+          "expr": "delta: number"
+        },
+        {
+          "line": 49,
+          "name": "changeTheme",
+          "kind": "action",
+          "expr": "key: ThemeKey"
+        },
+        {
+          "line": 54,
+          "name": "changeQmsgPosition",
+          "kind": "action",
+          "expr": "pos: QmsgPosition"
+        },
+        {
+          "line": 60,
+          "name": "syncQmsgConfig",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 76,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 98,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useShopStore.ts",
+      "storeId": "shop",
+      "lines": 432,
+      "refs": [
+        {
+          "line": 222,
+          "name": "travelingStockKey",
+          "kind": "ref",
+          "expr": "'')"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 51,
+          "name": "availableSeeds",
+          "kind": "computed",
+          "expr": "() => {"
+        },
+        {
+          "line": 95,
+          "name": "shopFertilizers",
+          "kind": "computed",
+          "expr": "() =>"
+        },
+        {
+          "line": 118,
+          "name": "shopBaits",
+          "kind": "computed",
+          "expr": "() =>"
+        },
+        {
+          "line": 128,
+          "name": "shopTackles",
+          "kind": "computed",
+          "expr": "() =>"
+        },
+        {
+          "line": 224,
+          "name": "isMerchantHere",
+          "kind": "computed",
+          "expr": "() => isTravelingMerchantDay(gameStore.day))"
+        }
+      ],
+      "actions": [
+        {
+          "line": 39,
+          "name": "applyDiscount",
+          "kind": "action",
+          "expr": "(price: number): number "
+        },
+        {
+          "line": 68,
+          "name": "seed",
+          "kind": "action",
+          "expr": "availableSeeds.value.find(s "
+        },
+        {
+          "line": 82,
+          "name": "blacksmithItems",
+          "kind": "action",
+          "expr": "computed<ShopItemEntry[]>(() "
+        },
+        {
+          "line": 104,
+          "name": "apothecaryItems",
+          "kind": "action",
+          "expr": "computed<ShopItemEntry[]>(() "
+        },
+        {
+          "line": 138,
+          "name": "fishingShopItems",
+          "kind": "action",
+          "expr": "computed<ShopItemEntry[]>(() "
+        },
+        {
+          "line": 144,
+          "name": "textileItems",
+          "kind": "action",
+          "expr": "computed<ShopItemEntry[]>(() "
+        },
+        {
+          "line": 172,
+          "name": "_basePrice",
+          "kind": "action",
+          "expr": "(itemId: string, quantity: number, quality: Quality): number "
+        },
+        {
+          "line": 198,
+          "name": "calculateSellPrice",
+          "kind": "action",
+          "expr": "(itemId: string, quantity: number, quality: Quality): number "
+        },
+        {
+          "line": 207,
+          "name": "calculateBaseSellPrice",
+          "kind": "action",
+          "expr": "(itemId: string, quantity: number, quality: Quality): number "
+        },
+        {
+          "line": 226,
+          "name": "refreshMerchantStock",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 232,
+          "name": "existingIds",
+          "kind": "action",
+          "expr": "new Set(travelingStock.value.map(s "
+        },
+        {
+          "line": 233,
+          "name": "available",
+          "kind": "action",
+          "expr": "TRAVELING_MERCHANT_POOL.filter(p "
+        },
+        {
+          "line": 250,
+          "name": "buyFromTraveler",
+          "kind": "action",
+          "expr": "(itemId: string): boolean "
+        },
+        {
+          "line": 251,
+          "name": "item",
+          "kind": "action",
+          "expr": "travelingStock.value.find(s "
+        },
+        {
+          "line": 270,
+          "name": "addToShippingBox",
+          "kind": "action",
+          "expr": "(itemId: string, quantity: number, quality: Quality): boolean "
+        },
+        {
+          "line": 272,
+          "name": "existing",
+          "kind": "action",
+          "expr": "shippingBox.value.find(s "
+        },
+        {
+          "line": 282,
+          "name": "removeFromShippingBox",
+          "kind": "action",
+          "expr": "(itemId: string, quantity: number, quality: Quality): boolean "
+        },
+        {
+          "line": 283,
+          "name": "idx",
+          "kind": "action",
+          "expr": "shippingBox.value.findIndex(s "
+        },
+        {
+          "line": 308,
+          "name": "processShippingBox",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 341,
+          "name": "_toAbsoluteDay",
+          "kind": "action",
+          "expr": "(year: number, seasonIndex: number, day: number): number "
+        },
+        {
+          "line": 346,
+          "name": "_pruneShippingHistory",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 359,
+          "name": "getRecentShipping",
+          "kind": "action",
+          "expr": "(): Partial<Record<MarketCategory, number>> "
+        },
+        {
+          "line": 372,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 380,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useSkillStore.ts",
+      "storeId": "skill",
+      "lines": 161,
+      "refs": [],
+      "computeds": [
+        {
+          "line": 27,
+          "name": "farmingLevel",
+          "kind": "computed",
+          "expr": "() => getSkill('farming').level)"
+        },
+        {
+          "line": 28,
+          "name": "fishingLevel",
+          "kind": "computed",
+          "expr": "() => getSkill('fishing').level)"
+        },
+        {
+          "line": 29,
+          "name": "miningLevel",
+          "kind": "computed",
+          "expr": "() => getSkill('mining').level)"
+        },
+        {
+          "line": 30,
+          "name": "foragingLevel",
+          "kind": "computed",
+          "expr": "() => getSkill('foraging').level)"
+        },
+        {
+          "line": 31,
+          "name": "combatLevel",
+          "kind": "computed",
+          "expr": "() => getSkill('combat').level)"
+        }
+      ],
+      "actions": [
+        {
+          "line": 10,
+          "name": "createSkill",
+          "kind": "action",
+          "expr": "(type: SkillType): SkillState "
+        },
+        {
+          "line": 23,
+          "name": "getSkill",
+          "kind": "action",
+          "expr": "(type: SkillType): SkillState "
+        },
+        {
+          "line": 34,
+          "name": "addExp",
+          "kind": "action",
+          "expr": "(type: SkillType, amount: number): { leveledUp: boolean; newLevel: number } "
+        },
+        {
+          "line": 56,
+          "name": "getExpToNextLevel",
+          "kind": "action",
+          "expr": "(type: SkillType): { current: number; required: number } | null "
+        },
+        {
+          "line": 63,
+          "name": "getStaminaReduction",
+          "kind": "action",
+          "expr": "(type: SkillType): number "
+        },
+        {
+          "line": 68,
+          "name": "setPerk5",
+          "kind": "action",
+          "expr": "(type: SkillType, perk: SkillPerk5): boolean "
+        },
+        {
+          "line": 76,
+          "name": "setPerk10",
+          "kind": "action",
+          "expr": "(type: SkillType, perk: SkillPerk10): boolean "
+        },
+        {
+          "line": 84,
+          "name": "rollCropQuality",
+          "kind": "action",
+          "expr": "(): 'normal' | 'fine' | 'excellent' | 'supreme' "
+        },
+        {
+          "line": 112,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 116,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        },
+        {
+          "line": 125,
+          "name": "mining",
+          "kind": "action",
+          "expr": "arr.find(s "
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useTutorialStore.ts",
+      "storeId": "tutorial",
+      "lines": 56,
+      "refs": [
+        {
+          "line": 6,
+          "name": "enabled",
+          "kind": "ref",
+          "expr": "true)"
+        }
+      ],
+      "computeds": [],
+      "actions": [
+        {
+          "line": 14,
+          "name": "isTipShown",
+          "kind": "action",
+          "expr": "id: string"
+        },
+        {
+          "line": 15,
+          "name": "markTipShown",
+          "kind": "action",
+          "expr": "id: string"
+        },
+        {
+          "line": 18,
+          "name": "hasPanelVisited",
+          "kind": "action",
+          "expr": "panel: string"
+        },
+        {
+          "line": 19,
+          "name": "markPanelVisited",
+          "kind": "action",
+          "expr": "panel: string"
+        },
+        {
+          "line": 22,
+          "name": "setFlag",
+          "kind": "action",
+          "expr": "key: string, val: boolean = true"
+        },
+        {
+          "line": 25,
+          "name": "getFlag",
+          "kind": "action",
+          "expr": "key: string"
+        },
+        {
+          "line": 27,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 34,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: any"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useWalletStore.ts",
+      "storeId": "wallet",
+      "lines": 142,
+      "refs": [],
+      "computeds": [
+        {
+          "line": 14,
+          "name": "unlockedDefs",
+          "kind": "computed",
+          "expr": "() => WALLET_ITEMS.filter(w => unlockedItems.value.includes(w.id)))"
+        }
+      ],
+      "actions": [
+        {
+          "line": 17,
+          "name": "has",
+          "kind": "action",
+          "expr": "(id: string): boolean "
+        },
+        {
+          "line": 22,
+          "name": "unlock",
+          "kind": "action",
+          "expr": "(id: string): boolean "
+        },
+        {
+          "line": 30,
+          "name": "checkAndUnlock",
+          "kind": "action",
+          "expr": "(): string[] "
+        },
+        {
+          "line": 57,
+          "name": "fishIdSet",
+          "kind": "action",
+          "expr": "new Set(FISH.map(f "
+        },
+        {
+          "line": 58,
+          "name": "fishCount",
+          "kind": "action",
+          "expr": "achievementStore.discoveredItems.filter(id "
+        },
+        {
+          "line": 83,
+          "name": "getShopDiscount",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 88,
+          "name": "getForageQualityBoost",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 93,
+          "name": "getMiningStaminaReduction",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 98,
+          "name": "getFishingCalmBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 103,
+          "name": "getCookingRestoreBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 108,
+          "name": "getCropGrowthBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 113,
+          "name": "getTradeBonus",
+          "kind": "action",
+          "expr": "(): number "
+        },
+        {
+          "line": 117,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 121,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: ReturnType<typeof serialize>"
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    },
+    {
+      "rel": "src/stores/useWarehouseStore.ts",
+      "storeId": "warehouse",
+      "lines": 377,
+      "refs": [
+        {
+          "line": 13,
+          "name": "unlocked",
+          "kind": "ref",
+          "expr": "false)"
+        },
+        {
+          "line": 15,
+          "name": "maxChests",
+          "kind": "ref",
+          "expr": "INITIAL_MAX_CHESTS)"
+        }
+      ],
+      "computeds": [
+        {
+          "line": 17,
+          "name": "hasVoidChest",
+          "kind": "computed",
+          "expr": "() => chests.value.some(c => c.tier === 'void'))"
+        }
+      ],
+      "actions": [
+        {
+          "line": 22,
+          "name": "addChest",
+          "kind": "action",
+          "expr": "(tier: ChestTier, label?: string): boolean "
+        },
+        {
+          "line": 36,
+          "name": "removeChest",
+          "kind": "action",
+          "expr": "(chestId: string): boolean "
+        },
+        {
+          "line": 37,
+          "name": "idx",
+          "kind": "action",
+          "expr": "chests.value.findIndex(c "
+        },
+        {
+          "line": 45,
+          "name": "renameChest",
+          "kind": "action",
+          "expr": "(chestId: string, label: string): boolean "
+        },
+        {
+          "line": 48,
+          "name": "chest",
+          "kind": "action",
+          "expr": "chests.value.find(c "
+        },
+        {
+          "line": 55,
+          "name": "getChest",
+          "kind": "action",
+          "expr": "(chestId: string): Chest | undefined "
+        },
+        {
+          "line": 60,
+          "name": "getChestCapacity",
+          "kind": "action",
+          "expr": "(chestId: string): number "
+        },
+        {
+          "line": 67,
+          "name": "isChestFull",
+          "kind": "action",
+          "expr": "(chestId: string): boolean "
+        },
+        {
+          "line": 105,
+          "name": "matchQuality",
+          "kind": "action",
+          "expr": "i: { itemId: string; quality: Quality }"
+        },
+        {
+          "line": 107,
+          "name": "total",
+          "kind": "action",
+          "expr": "chest.items.filter(matchQuality).reduce((sum, i) "
+        },
+        {
+          "line": 128,
+          "name": "getChestItemCount",
+          "kind": "action",
+          "expr": "(chestId: string, itemId: string, quality?: Quality): number "
+        },
+        {
+          "line": 139,
+          "name": "depositToChest",
+          "kind": "action",
+          "expr": "(chestId: string, itemId: string, quantity: number, quality: Quality): number "
+        },
+        {
+          "line": 164,
+          "name": "withdrawFromChest",
+          "kind": "action",
+          "expr": "(chestId: string, itemId: string, quantity: number, quality: Quality): boolean "
+        },
+        {
+          "line": 182,
+          "name": "expandMaxChests",
+          "kind": "action",
+          "expr": "(): boolean "
+        },
+        {
+          "line": 191,
+          "name": "setVoidRole",
+          "kind": "action",
+          "expr": "(chestId: string, role: VoidChestRole): boolean "
+        },
+        {
+          "line": 208,
+          "name": "getVoidInputChest",
+          "kind": "action",
+          "expr": "(): Chest | null "
+        },
+        {
+          "line": 213,
+          "name": "getVoidOutputChest",
+          "kind": "action",
+          "expr": "(): Chest | null "
+        },
+        {
+          "line": 218,
+          "name": "getVoidChests",
+          "kind": "action",
+          "expr": "(): Chest[] "
+        },
+        {
+          "line": 225,
+          "name": "moveChest",
+          "kind": "action",
+          "expr": "(chestId: string, direction: 'up' | 'down'): boolean "
+        },
+        {
+          "line": 266,
+          "name": "sortChest",
+          "kind": "action",
+          "expr": "chestId: string"
+        },
+        {
+          "line": 272,
+          "name": "existing",
+          "kind": "action",
+          "expr": "merged.find(m "
+        },
+        {
+          "line": 304,
+          "name": "serialize",
+          "kind": "action",
+          "expr": ""
+        },
+        {
+          "line": 312,
+          "name": "deserialize",
+          "kind": "action",
+          "expr": "data: Record<string, unknown>"
+        },
+        {
+          "line": 318,
+          "name": "oldItems",
+          "kind": "action",
+          "expr": "(data.items as InventoryItem[]).filter(i "
+        }
+      ],
+      "daily": [],
+      "hasSerialize": true,
+      "hasDeserialize": true
+    }
+  ]
+}

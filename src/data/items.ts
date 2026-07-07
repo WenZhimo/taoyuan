@@ -96,6 +96,22 @@ const MISC_ITEMS: ItemDef[] = [
     healthRestore: 2
   },
   { id: 'pine_cone', name: '松果', category: 'material', description: '松树上掉落的果实。', sellPrice: 10, edible: false },
+  {
+    id: 'sleeping_bag',
+    name: '睡袋',
+    category: 'misc',
+    description: '便携的野外睡具。在矿洞、瀚海、竹林和清溪等资源地点可直接过夜。',
+    sellPrice: 400,
+    edible: false
+  },
+  {
+    id: 'momo_fumo',
+    name: '墨墨的fumo',
+    category: 'gift',
+    description: '墨墨亲手凝成的神秘fumo。所有村民都会把它视作最珍贵的礼物。',
+    sellPrice: 1,
+    edible: false
+  },
   { id: 'jade_ring', name: '翡翠戒指', category: 'gift', description: '精心打磨的翡翠戒指，可以用来求婚。', sellPrice: 500, edible: false },
   {
     id: 'silk_ribbon',
@@ -1295,6 +1311,46 @@ export const ITEMS: ItemDef[] = [
     healthRestore: 50
   },
   { id: 'monster_lure', name: '怪物诱饵', category: 'misc', description: '本层怪物数量翻倍。', sellPrice: 1000, edible: false },
+  {
+    id: 'attack_potion',
+    name: '狂战药剂',
+    category: 'misc',
+    description: '本次探索攻击力+500。',
+    sellPrice: 1500,
+    edible: false
+  },
+  {
+    id: 'guardian_potion',
+    name: '守护药剂',
+    category: 'misc',
+    description: '本次探索受到的伤害降低35%。',
+    sellPrice: 1200,
+    edible: false
+  },
+  {
+    id: 'poison_arrow',
+    name: '毒箭',
+    category: 'misc',
+    description: '战斗中使用，造成伤害并使敌人中毒。',
+    sellPrice: 250,
+    edible: false
+  },
+  {
+    id: 'ice_bomb',
+    name: '冰弹',
+    category: 'bomb',
+    description: '战斗中使用，造成无视防御伤害并冻结敌人。',
+    sellPrice: 600,
+    edible: false
+  },
+  {
+    id: 'nuclear_bomb',
+    name: '核弹',
+    category: 'bomb',
+    description: '战斗中使用，造成大量无视防御百分比伤害，并附加永久[辐射]。',
+    sellPrice: 5000,
+    edible: false
+  },
   { id: 'guild_badge', name: '公会徽章', category: 'misc', description: '攻击力永久+3。', sellPrice: 0, edible: false },
   { id: 'life_talisman', name: '生命护符', category: 'misc', description: '最大生命值永久+15。', sellPrice: 0, edible: false },
   { id: 'defense_charm', name: '守护符', category: 'misc', description: '防御永久+3%。', sellPrice: 0, edible: false },
@@ -1783,6 +1839,8 @@ const ITEM_SOURCE_OVERRIDES: Record<string, string> = {
   camphor_incense: '合成制作',
   osmanthus_incense: '合成制作',
   // 杂货
+  sleeping_bag: '万物铺购买',
+  momo_fumo: '灶台提交2000个青菜兑换',
   rain_totem: '合成制作',
   gold_nugget: '河边淘金',
   // 公会商店
@@ -1792,6 +1850,11 @@ const ITEM_SOURCE_OVERRIDES: Record<string, string> = {
   warriors_feast: '冒险家公会',
   slayer_charm: '冒险家公会',
   monster_lure: '冒险家公会',
+  attack_potion: '冒险家公会',
+  guardian_potion: '冒险家公会',
+  poison_arrow: '冒险家公会',
+  ice_bomb: '冒险家公会',
+  nuclear_bomb: '冒险家公会',
   guild_badge: '冒险家公会',
   life_talisman: '冒险家公会',
   defense_charm: '冒险家公会',

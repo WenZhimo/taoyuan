@@ -12,6 +12,27 @@
     </div>
     <p v-if="tutorialHint" class="text-[10px] text-muted/50 mb-2">{{ tutorialHint }}</p>
 
+    <!-- 特殊兑换 -->
+    <div class="border border-accent/20 rounded-xs px-3 py-2 mb-3">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <p class="text-xs text-accent">墨墨的fumo</p>
+          <p class="text-[10px] text-muted">提交青菜×2000，转化为极品墨墨的fumo×2000</p>
+          <p class="text-[10px]" :class="canExchangeFumo ? 'text-success' : 'text-danger'">当前青菜：{{ cabbageCount }}/{{ FUMO_EXCHANGE_QUANTITY }}</p>
+        </div>
+        <Button
+          class="shrink-0"
+          :class="{ '!bg-accent !text-bg': canExchangeFumo }"
+          :icon="Sparkles"
+          :icon-size="12"
+          :disabled="!canExchangeFumo"
+          @click="handleExchangeFumo"
+        >
+          转化
+        </Button>
+      </div>
+    </div>
+
     <!-- 当前增益 -->
     <div v-if="cookingStore.activeBuff" class="border border-water/20 rounded-xs px-3 py-1.5 mb-3">
       <p class="text-[10px] text-water">
@@ -144,12 +165,13 @@
 
 <script setup lang="ts">
   import { ref, computed } from 'vue'
-  import { UtensilsCrossed, Zap, X, Minus, Plus } from 'lucide-vue-next'
+  import { UtensilsCrossed, Zap, X, Minus, Plus, Sparkles } from 'lucide-vue-next'
   import { useAchievementStore } from '@/stores/useAchievementStore'
   import { useCookingStore } from '@/stores/useCookingStore'
   import { useGameStore } from '@/stores/useGameStore'
+  import { useInventoryStore } from '@/stores/useInventoryStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
-  import { getCombinedItemCount } from '@/composables/useCombinedInventory'
+  import { getCombinedItemCount, removeCombinedItem } from '@/composables/useCombinedInventory'
   import { getItemById } from '@/data'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { sfxClick } from '@/composables/useAudio'
@@ -161,12 +183,19 @@
 
   const cookingStore = useCookingStore()
   const gameStore = useGameStore()
+  const inventoryStore = useInventoryStore()
   const achievementStore = useAchievementStore()
   const tutorialStore = useTutorialStore()
+
+  const FUMO_EXCHANGE_QUANTITY = 2000
+  const FUMO_SOURCE_ITEM_ID = 'cabbage'
+  const FUMO_ITEM_ID = 'momo_fumo'
 
   const showOnlyMakeable = ref(false)
   const modalRecipeId = ref<string | null>(null)
   const modalQty = ref(1)
+  const cabbageCount = computed(() => getCombinedItemCount(FUMO_SOURCE_ITEM_ID))
+  const canExchangeFumo = computed(() => cabbageCount.value >= FUMO_EXCHANGE_QUANTITY)
 
   /** 预计算食谱信息（不含数量，避免改数量触发全量重算） */
   const recipeInfos = computed(() => {
@@ -245,5 +274,17 @@
     if (tr.message) addLog(tr.message)
     closeModal()
     if (tr.passedOut) handleEndDay()
+  }
+
+  const handleExchangeFumo = () => {
+    if (!canExchangeFumo.value) return
+    if (!removeCombinedItem(FUMO_SOURCE_ITEM_ID, FUMO_EXCHANGE_QUANTITY)) {
+      addLog('青菜不足，无法转化墨墨的fumo。')
+      return
+    }
+    inventoryStore.addItem(FUMO_ITEM_ID, FUMO_EXCHANGE_QUANTITY, 'supreme')
+    achievementStore.discoverItem(FUMO_ITEM_ID)
+    sfxClick()
+    addLog(`提交了${FUMO_EXCHANGE_QUANTITY}个青菜，转化为极品墨墨的fumo×${FUMO_EXCHANGE_QUANTITY}。`)
   }
 </script>

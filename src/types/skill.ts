@@ -113,12 +113,30 @@ export interface MonsterDef {
 }
 
 /** 战斗状态 */
+export type CombatStatusType =
+  | 'poison'
+  | 'burn'
+  | 'freeze'
+  | 'radiation'
+  | 'battle_rage'
+  | 'iron_skin'
+
+export interface CombatStatusEffect {
+  type: CombatStatusType
+  name: string
+  remainingTurns: number | null
+  power: number
+  source: 'player' | 'monster' | 'item'
+}
+
 export interface CombatState {
   monster: MonsterDef
   monsterHp: number
   round: number
   log: string[]
   isBoss: boolean
+  monsterStatuses?: CombatStatusEffect[]
+  playerStatuses?: CombatStatusEffect[]
 }
 
 /** 战斗操作 */

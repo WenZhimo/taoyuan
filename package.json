@@ -76,7 +76,10 @@
       "output": "pkg"
     },
     "win": {
-      "target": "zip",
+      "target": [
+        "dir"
+      ],
+      "executableName": "taoyuan",
       "icon": "public/favicon.ico",
       "artifactName": "taoyuan-${version}-win.${ext}"
     }

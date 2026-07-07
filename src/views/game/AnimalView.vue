@@ -569,7 +569,7 @@
   import { useGameStore } from '@/stores/useGameStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
-  import { ANIMAL_BUILDINGS, ANIMAL_DEFS, HAY_ITEM_ID, getItemById, getBuildingUpgrade, INCUBATION_MAP, FEED_DEFS } from '@/data'
+  import { ANIMAL_BUILDINGS, ANIMAL_DEFS, getItemById, getBuildingUpgrade, INCUBATION_MAP, FEED_DEFS } from '@/data'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import type { AnimalBuildingType, AnimalType, AnimalDef } from '@/types'
   import { addLog } from '@/composables/useGameLog'
@@ -660,7 +660,12 @@
   const stableDef = computed(() => ANIMAL_BUILDINGS.find(b => b.type === 'stable'))
 
   /** 当前选择的饲料类型 */
-  const selectedFeed = ref<string>(HAY_ITEM_ID)
+  const selectedFeed = computed({
+    get: () => animalStore.selectedFeedId,
+    set: feedId => {
+      animalStore.selectedFeedId = feedId
+    }
+  })
 
   /** 各类饲料库存数量 */
   const feedCounts = computed(() =>

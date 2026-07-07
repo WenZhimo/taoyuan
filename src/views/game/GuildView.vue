@@ -278,9 +278,6 @@
           <p v-if="item.weeklyLimit && guildStore.isShopItemUnlocked(item.itemId)" class="text-xs text-muted mt-0.5">
             本周剩余: {{ guildStore.getWeeklyRemaining(item.itemId, item.weeklyLimit) }}/{{ item.weeklyLimit }}
           </p>
-          <p v-if="item.totalLimit && guildStore.isShopItemUnlocked(item.itemId)" class="text-xs text-muted mt-0.5">
-            总限购: {{ guildStore.getTotalRemaining(item.itemId, item.totalLimit) }}/{{ item.totalLimit }}
-          </p>
         </div>
         <span class="text-xs whitespace-nowrap ml-2" :class="item.contributionCost ? 'text-success' : 'text-accent'">
           {{ item.contributionCost ? `${item.contributionCost}贡献` : `${item.price}文` }}
@@ -355,12 +352,6 @@
               <span class="text-xs text-muted">本周剩余</span>
               <span class="text-xs">
                 {{ guildStore.getWeeklyRemaining(shopModalItem.itemId, shopModalItem.weeklyLimit) }}/{{ shopModalItem.weeklyLimit }}
-              </span>
-            </div>
-            <div v-if="shopModalItem.totalLimit" class="flex items-center justify-between mt-0.5">
-              <span class="text-xs text-muted">总限购剩余</span>
-              <span class="text-xs">
-                {{ guildStore.getTotalRemaining(shopModalItem.itemId, shopModalItem.totalLimit) }}/{{ shopModalItem.totalLimit }}
               </span>
             </div>
           </div>
@@ -597,7 +588,6 @@
     }
     if (item.dailyLimit) max = Math.min(max, guildStore.getDailyRemaining(item.itemId, item.dailyLimit))
     if (item.weeklyLimit) max = Math.min(max, guildStore.getWeeklyRemaining(item.itemId, item.weeklyLimit))
-    if (item.totalLimit) max = Math.min(max, guildStore.getTotalRemaining(item.itemId, item.totalLimit))
     return Math.max(0, max)
   })
 
@@ -677,7 +667,6 @@
     if (!guildStore.isShopItemUnlocked(item.itemId)) return false
     if (item.dailyLimit && guildStore.getDailyRemaining(item.itemId, item.dailyLimit) <= 0) return false
     if (item.weeklyLimit && guildStore.getWeeklyRemaining(item.itemId, item.weeklyLimit) <= 0) return false
-    if (item.totalLimit && guildStore.getTotalRemaining(item.itemId, item.totalLimit) <= 0) return false
     if (item.materials) {
       for (const mat of item.materials) {
         if (inventoryStore.getItemCount(mat.itemId) < mat.quantity) return false

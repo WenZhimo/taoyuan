@@ -5,9 +5,9 @@
     :class="{ 'py-10': Capacitor.isNativePlatform() }"
   >
     <!-- 状态栏 -->
-    <StatusBar @request-sleep="showSleepConfirm = true" />
+    <StatusBar @request-sleep="openSleepDialog" @request-nap="openNapDialog" />
 
-    <Button class="text-center justify-center !text-sm" :icon="Moon" :icon-size="12" @click.stop="showSleepConfirm = true">
+    <Button class="text-center justify-center !text-sm" :icon="Moon" :icon-size="12" @click.stop="openSleepDialog">
       {{ sleepLabel }}
     </Button>
 
@@ -429,6 +429,47 @@
         </div>
       </div>
     </Transition>
+
+    <!-- 小憩确认 -->
+    <Transition name="panel-fade">
+      <div v-if="showNapConfirm" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="game-panel max-w-xs w-full text-center">
+          <Divider title>小憩</Divider>
+          <p class="text-xs leading-relaxed mb-3">在原地闭目养神，跳过一段时间并按实际过去时间恢复体力。</p>
+
+          <div class="grid grid-cols-4 gap-2 mb-3">
+            <Button v-for="minutes in napQuickMinutes" :key="minutes" class="justify-center py-1" @click="setNapMinutes(minutes)">
+              {{ formatNapDuration(minutes) }}
+            </Button>
+          </div>
+
+          <label class="block text-left text-xs text-muted mb-3">
+            <span class="block mb-1">小憩时长（分钟）</span>
+            <input
+              class="w-full bg-bg border border-accent/30 rounded-xs px-2 py-1 text-center text-text"
+              type="number"
+              min="1"
+              step="1"
+              :value="napMinutes"
+              @input="onNapMinutesInput"
+            />
+          </label>
+
+          <div class="text-xs leading-relaxed mb-3 text-left">
+            <p>当前时间：{{ gameStore.timeDisplay }}</p>
+            <p>预计醒来：{{ napWakeTime }}</p>
+            <p>预计恢复：{{ napRecoveryPreview }}体力</p>
+            <p v-if="napWillBeInterrupted" class="text-danger">时间过长，会在凌晨2点前被打断。</p>
+            <p v-if="!canNap" class="text-danger">现在已经太晚了，不能再小憩。</p>
+          </div>
+
+          <div class="flex space-x-3 justify-center">
+            <Button :icon="X" :icon-size="12" @click="showNapConfirm = false">取消</Button>
+            <Button class="btn-danger" :icon="Coffee" :icon-size="12" :disabled="!canNap" @click="confirmNap">开始小憩</Button>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -452,14 +493,17 @@
     LATE_NIGHT_RECOVERY_MIN,
     PASSOUT_STAMINA_RECOVERY,
     PASSOUT_MONEY_PENALTY_RATE,
-    PASSOUT_MONEY_PENALTY_CAP
+    PASSOUT_MONEY_PENALTY_CAP,
+    PASSOUT_HOUR,
+    formatTime,
+    getLocationGroupName
   } from '@/data/timeConstants'
   import { getNpcById, getItemById, getCropById } from '@/data'
   import { CHEST_DEFS } from '@/data/items'
   import { useGameClock } from '@/composables/useGameClock'
   import { useAudio } from '@/composables/useAudio'
-  import type { Quality } from '@/types'
-  import { Moon, X, Map, Settings as SettingsIcon, Archive, ArrowDown, ArrowDownToLine, History, Trash2 } from 'lucide-vue-next'
+  import type { LocationGroup, Quality } from '@/types'
+  import { Moon, X, Map, Settings as SettingsIcon, Archive, ArrowDown, ArrowDownToLine, History, Trash2, Coffee } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
   import MobileMapMenu from '@/components/game/MobileMapMenu.vue'
@@ -512,14 +556,30 @@
   } = useDialogs()
 
   const npcStore = useNpcStore()
+  const inventoryStore = useInventoryStore()
+  const warehouseStore = useWarehouseStore()
 
   const { startClock, stopClock, pauseClock, resumeClock } = useGameClock()
+
+  const SLEEPING_BAG_ITEM_ID = 'sleeping_bag'
+  const RESOURCE_SLEEP_GROUPS: LocationGroup[] = ['nature', 'mine', 'hanhai']
+  const RESOURCE_SLEEP_WAKE_PANEL: Partial<Record<LocationGroup, string>> = {
+    nature: 'forage',
+    mine: 'mining',
+    hanhai: 'hanhai'
+  }
 
   /** 移动端地图菜单 */
   const showMobileMap = ref(false)
 
   /** 休息确认弹窗 */
   const showSleepConfirm = ref(false)
+
+  /** 小憩弹窗 */
+  const showNapConfirm = ref(false)
+  const napMinutes = ref(60)
+  const napQuickMinutes = [30, 60, 120, 240] as const
+  const NAP_STAMINA_RECOVERY_PER_HOUR = 0.12
 
   /** 设置弹窗 */
   const showSettings = ref(false)
@@ -574,7 +634,8 @@
         childProposalVisible.value ||
         pendingFarmEvent.value ||
         pendingDiscoveryScene.value ||
-        showSleepConfirm.value
+        showSleepConfirm.value ||
+        showNapConfirm.value
       ),
     hasModal => {
       if (hasModal) pauseClock()
@@ -587,7 +648,14 @@
     return (route.name as string) ?? 'farm'
   })
 
+  const isResourceSleepLocation = computed(() => RESOURCE_SLEEP_GROUPS.includes(gameStore.currentLocationGroup))
+  const hasSleepingBag = computed(() => inventoryStore.hasItem(SLEEPING_BAG_ITEM_ID))
+  const canUseSleepingBag = computed(() => isResourceSleepLocation.value && hasSleepingBag.value)
+  const currentLocationGroupName = computed(() => getLocationGroupName(gameStore.currentLocationGroup))
+
   const sleepLabel = computed(() => {
+    if (canUseSleepingBag.value) return '睡袋休息'
+    if (isResourceSleepLocation.value) return '回家休息'
     if (gameStore.hour >= 24) return '倒头就睡'
     if (gameStore.hour >= 20) return '回家休息'
     return '休息'
@@ -597,11 +665,71 @@
     if (playerStore.stamina <= 0 || gameStore.hour >= 26) {
       return '你已经精疲力竭……将在原地昏倒。'
     }
+    if (canUseSleepingBag.value) {
+      return `铺开睡袋，在${currentLocationGroupName.value}安稳过夜。明早醒来仍在这里。`
+    }
     if (gameStore.hour >= 24) {
       return '已经过了午夜，拖着疲惫的身体回家……'
     }
+    if (isResourceSleepLocation.value) {
+      return '没有睡袋，只能收拾行囊回家休息。'
+    }
     return '回到家中，安稳入睡。明日又是新的一天。'
   })
+
+  const requestedNapMinutes = computed(() => {
+    const minutes = Number(napMinutes.value)
+    if (!Number.isFinite(minutes)) return 1
+    return Math.max(1, Math.floor(minutes))
+  })
+
+  const maxNapMinutes = computed(() => {
+    const minutesUntilPassout = Math.floor((PASSOUT_HOUR - gameStore.hour) * 60)
+    return Math.max(0, minutesUntilPassout - 1)
+  })
+
+  const actualNapMinutes = computed(() => Math.min(requestedNapMinutes.value, maxNapMinutes.value))
+  const canNap = computed(() => actualNapMinutes.value > 0)
+  const napWillBeInterrupted = computed(() => requestedNapMinutes.value > actualNapMinutes.value && actualNapMinutes.value > 0)
+
+  const napWakeTime = computed(() => {
+    if (!canNap.value) return gameStore.timeDisplay
+    return formatTime(gameStore.hour + actualNapMinutes.value / 60)
+  })
+
+  const calcNapRecovery = (minutes: number): number => {
+    if (minutes <= 0) return 0
+    const missing = Math.max(0, playerStore.maxStamina - playerStore.stamina)
+    const recovery = Math.floor(playerStore.maxStamina * NAP_STAMINA_RECOVERY_PER_HOUR * (minutes / 60))
+    return Math.min(missing, Math.max(1, recovery))
+  }
+
+  const napRecoveryPreview = computed(() => calcNapRecovery(actualNapMinutes.value))
+
+  const formatNapDuration = (minutes: number): string => {
+    if (minutes < 60) return `${minutes}分`
+    const hours = Math.floor(minutes / 60)
+    const rest = minutes % 60
+    return rest > 0 ? `${hours}时${rest}分` : `${hours}时`
+  }
+
+  const setNapMinutes = (minutes: number) => {
+    napMinutes.value = minutes
+  }
+
+  const onNapMinutesInput = (event: Event) => {
+    const value = Number((event.target as HTMLInputElement).value)
+    napMinutes.value = Number.isFinite(value) ? Math.max(1, Math.floor(value)) : 1
+  }
+
+  const openNapDialog = () => {
+    napMinutes.value = Math.min(60, Math.max(1, maxNapMinutes.value || 60))
+    showNapConfirm.value = true
+  }
+
+  const openSleepDialog = () => {
+    showSleepConfirm.value = true
+  }
 
   const sleepWarning = computed(() => {
     const warnings: string[] = []
@@ -681,9 +809,6 @@
     }
     closeChildProposal()
   }
-
-  const inventoryStore = useInventoryStore()
-  const warehouseStore = useWarehouseStore()
 
   const handleFarmEventChoice = (choice: MorningChoiceEvent['choices'][number]) => {
     addLog(choice.result)
@@ -850,10 +975,51 @@
   }
 
   const confirmSleep = () => {
+    const useSleepingBag = canUseSleepingBag.value
+    const wakeLocationGroup = gameStore.currentLocationGroup
+    const wakePanel = RESOURCE_SLEEP_WAKE_PANEL[wakeLocationGroup] ?? 'farm'
     showSleepConfirm.value = false
     pauseClock()
-    handleEndDay()
+    if (useSleepingBag) {
+      addLog(`在${getLocationGroupName(wakeLocationGroup)}铺开睡袋过夜。`)
+      handleEndDay({ wakePanel, wakeLocationGroup })
+    } else {
+      handleEndDay()
+    }
     switchToSeasonalBgm()
+    resumeClock()
+  }
+
+  const confirmNap = () => {
+    if (!canNap.value) {
+      addLog('现在已经太晚了，不能再小憩。')
+      showNapConfirm.value = false
+      return
+    }
+
+    showNapConfirm.value = false
+    pauseClock()
+
+    const requestedMinutes = requestedNapMinutes.value
+    const beforeHour = gameStore.hour
+    const beforeStamina = playerStore.stamina
+    const result = gameStore.advanceTime(actualNapMinutes.value / 60, { ignoreSpeedBuff: true })
+    const elapsedMinutes = Math.max(0, Math.round((gameStore.hour - beforeHour) * 60))
+    const recovery = calcNapRecovery(elapsedMinutes)
+
+    if (recovery > 0) playerStore.restoreStamina(recovery)
+
+    const actualRecovery = playerStore.stamina - beforeStamina
+    const interrupted = requestedMinutes > elapsedMinutes || result.passedOut
+    const wakeText = interrupted ? '小憩被打断' : '小憩醒来'
+    addLog(`${wakeText}，过去了${formatNapDuration(elapsedMinutes)}，恢复${actualRecovery}体力。`)
+
+    if (result.message) addLog(result.message)
+    if (result.passedOut) {
+      handleEndDay()
+      switchToSeasonalBgm()
+    }
+
     resumeClock()
   }
 </script>
