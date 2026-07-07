@@ -855,7 +855,7 @@
   import { useSkillStore } from '@/stores/useSkillStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { ZONE_NAMES, getFloor, BOSS_MONSTERS } from '@/data'
-  import { getWeaponById, getEnchantmentById, getWeaponDisplayName, WEAPON_TYPE_NAMES } from '@/data/weapons'
+  import { getWeaponById, getOwnedWeaponEnchantments, getWeaponDisplayName, WEAPON_TYPE_NAMES } from '@/data/weapons'
   import { getRingById, getHatById, getShoeById } from '@/data'
   import type { EquipmentEffectType } from '@/types'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
@@ -1118,7 +1118,7 @@
   /** 武器信息 */
   const weaponDisplayName = computed(() => {
     const owned = inventoryStore.getEquippedWeapon()
-    return getWeaponDisplayName(owned.defId, owned.enchantmentId)
+    return getWeaponDisplayName(owned.defId, owned.enchantmentIds ?? owned.enchantmentId)
   })
   const weaponTypeName = computed(() => {
     const owned = inventoryStore.getEquippedWeapon()
@@ -1137,9 +1137,9 @@
   )
   const weaponEnchantName = computed(() => {
     const owned = inventoryStore.getEquippedWeapon()
-    if (!owned.enchantmentId) return ''
-    const enchant = getEnchantmentById(owned.enchantmentId)
-    return enchant ? `${enchant.name} - ${enchant.description}` : ''
+    return getOwnedWeaponEnchantments(owned)
+      .map(enchant => `${enchant.name} - ${enchant.description}`)
+      .join('；')
   })
 
   /** 电梯楼层按区域分组 */

@@ -116,11 +116,11 @@
               >
                 <div class="min-w-0">
                   <span class="text-xs" :class="index === inventoryStore.equippedWeaponIndex ? 'text-accent' : ''">
-                    {{ getWeaponDisplayName(weapon.defId, weapon.enchantmentId) }}
+                    {{ getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}
                   </span>
                   <p class="text-[10px] text-muted truncate">
                     攻{{ getWeaponStats(weapon).attack }} · 暴击{{ Math.round(getWeaponStats(weapon).critRate * 100) }}%
-                    <template v-if="weapon.enchantmentId">· {{ getEnchantName(weapon.enchantmentId) }}</template>
+                    <template v-if="getEnchantNames(weapon)">· {{ getEnchantNames(weapon) }}</template>
                   </p>
                 </div>
                 <span v-if="index === inventoryStore.equippedWeaponIndex" class="text-[10px] text-accent shrink-0 ml-1">当前</span>
@@ -334,7 +334,7 @@
   const equippedWeaponName = computed(() => {
     const weapon = inventoryStore.ownedWeapons[inventoryStore.equippedWeaponIndex]
     if (!weapon) return '无'
-    return getWeaponDisplayName(weapon.defId, weapon.enchantmentId)
+    return getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)
   })
 
   const getWeaponStats = (weapon: OwnedWeapon): { attack: number; critRate: number } => {
@@ -342,8 +342,8 @@
     if (!def) return { attack: 0, critRate: 0 }
     let attack = def.attack
     let critRate = def.critRate
-    if (weapon.enchantmentId) {
-      const enchant = getEnchantmentById(weapon.enchantmentId)
+    for (const enchantmentId of weapon.enchantmentIds && weapon.enchantmentIds.length > 0 ? weapon.enchantmentIds : weapon.enchantmentId ? [weapon.enchantmentId] : []) {
+      const enchant = getEnchantmentById(enchantmentId)
       if (enchant) {
         attack += enchant.attackBonus
         critRate += enchant.critBonus
@@ -352,14 +352,15 @@
     return { attack, critRate }
   }
 
-  const getEnchantName = (enchantmentId: string): string => {
-    return getEnchantmentById(enchantmentId)?.name ?? ''
+  const getEnchantNames = (weapon: OwnedWeapon): string => {
+    const ids = weapon.enchantmentIds && weapon.enchantmentIds.length > 0 ? weapon.enchantmentIds : weapon.enchantmentId ? [weapon.enchantmentId] : []
+    return ids.map(id => getEnchantmentById(id)?.name ?? '').filter(Boolean).join('、')
   }
 
   const handleEquipWeapon = (index: number) => {
     if (inventoryStore.equipWeapon(index)) {
       const weapon = inventoryStore.ownedWeapons[index]!
-      const name = getWeaponDisplayName(weapon.defId, weapon.enchantmentId)
+      const name = getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)
       addLog(`装备了${name}。`)
     }
   }

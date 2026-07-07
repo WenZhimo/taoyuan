@@ -139,10 +139,10 @@
             @click="activeWeaponIdx = idx"
           >
             <span class="text-xs" :class="idx === inventoryStore.equippedWeaponIndex ? 'text-accent' : ''">
-              {{ getWeaponDisplayName(weapon.defId, weapon.enchantmentId) }}
+              {{ getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}
             </span>
             <span v-if="idx === inventoryStore.equippedWeaponIndex" class="text-xs text-accent">装备中</span>
-            <span v-else class="text-xs text-muted">{{ getWeaponSellPrice(weapon.defId, weapon.enchantmentId) }}文</span>
+            <span v-else class="text-xs text-muted">{{ getWeaponSellPrice(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}文</span>
           </div>
         </div>
       </div>
@@ -611,14 +611,49 @@
               <span class="text-xs text-muted">暴击率</span>
               <span class="text-xs">{{ Math.round(activeWeaponDef.critRate * 100) }}%</span>
             </div>
-            <div v-if="activeWeaponEnchant" class="flex items-center justify-between mt-0.5">
+            <div v-if="activeWeaponEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
               <span class="text-xs text-muted">附魔</span>
-              <span class="text-xs text-accent">{{ activeWeaponEnchant.name }}：{{ activeWeaponEnchant.description }}</span>
+              <span class="text-xs text-accent text-right">{{ activeWeaponEnchantments.map(e => `${e.name}：${e.description}`).join('；') }}</span>
             </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeWeaponPrice }}文</span>
             </div>
+          </div>
+          <div class="border border-accent/10 rounded-xs p-2 mb-2">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-muted">随机附魔</span>
+              <span class="text-xs" :class="playerStore.money >= randomEnchantPreviewCost ? 'text-accent' : 'text-danger'">
+                约{{ randomEnchantPreviewCost }}文起
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-1">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeWeaponEnchantments.length === 0" @click="handleDisenchant">
+                祛魔
+              </Button>
+            </div>
+          </div>
+          <div class="border border-accent/10 rounded-xs p-2 mb-2">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-xs text-muted">定制附魔</span>
+              <span class="text-xs" :class="playerStore.money >= customEnchantCost ? 'text-accent' : 'text-danger'">{{ customEnchantCost }}文</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1 max-h-28 overflow-y-auto mb-2">
+              <label
+                v-for="enchant in availableEnchantments"
+                :key="enchant.id"
+                class="border rounded-xs px-2 py-1 cursor-pointer"
+                :class="selectedCustomEnchantments.includes(enchant.id) ? 'border-accent text-accent bg-accent/10' : 'border-accent/10 text-muted'"
+              >
+                <input v-model="selectedCustomEnchantments" class="hidden" type="checkbox" :value="enchant.id" />
+                <span class="text-xs">{{ enchant.name }}</span>
+                <span class="text-[10px] block truncate">{{ enchant.description }}</span>
+              </label>
+            </div>
+            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+              定制附魔
+            </Button>
           </div>
           <div class="flex flex-col space-y-1.5">
             <Button v-if="activeWeaponIdx !== inventoryStore.equippedWeaponIndex" class="w-full justify-center" @click="handleEquipWeapon">
@@ -769,7 +804,7 @@
 
 <script setup lang="ts">
   import { ref, computed, watch } from 'vue'
-  import { Apple, Archive, ArrowDown01, ArrowRight, BookMarked, Filter, Lock, LockOpen, Package, Trash2, X, Zap } from 'lucide-vue-next'
+  import { Apple, Archive, ArrowDown01, ArrowRight, BookMarked, Filter, Lock, LockOpen, Package, Sparkles, Trash2, X, Zap } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import { useCookingStore } from '@/stores/useCookingStore'
   import { useGameStore } from '@/stores/useGameStore'
@@ -779,7 +814,17 @@
   import { useSkillStore } from '@/stores/useSkillStore'
   import { getItemById, getItemSource } from '@/data'
   import { getRecipeById } from '@/data/recipes'
-  import { getWeaponById, getWeaponDisplayName, getWeaponSellPrice, getEnchantmentById, WEAPON_TYPE_NAMES } from '@/data/weapons'
+  import {
+    ENCHANTMENTS,
+    getWeaponById,
+    getWeaponDisplayName,
+    getWeaponSellPrice,
+    getWeaponEnchantmentIds,
+    getOwnedWeaponEnchantments,
+    getEnchantmentCost,
+    getCustomEnchantmentCost,
+    WEAPON_TYPE_NAMES
+  } from '@/data/weapons'
   import { getRingById } from '@/data/rings'
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
@@ -1025,6 +1070,9 @@
   // === 武器弹窗 ===
 
   const activeWeaponIdx = ref<number | null>(null)
+  const selectedCustomEnchantments = ref<string[]>([])
+  const availableEnchantments = Object.values(ENCHANTMENTS)
+  const randomEnchantPreviewCost = Math.min(...availableEnchantments.map(enchant => getEnchantmentCost(enchant.id)))
 
   const activeWeaponDef = computed(() => {
     if (activeWeaponIdx.value === null) return null
@@ -1037,27 +1085,57 @@
     if (activeWeaponIdx.value === null) return ''
     const weapon = inventoryStore.ownedWeapons[activeWeaponIdx.value]
     if (!weapon) return ''
-    return getWeaponDisplayName(weapon.defId, weapon.enchantmentId)
+    return getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)
   })
 
-  const activeWeaponEnchant = computed(() => {
-    if (activeWeaponIdx.value === null) return null
+  const activeWeaponEnchantments = computed(() => {
+    if (activeWeaponIdx.value === null) return []
     const weapon = inventoryStore.ownedWeapons[activeWeaponIdx.value]
-    if (!weapon?.enchantmentId) return null
-    return getEnchantmentById(weapon.enchantmentId) ?? null
+    if (!weapon) return []
+    return getOwnedWeaponEnchantments(weapon)
   })
 
   const activeWeaponPrice = computed(() => {
     if (activeWeaponIdx.value === null) return 0
     const weapon = inventoryStore.ownedWeapons[activeWeaponIdx.value]
     if (!weapon) return 0
-    return getWeaponSellPrice(weapon.defId, weapon.enchantmentId)
+    return getWeaponSellPrice(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)
+  })
+
+  const customEnchantCost = computed(() => getCustomEnchantmentCost(selectedCustomEnchantments.value))
+
+  watch(activeWeaponIdx, idx => {
+    const weapon = idx === null ? null : inventoryStore.ownedWeapons[idx]
+    selectedCustomEnchantments.value = weapon ? getWeaponEnchantmentIds(weapon) : []
   })
 
   const handleEquipWeapon = () => {
     if (activeWeaponIdx.value === null) return
     inventoryStore.equipWeapon(activeWeaponIdx.value)
     activeWeaponIdx.value = null
+  }
+
+  const handleRandomEnchant = () => {
+    if (activeWeaponIdx.value === null) return
+    const result = inventoryStore.randomlyEnchantWeapon(activeWeaponIdx.value)
+    addLog(result.message)
+    if (result.success) {
+      const weapon = inventoryStore.ownedWeapons[activeWeaponIdx.value]
+      selectedCustomEnchantments.value = weapon ? getWeaponEnchantmentIds(weapon) : []
+    }
+  }
+
+  const handleDisenchant = () => {
+    if (activeWeaponIdx.value === null) return
+    const result = inventoryStore.disenchantWeapon(activeWeaponIdx.value)
+    addLog(result.message)
+    if (result.success) selectedCustomEnchantments.value = []
+  }
+
+  const handleCustomEnchant = () => {
+    if (activeWeaponIdx.value === null) return
+    const result = inventoryStore.customizeWeaponEnchantments(activeWeaponIdx.value, selectedCustomEnchantments.value)
+    addLog(result.message)
   }
 
   const handleSellWeapon = () => {

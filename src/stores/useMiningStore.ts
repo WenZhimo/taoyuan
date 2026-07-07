@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
-import type { MonsterDef, CombatAction, CombatStatusEffect, CombatStatusType, MineFloorDef, MineTile, Quality } from '@/types'
+import type { MonsterDef, CombatAction, CombatStatusEffect, CombatStatusType, MineFloorDef, MineTile, Quality, EnchantmentDef } from '@/types'
 import {
   getFloor,
   getRewardNames,
@@ -20,7 +20,7 @@ import { getBombById } from '@/data/processing'
 import { getItemById } from '@/data/items'
 import {
   getWeaponById,
-  getEnchantmentById,
+  getOwnedWeaponEnchantments,
   MONSTER_DROP_WEAPONS,
   BOSS_DROP_WEAPONS,
   TREASURE_DROP_WEAPONS,
@@ -1154,8 +1154,7 @@ export const useMiningStore = defineStore('mining', () => {
     const cookingStore = useCookingStore()
     const defenseReduction = cookingStore.activeBuff?.type === 'defense' ? cookingStore.activeBuff.value / 100 : 0
     const owned = inventoryStore.getEquippedWeapon()
-    const enchant = owned.enchantmentId ? getEnchantmentById(owned.enchantmentId) : null
-    const sturdyReduction = enchant?.special === 'sturdy' ? 0.85 : 1.0
+    const sturdyReduction = getOwnedWeaponEnchantments(owned).some(enchant => enchant.special === 'sturdy') ? 0.85 : 1.0
     const ringDefenseBonus = inventoryStore.getRingEffectValue('defense_bonus')
     const ironSkinReduction = getPlayerStatusPower('iron_skin')
     return Math.max(
@@ -1172,7 +1171,7 @@ export const useMiningStore = defineStore('mining', () => {
     )
   }
 
-  const getEnchantmentStatus = (special: NonNullable<ReturnType<typeof getEnchantmentById>>['special']) => {
+  const getEnchantmentStatus = (special: EnchantmentDef['special']) => {
     if (special === 'poison') return createCombatStatus('poison', 4, 0.04, 'player')
     if (special === 'burn') return createCombatStatus('burn', 3, 0.06, 'player')
     if (special === 'freeze') return createCombatStatus('freeze', 1, 1, 'player')
@@ -1243,7 +1242,7 @@ export const useMiningStore = defineStore('mining', () => {
     // === 攻击 ===
     const owned = inventoryStore.getEquippedWeapon()
     const weaponDef = getWeaponById(owned.defId)
-    const enchant = owned.enchantmentId ? getEnchantmentById(owned.enchantmentId) : null
+    const enchantments = getOwnedWeaponEnchantments(owned)
 
     // 基础攻击力（含戒指加成 + 料理全技能加成）
     const baseAttack = buildPlayerAttack()
@@ -1275,14 +1274,17 @@ export const useMiningStore = defineStore('mining', () => {
     // 锤眩晕判定（20%概率跳过怪物反击）
     const isStunned = weaponDef?.type === 'club' && Math.random() < 0.2
 
-    const enchantStatus = enchant ? getEnchantmentStatus(enchant.special) : null
-    if (enchantStatus && Math.random() < 0.35) {
-      msg += ` ${addStatus('monster', enchantStatus)}`
+    for (const enchant of enchantments) {
+      const enchantStatus = getEnchantmentStatus(enchant.special)
+      if (enchantStatus && Math.random() < 0.35) {
+        msg += ` ${addStatus('monster', enchantStatus)}`
+      }
     }
 
     // 吸血（附魔 + 戒指叠加）
     const ringVampiric = inventoryStore.getRingEffectValue('vampiric')
-    const totalVampiric = (enchant?.special === 'vampiric' ? 0.15 : 0) + ringVampiric
+    const vampiricEnchantCount = enchantments.filter(enchant => enchant.special === 'vampiric').length
+    const totalVampiric = vampiricEnchantCount * 0.15 + ringVampiric
     if (totalVampiric > 0) {
       const healAmount = Math.floor((totalDamageDealt + extraDamage) * totalVampiric)
       if (healAmount > 0) {
@@ -1346,11 +1348,11 @@ export const useMiningStore = defineStore('mining', () => {
 
     // 幸运附魔 + 戒指增加掉落率
     const owned = inventoryStore.getEquippedWeapon()
-    const enchant = owned.enchantmentId ? getEnchantmentById(owned.enchantmentId) : null
+    const luckyEnchantCount = getOwnedWeaponEnchantments(owned).filter(enchant => enchant.special === 'lucky').length
     const ringDropBonus = inventoryStore.getRingEffectValue('monster_drop_bonus')
     const ringLuckBonus = inventoryStore.getRingEffectValue('luck')
     const luckyBonus =
-      (enchant?.special === 'lucky' ? 0.2 : 0) +
+      luckyEnchantCount * 0.2 +
       ringDropBonus +
       ringLuckBonus * 0.5 +
       (slayerCharmActive.value ? 0.2 : 0) +

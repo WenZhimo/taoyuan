@@ -102,31 +102,39 @@
           <!-- 鱼列表 -->
           <div v-else class="flex flex-col space-y-1.5 max-h-80 overflow-auto">
             <div
-              v-for="fish in fishPondStore.pond.fish"
-              :key="fish.id"
+              v-for="group in fishPondStore.fishGroups"
+              :key="group.fishId"
               class="border rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors mr-1"
-              :class="
-                fish.sick ? 'border-danger/30' : selectedBreedingFish?.id === fish.id ? 'border-accent bg-accent/10' : 'border-accent/20'
-              "
-              @click="openFishDetail(fish)"
+              :class="group.sickCount > 0 ? 'border-danger/30' : 'border-accent/20'"
+              @click="detailGroupFishId = group.fishId"
             >
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-1.5">
-                  <Waves v-if="fish.mature && !fish.sick" :size="12" class="text-success" />
-                  <HeartPulse v-else-if="fish.sick" :size="12" class="text-danger" />
+                  <Waves v-if="group.matureCount > 0 && group.sickCount === 0" :size="12" class="text-success" />
+                  <HeartPulse v-else-if="group.sickCount > 0" :size="12" class="text-danger" />
                   <Fish v-else :size="12" class="text-muted/40" />
-                  <span class="text-xs" :class="fish.sick ? 'text-danger' : fish.mature ? 'text-text' : 'text-muted'">
-                    {{ fish.name }}
+                  <span class="text-xs" :class="group.sickCount > 0 ? 'text-danger' : group.matureCount > 0 ? 'text-text' : 'text-muted'">
+                    {{ group.name }} ×{{ group.count }}
                   </span>
-                  <span v-if="fish.sick" class="text-[10px] text-danger">[病]</span>
-                  <span v-if="!fish.mature" class="text-[10px] text-muted">[幼]</span>
+                  <span v-if="group.sickCount > 0" class="text-[10px] text-danger">病{{ group.sickCount }}</span>
+                  <span v-if="group.juvenileCount > 0" class="text-[10px] text-muted">幼{{ group.juvenileCount }}</span>
                 </div>
                 <div class="flex items-center space-x-2">
                   <span class="text-[10px] text-accent flex items-center space-x-px">
-                    <Star v-for="n in fishPondStore.getGeneticStarRating(fish.genetics)" :key="n" :size="10" />
+                    <Star v-for="n in group.averageStars" :key="n" :size="10" />
                   </span>
-                  <span class="text-[10px] text-muted">{{ fish.daysInPond }}天</span>
+                  <span class="text-[10px] text-muted">均{{ group.averageDays }}天</span>
                 </div>
+              </div>
+              <div v-if="group.matureCount >= 2" class="mt-1.5 flex items-center space-x-2 text-[10px] text-muted">
+                <span class="shrink-0">繁衍</span>
+                <div class="flex-1 h-1 bg-bg rounded-xs border border-accent/10">
+                  <div
+                    class="h-full rounded-xs bg-success transition-all"
+                    :style="{ width: `${Math.min(100, ((fishPondStore.pond.reproductionProgress[group.fishId] ?? 0) / breedingTotalDays) * 100)}%` }"
+                  />
+                </div>
+                <span>{{ fishPondStore.pond.reproductionProgress[group.fishId] ?? 0 }}/{{ breedingTotalDays }}</span>
               </div>
             </div>
           </div>
@@ -155,25 +163,25 @@
           </div>
         </div>
 
-        <!-- 繁殖 -->
+        <!-- 育苗塘 -->
         <div class="mb-3">
-          <Divider label="繁殖" />
-          <!-- 繁殖中 -->
-          <div v-if="fishPondStore.pond.breeding" class="border border-accent/20 rounded-xs px-3 py-2">
-            <div class="flex items-center justify-between mb-1">
-              <div class="flex items-center space-x-1.5">
-                <Heart :size="12" class="text-accent" />
-                <span class="text-xs text-accent">繁殖中</span>
+          <Divider label="育苗塘" />
+          <div v-if="fishPondStore.pond.nurseryBreeding.length > 0" class="flex flex-col space-y-1.5 mb-2">
+            <div v-for="pair in fishPondStore.pond.nurseryBreeding" :key="pair.id" class="border border-accent/20 rounded-xs px-3 py-2">
+              <div class="flex items-center justify-between mb-1">
+                <div class="flex items-center space-x-1.5">
+                  <Heart :size="12" class="text-accent" />
+                  <span class="text-xs text-accent">{{ getPondableFishName(pair.fishId) }}</span>
+                </div>
+                <span class="text-xs text-muted">{{ pair.daysLeft }}/{{ breedingTotalDays }}天</span>
               </div>
-              <span class="text-xs text-muted">{{ fishPondStore.pond.breeding.daysLeft }}/{{ breedingTotalDays }}天</span>
+              <div class="h-1 bg-bg rounded-xs border border-accent/10">
+                <div class="h-full rounded-xs bg-accent transition-all" :style="{ width: `${getBreedingProgress(pair.daysLeft)}%` }" />
+              </div>
             </div>
-            <div class="h-1 bg-bg rounded-xs border border-accent/10">
-              <div class="h-full rounded-xs bg-accent transition-all" :style="{ width: breedingProgress + '%' }" />
-            </div>
-            <p class="text-[10px] text-muted mt-1">品种：{{ getPondableFishName(fishPondStore.pond.breeding.fishId) }}</p>
           </div>
           <!-- 已选择一条 -->
-          <div v-else-if="selectedBreedingFish" class="border border-accent/20 rounded-xs px-3 py-2">
+          <div v-if="selectedBreedingFish" class="border border-accent/20 rounded-xs px-3 py-2">
             <div class="flex items-center justify-between mb-1">
               <div class="flex items-center space-x-1.5">
                 <Heart :size="12" class="text-muted/40" />
@@ -189,10 +197,10 @@
             <p class="text-[10px] text-muted">请从鱼列表中点击同种成熟鱼进行配对</p>
           </div>
           <!-- 空状态 -->
-          <div v-else class="border border-accent/10 rounded-xs py-6 flex flex-col items-center space-y-2">
+          <div v-else-if="fishPondStore.pond.nurseryBreeding.length === 0" class="border border-accent/10 rounded-xs py-6 flex flex-col items-center space-y-2">
             <Heart :size="32" class="text-muted/30" />
-            <p class="text-xs text-muted">选择两条同种成熟鱼开始繁殖</p>
-            <p class="text-xs text-muted/60">需要鱼塘有空余容量</p>
+            <p class="text-xs text-muted">选择两条同种成熟鱼开始育苗</p>
+            <p class="text-xs text-muted/60">可同时进行多组育苗</p>
           </div>
         </div>
       </template>
@@ -257,6 +265,55 @@
       </template>
     </template>
 
+    <!-- 鱼种明细弹窗 -->
+    <Transition name="panel-fade">
+      <div v-if="detailGroup" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" @click.self="detailGroupFishId = null">
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="detailGroupFishId = null">
+            <X :size="14" />
+          </button>
+
+          <p class="text-sm text-accent mb-2">{{ detailGroup.name }} ×{{ detailGroup.count }}</p>
+          <div class="grid grid-cols-3 gap-1 text-center mb-2">
+            <div class="border border-accent/10 rounded-xs py-1">
+              <p class="text-[10px] text-muted">成熟</p>
+              <p class="text-xs text-success">{{ detailGroup.matureCount }}</p>
+            </div>
+            <div class="border border-accent/10 rounded-xs py-1">
+              <p class="text-[10px] text-muted">生病</p>
+              <p class="text-xs text-danger">{{ detailGroup.sickCount }}</p>
+            </div>
+            <div class="border border-accent/10 rounded-xs py-1">
+              <p class="text-[10px] text-muted">幼鱼</p>
+              <p class="text-xs text-muted">{{ detailGroup.juvenileCount }}</p>
+            </div>
+          </div>
+          <Button class="w-full justify-center mb-2" :disabled="detailGroup.matureCount < 2" @click="handleStartGroupBreeding(detailGroup.fishId)">
+            批量育苗
+          </Button>
+          <div class="flex flex-col space-y-1 max-h-60 overflow-y-auto">
+            <div v-for="fish in detailGroup.fish" :key="fish.id" class="border border-accent/10 rounded-xs px-2 py-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs" :class="fish.sick ? 'text-danger' : fish.mature ? 'text-text' : 'text-muted'">
+                  {{ fish.name }}
+                  <span v-if="fish.sick" class="text-[10px]">[病]</span>
+                  <span v-if="!fish.mature" class="text-[10px]">[幼]</span>
+                </span>
+                <span class="text-[10px] text-muted">{{ fish.daysInPond }}天</span>
+              </div>
+              <div class="flex space-x-1 mt-1">
+                <Button class="flex-1 justify-center py-0.5" @click="openFishDetail(fish)">详情</Button>
+                <Button class="flex-1 justify-center py-0.5" :disabled="!fish.mature || fish.sick || fishPondStore.activeNurseryParentIds.has(fish.id)" @click="handleSelectForBreeding(fish)">
+                  选亲
+                </Button>
+                <Button class="flex-1 justify-center py-0.5" @click="handleRemoveFish(fish.id)">取出</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- 鱼详情弹窗 -->
     <Transition name="panel-fade">
       <div v-if="detailFish" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" @click.self="detailFish = null">
@@ -292,10 +349,10 @@
             <Button
               v-if="detailFish.mature && !detailFish.sick"
               class="w-full justify-center"
-              :class="{ '!bg-accent !text-bg': !fishPondStore.pond.breeding }"
+              :class="{ '!bg-accent !text-bg': !fishPondStore.activeNurseryParentIds.has(detailFish.id) }"
               :icon="Heart"
               :icon-size="12"
-              :disabled="!!fishPondStore.pond.breeding"
+              :disabled="fishPondStore.activeNurseryParentIds.has(detailFish.id)"
               @click="handleDetailBreed"
             >
               选为繁殖亲本
@@ -402,6 +459,7 @@
   const currentTab = ref<'pond' | 'compendium'>('pond')
   const selectedBreedingFish = ref<PondFish | null>(null)
   const detailFish = ref<PondFish | null>(null)
+  const detailGroupFishId = ref<string | null>(null)
   const compendiumGen = ref<1 | 2 | 3 | 4 | 5>(1)
 
   /** 建造/升级统一弹窗 */
@@ -452,11 +510,10 @@
 
   /** 繁殖进度 */
   const breedingTotalDays = FISH_BREEDING_DAYS
-  const breedingProgress = computed(() => {
-    if (!fishPondStore.pond.breeding) return 0
-    return ((breedingTotalDays - fishPondStore.pond.breeding.daysLeft) / breedingTotalDays) * 100
-  })
-  const pondCapacityLabel = computed(() => (Number.isFinite(fishPondStore.capacity) ? String(fishPondStore.capacity) : '无限'))
+  const formatCapacity = (capacity: number): string => (Number.isFinite(capacity) ? String(capacity) : '无限')
+  const getBreedingProgress = (daysLeft: number): number => ((breedingTotalDays - daysLeft) / breedingTotalDays) * 100
+  const pondCapacityLabel = computed(() => formatCapacity(fishPondStore.capacity))
+  const detailGroup = computed(() => fishPondStore.fishGroups.find(group => group.fishId === detailGroupFishId.value) ?? null)
 
   // === 建造/升级统一弹窗 ===
 
@@ -466,11 +523,11 @@
 
   const modalCurrentLevel = computed(() => (pondModal.value === 'build' ? 1 : fishPondStore.pond.level))
 
-  const modalCurrentCapacity = computed(() => (pondModal.value === 'build' ? POND_CAPACITY[1] : fishPondStore.capacity))
+  const modalCurrentCapacity = computed(() => formatCapacity(pondModal.value === 'build' ? POND_CAPACITY[1] : fishPondStore.capacity))
 
   const modalTargetLevel = computed(() => upgradeNextLevel.value)
 
-  const modalTargetCapacity = computed(() => POND_CAPACITY[upgradeNextLevel.value])
+  const modalTargetCapacity = computed(() => formatCapacity(upgradeNextLevel.value >= 3 ? Number.POSITIVE_INFINITY : POND_CAPACITY[upgradeNextLevel.value]))
 
   const modalMoney = computed(() =>
     pondModal.value === 'build' ? POND_BUILD_COST.money : POND_UPGRADE_COSTS[upgradeNextLevel.value].money
@@ -627,12 +684,29 @@
     if (fishPondStore.removeFish(pondFishId)) {
       addLog('取出了一条鱼。')
       selectedBreedingFish.value = null
+      if (detailGroup.value?.fish.length === 0) detailGroupFishId.value = null
     } else {
       addLog('背包已满，无法取出。')
     }
   }
 
+  const handleStartGroupBreeding = (fishId: string) => {
+    const started = fishPondStore.startBreedingForSpecies(fishId)
+    if (started > 0) {
+      addLog(`已开始${started}组育苗，${breedingTotalDays}天后出结果。`)
+      showFloat(`育苗 +${started}`, 'success')
+      selectedBreedingFish.value = null
+    } else {
+      addLog('没有足够的可用同种成熟鱼进行育苗。')
+    }
+  }
+
   const handleSelectForBreeding = (fish: PondFish) => {
+    if (fishPondStore.activeNurseryParentIds.has(fish.id)) {
+      addLog('这条鱼正在育苗中，暂时不能作为亲本。')
+      return
+    }
+
     if (!selectedBreedingFish.value) {
       selectedBreedingFish.value = fish
       return
@@ -645,14 +719,16 @@
 
     // 尝试配对
     if (fishPondStore.startBreeding(selectedBreedingFish.value.id, fish.id)) {
-      addLog(`${fish.name}开始繁殖，${fishPondStore.pond.breeding!.daysLeft}天后出结果。`)
-      showFloat('开始繁殖', 'success')
+      addLog(`${fish.name}开始育苗，${breedingTotalDays}天后出结果。`)
+      showFloat('开始育苗', 'success')
       selectedBreedingFish.value = null
     } else {
       if (selectedBreedingFish.value.fishId !== fish.fishId) {
         addLog('只能配对同种鱼。')
       } else if (fishPondStore.isFull) {
-        addLog('鱼塘已满，无法繁殖。')
+        addLog('鱼塘已满，无法育苗。')
+      } else if (fishPondStore.activeNurseryParentIds.has(selectedBreedingFish.value.id) || fishPondStore.activeNurseryParentIds.has(fish.id)) {
+        addLog('亲本正在育苗中，不能重复配对。')
       } else {
         addLog('无法配对，请确认鱼已成熟且未生病。')
       }

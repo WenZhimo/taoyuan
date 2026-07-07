@@ -14,7 +14,17 @@ export interface EquipmentPreset {
 }
 import { showFloat } from '@/composables/useGameLog'
 import { getItemById } from '@/data/items'
-import { getWeaponById, getEnchantmentById, getWeaponSellPrice } from '@/data/weapons'
+import {
+  getWeaponById,
+  getEnchantmentById,
+  getWeaponSellPrice,
+  normalizeEnchantmentIds,
+  getWeaponEnchantmentIds,
+  getOwnedWeaponEnchantments,
+  rollWeightedEnchantment,
+  getEnchantmentCost,
+  getCustomEnchantmentCost
+} from '@/data/weapons'
 import { getRingById } from '@/data/rings'
 import { getHatById } from '@/data/hats'
 import { getShoeById } from '@/data/shoes'
@@ -41,7 +51,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   ])
 
   /** 拥有的武器列表 */
-  const ownedWeapons = ref<OwnedWeapon[]>([{ defId: 'wooden_stick', enchantmentId: null }])
+  const ownedWeapons = ref<OwnedWeapon[]>([{ defId: 'wooden_stick', enchantmentId: null, enchantmentIds: [] }])
   /** 当前装备的武器索引 */
   const equippedWeaponIndex = ref(0)
 
@@ -79,7 +89,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 获取当前装备的武器 */
   const getEquippedWeapon = (): OwnedWeapon => {
-    return ownedWeapons.value[equippedWeaponIndex.value] ?? { defId: 'wooden_stick', enchantmentId: null }
+    return ownedWeapons.value[equippedWeaponIndex.value] ?? { defId: 'wooden_stick', enchantmentId: null, enchantmentIds: [] }
   }
 
   /** 获取武器攻击力（含附魔加成） */
@@ -88,9 +98,8 @@ export const useInventoryStore = defineStore('inventory', () => {
     const def = getWeaponById(owned.defId)
     if (!def) return 5
     let attack = def.attack
-    if (owned.enchantmentId) {
-      const enchant = getEnchantmentById(owned.enchantmentId)
-      if (enchant) attack += enchant.attackBonus
+    for (const enchant of getOwnedWeaponEnchantments(owned)) {
+      attack += enchant.attackBonus
     }
     return attack
   }
@@ -101,16 +110,16 @@ export const useInventoryStore = defineStore('inventory', () => {
     const def = getWeaponById(owned.defId)
     if (!def) return 0.02
     let critRate = def.critRate
-    if (owned.enchantmentId) {
-      const enchant = getEnchantmentById(owned.enchantmentId)
-      if (enchant) critRate += enchant.critBonus
+    for (const enchant of getOwnedWeaponEnchantments(owned)) {
+      critRate += enchant.critBonus
     }
     return critRate
   }
 
   /** 添加武器到收藏 */
-  const addWeapon = (defId: string, enchantmentId: string | null = null): boolean => {
-    ownedWeapons.value.push({ defId, enchantmentId })
+  const addWeapon = (defId: string, enchantment: string | string[] | null = null): boolean => {
+    const enchantmentIds = normalizeEnchantmentIds(enchantment)
+    ownedWeapons.value.push({ defId, enchantmentId: enchantmentIds[0] ?? null, enchantmentIds })
     useAchievementStore().discoverItem(defId)
     return true
   }
@@ -121,8 +130,9 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   /** 检查是否已拥有完全相同的武器（同defId + 同附魔） */
-  const hasWeaponExact = (defId: string, enchantmentId: string | null): boolean => {
-    return ownedWeapons.value.some(w => w.defId === defId && w.enchantmentId === enchantmentId)
+  const hasWeaponExact = (defId: string, enchantment: string | string[] | null): boolean => {
+    const target = normalizeEnchantmentIds(enchantment).join('|')
+    return ownedWeapons.value.some(w => w.defId === defId && getWeaponEnchantmentIds(w).join('|') === target)
   }
 
   /** 装备武器（按索引） */
@@ -132,13 +142,60 @@ export const useInventoryStore = defineStore('inventory', () => {
     return true
   }
 
+  const setWeaponEnchantments = (index: number, enchantmentIds: string[]): boolean => {
+    const weapon = ownedWeapons.value[index]
+    if (!weapon) return false
+    const normalized = normalizeEnchantmentIds(enchantmentIds)
+    weapon.enchantmentIds = normalized
+    weapon.enchantmentId = normalized[0] ?? null
+    return true
+  }
+
+  const randomlyEnchantWeapon = (index: number): { success: boolean; message: string; enchantmentId?: string; cost?: number } => {
+    const weapon = ownedWeapons.value[index]
+    if (!weapon) return { success: false, message: '无效武器。' }
+    const enchantmentId = rollWeightedEnchantment()
+    const cost = getEnchantmentCost(enchantmentId)
+    const playerStore = usePlayerStore()
+    if (playerStore.money < cost) return { success: false, message: `铜钱不足（需要${cost}文）。`, enchantmentId, cost }
+    playerStore.spendMoney(cost)
+    setWeaponEnchantments(index, [enchantmentId])
+    const enchant = getEnchantmentById(enchantmentId)
+    return { success: true, message: `附魔完成：${enchant?.name ?? enchantmentId}。`, enchantmentId, cost }
+  }
+
+  const disenchantWeapon = (index: number): { success: boolean; message: string; cost?: number } => {
+    const weapon = ownedWeapons.value[index]
+    if (!weapon) return { success: false, message: '无效武器。' }
+    if (getWeaponEnchantmentIds(weapon).length === 0) return { success: false, message: '这把武器没有附魔。' }
+    const cost = Math.max(300, Math.floor(getWeaponSellPrice(weapon.defId, weapon.enchantmentIds) * 0.15))
+    const playerStore = usePlayerStore()
+    if (playerStore.money < cost) return { success: false, message: `铜钱不足（需要${cost}文）。`, cost }
+    playerStore.spendMoney(cost)
+    setWeaponEnchantments(index, [])
+    return { success: true, message: '附魔已祛除。', cost }
+  }
+
+  const customizeWeaponEnchantments = (index: number, enchantmentIds: string[]): { success: boolean; message: string; cost?: number } => {
+    const weapon = ownedWeapons.value[index]
+    if (!weapon) return { success: false, message: '无效武器。' }
+    const normalized = normalizeEnchantmentIds(enchantmentIds)
+    if (normalized.length === 0) return { success: false, message: '请至少选择一种附魔。' }
+    const cost = getCustomEnchantmentCost(normalized)
+    const playerStore = usePlayerStore()
+    if (playerStore.money < cost) return { success: false, message: `铜钱不足（需要${cost}文）。`, cost }
+    playerStore.spendMoney(cost)
+    setWeaponEnchantments(index, normalized)
+    return { success: true, message: `定制附魔完成，共${normalized.length}种附魔。`, cost }
+  }
+
   /** 卖出武器（不能卖装备中的武器，不能卖唯一武器） */
   const sellWeapon = (index: number): { success: boolean; message: string } => {
     if (ownedWeapons.value.length <= 1) return { success: false, message: '至少保留一把武器。' }
     if (index === equippedWeaponIndex.value) return { success: false, message: '不能卖出装备中的武器，请先切换。' }
     if (index < 0 || index >= ownedWeapons.value.length) return { success: false, message: '无效索引。' }
     const weapon = ownedWeapons.value[index]!
-    const price = getWeaponSellPrice(weapon.defId, weapon.enchantmentId)
+    const price = getWeaponSellPrice(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)
     const playerStore = usePlayerStore()
     playerStore.earnMoney(price)
     ownedWeapons.value.splice(index, 1)
@@ -897,8 +954,8 @@ export const useInventoryStore = defineStore('inventory', () => {
       const atkDiff = (defB?.attack ?? 0) - (defA?.attack ?? 0)
       if (atkDiff !== 0) return atkDiff
       // 附魔加成降序
-      const enchA = a.enchantmentId ? (getEnchantmentById(a.enchantmentId)?.attackBonus ?? 0) : 0
-      const enchB = b.enchantmentId ? (getEnchantmentById(b.enchantmentId)?.attackBonus ?? 0) : 0
+      const enchA = getOwnedWeaponEnchantments(a).reduce((sum, enchant) => sum + enchant.attackBonus, 0)
+      const enchB = getOwnedWeaponEnchantments(b).reduce((sum, enchant) => sum + enchant.attackBonus, 0)
       if (enchB !== enchA) return enchB - enchA
       return a.defId.localeCompare(b.defId)
     })
@@ -981,7 +1038,14 @@ export const useInventoryStore = defineStore('inventory', () => {
 
     // 新版武器系统
     if ((data as any).ownedWeapons) {
-      ownedWeapons.value = (data as any).ownedWeapons
+      ownedWeapons.value = ((data as any).ownedWeapons as any[]).map(w => {
+        const enchantmentIds = normalizeEnchantmentIds(w.enchantmentIds && w.enchantmentIds.length > 0 ? w.enchantmentIds : w.enchantmentId)
+        return {
+          defId: w.defId ?? 'wooden_stick',
+          enchantmentId: enchantmentIds[0] ?? null,
+          enchantmentIds
+        }
+      })
       equippedWeaponIndex.value = (data as any).equippedWeaponIndex ?? 0
     } else {
       // 旧存档迁移：weapon: { tier: 'copper' } → ownedWeapons
@@ -994,10 +1058,10 @@ export const useInventoryStore = defineStore('inventory', () => {
           gold: 'gold_halberd'
         }
         const defId = tierMap[oldWeapon.tier as string] ?? 'wooden_stick'
-        ownedWeapons.value = [{ defId, enchantmentId: null }]
+        ownedWeapons.value = [{ defId, enchantmentId: null, enchantmentIds: [] }]
         equippedWeaponIndex.value = 0
       } else {
-        ownedWeapons.value = [{ defId: 'wooden_stick', enchantmentId: null }]
+        ownedWeapons.value = [{ defId: 'wooden_stick', enchantmentId: null, enchantmentIds: [] }]
         equippedWeaponIndex.value = 0
       }
     }
@@ -1064,6 +1128,10 @@ export const useInventoryStore = defineStore('inventory', () => {
     hasWeapon,
     hasWeaponExact,
     equipWeapon,
+    setWeaponEnchantments,
+    randomlyEnchantWeapon,
+    disenchantWeapon,
+    customizeWeaponEnchantments,
     sellWeapon,
     ownedRings,
     equippedRingSlot1,

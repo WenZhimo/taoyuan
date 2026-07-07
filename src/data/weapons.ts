@@ -1,5 +1,7 @@
 import type { WeaponDef, EnchantmentDef, WeaponType } from '@/types'
 
+export type WeaponEnchantInput = string | string[] | null | undefined
+
 /** 附魔定义 */
 export const ENCHANTMENTS: Record<string, EnchantmentDef> = {
   sharp: {
@@ -84,13 +86,78 @@ export const ENCHANTMENTS: Record<string, EnchantmentDef> = {
   }
 }
 
+/** 附魔稀有度：数值越高越稀有，价格越贵 */
+export const ENCHANTMENT_RARITY: Record<string, number> = {
+  sharp: 1,
+  fierce: 2,
+  precise: 2,
+  venom: 3,
+  flame: 3,
+  sturdy: 3,
+  vampiric: 4,
+  lucky: 4,
+  frost: 4,
+  irradiated: 5
+}
+
 /** 可用于随机附魔的 ID 列表 */
-const RANDOM_ENCHANT_IDS = ['sharp', 'fierce', 'precise', 'vampiric', 'sturdy', 'lucky', 'venom', 'flame', 'frost']
+export const RANDOM_ENCHANT_IDS = ['sharp', 'fierce', 'precise', 'venom', 'flame', 'sturdy', 'vampiric', 'lucky', 'frost', 'irradiated']
+
+export const normalizeEnchantmentIds = (input: WeaponEnchantInput): string[] => {
+  if (!input) return []
+  const raw = Array.isArray(input) ? input : [input]
+  return raw.filter(id => Boolean(ENCHANTMENTS[id]))
+}
+
+export const getWeaponEnchantmentIds = (weapon: { enchantmentId?: string | null; enchantmentIds?: string[] }): string[] => {
+  return normalizeEnchantmentIds(weapon.enchantmentIds && weapon.enchantmentIds.length > 0 ? weapon.enchantmentIds : weapon.enchantmentId)
+}
+
+export const getWeaponEnchantments = (input: WeaponEnchantInput): EnchantmentDef[] => {
+  return normalizeEnchantmentIds(input)
+    .map(id => ENCHANTMENTS[id])
+    .filter((enchant): enchant is EnchantmentDef => Boolean(enchant))
+}
+
+export const getOwnedWeaponEnchantments = (weapon: { enchantmentId?: string | null; enchantmentIds?: string[] }): EnchantmentDef[] => {
+  return getWeaponEnchantmentIds(weapon)
+    .map(id => ENCHANTMENTS[id])
+    .filter((enchant): enchant is EnchantmentDef => Boolean(enchant))
+}
+
+export const getEnchantmentCost = (enchantmentId: string): number => {
+  const enchant = ENCHANTMENTS[enchantmentId]
+  if (!enchant) return 0
+  const rarity = ENCHANTMENT_RARITY[enchantmentId] ?? 1
+  const rarityBase = [0, 800, 1600, 3200, 6000, 10000][rarity] ?? 12000
+  const attackCost = enchant.attackBonus * 180
+  const critCost = Math.round(enchant.critBonus * 12000)
+  const specialCost = enchant.special ? rarity * 450 : 0
+  return rarityBase + attackCost + critCost + specialCost
+}
+
+export const getCustomEnchantmentCost = (enchantmentIds: string[]): number => {
+  return normalizeEnchantmentIds(enchantmentIds).reduce((sum, id) => sum + getEnchantmentCost(id), 0) * 10
+}
+
+export const rollWeightedEnchantment = (): string => {
+  const entries = RANDOM_ENCHANT_IDS.map(id => {
+    const rarity = ENCHANTMENT_RARITY[id] ?? 1
+    return { id, weight: 1 / (rarity * rarity) }
+  })
+  const total = entries.reduce((sum, entry) => sum + entry.weight, 0)
+  let roll = Math.random() * total
+  for (const entry of entries) {
+    roll -= entry.weight
+    if (roll <= 0) return entry.id
+  }
+  return entries[0]!.id
+}
 
 /** 随机获取一个附魔（30% 概率触发） */
 export const rollRandomEnchantment = (): string | null => {
   if (Math.random() >= 0.3) return null
-  return RANDOM_ENCHANT_IDS[Math.floor(Math.random() * RANDOM_ENCHANT_IDS.length)]!
+  return rollWeightedEnchantment()
 }
 
 /** 武器类型中文名 */
@@ -516,26 +583,24 @@ export const getEnchantmentById = (id: string): EnchantmentDef | undefined => {
 }
 
 /** 计算武器卖出价格 */
-export const getWeaponSellPrice = (defId: string, enchantmentId: string | null): number => {
+export const getWeaponSellPrice = (defId: string, enchantment: WeaponEnchantInput): number => {
   const def = WEAPONS[defId]
   if (!def) return 0
   const base = def.shopPrice ? Math.floor(def.shopPrice * 0.5) : def.attack * 15
   // 附魔额外加价
-  if (enchantmentId) {
-    const enchant = ENCHANTMENTS[enchantmentId]
-    if (enchant) return base + 100 + enchant.attackBonus * 20
-  }
-  return base
+  const enchantmentIds = normalizeEnchantmentIds(enchantment)
+  const enchantmentValue = enchantmentIds.reduce((sum, id) => sum + Math.floor(getEnchantmentCost(id) * 0.2), 0)
+  return base + enchantmentValue
 }
 
 /** 获取附魔武器的显示名称 */
-export const getWeaponDisplayName = (defId: string, enchantmentId: string | null): string => {
+export const getWeaponDisplayName = (defId: string, enchantment: WeaponEnchantInput): string => {
   const weapon = WEAPONS[defId]
   if (!weapon) return defId
-  if (!enchantmentId) return weapon.name
-  const enchant = ENCHANTMENTS[enchantmentId]
-  if (!enchant) return weapon.name
-  return `${enchant.name}的${weapon.name}`
+  const enchantments = getWeaponEnchantments(enchantment)
+  if (enchantments.length === 0) return weapon.name
+  if (enchantments.length <= 2) return `${enchantments.map(enchant => enchant.name).join('·')}的${weapon.name}`
+  return `${enchantments[0]!.name}等${enchantments.length}附魔的${weapon.name}`
 }
 
 /** 宝箱掉落武器（按矿洞区域） */

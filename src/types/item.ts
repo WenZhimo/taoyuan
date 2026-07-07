@@ -96,7 +96,10 @@ export interface EnchantmentDef {
 /** 拥有的武器实例 */
 export interface OwnedWeapon {
   defId: string
-  enchantmentId: string | null
+  /** 旧存档/旧逻辑兼容字段：等同于 enchantmentIds 的第一项 */
+  enchantmentId?: string | null
+  /** 当前附魔列表，允许多附魔 */
+  enchantmentIds?: string[]
 }
 
 /** 箱子阶梯 */

@@ -47,10 +47,23 @@ export interface PondBreedDef {
 
 /** 繁殖槽 */
 export interface BreedingPair {
+  id: string
   parentA: string
   parentB: string
   daysLeft: number
   fishId: string
+}
+
+export interface PondFishGroup {
+  fishId: string
+  name: string
+  fish: PondFish[]
+  count: number
+  matureCount: number
+  sickCount: number
+  juvenileCount: number
+  averageStars: number
+  averageDays: number
 }
 
 /** 鱼塘状态 */
@@ -61,7 +74,12 @@ export interface FishPondState {
   /** 水质 0-100 */
   waterQuality: number
   fedToday: boolean
+  /** 旧存档兼容字段，读取后会迁移到 nurseryBreeding */
   breeding: BreedingPair | null
+  /** 育苗塘：人工选择亲本的繁殖任务 */
+  nurseryBreeding: BreedingPair[]
+  /** 繁衍塘：按鱼种累积的自然繁衍进度 */
+  reproductionProgress: Record<string, number>
   collectedToday: boolean
 }
 
@@ -85,7 +103,8 @@ export interface PondDailyResult {
   died: string[]
   gotSick: string[]
   healed: string[]
-  bred: string | null
+  bred: string[]
+  reproduced: { fishId: string; name: string; quantity: number }[]
   /** 繁殖失败原因 */
-  breedingFailed: string | null
+  breedingFailed: string[]
 }

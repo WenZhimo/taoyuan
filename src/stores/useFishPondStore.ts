@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { PondLevel, FishPondState, PondFish, FishGenetics, PondDailyResult } from '@/types/fishPond'
+import type { PondLevel, FishPondState, PondFish, FishGenetics, PondDailyResult, BreedingPair } from '@/types/fishPond'
 import type { Quality } from '@/types'
 import {
   POND_BUILD_COST,
@@ -34,6 +34,11 @@ const generateFishId = (): string => {
   return `pf_${Date.now()}_${_idCounter}`
 }
 
+const generateBreedingId = (): string => {
+  _idCounter++
+  return `pb_${Date.now()}_${_idCounter}`
+}
+
 const clamp = (v: number, min: number, max: number): number => Math.max(min, Math.min(max, v))
 
 export const useFishPondStore = defineStore('fishPond', () => {
@@ -46,6 +51,8 @@ export const useFishPondStore = defineStore('fishPond', () => {
     waterQuality: 100,
     fedToday: false,
     breeding: null,
+    nurseryBreeding: [],
+    reproductionProgress: {},
     collectedToday: false
   })
 
@@ -63,6 +70,32 @@ export const useFishPondStore = defineStore('fishPond', () => {
   const isFull = computed(() => fishCount.value >= capacity.value)
   const sickFish = computed(() => pond.value.fish.filter(f => f.sick))
   const matureFish = computed(() => pond.value.fish.filter(f => f.mature))
+  const fishGroups = computed(() => {
+    const map = new Map<string, PondFish[]>()
+    for (const fish of pond.value.fish) {
+      const list = map.get(fish.fishId) ?? []
+      list.push(fish)
+      map.set(fish.fishId, list)
+    }
+    return [...map.entries()]
+      .map(([fishId, fish]) => {
+        const count = fish.length
+        const totalStars = fish.reduce((sum, f) => sum + getGeneticStarRating(f.genetics), 0)
+        const totalDays = fish.reduce((sum, f) => sum + f.daysInPond, 0)
+        return {
+          fishId,
+          name: getPondableFish(fishId)?.name ?? fish[0]?.name ?? fishId,
+          fish,
+          count,
+          matureCount: fish.filter(f => f.mature).length,
+          sickCount: fish.filter(f => f.sick).length,
+          juvenileCount: fish.filter(f => !f.mature).length,
+          averageStars: count > 0 ? Math.round(totalStars / count) : 0,
+          averageDays: count > 0 ? Math.floor(totalDays / count) : 0
+        }
+      })
+      .sort((a, b) => a.name.localeCompare(b.name))
+  })
 
   /** 密度百分比 */
   const density = computed(() => {
@@ -152,9 +185,7 @@ export const useFishPondStore = defineStore('fishPond', () => {
     inventoryStore.addItem(fish.fishId, 1)
     pond.value.fish.splice(idx, 1)
     // 如果正在繁殖的鱼被取出，取消繁殖
-    if (pond.value.breeding && (pond.value.breeding.parentA === pondFishId || pond.value.breeding.parentB === pondFishId)) {
-      pond.value.breeding = null
-    }
+    pond.value.nurseryBreeding = pond.value.nurseryBreeding.filter(pair => pair.parentA !== pondFishId && pair.parentB !== pondFishId)
     return true
   }
 
@@ -193,25 +224,47 @@ export const useFishPondStore = defineStore('fishPond', () => {
 
   // === 繁殖 ===
 
+  const activeNurseryParentIds = computed(() => {
+    const ids = new Set<string>()
+    for (const pair of pond.value.nurseryBreeding) {
+      ids.add(pair.parentA)
+      ids.add(pair.parentB)
+    }
+    return ids
+  })
+
   const startBreeding = (fishIdA: string, fishIdB: string): boolean => {
     if (!pond.value.built) return false
-    if (pond.value.breeding) return false
-    if (fishCount.value >= capacity.value) return false
 
     const fishA = pond.value.fish.find(f => f.id === fishIdA)
     const fishB = pond.value.fish.find(f => f.id === fishIdB)
     if (!fishA || !fishB) return false
+    if (fishA.id === fishB.id) return false
     if (fishA.fishId !== fishB.fishId) return false
     if (!fishA.mature || !fishB.mature) return false
     if (fishA.sick || fishB.sick) return false
+    if (activeNurseryParentIds.value.has(fishA.id) || activeNurseryParentIds.value.has(fishB.id)) return false
 
-    pond.value.breeding = {
+    pond.value.nurseryBreeding.push({
+      id: generateBreedingId(),
       parentA: fishIdA,
       parentB: fishIdB,
       daysLeft: FISH_BREEDING_DAYS,
       fishId: fishA.fishId
-    }
+    })
     return true
+  }
+
+  const startBreedingForSpecies = (fishId: string): number => {
+    if (!pond.value.built) return 0
+    const available = pond.value.fish
+      .filter(f => f.fishId === fishId && f.mature && !f.sick && !activeNurseryParentIds.value.has(f.id))
+      .sort((a, b) => getGeneticStarRating(b.genetics) - getGeneticStarRating(a.genetics))
+    let started = 0
+    for (let i = 0; i + 1 < available.length; i += 2) {
+      if (startBreeding(available[i]!.id, available[i + 1]!.id)) started++
+    }
+    return started
   }
 
   /** 遗传算法：生成后代基因 */
@@ -240,6 +293,47 @@ export const useFishPondStore = defineStore('fishPond', () => {
       diseaseRes: inherit(a.diseaseRes, b.diseaseRes, 0, 100),
       qualityGene: inherit(a.qualityGene, b.qualityGene, 0, 100),
       mutationRate: inherit(a.mutationRate, b.mutationRate, 1, 50)
+    }
+  }
+
+  const createChildFish = (parentA: PondFish, parentB: PondFish, fishId: string): PondFish | null => {
+    const def = getPondableFish(fishId)
+    if (!def) return null
+    const childGenetics = _breedGenetics(parentA.genetics, parentB.genetics)
+
+    let childBreedId: string | null = null
+    let childName = def.name
+    if (parentA.breedId && parentB.breedId) {
+      const recipe = findBreedByParents(parentA.breedId, parentB.breedId)
+      if (recipe) {
+        childBreedId = recipe.breedId
+        childName = recipe.name
+        discoveredBreeds.value.add(recipe.breedId)
+      }
+    }
+    if (!childBreedId) {
+      const parentABreed = parentA.breedId ? getBreedById(parentA.breedId) : null
+      const parentBBreed = parentB.breedId ? getBreedById(parentB.breedId) : null
+      const parentGen = Math.min(parentABreed?.generation ?? 1, parentBBreed?.generation ?? 1) as 1 | 2 | 3 | 4 | 5
+      const sameGenBreeds = getBreedsByGeneration(parentGen).filter(b => b.baseFishId === def.fishId)
+      if (sameGenBreeds.length > 0) {
+        const rnd = sameGenBreeds[Math.floor(Math.random() * sameGenBreeds.length)]!
+        childBreedId = rnd.breedId
+        childName = rnd.name
+        discoveredBreeds.value.add(rnd.breedId)
+      }
+    }
+
+    return {
+      id: generateFishId(),
+      fishId,
+      name: childName,
+      genetics: childGenetics,
+      daysInPond: 0,
+      mature: false,
+      sick: false,
+      sickDays: 0,
+      breedId: childBreedId
     }
   }
 
@@ -274,8 +368,9 @@ export const useFishPondStore = defineStore('fishPond', () => {
       died: [],
       gotSick: [],
       healed: [],
-      bred: null,
-      breedingFailed: null
+      bred: [],
+      reproduced: [],
+      breedingFailed: []
     }
 
     if (!pond.value.built || pond.value.fish.length === 0) {
@@ -351,10 +446,7 @@ export const useFishPondStore = defineStore('fishPond', () => {
     for (let i = toRemove.length - 1; i >= 0; i--) {
       const idx = toRemove[i]!
       const deadFish = pond.value.fish[idx]!
-      // 如果死亡鱼正在繁殖中，取消繁殖
-      if (pond.value.breeding && (pond.value.breeding.parentA === deadFish.id || pond.value.breeding.parentB === deadFish.id)) {
-        pond.value.breeding = null
-      }
+      pond.value.nurseryBreeding = pond.value.nurseryBreeding.filter(pair => pair.parentA !== deadFish.id && pair.parentB !== deadFish.id)
       pond.value.fish.splice(idx, 1)
     }
 
@@ -374,67 +466,62 @@ export const useFishPondStore = defineStore('fishPond', () => {
       }
     }
 
-    // 8. 繁殖进度
-    if (pond.value.breeding) {
-      pond.value.breeding.daysLeft--
-      if (pond.value.breeding.daysLeft <= 0) {
-        const parentA = pond.value.fish.find(f => f.id === pond.value.breeding!.parentA)
-        const parentB = pond.value.fish.find(f => f.id === pond.value.breeding!.parentB)
-        if (!parentA || !parentB) {
-          result.breedingFailed = '亲鱼死亡，繁殖失败'
-        } else if (fishCount.value >= capacity.value) {
-          result.breedingFailed = '鱼塘已满，繁殖失败'
-        } else {
-          const childGenetics = _breedGenetics(parentA.genetics, parentB.genetics)
-          const def = getPondableFish(pond.value.breeding.fishId)
-          if (def) {
-            // 品种配方匹配：检查亲本品种组合是否产出高代品种
-            let childBreedId: string | null = null
-            let childName = def.name
-            if (parentA.breedId && parentB.breedId) {
-              const recipe = findBreedByParents(parentA.breedId, parentB.breedId)
-              if (recipe) {
-                childBreedId = recipe.breedId
-                childName = recipe.name
-                discoveredBreeds.value.add(recipe.breedId)
-              }
-            }
-            // 无匹配配方时：后代继承父母同代品种（而非总是回退到Gen1）
-            if (!childBreedId) {
-              const parentABreed = parentA.breedId ? getBreedById(parentA.breedId) : null
-              const parentBBreed = parentB.breedId ? getBreedById(parentB.breedId) : null
-              const parentGen = Math.min(parentABreed?.generation ?? 1, parentBBreed?.generation ?? 1) as 1 | 2 | 3 | 4 | 5
-              const sameGenBreeds = getBreedsByGeneration(parentGen).filter(b => b.baseFishId === def!.fishId)
-              if (sameGenBreeds.length > 0) {
-                const rnd = sameGenBreeds[Math.floor(Math.random() * sameGenBreeds.length)]!
-                childBreedId = rnd.breedId
-                childName = rnd.name
-                discoveredBreeds.value.add(rnd.breedId)
-              }
-            }
-            const child: PondFish = {
-              id: generateFishId(),
-              fishId: pond.value.breeding.fishId,
-              name: childName,
-              genetics: childGenetics,
-              daysInPond: 0,
-              mature: false,
-              sick: false,
-              sickDays: 0,
-              breedId: childBreedId
-            }
-            pond.value.fish.push(child)
-            result.bred = childName
-          }
-        }
-        pond.value.breeding = null
+    // 8. 育苗塘：人工配对任务
+    const remainingPairs: BreedingPair[] = []
+    for (const pair of pond.value.nurseryBreeding) {
+      pair.daysLeft--
+      if (pair.daysLeft > 0) {
+        remainingPairs.push(pair)
+        continue
+      }
+      const parentA = pond.value.fish.find(f => f.id === pair.parentA)
+      const parentB = pond.value.fish.find(f => f.id === pair.parentB)
+      if (!parentA || !parentB) {
+        result.breedingFailed.push('亲鱼死亡，育苗失败')
+        continue
+      }
+      if (fishCount.value >= capacity.value) {
+        result.breedingFailed.push('鱼塘已满，育苗失败')
+        continue
+      }
+      const child = createChildFish(parentA, parentB, pair.fishId)
+      if (child) {
+        pond.value.fish.push(child)
+        result.bred.push(child.name)
       }
     }
+    pond.value.nurseryBreeding = remainingPairs
+
+    // 9. 繁衍塘：同种成熟鱼越多，新鱼出现越快，数量也越多
+    const reproductionSummary = new Map<string, { fishId: string; name: string; quantity: number }>()
+    for (const group of fishGroups.value) {
+      const breeders = group.fish.filter(f => f.mature && !f.sick)
+      const pairPower = Math.floor(breeders.length / 2)
+      if (pairPower <= 0) continue
+      pond.value.reproductionProgress[group.fishId] = (pond.value.reproductionProgress[group.fishId] ?? 0) + pairPower
+      while (pond.value.reproductionProgress[group.fishId]! >= FISH_BREEDING_DAYS && fishCount.value < capacity.value) {
+        pond.value.reproductionProgress[group.fishId]! -= FISH_BREEDING_DAYS
+        const parentA = breeders[Math.floor(Math.random() * breeders.length)]!
+        let parentB = breeders[Math.floor(Math.random() * breeders.length)]!
+        if (breeders.length > 1) {
+          while (parentB.id === parentA.id) {
+            parentB = breeders[Math.floor(Math.random() * breeders.length)]!
+          }
+        }
+        const child = createChildFish(parentA, parentB, group.fishId)
+        if (!child) break
+        pond.value.fish.push(child)
+        const current = reproductionSummary.get(group.fishId) ?? { fishId: group.fishId, name: getPondableFish(group.fishId)?.name ?? child.name, quantity: 0 }
+        current.quantity++
+        reproductionSummary.set(group.fishId, current)
+      }
+    }
+    result.reproduced = [...reproductionSummary.values()]
 
     // 将产出存入待收集
     pendingProducts.value = [...result.products]
 
-    // 9. 重置
+    // 10. 重置
     pond.value.fedToday = false
     pond.value.collectedToday = false
 
@@ -484,7 +571,28 @@ export const useFishPondStore = defineStore('fishPond', () => {
         })),
         waterQuality: data.pond.waterQuality ?? 100,
         fedToday: data.pond.fedToday ?? false,
-        breeding: data.pond.breeding ?? null,
+        breeding: null,
+        nurseryBreeding: [
+          ...(((data.pond.nurseryBreeding ?? []) as any[]).map(pair => ({
+            id: pair.id ?? generateBreedingId(),
+            parentA: pair.parentA ?? '',
+            parentB: pair.parentB ?? '',
+            daysLeft: pair.daysLeft ?? FISH_BREEDING_DAYS,
+            fishId: pair.fishId ?? ''
+          }))),
+          ...(data.pond.breeding
+            ? [
+                {
+                  id: data.pond.breeding.id ?? generateBreedingId(),
+                  parentA: data.pond.breeding.parentA ?? '',
+                  parentB: data.pond.breeding.parentB ?? '',
+                  daysLeft: data.pond.breeding.daysLeft ?? FISH_BREEDING_DAYS,
+                  fishId: data.pond.breeding.fishId ?? ''
+                }
+              ]
+            : [])
+        ],
+        reproductionProgress: data.pond.reproductionProgress ?? {},
         collectedToday: data.pond.collectedToday ?? false
       }
     }
@@ -499,6 +607,8 @@ export const useFishPondStore = defineStore('fishPond', () => {
     isFull,
     sickFish,
     matureFish,
+    fishGroups,
+    activeNurseryParentIds,
     density,
     pendingProducts,
     discoveredBreeds,
@@ -510,6 +620,7 @@ export const useFishPondStore = defineStore('fishPond', () => {
     cleanPond,
     treatSickFish,
     startBreeding,
+    startBreedingForSpecies,
     collectProducts,
     dailyUpdate,
     getGeneticStarRating,

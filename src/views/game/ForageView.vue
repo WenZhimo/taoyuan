@@ -268,7 +268,7 @@
     rollForestEncounter
   } from '@/data/forage'
   import type { FriendlyAnimalDef } from '@/data/forage'
-  import { getWeaponById, getEnchantmentById } from '@/data/weapons'
+  import { getWeaponById, getOwnedWeaponEnchantments } from '@/data/weapons'
   import { ACTION_TIME_COSTS, TOOL_TIME_SAVINGS, SKILL_TIME_REDUCTION_PER_LEVEL, MIN_ACTION_MINUTES } from '@/data/timeConstants'
   import { sfxForage } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
@@ -621,7 +621,7 @@
     // 攻击
     const owned = inventoryStore.getEquippedWeapon()
     const weaponDef = getWeaponById(owned.defId)
-    const enchant = owned.enchantmentId ? getEnchantmentById(owned.enchantmentId) : null
+    const enchantments = getOwnedWeaponEnchantments(owned)
 
     const cookingAllSkillsBuff = cookingStore.activeBuff?.type === 'all_skills' ? cookingStore.activeBuff.value : 0
     const ringAttackBonus = inventoryStore.getRingEffectValue('attack_bonus')
@@ -632,7 +632,7 @@
       miningStore.guildBadgeBonusAttack
 
     // 暴击
-    const critChance = (weaponDef?.critRate ?? 0.05) + (enchant?.critBonus ?? 0)
+    const critChance = (weaponDef?.critRate ?? 0.05) + enchantments.reduce((sum, enchant) => sum + enchant.critBonus, 0)
     const isCrit = Math.random() < critChance
     const critMultiplier = isCrit ? 2.0 : 1.0
     const bruteBonus = skillStore.getSkill('combat').perk10 === 'brute' ? 1.25 : 1.0
@@ -642,7 +642,7 @@
     let atkMsg = isCrit ? `暴击！对${monster.name}造成${playerDmg}点伤害！` : `对${monster.name}造成${playerDmg}点伤害。`
 
     // 吸血附魔
-    if (enchant?.special === 'vampiric' && isCrit) {
+    if (enchantments.some(enchant => enchant.special === 'vampiric') && isCrit) {
       const heal = Math.floor(playerDmg * 0.2)
       playerStore.restoreHealth(heal)
       atkMsg += ` 吸血恢复${heal}HP。`

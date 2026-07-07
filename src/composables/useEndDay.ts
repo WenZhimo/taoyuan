@@ -795,11 +795,14 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     if (pondResult.gotSick.length > 0) {
       addLog(`${pondResult.gotSick.join('、')}生病了！请及时治疗。`)
     }
-    if (pondResult.bred) {
-      addLog(`鱼塘繁殖成功，新的${pondResult.bred}出生了！`)
+    if (pondResult.bred.length > 0) {
+      addLog(`育苗塘繁殖成功，新的${pondResult.bred.join('、')}出生了！`)
     }
-    if (pondResult.breedingFailed) {
-      addLog(`${pondResult.breedingFailed}。`)
+    for (const item of pondResult.reproduced) {
+      addLog(`繁衍塘自然繁衍出${item.quantity}条${item.name}。`)
+    }
+    if (pondResult.breedingFailed.length > 0) {
+      addLog(`${pondResult.breedingFailed.join('；')}。`)
     }
   }
 
