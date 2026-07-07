@@ -865,7 +865,7 @@
   import { sfxMine, sfxAttack, sfxHurt, sfxClick, sfxEncounter, sfxDefend, sfxFlee, sfxVictory } from '@/composables/useAudio'
   import { useAudio } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
-  import { handleEndDay } from '@/composables/useEndDay'
+  import { handleAdvanceTimeResult, handleSleepOrPassOut } from '@/composables/useEndDay'
 
   const miningStore = useMiningStore()
   const gameStore = useGameStore()
@@ -1249,7 +1249,7 @@
   const handleTileClick = (tile: MineTile) => {
     if (gameStore.isPastBedtime) {
       addLog('太晚了，没法继续探索了。')
-      handleEndDay()
+      handleSleepOrPassOut()
       return
     }
 
@@ -1260,8 +1260,7 @@
         exploreLog.value.push(result.message)
         addLog(result.message)
         const tr = gameStore.advanceTime(ACTION_TIME_COSTS.mineOre)
-        if (tr.message) addLog(tr.message)
-        if (tr.passedOut) handleEndDay()
+        handleAdvanceTimeResult(tr)
       } else {
         exploreLog.value.push(result.message)
       }
@@ -1295,13 +1294,11 @@
         startBattleBgm()
         sfxEncounter()
         const tr = gameStore.advanceTime(ACTION_TIME_COSTS.combat)
-        if (tr.message) addLog(tr.message)
-        if (tr.passedOut) handleEndDay()
+        handleAdvanceTimeResult(tr)
       } else {
         sfxClick()
         const tr = gameStore.advanceTime(ACTION_TIME_COSTS.revealTile)
-        if (tr.message) addLog(tr.message)
-        if (tr.passedOut) handleEndDay()
+        handleAdvanceTimeResult(tr)
       }
     } else {
       exploreLog.value.push(result.message)
@@ -1408,7 +1405,7 @@
   const handleSweepToSafePoint = () => {
     if (gameStore.isPastBedtime) {
       addLog('太晚了，没法继续探索了。')
-      handleEndDay()
+      handleSleepOrPassOut()
       return
     }
 
@@ -1427,7 +1424,7 @@
   const handleStartChainBattle = () => {
     if (gameStore.isPastBedtime) {
       addLog('太晚了，没法继续战斗了。')
-      handleEndDay()
+      handleSleepOrPassOut()
       return
     }
 
@@ -1479,7 +1476,7 @@
   const handleNextFloor = () => {
     if (gameStore.isPastBedtime) {
       addLog('太晚了，该回去了。')
-      handleEndDay()
+      handleSleepOrPassOut()
       return
     }
     showCombatItems.value = false
@@ -1492,8 +1489,7 @@
     }
     addLog(result.message)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.nextFloor)
-    if (tr.message) addLog(tr.message)
-    if (tr.passedOut) handleEndDay()
+    handleAdvanceTimeResult(tr)
   }
 
   const handleLeave = () => {

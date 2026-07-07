@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { useGameStore } from '@/stores/useGameStore'
 import { PASSOUT_HOUR, MIDNIGHT_HOUR } from '@/data/timeConstants'
 import { addLog } from './useGameLog'
-import { handleEndDay } from './useEndDay'
+import { getResourceSleepOptions, handleSleepOrPassOut } from './useEndDay'
 
 // === 常量 ===
 /** 星露谷速率：0.7 真实秒 = 1 游戏分钟 */
@@ -36,8 +36,8 @@ const tick = () => {
   if (newHour >= PASSOUT_HOUR) {
     gameStore.hour = PASSOUT_HOUR
     isPaused.value = true
-    addLog('已经凌晨2点了，你撑不住倒下了……')
-    handleEndDay()
+    if (!getResourceSleepOptions()) addLog('已经凌晨2点了，你撑不住倒下了……')
+    handleSleepOrPassOut()
     // 新一天开始后恢复时钟（如果 handleEndDay 触发了弹窗，GameLayout 的 watcher 会自动暂停）
     isPaused.value = false
     return

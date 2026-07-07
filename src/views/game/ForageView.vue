@@ -272,7 +272,7 @@
   import { ACTION_TIME_COSTS, TOOL_TIME_SAVINGS, SKILL_TIME_REDUCTION_PER_LEVEL, MIN_ACTION_MINUTES } from '@/data/timeConstants'
   import { sfxForage } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
-  import { handleEndDay } from '@/composables/useEndDay'
+  import { handleAdvanceTimeResult, handleSleepOrPassOut } from '@/composables/useEndDay'
   import { useHiddenNpcStore } from '@/stores/useHiddenNpcStore'
 
   const playerStore = usePlayerStore()
@@ -378,7 +378,7 @@
   const handleForage = () => {
     if (gameStore.isPastBedtime) {
       addLog('太晚了，没法采集了。')
-      handleEndDay()
+      handleSleepOrPassOut()
       return
     }
 
@@ -479,11 +479,7 @@
     addLog(msg)
 
     const tr = gameStore.advanceTime(forageTime.value)
-    if (tr.message) addLog(tr.message)
-    if (tr.passedOut) {
-      handleEndDay()
-      return
-    }
+    if (handleAdvanceTimeResult(tr)) return
 
     // 动物遭遇判定
     if (Math.random() < FOREST_ENCOUNTER_CHANCE) {

@@ -32,6 +32,7 @@ import { showEvent, showFestival, triggerWeddingEvent, triggerPetAdoption, showF
 import { sfxSleep, useAudio } from './useAudio'
 import { MORNING_NARRATIONS, NARRATIONS_NO_LOSS, MORNING_CHOICE_EVENTS, MORNING_EASTER_EGGS } from '@/data/farmEvents'
 import { MORNING_TIPS } from '@/data/tutorials'
+import { getLocationGroupName } from '@/data/timeConstants'
 import type { MorningEffect } from '@/data/farmEvents'
 import type { LocationGroup } from '@/types'
 import router from '@/router'
@@ -39,6 +40,47 @@ import router from '@/router'
 interface EndDayOptions {
   wakePanel?: string
   wakeLocationGroup?: LocationGroup
+  forceRecoveryMode?: 'normal' | 'late' | 'passout'
+}
+
+const SLEEPING_BAG_ITEM_ID = 'sleeping_bag'
+const RESOURCE_SLEEP_GROUPS: LocationGroup[] = ['nature', 'mine', 'hanhai']
+const RESOURCE_SLEEP_WAKE_PANEL: Partial<Record<LocationGroup, string>> = {
+  nature: 'forage',
+  mine: 'mining',
+  hanhai: 'hanhai'
+}
+
+export const getResourceSleepOptions = (): EndDayOptions | null => {
+  const gameStore = useGameStore()
+  const inventoryStore = useInventoryStore()
+  const locationGroup = gameStore.currentLocationGroup
+  if (!RESOURCE_SLEEP_GROUPS.includes(locationGroup)) return null
+  if (!inventoryStore.hasItem(SLEEPING_BAG_ITEM_ID)) return null
+  return {
+    wakePanel: RESOURCE_SLEEP_WAKE_PANEL[locationGroup] ?? 'farm',
+    wakeLocationGroup: locationGroup,
+    forceRecoveryMode: 'late'
+  }
+}
+
+export const handleSleepOrPassOut = (): boolean => {
+  const sleepOptions = getResourceSleepOptions()
+  if (sleepOptions?.wakeLocationGroup) {
+    addLog(`撑到深夜，你在${getLocationGroupName(sleepOptions.wakeLocationGroup)}铺开睡袋过夜。`)
+    handleEndDay(sleepOptions)
+    return true
+  }
+  handleEndDay()
+  return false
+}
+
+export const handleAdvanceTimeResult = (result: { passedOut: boolean; message: string }): boolean => {
+  const shouldUseSleepingBag = result.passedOut && !!getResourceSleepOptions()
+  if (result.message && !shouldUseSleepingBag) addLog(result.message)
+  if (!result.passedOut) return false
+  handleSleepOrPassOut()
+  return true
 }
 
 const NPC_NAME_MAP: Record<string, string> = {
@@ -392,7 +434,9 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
 
   // 恢复模式
   let recoveryMode: 'normal' | 'late' | 'passout'
-  if (playerStore.stamina <= 0 || gameStore.hour >= 26) {
+  if (options.forceRecoveryMode) {
+    recoveryMode = options.forceRecoveryMode
+  } else if (playerStore.stamina <= 0 || gameStore.hour >= 26) {
     recoveryMode = 'passout'
   } else if (gameStore.hour >= 24) {
     recoveryMode = 'late'

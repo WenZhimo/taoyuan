@@ -662,11 +662,11 @@
   })
 
   const sleepSummary = computed(() => {
-    if (playerStore.stamina <= 0 || gameStore.hour >= 26) {
-      return '你已经精疲力竭……将在原地昏倒。'
-    }
     if (canUseSleepingBag.value) {
       return `铺开睡袋，在${currentLocationGroupName.value}安稳过夜。明早醒来仍在这里。`
+    }
+    if (playerStore.stamina <= 0 || gameStore.hour >= 26) {
+      return '你已经精疲力竭……将在原地昏倒。'
     }
     if (gameStore.hour >= 24) {
       return '已经过了午夜，拖着疲惫的身体回家……'
@@ -982,7 +982,7 @@
     pauseClock()
     if (useSleepingBag) {
       addLog(`在${getLocationGroupName(wakeLocationGroup)}铺开睡袋过夜。`)
-      handleEndDay({ wakePanel, wakeLocationGroup })
+      handleEndDay({ wakePanel, wakeLocationGroup, forceRecoveryMode: gameStore.hour >= 24 ? 'late' : 'normal' })
     } else {
       handleEndDay()
     }

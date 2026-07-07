@@ -3,7 +3,7 @@ import router from '@/router'
 import { useGameStore } from '@/stores/useGameStore'
 import { isShopOpen, TAB_TO_LOCATION_GROUP } from '@/data/timeConstants'
 import { addLog, showFloat } from './useGameLog'
-import { handleEndDay } from './useEndDay'
+import { handleSleepOrPassOut } from './useEndDay'
 import { sfxClick, useAudio } from './useAudio'
 import { useGameClock } from './useGameClock'
 import { useTutorialStore } from '@/stores/useTutorialStore'
@@ -93,7 +93,7 @@ export const navigateToPanel = (panelKey: PanelKey) => {
 
   if (gameStore.isPastBedtime) {
     addLog('已经凌晨2点了，你必须休息。')
-    handleEndDay()
+    handleSleepOrPassOut()
     // 确保新一天时钟恢复运转
     const { resumeClock: resumeAfterEnd } = useGameClock()
     resumeAfterEnd()
@@ -113,7 +113,7 @@ export const navigateToPanel = (panelKey: PanelKey) => {
     addLog(travelResult.message)
   }
   if (travelResult.passedOut) {
-    handleEndDay()
+    handleSleepOrPassOut()
     return
   }
 
