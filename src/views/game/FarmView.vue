@@ -153,6 +153,30 @@
         </div>
       </Transition>
 
+      <!-- 大批量操作确认弹窗 -->
+      <Transition name="panel-fade">
+        <div
+          v-if="pendingLargeBatch"
+          class="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4"
+          @click.self="cancelLargeBatch"
+        >
+          <div class="game-panel max-w-xs w-full relative">
+            <button class="absolute top-2 right-2 text-muted hover:text-text" @click="cancelLargeBatch">
+              <X :size="14" />
+            </button>
+            <p class="text-accent text-sm mb-2">批量操作确认</p>
+            <p class="text-xs text-muted leading-relaxed mb-3">
+              {{ pendingLargeBatch.label }}目标共有 {{ pendingLargeBatch.total }} 项。为避免卡顿，本次会先处理
+              {{ pendingLargeBatch.limit }} 项，可再次点击继续处理剩余项目。
+            </p>
+            <div class="flex space-x-2">
+              <Button class="flex-1 justify-center" @click="cancelLargeBatch">取消</Button>
+              <Button class="flex-1 justify-center !bg-accent !text-bg" @click="confirmLargeBatch">继续处理</Button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
       <!-- 农场网格 -->
       <div class="border border-accent/20 rounded-xs p-2">
         <div class="grid gap-0.5 max-w-full md:max-w-md" :style="{ gridTemplateColumns: `repeat(${farmStore.farmSize}, minmax(0, 1fr))` }">
@@ -850,7 +874,7 @@
               :disabled="ghHarvestableCount === 0"
               :icon-size="12"
               :icon="Wheat"
-              @click="doGhBatchHarvest"
+              @click="doGhBatchHarvest()"
             >
               一键收获{{ ghHarvestableCount > 0 ? ` (${ghHarvestableCount}块)` : '' }}
             </Button>
@@ -1278,6 +1302,27 @@
   const showGhBatchPlant = ref(false)
   const chopFruitTreeTarget = ref<{ id: number; type: string } | null>(null)
   const chopWildTreeTarget = ref<{ id: number; type: string; chopCount: number } | null>(null)
+  const FARM_BATCH_CONFIRM_LIMIT = 1000
+  const pendingLargeBatch = ref<{ label: string; total: number; limit: number; run: () => void } | null>(null)
+
+  const runWithLargeBatchConfirm = (label: string, total: number, run: () => void): boolean => {
+    if (total > FARM_BATCH_CONFIRM_LIMIT) {
+      pendingLargeBatch.value = { label, total, limit: FARM_BATCH_CONFIRM_LIMIT, run }
+      return false
+    }
+    run()
+    return true
+  }
+
+  const confirmLargeBatch = () => {
+    const run = pendingLargeBatch.value?.run
+    pendingLargeBatch.value = null
+    run?.()
+  }
+
+  const cancelLargeBatch = () => {
+    pendingLargeBatch.value = null
+  }
 
   const goToShop = () => {
     if (!isWanwupuOpen.value) {
@@ -1559,9 +1604,23 @@
   }
 
   const doBatchAction = (action: 'water' | 'till' | 'harvest' | 'plant' | 'fertilize' | 'curePest' | 'clearWeed') => {
-    if (action === 'water') handleBatchWater()
-    else if (action === 'till') handleBatchTill()
-    else if (action === 'harvest') handleBatchHarvest()
+    const runAndRefresh = (run: () => void) => {
+      run()
+      void closeBatchActionsIfDone()
+    }
+
+    if (action === 'water') {
+      runWithLargeBatchConfirm('一键浇水', unwateredCount.value, () => runAndRefresh(handleBatchWater))
+      return
+    }
+    else if (action === 'till') {
+      runWithLargeBatchConfirm('一键开垦', wastelandCount.value, () => runAndRefresh(handleBatchTill))
+      return
+    }
+    else if (action === 'harvest') {
+      runWithLargeBatchConfirm('一键收获', harvestableCount.value, () => runAndRefresh(handleBatchHarvest))
+      return
+    }
     else if (action === 'plant') {
       showBatchActions.value = false
       showBatchPlant.value = true
@@ -1572,9 +1631,14 @@
       showBatchFertilize.value = true
       return
     }
-    else if (action === 'curePest') handleBatchCurePest()
-    else if (action === 'clearWeed') handleBatchClearWeed()
-    void closeBatchActionsIfDone()
+    else if (action === 'curePest') {
+      runWithLargeBatchConfirm('一键除虫', infestedCount.value, () => runAndRefresh(handleBatchCurePest))
+      return
+    }
+    else if (action === 'clearWeed') {
+      runWithLargeBatchConfirm('一键除草', weedyCount.value, () => runAndRefresh(handleBatchClearWeed))
+      return
+    }
   }
 
   const returnToBatchActionsIfAvailable = async () => {
@@ -1600,14 +1664,25 @@
   })
 
   const doBatchPlant = (cropId: string) => {
-    handleBatchPlant(cropId)
-    void returnToBatchActionsIfAvailable()
+    const crop = getCropById(cropId)
+    const seedCount = crop ? inventoryStore.getItemCount(crop.seedId) : 0
+    const total = Math.min(tilledEmptyCount.value, seedCount)
+    runWithLargeBatchConfirm('一键种植', total, () => {
+      handleBatchPlant(cropId)
+      void returnToBatchActionsIfAvailable()
+    })
   }
 
-  const doBatchPlantBreeding = (cropId: string) => {
+  const doBatchPlantBreeding = (cropId: string, confirmed = false) => {
+    const FARM_BATCH_LIMIT = 1000
     const skillStore = useSkillStore()
     const cookingStore = useCookingStore()
     const targets = farmStore.plots.filter(p => p.state === 'tilled')
+    const targetCount = Math.min(targets.length, plantableBreedingSeeds.value.filter(s => s.genetics.cropId === cropId).length)
+    if (!confirmed && targetCount > FARM_BATCH_CONFIRM_LIMIT) {
+      runWithLargeBatchConfirm('一键种植育种种子', targetCount, () => doBatchPlantBreeding(cropId, true))
+      return
+    }
     if (targets.length === 0) {
       addLog('没有可种植的空耕地。')
       void returnToBatchActionsIfAvailable()
@@ -1618,6 +1693,7 @@
     const plantRingFarmReduction = inventoryStore.getRingEffectValue('farming_stamina')
     const plantRingGlobalReduction = inventoryStore.getRingEffectValue('stamina_reduction')
     for (const plot of targets) {
+      if (planted >= FARM_BATCH_LIMIT) break
       if (seeds.length === 0) break
       const seed = seeds.shift()!
       const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
@@ -1639,7 +1715,11 @@
       }
     }
     if (planted > 0) {
-      addLog(`一键种植了${planted}株育种种子（${getCropName(cropId)}）。(-${planted}体力)`)
+      const capped = planted >= FARM_BATCH_LIMIT && targets.length > planted && seeds.length > 0
+      addLog(
+        `一键种植了${planted}株育种种子（${getCropName(cropId)}）。(-${planted}体力)` +
+          (capped ? ` 本次最多处理${FARM_BATCH_LIMIT}块，可再次点击继续。` : '')
+      )
       const tr = gameStore.advanceTime(ACTION_TIME_COSTS.plant * planted)
       if (tr.message) addLog(tr.message)
     } else {
@@ -1648,8 +1728,11 @@
     void returnToBatchActionsIfAvailable()
   }
   const doBatchFertilize = (type: FertilizerType) => {
-    handleBatchFertilize(type)
-    void returnToBatchActionsIfAvailable()
+    const total = Math.min(fertilizableCount.value, inventoryStore.getItemCount(type))
+    runWithLargeBatchConfirm('一键施肥', total, () => {
+      handleBatchFertilize(type)
+      void returnToBatchActionsIfAvailable()
+    })
   }
 
   const doRemoveCrop = () => {
@@ -2171,7 +2254,11 @@
     activeGhPlotId.value = null
   }
 
-  const doGhBatchHarvest = () => {
+  const doGhBatchHarvest = (confirmed = false) => {
+    if (!confirmed && ghHarvestableCount.value > GREENHOUSE_BATCH_LIMIT) {
+      runWithLargeBatchConfirm('温室一键收获', ghHarvestableCount.value, () => doGhBatchHarvest(true))
+      return
+    }
     const skillStore = useSkillStore()
     let harvested = 0
     let seedsReturned = 0
@@ -2241,11 +2328,16 @@
     activeGhPlotId.value = null
   }
 
-  const doGhBatchPlant = (cropId: string) => {
+  const doGhBatchPlant = (cropId: string, confirmed = false) => {
     const crop = getCropById(cropId)
     if (!crop) return
     const seedCount = inventoryStore.getItemCount(crop.seedId)
     const affordableByStamina = Math.max(0, Math.floor(playerStore.stamina))
+    const plannedTotal = Math.min(seedCount, affordableByStamina, ghTilledEmptyCount.value)
+    if (!confirmed && plannedTotal > GREENHOUSE_BATCH_LIMIT) {
+      runWithLargeBatchConfirm('温室一键种植', plannedTotal, () => doGhBatchPlant(cropId, true))
+      return
+    }
     const plantLimit = Math.min(seedCount, affordableByStamina, GREENHOUSE_BATCH_LIMIT)
     if (plantLimit <= 0) {
       addLog('体力不足或种子不够，无法种植。')

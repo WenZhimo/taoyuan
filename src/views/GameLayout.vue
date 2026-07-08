@@ -11,6 +11,13 @@
       {{ sleepLabel }}
     </Button>
 
+    <div v-if="isResolvingDay" class="fixed inset-0 bg-black/70 flex items-center justify-center z-[80] p-4">
+      <div class="game-panel max-w-xs w-full text-center">
+        <Divider title>隔夜结算中</Divider>
+        <p class="text-xs text-muted leading-relaxed">正在处理作物生长、工坊产出和其他每日事件。存档规模很大时会稍等片刻。</p>
+      </div>
+    </div>
+
     <!-- 内容 -->
     <div class="game-panel flex-1 min-h-0 overflow-y-auto">
       <router-view v-slot="{ Component }">
@@ -474,7 +481,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+  import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useAnimalStore } from '@/stores/useAnimalStore'
   import { useGameStore, SEASON_NAMES } from '@/stores/useGameStore'
@@ -569,6 +576,7 @@
 
   /** 小憩弹窗 */
   const showNapConfirm = ref(false)
+  const isResolvingDay = ref(false)
   const napMinutes = ref(60)
   const napQuickMinutes = [30, 60, 120, 240] as const
   const NAP_STAMINA_RECOVERY_PER_HOUR = 0.12
@@ -966,16 +974,29 @@
     voidQtyModal.value = null
   }
 
-  const confirmSleep = () => {
+  const runEndDayWithBusyOverlay = async (run: () => void) => {
+    isResolvingDay.value = true
+    await nextTick()
+    await new Promise(resolve => window.setTimeout(resolve, 0))
+    try {
+      run()
+    } finally {
+      isResolvingDay.value = false
+    }
+  }
+
+  const confirmSleep = async () => {
     const sleepOptions = resourceSleepOptions.value
     showSleepConfirm.value = false
     pauseClock()
-    if (sleepOptions?.wakeLocationGroup) {
-      addLog(`在${getLocationGroupName(sleepOptions.wakeLocationGroup)}铺开睡袋过夜。`)
-      handleEndDay({ ...sleepOptions, forceRecoveryMode: gameStore.hour >= 24 ? 'late' : 'normal' })
-    } else {
-      handleEndDay()
-    }
+    await runEndDayWithBusyOverlay(() => {
+      if (sleepOptions?.wakeLocationGroup) {
+        addLog(`在${getLocationGroupName(sleepOptions.wakeLocationGroup)}铺开睡袋过夜。`)
+        handleEndDay({ ...sleepOptions, forceRecoveryMode: gameStore.hour >= 24 ? 'late' : 'normal' })
+      } else {
+        handleEndDay()
+      }
+    })
     switchToSeasonalBgm()
     resumeClock()
   }

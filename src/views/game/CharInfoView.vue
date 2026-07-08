@@ -123,7 +123,16 @@
                     <template v-if="getEnchantNames(weapon)">· {{ getEnchantNames(weapon) }}</template>
                   </p>
                 </div>
-                <span v-if="index === inventoryStore.equippedWeaponIndex" class="text-[10px] text-accent shrink-0 ml-1">当前</span>
+                <div class="flex items-center gap-1 shrink-0 ml-1">
+                  <Button
+                    v-if="getEnchantNames(weapon)"
+                    class="py-0 px-1"
+                    @click.stop="openEnchantmentDetail(weapon)"
+                  >
+                    详情
+                  </Button>
+                  <span v-if="index === inventoryStore.equippedWeaponIndex" class="text-[10px] text-accent">当前</span>
+                </div>
               </div>
             </div>
           </template>
@@ -228,6 +237,27 @@
       </div>
     </Transition>
 
+    <!-- 附魔详情弹窗 -->
+    <Transition name="panel-fade">
+      <div v-if="enchantmentDetailWeapon" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4" @click.self="enchantmentDetailWeapon = null">
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="enchantmentDetailWeapon = null">
+            <X :size="14" />
+          </button>
+          <p class="text-sm text-accent mb-2">{{ getWeaponDisplayName(enchantmentDetailWeapon.defId, enchantmentDetailWeapon.enchantmentIds ?? enchantmentDetailWeapon.enchantmentId) }}</p>
+          <div class="flex flex-col space-y-1">
+            <div v-for="enchant in enchantmentDetailRows" :key="enchant.id" class="border border-accent/10 rounded-xs px-3 py-2">
+              <div class="flex items-center justify-between mb-0.5">
+                <span class="text-xs text-accent">{{ enchant.name }}</span>
+                <span v-if="enchant.count > 1" class="text-[10px] text-muted">x{{ enchant.count }}</span>
+              </div>
+              <p class="text-[10px] text-muted">{{ enchant.description }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- 工具一览 -->
     <div class="border border-accent/20 rounded-xs p-2 mb-3">
       <div class="flex items-center justify-between mb-1.5">
@@ -305,7 +335,7 @@
   import { useSkillStore } from '@/stores/useSkillStore'
   import { useWalletStore } from '@/stores/useWalletStore'
   import { TOOL_NAMES, TIER_NAMES, getNpcById } from '@/data'
-  import { formatEnchantmentSummary, getWeaponById, getEnchantmentById, getWeaponDisplayName } from '@/data/weapons'
+  import { formatEnchantmentSummary, getWeaponById, getEnchantmentById, getWeaponDisplayName, summarizeEnchantments } from '@/data/weapons'
   import { getRingById } from '@/data/rings'
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
@@ -328,6 +358,12 @@
   // === 装备槽位 ===
 
   const activeSlot = ref<'weapon' | 'ring1' | 'ring2' | 'hat' | 'shoe' | null>(null)
+  const enchantmentDetailWeapon = ref<OwnedWeapon | null>(null)
+  const enchantmentDetailRows = computed(() =>
+    enchantmentDetailWeapon.value
+      ? summarizeEnchantments(enchantmentDetailWeapon.value.enchantmentIds ?? enchantmentDetailWeapon.value.enchantmentId)
+      : []
+  )
 
   // === 武器 ===
 
@@ -355,6 +391,10 @@
   const getEnchantNames = (weapon: OwnedWeapon): string => {
     const ids = weapon.enchantmentIds && weapon.enchantmentIds.length > 0 ? weapon.enchantmentIds : weapon.enchantmentId ? [weapon.enchantmentId] : []
     return formatEnchantmentSummary(ids)
+  }
+
+  const openEnchantmentDetail = (weapon: OwnedWeapon) => {
+    enchantmentDetailWeapon.value = weapon
   }
 
   const handleEquipWeapon = (index: number) => {

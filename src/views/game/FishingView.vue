@@ -398,6 +398,23 @@
               <span class="text-xs text-muted">天气</span>
               <span class="text-xs">{{ selectedFish.weather.map(w => WEATHER_LABEL[w] ?? w).join('、') }}</span>
             </div>
+            <div class="flex items-center justify-between mt-0.5">
+              <span class="text-xs text-muted">熟练度</span>
+              <span class="text-xs" :class="fishingStore.canAutoPerfectFish(selectedFish) ? 'text-success' : 'text-accent'">
+                总{{ fishingStore.getFishMasteryTotal(selectedFish.id) }} · 单品质{{ fishingStore.getFishMasteryThreshold(selectedFish) }}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-x-2 gap-y-0.5 mt-1">
+              <div v-for="q in qualityOrder" :key="q" class="flex items-center justify-between">
+                <span class="text-[10px]" :class="QUALITY_COLORS[q]">{{ QUALITY_NAMES[q] }}</span>
+                <span
+                  class="text-[10px]"
+                  :class="fishingStore.canAutoPerfectFishQuality(selectedFish, q) ? 'text-success' : 'text-muted'"
+                >
+                  ×{{ fishingStore.getFishQualityMastery(selectedFish.id, q) }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -626,6 +643,9 @@
       if (result.junk) {
         // 垃圾直接入包，不进入小游戏
         lastResult.value = result.message
+      } else if (fishingStore.canAutoPerfectCurrentFish) {
+        addLog('熟练度已足够，跳过小游戏并以完美评价收竿。')
+        finishFishingWithRating('perfect')
       } else {
         miniGameParams.value = fishingStore.calculateMiniGameParams()
         miniGameCompleted.value = false
@@ -653,18 +673,10 @@
     supreme: 'text-quality-supreme'
   }
 
-  const handleMiniGameComplete = (result: MiniGameResult) => {
-    miniGameCompleted.value = true
+  const qualityOrder: Quality[] = ['normal', 'fine', 'excellent', 'supreme']
 
-    const ratingNames: Record<string, string> = {
-      perfect: '完美',
-      excellent: '优秀',
-      good: '良好',
-      poor: '失败'
-    }
-    addLog(`小游戏评级：${ratingNames[result.rating]}！`)
-
-    const catchData = fishingStore.completeFishing(result.rating)
+  const finishFishingWithRating = (rating: MiniGameResult['rating']) => {
+    const catchData = fishingStore.completeFishing(rating)
     if (catchData) {
       addLog(catchData.message)
       lastResult.value = catchData.message
@@ -688,6 +700,19 @@
     showFishingModal.value = false
     showCloseConfirm.value = false
     miniGameParams.value = null
+  }
+
+  const handleMiniGameComplete = (result: MiniGameResult) => {
+    miniGameCompleted.value = true
+
+    const ratingNames: Record<string, string> = {
+      perfect: '完美',
+      excellent: '优秀',
+      good: '良好',
+      poor: '失败'
+    }
+    addLog(`小游戏评级：${ratingNames[result.rating]}！`)
+    finishFishingWithRating(result.rating)
   }
 
   const dismissCatchResult = () => {

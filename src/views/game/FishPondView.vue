@@ -344,24 +344,61 @@
             批量育苗
           </Button>
           <div class="flex flex-col space-y-1 max-h-60 overflow-y-auto">
-            <div v-for="fish in detailGroup.fish" :key="fish.id" class="border border-accent/10 rounded-xs px-2 py-1.5">
+            <div v-for="row in detailFishRows" :key="row.key" class="border border-accent/10 rounded-xs px-2 py-1.5">
               <div class="flex items-center justify-between">
-                <span class="text-xs" :class="fish.sick ? 'text-danger' : fish.mature ? 'text-text' : 'text-muted'">
-                  {{ fish.name }}
-                  <span v-if="fish.sick" class="text-[10px]">[病]</span>
-                  <span v-if="!fish.mature" class="text-[10px]">[幼]</span>
+                <span class="text-xs" :class="row.sick ? 'text-danger' : row.mature ? 'text-text' : 'text-muted'">
+                  {{ row.name }} ×{{ row.count }}
+                  <span v-if="row.sick" class="text-[10px]">[病]</span>
+                  <span v-if="!row.mature" class="text-[10px]">[幼]</span>
                 </span>
-                <span class="text-[10px] text-muted">{{ fish.daysInPond }}天</span>
+                <span class="text-[10px] text-muted">均{{ row.averageDays }}天 · {{ row.averageStars }}星</span>
               </div>
               <div class="flex space-x-1 mt-1">
-                <Button class="flex-1 justify-center py-0.5" @click="openFishDetail(fish)">详情</Button>
-                <Button class="flex-1 justify-center py-0.5" :disabled="!fish.mature || fish.sick || fishPondStore.activeNurseryParentIds.has(fish.id)" @click="handleSelectForBreeding(fish)">
+                <Button class="flex-1 justify-center py-0.5" @click="openFishDetail(row.representative)">详情</Button>
+                <Button class="flex-1 justify-center py-0.5" :disabled="!row.selectableFish" @click="row.selectableFish && handleSelectForBreeding(row.selectableFish)">
                   选亲
                 </Button>
-                <Button class="flex-1 justify-center py-0.5" @click="handleRemoveFish(fish.id)">取出</Button>
+                <Button class="flex-1 justify-center py-0.5" @click="openRemoveFishModal(row)">取出</Button>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- 批量取出鱼弹窗 -->
+    <Transition name="panel-fade">
+      <div v-if="removeFishModal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[60] p-4" @click.self="removeFishModal = null">
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="removeFishModal = null">
+            <X :size="14" />
+          </button>
+          <p class="text-sm text-accent mb-2">取出{{ removeFishModal.name }}</p>
+          <div class="border border-accent/10 rounded-xs p-2 mb-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs text-muted">可取出</span>
+              <span class="text-xs">{{ removeFishModal.fishIds.length }}条</span>
+            </div>
+            <div class="flex items-center justify-between mt-1">
+              <span class="text-xs text-muted">数量</span>
+              <input
+                v-model.number="removeFishQty"
+                type="number"
+                min="1"
+                :max="removeFishModal.fishIds.length"
+                class="w-20 bg-bg border border-accent/20 rounded-xs px-2 py-1 text-xs text-right"
+              />
+            </div>
+          </div>
+          <div class="grid grid-cols-4 gap-1 mb-2">
+            <Button class="justify-center py-0.5" @click="removeFishQty = 1">1</Button>
+            <Button class="justify-center py-0.5" @click="removeFishQty = Math.min(10, removeFishModal!.fishIds.length)">10</Button>
+            <Button class="justify-center py-0.5" @click="removeFishQty = Math.min(50, removeFishModal!.fishIds.length)">50</Button>
+            <Button class="justify-center py-0.5" @click="removeFishQty = removeFishModal!.fishIds.length">全部</Button>
+          </div>
+          <Button class="w-full justify-center !bg-accent !text-bg" @click="confirmRemoveFishBatch">
+            确认取出
+          </Button>
         </div>
       </div>
     </Transition>
@@ -560,6 +597,8 @@
   const detailFish = ref<PondFish | null>(null)
   const detailGroupFishId = ref<string | null>(null)
   const detailBreedId = ref<string | null>(null)
+  const removeFishModal = ref<{ name: string; fishIds: string[] } | null>(null)
+  const removeFishQty = ref(1)
   const compendiumGen = ref<1 | 2 | 3 | 4 | 5>(1)
   const PAGE_SIZE = 50
   const fishGroupPage = ref(1)
@@ -622,6 +661,51 @@
   const getBreedingProgress = (daysLeft: number): number => ((breedingTotalDays - daysLeft) / breedingTotalDays) * 100
   const pondCapacityLabel = computed(() => formatCapacity(fishPondStore.capacity))
   const detailGroup = computed(() => fishPondStore.fishGroups.find(group => group.fishId === detailGroupFishId.value) ?? null)
+  const detailFishRows = computed(() => {
+    if (!detailGroup.value) return []
+    const map = new Map<
+      string,
+      {
+        key: string
+        name: string
+        mature: boolean
+        sick: boolean
+        fish: PondFish[]
+      }
+    >()
+
+    for (const fish of detailGroup.value.fish) {
+      const key = [
+        fish.name,
+        fish.breedId ?? '',
+        fish.mature ? 'mature' : 'juvenile',
+        fish.sick ? 'sick' : 'healthy'
+      ].join('|')
+      const row = map.get(key) ?? { key, name: fish.name, mature: fish.mature, sick: fish.sick, fish: [] }
+      row.fish.push(fish)
+      map.set(key, row)
+    }
+
+    return [...map.values()]
+      .map(row => {
+        const totalStars = row.fish.reduce((sum, fish) => sum + fishPondStore.getGeneticStarRating(fish.genetics), 0)
+        const totalDays = row.fish.reduce((sum, fish) => sum + fish.daysInPond, 0)
+        const selectableFish = row.fish.find(fish => fish.mature && !fish.sick && !fishPondStore.activeNurseryParentIds.has(fish.id)) ?? null
+        return {
+          key: row.key,
+          name: row.name,
+          mature: row.mature,
+          sick: row.sick,
+          count: row.fish.length,
+          fishIds: row.fish.map(fish => fish.id),
+          representative: row.fish[0]!,
+          selectableFish,
+          averageStars: row.fish.length > 0 ? Math.round(totalStars / row.fish.length) : 0,
+          averageDays: row.fish.length > 0 ? Math.floor(totalDays / row.fish.length) : 0
+        }
+      })
+      .sort((a, b) => Number(b.mature) - Number(a.mature) || Number(a.sick) - Number(b.sick) || b.averageStars - a.averageStars || a.name.localeCompare(b.name))
+  })
   const reproductionGroups = computed(() =>
     fishPondStore.fishGroups
       .filter(group => group.matureCount >= 2)
@@ -819,6 +903,29 @@
     } else {
       addLog('背包已满，无法取出。')
     }
+  }
+
+  const openRemoveFishModal = (row: (typeof detailFishRows.value)[number]) => {
+    removeFishModal.value = { name: row.name, fishIds: row.fishIds }
+    removeFishQty.value = Math.min(1, row.fishIds.length)
+  }
+
+  const confirmRemoveFishBatch = () => {
+    if (!removeFishModal.value) return
+    const qty = Math.min(Math.max(1, Math.floor(removeFishQty.value || 1)), removeFishModal.value.fishIds.length)
+    let removed = 0
+    for (const fishId of removeFishModal.value.fishIds.slice(0, qty)) {
+      if (fishPondStore.removeFish(fishId)) removed++
+      else break
+    }
+    if (removed > 0) {
+      addLog(`取出了${removed}条${removeFishModal.value.name}。`)
+      selectedBreedingFish.value = null
+      if (detailGroup.value?.fish.length === 0) detailGroupFishId.value = null
+    } else {
+      addLog('背包已满，无法取出。')
+    }
+    removeFishModal.value = null
   }
 
   const handleStartGroupBreeding = (fishId: string) => {

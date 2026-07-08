@@ -252,7 +252,10 @@
               <Swords :size="12" class="inline" />
               {{ weaponDisplayName }}（{{ weaponTypeName }} · 攻击 {{ weaponAttack }} · 暴击 {{ critRateDisplay }}）
             </p>
-            <p v-if="weaponEnchantName" class="text-success">附魔：{{ weaponEnchantName }}</p>
+            <div v-if="weaponEnchantName" class="flex items-center gap-1 text-success">
+              <span class="truncate">附魔：{{ weaponEnchantName }}</span>
+              <Button class="py-0 px-1 shrink-0" @click="viewWeaponEnchantmentDetail">详情</Button>
+            </div>
           </div>
 
           <!-- 感染层提示 -->

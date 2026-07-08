@@ -64,8 +64,8 @@
             <div class="flex items-center space-x-1">
               <span class="text-xs text-accent">{{ group.name }}</span>
               <span class="text-[10px] text-muted">×{{ group.slots.length }}</span>
-              <span v-if="group.slots.some(s => s.slot.ready)" class="text-[10px] text-success">
-                ({{ group.slots.filter(s => s.slot.ready).length }}可收取)
+              <span v-if="getReadySlotCount(group) > 0" class="text-[10px] text-success">
+                ({{ getReadySlotCount(group) }}可收取)
               </span>
             </div>
             <span class="text-[10px] text-muted">{{ processingStore.collapsedGroups.has(group.machineType) ? '▸' : '▾' }}</span>
@@ -77,7 +77,7 @@
               v-for="{ slot, originalIndex } in group.slots"
               :key="originalIndex"
               class="border rounded-xs p-2"
-              :class="slot.ready ? 'border-success/30' : 'border-accent/20'"
+              :class="slot.ready || hasReadySeedMakerJob(slot) ? 'border-success/30' : 'border-accent/20'"
             >
               <div class="flex items-center justify-between mb-1.5">
                 <span class="text-xs" :class="slot.ready ? 'text-success' : 'text-accent'">{{ group.name }}</span>
@@ -90,6 +90,39 @@
               <div v-if="!slot.recipeId">
                 <!-- 种子制造机：按品质展开 -->
                 <template v-if="slot.machineType === 'seed_maker'">
+                  <div v-if="slot.seedMakerJobs?.length" class="flex flex-col space-y-1 mb-2">
+                    <div v-for="job in getPagedSeedMakerJobs(slot, originalIndex)" :key="job.id" class="border border-accent/10 rounded-xs px-2 py-1">
+                      <div class="flex items-center justify-between text-xs mb-1">
+                        <span :class="job.ready ? 'text-success' : 'text-muted'">{{ getRecipeName(job.recipeId) }}</span>
+                        <span class="text-muted">{{ job.daysProcessed }}/{{ job.totalDays }}天</span>
+                      </div>
+                      <div class="h-1 bg-bg rounded-xs border border-accent/10 mb-1.5">
+                        <div
+                          class="h-full rounded-xs transition-all"
+                          :class="job.ready ? 'bg-success' : 'bg-accent'"
+                          :style="{ width: Math.floor((job.daysProcessed / job.totalDays) * 100) + '%' }"
+                        />
+                      </div>
+                      <Button
+                        v-if="job.ready"
+                        class="w-full justify-center !bg-accent !text-bg py-0.5"
+                        :icon="Package"
+                        :icon-size="10"
+                        @click="handleCollectSeedMakerJob(originalIndex, job.id)"
+                      >
+                        收取 {{ getRecipeOutputName(job.recipeId) }}
+                      </Button>
+                      <Button v-else class="w-full justify-center py-0.5" :icon="X" :icon-size="10" @click="handleCancelSeedMakerJob(originalIndex, job.id)">
+                        取消该批
+                      </Button>
+                    </div>
+                    <PaginationControls
+                      :page="getSeedMakerJobPage(originalIndex)"
+                      :total="slot.seedMakerJobs?.length ?? 0"
+                      :page-size="SEED_MAKER_JOB_PAGE_SIZE"
+                      @update:page="page => setSeedMakerJobPage(originalIndex, page)"
+                    />
+                  </div>
                   <div v-if="getSeedMakerQualityRecipes(slot.machineType).length > 0" class="grid space-y-1">
                     <Button
                       v-for="qr in getSeedMakerQualityRecipes(slot.machineType)"
@@ -369,6 +402,7 @@
   import { ref, computed } from 'vue'
   import { Hammer, Trash2, Package, Boxes, X, ArrowUpCircle } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
+  import PaginationControls from '@/components/game/PaginationControls.vue'
   import type { MachineType, AnimalBuildingType, ChestTier, Quality } from '@/types'
   import { QUALITY_NAMES } from '@/composables/useFarmActions'
   import { useAnimalStore } from '@/stores/useAnimalStore'
@@ -411,6 +445,22 @@
 
   const activeTab = ref<'process' | 'craft'>('process')
   const onlyAvailable = ref(false)
+  const SEED_MAKER_JOB_PAGE_SIZE = 50
+  const seedMakerJobPages = ref<Record<number, number>>({})
+
+  const getSeedMakerJobPage = (slotIndex: number): number => seedMakerJobPages.value[slotIndex] ?? 1
+
+  const setSeedMakerJobPage = (slotIndex: number, page: number) => {
+    seedMakerJobPages.value[slotIndex] = Math.max(1, page)
+  }
+
+  const getPagedSeedMakerJobs = (slot: (typeof processingStore.machines)[number], slotIndex: number) => {
+    const jobs = slot.seedMakerJobs ?? []
+    const totalPages = Math.max(1, Math.ceil(jobs.length / SEED_MAKER_JOB_PAGE_SIZE))
+    const page = Math.min(getSeedMakerJobPage(slotIndex), totalPages)
+    if (page !== getSeedMakerJobPage(slotIndex)) setSeedMakerJobPage(slotIndex, page)
+    return jobs.slice((page - 1) * SEED_MAKER_JOB_PAGE_SIZE, page * SEED_MAKER_JOB_PAGE_SIZE)
+  }
 
   const getFilteredRecipes = (machineType: MachineType) => {
     const recipes = processingStore.getAvailableRecipes(machineType)
@@ -448,6 +498,10 @@
     machineType: MachineType
     name: string
     slots: { slot: (typeof processingStore.machines)[number]; originalIndex: number }[]
+  }
+
+  const getReadySlotCount = (group: MachineGroup): number => {
+    return group.slots.reduce((sum, { slot }) => sum + (slot.machineType === 'seed_maker' ? (slot.seedMakerJobs?.filter(job => job.ready).length ?? 0) : slot.ready ? 1 : 0), 0)
   }
 
   const machineGroups = computed((): MachineGroup[] => {
@@ -1070,6 +1124,19 @@
     }
   }
 
+  const hasReadySeedMakerJob = (slot: (typeof processingStore.machines)[number]): boolean => {
+    return slot.machineType === 'seed_maker' && !!slot.seedMakerJobs?.some(job => job.ready)
+  }
+
+  const handleCollectSeedMakerJob = (slotIndex: number, jobId: string) => {
+    const outputId = processingStore.collectSeedMakerJob(slotIndex, jobId)
+    if (outputId) {
+      sfxClick()
+      const name = getItemById(outputId)?.name ?? outputId
+      addLog(`收取了${name}！`)
+    }
+  }
+
   const handleRemoveMachine = (slotIndex: number) => {
     const slot = processingStore.machines[slotIndex]
     if (!slot) return
@@ -1085,6 +1152,12 @@
     const name = getMachineName(slot.machineType)
     if (processingStore.cancelProcessing(slotIndex)) {
       addLog(`${name}已停止加工，原料已退回。`)
+    }
+  }
+
+  const handleCancelSeedMakerJob = (slotIndex: number, jobId: string) => {
+    if (processingStore.cancelSeedMakerJob(slotIndex, jobId)) {
+      addLog('种子制造机已取消该批加工，原料已退回。')
     }
   }
 </script>

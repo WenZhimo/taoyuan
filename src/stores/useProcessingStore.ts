@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { MachineType, ProcessingSlot, Quality } from '@/types'
+import type { MachineType, ProcessingSlot, Quality, SeedMakerJob } from '@/types'
 import {
   PROCESSING_MACHINES,
   SPRINKLERS,
@@ -41,6 +41,12 @@ const WORKSHOP_UPGRADES = [
     ]
   }
 ]
+
+let _seedMakerJobCounter = 0
+const generateSeedMakerJobId = (): string => {
+  _seedMakerJobCounter++
+  return `smj_${Date.now()}_${_seedMakerJobCounter}`
+}
 
 export const useProcessingStore = defineStore('processing', () => {
   const inventoryStore = useInventoryStore()
@@ -164,10 +170,26 @@ export const useProcessingStore = defineStore('processing', () => {
     return getLowestCombinedQuality(itemId)
   }
 
+  const addProductToOutput = (itemId: string, quantity: number, quality: Quality) => {
+    const warehouseStore = useWarehouseStore()
+    const voidOutput = warehouseStore.getVoidOutputChest()
+    if (!voidOutput || !warehouseStore.addItemToChest(voidOutput.id, itemId, quantity, quality)) {
+      inventoryStore.addItem(itemId, quantity, quality)
+    }
+  }
+
+  const tryProduceGeneticSeed = (cropId: string | null | undefined): boolean => {
+    if (!cropId) return false
+    const breedingStore = useBreedingStore()
+    const farmingLevel = skillStore.farmingLevel
+    return breedingStore.trySeedMakerGeneticSeed(cropId, farmingLevel)
+  }
+
   /** 向已放置的机器投入原料开始加工。specifiedQuality 可指定消耗的品质 */
   const startProcessing = (slotIndex: number, recipeId: string, specifiedQuality?: Quality): boolean => {
     const slot = machines.value[slotIndex]
-    if (!slot || slot.recipeId !== null) return false // 正在加工中
+    if (!slot) return false
+    if (slot.machineType !== 'seed_maker' && slot.recipeId !== null) return false // 正在加工中
     const recipe = getProcessingRecipeById(recipeId)
     if (!recipe || recipe.machineType !== slot.machineType) return false
 
@@ -181,6 +203,20 @@ export const useProcessingStore = defineStore('processing', () => {
         quality = getLowestQuality(recipe.inputItemId)
         if (!removeCombinedItem(recipe.inputItemId, recipe.inputQuantity)) return false
       }
+    }
+
+    if (slot.machineType === 'seed_maker') {
+      slot.seedMakerJobs ??= []
+      slot.seedMakerJobs.push({
+        id: generateSeedMakerJobId(),
+        recipeId,
+        inputItemId: recipe.inputItemId,
+        inputQuality: quality,
+        daysProcessed: 0,
+        totalDays: recipe.processingDays,
+        ready: false
+      })
+      return true
     }
 
     slot.recipeId = recipeId
@@ -204,21 +240,12 @@ export const useProcessingStore = defineStore('processing', () => {
     const recipe = getProcessingRecipeById(slot.recipeId)
     if (!recipe) return null
 
-    // 优先放入虚空成品箱，箱子满则回退到背包
-    const warehouseStore = useWarehouseStore()
-    const voidOutput = warehouseStore.getVoidOutputChest()
     const outputQuality = slot.inputQuality ?? 'normal'
-    if (!voidOutput || !warehouseStore.addItemToChest(voidOutput.id, recipe.outputItemId, recipe.outputQuantity, outputQuality)) {
-      inventoryStore.addItem(recipe.outputItemId, recipe.outputQuantity, outputQuality)
-    }
+    addProductToOutput(recipe.outputItemId, recipe.outputQuantity, outputQuality)
 
     // 种子制造机额外触发育种种子生成
-    if (slot.machineType === 'seed_maker' && slot.inputItemId) {
-      const breedingStore = useBreedingStore()
-      const farmingLevel = skillStore.farmingLevel
-      if (breedingStore.trySeedMakerGeneticSeed(slot.inputItemId, farmingLevel)) {
-        addLog('种子制造机额外产出了一颗育种种子！')
-      }
+    if (slot.machineType === 'seed_maker' && tryProduceGeneticSeed(slot.inputItemId)) {
+      addLog('种子制造机额外产出了一颗育种种子！')
     }
 
     // 重置槽位
@@ -232,21 +259,62 @@ export const useProcessingStore = defineStore('processing', () => {
     return recipe.outputItemId
   }
 
+  const collectSeedMakerJob = (slotIndex: number, jobId: string): string | null => {
+    const slot = machines.value[slotIndex]
+    if (!slot || slot.machineType !== 'seed_maker') return null
+    const jobs = slot.seedMakerJobs ?? []
+    const jobIndex = jobs.findIndex(job => job.id === jobId)
+    const job = jobs[jobIndex]
+    if (!job || !job.ready) return null
+    const recipe = getProcessingRecipeById(job.recipeId)
+    if (!recipe) return null
+
+    addProductToOutput(recipe.outputItemId, recipe.outputQuantity, job.inputQuality ?? 'normal')
+    if (tryProduceGeneticSeed(job.inputItemId)) {
+      addLog('种子制造机额外产出了一颗育种种子！')
+    }
+    jobs.splice(jobIndex, 1)
+    return recipe.outputItemId
+  }
+
+  const cancelSeedMakerJob = (slotIndex: number, jobId: string): boolean => {
+    const slot = machines.value[slotIndex]
+    if (!slot || slot.machineType !== 'seed_maker') return false
+    const jobs = slot.seedMakerJobs ?? []
+    const jobIndex = jobs.findIndex(job => job.id === jobId)
+    const job = jobs[jobIndex]
+    if (!job) return false
+    const recipe = getProcessingRecipeById(job.recipeId)
+    if (recipe?.inputItemId && !job.ready) {
+      inventoryStore.addItem(recipe.inputItemId, recipe.inputQuantity, job.inputQuality ?? 'normal')
+    }
+    jobs.splice(jobIndex, 1)
+    return true
+  }
+
   /** 拆除机器（退回加工原料 + 已完成产物 + 机器制作材料） */
   const removeMachine = (slotIndex: number): boolean => {
     const slot = machines.value[slotIndex]
     if (!slot) return false
 
     // 如果已完成：先收取产物
-    if (slot.recipeId && slot.ready) {
+    if (slot.machineType === 'seed_maker') {
+      for (const job of slot.seedMakerJobs ?? []) {
+        const recipe = getProcessingRecipeById(job.recipeId)
+        if (!recipe) continue
+        if (job.ready) {
+          addProductToOutput(recipe.outputItemId, recipe.outputQuantity, job.inputQuality ?? 'normal')
+        } else if (recipe.inputItemId) {
+          inventoryStore.addItem(recipe.inputItemId, recipe.inputQuantity, job.inputQuality ?? 'normal')
+        }
+      }
+      slot.seedMakerJobs = []
+    }
+    else if (slot.recipeId && slot.ready) {
       const recipe = getProcessingRecipeById(slot.recipeId)
       if (recipe) {
-        const warehouseStore = useWarehouseStore()
-        const voidOutput = warehouseStore.getVoidOutputChest()
         const outputQuality = slot.inputQuality ?? 'normal'
-        if (!voidOutput || !warehouseStore.addItemToChest(voidOutput.id, recipe.outputItemId, recipe.outputQuantity, outputQuality)) {
-          inventoryStore.addItem(recipe.outputItemId, recipe.outputQuantity, outputQuality)
-        }
+        addProductToOutput(recipe.outputItemId, recipe.outputQuantity, outputQuality)
       }
     }
     // 如果正在加工：退回原料
@@ -304,6 +372,18 @@ export const useProcessingStore = defineStore('processing', () => {
     const warehouseStore = useWarehouseStore()
     const voidOutput = warehouseStore.getVoidOutputChest()
     for (const slot of machines.value) {
+      if (slot.machineType === 'seed_maker') {
+        for (const job of slot.seedMakerJobs ?? []) {
+          if (job.ready) continue
+          job.daysProcessed++
+          if (job.daysProcessed >= job.totalDays) {
+            const recipe = getProcessingRecipeById(job.recipeId)
+            if (recipe) readyNames.push(recipe.name)
+            job.ready = true
+          }
+        }
+        continue
+      }
       if (!slot.recipeId || slot.ready) continue
       slot.daysProcessed++
       if (slot.daysProcessed >= slot.totalDays) {
@@ -345,15 +425,6 @@ export const useProcessingStore = defineStore('processing', () => {
                 inventoryStore.addItem(recipe.outputItemId, recipe.outputQuantity, outputQuality)
               }
               collected.push(recipe.name)
-
-              // 种子制造机额外触发育种种子生成
-              if (slot.machineType === 'seed_maker' && slot.inputItemId) {
-                const breedingStore = useBreedingStore()
-                const farmingLevel = skillStore.farmingLevel
-                if (breedingStore.trySeedMakerGeneticSeed(slot.inputItemId, farmingLevel)) {
-                  addLog('种子制造机额外产出了一颗育种种子！')
-                }
-              }
 
               // 尝试从虚空原料箱取材料开始下一轮
               const available = warehouseStore.getChestItemCount(voidInput.id, recipe.inputItemId)
@@ -447,7 +518,31 @@ export const useProcessingStore = defineStore('processing', () => {
   }
 
   const deserialize = (data: ReturnType<typeof serialize>) => {
-    machines.value = data.machines ?? []
+    machines.value = (data.machines ?? []).map(slot => {
+      if (slot.machineType !== 'seed_maker') return slot
+      const jobs: SeedMakerJob[] = [...(slot.seedMakerJobs ?? [])]
+      if (slot.recipeId) {
+        jobs.push({
+          id: generateSeedMakerJobId(),
+          recipeId: slot.recipeId,
+          inputItemId: slot.inputItemId,
+          inputQuality: slot.inputQuality,
+          daysProcessed: slot.daysProcessed,
+          totalDays: slot.totalDays,
+          ready: slot.ready
+        })
+      }
+      return {
+        ...slot,
+        recipeId: null,
+        inputItemId: null,
+        inputQuality: undefined,
+        daysProcessed: 0,
+        totalDays: 0,
+        ready: false,
+        seedMakerJobs: jobs
+      }
+    })
     workshopLevel.value = (data as any).workshopLevel ?? 0
     collapsedGroups.value = new Set((data as any).collapsedGroups ?? [])
   }
@@ -469,7 +564,9 @@ export const useProcessingStore = defineStore('processing', () => {
     craftBomb,
     startProcessing,
     collectProduct,
+    collectSeedMakerJob,
     cancelProcessing,
+    cancelSeedMakerJob,
     removeMachine,
     getAvailableRecipes,
     dailyUpdate,

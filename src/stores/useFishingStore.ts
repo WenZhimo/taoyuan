@@ -29,6 +29,12 @@ import { useHiddenNpcStore } from './useHiddenNpcStore'
 const STAMINA_COST = 4
 const MAX_CRAB_POTS = 12
 const MAX_CRAB_POTS_PER_LOCATION = 3
+const FISH_MASTERY_THRESHOLD: Record<FishDef['difficulty'], number> = {
+  easy: 20,
+  normal: 35,
+  hard: 60,
+  legendary: 100
+}
 
 /** 蟹笼产物池 */
 const CRAB_POT_LOOT: { itemId: string; weight: number; locationOverride?: FishingLocation; replaces?: string }[] = [
@@ -89,6 +95,32 @@ export const useFishingStore = defineStore('fishing', () => {
 
   /** 上次是否完美 */
   const lastPerfect = ref(false)
+
+  /** 鱼类熟练度：fishId -> quality -> caught count */
+  const fishMastery = ref<Record<string, Partial<Record<Quality, number>>>>({})
+
+  const getFishMasteryTotal = (fishId: string): number => {
+    const entry = fishMastery.value[fishId]
+    if (!entry) return 0
+    return Object.values(entry).reduce((sum, count) => sum + (count ?? 0), 0)
+  }
+
+  const getFishQualityMastery = (fishId: string, quality: Quality): number => fishMastery.value[fishId]?.[quality] ?? 0
+
+  const getFishMasteryThreshold = (fish: FishDef): number => FISH_MASTERY_THRESHOLD[fish.difficulty] ?? FISH_MASTERY_THRESHOLD.normal
+
+  const canAutoPerfectFishQuality = (fish: FishDef, quality: Quality): boolean =>
+    getFishQualityMastery(fish.id, quality) >= getFishMasteryThreshold(fish)
+
+  const canAutoPerfectFish = (fish: FishDef): boolean =>
+    (['normal', 'fine', 'excellent', 'supreme'] as Quality[]).some(quality => canAutoPerfectFishQuality(fish, quality))
+
+  const canAutoPerfectCurrentFish = computed(() => (currentFish.value ? canAutoPerfectFish(currentFish.value) : false))
+
+  const recordFishMastery = (fishId: string, quality: Quality, quantity: number) => {
+    fishMastery.value[fishId] ??= {}
+    fishMastery.value[fishId]![quality] = (fishMastery.value[fishId]![quality] ?? 0) + quantity
+  }
 
   /** 鱼饵/浮漂装备 */
   const equippedBait = ref<BaitType | null>(null)
@@ -451,6 +483,7 @@ export const useFishingStore = defineStore('fishing', () => {
     }
 
     const added = inventoryStore.addItem(currentFish.value.id, catchQty, quality)
+    if (added) recordFishMastery(currentFish.value.id, quality, catchQty)
     const achievementStore = useAchievementStore()
     achievementStore.discoverItem(currentFish.value.id)
     achievementStore.recordFishCaught()
@@ -689,7 +722,8 @@ export const useFishingStore = defineStore('fishing', () => {
       equippedTackle: equippedTackle.value,
       tackleDurability: tackleDurability.value,
       fishingLocation: fishingLocation.value,
-      crabPots: crabPots.value
+      crabPots: crabPots.value,
+      fishMastery: fishMastery.value
     }
   }
 
@@ -699,20 +733,28 @@ export const useFishingStore = defineStore('fishing', () => {
     tackleDurability.value = data.tackleDurability ?? 0
     fishingLocation.value = data.fishingLocation ?? 'creek'
     crabPots.value = (data as any).crabPots ?? []
+    fishMastery.value = (data as any).fishMastery ?? {}
   }
 
   return {
     availableFish,
     fishingLocation,
     currentFish,
+    fishMastery,
     lastTreasure,
     lastPerfect,
+    canAutoPerfectCurrentFish,
     equippedBait,
     equippedTackle,
     tackleDurability,
     crabPots,
     crabPotsByLocation,
     setLocation,
+    getFishMasteryTotal,
+    getFishQualityMastery,
+    getFishMasteryThreshold,
+    canAutoPerfectFishQuality,
+    canAutoPerfectFish,
     equipBait,
     unequipBait,
     equipTackle,

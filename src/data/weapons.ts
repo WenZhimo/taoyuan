@@ -224,6 +224,10 @@ export interface EnchantmentSummary {
   count: number
 }
 
+export interface EnchantmentSummaryFormatOptions {
+  maxVisible?: number
+}
+
 export const summarizeEnchantments = (input: WeaponEnchantInput | EnchantmentDef[]): EnchantmentSummary[] => {
   const enchantments = Array.isArray(input) && input.length > 0 && typeof input[0] === 'object' ? (input as EnchantmentDef[]) : getWeaponEnchantments(input as WeaponEnchantInput)
   const summary = new Map<string, EnchantmentSummary>()
@@ -245,10 +249,16 @@ export const summarizeEnchantments = (input: WeaponEnchantInput | EnchantmentDef
   return [...summary.values()]
 }
 
-export const formatEnchantmentSummary = (input: WeaponEnchantInput | EnchantmentDef[]): string => {
-  return summarizeEnchantments(input)
+export const formatEnchantmentSummary = (input: WeaponEnchantInput | EnchantmentDef[], options: EnchantmentSummaryFormatOptions = {}): string => {
+  const summary = summarizeEnchantments(input)
+  const maxVisible = Math.max(1, options.maxVisible ?? 4)
+  const visible = summary.slice(0, maxVisible)
+  const names = visible
     .map(enchant => (enchant.count > 1 ? `${enchant.name}x${enchant.count}` : enchant.name))
     .join('、')
+
+  if (summary.length > visible.length) return `${names}等${summary.length - visible.length}种附魔`
+  return names
 }
 
 export const getEnchantmentEffects = (enchantmentIds: WeaponEnchantInput): EquipmentEffect[] => {
@@ -733,9 +743,10 @@ export const getWeaponDisplayName = (defId: string, enchantment: WeaponEnchantIn
   if (!weapon) return defId
   const enchantments = getWeaponEnchantments(enchantment)
   if (enchantments.length === 0) return weapon.name
-  const summary = formatEnchantmentSummary(enchantments)
-  if (summarizeEnchantments(enchantments).length <= 2) return `${summary}的${weapon.name}`
-  return `${summary.split('、')[0]}等${enchantments.length}附魔的${weapon.name}`
+  const summary = summarizeEnchantments(enchantments)
+  const nameSummary = formatEnchantmentSummary(enchantments, { maxVisible: 2 })
+  if (summary.length <= 2) return `${nameSummary}的${weapon.name}`
+  return `${summary[0]?.name ?? nameSummary}等${summary.length}种附魔的${weapon.name}`
 }
 
 /** 宝箱掉落武器（按矿洞区域） */
