@@ -32,7 +32,6 @@ export const WILD_TREE_DEFS: WildTreeDef[] = [
 ]
 
 /** 最大野树数量 */
-export const MAX_WILD_TREES = 6
 
 export const getWildTreeDef = (type: string): WildTreeDef | undefined => {
   return WILD_TREE_DEFS.find(d => d.type === type)

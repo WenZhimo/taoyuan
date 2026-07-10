@@ -609,7 +609,7 @@ export const handleBatchHarvest = async (runBatch: FarmBatchRunner) => {
 }
 
 /** 一键种植（在所有空耕地上种植指定作物） */
-export const handleBatchPlant = async (cropId: string, runBatch: FarmBatchRunner) => {
+export const handleBatchPlant = async (cropId: string, runBatch: FarmBatchRunner, seedQuality?: Quality) => {
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
   const farmStore = useFarmStore()
@@ -651,17 +651,17 @@ export const handleBatchPlant = async (cropId: string, runBatch: FarmBatchRunner
         (1 - plantRingGlobalReduction)
     )
   )
-  const planned = Math.min(targets.length, inventoryStore.getItemCount(cropDef.seedId), Math.floor(playerStore.stamina / cost))
+  const planned = Math.min(targets.length, inventoryStore.getItemCount(cropDef.seedId, seedQuality), Math.floor(playerStore.stamina / cost))
   if (planned <= 0) {
     addLog('体力不足或种子不够，无法种植。')
     return
   }
-  if (!inventoryStore.removeItem(cropDef.seedId, planned)) {
+  if (!inventoryStore.removeItem(cropDef.seedId, planned, seedQuality)) {
     addLog('体力不足或种子不够，无法种植。')
     return
   }
   if (!playerStore.consumeStamina(planned * cost)) {
-    inventoryStore.addItem(cropDef.seedId, planned)
+    inventoryStore.addItem(cropDef.seedId, planned, seedQuality)
     addLog('体力不足或种子不够，无法种植。')
     return
   }
@@ -683,7 +683,7 @@ export const handleBatchPlant = async (cropId: string, runBatch: FarmBatchRunner
   })
   const unused = planned - planted
   if (unused > 0) {
-    inventoryStore.addItem(cropDef.seedId, unused)
+    inventoryStore.addItem(cropDef.seedId, unused, seedQuality)
     playerStore.restoreStamina(unused * cost)
   }
 

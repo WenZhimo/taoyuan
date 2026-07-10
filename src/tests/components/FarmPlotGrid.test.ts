@@ -64,6 +64,8 @@ describe('FarmPlotGrid', () => {
     const buttons = wrapper.findAll('button')
 
     expect(buttons).toHaveLength(2)
+    expect(buttons[0]?.classes()).toContain('aspect-square')
+    expect(buttons[0]?.classes()).toContain('min-w-0')
     expect(buttons[0]?.classes()).toContain('border-2')
     expect(buttons[0]?.classes()).toContain('border-danger/50')
     expect(buttons[0]?.attributes('title')).toBe('地块 1')

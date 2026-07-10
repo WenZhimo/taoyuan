@@ -734,18 +734,20 @@
           <div class="flex flex-col space-y-1 max-h-60 overflow-y-auto">
             <div
               v-for="inv in sellableItems"
-              :key="inv.id + '-' + inv.quality"
-              class="flex items-center justify-between border border-accent/10 rounded-xs px-2 py-1.5 cursor-pointer hover:bg-accent/5"
-              @click="selectTradeItem(inv)"
+              :key="inv.itemId"
+              class="flex items-center justify-between border border-accent/10 rounded-xs px-2 py-1.5 hover:bg-accent/5"
             >
               <div class="flex-1 min-w-0">
-                <span class="text-xs">{{ inv.name }}</span>
-                <span v-if="inv.quality !== 'normal'" class="text-[10px] ml-1" :class="qualityColor(inv.quality)">
-                  {{ qualityLabel(inv.quality) }}
-                </span>
-                <span class="text-[10px] text-muted ml-1">×{{ inv.quantity }}</span>
+                <span class="text-xs text-accent">{{ inv.name }}</span>
+                <QualityQuantityBreakdown
+                  class="mt-0.5"
+                  :entries="inv.qualities"
+                  :interactive="true"
+                  :aria-label="`${inv.name}的可上架品质数量`"
+                  @select-quality="quality => selectTradeItem(inv, quality)"
+                />
               </div>
-              <span class="text-[10px] text-accent shrink-0">~{{ calcPreviewPoints(inv) }}积分</span>
+              <span class="text-[10px] text-accent shrink-0">~{{ calcGroupedPreviewPoints(inv) }}积分</span>
             </div>
           </div>
           <p v-if="sellableItems.length === 0" class="text-xs text-muted text-center py-4">背包中没有可售物品</p>
@@ -903,7 +905,7 @@
     calcTradePoints
   } from '@/data/hanhai'
   import { getItemById } from '@/data/items'
-  import type { HanhaiShopItemDef, CricketDef, TexasSetup, TexasTierId, BuckshotSetup, TradeExchangeItemDef } from '@/types'
+  import type { HanhaiShopItemDef, CricketDef, TexasSetup, TexasTierId, BuckshotSetup, TradeExchangeItemDef, InventoryItem, Quality } from '@/types'
   import { addLog } from '@/composables/useGameLog'
   import { useAudio } from '@/composables/useAudio'
   import {
@@ -927,7 +929,10 @@
   import TexasHoldemGame from '@/components/game/TexasHoldemGame.vue'
   import BuckshotRouletteGame from '@/components/game/BuckshotRouletteGame.vue'
   import Button from '@/components/game/Button.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
   import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
+  import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
+  import type { InventoryQualityGroup } from '@/domain/inventory/qualityGroups'
 
   // suppress unused warnings for template-only refs
   void CRICKET_WIN_MULTIPLIER
@@ -1284,14 +1289,14 @@
     return getItemById(itemId)?.name ?? itemId
   }
 
-  const QUALITY_LABELS: Record<string, string> = {
+  const QUALITY_LABELS: Record<Quality, string> = {
     normal: '普通',
     fine: '优良',
     excellent: '卓越',
     supreme: '极品'
   }
 
-  const qualityLabel = (quality: string): string => QUALITY_LABELS[quality] ?? quality
+  const qualityLabel = (quality: string): string => QUALITY_LABELS[quality as Quality] ?? quality
 
   const qualityColor = (quality: string): string => {
     if (quality === 'fine') return 'text-quality-fine'
@@ -1300,32 +1305,62 @@
     return ''
   }
 
+  interface TradeSellableItem extends InventoryItem {
+    name: string
+    sellPrice: number
+  }
+
+  interface TradeSellableGroup extends InventoryQualityGroup<TradeSellableItem> {
+    name: string
+    sellPrice: number
+  }
+
+  interface TradeSelectedItem {
+    id: string
+    name: string
+    quality: Quality
+    quantity: number
+    sellPrice: number
+  }
+
   /** 背包中可上架的物品（有售价的物品） */
-  const sellableItems = computed(() => {
-    const result: { id: string; name: string; quality: string; quantity: number; sellPrice: number }[] = []
+  const sellableItems = computed<TradeSellableGroup[]>(() => {
+    const result: TradeSellableItem[] = []
     for (const item of inventoryStore.items) {
       const def = getItemById(item.itemId)
       if (def && def.sellPrice > 0) {
         result.push({
-          id: item.itemId,
+          ...item,
           name: def.name,
-          quality: item.quality ?? 'normal',
-          quantity: item.quantity,
           sellPrice: def.sellPrice
         })
       }
     }
-    return result
+    return groupInventoryItemsByQuality(result).map(group => {
+      const item = group.qualities[0]!.items[0]!
+      return {
+        ...group,
+        name: item.name,
+        sellPrice: item.sellPrice
+      }
+    })
   })
 
   /** 计算积分预览（含钱袋加成） */
-  const calcPreviewPoints = (inv: { sellPrice: number; quality: string; quantity: number }): number => {
+  const calcPreviewPoints = (inv: { sellPrice: number; quality: Quality; quantity: number }): number => {
     const base = calcTradePoints(inv.sellPrice * inv.quantity, inv.quality)
     return Math.ceil(base * (1 + walletStore.getTradeBonus()))
   }
 
+  const calcGroupedPreviewPoints = (group: TradeSellableGroup): number => {
+    return group.qualities.reduce(
+      (total, entry) => total + calcPreviewPoints({ sellPrice: group.sellPrice, quality: entry.quality, quantity: entry.quantity }),
+      0
+    )
+  }
+
   // 数量选择相关
-  const tradeSelectedItem = ref<{ id: string; name: string; quality: string; quantity: number; sellPrice: number } | null>(null)
+  const tradeSelectedItem = ref<TradeSelectedItem | null>(null)
   const tradeQuantityPicker = useQuantityPicker({
     maxQuantity: () => tradeSelectedItem.value?.quantity ?? 1
   })
@@ -1333,8 +1368,16 @@
   const setTradeQuantity = tradeQuantityPicker.setQuantity
   const addTradeQuantity = tradeQuantityPicker.addQuantity
 
-  const selectTradeItem = (inv: { id: string; name: string; quality: string; quantity: number; sellPrice: number }) => {
-    tradeSelectedItem.value = inv
+  const selectTradeItem = (group: TradeSellableGroup, quality: Quality) => {
+    const entry = findQualityQuantity(group, quality)
+    if (!entry) return
+    tradeSelectedItem.value = {
+      id: group.itemId,
+      name: group.name,
+      quality,
+      quantity: entry.quantity,
+      sellPrice: group.sellPrice
+    }
     tradeQuantityPicker.resetQuantity(1)
   }
 

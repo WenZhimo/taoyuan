@@ -86,7 +86,7 @@ describe('useTreeActions', () => {
 
     expect(options.addItem).toHaveBeenCalledWith('sapling_peach')
     expect(options.advanceTime).not.toHaveBeenCalled()
-    expect(addLog).toHaveBeenCalledWith('果树位已满（最多8棵）。')
+    expect(addLog).toHaveBeenCalledWith('种植果树失败，树苗已退回。')
   })
 
   it('chops a confirmed fruit tree with stamina and axe checks', () => {
@@ -111,7 +111,7 @@ describe('useTreeActions', () => {
 
     expect(options.removeItem).toHaveBeenCalledWith('pine_cone')
     expect(options.addItem).toHaveBeenCalledWith('pine_cone')
-    expect(addLog).toHaveBeenCalledWith('野树位已满（最多6棵）。')
+    expect(addLog).toHaveBeenCalledWith('种植野树失败，种子已退回。')
   })
 
   it('handles tapper attach, tap product collection, and wild tree chop target selection', () => {

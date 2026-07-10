@@ -98,7 +98,7 @@ describe('FarmPlotDetailDialog', () => {
     expect(wrapper.text()).toContain('已耕')
     expect(wrapper.text()).toContain('种植')
     expect(wrapper.text()).toContain('青菜')
-    expect(wrapper.text()).toContain('[良品]')
+    expect(wrapper.get('button[aria-label="优良品质 6 个"]').classes()).toContain('text-quality-fine')
     expect(wrapper.text()).toContain('豆角')
     expect(wrapper.text()).toContain('[多茬]')
     expect(wrapper.text()).toContain('育种种子')
@@ -113,7 +113,7 @@ describe('FarmPlotDetailDialog', () => {
     const wrapper = mountDialog()
 
     await wrapper.find('.fixed').trigger('click')
-    await wrapper.findAll('button').find(button => button.text().includes('青菜'))?.trigger('click')
+    await wrapper.get('button[aria-label="优良品质 6 个"]').trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('青菜 G2'))?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('普通肥料'))?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('竹筒洒水器'))?.trigger('click')

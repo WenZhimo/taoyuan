@@ -204,21 +204,29 @@
           <div class="flex flex-col space-y-1 max-h-40 overflow-y-auto">
             <div
               v-for="item in offerableItems"
-              :key="`${item.itemId}_${item.quality ?? 'normal'}`"
-              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
-              @click="handleOffer(item.itemId, item.quality)"
+              :key="item.itemId"
+              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 hover:bg-accent/5"
             >
-              <span class="flex items-center space-x-1">
-                <span class="text-xs" :class="qualityTextClass(item.quality)">
-                  {{ getItemById(item.itemId)?.name }}
+              <span class="min-w-0">
+                <span class="flex items-center space-x-1">
+                  <span class="text-xs text-accent">
+                    {{ getItemById(item.itemId)?.name }}
+                  </span>
+                  <span
+                    v-if="getOfferingPreference(npcId, item.itemId) !== 'neutral'"
+                    class="text-[10px]"
+                    :class="OFFERING_PREF_CLASS[getOfferingPreference(npcId, item.itemId)]"
+                  >
+                    {{ OFFERING_PREF_LABELS[getOfferingPreference(npcId, item.itemId)] }}
+                  </span>
                 </span>
-                <span
-                  v-if="getOfferingPreference(npcId, item.itemId) !== 'neutral'"
-                  class="text-[10px]"
-                  :class="OFFERING_PREF_CLASS[getOfferingPreference(npcId, item.itemId)]"
-                >
-                  {{ OFFERING_PREF_LABELS[getOfferingPreference(npcId, item.itemId)] }}
-                </span>
+                <QualityQuantityBreakdown
+                  class="mt-0.5"
+                  :entries="item.qualities"
+                  :interactive="true"
+                  :aria-label="`${getItemById(item.itemId)?.name ?? item.itemId}的可供奉品质数量`"
+                  @select-quality="quality => handleOffer(item.itemId, quality)"
+                />
               </span>
               <Diamond :size="12" class="text-muted" />
             </div>
@@ -264,6 +272,8 @@
   import { addLog } from '@/composables/useGameLog'
   import { handleEndDay } from '@/composables/useEndDay'
   import Button from '@/components/game/Button.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
+  import { groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
 
   const props = defineProps<{
     npcId: string
@@ -340,22 +350,17 @@
     return true
   })
 
-  const qualityTextClass = (q: Quality, fallback = ''): string => {
-    if (q === 'fine') return 'text-quality-fine'
-    if (q === 'excellent') return 'text-quality-excellent'
-    if (q === 'supreme') return 'text-quality-supreme'
-    return fallback
-  }
-
   const offerableItems = computed(() => {
     const filtered = inventoryStore.items.filter(i => {
       const def = getItemById(i.itemId)
       return def && def.category !== 'seed'
     })
-    return [...filtered].sort(
-      (a, b) =>
-        (OFFERING_PREF_ORDER[getOfferingPreference(props.npcId, a.itemId)] ?? 2) -
-        (OFFERING_PREF_ORDER[getOfferingPreference(props.npcId, b.itemId)] ?? 2)
+    return groupInventoryItemsByQuality(
+      [...filtered].sort(
+        (a, b) =>
+          (OFFERING_PREF_ORDER[getOfferingPreference(props.npcId, a.itemId)] ?? 2) -
+          (OFFERING_PREF_ORDER[getOfferingPreference(props.npcId, b.itemId)] ?? 2)
+      )
     )
   })
 

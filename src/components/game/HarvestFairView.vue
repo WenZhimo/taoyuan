@@ -52,19 +52,23 @@
           <p class="text-xs opacity-60">农产品、鱼获、宝石等均可参展</p>
         </div>
         <div v-else class="flex flex-col space-y-1.5 max-h-48 overflow-y-auto pr-1">
-          <button
+          <div
             v-for="item in selectableItems"
-            :key="item.itemId + item.quality"
+            :key="item.itemId"
             class="border border-accent/20 rounded-xs px-2 py-1.5 text-xs flex items-center justify-between hover:border-accent/50 transition-colors"
-            :disabled="selectedItems.length >= 5"
-            @click="addSelection(item)"
           >
-            <span class="truncate" :class="qualityClass(item.quality)">{{ getItemById(item.itemId)?.name }}</span>
+            <span class="truncate text-accent">{{ getItemById(item.itemId)?.name }}</span>
             <span class="flex items-center space-x-2 shrink-0 ml-2">
-              <span class="text-muted">×{{ item.quantity }}</span>
+              <QualityQuantityBreakdown
+                :entries="item.qualities"
+                :interactive="true"
+                :disabled="selectedItems.length >= 5"
+                :aria-label="`${getItemById(item.itemId)?.name ?? item.itemId}的可参展品质数量`"
+                @select-quality="quality => addSelection({ itemId: item.itemId, quality })"
+              />
               <span class="text-muted">{{ getItemById(item.itemId)?.sellPrice }}文</span>
             </span>
-          </button>
+          </div>
         </div>
       </div>
 
@@ -147,6 +151,8 @@
     sfxRankLose
   } from '@/composables/useAudio'
   import Button from '@/components/game/Button.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
+  import { groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
 
   const emit = defineEmits<{
     complete: [prize: number]
@@ -188,10 +194,12 @@
   /** 可参展的背包物品（排除种子、机器等非展示类物品） */
   const selectableItems = computed(() => {
     const exhibitCategories = ['crop', 'fish', 'food', 'processed', 'gem', 'misc']
-    return inventoryStore.items.filter(item => {
-      const def = getItemById(item.itemId)
-      return def && exhibitCategories.includes(def.category)
-    })
+    return groupInventoryItemsByQuality(
+      inventoryStore.items.filter(item => {
+        const def = getItemById(item.itemId)
+        return def && exhibitCategories.includes(def.category)
+      })
+    )
   })
 
   /** 预览当前选择的总分 */

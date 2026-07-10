@@ -14,9 +14,12 @@
                 <span>存档 {{ info.slot + 1 }}</span>
               </span>
               <span class="text-muted text-xs">
-                {{ info.playerName ?? '未命名' }} · 第{{ info.year }}年 {{ SEASON_NAMES[info.season as keyof typeof SEASON_NAMES] }} 第{{
-                  info.day
-                }}天
+                <template v-if="info.year !== undefined && info.season !== undefined && info.day !== undefined">
+                  {{ info.playerName ?? '未命名' }} · 第{{ info.year }}年 {{ SEASON_NAMES[info.season as keyof typeof SEASON_NAMES] }} 第{{
+                    info.day
+                  }}天
+                </template>
+                <template v-else>旧存档 · 加载后更新信息</template>
               </span>
             </button>
             <div v-else class="btn flex-1 !justify-between text-xs cursor-default">
@@ -183,12 +186,12 @@
     const file = input.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = () => {
+    reader.onload = async () => {
       const content = reader.result as string
       const emptySlot = slots.value.find(s => !s.exists)
       if (!emptySlot) {
         showFloat('存档槽位已满，请先删除一个旧存档。')
-      } else if (saveStore.importSave(emptySlot.slot, content)) {
+      } else if (await saveStore.importSave(emptySlot.slot, content)) {
         refreshSlots()
         emit('change')
         showFloat(`已导入到存档 ${emptySlot.slot + 1}。`, 'success')

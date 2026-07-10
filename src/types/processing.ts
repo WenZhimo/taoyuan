@@ -51,7 +51,7 @@ export interface ProcessingRecipeDef {
 }
 
 /** 运行时加工槽位 */
-export interface SeedMakerJob {
+export interface ProcessingJob {
   id: string
   recipeId: string
   inputItemId: string | null
@@ -60,6 +60,8 @@ export interface SeedMakerJob {
   totalDays: number
   ready: boolean
 }
+
+export type SeedMakerJob = ProcessingJob
 
 export interface ProcessingSlot {
   machineType: MachineType
@@ -71,6 +73,8 @@ export interface ProcessingSlot {
   ready: boolean
   /** 种子制造机专用：允许同一台机器同时处理多种投入 */
   seedMakerJobs?: SeedMakerJob[]
+  /** 酒坊专用：允许同一台酒坊同时酿造多个独立批次 */
+  wineJobs?: ProcessingJob[]
 }
 
 /** 洒水器类型 */

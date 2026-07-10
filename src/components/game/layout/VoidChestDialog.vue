@@ -28,17 +28,27 @@
           <template v-if="expandedChestId === chest.id">
             <div v-if="chest.items.length > 0" class="flex flex-col space-y-0.5 mb-1.5 max-h-36 overflow-y-auto">
               <div
-                v-for="(item, itemIndex) in chest.items"
-                :key="`${item.itemId}-${item.quality}-${itemIndex}`"
+                v-for="item in getGroupedChestItems(chest)"
+                :key="item.itemId"
                 class="flex items-center justify-between px-2 py-0.5 border border-accent/5 rounded-xs mr-1"
-                @click.stop="$emit('show-item-detail', { itemId: item.itemId, quality: item.quality, quantity: item.quantity })"
               >
-                <span class="text-[10px] truncate mr-2 cursor-pointer hover:underline" :class="qualityClass(item.quality)">
+                <span class="text-[10px] truncate mr-2 text-accent">
                   {{ getItemName(item.itemId) }}
-                  <span class="text-[10px] text-muted">&times;{{ item.quantity }}</span>
+                  <QualityQuantityBreakdown
+                    class="mt-0.5"
+                    :entries="item.qualities"
+                    :interactive="true"
+                    :selected-quality="selectedChestEntry(chest.id, item)?.quality"
+                    :aria-label="`${getItemName(item.itemId)}在${chest.label}中的各品质数量`"
+                    @select-quality="quality => showChestItemDetail(chest.id, item, quality)"
+                  />
                 </span>
                 <div class="flex items-center space-x-1">
-                  <Button class="py-0 px-1 text-[10px]" @click.stop="$emit('withdraw', chest.id, item.itemId, item.quality, item.quantity)">
+                  <Button
+                    v-if="selectedChestEntry(chest.id, item)"
+                    class="py-0 px-1 text-[10px]"
+                    @click.stop="withdrawSelected(chest.id, item)"
+                  >
                     取出
                   </Button>
                 </div>
@@ -85,7 +95,14 @@
         <div class="border border-accent/10 rounded-xs p-2">
           <div class="flex items-center justify-between">
             <span class="text-xs text-muted">数量</span>
-            <span class="text-xs">×{{ itemDetail.quantity }}</span>
+            <QualityQuantityBreakdown
+              v-if="itemDetailGroup"
+              :entries="itemDetailGroup.qualities"
+              :interactive="true"
+              :selected-quality="itemDetail.quality"
+              :aria-label="`${itemDef.name}的各品质数量`"
+              @select-quality="selectItemDetailQuality"
+            />
           </div>
           <div v-if="itemDetail.quality !== 'normal'" class="flex items-center justify-between mt-0.5">
             <span class="text-xs text-muted">品质</span>
@@ -111,9 +128,13 @@
 </template>
 
 <script setup lang="ts">
+  import { computed, ref } from 'vue'
   import { Archive, ArrowDown, ArrowDownToLine, X } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
-  import type { Chest, ItemDef, Quality } from '@/types'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
+  import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
+  import type { InventoryQualityGroup } from '@/domain/inventory/qualityGroups'
+  import type { Chest, InventoryItem, ItemDef, Quality } from '@/types'
 
   interface VoidChestItemDetail {
     itemId: string
@@ -121,7 +142,7 @@
     quantity: number
   }
 
-  defineProps<{
+  const props = defineProps<{
     chests: Chest[]
     expandedChestId: string | null
     capacity: number
@@ -134,7 +155,7 @@
     getItemName: (itemId: string) => string
   }>()
 
-  defineEmits<{
+  const emit = defineEmits<{
     close: []
     'toggle-chest': [chestId: string]
     'show-item-detail': [detail: VoidChestItemDetail]
@@ -143,4 +164,37 @@
     'open-deposit': [chestId: string]
     'close-item-detail': []
   }>()
+
+  const selectedQualities = ref<Record<string, Quality>>({})
+
+  const getGroupedChestItems = (chest: Chest) => groupInventoryItemsByQuality(chest.items)
+
+  const selectedChestEntry = (chestId: string, group: InventoryQualityGroup<InventoryItem>) => {
+    const selected = selectedQualities.value[`${chestId}:${group.itemId}`]
+    return (selected ? findQualityQuantity(group, selected) : undefined) ?? group.qualities[0]
+  }
+
+  const showChestItemDetail = (chestId: string, group: InventoryQualityGroup<InventoryItem>, quality: Quality) => {
+    selectedQualities.value[`${chestId}:${group.itemId}`] = quality
+    const entry = findQualityQuantity(group, quality)
+    if (entry) emit('show-item-detail', { itemId: group.itemId, quality, quantity: entry.quantity })
+  }
+
+  const withdrawSelected = (chestId: string, group: InventoryQualityGroup<InventoryItem>) => {
+    const entry = selectedChestEntry(chestId, group)
+    if (entry) emit('withdraw', chestId, group.itemId, entry.quality, entry.quantity)
+  }
+
+  const itemDetailGroup = computed(() => {
+    if (!props.itemDetail || !props.expandedChestId) return null
+    const chest = props.chests.find(item => item.id === props.expandedChestId)
+    if (!chest) return null
+    return getGroupedChestItems(chest).find(group => group.itemId === props.itemDetail?.itemId) ?? null
+  })
+
+  const selectItemDetailQuality = (quality: Quality) => {
+    if (!props.itemDetail || !itemDetailGroup.value) return
+    const entry = findQualityQuantity(itemDetailGroup.value, quality)
+    if (entry) emit('show-item-detail', { itemId: props.itemDetail.itemId, quality, quantity: entry.quantity })
+  }
 </script>

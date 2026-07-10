@@ -120,4 +120,16 @@ describe('farm store end day chunking', () => {
     expect(farmStore.greenhousePlots[99_999]).toMatchObject({ state: 'growing', growthDays: 1, watered: false })
     expect(elapsed).toBeLessThan(5_000)
   })
+
+  it('allows fruit and wild trees beyond the former planting limits', () => {
+    const farmStore = useFarmStore()
+
+    for (let i = 0; i < 100; i++) {
+      expect(farmStore.plantFruitTree('peach_tree')).toBe(true)
+      expect(farmStore.plantWildTree('pine')).toBe(true)
+    }
+
+    expect(farmStore.fruitTrees).toHaveLength(100)
+    expect(farmStore.wildTrees).toHaveLength(100)
+  })
 })

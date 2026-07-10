@@ -4,7 +4,7 @@
       <button
         v-for="plot in plots"
         :key="plot.id"
-        class="farm-plot rounded-xs cursor-pointer transition-colors relative leading-tight"
+        class="farm-plot aspect-square min-w-0 overflow-hidden rounded-xs cursor-pointer transition-colors relative leading-tight"
         :class="[
           getPlotDisplay(plot).color,
           getPlotDisplay(plot).bg,

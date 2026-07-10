@@ -41,23 +41,23 @@
       </div>
       <div v-if="filteredItems.length > 0" class="grid grid-cols-3 md:grid-cols-5 gap-1.5">
         <div
-          v-for="(item, idx) in filteredItems"
-          :key="idx"
+          v-for="item in filteredItems"
+          :key="item.itemId"
           class="border border-accent/20 rounded-xs p-1.5 text-center cursor-pointer hover:bg-accent/5 transition-colors relative"
-          @click="activeItemKey = item.itemId + ':' + item.quality"
+          @click="openItemGroup(item.itemId)"
         >
-          <Lock v-if="item.locked" :size="10" class="absolute top-0.5 left-0.5 text-accent/60" />
-          <div
-            class="text-xs truncate"
-            :class="{
-              'text-quality-fine': item.quality === 'fine',
-              'text-quality-excellent': item.quality === 'excellent',
-              'text-quality-supreme': item.quality === 'supreme'
-            }"
-          >
+          <Lock v-if="item.hasLockedItems" :size="10" class="absolute top-0.5 left-0.5 text-accent/60" />
+          <div class="text-xs truncate text-accent">
             {{ getItemById(item.itemId)?.name }}
           </div>
-          <div class="text-xs text-muted">×{{ item.quantity }}</div>
+          <QualityQuantityBreakdown
+            class="justify-center mt-0.5"
+            :entries="item.qualities"
+            :interactive="true"
+            :selected-quality="activeItemGroup?.itemId === item.itemId ? activeItem?.quality : null"
+            :aria-label="`${getItemById(item.itemId)?.name ?? item.itemId}的各品质数量`"
+            @select-quality="quality => openItemQuality(item.itemId, quality)"
+          />
         </div>
 
         <!-- 空格子 -->
@@ -84,22 +84,22 @@
         </div>
         <div class="grid grid-cols-3 md:grid-cols-5 gap-1.5">
           <div
-            v-for="(item, idx) in inventoryStore.tempItems"
-            :key="'temp-' + idx"
+            v-for="item in tempItemGroups"
+            :key="'temp-' + item.itemId"
             class="border border-danger/30 rounded-xs p-1.5 text-center cursor-pointer hover:bg-danger/5 transition-colors"
-            @click="activeTempIdx = idx"
+            @click="openTempItemGroup(item.itemId)"
           >
-            <div
-              class="text-xs truncate"
-              :class="{
-                'text-quality-fine': item.quality === 'fine',
-                'text-quality-excellent': item.quality === 'excellent',
-                'text-quality-supreme': item.quality === 'supreme'
-              }"
-            >
+            <div class="text-xs truncate text-accent">
               {{ getItemById(item.itemId)?.name }}
             </div>
-            <div class="text-xs text-muted">×{{ item.quantity }}</div>
+            <QualityQuantityBreakdown
+              class="justify-center mt-0.5"
+              :entries="item.qualities"
+              :interactive="true"
+              :selected-quality="activeTempGroup?.itemId === item.itemId ? activeTempItem?.quality : null"
+              :aria-label="`${getItemById(item.itemId)?.name ?? item.itemId}的临时背包各品质数量`"
+              @select-quality="quality => openTempItemQuality(item.itemId, quality)"
+            />
           </div>
 
           <!-- 空格子 -->
@@ -432,7 +432,14 @@
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <div class="flex items-center justify-between">
               <span class="text-xs text-muted">数量</span>
-              <span class="text-xs">×{{ activeTempItem.quantity }}</span>
+              <QualityQuantityBreakdown
+                v-if="activeTempGroup"
+                :entries="activeTempGroup.qualities"
+                :interactive="true"
+                :selected-quality="activeTempItem.quality"
+                :aria-label="`${activeTempItemDef?.name ?? activeTempItem.itemId}的临时背包各品质数量`"
+                @select-quality="selectActiveTempQuality"
+              />
             </div>
             <div v-if="activeTempItem.quality !== 'normal'" class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">品质</span>
@@ -492,7 +499,14 @@
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <div class="flex items-center justify-between">
               <span class="text-xs text-muted">数量</span>
-              <span class="text-xs">×{{ activeItem.quantity }}</span>
+              <QualityQuantityBreakdown
+                v-if="activeItemGroup"
+                :entries="activeItemGroup.qualities"
+                :interactive="true"
+                :selected-quality="activeItem.quality"
+                :aria-label="`${activeItemDef?.name ?? activeItem.itemId}的各品质数量`"
+                @select-quality="selectActiveItemQuality"
+              />
             </div>
             <div v-if="activeItem.quality !== 'normal'" class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">品质</span>
@@ -562,7 +576,7 @@
                   v-model.number="discardQty"
                   type="number"
                   :min="1"
-                  :max="activeItem.quantity"
+                  :max="activeItemQuantity"
                   class="flex-1 bg-bg border border-accent/20 rounded-xs px-1.5 py-0.5 text-xs text-text w-12 text-center"
                 />
                 <Button class="flex-1 justify-center !bg-danger !text-text" @click="confirmDiscard">确认丢弃</Button>
@@ -959,6 +973,7 @@
   import { ref, computed, watch } from 'vue'
   import { Apple, Archive, ArrowDown01, ArrowRight, BookMarked, Filter, Lock, LockOpen, Package, Sparkles, Trash2, X, Zap } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
   import { useCookingStore } from '@/stores/useCookingStore'
   import { useGameStore } from '@/stores/useGameStore'
   import { useInventoryStore, type EnchantableEquipmentType } from '@/stores/useInventoryStore'
@@ -985,6 +1000,7 @@
   import { getShoeById } from '@/data/shoes'
   import { QUALITY_NAMES } from '@/composables/useFarmActions'
   import { addLog } from '@/composables/useGameLog'
+  import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
   import type { EnchantmentDef, Quality, RingEffectType, ItemCategory } from '@/types'
 
   const inventoryStore = useInventoryStore()
@@ -1053,10 +1069,13 @@
 
   const isFilterActive = computed(() => settingsStore.inventoryFilter.length > 0)
 
+  const inventoryItemGroups = computed(() => groupInventoryItemsByQuality(inventoryStore.items))
+  const tempItemGroups = computed(() => groupInventoryItemsByQuality(inventoryStore.tempItems))
+
   const filteredItems = computed(() => {
-    if (settingsStore.inventoryFilter.length === 0) return inventoryStore.items
+    if (settingsStore.inventoryFilter.length === 0) return inventoryItemGroups.value
     const allowed = new Set(settingsStore.inventoryFilter)
-    return inventoryStore.items.filter(item => {
+    return inventoryItemGroups.value.filter(item => {
       const def = getItemById(item.itemId)
       return def && allowed.has(def.category)
     })
@@ -1489,10 +1508,31 @@
     return inventoryStore.tempItems[activeTempIdx.value] ?? null
   })
 
+  const activeTempGroup = computed(() => {
+    if (!activeTempItem.value) return null
+    return tempItemGroups.value.find(group => group.itemId === activeTempItem.value?.itemId) ?? null
+  })
+
   const activeTempItemDef = computed(() => {
     if (!activeTempItem.value) return null
     return getItemById(activeTempItem.value.itemId) ?? null
   })
+
+  const openTempItemQuality = (itemId: string, quality: Quality) => {
+    const index = inventoryStore.tempItems.findIndex(item => item.itemId === itemId && item.quality === quality)
+    activeTempIdx.value = index >= 0 ? index : null
+  }
+
+  const openTempItemGroup = (itemId: string) => {
+    const group = tempItemGroups.value.find(item => item.itemId === itemId)
+    const quality = group?.qualities[0]?.quality
+    if (quality) openTempItemQuality(itemId, quality)
+  }
+
+  const selectActiveTempQuality = (quality: Quality) => {
+    if (!activeTempItem.value) return
+    openTempItemQuality(activeTempItem.value.itemId, quality)
+  }
 
   const handleMoveFromTemp = () => {
     if (activeTempIdx.value === null) return
@@ -1528,11 +1568,35 @@
 
   const activeItemKey = ref<string | null>(null)
 
+  const openItemQuality = (itemId: string, quality: Quality) => {
+    activeItemKey.value = `${itemId}:${quality}`
+  }
+
+  const openItemGroup = (itemId: string) => {
+    const group = inventoryItemGroups.value.find(item => item.itemId === itemId)
+    const quality = group?.qualities[0]?.quality
+    if (quality) openItemQuality(itemId, quality)
+  }
+
+  const selectActiveItemQuality = (quality: Quality) => {
+    if (!activeItem.value) return
+    openItemQuality(activeItem.value.itemId, quality)
+  }
+
   const activeItem = computed(() => {
     if (!activeItemKey.value) return null
     const [itemId, quality] = activeItemKey.value.split(':')
     return inventoryStore.items.find(i => i.itemId === itemId && i.quality === quality) ?? null
   })
+
+  const activeItemGroup = computed(() => {
+    if (!activeItem.value) return null
+    return inventoryItemGroups.value.find(group => group.itemId === activeItem.value?.itemId) ?? null
+  })
+
+  const activeItemQuantity = computed(
+    () => findQualityQuantity(activeItemGroup.value ?? undefined, activeItem.value?.quality ?? 'normal')?.quantity ?? activeItem.value?.quantity ?? 0
+  )
 
   const activeItemDef = computed(() => {
     if (!activeItem.value) return null
@@ -1573,9 +1637,7 @@
         addLog(result.message)
       }
       // 物品消耗完则关闭弹窗
-      if (!inventoryStore.items.find(i => i.itemId === itemId && i.quality === quality)) {
-        activeItemKey.value = null
-      }
+      refreshActiveItemSelection(itemId, quality)
       return
     }
 
@@ -1593,9 +1655,7 @@
     msg += '。'
     addLog(msg)
     // 物品消耗完则关闭弹窗
-    if (!inventoryStore.items.find(i => i.itemId === itemId && i.quality === quality)) {
-      activeItemKey.value = null
-    }
+    refreshActiveItemSelection(itemId, quality)
   }
 
   /** 可使用的特殊物品 */
@@ -1621,9 +1681,7 @@
       addLog(`食用了仙桃，体力上限永久提升至${playerStore.maxStamina}！`)
     }
     // 物品消耗完则关闭弹窗
-    if (!inventoryStore.items.find(i => i.itemId === itemId && i.quality === quality)) {
-      activeItemKey.value = null
-    }
+    refreshActiveItemSelection(itemId, quality)
   }
 
   // === 丢弃物品 ===
@@ -1634,6 +1692,17 @@
   watch(activeItemKey, () => {
     discardMode.value = false
   })
+
+  const refreshActiveItemSelection = (itemId: string, previousQuality: Quality) => {
+    const group = inventoryItemGroups.value.find(item => item.itemId === itemId)
+    if (!group) {
+      activeItemKey.value = null
+      return
+    }
+
+    const quality = group.qualities.some(entry => entry.quality === previousQuality) ? previousQuality : group.qualities[0]?.quality
+    activeItemKey.value = quality ? `${itemId}:${quality}` : null
+  }
 
   /** 进入丢弃模式 */
   const enterDiscardMode = () => {
@@ -1646,15 +1715,13 @@
     if (!activeItem.value) return
     const { itemId, quality } = activeItem.value
     const name = activeItemDef.value?.name ?? ''
-    const qty = Math.min(discardQty.value, activeItem.value.quantity)
+    const qty = Math.min(discardQty.value, activeItemQuantity.value)
     if (qty <= 0) return
     if (!inventoryStore.removeItem(itemId, qty, quality)) return
     addLog(`丢弃了${name}×${qty}。`)
     discardMode.value = false
     // 物品消耗完则关闭弹窗
-    if (!inventoryStore.items.find(i => i.itemId === itemId && i.quality === quality)) {
-      activeItemKey.value = null
-    }
+    refreshActiveItemSelection(itemId, quality)
   }
 
   /** 取消丢弃 */

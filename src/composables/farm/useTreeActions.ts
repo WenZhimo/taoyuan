@@ -1,7 +1,7 @@
 import type { ComputedRef, Ref } from 'vue'
 import { computed } from 'vue'
-import { FRUIT_TREE_DEFS, MAX_FRUIT_TREES } from '@/data/fruitTrees'
-import { WILD_TREE_DEFS, MAX_WILD_TREES, getWildTreeDef } from '@/data/wildTrees'
+import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
+import { WILD_TREE_DEFS, getWildTreeDef } from '@/data/wildTrees'
 import { ACTION_TIME_COSTS } from '@/data/timeConstants'
 import { SEASON_NAMES } from '@/stores/useGameStore'
 import { addLog } from '@/composables/useGameLog'
@@ -109,7 +109,7 @@ export const useTreeActions = ({
       if (tr.message) addLog(tr.message)
     } else {
       addItem(def.saplingId)
-      addLog(`果树位已满（最多${MAX_FRUIT_TREES}棵）。`)
+      addLog('种植果树失败，树苗已退回。')
     }
   }
 
@@ -156,7 +156,7 @@ export const useTreeActions = ({
       if (tr.message) addLog(tr.message)
     } else {
       addItem(def.seedItemId)
-      addLog(`野树位已满（最多${MAX_WILD_TREES}棵）。`)
+      addLog('种植野树失败，种子已退回。')
     }
   }
 

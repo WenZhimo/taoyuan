@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import GreenhousePlotDialog from '@/components/game/farm/GreenhousePlotDialog.vue'
 import type { GreenhouseBreedingSeedOption, GreenhousePlotSeedOption } from '@/components/game/farm/GreenhousePlotDialog.vue'
+import type { FarmBatchFertilizerOption } from '@/components/game/farm/FarmBatchFertilizeDialog.vue'
 import type { SeedGenetics } from '@/types/breeding'
 import type { FarmPlot } from '@/types/farm'
 
@@ -48,14 +49,21 @@ const breedingSeeds: GreenhouseBreedingSeedOption[] = [
   { id: 'gene-1', cropName: '青菜', generation: 3, starRating: 4 }
 ]
 
+const fertilizers: FarmBatchFertilizerOption[] = [
+  { type: 'basic_fertilizer', itemId: 'basic_fertilizer', name: '基础肥料', count: 6, colorClass: '' }
+]
+
 const mountDialog = (props: Partial<InstanceType<typeof GreenhousePlotDialog>['$props']> = {}) =>
   mount(GreenhousePlotDialog, {
     props: {
       breedingSeeds,
+      canFertilize: true,
       cropGrowthDays: 5,
       cropMaxHarvests: 3,
       cropName: '',
       cropRegrowth: false,
+      fertilizerName: '',
+      fertilizers,
       isShopOpen: true,
       plot,
       seeds,
@@ -74,10 +82,12 @@ describe('GreenhousePlotDialog', () => {
         ...plot,
         state: 'growing',
         cropId: 'cabbage',
+        fertilizer: 'basic_fertilizer',
         growthDays: 2,
         harvestCount: 1,
         seedGenetics: genetics
       },
+      fertilizerName: '基础肥料',
       stateLabel: '生长中'
     })
 
@@ -88,6 +98,7 @@ describe('GreenhousePlotDialog', () => {
     expect(wrapper.text()).toContain('2/5天')
     expect(wrapper.text()).toContain('自动浇水 · 无季节限制')
     expect(wrapper.text()).toContain('G3 甜12 产8 抗5')
+    expect(wrapper.text()).toContain('基础肥料')
   })
 
   it('renders seed and breeding seed choices and emits selected ids', async () => {
@@ -109,6 +120,17 @@ describe('GreenhousePlotDialog', () => {
     expect(wrapper.emitted('close')).toHaveLength(1)
     expect(wrapper.emitted('plant')).toEqual([['cabbage']])
     expect(wrapper.emitted('plant-breeding-seed')).toEqual([['gene-1']])
+  })
+
+  it('renders fertilizer choices and emits the selected fertilizer', async () => {
+    const wrapper = mountDialog()
+
+    expect(wrapper.text()).toContain('施肥')
+    expect(wrapper.text()).toContain('基础肥料')
+    expect(wrapper.text()).toContain('×6')
+
+    await wrapper.findAll('button').find(button => button.text().includes('基础肥料'))?.trigger('click')
+    expect(wrapper.emitted('fertilize')).toEqual([['basic_fertilizer']])
   })
 
   it('renders shop action when no seeds are available and the shop is open', async () => {

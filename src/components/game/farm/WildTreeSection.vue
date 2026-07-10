@@ -5,10 +5,10 @@
         <TreePine :size="14" />
         <span>野树</span>
       </div>
-      <span class="text-xs text-muted">{{ trees.length }}/{{ maxTrees }}</span>
+      <span class="text-xs text-muted">共 {{ trees.length }} 棵</span>
     </div>
     <div v-if="trees.length > 0" class="flex flex-col space-y-1.5 mb-2">
-      <div v-for="tree in trees" :key="tree.id" class="border border-accent/10 rounded-xs px-3 py-2">
+      <div v-for="tree in pagedTrees" :key="tree.id" class="border border-accent/10 rounded-xs px-3 py-2">
         <div class="flex items-center justify-between mb-1">
           <div class="flex items-center space-x-1.5">
             <span class="text-xs font-bold" :class="tree.mature ? 'text-accent' : 'text-muted'">{{ getTreeName(tree.type) }}</span>
@@ -65,13 +65,19 @@
           <Button v-if="tree.mature" :icon-size="12" :icon="Axe" @click.stop="$emit('chop', tree.id)">伐木</Button>
         </div>
       </div>
+      <PaginationControls
+        :page="treePagination.safePage.value"
+        :total="trees.length"
+        :page-size="TREE_PAGE_SIZE"
+        @update:page="treePagination.setPage"
+      />
     </div>
     <div v-else class="flex flex-col items-center justify-center py-4 text-muted mb-2">
       <TreePine :size="32" class="text-muted/30" />
       <p class="text-xs mt-2">暂无野树</p>
       <p class="text-[10px] text-muted/60 mt-0.5">可使用野树种子种植</p>
     </div>
-    <div v-if="plantableWildSeeds.length > 0 && trees.length < maxTrees" class="flex space-x-1.5 flex-wrap">
+    <div v-if="plantableWildSeeds.length > 0" class="flex space-x-1.5 flex-wrap">
       <Button v-for="s in plantableWildSeeds" :key="s.type" :icon-size="12" :icon="TreePine" @click="$emit('plant', s.type)">
         种{{ s.name }} (×{{ s.count }})
       </Button>
@@ -80,8 +86,11 @@
 </template>
 
 <script setup lang="ts">
+  import { computed } from 'vue'
   import { Axe, Gift, TreePine, Wrench } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
+  import PaginationControls from '@/components/game/PaginationControls.vue'
+  import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
   import type { PlantedWildTree, WildTreeType } from '@/types'
 
   export interface WildTreeSeedOption {
@@ -93,13 +102,16 @@
 
   const props = defineProps<{
     trees: PlantedWildTree[]
-    maxTrees: number
     plantableWildSeeds: WildTreeSeedOption[]
     hasTapper: boolean
     getTreeName: (type: WildTreeType) => string
     getGrowthDays: (type: WildTreeType) => number | undefined
     getTapCycleDays: (type: WildTreeType) => number | undefined
   }>()
+
+  const TREE_PAGE_SIZE = DEFAULT_PAGE_SIZE
+  const treePagination = usePagination(computed(() => props.trees), TREE_PAGE_SIZE)
+  const pagedTrees = treePagination.pagedItems
 
   defineEmits<{
     plant: [treeType: WildTreeType]

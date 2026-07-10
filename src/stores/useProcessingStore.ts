@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { MachineType, ProcessingSlot, Quality, SeedMakerJob } from '@/types'
+import type { MachineType, ProcessingJob, ProcessingSlot, Quality } from '@/types'
 import {
   PROCESSING_MACHINES,
   SPRINKLERS,
@@ -46,6 +46,12 @@ let _seedMakerJobCounter = 0
 const generateSeedMakerJobId = (): string => {
   _seedMakerJobCounter++
   return `smj_${Date.now()}_${_seedMakerJobCounter}`
+}
+
+let _wineJobCounter = 0
+const generateWineJobId = (): string => {
+  _wineJobCounter++
+  return `wj_${Date.now()}_${_wineJobCounter}`
 }
 
 export const useProcessingStore = defineStore('processing', () => {
@@ -189,7 +195,8 @@ export const useProcessingStore = defineStore('processing', () => {
   const startProcessing = (slotIndex: number, recipeId: string, specifiedQuality?: Quality): boolean => {
     const slot = machines.value[slotIndex]
     if (!slot) return false
-    if (slot.machineType !== 'seed_maker' && slot.recipeId !== null) return false // 正在加工中
+    const supportsMultipleJobs = slot.machineType === 'seed_maker' || slot.machineType === 'wine_workshop'
+    if (!supportsMultipleJobs && slot.recipeId !== null) return false // 正在加工中
     const recipe = getProcessingRecipeById(recipeId)
     if (!recipe || recipe.machineType !== slot.machineType) return false
 
@@ -209,6 +216,20 @@ export const useProcessingStore = defineStore('processing', () => {
       slot.seedMakerJobs ??= []
       slot.seedMakerJobs.push({
         id: generateSeedMakerJobId(),
+        recipeId,
+        inputItemId: recipe.inputItemId,
+        inputQuality: quality,
+        daysProcessed: 0,
+        totalDays: recipe.processingDays,
+        ready: false
+      })
+      return true
+    }
+
+    if (slot.machineType === 'wine_workshop') {
+      slot.wineJobs ??= []
+      slot.wineJobs.push({
+        id: generateWineJobId(),
         recipeId,
         inputItemId: recipe.inputItemId,
         inputQuality: quality,
@@ -292,14 +313,45 @@ export const useProcessingStore = defineStore('processing', () => {
     return true
   }
 
+  const collectWineJob = (slotIndex: number, jobId: string): string | null => {
+    const slot = machines.value[slotIndex]
+    if (!slot || slot.machineType !== 'wine_workshop') return null
+    const jobs = slot.wineJobs ?? []
+    const jobIndex = jobs.findIndex(job => job.id === jobId)
+    const job = jobs[jobIndex]
+    if (!job || !job.ready) return null
+    const recipe = getProcessingRecipeById(job.recipeId)
+    if (!recipe) return null
+
+    addProductToOutput(recipe.outputItemId, recipe.outputQuantity, job.inputQuality ?? 'normal')
+    jobs.splice(jobIndex, 1)
+    return recipe.outputItemId
+  }
+
+  const cancelWineJob = (slotIndex: number, jobId: string): boolean => {
+    const slot = machines.value[slotIndex]
+    if (!slot || slot.machineType !== 'wine_workshop') return false
+    const jobs = slot.wineJobs ?? []
+    const jobIndex = jobs.findIndex(job => job.id === jobId)
+    const job = jobs[jobIndex]
+    if (!job) return false
+    const recipe = getProcessingRecipeById(job.recipeId)
+    if (recipe?.inputItemId && !job.ready) {
+      inventoryStore.addItem(recipe.inputItemId, recipe.inputQuantity, job.inputQuality ?? 'normal')
+    }
+    jobs.splice(jobIndex, 1)
+    return true
+  }
+
   /** 拆除机器（退回加工原料 + 已完成产物 + 机器制作材料） */
   const removeMachine = (slotIndex: number): boolean => {
     const slot = machines.value[slotIndex]
     if (!slot) return false
 
     // 如果已完成：先收取产物
-    if (slot.machineType === 'seed_maker') {
-      for (const job of slot.seedMakerJobs ?? []) {
+    if (slot.machineType === 'seed_maker' || slot.machineType === 'wine_workshop') {
+      const jobs = slot.machineType === 'seed_maker' ? (slot.seedMakerJobs ?? []) : (slot.wineJobs ?? [])
+      for (const job of jobs) {
         const recipe = getProcessingRecipeById(job.recipeId)
         if (!recipe) continue
         if (job.ready) {
@@ -308,7 +360,8 @@ export const useProcessingStore = defineStore('processing', () => {
           inventoryStore.addItem(recipe.inputItemId, recipe.inputQuantity, job.inputQuality ?? 'normal')
         }
       }
-      slot.seedMakerJobs = []
+      if (slot.machineType === 'seed_maker') slot.seedMakerJobs = []
+      else slot.wineJobs = []
     }
     else if (slot.recipeId && slot.ready) {
       const recipe = getProcessingRecipeById(slot.recipeId)
@@ -372,8 +425,9 @@ export const useProcessingStore = defineStore('processing', () => {
     const warehouseStore = useWarehouseStore()
     const voidOutput = warehouseStore.getVoidOutputChest()
     for (const slot of machines.value) {
-      if (slot.machineType === 'seed_maker') {
-        for (const job of slot.seedMakerJobs ?? []) {
+      if (slot.machineType === 'seed_maker' || slot.machineType === 'wine_workshop') {
+        const jobs = slot.machineType === 'seed_maker' ? (slot.seedMakerJobs ?? []) : (slot.wineJobs ?? [])
+        for (const job of jobs) {
           if (job.ready) continue
           job.daysProcessed++
           if (job.daysProcessed >= job.totalDays) {
@@ -500,11 +554,12 @@ export const useProcessingStore = defineStore('processing', () => {
 
   const deserialize = (data: ReturnType<typeof serialize>) => {
     machines.value = (data.machines ?? []).map(slot => {
-      if (slot.machineType !== 'seed_maker') return slot
-      const jobs: SeedMakerJob[] = [...(slot.seedMakerJobs ?? [])]
+      if (slot.machineType !== 'seed_maker' && slot.machineType !== 'wine_workshop') return slot
+      const jobs: ProcessingJob[] =
+        slot.machineType === 'seed_maker' ? [...(slot.seedMakerJobs ?? [])] : [...(slot.wineJobs ?? [])]
       if (slot.recipeId) {
         jobs.push({
-          id: generateSeedMakerJobId(),
+          id: slot.machineType === 'seed_maker' ? generateSeedMakerJobId() : generateWineJobId(),
           recipeId: slot.recipeId,
           inputItemId: slot.inputItemId,
           inputQuality: slot.inputQuality,
@@ -521,7 +576,8 @@ export const useProcessingStore = defineStore('processing', () => {
         daysProcessed: 0,
         totalDays: 0,
         ready: false,
-        seedMakerJobs: jobs
+        seedMakerJobs: slot.machineType === 'seed_maker' ? jobs : slot.seedMakerJobs,
+        wineJobs: slot.machineType === 'wine_workshop' ? jobs : slot.wineJobs
       }
     })
     workshopLevel.value = (data as any).workshopLevel ?? 0
@@ -546,8 +602,10 @@ export const useProcessingStore = defineStore('processing', () => {
     startProcessing,
     collectProduct,
     collectSeedMakerJob,
+    collectWineJob,
     cancelProcessing,
     cancelSeedMakerJob,
+    cancelWineJob,
     removeMachine,
     getAvailableRecipes,
     dailyUpdate,

@@ -2,6 +2,11 @@ $ErrorActionPreference = 'Stop'
 
 $ProjectRoot = Split-Path -Parent $PSScriptRoot
 $LogPath = Join-Path $ProjectRoot 'build-exe.log'
+$PackageDir = Join-Path $ProjectRoot 'pkg'
+$PackagedUserDataPath = Join-Path $PackageDir 'win-unpacked\userdata'
+$BuildStateDir = Join-Path $ProjectRoot '.build-state'
+$UserDataBackupPath = Join-Path $BuildStateDir 'win-unpacked-userdata'
+$script:ShouldRestoreUserData = $false
 
 Set-Location $ProjectRoot
 
@@ -46,20 +51,109 @@ function Invoke-BuildCommand {
   }
 }
 
-function Clear-PackageOutput {
-  $pkgDir = Join-Path $ProjectRoot 'pkg'
-  if (-not (Test-Path -LiteralPath $pkgDir)) {
+function Assert-ProjectPath {
+  param(
+    [string] $Path,
+    [string] $Description
+  )
+
+  $resolvedRoot = [System.IO.Path]::GetFullPath($ProjectRoot).TrimEnd('\') + '\'
+  $resolvedPath = [System.IO.Path]::GetFullPath($Path)
+  if (-not $resolvedPath.StartsWith($resolvedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Refusing to use $Description outside project: $resolvedPath"
+  }
+}
+
+function Get-DirectoryStats {
+  param([string] $Path)
+
+  if (-not (Test-Path -LiteralPath $Path)) {
+    return [pscustomobject]@{ Files = 0; Bytes = 0L }
+  }
+
+  $files = @(Get-ChildItem -LiteralPath $Path -Recurse -Force -File -ErrorAction Stop)
+  $bytes = ($files | Measure-Object -Property Length -Sum).Sum
+  if ($null -eq $bytes) {
+    $bytes = 0L
+  }
+  return [pscustomobject]@{ Files = $files.Count; Bytes = [long] $bytes }
+}
+
+function Backup-PackagedUserData {
+  Assert-ProjectPath $PackagedUserDataPath 'packaged user data'
+  Assert-ProjectPath $UserDataBackupPath 'user data backup'
+
+  if (Test-Path -LiteralPath $PackagedUserDataPath) {
+    New-Item -ItemType Directory -Path $BuildStateDir -Force | Out-Null
+    if (Test-Path -LiteralPath $UserDataBackupPath) {
+      Remove-Item -LiteralPath $UserDataBackupPath -Recurse -Force
+    }
+
+    Copy-Item -LiteralPath $PackagedUserDataPath -Destination $UserDataBackupPath -Recurse -Force
+    $script:ShouldRestoreUserData = $true
+    $stats = Get-DirectoryStats $UserDataBackupPath
+    $message = "Backed up packaged user data: $($stats.Files) files, $($stats.Bytes) bytes."
+    Write-Host $message -ForegroundColor Green
+    Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value $message
     return
   }
 
-  $resolvedRoot = [System.IO.Path]::GetFullPath($ProjectRoot)
-  $resolvedPkg = [System.IO.Path]::GetFullPath($pkgDir)
-  if (-not $resolvedPkg.StartsWith($resolvedRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "Refusing to clean package output outside project: $resolvedPkg"
+  if (Test-Path -LiteralPath $UserDataBackupPath) {
+    $script:ShouldRestoreUserData = $true
+    Write-Host "Using user data backup left by a previous interrupted build: $UserDataBackupPath" -ForegroundColor Yellow
+    Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value "Using existing user data backup: $UserDataBackupPath"
+    return
   }
 
+  Write-Host 'No packaged user data found; nothing to preserve.'
+  Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value 'No packaged user data found; nothing to preserve.'
+}
+
+function Restore-PackagedUserData {
+  param([switch] $KeepBackup)
+
+  if (-not $script:ShouldRestoreUserData -or -not (Test-Path -LiteralPath $UserDataBackupPath)) {
+    return
+  }
+
+  Assert-ProjectPath $PackagedUserDataPath 'packaged user data'
+  Assert-ProjectPath $UserDataBackupPath 'user data backup'
+
+  $backupStats = Get-DirectoryStats $UserDataBackupPath
+  $targetParent = Split-Path -Parent $PackagedUserDataPath
+  New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+  if (Test-Path -LiteralPath $PackagedUserDataPath) {
+    Remove-Item -LiteralPath $PackagedUserDataPath -Recurse -Force
+  }
+  Copy-Item -LiteralPath $UserDataBackupPath -Destination $PackagedUserDataPath -Recurse -Force
+
+  $restoredStats = Get-DirectoryStats $PackagedUserDataPath
+  if ($restoredStats.Files -ne $backupStats.Files -or $restoredStats.Bytes -ne $backupStats.Bytes) {
+    throw "User data restore verification failed. Backup remains at: $UserDataBackupPath"
+  }
+
+  $message = "Restored packaged user data: $($restoredStats.Files) files, $($restoredStats.Bytes) bytes."
+  Write-Host $message -ForegroundColor Green
+  Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value $message
+
+  if (-not $KeepBackup) {
+    Remove-Item -LiteralPath $UserDataBackupPath -Recurse -Force
+    if ((Test-Path -LiteralPath $BuildStateDir) -and -not (Get-ChildItem -LiteralPath $BuildStateDir -Force)) {
+      Remove-Item -LiteralPath $BuildStateDir -Force
+    }
+    $script:ShouldRestoreUserData = $false
+  }
+}
+
+function Clear-PackageOutput {
+  if (-not (Test-Path -LiteralPath $PackageDir)) {
+    return
+  }
+
+  Assert-ProjectPath $PackageDir 'package output'
+
   try {
-    Get-ChildItem -LiteralPath $pkgDir -Force | Remove-Item -Recurse -Force -ErrorAction Stop
+    Get-ChildItem -LiteralPath $PackageDir -Force | Remove-Item -Recurse -Force -ErrorAction Stop
   } catch {
     throw "Failed to clean pkg output. Close any running Taoyuan game window or installer, then try again. Details: $($_.Exception.Message)"
   }
@@ -88,19 +182,19 @@ try {
   }
 
   if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'node_modules'))) {
-    Write-Step '[1/6] Installing dependencies...'
+    Write-Step '[1/7] Installing dependencies...'
     Invoke-BuildCommand 'pnpm' @('install')
   } else {
-    Write-Step '[1/6] node_modules found, skipping install.'
+    Write-Step '[1/7] node_modules found, skipping install.'
   }
 
-  Write-Step '[2/6] Running TypeScript type check...'
+  Write-Step '[2/7] Running TypeScript type check...'
   Invoke-BuildCommand 'pnpm' @('exec', 'vue-tsc', '-b')
 
-  Write-Step '[3/6] Building frontend assets...'
+  Write-Step '[3/7] Building frontend assets...'
   Invoke-BuildCommand 'pnpm' @('exec', 'vite', 'build')
 
-  Write-Step '[4/6] Building Electron files...'
+  Write-Step '[4/7] Building Electron files...'
   Invoke-BuildCommand 'pnpm' @(
     'exec', 'esbuild', 'electron/main.js',
     '--bundle',
@@ -119,13 +213,19 @@ try {
     '--external:electron'
   )
 
-  Write-Step '[5/6] Cleaning previous package output...'
+  Write-Step '[5/7] Backing up packaged user data...'
+  Backup-PackagedUserData
+
+  Write-Step '[6/7] Cleaning previous package output...'
   Clear-PackageOutput
 
-  Write-Step '[6/6] Packaging Windows unpacked app...'
+  Write-Step '[7/7] Packaging Windows unpacked app...'
   Write-Host 'Downloading Electron runtime may take several minutes the first time.'
   Write-Host "Electron mirror: $env:ELECTRON_MIRROR"
   Invoke-BuildCommand 'pnpm' @('exec', 'electron-builder', '--win', 'dir')
+
+  Write-Step '[Restore] Restoring packaged user data...'
+  Restore-PackagedUserData
 
   Write-Host ''
   Write-Host '========================================' -ForegroundColor Green
@@ -146,6 +246,18 @@ try {
 
   exit 0
 } catch {
+  if ($script:ShouldRestoreUserData) {
+    try {
+      Write-Host ''
+      Write-Host 'Attempting to restore packaged user data after build failure...' -ForegroundColor Yellow
+      Restore-PackagedUserData -KeepBackup
+      Write-Host "A safety backup was kept at: $UserDataBackupPath" -ForegroundColor Yellow
+    } catch {
+      Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value "USER DATA RESTORE ERROR: $($_.Exception.Message)"
+      Write-Host "WARNING: Automatic user data restore failed. Backup remains at: $UserDataBackupPath" -ForegroundColor Red
+    }
+  }
+
   Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value ''
   Add-Content -LiteralPath $LogPath -Encoding UTF8 -Value "ERROR: $($_.Exception.Message)"
 

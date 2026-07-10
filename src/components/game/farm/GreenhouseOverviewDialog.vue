@@ -10,7 +10,7 @@
       </div>
       <p class="text-xs text-muted mb-3">无季节限制 · 自动浇水 · {{ plotCount }}块地</p>
 
-      <div class="flex space-x-2 mb-3">
+      <div class="grid grid-cols-2 gap-2 mb-3">
         <Button
           class="flex-1 justify-center"
           :class="{ '!bg-accent !text-bg': harvestableCount > 0 }"
@@ -29,6 +29,15 @@
           @click="$emit('open-batch-plant')"
         >
           一键种植{{ tilledEmptyCount > 0 ? ` (${tilledEmptyCount}块)` : '' }}
+        </Button>
+        <Button
+          class="flex-1 justify-center"
+          :disabled="fertilizableCount === 0 || !hasFertilizer"
+          :icon-size="12"
+          :icon="CirclePlus"
+          @click="$emit('open-batch-fertilize')"
+        >
+          一键施肥{{ fertilizableCount > 0 ? ` (${fertilizableCount}块)` : '' }}
         </Button>
         <Button v-if="canUpgrade" class="flex-1 justify-center" :icon-size="12" :icon="ArrowUp" @click="$emit('open-upgrade')">升级温室</Button>
       </div>
@@ -83,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ArrowUp, Sprout, Warehouse, Wheat, X } from 'lucide-vue-next'
+  import { ArrowUp, CirclePlus, Sprout, Warehouse, Wheat, X } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
 
   export interface GreenhouseStateStat {
@@ -107,7 +116,9 @@
   defineProps<{
     canUpgrade: boolean
     cropStats: GreenhouseCropStat[]
+    fertilizableCount: number
     harvestableCount: number
+    hasFertilizer: boolean
     plantedCount: number
     plotCount: number
     seedCount: number
@@ -118,6 +129,7 @@
   defineEmits<{
     close: []
     'batch-harvest': []
+    'open-batch-fertilize': []
     'open-batch-plant': []
     'open-upgrade': []
     'select-plot': [plotId: number]

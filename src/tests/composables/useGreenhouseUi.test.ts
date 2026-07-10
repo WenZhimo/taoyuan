@@ -121,6 +121,7 @@ describe('useGreenhouseUi', () => {
     expect(greenhouseUi.showGreenhouse.value).toBe(true)
     expect(greenhouseUi.ghHarvestableCount.value).toBe(1)
     expect(greenhouseUi.ghTilledEmptyCount.value).toBe(1)
+    expect(greenhouseUi.ghFertilizableCount.value).toBe(3)
     expect(greenhouseUi.ghPlantedCount.value).toBe(3)
     expect(greenhouseUi.ghStateStats.value.map(stat => [stat.key, stat.count, stat.firstPlotId])).toEqual([
       ['tilled', 1, 2],
@@ -172,12 +173,14 @@ describe('useGreenhouseUi', () => {
     const { greenhouseUi } = createGreenhouseUi()
 
     greenhouseUi.showGreenhouseModal.value = true
+    greenhouseUi.showGhBatchFertilize.value = true
     greenhouseUi.showGhBatchPlant.value = true
     greenhouseUi.showGhUpgradeModal.value = true
 
     greenhouseUi.closeGreenhouseDialogs()
 
     expect(greenhouseUi.showGreenhouseModal.value).toBe(false)
+    expect(greenhouseUi.showGhBatchFertilize.value).toBe(false)
     expect(greenhouseUi.showGhBatchPlant.value).toBe(false)
     expect(greenhouseUi.showGhUpgradeModal.value).toBe(false)
   })

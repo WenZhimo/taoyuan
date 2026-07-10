@@ -180,7 +180,6 @@
       <!-- 果树区 -->
       <FruitTreeSection
         :trees="farmStore.fruitTrees"
-        :max-trees="MAX_FRUIT_TREES"
         :plantable-saplings="plantableSaplings"
         :get-tree-name="getTreeName"
         :get-fruit-season="getTreeFruitSeason"
@@ -213,7 +212,6 @@
       <!-- 野树区 -->
       <WildTreeSection
         :trees="farmStore.wildTrees"
-        :max-trees="MAX_WILD_TREES"
         :plantable-wild-seeds="plantableWildSeeds"
         :has-tapper="hasTapper"
         :get-tree-name="getWildTreeName"
@@ -232,7 +230,9 @@
         v-if="showGreenhouseModal"
         :can-upgrade="!!nextGhUpgrade"
         :crop-stats="ghCropStats"
+        :fertilizable-count="ghFertilizableCount"
         :harvestable-count="ghHarvestableCount"
+        :has-fertilizer="fertilizerItems.length > 0"
         :planted-count="ghPlantedCount"
         :plot-count="farmStore.greenhousePlots.length"
         :seed-count="allSeeds.length"
@@ -240,6 +240,7 @@
         :tilled-empty-count="ghTilledEmptyCount"
         @close="showGreenhouseModal = false"
         @batch-harvest="doGhBatchHarvest()"
+        @open-batch-fertilize="showGhBatchFertilize = true"
         @open-batch-plant="showGhBatchPlant = true"
         @open-upgrade="showGhUpgradeModal = true"
         @select-plot="activeGhPlotId = $event"
@@ -269,6 +270,16 @@
       />
     </Transition>
 
+    <Transition name="panel-fade">
+      <FarmBatchFertilizeDialog
+        v-if="showGhBatchFertilize"
+        :fertilizable-count="ghFertilizableCount"
+        :fertilizers="fertilizerItems"
+        @close="showGhBatchFertilize = false"
+        @fertilize="doGhBatchFertilize"
+      />
+    </Transition>
+
     <!-- 温室地块操作弹窗 -->
     <Transition name="panel-fade">
       <GreenhousePlotDialog
@@ -279,6 +290,9 @@
         :crop-growth-days="ghPlotCropGrowthDays"
         :crop-regrowth="ghPlotCropRegrowth"
         :crop-max-harvests="ghPlotCropMaxHarvests"
+        :can-fertilize="canFertilizeGreenhouse"
+        :fertilizer-name="ghPlotFertName"
+        :fertilizers="fertilizerItems"
         :seeds="ghSeedOptions"
         :breeding-seeds="ghBreedingSeedOptions"
         :is-shop-open="isWanwupuOpen"
@@ -287,6 +301,7 @@
         @plant="doGhPlant"
         @plant-breeding-seed="doGhPlantGeneticSeed"
         @go-to-shop="goToShop"
+        @fertilize="doGhFertilize"
         @harvest="doGhHarvest"
       />
     </Transition>
@@ -352,9 +367,7 @@
   import { useWalletStore } from '@/stores/useWalletStore'
   import { getCropById, getCropsBySeason, getItemById } from '@/data'
   import { getStarRating } from '@/data/breeding'
-  import { MAX_FRUIT_TREES } from '@/data/fruitTrees'
   import { GREENHOUSE_UPGRADES } from '@/data/buildings'
-  import { MAX_WILD_TREES } from '@/data/wildTrees'
   import { CROPS } from '@/data/crops'
   import { FERTILIZERS, getFertilizerById } from '@/data/processing'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
@@ -545,10 +558,12 @@
     activePlot,
     activePlotId,
     canFertilize,
+    canFertilizeGreenhouse,
     canWater,
     ghPlotCropGrowthDays,
     ghPlotCropMaxHarvests,
     ghPlotCropRegrowth,
+    ghPlotFertName,
     ghPlotStateLabel,
     plotCropGrowthDays,
     plotCropMaxHarvests,
@@ -787,12 +802,12 @@
     return Object.values(groups)
   })
 
-  const doBatchPlant = (cropId: string) => {
+  const doBatchPlant = (cropId: string, quality: Quality) => {
     const crop = getCropById(cropId)
-    const seedCount = crop ? inventoryStore.getItemCount(crop.seedId) : 0
+    const seedCount = crop ? inventoryStore.getItemCount(crop.seedId, quality) : 0
     const total = Math.min(tilledEmptyCount.value, seedCount)
     runWithLargeBatchConfirm('一键种植', total, async () => {
-      await handleBatchPlant(cropId, runChunkedBatch)
+      await handleBatchPlant(cropId, runChunkedBatch, quality)
       await returnToBatchActionsIfAvailable(() => hasAvailableBatchAction.value)
     })
   }
@@ -985,6 +1000,7 @@
     closeGreenhouseDialogs,
     ghBreedingSeedOptions,
     ghCropStats,
+    ghFertilizableCount,
     ghHarvestableCount,
     ghPlantedCount,
     ghSeedOptions,
@@ -992,6 +1008,7 @@
     ghTilledEmptyCount,
     ghUpgradeMaterialRows,
     nextGhUpgrade,
+    showGhBatchFertilize,
     showGhBatchPlant,
     showGhUpgradeModal,
     showGreenhouse,
@@ -1015,8 +1032,10 @@
   })
 
   const {
+    doGhBatchFertilize,
     doGhBatchHarvest,
     doGhBatchPlant,
+    doGhFertilize,
     doGhHarvest,
     doGhPlant,
     doGhPlantGeneticSeed,
@@ -1025,6 +1044,7 @@
     activeGhPlotId,
     ghTilledEmptyCount: () => ghTilledEmptyCount.value,
     nextGhUpgrade: () => nextGhUpgrade.value,
+    showGhBatchFertilize,
     showGhBatchPlant,
     showGhUpgradeModal,
     greenhousePlots: () => farmStore.greenhousePlots,
@@ -1041,6 +1061,7 @@
     greenhousePlantCrop: farmStore.greenhousePlantCrop,
     greenhousePlantGeneticSeed: farmStore.greenhousePlantGeneticSeed,
     greenhouseHarvestPlot: farmStore.greenhouseHarvestPlot,
+    applyGreenhouseFertilizer: farmStore.applyGreenhouseFertilizer,
     upgradeGreenhouse: farmStore.upgradeGreenhouse,
     removeBreedingSeed: breedingStore.removeFromBox,
     addBreedingSeed: breedingStore.addToBox,
@@ -1051,10 +1072,3 @@
     runChunkedBatch
   })
 </script>
-
-<style scoped>
-  .farm-plot {
-    height: 0;
-    padding-bottom: 100%;
-  }
-</style>

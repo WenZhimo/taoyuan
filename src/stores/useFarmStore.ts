@@ -5,8 +5,8 @@ import type { SprinklerType, FertilizerType, PlantedFruitTree, FruitTreeType, Wi
 import type { SeedGenetics } from '@/types/breeding'
 import { getCropById } from '@/data'
 import { SPRINKLERS, getFertilizerById } from '@/data/processing'
-import { FRUIT_TREE_DEFS, MAX_FRUIT_TREES } from '@/data/fruitTrees'
-import { MAX_WILD_TREES, getWildTreeDef } from '@/data/wildTrees'
+import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
+import { getWildTreeDef } from '@/data/wildTrees'
 import { GREENHOUSE_PLOT_COUNT } from '@/data/buildings'
 import { useWalletStore } from './useWalletStore'
 import { useGameStore } from './useGameStore'
@@ -382,6 +382,16 @@ export const useFarmStore = defineStore('farm', () => {
     return true
   }
 
+  /** 给温室地块施肥 */
+  const applyGreenhouseFertilizer = (plotId: number, fertilizerType: FertilizerType): boolean => {
+    const plot = greenhousePlots.value[plotId]
+    if (!plot) return false
+    if (plot.state === 'wasteland') return false
+    if (plot.fertilizer) return false
+    plot.fertilizer = fertilizerType
+    return true
+  }
+
   /** 桃源田庄：季初给所有已耕但无肥料的地块施加肥料（按种植等级升级） */
   const applyFertileSoil = (farmingLevel: number): { count: number; fertilizerName: string } => {
     const fertilizerId = farmingLevel >= 8 ? 'deluxe_speed_gro' : farmingLevel >= 5 ? 'quality_fertilizer' : 'basic_fertilizer'
@@ -739,7 +749,6 @@ export const useFarmStore = defineStore('farm', () => {
 
   /** 种植果树 */
   const plantFruitTree = (treeType: FruitTreeType): boolean => {
-    if (fruitTrees.value.length >= MAX_FRUIT_TREES) return false
     fruitTrees.value.push({
       id: nextFruitTreeId.value++,
       type: treeType,
@@ -809,7 +818,6 @@ export const useFarmStore = defineStore('farm', () => {
 
   /** 种植野树 */
   const plantWildTree = (treeType: WildTreeType): boolean => {
-    if (wildTrees.value.length >= MAX_WILD_TREES) return false
     wildTrees.value.push({
       id: nextWildTreeId.value++,
       type: treeType,
@@ -1090,6 +1098,7 @@ export const useFarmStore = defineStore('farm', () => {
     removeSprinkler,
     getAllWateredBySprinklers,
     applyFertilizer,
+    applyGreenhouseFertilizer,
     applyFertileSoil,
     dailyUpdate,
     onSeasonChange,

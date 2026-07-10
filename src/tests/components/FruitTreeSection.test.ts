@@ -51,7 +51,6 @@ const mountSection = (props: Partial<InstanceType<typeof FruitTreeSection>['$pro
   mount(FruitTreeSection, {
     props: {
       trees,
-      maxTrees: 10,
       plantableSaplings,
       getTreeName: type => treeNames[type],
       getFruitSeason: type => (type === 'lychee_tree' ? '夏' : '春'),
@@ -64,7 +63,7 @@ describe('FruitTreeSection', () => {
     const wrapper = mountSection()
 
     expect(wrapper.text()).toContain('果树')
-    expect(wrapper.text()).toContain('3/10')
+    expect(wrapper.text()).toContain('共 3 棵')
     expect(wrapper.text()).toContain('桃树')
     expect(wrapper.text()).toContain('14/28天')
     expect(wrapper.text()).toContain('荔枝树')
@@ -84,13 +83,25 @@ describe('FruitTreeSection', () => {
     expect(wrapper.emitted('chop')).toEqual([[{ id: 1, type: 'peach_tree' }]])
   })
 
-  it('renders empty state and hides planting when tree slots are full', () => {
+  it('renders empty state and keeps planting available without a tree limit', () => {
     const emptyWrapper = mountSection({ trees: [] })
     expect(emptyWrapper.text()).toContain('暂无果树')
     expect(emptyWrapper.text()).toContain('可在商店购买树苗种植')
+    expect(mountSection().text()).toContain('种桃树')
+  })
 
-    const fullWrapper = mountSection({ maxTrees: trees.length })
-    expect(fullWrapper.text()).not.toContain('种桃树')
+  it('paginates fruit trees at 50 per page', async () => {
+    const manyTrees = Array.from({ length: 51 }, (_, index) => ({
+      ...trees[0]!,
+      id: index + 1
+    }))
+    const wrapper = mountSection({ trees: manyTrees })
+
+    expect(wrapper.text()).toContain('第 1/2 页 · 51 项')
+    expect(wrapper.findAll('button').filter(button => button.text() === '砍伐')).toHaveLength(50)
+
+    await wrapper.findAll('button').find(button => button.text() === '下一页')?.trigger('click')
+    expect(wrapper.findAll('button').filter(button => button.text() === '砍伐')).toHaveLength(1)
   })
 
   it('mounts cheaply enough for repeated tree tab previews', () => {
@@ -98,7 +109,7 @@ describe('FruitTreeSection', () => {
     const start = performance.now()
 
     for (let i = 0; i < iterations; i++) {
-      mountSection({ maxTrees: 10 + i }).unmount()
+      mountSection().unmount()
     }
 
     const averageMountMs = (performance.now() - start) / iterations

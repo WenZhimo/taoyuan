@@ -93,7 +93,6 @@ export const FRUIT_TREE_DEFS: FruitTreeDef[] = [
 ]
 
 /** 最大果树数量 */
-export const MAX_FRUIT_TREES = 8
 
 export const getFruitTreeDef = (type: string): FruitTreeDef | undefined => {
   return FRUIT_TREE_DEFS.find(d => d.type === type)

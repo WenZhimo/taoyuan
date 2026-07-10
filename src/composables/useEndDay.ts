@@ -625,7 +625,7 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   void router.push({ name: resolvedOptions.wakePanel ?? 'farm' })
 
   // 自动存档
-  saveStore.autoSave()
+  void saveStore.autoSave()
 }
 
 export const useEndDay = () => {

@@ -751,16 +751,22 @@
         <div class="flex flex-col space-y-2">
           <div
             v-for="item in sellableItems"
-            :key="item.originalIndex"
-            class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5"
-            @click="openSellModal(item.itemId, item.quality, item.originalIndex)"
+            :key="item.itemId"
+            class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-2 hover:bg-accent/5"
           >
-            <div>
-              <span class="text-sm" :class="qualityTextClass(item.quality)">{{ item.def?.name }}</span>
-              <span class="text-muted text-xs ml-1">×{{ item.quantity }}</span>
+            <div class="min-w-0">
+              <span class="text-sm text-accent">{{ item.def?.name }}</span>
+              <QualityQuantityBreakdown
+                class="mt-0.5"
+                :entries="item.qualities"
+                :interactive="true"
+                :selected-quality="sellModalData?.itemId === item.itemId ? sellModalData.quality : null"
+                :aria-label="`${item.def?.name ?? item.itemId}的可出售品质数量`"
+                @select-quality="quality => openSellModal(item.itemId, quality)"
+              />
             </div>
             <div class="flex items-center space-x-1">
-              <span class="text-xs text-accent whitespace-nowrap">{{ shopStore.calculateSellPrice(item.itemId, 1, item.quality) }}文</span>
+              <span class="text-xs text-accent whitespace-nowrap">{{ getSellPriceRange(item.itemId, item.qualities) }}</span>
               <span v-if="getItemTrend(item.itemId) === 'rising' || getItemTrend(item.itemId) === 'boom'" class="text-[10px] text-success">
                 ↑{{ Math.round((getItemMultiplier(item.itemId) - 1) * 100) }}%
               </span>
@@ -938,7 +944,14 @@
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <div class="flex items-center justify-between">
               <span class="text-xs text-muted">数量</span>
-              <span class="text-xs">×{{ sellModalItem.quantity }}</span>
+              <QualityQuantityBreakdown
+                v-if="sellModalGroup"
+                :entries="sellModalGroup.qualities"
+                :interactive="true"
+                :selected-quality="sellModalItem.quality"
+                :aria-label="`${sellModalDef.name}的可出售品质数量`"
+                @select-quality="selectSellModalQuality"
+              />
             </div>
             <div v-if="sellModalItem.quality !== 'normal'" class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">品质</span>
@@ -1040,6 +1053,7 @@
     Filter
   } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
   import { useFarmStore } from '@/stores/useFarmStore'
   import { useGameStore, SEASON_NAMES } from '@/stores/useGameStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
@@ -1067,6 +1081,8 @@
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { useAchievementStore } from '@/stores/useAchievementStore'
   import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
+  import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
+  import type { QualityQuantityEntry } from '@/domain/inventory/qualityGroups'
 
   const RAIN_TOTEM_PRICE = 300
   const WOOD_PRICE = 50
@@ -1153,7 +1169,6 @@
     type: 'sell'
     itemId: string
     quality: Quality
-    inventoryIndex: number
   }
 
   const shopModal = ref<BuyModalState | SellModalState | null>(null)
@@ -1168,12 +1183,18 @@
     return shopModal.value
   })
 
+  const sellModalGroup = computed(() => {
+    const data = sellModalData.value
+    if (!data) return null
+    return sellableItems.value.find(item => item.itemId === data.itemId) ?? null
+  })
+
   const sellModalItem = computed(() => {
     const data = sellModalData.value
     if (!data) return null
-    const item = inventoryStore.items[data.inventoryIndex]
-    if (item && item.itemId === data.itemId && item.quality === data.quality) return item
-    return inventoryStore.items.find(i => i.itemId === data.itemId && i.quality === data.quality) ?? null
+    const qualityEntry = findQualityQuantity(sellModalGroup.value ?? undefined, data.quality)
+    const item = qualityEntry?.items[0]
+    return item ? { ...item, quantity: qualityEntry.quantity } : null
   })
 
   const sellModalDef = computed(() => {
@@ -1200,11 +1221,13 @@
     return buyModalData.value.price * buyQuantity.value
   })
 
+  const SHOP_PURCHASE_LIMIT = 99_999
+
   const getMaxBuyable = (unitPrice: number, stockLimit?: number): number => {
     const affordable = unitPrice > 0 ? Math.floor(playerStore.money / unitPrice) : 0
     let max = Math.max(1, affordable)
     if (stockLimit !== undefined) max = Math.min(max, stockLimit)
-    return Math.min(max, 999)
+    return Math.min(max, SHOP_PURCHASE_LIMIT)
   }
 
   const openBuyModal = (
@@ -1267,9 +1290,15 @@
   const addSellQuantity = sellQuantityPicker.addQuantity
   const onSellQuantityInput = (e: Event) => sellQuantityPicker.setQuantityFromInput((e.target as HTMLInputElement).value)
 
-  const openSellModal = (itemId: string, quality: Quality, inventoryIndex: number) => {
+  const openSellModal = (itemId: string, quality: Quality) => {
     sellQuantityPicker.resetQuantity(1)
-    shopModal.value = { type: 'sell', itemId, quality, inventoryIndex }
+    shopModal.value = { type: 'sell', itemId, quality }
+  }
+
+  const selectSellModalQuality = (quality: Quality) => {
+    const data = sellModalData.value
+    if (!data) return
+    openSellModal(data.itemId, quality)
   }
 
   const openWeaponModal = (w: WeaponDef) => {
@@ -1317,11 +1346,13 @@
       handleSellItemAll(modal.itemId, count, modal.quality)
     }
     // 物品消耗完则关闭弹窗，否则修正出售数量
-    const remaining = inventoryStore.items.find(i => i.itemId === modal.itemId && i.quality === modal.quality)
-    if (!remaining) {
+    const remainingQuantity = inventoryStore.items
+      .filter(item => item.itemId === modal.itemId && item.quality === modal.quality && !item.locked)
+      .reduce((total, item) => total + item.quantity, 0)
+    if (remainingQuantity <= 0) {
       shopModal.value = null
-    } else if (sellQuantity.value > remaining.quantity) {
-      sellQuantityPicker.setQuantity(remaining.quantity)
+    } else if (sellQuantity.value > remainingQuantity) {
+      sellQuantityPicker.setQuantity(remainingQuantity)
     }
   }
 
@@ -1788,6 +1819,13 @@
     return fallback
   }
 
+  const getSellPriceRange = (itemId: string, qualities: QualityQuantityEntry[]): string => {
+    const prices = qualities.map(entry => shopStore.calculateSellPrice(itemId, 1, entry.quality))
+    const min = Math.min(...prices)
+    const max = Math.max(...prices)
+    return min === max ? `${min}文` : `${min}-${max}文`
+  }
+
   // === 出售筛选 ===
 
   const SELL_FILTER_CATEGORIES: ItemCategory[] = [
@@ -1852,12 +1890,17 @@
 
   const sellableItems = computed(() => {
     const allowed = sellFilter.value.length > 0 ? new Set(sellFilter.value) : null
-    return inventoryStore.items
+    const filtered = inventoryStore.items
       .map((inv, index) => {
         const def = getItemById(inv.itemId)
         return { ...inv, def, originalIndex: index }
       })
       .filter(item => item.def && !item.locked && (!allowed || allowed.has(item.def!.category)))
+
+    return groupInventoryItemsByQuality(filtered).map(group => ({
+      ...group,
+      def: group.qualities[0]?.items[0]?.def
+    }))
   })
 </script>
 

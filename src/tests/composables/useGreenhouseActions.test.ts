@@ -81,10 +81,12 @@ const upgrade: GreenhouseUpgradeDef = {
 const createActions = (overrides: Partial<UseGreenhouseActionsOptions> & {
   activeGhPlotId?: number | null
   showGhBatchPlantInitial?: boolean
+  showGhBatchFertilizeInitial?: boolean
   showGhUpgradeModalInitial?: boolean
 } = {}) => {
   const activeGhPlotId = ref<number | null>(overrides.activeGhPlotId ?? 1)
   const showGhBatchPlant = ref(overrides.showGhBatchPlantInitial ?? true)
+  const showGhBatchFertilize = ref(overrides.showGhBatchFertilizeInitial ?? true)
   const showGhUpgradeModal = ref(overrides.showGhUpgradeModalInitial ?? true)
   const plots = ref<FarmPlot[]>(
     overrides.greenhousePlots?.() as FarmPlot[] ?? [
@@ -115,6 +117,7 @@ const createActions = (overrides: Partial<UseGreenhouseActionsOptions> & {
     activeGhPlotId,
     ghTilledEmptyCount: overrides.ghTilledEmptyCount ?? (() => plots.value.filter(plot => plot.state === 'tilled').length),
     nextGhUpgrade: overrides.nextGhUpgrade ?? (() => upgrade),
+    showGhBatchFertilize,
     showGhBatchPlant,
     showGhUpgradeModal,
     greenhousePlots: overrides.greenhousePlots ?? (() => plots.value),
@@ -136,6 +139,7 @@ const createActions = (overrides: Partial<UseGreenhouseActionsOptions> & {
         cropId: 'cabbage',
         genetics: makeGenetics()
       })),
+    applyGreenhouseFertilizer: overrides.applyGreenhouseFertilizer ?? vi.fn(() => true),
     upgradeGreenhouse: overrides.upgradeGreenhouse ?? vi.fn(() => true),
     removeBreedingSeed: overrides.removeBreedingSeed ?? vi.fn(),
     addBreedingSeed: overrides.addBreedingSeed ?? vi.fn(() => true),
@@ -156,6 +160,7 @@ const createActions = (overrides: Partial<UseGreenhouseActionsOptions> & {
     options,
     plots,
     showGhBatchPlant,
+    showGhBatchFertilize,
     showGhUpgradeModal
   }
 }
@@ -177,6 +182,42 @@ describe('useGreenhouseActions', () => {
     expect(greenhousePlantCrop).toHaveBeenCalledWith(1, 'cabbage')
     expect(addLog).toHaveBeenCalledWith('在温室中播种了青菜。')
     expect(activeGhPlotId.value).toBeNull()
+  })
+
+  it('fertilizes a selected greenhouse plot and closes it', () => {
+    const removeItem = vi.fn(() => true)
+    const applyGreenhouseFertilizer = vi.fn(() => true)
+    const { actions, activeGhPlotId } = createActions({ applyGreenhouseFertilizer, removeItem })
+
+    actions.doGhFertilize('basic_fertilizer')
+
+    expect(removeItem).toHaveBeenCalledWith('basic_fertilizer')
+    expect(applyGreenhouseFertilizer).toHaveBeenCalledWith(1, 'basic_fertilizer')
+    expect(showFloat).toHaveBeenCalledWith('温室施肥', 'success')
+    expect(activeGhPlotId.value).toBeNull()
+  })
+
+  it('batch fertilizes eligible greenhouse plots in chunks', async () => {
+    const removeItem = vi.fn(() => true)
+    const applyGreenhouseFertilizer = vi.fn(() => true)
+    const plots = [
+      makePlot({ id: 0 }),
+      makePlot({ id: 1, state: 'growing', cropId: 'cabbage' }),
+      makePlot({ id: 2, fertilizer: 'quality_fertilizer' })
+    ]
+    const { actions, showGhBatchFertilize } = createActions({
+      applyGreenhouseFertilizer,
+      getItemCount: itemId => (itemId === 'basic_fertilizer' ? 5 : 0),
+      greenhousePlots: () => plots,
+      removeItem
+    })
+
+    await actions.doGhBatchFertilize('basic_fertilizer', true)
+
+    expect(removeItem).toHaveBeenCalledWith('basic_fertilizer', 2)
+    expect(applyGreenhouseFertilizer).toHaveBeenCalledTimes(2)
+    expect(showFloat).toHaveBeenCalledWith('温室施肥 ×2', 'success')
+    expect(showGhBatchFertilize.value).toBe(false)
   })
 
   it('harvests once with quality, sweetness, and returned breeding seed rewards', () => {

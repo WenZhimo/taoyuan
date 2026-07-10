@@ -1,5 +1,6 @@
 <template>
   <RouterView />
+  <SaveOperationOverlay />
   <!-- APK 退出确认弹窗 -->
   <Transition name="panel-fade">
     <div
@@ -24,6 +25,7 @@
   import { ref, onMounted } from 'vue'
   import { Capacitor } from '@capacitor/core'
   import { App as CapApp } from '@capacitor/app'
+  import SaveOperationOverlay from '@/components/game/SaveOperationOverlay.vue'
 
   const showExitConfirm = ref(false)
 

@@ -76,12 +76,39 @@ describe('ShippingBoxDialog', () => {
     await wrapper.findAll('button')[0]?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('作物'))?.trigger('click')
     await wrapper.findAll('button').filter(button => button.text().includes('全部'))[2]?.trigger('click')
-    await wrapper.findAll('.cursor-pointer')[0]?.trigger('click')
+    await wrapper.get('button[aria-label="普通品质 3 个"]').trigger('click')
 
     expect(wrapper.emitted('close')).toHaveLength(1)
     expect(wrapper.emitted('filter')).toEqual([['crop']])
     expect(wrapper.emitted('add-item')).toEqual([['ruby', 2, 'supreme']])
     expect(wrapper.emitted('remove-item')).toEqual([['cabbage', 3, 'normal']])
+  })
+
+  it('merges different qualities of the same item and keeps quality actions separate', async () => {
+    const multiQualityEntries: InventoryItem[] = [
+      { itemId: 'cabbage', quality: 'normal', quantity: 4 },
+      { itemId: 'cabbage', quality: 'fine', quantity: 20 },
+      { itemId: 'cabbage', quality: 'excellent', quantity: 3 },
+      { itemId: 'cabbage', quality: 'supreme', quantity: 4 }
+    ]
+    const multiQualityItems = multiQualityEntries.map(item => ({
+      ...item,
+      def: { id: 'cabbage', name: '青菜', category: 'crop' as const, description: '', sellPrice: 20, edible: true }
+    }))
+    const wrapper = mountDialog({
+      boxEntries: multiQualityEntries,
+      filteredItems: multiQualityItems,
+      items: multiQualityItems
+    })
+
+    expect(wrapper.findAll('button[aria-label^="普通品质"]').length).toBeGreaterThan(0)
+    expect(wrapper.text()).toContain('×4')
+    expect(wrapper.text()).toContain('×20')
+    expect(wrapper.text()).toContain('×3')
+
+    await wrapper.get('button[aria-label="优良品质 20 个"]').trigger('click')
+
+    expect(wrapper.emitted('remove-item')).toEqual([['cabbage', 20, 'fine']])
   })
 
   it('renders empty box and empty inventory states', () => {

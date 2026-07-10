@@ -345,19 +345,26 @@
           <!-- 箱子物品列表 -->
           <div v-if="currentOpenChest.items.length > 0" class="flex flex-col space-y-1 mb-2 max-h-48 overflow-y-auto">
             <div
-              v-for="(item, idx) in currentOpenChest.items"
-              :key="idx"
+              v-for="item in currentOpenChestItemGroups"
+              :key="item.itemId"
               class="flex items-center justify-between border border-accent/10 rounded-xs px-2 py-1 mr-1"
-              @click="chestItemDetail = { itemId: item.itemId, quality: item.quality, quantity: item.quantity }"
             >
-              <span class="text-xs truncate mr-2 cursor-pointer hover:underline" :class="qualityTextClass(item.quality)">
+              <span class="text-xs truncate mr-2 text-accent">
                 {{ getItemName(item.itemId) }}
-                <span class="text-xs text-muted">&times;{{ item.quantity }}</span>
+                <QualityQuantityBreakdown
+                  class="mt-0.5"
+                  :entries="item.qualities"
+                  :interactive="true"
+                  :selected-quality="selectedCurrentChestEntry(item)?.quality"
+                  :aria-label="`${getItemName(item.itemId)}在${currentOpenChest.label}中的各品质数量`"
+                  @select-quality="quality => selectCurrentChestQuality(item, quality)"
+                />
               </span>
               <div class="flex items-center space-x-1.5">
                 <Button
+                  v-if="selectedCurrentChestEntry(item)"
                   class="py-0 px-1"
-                  @click.stop="openChestQtyModal('withdraw', openChestId!, item.itemId, item.quality, item.quantity)"
+                  @click.stop="withdrawCurrentChestItem(item)"
                 >
                   取出
                 </Button>
@@ -412,16 +419,19 @@
           </div>
           <div class="flex flex-col space-y-1 max-h-60 overflow-y-auto">
             <div
-              v-for="item in depositableItems"
-              :key="item.itemId + item.quality"
-              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
-              @click="openChestQtyModal('deposit', openChestId!, item.itemId, item.quality, item.quantity)"
+              v-for="item in depositableItemGroups"
+              :key="item.itemId"
+              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 hover:bg-accent/5"
             >
-              <span class="text-xs truncate mr-2" :class="qualityTextClass(item.quality)">
+              <span class="text-xs truncate mr-2 text-accent">
                 {{ getItemName(item.itemId) }}
-                <span v-if="item.quality !== 'normal'" class="text-[10px]">({{ QUALITY_LABEL[item.quality] }})</span>
               </span>
-              <span class="text-xs text-muted">&times;{{ item.quantity }}</span>
+              <QualityQuantityBreakdown
+                :entries="item.qualities"
+                :interactive="true"
+                :aria-label="`${getItemName(item.itemId)}的可存入品质数量`"
+                @select-quality="quality => depositChestQuality(item, quality)"
+              />
             </div>
           </div>
         </div>
@@ -533,7 +543,14 @@
           <div class="border border-accent/10 rounded-xs p-2">
             <div class="flex items-center justify-between">
               <span class="text-xs text-muted">数量</span>
-              <span class="text-xs">×{{ chestItemDetail.quantity }}</span>
+              <QualityQuantityBreakdown
+                v-if="chestItemDetailGroup"
+                :entries="chestItemDetailGroup.qualities"
+                :interactive="true"
+                :selected-quality="chestItemDetail.quality"
+                :aria-label="`${chestItemDef.name}的各品质数量`"
+                @select-quality="selectChestItemDetailQuality"
+              />
             </div>
             <div v-if="chestItemDetail.quality !== 'normal'" class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">品质</span>
@@ -635,9 +652,12 @@
   import { getItemById } from '@/data'
   import { GREENHOUSE_UNLOCK_COST, GREENHOUSE_MATERIAL_COST, WAREHOUSE_UNLOCK_MATERIALS, getCaveUpgrade } from '@/data/buildings'
   import { CHEST_DEFS, CHEST_TIER_ORDER } from '@/data/items'
-  import type { Quality, ChestTier, VoidChestRole } from '@/types'
+  import type { InventoryItem, Quality, ChestTier, VoidChestRole } from '@/types'
   import { addLog } from '@/composables/useGameLog'
   import Button from '@/components/game/Button.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
+  import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
+  import type { InventoryQualityGroup } from '@/domain/inventory/qualityGroups'
 
   const homeStore = useHomeStore()
   const inventoryStore = useInventoryStore()
@@ -767,6 +787,8 @@
     return warehouseStore.getChest(openChestId.value) ?? null
   })
 
+  const currentOpenChestItemGroups = computed(() => groupInventoryItemsByQuality(currentOpenChest.value?.items ?? []))
+
   /** 背包中可存入箱子的物品（排除种子和锁定物品） */
   const depositableItems = computed(() =>
     inventoryStore.items.filter(i => {
@@ -775,6 +797,51 @@
       return def && def.category !== 'seed'
     })
   )
+
+  const depositableItemGroups = computed(() => groupInventoryItemsByQuality(depositableItems.value))
+
+  const selectedChestQualities = ref<Record<string, Quality>>({})
+
+  const selectedCurrentChestEntry = (group: InventoryQualityGroup<InventoryItem>) => {
+    const selected = selectedChestQualities.value[group.itemId]
+    return (selected ? findQualityQuantity(group, selected) : undefined) ?? group.qualities[0]
+  }
+
+  const selectCurrentChestQuality = (group: InventoryQualityGroup<InventoryItem>, quality: Quality) => {
+    selectedChestQualities.value[group.itemId] = quality
+    const entry = findQualityQuantity(group, quality)
+    if (entry) chestItemDetail.value = { itemId: group.itemId, quality, quantity: entry.quantity }
+  }
+
+  const withdrawCurrentChestItem = (group: InventoryQualityGroup<InventoryItem>) => {
+    if (!openChestId.value) return
+    const entry = selectedCurrentChestEntry(group)
+    if (entry) openChestQtyModal('withdraw', openChestId.value, group.itemId, entry.quality, entry.quantity)
+  }
+
+  const depositChestQuality = (group: InventoryQualityGroup<InventoryItem>, quality: Quality) => {
+    if (!openChestId.value) return
+    const entry = findQualityQuantity(group, quality)
+    if (entry) openChestQtyModal('deposit', openChestId.value, group.itemId, quality, entry.quantity)
+  }
+
+  const chestItemDetailGroup = computed(() => {
+    if (!chestItemDetail.value) return null
+    return currentOpenChestItemGroups.value.find(group => group.itemId === chestItemDetail.value?.itemId) ?? null
+  })
+
+  const selectChestItemDetailQuality = (quality: Quality) => {
+    if (!chestItemDetail.value || !chestItemDetailGroup.value) return
+    const entry = findQualityQuantity(chestItemDetailGroup.value, quality)
+    if (entry) {
+      selectedChestQualities.value[chestItemDetail.value.itemId] = quality
+      chestItemDetail.value = {
+        itemId: chestItemDetail.value.itemId,
+        quality,
+        quantity: entry.quantity
+      }
+    }
+  }
 
   /** 背包中可一键存入的重复物品（箱子中已有且未锁定、非种子） */
   const duplicateDepositItems = computed(() => {

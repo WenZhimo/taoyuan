@@ -43,11 +43,11 @@ describe('FarmBatchPlantDialog', () => {
     const wrapper = mountDialog()
 
     await wrapper.findAll('button')[0]?.trigger('click')
-    await wrapper.findAll('button').find(button => button.text().includes('番茄'))?.trigger('click')
+    await wrapper.get('button[aria-label="优良品质 8 个"]').trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('G1~4'))?.trigger('click')
 
     expect(wrapper.emitted('close')).toHaveLength(1)
-    expect(wrapper.emitted('plant')).toEqual([['tomato']])
+    expect(wrapper.emitted('plant')).toEqual([['tomato', 'fine']])
     expect(wrapper.emitted('plant-breeding')).toEqual([['cabbage']])
 
     const emptyWrapper = mountDialog({ breedingSeedGroups: [], seeds: [] })

@@ -343,8 +343,14 @@
         </div>
 
         <!-- 存档管理（全局底部） -->
-        <Button :icon="FolderOpen" :icon-size="12" class="py-1 px-3 w-full justify-center mt-3" @click="handleManualSave">
-          手动保存
+        <Button
+          :icon="FolderOpen"
+          :icon-size="12"
+          class="py-1 px-3 w-full justify-center mt-3"
+          :disabled="saveStore.isBusy"
+          @click="handleManualSave"
+        >
+          {{ saveStore.isBusy ? '存档处理中...' : '手动保存' }}
         </Button>
         <Button :icon="FolderOpen" :icon-size="12" class="py-1 px-3 w-full justify-center mt-3" @click="showSaveManager = true">
           存档管理
@@ -457,8 +463,8 @@
   const showSaveManager = ref(false)
   let clipboard: ClipboardJS | null = null
 
-  const handleLoadSlot = (slot: number) => {
-    if (saveStore.loadFromSlot(slot)) {
+  const handleLoadSlot = async (slot: number) => {
+    if (await saveStore.loadFromSlot(slot)) {
       showSaveManager.value = false
       emit('close')
       showFloat(`已切换到存档 ${slot + 1}。`, 'success')
@@ -467,8 +473,8 @@
     }
   }
 
-  const handleManualSave = () => {
-    if (saveStore.autoSave()) {
+  const handleManualSave = async () => {
+    if (await saveStore.autoSave()) {
       showFloat(`已保存到存档 ${saveStore.activeSlot + 1}。`, 'success')
     } else {
       showFloat('当前没有活动存档，请先在存档管理中选择或创建存档。', 'danger')

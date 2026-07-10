@@ -81,31 +81,24 @@
           铲除
         </Button>
 
-        <template v-if="plot.state === 'tilled' && seeds.length > 0">
+        <template v-if="plot.state === 'tilled' && groupedSeeds.length > 0">
           <Divider label="种植" />
-          <button
-            v-for="seed in seeds"
-            :key="seed.cropId + ':' + seed.quality"
+          <div
+            v-for="seed in groupedSeeds"
+            :key="seed.itemId"
             class="btn text-xs justify-between mr-1 shrink-0"
-            @click="$emit('plant', seed.cropId, seed.quality)"
           >
-            <span :class="seed.colorClass">
-              {{ seed.name }}
-              <span
-                v-if="seed.quality !== 'normal'"
-                :class="{
-                  'text-quality-fine': seed.quality === 'fine',
-                  'text-quality-excellent': seed.quality === 'excellent',
-                  'text-quality-supreme': seed.quality === 'supreme'
-                }"
-                class="ml-0.5"
-              >
-                [{{ qualityNames[seed.quality] }}]
-              </span>
-              <span v-if="seed.regrowth" class="text-success ml-1">[多茬]</span>
+            <span>
+              {{ seed.option.name }}
+              <span v-if="seed.option.regrowth" class="text-success ml-1">[多茬]</span>
             </span>
-            <span class="text-muted">×{{ seed.count }}</span>
-          </button>
+            <QualityQuantityBreakdown
+              :entries="seed.qualities"
+              :interactive="true"
+              :aria-label="`${seed.option.name}种子的各品质数量`"
+              @select-quality="quality => $emit('plant', seed.itemId, quality)"
+            />
+          </div>
         </template>
 
         <template v-if="plot.state === 'tilled' && breedingSeeds.length > 0">
@@ -166,10 +159,12 @@
   import { Bug, Droplets, Leaf, Shovel, Sprout, Star, Store, Trash2, Wheat, X } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
   import type { FarmBatchFertilizerOption } from '@/components/game/farm/FarmBatchFertilizeDialog.vue'
   import type { FarmBatchPlantSeedOption } from '@/components/game/farm/FarmBatchPlantDialog.vue'
+  import { groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
   import type { BreedingSeed, SeedGenetics } from '@/types/breeding'
-  import type { FarmPlot, FertilizerType, Quality, SprinklerType } from '@/types'
+  import type { FarmPlot, FertilizerType, InventoryItem, Quality, SprinklerType } from '@/types'
 
   export interface FarmPlotSprinklerOption {
     type: SprinklerType
@@ -177,6 +172,10 @@
     name: string
     colorClass: string
     count: number
+  }
+
+  interface GroupableSeed extends InventoryItem {
+    option: FarmBatchPlantSeedOption
   }
 
   const props = defineProps<{
@@ -219,4 +218,17 @@
 
   const growthProgressPercent = computed(() => Math.min(100, Math.floor((props.plot.growthDays / (Number(props.cropGrowthDays) || 1)) * 100)))
   const hasCrop = computed(() => props.plot.state === 'planted' || props.plot.state === 'growing' || props.plot.state === 'harvestable')
+  const groupedSeeds = computed(() =>
+    groupInventoryItemsByQuality<GroupableSeed>(
+      props.seeds.map(seed => ({
+        itemId: seed.cropId,
+        quality: seed.quality,
+        quantity: seed.count,
+        option: seed
+      }))
+    ).map(group => ({
+      ...group,
+      option: group.qualities[0]!.items[0]!.option
+    }))
+  )
 </script>

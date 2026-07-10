@@ -26,6 +26,10 @@
             </div>
             <span class="text-xs text-muted whitespace-nowrap">{{ plot.growthDays }}/{{ cropGrowthDays }}天</span>
           </div>
+          <div v-if="plot.fertilizer" class="flex items-center justify-between">
+            <span class="text-xs text-muted">肥料</span>
+            <span class="text-xs text-success">{{ fertilizerName }}</span>
+          </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-muted">特性</span>
             <span class="text-xs text-water">自动浇水 · 无季节限制</span>
@@ -73,6 +77,19 @@
           <p v-else class="text-[10px] text-muted/60 mt-1">{{ shopClosedReason }}</p>
         </div>
 
+        <template v-if="canFertilize && fertilizers.length > 0">
+          <Divider label="施肥" class="!my-2" />
+          <button
+            v-for="fertilizer in fertilizers"
+            :key="fertilizer.itemId"
+            class="btn text-xs justify-between mr-1 shrink-0"
+            @click="$emit('fertilize', fertilizer.type)"
+          >
+            <span :class="fertilizer.colorClass">{{ fertilizer.name }}</span>
+            <span class="text-muted">×{{ fertilizer.count }}</span>
+          </button>
+        </template>
+
         <Button v-if="plot.state === 'harvestable'" class="w-full justify-center !bg-accent !text-bg" :icon-size="12" :icon="Wheat" @click="$emit('harvest')">
           收获
         </Button>
@@ -86,7 +103,9 @@
   import { Sprout, Star, Store, Wheat, X } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
+  import type { FarmBatchFertilizerOption } from '@/components/game/farm/FarmBatchFertilizeDialog.vue'
   import type { FarmPlot } from '@/types/farm'
+  import type { FertilizerType } from '@/types'
 
   export interface GreenhousePlotSeedOption {
     cropId: string
@@ -104,10 +123,13 @@
 
   const props = defineProps<{
     breedingSeeds: GreenhouseBreedingSeedOption[]
+    canFertilize: boolean
     cropGrowthDays: number
     cropMaxHarvests: number
     cropName: string
     cropRegrowth: boolean
+    fertilizerName: string
+    fertilizers: FarmBatchFertilizerOption[]
     isShopOpen: boolean
     plot: FarmPlot
     seeds: GreenhousePlotSeedOption[]
@@ -120,6 +142,7 @@
     plant: [cropId: string]
     'plant-breeding-seed': [seedId: string]
     'go-to-shop': []
+    fertilize: [fertilizerType: FertilizerType]
     harvest: []
   }>()
 

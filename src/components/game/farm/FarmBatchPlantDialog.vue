@@ -7,18 +7,22 @@
       <p class="text-accent text-sm mb-2">一键种植</p>
       <p class="text-xs text-muted mb-2">空耕地 {{ tilledEmptyCount }} 块，选择要种植的种子：</p>
       <div class="flex flex-col space-y-1 max-h-40 overflow-y-auto">
-        <button
-          v-for="seed in seeds"
-          :key="`${seed.cropId}:${seed.quality}`"
+        <div
+          v-for="seed in groupedSeeds"
+          :key="seed.itemId"
           class="btn text-xs justify-between mr-1 shrink-0"
-          @click="$emit('plant', seed.cropId)"
         >
-          <span :class="seed.colorClass">
-            {{ seed.name }}
-            <span v-if="seed.regrowth" class="text-success ml-1">[多茬]</span>
+          <span>
+            {{ seed.option.name }}
+            <span v-if="seed.option.regrowth" class="text-success ml-1">[多茬]</span>
           </span>
-          <span class="text-muted">×{{ seed.count }}</span>
-        </button>
+          <QualityQuantityBreakdown
+            :entries="seed.qualities"
+            :interactive="true"
+            :aria-label="`${seed.option.name}种子的各品质数量`"
+            @select-quality="quality => $emit('plant', seed.itemId, quality)"
+          />
+        </div>
       </div>
       <template v-if="breedingSeedGroups.length > 0">
         <Divider label="育种种子" class="!my-2" />
@@ -48,10 +52,13 @@
 </template>
 
 <script setup lang="ts">
+  import { computed } from 'vue'
   import { Sprout, Store, X } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
-  import type { Quality } from '@/types'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
+  import { groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
+  import type { InventoryItem, Quality } from '@/types'
 
   export interface FarmBatchPlantSeedOption {
     colorClass: string
@@ -70,7 +77,11 @@
     name: string
   }
 
-  defineProps<{
+  interface GroupableSeed extends InventoryItem {
+    option: FarmBatchPlantSeedOption
+  }
+
+  const props = defineProps<{
     breedingSeedGroups: FarmBatchBreedingSeedGroup[]
     isShopOpen: boolean
     seeds: FarmBatchPlantSeedOption[]
@@ -80,8 +91,22 @@
 
   defineEmits<{
     close: []
-    plant: [cropId: string]
+    plant: [cropId: string, quality: Quality]
     'plant-breeding': [cropId: string]
     'go-to-shop': []
   }>()
+
+  const groupedSeeds = computed(() =>
+    groupInventoryItemsByQuality<GroupableSeed>(
+      props.seeds.map(seed => ({
+        itemId: seed.cropId,
+        quality: seed.quality,
+        quantity: seed.count,
+        option: seed
+      }))
+    ).map(group => ({
+      ...group,
+      option: group.qualities[0]!.items[0]!.option
+    }))
+  )
 </script>

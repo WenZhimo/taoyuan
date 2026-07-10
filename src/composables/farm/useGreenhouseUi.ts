@@ -51,9 +51,11 @@ export const useGreenhouseUi = ({
   const showGreenhouseModal = ref(false)
   const showGhUpgradeModal = ref(false)
   const showGhBatchPlant = ref(false)
+  const showGhBatchFertilize = ref(false)
 
   const ghHarvestableCount = computed(() => greenhousePlots().filter(plot => plot.state === 'harvestable').length)
   const ghTilledEmptyCount = computed(() => greenhousePlots().filter(plot => plot.state === 'tilled').length)
+  const ghFertilizableCount = computed(() => greenhousePlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer).length)
   const ghPlantedCount = computed(() => greenhousePlots().length - ghTilledEmptyCount.value)
 
   const nextGhUpgrade = computed(() => upgrades[greenhouseLevel()] ?? null)
@@ -165,6 +167,7 @@ export const useGreenhouseUi = ({
     showGreenhouseModal.value = false
     showGhUpgradeModal.value = false
     showGhBatchPlant.value = false
+    showGhBatchFertilize.value = false
   }
 
   return {
@@ -172,6 +175,7 @@ export const useGreenhouseUi = ({
     closeGreenhouseDialogs,
     ghBreedingSeedOptions,
     ghCropStats,
+    ghFertilizableCount,
     ghHarvestableCount,
     ghPlantableBreedingSeeds,
     ghPlantedCount,
@@ -180,6 +184,7 @@ export const useGreenhouseUi = ({
     ghTilledEmptyCount,
     ghUpgradeMaterialRows,
     nextGhUpgrade,
+    showGhBatchFertilize,
     showGhBatchPlant,
     showGhUpgradeModal,
     showGreenhouse,

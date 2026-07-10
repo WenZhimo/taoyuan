@@ -479,21 +479,31 @@
               <div class="flex flex-col space-y-1 max-h-40 overflow-y-auto">
                 <div
                   v-for="item in giftableItems"
-                  :key="`${item.itemId}_${item.quality ?? 'normal'}`"
+                  :key="item.itemId"
                   class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5 mr-1"
-                  @click="activeGiftKey = item.itemId + ':' + item.quality"
+                  @click="openGiftGroup(item.itemId)"
                 >
-                  <span class="flex items-center space-x-1">
-                    <span class="text-xs" :class="qualityTextClass(item.quality)">
-                      {{ getItemById(item.itemId)?.name }}
+                  <span class="min-w-0">
+                    <span class="flex items-center space-x-1">
+                      <span class="text-xs text-accent">
+                        {{ getItemById(item.itemId)?.name }}
+                      </span>
+                      <span
+                        v-if="getGiftPreference(item.itemId) !== 'neutral'"
+                        class="text-[10px]"
+                        :class="GIFT_PREF_CLASS[getGiftPreference(item.itemId)]"
+                      >
+                        {{ GIFT_PREF_LABELS[getGiftPreference(item.itemId)] }}
+                      </span>
                     </span>
-                    <span
-                      v-if="getGiftPreference(item.itemId) !== 'neutral'"
-                      class="text-[10px]"
-                      :class="GIFT_PREF_CLASS[getGiftPreference(item.itemId)]"
-                    >
-                      {{ GIFT_PREF_LABELS[getGiftPreference(item.itemId)] }}
-                    </span>
+                    <QualityQuantityBreakdown
+                      class="mt-0.5"
+                      :entries="item.qualities"
+                      :interactive="true"
+                      :selected-quality="activeGiftGroup?.itemId === item.itemId ? activeGiftItem?.quality : null"
+                      :aria-label="`${getItemById(item.itemId)?.name ?? item.itemId}的可赠送品质数量`"
+                      @select-quality="quality => openGiftQuality(item.itemId, quality)"
+                    />
                   </span>
                   <Gift :size="12" class="text-muted" />
                 </div>
@@ -525,7 +535,14 @@
                 <div class="border border-accent/10 rounded-xs p-2 mb-2">
                   <div class="flex items-center justify-between">
                     <span class="text-xs text-muted">数量</span>
-                    <span class="text-xs">&times;{{ activeGiftItem.quantity }}</span>
+                    <QualityQuantityBreakdown
+                      v-if="activeGiftGroup"
+                      :entries="activeGiftGroup.qualities"
+                      :interactive="true"
+                      :selected-quality="activeGiftItem.quality"
+                      :aria-label="`${activeGiftDef.name}的可赠送品质数量`"
+                      @select-quality="selectActiveGiftQuality"
+                    />
                   </div>
                   <div v-if="activeGiftItem.quality !== 'normal'" class="flex items-center justify-between mt-0.5">
                     <span class="text-xs text-muted">品质</span>
@@ -578,7 +595,9 @@
   import type { FriendshipLevel, Quality } from '@/types'
   import type { DiscoveryPhase, DiscoveryStep } from '@/types/hiddenNpc'
   import Button from '@/components/game/Button.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
   import HiddenNpcModal from '@/components/game/HiddenNpcModal.vue'
+  import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
 
   const npcStore = useNpcStore()
   const inventoryStore = useInventoryStore()
@@ -639,11 +658,34 @@
   const showZhijiDissolveConfirm = ref(false)
   const activeGiftKey = ref<string | null>(null)
 
+  const openGiftQuality = (itemId: string, quality: Quality) => {
+    activeGiftKey.value = `${itemId}:${quality}`
+  }
+
+  const openGiftGroup = (itemId: string) => {
+    const group = giftableItems.value.find(item => item.itemId === itemId)
+    const quality = group?.qualities[0]?.quality
+    if (quality) openGiftQuality(itemId, quality)
+  }
+
   const activeGiftItem = computed(() => {
     if (!activeGiftKey.value) return null
     const [itemId, quality] = activeGiftKey.value.split(':')
-    return inventoryStore.items.find(i => i.itemId === itemId && i.quality === quality) ?? null
+    const group = giftableItems.value.find(item => item.itemId === itemId)
+    const entry = findQualityQuantity(group, quality as Quality)
+    const item = entry?.items[0]
+    return item ? { ...item, quantity: entry.quantity } : null
   })
+
+  const activeGiftGroup = computed(() => {
+    if (!activeGiftItem.value) return null
+    return giftableItems.value.find(group => group.itemId === activeGiftItem.value?.itemId) ?? null
+  })
+
+  const selectActiveGiftQuality = (quality: Quality) => {
+    if (!activeGiftItem.value) return
+    openGiftQuality(activeGiftItem.value.itemId, quality)
+  }
 
   const activeGiftDef = computed(() => {
     if (!activeGiftItem.value) return null
@@ -708,8 +750,10 @@
       const def = getItemById(i.itemId)
       return def && def.category !== 'seed'
     })
-    if (!selectedNpcDef.value) return filtered
-    return [...filtered].sort((a, b) => GIFT_PREF_ORDER[getGiftPreference(a.itemId)] - GIFT_PREF_ORDER[getGiftPreference(b.itemId)])
+    const sorted = selectedNpcDef.value
+      ? [...filtered].sort((a, b) => GIFT_PREF_ORDER[getGiftPreference(a.itemId)] - GIFT_PREF_ORDER[getGiftPreference(b.itemId)])
+      : filtered
+    return groupInventoryItemsByQuality(sorted)
   })
 
   const oneClickTalkTargets = computed(() => NPCS.filter(npc => npcAvailable(npc.id) && !npcStore.getNpcState(npc.id)?.talkedToday))

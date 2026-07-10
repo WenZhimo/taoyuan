@@ -16,6 +16,7 @@ dist-ssr
 dist-electron
 docs
 pkg
+.build-state
 *.local
 
 # Editor directories and files

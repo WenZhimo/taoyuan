@@ -6,7 +6,7 @@ import { sfxHarvest, sfxPlant } from '@/composables/useAudio'
 import type { ChunkedBatchOptions, ChunkedBatchResult } from './useFarmBatchUi'
 import type { GreenhouseUpgradeDef } from '@/data/buildings'
 import type { CropDef, FarmPlot } from '@/types/farm'
-import type { Quality } from '@/types'
+import type { FertilizerType, Quality } from '@/types'
 import type { BreedingSeed, SeedGenetics } from '@/types/breeding'
 
 interface HarvestResult {
@@ -18,6 +18,7 @@ export interface UseGreenhouseActionsOptions {
   activeGhPlotId: Ref<number | null>
   ghTilledEmptyCount: () => number
   nextGhUpgrade: () => GreenhouseUpgradeDef | null | undefined
+  showGhBatchFertilize: Ref<boolean>
   showGhBatchPlant: Ref<boolean>
   showGhUpgradeModal: Ref<boolean>
   greenhousePlots: () => readonly FarmPlot[]
@@ -34,6 +35,7 @@ export interface UseGreenhouseActionsOptions {
   greenhousePlantCrop: (plotId: number, cropId: string) => boolean
   greenhousePlantGeneticSeed: (plotId: number, genetics: SeedGenetics) => boolean
   greenhouseHarvestPlot: (plotId: number) => HarvestResult
+  applyGreenhouseFertilizer: (plotId: number, fertilizerType: FertilizerType) => boolean
   upgradeGreenhouse: (newPlotCount: number) => boolean
   removeBreedingSeed: (seedId: string) => void
   addBreedingSeed: (genetics: SeedGenetics) => boolean
@@ -55,6 +57,7 @@ export const useGreenhouseActions = ({
   activeGhPlotId,
   ghTilledEmptyCount,
   nextGhUpgrade,
+  showGhBatchFertilize,
   showGhBatchPlant,
   showGhUpgradeModal,
   greenhousePlots,
@@ -71,6 +74,7 @@ export const useGreenhouseActions = ({
   greenhousePlantCrop,
   greenhousePlantGeneticSeed,
   greenhouseHarvestPlot,
+  applyGreenhouseFertilizer,
   upgradeGreenhouse,
   removeBreedingSeed,
   addBreedingSeed,
@@ -134,6 +138,64 @@ export const useGreenhouseActions = ({
       addItem(crop.seedId)
     }
     closeActiveGreenhousePlot()
+  }
+
+  const doGhFertilize = (fertilizerType: FertilizerType) => {
+    if (activeGhPlotId.value === null) return
+    if (!removeItem(fertilizerType)) {
+      addLog('肥料不足，无法施肥。')
+      return
+    }
+    if (applyGreenhouseFertilizer(activeGhPlotId.value, fertilizerType)) {
+      addLog('已给温室地块施肥。')
+      showFloat('温室施肥', 'success')
+    } else {
+      addItem(fertilizerType)
+      addLog('无法给该温室地块施肥。')
+    }
+    closeActiveGreenhousePlot()
+  }
+
+  const doGhBatchFertilize = async (fertilizerType: FertilizerType, confirmed = false) => {
+    const targets = greenhousePlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer)
+    const plannedTotal = Math.min(targets.length, getItemCount(fertilizerType))
+    if (!confirmed) {
+      runWithLargeBatchConfirm('温室一键施肥', plannedTotal, () => doGhBatchFertilize(fertilizerType, true), GREENHOUSE_BATCH_LIMIT)
+      return
+    }
+    if (plannedTotal <= 0 || !removeItem(fertilizerType, plannedTotal)) {
+      addLog(targets.length === 0 ? '没有可施肥的温室地块。' : '肥料不足，无法施肥。')
+      showGhBatchFertilize.value = false
+      return
+    }
+
+    let applied = 0
+    const batchResult = await runChunkedBatch({
+      label: '温室一键施肥',
+      total: plannedTotal,
+      chunkSize: GREENHOUSE_BATCH_LIMIT,
+      processChunk: (start, end) => {
+        let completed = 0
+        for (let index = start; index < end; index++) {
+          if (!applyGreenhouseFertilizer(targets[index]!.id, fertilizerType)) break
+          applied++
+          completed++
+        }
+        return completed
+      }
+    })
+
+    const unused = plannedTotal - applied
+    if (unused > 0) addItem(fertilizerType, unused)
+    if (applied > 0) {
+      showFloat(`温室施肥 ×${applied}`, 'success')
+      let message = `给${applied}块温室地块施了肥。`
+      if (batchResult.cancelled && batchResult.total > batchResult.processed) {
+        message += ` 操作已取消，剩余${batchResult.total - batchResult.processed}块未处理。`
+      }
+      addLog(message)
+    }
+    showGhBatchFertilize.value = false
   }
 
   const doGhHarvest = () => {
@@ -302,8 +364,10 @@ export const useGreenhouseActions = ({
   }
 
   return {
+    doGhBatchFertilize,
     doGhBatchHarvest,
     doGhBatchPlant,
+    doGhFertilize,
     doGhHarvest,
     doGhPlant,
     doGhPlantGeneticSeed,

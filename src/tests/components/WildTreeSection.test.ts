@@ -64,7 +64,6 @@ const mountSection = (props: Partial<InstanceType<typeof WildTreeSection>['$prop
   mount(WildTreeSection, {
     props: {
       trees,
-      maxTrees: 20,
       plantableWildSeeds,
       hasTapper: true,
       getTreeName: type => treeNames[type],
@@ -79,7 +78,7 @@ describe('WildTreeSection', () => {
     const wrapper = mountSection()
 
     expect(wrapper.text()).toContain('野树')
-    expect(wrapper.text()).toContain('3/20')
+    expect(wrapper.text()).toContain('共 3 棵')
     expect(wrapper.text()).toContain('松树')
     expect(wrapper.text()).toContain('生长中')
     expect(wrapper.text()).toContain('7/14天')
@@ -116,12 +115,26 @@ describe('WildTreeSection', () => {
     expect(noTapperWrapper.text()).not.toContain('装采脂器')
   })
 
+  it('paginates wild trees at 50 per page', async () => {
+    const manyTrees = Array.from({ length: 51 }, (_, index) => ({
+      ...trees[2]!,
+      id: index + 1
+    }))
+    const wrapper = mountSection({ trees: manyTrees })
+
+    expect(wrapper.text()).toContain('第 1/2 页 · 51 项')
+    expect(wrapper.findAll('button').filter(button => button.text() === '伐木')).toHaveLength(50)
+
+    await wrapper.findAll('button').find(button => button.text() === '下一页')?.trigger('click')
+    expect(wrapper.findAll('button').filter(button => button.text() === '伐木')).toHaveLength(1)
+  })
+
   it('mounts cheaply enough for repeated tree tab previews', () => {
     const iterations = 120
     const start = performance.now()
 
     for (let i = 0; i < iterations; i++) {
-      mountSection({ maxTrees: 20 + i }).unmount()
+      mountSection().unmount()
     }
 
     const averageMountMs = (performance.now() - start) / iterations

@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { Capacitor, CapacitorHttp } from '@capacitor/core'
-import { parseSaveData } from '@/stores/useSaveStore'
+import { useSaveStore } from '@/stores/useSaveStore'
 
 const STORAGE_KEY = 'taoyuanxiang_webdav'
 const SAVE_KEY_PREFIX = 'taoyuanxiang_save_'
@@ -373,10 +373,9 @@ export const useWebdav = () => {
       if (res.status < 200 || res.status >= 300) {
         return { success: false, message: `下载失败（${res.status}）。` }
       }
-      if (!parseSaveData(res.data)) {
+      if (!(await useSaveStore().importSave(slot, res.data))) {
         return { success: false, message: '云端存档数据无效或已损坏。' }
       }
-      localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, res.data)
       pushTrace(`下载成功 slot=${slot}`)
       return { success: true, message: `存档 ${slot + 1} 已从云端下载。` }
     } catch (e: unknown) {

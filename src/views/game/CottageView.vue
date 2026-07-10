@@ -355,21 +355,18 @@
           <div class="flex flex-col space-y-1">
             <div
               v-for="item in ageableInInventory"
-              :key="item.itemId + item.quality"
-              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
-              @click="handleStartAgingFromModal(item.itemId, item.quality)"
+              :key="item.itemId"
+              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 hover:bg-accent/5"
             >
-              <span
-                class="text-xs"
-                :class="{
-                  'text-quality-fine': item.quality === 'fine',
-                  'text-quality-excellent': item.quality === 'excellent',
-                  'text-quality-supreme': item.quality === 'supreme'
-                }"
-              >
+              <span class="text-xs text-accent">
                 {{ getItemName(item.itemId) }}
               </span>
-              <span class="text-xs text-muted">&times;{{ item.quantity }}</span>
+              <QualityQuantityBreakdown
+                :entries="item.qualities"
+                :interactive="true"
+                :aria-label="`${getItemName(item.itemId)}的可陈酿品质数量`"
+                @select-quality="quality => handleStartAgingFromModal(item.itemId, quality)"
+              />
             </div>
           </div>
         </div>
@@ -480,23 +477,30 @@
           <div class="flex flex-col space-y-1 max-h-60 overflow-y-auto">
             <div
               v-for="item in spouseGiftableItems"
-              :key="item.itemId + item.quality"
-              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
-              @click="handleSpouseGift(item.itemId, item.quality)"
+              :key="item.itemId"
+              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 hover:bg-accent/5"
             >
-              <span class="flex items-center space-x-1">
-                <span class="text-xs" :class="qualityTextClass(item.quality)">
-                  {{ getItemById(item.itemId)?.name }}
+              <span class="min-w-0">
+                <span class="flex items-center space-x-1">
+                  <span class="text-xs text-accent">
+                    {{ getItemById(item.itemId)?.name }}
+                  </span>
+                  <span
+                    v-if="getSpouseGiftPref(item.itemId) !== 'neutral'"
+                    class="text-[10px]"
+                    :class="GIFT_PREF_CLASS[getSpouseGiftPref(item.itemId)]"
+                  >
+                    {{ GIFT_PREF_LABELS[getSpouseGiftPref(item.itemId)] }}
+                  </span>
                 </span>
-                <span
-                  v-if="getSpouseGiftPref(item.itemId) !== 'neutral'"
-                  class="text-[10px]"
-                  :class="GIFT_PREF_CLASS[getSpouseGiftPref(item.itemId)]"
-                >
-                  {{ GIFT_PREF_LABELS[getSpouseGiftPref(item.itemId)] }}
-                </span>
+                <QualityQuantityBreakdown
+                  class="mt-0.5"
+                  :entries="item.qualities"
+                  :interactive="true"
+                  :aria-label="`${getItemById(item.itemId)?.name ?? item.itemId}的可赠送品质数量`"
+                  @select-quality="quality => handleSpouseGift(item.itemId, quality)"
+                />
               </span>
-              <span class="text-xs text-muted">&times;{{ item.quantity }}</span>
             </div>
           </div>
           <div v-if="spouseGiftableItems.length === 0" class="py-4 text-center text-xs text-muted">背包中没有可赠送的物品</div>
@@ -686,6 +690,8 @@
   import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
   import Button from '@/components/game/Button.vue'
   import PaginationControls from '@/components/game/PaginationControls.vue'
+  import QualityQuantityBreakdown from '@/components/game/inventory/QualityQuantityBreakdown.vue'
+  import { groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
 
   const homeStore = useHomeStore()
   const inventoryStore = useInventoryStore()
@@ -795,8 +801,10 @@
       const def = getItemById(i.itemId)
       return def && def.category !== 'seed'
     })
-    if (!spouseDef.value) return filtered
-    return [...filtered].sort((a, b) => GIFT_PREF_ORDER[getSpouseGiftPref(a.itemId)] - GIFT_PREF_ORDER[getSpouseGiftPref(b.itemId)])
+    const sorted = spouseDef.value
+      ? [...filtered].sort((a, b) => GIFT_PREF_ORDER[getSpouseGiftPref(a.itemId)] - GIFT_PREF_ORDER[getSpouseGiftPref(b.itemId)])
+      : filtered
+    return groupInventoryItemsByQuality(sorted)
   })
 
   const handleSpouseGift = (itemId: string, quality: Quality) => {
@@ -820,13 +828,6 @@
       const heartEvent = npcStore.checkHeartEvent(spouseState.value.npcId)
       if (heartEvent) triggerHeartEvent(heartEvent)
     }
-  }
-
-  const qualityTextClass = (q: Quality): string => {
-    if (q === 'fine') return 'text-quality-fine'
-    if (q === 'excellent') return 'text-quality-excellent'
-    if (q === 'supreme') return 'text-quality-supreme'
-    return ''
   }
 
   const CHILD_STAGE_NAMES: Record<ChildStage, string> = {
@@ -914,7 +915,7 @@
   })
 
   const ageableInInventory = computed(() => {
-    return inventoryStore.items.filter(inv => AGEABLE_ITEMS.includes(inv.itemId))
+    return groupInventoryItemsByQuality(inventoryStore.items.filter(inv => AGEABLE_ITEMS.includes(inv.itemId)))
   })
 
   const getItemName = (itemId: string): string => {

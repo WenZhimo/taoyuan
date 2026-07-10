@@ -38,7 +38,9 @@ const mountDialog = (props: Partial<InstanceType<typeof GreenhouseOverviewDialog
     props: {
       canUpgrade: true,
       cropStats,
+      fertilizableCount: 7,
       harvestableCount: 2,
+      hasFertilizer: true,
       plantedCount: 9,
       plotCount: 100,
       seedCount: 3,
@@ -56,6 +58,7 @@ describe('GreenhouseOverviewDialog', () => {
     expect(wrapper.text()).toContain('无季节限制 · 自动浇水 · 100块地')
     expect(wrapper.text()).toContain('一键收获 (2块)')
     expect(wrapper.text()).toContain('一键种植 (4块)')
+    expect(wrapper.text()).toContain('一键施肥 (7块)')
     expect(wrapper.text()).toContain('升级温室')
     expect(wrapper.text()).toContain('空耕地')
     expect(wrapper.text()).toContain('植物统计')
@@ -74,6 +77,7 @@ describe('GreenhouseOverviewDialog', () => {
     await wrapper.findAll('button')[0]?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('一键收获'))?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('一键种植'))?.trigger('click')
+    await wrapper.findAll('button').find(button => button.text().includes('一键施肥'))?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('升级温室'))?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('空耕地'))?.trigger('click')
     await wrapper.findAll('button').find(button => button.text().includes('青菜'))?.trigger('click')
@@ -81,6 +85,7 @@ describe('GreenhouseOverviewDialog', () => {
     expect(wrapper.emitted('close')).toHaveLength(1)
     expect(wrapper.emitted('batch-harvest')).toHaveLength(1)
     expect(wrapper.emitted('open-batch-plant')).toHaveLength(1)
+    expect(wrapper.emitted('open-batch-fertilize')).toHaveLength(1)
     expect(wrapper.emitted('open-upgrade')).toHaveLength(1)
     expect(wrapper.emitted('select-plot')).toEqual([[1], [12]])
   })
@@ -88,7 +93,9 @@ describe('GreenhouseOverviewDialog', () => {
   it('disables unavailable batch actions and hides upgrade action', () => {
     const wrapper = mountDialog({
       canUpgrade: false,
+      fertilizableCount: 0,
       harvestableCount: 0,
+      hasFertilizer: false,
       seedCount: 0,
       tilledEmptyCount: 4
     })
@@ -96,6 +103,7 @@ describe('GreenhouseOverviewDialog', () => {
     const buttons = wrapper.findAll('button')
     expect(buttons.find(button => button.text().includes('一键收获'))?.attributes('disabled')).toBeDefined()
     expect(buttons.find(button => button.text().includes('一键种植'))?.attributes('disabled')).toBeDefined()
+    expect(buttons.find(button => button.text().includes('一键施肥'))?.attributes('disabled')).toBeDefined()
     expect(wrapper.text()).not.toContain('升级温室')
   })
 

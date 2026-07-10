@@ -70,6 +70,11 @@ export const useFarmSelection = ({ plots, greenhousePlots, getCropById, getFerti
     return getFertilizerById(activePlot.value.fertilizer)?.name ?? activePlot.value.fertilizer
   })
 
+  const ghPlotFertName = computed(() => {
+    if (!activeGhPlot.value?.fertilizer) return ''
+    return getFertilizerById(activeGhPlot.value.fertilizer)?.name ?? activeGhPlot.value.fertilizer
+  })
+
   const canWater = computed(() => {
     if (!activePlot.value) return false
     return (activePlot.value.state === 'planted' || activePlot.value.state === 'growing') && !activePlot.value.watered
@@ -80,16 +85,23 @@ export const useFarmSelection = ({ plots, greenhousePlots, getCropById, getFerti
     return activePlot.value.state !== 'wasteland' && !activePlot.value.fertilizer
   })
 
+  const canFertilizeGreenhouse = computed(() => {
+    if (!activeGhPlot.value) return false
+    return activeGhPlot.value.state !== 'wasteland' && !activeGhPlot.value.fertilizer
+  })
+
   return {
     activeGhPlot,
     activeGhPlotId,
     activePlot,
     activePlotId,
     canFertilize,
+    canFertilizeGreenhouse,
     canWater,
     ghPlotCropGrowthDays,
     ghPlotCropMaxHarvests,
     ghPlotCropRegrowth,
+    ghPlotFertName,
     ghPlotStateLabel,
     plotCropGrowthDays,
     plotCropMaxHarvests,

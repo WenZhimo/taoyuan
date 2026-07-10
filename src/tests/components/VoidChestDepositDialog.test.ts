@@ -32,18 +32,34 @@ describe('VoidChestDepositDialog', () => {
     expect(wrapper.text()).toContain('存入物品')
     expect(wrapper.text()).toContain('青菜')
     expect(wrapper.text()).toContain('虚空矿')
-    expect(wrapper.text()).toContain('极品')
     expect(wrapper.text()).toContain('×20')
+    expect(wrapper.get('button[aria-label="极品品质 3 个"]').classes()).toContain('text-quality-supreme')
   })
 
   it('emits close and selected item details', async () => {
     const wrapper = mountDialog()
 
     await wrapper.find('button').trigger('click')
-    await wrapper.findAll('.cursor-pointer')[1]?.trigger('click')
+    await wrapper.get('button[aria-label="极品品质 3 个"]').trigger('click')
 
     expect(wrapper.emitted('close')).toHaveLength(1)
     expect(wrapper.emitted('select-item')?.[0]).toEqual(['void_ore', 'supreme', 3])
+  })
+
+  it('merges multiple qualities of the same item and emits the chosen quality quantity', async () => {
+    const wrapper = mountDialog([
+      { itemId: 'cabbage', quality: 'normal', quantity: 4 },
+      { itemId: 'cabbage', quality: 'fine', quantity: 20 },
+      { itemId: 'cabbage', quality: 'excellent', quantity: 3 },
+      { itemId: 'cabbage', quality: 'supreme', quantity: 4 }
+    ])
+
+    expect(wrapper.findAll('.text-accent').filter(node => node.text().includes('青菜'))).toHaveLength(1)
+    expect(wrapper.text()).toContain('×20')
+
+    await wrapper.get('button[aria-label="精品品质 3 个"]').trigger('click')
+
+    expect(wrapper.emitted('select-item')?.[0]).toEqual(['cabbage', 'excellent', 3])
   })
 
   it('mounts cheaply enough for repeated deposit lists', () => {

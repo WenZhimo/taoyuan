@@ -77,7 +77,7 @@
               v-for="{ slot, originalIndex } in group.slots"
               :key="originalIndex"
               class="border rounded-xs p-2"
-              :class="slot.ready || hasReadySeedMakerJob(slot) ? 'border-success/30' : 'border-accent/20'"
+              :class="slot.ready || hasReadyQueuedJob(slot) ? 'border-success/30' : 'border-accent/20'"
             >
               <div class="flex items-center justify-between mb-1.5">
                 <span class="text-xs" :class="slot.ready ? 'text-success' : 'text-accent'">{{ group.name }}</span>
@@ -142,6 +142,56 @@
                         [{{ QUALITY_NAMES[qr.quality] }}]
                       </span>
                       <span class="text-muted">({{ qr.count }}/{{ qr.recipe.inputQuantity }})</span>
+                    </Button>
+                  </div>
+                  <p v-else class="text-xs text-muted">{{ onlyAvailable ? '没有材料足够的配方' : '无可用配方' }}</p>
+                </template>
+                <!-- 酒坊：允许多个独立酿造批次并行 -->
+                <template v-else-if="slot.machineType === 'wine_workshop'">
+                  <div v-if="slot.wineJobs?.length" class="flex flex-col space-y-1 mb-2">
+                    <div v-for="job in getPagedWineJobs(slot, originalIndex)" :key="job.id" class="border border-accent/10 rounded-xs px-2 py-1">
+                      <div class="flex items-center justify-between text-xs mb-1">
+                        <span :class="job.ready ? 'text-success' : 'text-muted'">{{ getRecipeName(job.recipeId) }}</span>
+                        <span class="text-muted">{{ job.daysProcessed }}/{{ job.totalDays }}天</span>
+                      </div>
+                      <div class="h-1 bg-bg rounded-xs border border-accent/10 mb-1.5">
+                        <div
+                          class="h-full rounded-xs transition-all"
+                          :class="job.ready ? 'bg-success' : 'bg-accent'"
+                          :style="{ width: Math.floor((job.daysProcessed / job.totalDays) * 100) + '%' }"
+                        />
+                      </div>
+                      <Button
+                        v-if="job.ready"
+                        class="w-full justify-center !bg-accent !text-bg py-0.5"
+                        :icon="Package"
+                        :icon-size="10"
+                        @click="handleCollectWineJob(originalIndex, job.id)"
+                      >
+                        收取 {{ getRecipeOutputName(job.recipeId) }}
+                      </Button>
+                      <Button v-else class="w-full justify-center py-0.5" :icon="X" :icon-size="10" @click="handleCancelWineJob(originalIndex, job.id)">
+                        取消该批
+                      </Button>
+                    </div>
+                    <PaginationControls
+                      :page="getWineJobPage(originalIndex)"
+                      :total="slot.wineJobs?.length ?? 0"
+                      :page-size="WINE_JOB_PAGE_SIZE"
+                      @update:page="page => setWineJobPage(originalIndex, page)"
+                    />
+                  </div>
+                  <div v-if="getFilteredRecipes(slot.machineType).length > 0" class="grid space-y-1">
+                    <Button
+                      v-for="recipe in getFilteredRecipes(slot.machineType)"
+                      :key="recipe.id"
+                      :disabled="recipe.inputItemId !== null && !hasCombinedItem(recipe.inputItemId, recipe.inputQuantity)"
+                      @click="handleStartProcessing(originalIndex, recipe.id)"
+                    >
+                      {{ recipe.name }}
+                      <span v-if="recipe.inputItemId" class="text-muted">
+                        ({{ getItemName(recipe.inputItemId) }} {{ getCombinedItemCount(recipe.inputItemId) }}/{{ recipe.inputQuantity }})
+                      </span>
                     </Button>
                   </div>
                   <p v-else class="text-xs text-muted">{{ onlyAvailable ? '没有材料足够的配方' : '无可用配方' }}</p>
@@ -473,6 +523,32 @@
     return getSeedMakerJobPagination(slotIndex).pagedItems.value
   }
 
+  const WINE_JOB_PAGE_SIZE = DEFAULT_PAGE_SIZE
+  const wineJobPaginations = new Map<
+    number,
+    ReturnType<typeof usePagination<NonNullable<(typeof processingStore.machines)[number]['wineJobs']>[number]>>
+  >()
+
+  const getWineJobPagination = (slotIndex: number) => {
+    const existing = wineJobPaginations.get(slotIndex)
+    if (existing) return existing
+
+    const jobs = computed(() => processingStore.machines[slotIndex]?.wineJobs ?? [])
+    const pagination = usePagination(jobs, WINE_JOB_PAGE_SIZE)
+    wineJobPaginations.set(slotIndex, pagination)
+    return pagination
+  }
+
+  const getWineJobPage = (slotIndex: number): number => getWineJobPagination(slotIndex).currentPage.value
+
+  const setWineJobPage = (slotIndex: number, page: number) => {
+    getWineJobPagination(slotIndex).setPage(page)
+  }
+
+  const getPagedWineJobs = (_slot: (typeof processingStore.machines)[number], slotIndex: number) => {
+    return getWineJobPagination(slotIndex).pagedItems.value
+  }
+
   const getFilteredRecipes = (machineType: MachineType) => {
     const recipes = processingStore.getAvailableRecipes(machineType)
     if (!onlyAvailable.value) return recipes
@@ -512,7 +588,11 @@
   }
 
   const getReadySlotCount = (group: MachineGroup): number => {
-    return group.slots.reduce((sum, { slot }) => sum + (slot.machineType === 'seed_maker' ? (slot.seedMakerJobs?.filter(job => job.ready).length ?? 0) : slot.ready ? 1 : 0), 0)
+    return group.slots.reduce((sum, { slot }) => {
+      if (slot.machineType === 'seed_maker') return sum + (slot.seedMakerJobs?.filter(job => job.ready).length ?? 0)
+      if (slot.machineType === 'wine_workshop') return sum + (slot.wineJobs?.filter(job => job.ready).length ?? 0)
+      return sum + (slot.ready ? 1 : 0)
+    }, 0)
   }
 
   const machineGroups = computed((): MachineGroup[] => {
@@ -1129,8 +1209,10 @@
     }
   }
 
-  const hasReadySeedMakerJob = (slot: (typeof processingStore.machines)[number]): boolean => {
-    return slot.machineType === 'seed_maker' && !!slot.seedMakerJobs?.some(job => job.ready)
+  const hasReadyQueuedJob = (slot: (typeof processingStore.machines)[number]): boolean => {
+    if (slot.machineType === 'seed_maker') return !!slot.seedMakerJobs?.some(job => job.ready)
+    if (slot.machineType === 'wine_workshop') return !!slot.wineJobs?.some(job => job.ready)
+    return false
   }
 
   const handleCollectSeedMakerJob = (slotIndex: number, jobId: string) => {
@@ -1163,6 +1245,21 @@
   const handleCancelSeedMakerJob = (slotIndex: number, jobId: string) => {
     if (processingStore.cancelSeedMakerJob(slotIndex, jobId)) {
       addLog('种子制造机已取消该批加工，原料已退回。')
+    }
+  }
+
+  const handleCollectWineJob = (slotIndex: number, jobId: string) => {
+    const outputId = processingStore.collectWineJob(slotIndex, jobId)
+    if (outputId) {
+      sfxClick()
+      const name = getItemById(outputId)?.name ?? outputId
+      addLog(`收取了${name}！`)
+    }
+  }
+
+  const handleCancelWineJob = (slotIndex: number, jobId: string) => {
+    if (processingStore.cancelWineJob(slotIndex, jobId)) {
+      addLog('酒坊已取消该批酿造，原料已退回。')
     }
   }
 </script>
