@@ -15,6 +15,7 @@ import type {
 import { NPCS, getNpcById, getHeartEventsForNpc, RECIPES } from '@/data'
 import { WEATHER_TIPS, getFortuneTip, getLivingTip, getRecipeTipMessage, NO_RECIPE_TIP, TIP_NPC_IDS } from '@/data/npcTips'
 import { getItemById } from '@/data/items'
+import { isMomoFumo } from '@/data/specialItems'
 import { useInventoryStore } from './useInventoryStore'
 import { useGameStore } from './useGameStore'
 import { usePlayerStore } from './usePlayerStore'
@@ -33,7 +34,6 @@ const FRIENDSHIP_THRESHOLDS: { level: FriendshipLevel; min: number }[] = [
 ]
 
 const FRIENDSHIP_GAIN_MULTIPLIER = 3
-const FUMO_ITEM_ID = 'momo_fumo'
 
 export const useNpcStore = defineStore('npc', () => {
   const npcStates = ref<NpcState[]>(
@@ -433,7 +433,7 @@ export const useNpcStore = defineStore('npc', () => {
     let gain: number
     let reaction: string
 
-    if (itemId === FUMO_ITEM_ID || npcDef.lovedItems.includes(itemId)) {
+    if (isMomoFumo(itemId) || npcDef.lovedItems.includes(itemId)) {
       gain = 80
       reaction = '非常喜欢'
     } else if (npcDef.likedItems.includes(itemId)) {

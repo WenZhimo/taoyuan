@@ -98,21 +98,24 @@
           <p class="text-xs text-muted">种子箱为空</p>
           <p class="text-xs text-muted/60">通过种子制造机收取产物时有概率获得育种种子</p>
         </div>
-        <div v-else class="grid grid-cols-3 md:grid-cols-5 gap-1 max-h-60 overflow-y-auto">
-          <button
-            v-for="seed in breedingStore.breedingBox"
-            :key="seed.genetics.id"
-            class="border rounded-xs px-1 py-1.5 text-center cursor-pointer hover:bg-accent/5 transition-colors mr-1"
-            :class="selectedSeedIds.includes(seed.genetics.id) ? 'border-accent bg-accent/10' : 'border-accent/20'"
-            @click="openSeedDetail(seed)"
-          >
-            <p class="text-xs truncate" :class="seedStarColor(seed.genetics)">{{ getCropName(seed.genetics.cropId) }}</p>
-            <p class="text-xs text-muted">G{{ seed.genetics.generation }}</p>
-            <p class="text-xs flex items-center justify-center space-x-px" :class="seedStarColor(seed.genetics)">
-              <Star v-for="n in getStarRating(seed.genetics)" :key="n" :size="10" />
-            </p>
-          </button>
-        </div>
+        <template v-else>
+          <div class="grid grid-cols-3 md:grid-cols-5 gap-1 max-h-60 overflow-y-auto">
+            <button
+              v-for="seed in pagedBreedingBox"
+              :key="seed.genetics.id"
+              class="border rounded-xs px-1 py-1.5 text-center cursor-pointer hover:bg-accent/5 transition-colors mr-1"
+              :class="selectedSeedIds.includes(seed.genetics.id) ? 'border-accent bg-accent/10' : 'border-accent/20'"
+              @click="openSeedDetail(seed)"
+            >
+              <p class="text-xs truncate" :class="seedStarColor(seed.genetics)">{{ getCropName(seed.genetics.cropId) }}</p>
+              <p class="text-xs text-muted">G{{ seed.genetics.generation }}</p>
+              <p class="text-xs flex items-center justify-center space-x-px" :class="seedStarColor(seed.genetics)">
+                <Star v-for="n in getStarRating(seed.genetics)" :key="n" :size="10" />
+              </p>
+            </button>
+          </div>
+          <PaginationControls v-model:page="seedBoxPage" :total="breedingStore.breedingBox.length" :page-size="PAGE_SIZE" />
+        </template>
       </div>
     </template>
 
@@ -169,7 +172,7 @@
           :key="tf.value"
           class="grow shrink-0 basis-[calc(25%-4px)] md:grow-0 md:shrink md:basis-auto justify-center mr-1 mb-1"
           :class="{ '!bg-accent !text-bg': tierFilter === tf.value }"
-          @click="tierFilter = tf.value"
+          @click="setTierFilter(tf.value)"
         >
           {{ tf.label }}
         </Button>
@@ -181,7 +184,7 @@
       <!-- 图鉴网格 -->
       <div class="grid grid-cols-3 md:grid-cols-5 gap-1 max-h-72 overflow-y-auto">
         <div
-          v-for="hybrid in filteredHybrids"
+          v-for="hybrid in pagedFilteredHybrids"
           :key="hybrid.id"
           class="border rounded-xs p-1.5 text-xs text-center transition-colors truncate mr-1"
           :class="
@@ -195,6 +198,7 @@
           <Lock v-else :size="12" class="mx-auto text-muted/30" />
         </div>
       </div>
+      <PaginationControls v-model:page="hybridPage" :total="filteredHybrids.length" :page-size="PAGE_SIZE" />
 
       <!-- 图鉴完成度 -->
       <div class="mt-3 border border-accent/20 rounded-xs p-2">
@@ -479,7 +483,7 @@
 
           <div class="flex flex-col space-y-1 max-h-60 overflow-y-auto mb-3">
             <button
-              v-for="seed in breedingStore.breedingBox"
+              v-for="seed in pagedSelectableSeeds"
               :key="seed.genetics.id"
               class="flex items-center justify-between px-2 py-1 border rounded-xs text-xs cursor-pointer hover:bg-accent/5"
               :class="selectedSeedIds.includes(seed.genetics.id) ? 'border-accent bg-accent/10' : 'border-accent/20'"
@@ -494,6 +498,7 @@
               </span>
             </button>
           </div>
+          <PaginationControls v-model:page="seedSelectPage" :total="breedingStore.breedingBox.length" :page-size="PAGE_SIZE" />
 
           <!-- 杂交配方提示 -->
           <div
@@ -546,6 +551,7 @@
   import { ref, computed } from 'vue'
   import { FlaskConical, Plus, Check, ChevronDown, X, Dna, Trash2, Sprout, PackageOpen, Star, Lock, ArrowUpCircle } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
+  import PaginationControls from '@/components/game/PaginationControls.vue'
   import { useBreedingStore } from '@/stores/useBreedingStore'
   import { useGameStore } from '@/stores/useGameStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
@@ -565,11 +571,13 @@
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { addLog } from '@/composables/useGameLog'
   import { handleEndDay } from '@/composables/useEndDay'
+  import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
   import type { BreedingSeed, HybridDef } from '@/types/breeding'
 
   const breedingStore = useBreedingStore()
   const playerStore = usePlayerStore()
   const gameStore = useGameStore()
+  const PAGE_SIZE = DEFAULT_PAGE_SIZE
 
   // === Tabs ===
 
@@ -614,6 +622,16 @@
     if (tierFilter.value === 0) return HYBRID_DEFS
     return HYBRID_DEFS.filter(h => getHybridTier(h.id) === tierFilter.value)
   })
+  const {
+    currentPage: hybridPage,
+    pagedItems: pagedFilteredHybrids,
+    resetPage: resetHybridPage
+  } = usePagination(filteredHybrids, PAGE_SIZE)
+
+  const setTierFilter = (value: number) => {
+    tierFilter.value = value
+    resetHybridPage()
+  }
 
   const filteredDiscoveredCount = computed(() => {
     return filteredHybrids.value.filter(h => isDiscovered(h.id)).length
@@ -663,6 +681,11 @@
   // === 种子详情 ===
 
   const detailSeed = ref<BreedingSeed | null>(null)
+  const breedingBoxItems = computed(() => breedingStore.breedingBox)
+  const {
+    currentPage: seedBoxPage,
+    pagedItems: pagedBreedingBox
+  } = usePagination(breedingBoxItems, PAGE_SIZE)
 
   const openSeedDetail = (seed: BreedingSeed) => {
     detailSeed.value = seed
@@ -691,10 +714,16 @@
 
   const breedingSelectSlot = ref<number | null>(null)
   const selectedSeedIds = ref<string[]>([])
+  const {
+    currentPage: seedSelectPage,
+    pagedItems: pagedSelectableSeeds,
+    resetPage: resetSeedSelectPage
+  } = usePagination(breedingBoxItems, PAGE_SIZE)
 
   const openBreedingSelect = (slotIdx: number) => {
     breedingSelectSlot.value = slotIdx
     selectedSeedIds.value = []
+    resetSeedSelectPage()
   }
 
   const cancelBreedingSelect = () => {

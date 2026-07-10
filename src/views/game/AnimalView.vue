@@ -190,7 +190,12 @@
               </div>
             </div>
           </div>
-          <PaginationControls v-model:page="animalPages[bDef.type]" :total="getAnimalsInBuilding(bDef.type).length" :page-size="PAGE_SIZE" />
+          <PaginationControls
+            :page="getAnimalPage(bDef.type)"
+            :total="getAnimalsInBuilding(bDef.type).length"
+            :page-size="PAGE_SIZE"
+            @update:page="page => setAnimalPage(bDef.type, page)"
+          />
         </template>
         <div v-else class="flex flex-col items-center justify-center py-6">
           <Home :size="36" class="text-accent/20 mb-2" />
@@ -578,6 +583,7 @@
   import type { AnimalBuildingType, AnimalType, AnimalDef } from '@/types'
   import { addLog } from '@/composables/useGameLog'
   import { handleEndDay } from '@/composables/useEndDay'
+  import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
   import { useTutorialStore } from '@/stores/useTutorialStore'
 
   const animalStore = useAnimalStore()
@@ -585,8 +591,7 @@
   const playerStore = usePlayerStore()
   const gameStore = useGameStore()
   const tutorialStore = useTutorialStore()
-  const PAGE_SIZE = 50
-  const animalPages = ref<Record<AnimalBuildingType, number>>({ coop: 1, barn: 1, stable: 1 })
+  const PAGE_SIZE = DEFAULT_PAGE_SIZE
 
   const tutorialHint = computed(() => {
     if (!tutorialStore.enabled || gameStore.year > 1) return null
@@ -748,10 +753,26 @@
     })
   }
 
-  const paginate = <T>(items: T[], page: number): T[] => items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const animalsByBuilding = {
+    coop: computed(() => getAnimalsInBuilding('coop')),
+    barn: computed(() => getAnimalsInBuilding('barn')),
+    stable: computed(() => getAnimalsInBuilding('stable'))
+  }
+
+  const animalPagination = {
+    coop: usePagination(animalsByBuilding.coop, PAGE_SIZE),
+    barn: usePagination(animalsByBuilding.barn, PAGE_SIZE),
+    stable: usePagination(animalsByBuilding.stable, PAGE_SIZE)
+  }
+
+  const getAnimalPage = (type: AnimalBuildingType): number => animalPagination[type].currentPage.value
+
+  const setAnimalPage = (type: AnimalBuildingType, page: number) => {
+    animalPagination[type].setPage(page)
+  }
 
   const getPagedAnimalsInBuilding = (type: AnimalBuildingType) => {
-    return paginate(getAnimalsInBuilding(type), animalPages.value[type] ?? 1)
+    return animalPagination[type].pagedItems.value
   }
 
   const getAnimalDefsForBuilding = (type: AnimalBuildingType) => {

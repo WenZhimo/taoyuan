@@ -17,7 +17,9 @@ import { ACTION_TIME_COSTS } from '@/data/timeConstants'
 import type { Quality, ItemCategory } from '@/types'
 import type { SeedGenetics } from '@/types/breeding'
 import type { FertilizerType } from '@/types/processing'
+import type { ChunkedBatchOptions, ChunkedBatchResult } from './farm/useFarmBatchUi'
 import { shouldReturnBreedingSeed, generateGeneticsId } from '@/data/breeding'
+import { FARM_BATCH_LIMIT } from '@/domain/farm/batchLimits'
 import { addLog, showFloat } from './useGameLog'
 import { handleEndDay } from './useEndDay'
 import { sfxDig, sfxPlant, sfxWater, sfxHarvest, sfxLevelUp, sfxBuy, sfxCoin } from './useAudio'
@@ -31,7 +33,6 @@ export const QUALITY_NAMES: Record<Quality, string> = {
 
 /** 仙缘结缘：作物祝福（crop_blessing）概率品质+1 */
 const QUALITY_ORDER: Quality[] = ['normal', 'fine', 'excellent', 'supreme']
-const FARM_BATCH_LIMIT = 1000
 export const applyCropBlessing = (quality: Quality): Quality => {
   const bondBonus = useHiddenNpcStore().getBondBonusByType('crop_blessing')
   if (bondBonus?.type === 'crop_blessing' && Math.random() < bondBonus.chance) {
@@ -44,8 +45,12 @@ export const applyCropBlessing = (quality: Quality): Quality => {
 // 模块级单例状态
 const selectedSeed = ref<{ cropId: string; quality?: Quality } | null>(null)
 
-const batchLimitMessage = (processed: number, remaining: number): string =>
-  processed >= FARM_BATCH_LIMIT && remaining > 0 ? ` 本次最多处理${FARM_BATCH_LIMIT}块，可再次点击继续。` : ''
+export type FarmBatchRunner = (options: ChunkedBatchOptions) => Promise<ChunkedBatchResult>
+
+const batchCancelMessage = (result: ChunkedBatchResult, unit = '块'): string => {
+  const remaining = result.total - result.processed
+  return result.cancelled && remaining > 0 ? ` 操作已取消，剩余${remaining}${unit}未处理。` : ''
+}
 
 /** 处理地块点击：翻耕/种植/浇水/收获 */
 export const handlePlotClick = (plotId: number) => {
@@ -333,7 +338,7 @@ export const handleSellAll = (filterCategories?: ItemCategory[]) => {
 }
 
 /** 一键浇水（浇所有未浇水地块，体力不足时自动停止） */
-export const handleBatchWater = () => {
+export const handleBatchWater = async (runBatch: FarmBatchRunner) => {
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
   const farmStore = useFarmStore()
@@ -361,31 +366,43 @@ export const handleBatchWater = () => {
   let watered = 0
   const batchRingFarmReduction = inventoryStore.getRingEffectValue('farming_stamina')
   const batchRingGlobalReduction = inventoryStore.getRingEffectValue('stamina_reduction')
-  for (const plot of targets) {
-    if (watered >= FARM_BATCH_LIMIT) break
-    const crop = getCropById(plot.cropId!)
-    const baseCost = crop?.deepWatering ? 3 : 2
-    const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
-    const cost = Math.max(
-      1,
-      Math.floor(
-        baseCost *
-          inventoryStore.getToolStaminaMultiplier('wateringCan') *
-          (1 - skillStore.getStaminaReduction('farming')) *
-          (1 - farmingBuff) *
-          (1 - batchRingFarmReduction) *
-          (1 - batchRingGlobalReduction)
-      )
-    )
-    if (!playerStore.consumeStamina(cost)) break
-    farmStore.waterPlot(plot.id)
-    skillStore.addExp('farming', 2)
-    watered++
-  }
+  const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
+  const toolMultiplier = inventoryStore.getToolStaminaMultiplier('wateringCan')
+  const skillReduction = skillStore.getStaminaReduction('farming')
+  const batchResult = await runBatch({
+    label: '一键浇水',
+    total: targets.length,
+    chunkSize: FARM_BATCH_LIMIT,
+    processChunk: (start, end) => {
+      let completed = 0
+      for (let index = start; index < end; index++) {
+        const plot = targets[index]!
+        const crop = getCropById(plot.cropId!)
+        const baseCost = crop?.deepWatering ? 3 : 2
+        const cost = Math.max(
+          1,
+          Math.floor(
+            baseCost *
+              toolMultiplier *
+              (1 - skillReduction) *
+              (1 - farmingBuff) *
+              (1 - batchRingFarmReduction) *
+              (1 - batchRingGlobalReduction)
+          )
+        )
+        if (!playerStore.consumeStamina(cost)) break
+        farmStore.waterPlot(plot.id)
+        skillStore.addExp('farming', 2)
+        watered++
+        completed++
+      }
+      return completed
+    }
+  })
 
   if (watered > 0) {
     sfxWater()
-    addLog(`一键浇水了${watered}块地。${batchLimitMessage(watered, targets.length - watered)}`)
+    addLog(`一键浇水了${watered}块地。${batchCancelMessage(batchResult)}`)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.batchWater * inventoryStore.getToolStaminaMultiplier('wateringCan'))
     if (tr.message) addLog(tr.message)
     if (tr.passedOut) handleEndDay()
@@ -395,7 +412,7 @@ export const handleBatchWater = () => {
 }
 
 /** 一键开垦（开垦所有荒地，体力不足时自动停止） */
-export const handleBatchTill = () => {
+export const handleBatchTill = async (runBatch: FarmBatchRunner) => {
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
   const farmStore = useFarmStore()
@@ -423,28 +440,38 @@ export const handleBatchTill = () => {
   let tilled = 0
   const tillRingFarmReduction = inventoryStore.getRingEffectValue('farming_stamina')
   const tillRingGlobalReduction = inventoryStore.getRingEffectValue('stamina_reduction')
-  for (const plot of targets) {
-    if (tilled >= FARM_BATCH_LIMIT) break
-    const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
-    const cost = Math.max(
-      1,
-      Math.floor(
-        3 *
-          inventoryStore.getToolStaminaMultiplier('hoe') *
-          (1 - skillStore.getStaminaReduction('farming')) *
-          (1 - farmingBuff) *
-          (1 - tillRingFarmReduction) *
-          (1 - tillRingGlobalReduction)
-      )
+  const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
+  const cost = Math.max(
+    1,
+    Math.floor(
+      3 *
+        inventoryStore.getToolStaminaMultiplier('hoe') *
+        (1 - skillStore.getStaminaReduction('farming')) *
+        (1 - farmingBuff) *
+        (1 - tillRingFarmReduction) *
+        (1 - tillRingGlobalReduction)
     )
-    if (!playerStore.consumeStamina(cost)) break
-    farmStore.tillPlot(plot.id)
-    tilled++
-  }
+  )
+  const batchResult = await runBatch({
+    label: '一键开垦',
+    total: targets.length,
+    chunkSize: FARM_BATCH_LIMIT,
+    processChunk: (start, end) => {
+      let completed = 0
+      for (let index = start; index < end; index++) {
+        const plot = targets[index]!
+        if (!playerStore.consumeStamina(cost)) break
+        farmStore.tillPlot(plot.id)
+        tilled++
+        completed++
+      }
+      return completed
+    }
+  })
 
   if (tilled > 0) {
     sfxDig()
-    addLog(`一键开垦了${tilled}块荒地。${batchLimitMessage(tilled, targets.length - tilled)}`)
+    addLog(`一键开垦了${tilled}块荒地。${batchCancelMessage(batchResult)}`)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.batchTill * inventoryStore.getToolStaminaMultiplier('hoe'))
     if (tr.message) addLog(tr.message)
     if (tr.passedOut) handleEndDay()
@@ -454,13 +481,16 @@ export const handleBatchTill = () => {
 }
 
 /** 一键收获（收获所有成熟作物，不消耗体力） */
-export const handleBatchHarvest = () => {
+export const handleBatchHarvest = async (runBatch: FarmBatchRunner) => {
   const gameStore = useGameStore()
   const farmStore = useFarmStore()
   const inventoryStore = useInventoryStore()
   const skillStore = useSkillStore()
   const cookingStore = useCookingStore()
   const achievementStore = useAchievementStore()
+  const questStore = useQuestStore()
+  const breedingStore = useBreedingStore()
+  const playerStore = usePlayerStore()
 
   if (!inventoryStore.isToolAvailable('scythe')) {
     addLog('镰刀正在升级中，无法收获。')
@@ -474,77 +504,91 @@ export const handleBatchHarvest = () => {
   }
 
   let harvested = 0
-  const harvestedCrops: string[] = []
+  let seedsReturned = 0
+  const cropCounts = new Map<string, number>()
+  const recordHarvest = (name: string) => {
+    cropCounts.set(name, (cropCounts.get(name) ?? 0) + 1)
+  }
 
   // 先收获巨型作物
-  const giantGroups = new Set<number>()
+  const giantGroupPlots = new Map<number, number>()
   for (const plot of farmStore.plots) {
-    if (plot.state === 'harvestable' && plot.giantCropGroup !== null) {
-      giantGroups.add(plot.giantCropGroup)
-    }
-  }
-  for (const groupId of giantGroups) {
-    if (harvested >= FARM_BATCH_LIMIT) break
-    const groupPlot = farmStore.plots.find(p => p.giantCropGroup === groupId && p.state === 'harvestable')
-    if (!groupPlot) continue
-    const result = farmStore.harvestGiantCrop(groupPlot.id)
-    if (result) {
-      const cropDef = getCropById(result.cropId)
-      inventoryStore.addItem(result.cropId, result.quantity)
-      achievementStore.discoverItem(result.cropId)
-      achievementStore.recordCropHarvest()
-      useQuestStore().onItemObtained(result.cropId, result.quantity)
-      skillStore.addExp('farming', 10)
-      harvested++
-      harvestedCrops.push(`巨型${cropDef?.name ?? result.cropId}x${result.quantity}`)
+    if (plot.state === 'harvestable' && plot.giantCropGroup !== null && !giantGroupPlots.has(plot.giantCropGroup)) {
+      giantGroupPlots.set(plot.giantCropGroup, plot.id)
     }
   }
 
   // 再收获普通作物
   const targets = farmStore.plots.filter(p => p.state === 'harvestable' && p.giantCropGroup === null)
-  let seedsReturned = 0
+  const giantPlotIds = Array.from(giantGroupPlots.values())
+  const totalTasks = giantPlotIds.length + targets.length
+  const batchRingCropQuality = inventoryStore.getRingEffectValue('crop_quality_bonus')
+  const batchAllSkillsBuff = cookingStore.activeBuff?.type === 'all_skills' ? cookingStore.activeBuff.value : 0
+  const intensiveFarming = skillStore.getSkill('farming').perk10 === 'intensive'
+  const batchResult = await runBatch({
+    label: '一键收获',
+    total: totalTasks,
+    chunkSize: FARM_BATCH_LIMIT,
+    processChunk: (start, end) => {
+      let completed = 0
+      for (let index = start; index < end; index++) {
+        if (index < giantPlotIds.length) {
+          const result = farmStore.harvestGiantCrop(giantPlotIds[index]!)
+          if (!result) break
+          const cropDef = getCropById(result.cropId)
+          inventoryStore.addItem(result.cropId, result.quantity)
+          achievementStore.discoverItem(result.cropId)
+          achievementStore.recordCropHarvest()
+          questStore.onItemObtained(result.cropId, result.quantity)
+          skillStore.addExp('farming', 10)
+          harvested++
+          completed++
+          recordHarvest(`巨型${cropDef?.name ?? result.cropId}x${result.quantity}`)
+          continue
+        }
 
-  for (const plot of targets) {
-    if (harvested >= FARM_BATCH_LIMIT) break
-    const plotFertilizer = plot.fertilizer
-    const result = farmStore.harvestPlot(plot.id)
-    const cropId = result.cropId
-    const genetics = result.genetics
-    if (cropId) {
-      const cropDef = getCropById(cropId)
-      const fertDef = plotFertilizer ? getFertilizerById(plotFertilizer) : null
-      const batchRingCropQuality = inventoryStore.getRingEffectValue('crop_quality_bonus')
-      const batchAllSkillsBuff = cookingStore.activeBuff?.type === 'all_skills' ? cookingStore.activeBuff.value : 0
-      let quality = skillStore.rollCropQualityWithBonus((fertDef?.qualityBonus ?? 0) + batchRingCropQuality, batchAllSkillsBuff)
-      quality = applyCropBlessing(quality)
-      const intensiveDouble = skillStore.getSkill('farming').perk10 === 'intensive' && Math.random() < 0.2
-      const yieldDouble = genetics && !intensiveDouble && Math.random() < (genetics.yield / 100) * 0.3
-      const standardDouble = !intensiveDouble && !yieldDouble && gameStore.farmMapType === 'standard' && Math.random() < 0.15
-      const harvestQty = intensiveDouble || yieldDouble || standardDouble ? 2 : 1
-      inventoryStore.addItem(cropId, harvestQty, quality)
-      achievementStore.discoverItem(cropId)
-      achievementStore.recordCropHarvest()
-      useQuestStore().onItemObtained(cropId, harvestQty)
-      skillStore.addExp('farming', 10)
-      harvested++
-      harvestedCrops.push(cropDef?.name ?? cropId)
-      // 育种甜度加成
-      if (genetics && genetics.sweetness > 0 && cropDef) {
-        const bonusMoney = Math.floor((cropDef.sellPrice * harvestQty * genetics.sweetness) / 200)
-        if (bonusMoney > 0) {
-          usePlayerStore().earnMoney(bonusMoney)
+        const plot = targets[index - giantPlotIds.length]!
+        const plotFertilizer = plot.fertilizer
+        const result = farmStore.harvestPlot(plot.id)
+        const cropId = result.cropId
+        const genetics = result.genetics
+        if (!cropId) break
+
+        const cropDef = getCropById(cropId)
+        const fertDef = plotFertilizer ? getFertilizerById(plotFertilizer) : null
+        let quality = skillStore.rollCropQualityWithBonus(
+          (fertDef?.qualityBonus ?? 0) + batchRingCropQuality,
+          batchAllSkillsBuff
+        )
+        quality = applyCropBlessing(quality)
+        const intensiveDouble = intensiveFarming && Math.random() < 0.2
+        const yieldDouble = genetics && !intensiveDouble && Math.random() < (genetics.yield / 100) * 0.3
+        const standardDouble = !intensiveDouble && !yieldDouble && gameStore.farmMapType === 'standard' && Math.random() < 0.15
+        const harvestQty = intensiveDouble || yieldDouble || standardDouble ? 2 : 1
+        inventoryStore.addItem(cropId, harvestQty, quality)
+        achievementStore.discoverItem(cropId)
+        achievementStore.recordCropHarvest()
+        questStore.onItemObtained(cropId, harvestQty)
+        skillStore.addExp('farming', 10)
+        harvested++
+        completed++
+        recordHarvest(cropDef?.name ?? cropId)
+
+        if (genetics && genetics.sweetness > 0 && cropDef) {
+          const bonusMoney = Math.floor((cropDef.sellPrice * harvestQty * genetics.sweetness) / 200)
+          if (bonusMoney > 0) playerStore.earnMoney(bonusMoney)
+        }
+        if (genetics?.isHybrid && genetics.hybridId) {
+          breedingStore.recordHybridGrown(genetics.hybridId)
+        }
+        if (genetics && shouldReturnBreedingSeed(quality)) {
+          const returned: SeedGenetics = { ...genetics, id: generateGeneticsId() }
+          if (breedingStore.addToBox(returned)) seedsReturned++
         }
       }
-      if (genetics?.isHybrid && genetics.hybridId) {
-        useBreedingStore().recordHybridGrown(genetics.hybridId)
-      }
-      // 育种种子回收
-      if (genetics && shouldReturnBreedingSeed(quality)) {
-        const returned: SeedGenetics = { ...genetics, id: generateGeneticsId() }
-        if (useBreedingStore().addToBox(returned)) seedsReturned++
-      }
+      return completed
     }
-  }
+  })
 
   if (seedsReturned > 0) {
     addLog(`${seedsReturned}颗育种种子已回收到种子箱。`)
@@ -552,15 +596,10 @@ export const handleBatchHarvest = () => {
 
   if (harvested > 0) {
     sfxHarvest()
-    const cropCounts = new Map<string, number>()
-    for (const name of harvestedCrops) {
-      cropCounts.set(name, (cropCounts.get(name) ?? 0) + 1)
-    }
     const cropSummary = Array.from(cropCounts.entries())
       .map(([name, count]) => (count > 1 ? `${name}x${count}` : name))
       .join('、')
-    const remaining = giantGroups.size + targets.length - harvested
-    addLog(`一键收获了${harvested}株作物：${cropSummary}。${batchLimitMessage(harvested, remaining)}`)
+    addLog(`一键收获了${harvested}株作物：${cropSummary}。${batchCancelMessage(batchResult, '项')}`)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.batchHarvest * inventoryStore.getToolStaminaMultiplier('scythe'))
     if (tr.message) addLog(tr.message)
     if (tr.passedOut) handleEndDay()
@@ -570,7 +609,7 @@ export const handleBatchHarvest = () => {
 }
 
 /** 一键种植（在所有空耕地上种植指定作物） */
-export const handleBatchPlant = (cropId: string) => {
+export const handleBatchPlant = async (cropId: string, runBatch: FarmBatchRunner) => {
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
   const farmStore = useFarmStore()
@@ -598,33 +637,59 @@ export const handleBatchPlant = (cropId: string) => {
     return
   }
 
-  let planted = 0
   const plantRingFarmReduction = inventoryStore.getRingEffectValue('farming_stamina')
   const plantRingGlobalReduction = inventoryStore.getRingEffectValue('stamina_reduction')
-  for (const plot of targets) {
-    if (planted >= FARM_BATCH_LIMIT) break
-    if (!inventoryStore.hasItem(cropDef.seedId)) break
-    const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
-    const cost = Math.max(
-      1,
-      Math.floor(
-        3 *
-          inventoryStore.getToolStaminaMultiplier('hoe') *
-          (1 - skillStore.getStaminaReduction('farming')) *
-          (1 - farmingBuff) *
-          (1 - plantRingFarmReduction) *
-          (1 - plantRingGlobalReduction)
-      )
+  const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
+  const cost = Math.max(
+    1,
+    Math.floor(
+      3 *
+        inventoryStore.getToolStaminaMultiplier('hoe') *
+        (1 - skillStore.getStaminaReduction('farming')) *
+        (1 - farmingBuff) *
+        (1 - plantRingFarmReduction) *
+        (1 - plantRingGlobalReduction)
     )
-    if (!playerStore.consumeStamina(cost)) break
-    inventoryStore.removeItem(cropDef.seedId)
-    farmStore.plantCrop(plot.id, cropDef.id)
-    planted++
+  )
+  const planned = Math.min(targets.length, inventoryStore.getItemCount(cropDef.seedId), Math.floor(playerStore.stamina / cost))
+  if (planned <= 0) {
+    addLog('体力不足或种子不够，无法种植。')
+    return
+  }
+  if (!inventoryStore.removeItem(cropDef.seedId, planned)) {
+    addLog('体力不足或种子不够，无法种植。')
+    return
+  }
+  if (!playerStore.consumeStamina(planned * cost)) {
+    inventoryStore.addItem(cropDef.seedId, planned)
+    addLog('体力不足或种子不够，无法种植。')
+    return
+  }
+
+  let planted = 0
+  const batchResult = await runBatch({
+    label: `一键种植${cropDef.name}`,
+    total: planned,
+    chunkSize: FARM_BATCH_LIMIT,
+    processChunk: (start, end) => {
+      let completed = 0
+      for (let index = start; index < end; index++) {
+        if (!farmStore.plantCrop(targets[index]!.id, cropDef.id)) break
+        planted++
+        completed++
+      }
+      return completed
+    }
+  })
+  const unused = planned - planted
+  if (unused > 0) {
+    inventoryStore.addItem(cropDef.seedId, unused)
+    playerStore.restoreStamina(unused * cost)
   }
 
   if (planted > 0) {
     sfxPlant()
-    addLog(`一键种植了${planted}株${cropDef.name}。${batchLimitMessage(planted, targets.length - planted)}`)
+    addLog(`一键种植了${planted}株${cropDef.name}。${batchCancelMessage(batchResult, '株')}`)
     // 种植预警：作物可能无法在本季成熟
     const daysLeft = 28 - gameStore.day
     if (cropDef.growthDays > daysLeft) {
@@ -644,7 +709,7 @@ export const handleBatchPlant = (cropId: string) => {
 }
 
 /** 一键施肥（给所有未施肥的非荒地施指定肥料） */
-export const handleBatchFertilize = (fertilizerType: FertilizerType) => {
+export const handleBatchFertilize = async (fertilizerType: FertilizerType, runBatch: FarmBatchRunner) => {
   const gameStore = useGameStore()
   const farmStore = useFarmStore()
   const inventoryStore = useInventoryStore()
@@ -664,22 +729,32 @@ export const handleBatchFertilize = (fertilizerType: FertilizerType) => {
     return
   }
 
-  let applied = 0
-  for (const plot of targets) {
-    if (applied >= FARM_BATCH_LIMIT) break
-    if (!inventoryStore.hasItem(fertilizerType)) break
-    if (!inventoryStore.removeItem(fertilizerType)) break
-    if (farmStore.applyFertilizer(plot.id, fertilizerType)) {
-      applied++
-    } else {
-      inventoryStore.addItem(fertilizerType)
-      break
-    }
+  const planned = Math.min(targets.length, inventoryStore.getItemCount(fertilizerType))
+  if (planned <= 0 || !inventoryStore.removeItem(fertilizerType, planned)) {
+    addLog('肥料不足，无法施肥。')
+    return
   }
+  let applied = 0
+  const batchResult = await runBatch({
+    label: `一键施肥：${fertDef.name}`,
+    total: planned,
+    chunkSize: FARM_BATCH_LIMIT,
+    processChunk: (start, end) => {
+      let completed = 0
+      for (let index = start; index < end; index++) {
+        if (!farmStore.applyFertilizer(targets[index]!.id, fertilizerType)) break
+        applied++
+        completed++
+      }
+      return completed
+    }
+  })
+  const unused = planned - applied
+  if (unused > 0) inventoryStore.addItem(fertilizerType, unused)
 
   if (applied > 0) {
     showFloat(`施肥 ×${applied}`, 'success')
-    addLog(`一键施了${applied}块地的${fertDef.name}。${batchLimitMessage(applied, targets.length - applied)}`)
+    addLog(`一键施了${applied}块地的${fertDef.name}。${batchCancelMessage(batchResult)}`)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.plant * Math.min(applied, 3))
     if (tr.message) addLog(tr.message)
     if (tr.passedOut) handleEndDay()
@@ -780,7 +855,7 @@ export const handleCurePest = (plotId: number) => {
 }
 
 /** 一键除虫（清除所有虫害地块，体力不足时自动停止） */
-export const handleBatchCurePest = () => {
+export const handleBatchCurePest = async (runBatch: FarmBatchRunner) => {
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
   const farmStore = useFarmStore()
@@ -803,27 +878,36 @@ export const handleBatchCurePest = () => {
   let cured = 0
   const batchRingFarmReduction = inventoryStore.getRingEffectValue('farming_stamina')
   const batchRingGlobalReduction = inventoryStore.getRingEffectValue('stamina_reduction')
-  for (const plot of targets) {
-    if (cured >= FARM_BATCH_LIMIT) break
-    const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
-    const cost = Math.max(
-      1,
-      Math.floor(
-        2 *
-          (1 - skillStore.getStaminaReduction('farming')) *
-          (1 - farmingBuff) *
-          (1 - batchRingFarmReduction) *
-          (1 - batchRingGlobalReduction)
-      )
+  const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
+  const cost = Math.max(
+    1,
+    Math.floor(
+      2 *
+        (1 - skillStore.getStaminaReduction('farming')) *
+        (1 - farmingBuff) *
+        (1 - batchRingFarmReduction) *
+        (1 - batchRingGlobalReduction)
     )
-    if (!playerStore.consumeStamina(cost)) break
-    farmStore.curePest(plot.id)
-    cured++
-  }
+  )
+  const batchResult = await runBatch({
+    label: '一键除虫',
+    total: targets.length,
+    chunkSize: FARM_BATCH_LIMIT,
+    processChunk: (start, end) => {
+      let completed = 0
+      for (let index = start; index < end; index++) {
+        if (!playerStore.consumeStamina(cost)) break
+        farmStore.curePest(targets[index]!.id)
+        cured++
+        completed++
+      }
+      return completed
+    }
+  })
 
   if (cured > 0) {
     sfxDig()
-    addLog(`一键除虫了${cured}块地。${batchLimitMessage(cured, targets.length - cured)}`)
+    addLog(`一键除虫了${cured}块地。${batchCancelMessage(batchResult)}`)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.batchTill)
     if (tr.message) addLog(tr.message)
     if (tr.passedOut) handleEndDay()
@@ -877,7 +961,7 @@ export const handleClearWeed = (plotId: number) => {
 }
 
 /** 一键除草（清除所有杂草地块，体力不足时自动停止） */
-export const handleBatchClearWeed = () => {
+export const handleBatchClearWeed = async (runBatch: FarmBatchRunner) => {
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
   const farmStore = useFarmStore()
@@ -900,27 +984,36 @@ export const handleBatchClearWeed = () => {
   let cleared = 0
   const batchRingFarmReduction = inventoryStore.getRingEffectValue('farming_stamina')
   const batchRingGlobalReduction = inventoryStore.getRingEffectValue('stamina_reduction')
-  for (const plot of targets) {
-    if (cleared >= FARM_BATCH_LIMIT) break
-    const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
-    const cost = Math.max(
-      1,
-      Math.floor(
-        2 *
-          (1 - skillStore.getStaminaReduction('farming')) *
-          (1 - farmingBuff) *
-          (1 - batchRingFarmReduction) *
-          (1 - batchRingGlobalReduction)
-      )
+  const farmingBuff = cookingStore.activeBuff?.type === 'farming' ? cookingStore.activeBuff.value / 100 : 0
+  const cost = Math.max(
+    1,
+    Math.floor(
+      2 *
+        (1 - skillStore.getStaminaReduction('farming')) *
+        (1 - farmingBuff) *
+        (1 - batchRingFarmReduction) *
+        (1 - batchRingGlobalReduction)
     )
-    if (!playerStore.consumeStamina(cost)) break
-    farmStore.clearWeed(plot.id)
-    cleared++
-  }
+  )
+  const batchResult = await runBatch({
+    label: '一键除草',
+    total: targets.length,
+    chunkSize: FARM_BATCH_LIMIT,
+    processChunk: (start, end) => {
+      let completed = 0
+      for (let index = start; index < end; index++) {
+        if (!playerStore.consumeStamina(cost)) break
+        farmStore.clearWeed(targets[index]!.id)
+        cleared++
+        completed++
+      }
+      return completed
+    }
+  })
 
   if (cleared > 0) {
     sfxDig()
-    addLog(`一键除草了${cleared}块地。${batchLimitMessage(cleared, targets.length - cleared)}`)
+    addLog(`一键除草了${cleared}块地。${batchCancelMessage(batchResult)}`)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.batchTill)
     if (tr.message) addLog(tr.message)
     if (tr.passedOut) handleEndDay()

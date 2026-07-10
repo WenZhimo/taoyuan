@@ -433,6 +433,8 @@
   import { sfxClick } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
   import { handleEndDay } from '@/composables/useEndDay'
+  import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
+  import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
 
   const processingStore = useProcessingStore()
   const inventoryStore = useInventoryStore()
@@ -445,21 +447,30 @@
 
   const activeTab = ref<'process' | 'craft'>('process')
   const onlyAvailable = ref(false)
-  const SEED_MAKER_JOB_PAGE_SIZE = 50
-  const seedMakerJobPages = ref<Record<number, number>>({})
+  const SEED_MAKER_JOB_PAGE_SIZE = DEFAULT_PAGE_SIZE
+  const seedMakerJobPaginations = new Map<
+    number,
+    ReturnType<typeof usePagination<NonNullable<(typeof processingStore.machines)[number]['seedMakerJobs']>[number]>>
+  >()
 
-  const getSeedMakerJobPage = (slotIndex: number): number => seedMakerJobPages.value[slotIndex] ?? 1
+  const getSeedMakerJobPagination = (slotIndex: number) => {
+    const existing = seedMakerJobPaginations.get(slotIndex)
+    if (existing) return existing
 
-  const setSeedMakerJobPage = (slotIndex: number, page: number) => {
-    seedMakerJobPages.value[slotIndex] = Math.max(1, page)
+    const jobs = computed(() => processingStore.machines[slotIndex]?.seedMakerJobs ?? [])
+    const pagination = usePagination(jobs, SEED_MAKER_JOB_PAGE_SIZE)
+    seedMakerJobPaginations.set(slotIndex, pagination)
+    return pagination
   }
 
-  const getPagedSeedMakerJobs = (slot: (typeof processingStore.machines)[number], slotIndex: number) => {
-    const jobs = slot.seedMakerJobs ?? []
-    const totalPages = Math.max(1, Math.ceil(jobs.length / SEED_MAKER_JOB_PAGE_SIZE))
-    const page = Math.min(getSeedMakerJobPage(slotIndex), totalPages)
-    if (page !== getSeedMakerJobPage(slotIndex)) setSeedMakerJobPage(slotIndex, page)
-    return jobs.slice((page - 1) * SEED_MAKER_JOB_PAGE_SIZE, page * SEED_MAKER_JOB_PAGE_SIZE)
+  const getSeedMakerJobPage = (slotIndex: number): number => getSeedMakerJobPagination(slotIndex).currentPage.value
+
+  const setSeedMakerJobPage = (slotIndex: number, page: number) => {
+    getSeedMakerJobPagination(slotIndex).setPage(page)
+  }
+
+  const getPagedSeedMakerJobs = (_slot: (typeof processingStore.machines)[number], slotIndex: number) => {
+    return getSeedMakerJobPagination(slotIndex).pagedItems.value
   }
 
   const getFilteredRecipes = (machineType: MachineType) => {
@@ -571,7 +582,6 @@
   }
 
   const craftModal = ref<CraftableItem | null>(null)
-  const craftQuantity = ref(1)
 
   const maxCraftable = computed(() => {
     const item = craftModal.value
@@ -589,25 +599,20 @@
     return Math.max(1, max)
   })
 
+  const craftQuantityPicker = useQuantityPicker({
+    maxQuantity: () => maxCraftable.value
+  })
+  const craftQuantity = craftQuantityPicker.quantity
   const displayQty = computed(() => (craftModal.value?.batchable ? craftQuantity.value : 1))
 
   const openCraftModal = (item: CraftableItem) => {
     craftModal.value = item
-    craftQuantity.value = 1
+    craftQuantityPicker.resetQuantity(1)
   }
 
-  const setCraftQuantity = (val: number) => {
-    craftQuantity.value = Math.max(1, Math.min(val, maxCraftable.value))
-  }
-
-  const addCraftQuantity = (delta: number) => {
-    setCraftQuantity(craftQuantity.value + delta)
-  }
-
-  const onCraftQuantityInput = (e: Event) => {
-    const val = parseInt((e.target as HTMLInputElement).value, 10)
-    if (!isNaN(val)) setCraftQuantity(val)
-  }
+  const setCraftQuantity = craftQuantityPicker.setQuantity
+  const addCraftQuantity = craftQuantityPicker.addQuantity
+  const onCraftQuantityInput = (e: Event) => craftQuantityPicker.setQuantityFromInput((e.target as HTMLInputElement).value)
 
   const JADE_RING_COST = [
     { itemId: 'jade', quantity: 1 },

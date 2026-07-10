@@ -220,18 +220,26 @@ export const useBreedingStore = defineStore('breeding', () => {
 
   // === 核心杂交算法 ===
 
-  const breedSeeds = (parentA: SeedGenetics, parentB: SeedGenetics): SeedGenetics => {
+  const breedSeeds = (
+    parentA: SeedGenetics,
+    parentB: SeedGenetics,
+    log: (message: string) => void = addLog
+  ): SeedGenetics => {
     if (parentA.cropId === parentB.cropId) {
       // 同种杂交：世代培育
-      return breedSameCrop(parentA, parentB)
+      return breedSameCrop(parentA, parentB, log)
     } else {
       // 异种杂交
-      return breedDifferentCrop(parentA, parentB)
+      return breedDifferentCrop(parentA, parentB, log)
     }
   }
 
   /** 同种杂交（世代培育） */
-  const breedSameCrop = (a: SeedGenetics, b: SeedGenetics): SeedGenetics => {
+  const breedSameCrop = (
+    a: SeedGenetics,
+    b: SeedGenetics,
+    log: (message: string) => void
+  ): SeedGenetics => {
     const avgStability = (a.stability + b.stability) / 2
     const avgMutationRate = (a.mutationRate + b.mutationRate) / 2
 
@@ -270,7 +278,7 @@ export const useBreedingStore = defineStore('breeding', () => {
       resistance = current.resistance
       mutationRate = clampMutationRate(mutationRate + Math.round((Math.random() - 0.5) * 2 * MUTATION_RATE_DRIFT))
 
-      addLog('育种发生了变异！属性产生了大幅波动。')
+      log('育种发生了变异！属性产生了大幅波动。')
     }
 
     const result: SeedGenetics = {
@@ -301,7 +309,7 @@ export const useBreedingStore = defineStore('breeding', () => {
           bestTotalStats: result.sweetness + result.yield + result.resistance,
           timesGrown: 0
         })
-        if (hybrid) addLog(hybrid.discoveryText)
+        if (hybrid) log(hybrid.discoveryText)
       } else {
         const total = result.sweetness + result.yield + result.resistance
         if (total > existing.bestTotalStats) {
@@ -314,7 +322,11 @@ export const useBreedingStore = defineStore('breeding', () => {
   }
 
   /** 异种杂交 */
-  const breedDifferentCrop = (a: SeedGenetics, b: SeedGenetics): SeedGenetics => {
+  const breedDifferentCrop = (
+    a: SeedGenetics,
+    b: SeedGenetics,
+    log: (message: string) => void
+  ): SeedGenetics => {
     const hybrid = findPossibleHybrid(a.cropId, b.cropId)
     const avgSweetness = (a.sweetness + b.sweetness) / 2
     const avgYield = (a.yield + b.yield) / 2
@@ -355,7 +367,7 @@ export const useBreedingStore = defineStore('breeding', () => {
           bestTotalStats: result.sweetness + result.yield + result.resistance,
           timesGrown: 0
         })
-        addLog(hybrid.discoveryText)
+        log(hybrid.discoveryText)
         const achievementStore = useAchievementStore()
         achievementStore.recordHybridDiscovered()
         achievementStore.recordHybridTier(getHybridTier(hybrid.id))
@@ -380,11 +392,11 @@ export const useBreedingStore = defineStore('breeding', () => {
       } as SeedGenetics
 
       if (hybrid) {
-        addLog(
+        log(
           `杂交失败：亲本平均甜度${Math.round(avgSweetness)}（需≥${hybrid.minSweetness}），平均产量${Math.round(avgYield)}（需≥${hybrid.minYield}）。请先通过同种培育提升属性。`
         )
       } else {
-        addLog('这两个品种无法杂交，返回了一颗种子。')
+        log('这两个品种无法杂交，返回了一颗种子。')
       }
 
       return failed
@@ -393,28 +405,35 @@ export const useBreedingStore = defineStore('breeding', () => {
 
   // === 日更新 ===
 
-  const dailyUpdate = (): void => {
+  const dailyUpdate = (): { logs: string[]; completedCount: number } => {
+    const logs: string[] = []
+    let completedCount = 0
+    const collectLog = (message: string) => logs.push(message)
+
     for (const slot of stations.value) {
       if (slot.parentA && slot.parentB && !slot.ready) {
         slot.daysProcessed++
         if (slot.daysProcessed >= slot.totalDays) {
           const isCrossBreed = slot.parentA.cropId !== slot.parentB.cropId
-          slot.result = breedSeeds(slot.parentA, slot.parentB)
+          slot.result = breedSeeds(slot.parentA, slot.parentB, collectLog)
           slot.ready = true
           const crop = getCropById(slot.result.cropId)
           const stars = getStarRating(slot.result)
           if (isCrossBreed && slot.result.isHybrid) {
-            addLog(`杂交成功：${crop?.name ?? slot.result.cropId}（${stars}星）！已记录到图鉴。`)
+            collectLog(`杂交成功：${crop?.name ?? slot.result.cropId}（${stars}星）！已记录到图鉴。`)
           } else if (isCrossBreed) {
-            addLog(`杂交未成功，获得了${crop?.name ?? slot.result.cropId}种子（${stars}星）。`)
+            collectLog(`杂交未成功，获得了${crop?.name ?? slot.result.cropId}种子（${stars}星）。`)
           } else {
-            addLog(`育种完成：${crop?.name ?? slot.result.cropId}（${stars}星）。`)
+            collectLog(`育种完成：${crop?.name ?? slot.result.cropId}（${stars}星）。`)
           }
+          completedCount++
           const achievementStore = useAchievementStore()
           achievementStore.recordBreeding()
         }
       }
     }
+
+    return { logs, completedCount }
   }
 
   /** 记录杂交种被种植 */

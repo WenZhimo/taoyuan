@@ -13,13 +13,13 @@ import router from '@/router'
 import type { HiddenNpcState, DiscoveryCondition, DiscoveryStep, AffinityLevel, BondBonusType } from '@/types/hiddenNpc'
 import type { Quality, HeartEventDef } from '@/types'
 import { AFFINITY_THRESHOLDS, MAX_AFFINITY, AFFINITY_DECAY_BONDED, AFFINITY_DECAY_COURTING, MAX_OFFERS_PER_WEEK } from '@/types/hiddenNpc'
+import { isMomoFumo } from '@/data/specialItems'
 
 /** 供奉基础缘分值 */
 const OFFERING_RESONANT = 100
 const OFFERING_PLEASED = 50
 const OFFERING_NEUTRAL = 10
 const OFFERING_REPELLED = -40
-const FUMO_ITEM_ID = 'momo_fumo'
 
 /** 品质乘数 */
 const QUALITY_MULTIPLIER: Record<Quality, number> = {
@@ -192,7 +192,7 @@ export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
     }
 
     let base = OFFERING_NEUTRAL
-    if (itemId === FUMO_ITEM_ID || def.resonantOfferings.includes(itemId)) base = OFFERING_RESONANT
+    if (isMomoFumo(itemId) || def.resonantOfferings.includes(itemId)) base = OFFERING_RESONANT
     else if (def.pleasedOfferings.includes(itemId)) base = OFFERING_PLEASED
     else if (def.repelledOfferings.includes(itemId)) base = OFFERING_REPELLED
 

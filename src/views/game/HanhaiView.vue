@@ -786,7 +786,7 @@
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs text-muted">数量</span>
               <div class="flex items-center space-x-1">
-                <Button class="h-6 px-1.5 py-0.5 text-xs justify-center" :disabled="tradeQuantity <= 1" @click="tradeQuantity--">-</Button>
+                <Button class="h-6 px-1.5 py-0.5 text-xs justify-center" :disabled="tradeQuantity <= 1" @click="addTradeQuantity(-1)">-</Button>
                 <input
                   type="number"
                   :value="tradeQuantity"
@@ -798,18 +798,18 @@
                 <Button
                   class="h-6 px-1.5 py-0.5 text-xs justify-center"
                   :disabled="tradeQuantity >= tradeSelectedItem.quantity"
-                  @click="tradeQuantity++"
+                  @click="addTradeQuantity(1)"
                 >
                   +
                 </Button>
               </div>
             </div>
             <div class="flex space-x-1">
-              <Button class="flex-1 justify-center" :disabled="tradeQuantity <= 1" @click="tradeQuantity = 1">最少</Button>
+              <Button class="flex-1 justify-center" :disabled="tradeQuantity <= 1" @click="setTradeQuantity(1)">最少</Button>
               <Button
                 class="flex-1 justify-center"
                 :disabled="tradeQuantity >= tradeSelectedItem.quantity"
-                @click="tradeQuantity = tradeSelectedItem.quantity"
+                @click="setTradeQuantity(tradeSelectedItem.quantity)"
               >
                 最多
               </Button>
@@ -927,6 +927,7 @@
   import TexasHoldemGame from '@/components/game/TexasHoldemGame.vue'
   import BuckshotRouletteGame from '@/components/game/BuckshotRouletteGame.vue'
   import Button from '@/components/game/Button.vue'
+  import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
 
   // suppress unused warnings for template-only refs
   void CRICKET_WIN_MULTIPLIER
@@ -1325,11 +1326,16 @@
 
   // 数量选择相关
   const tradeSelectedItem = ref<{ id: string; name: string; quality: string; quantity: number; sellPrice: number } | null>(null)
-  const tradeQuantity = ref(1)
+  const tradeQuantityPicker = useQuantityPicker({
+    maxQuantity: () => tradeSelectedItem.value?.quantity ?? 1
+  })
+  const tradeQuantity = tradeQuantityPicker.quantity
+  const setTradeQuantity = tradeQuantityPicker.setQuantity
+  const addTradeQuantity = tradeQuantityPicker.addQuantity
 
   const selectTradeItem = (inv: { id: string; name: string; quality: string; quantity: number; sellPrice: number }) => {
     tradeSelectedItem.value = inv
-    tradeQuantity.value = 1
+    tradeQuantityPicker.resetQuantity(1)
   }
 
   const tradePreviewPoints = computed(() => {
@@ -1339,11 +1345,7 @@
   })
 
   const onTradeQuantityInput = (e: Event) => {
-    const target = e.target as HTMLInputElement
-    let v = parseInt(target.value, 10)
-    if (isNaN(v) || v < 1) v = 1
-    if (tradeSelectedItem.value && v > tradeSelectedItem.value.quantity) v = tradeSelectedItem.value.quantity
-    tradeQuantity.value = v
+    tradeQuantityPicker.setQuantityFromInput((e.target as HTMLInputElement).value)
   }
 
   const handleConfirmTradeSlot = () => {

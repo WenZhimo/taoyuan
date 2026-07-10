@@ -158,11 +158,11 @@
                   </span>
                 </div>
                 <div class="grid grid-cols-5 gap-1">
-                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, 1)">1</Button>
-                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 10" :icon-size="12" @click="handleAddFish(item.itemId, 10)">10</Button>
-                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 20" :icon-size="12" @click="handleAddFish(item.itemId, 20)">20</Button>
-                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull || item.count < 50" :icon-size="12" @click="handleAddFish(item.itemId, 50)">50</Button>
-                  <Button class="justify-center py-0.5" :disabled="fishPondStore.isFull" :icon-size="12" @click="handleAddFish(item.itemId, item.count)">全部</Button>
+                  <Button class="justify-center py-0.5" :disabled="getMaxAddFishQuantity(item.count) < 1" :icon-size="12" @click="handleAddFish(item.itemId, 1)">1</Button>
+                  <Button class="justify-center py-0.5" :disabled="getMaxAddFishQuantity(item.count) < 10" :icon-size="12" @click="handleAddFish(item.itemId, 10)">10</Button>
+                  <Button class="justify-center py-0.5" :disabled="getMaxAddFishQuantity(item.count) < 20" :icon-size="12" @click="handleAddFish(item.itemId, 20)">20</Button>
+                  <Button class="justify-center py-0.5" :disabled="getMaxAddFishQuantity(item.count) < 50" :icon-size="12" @click="handleAddFish(item.itemId, 50)">50</Button>
+                  <Button class="justify-center py-0.5" :disabled="getMaxAddFishQuantity(item.count) < 1" :icon-size="12" @click="handleAddFish(item.itemId, item.count)">全部</Button>
                 </div>
               </div>
             </div>
@@ -382,19 +382,20 @@
             <div class="flex items-center justify-between mt-1">
               <span class="text-xs text-muted">数量</span>
               <input
-                v-model.number="removeFishQty"
+                :value="removeFishQty"
                 type="number"
                 min="1"
                 :max="removeFishModal.fishIds.length"
                 class="w-20 bg-bg border border-accent/20 rounded-xs px-2 py-1 text-xs text-right"
+                @input="onRemoveFishQtyInput"
               />
             </div>
           </div>
           <div class="grid grid-cols-4 gap-1 mb-2">
-            <Button class="justify-center py-0.5" @click="removeFishQty = 1">1</Button>
-            <Button class="justify-center py-0.5" @click="removeFishQty = Math.min(10, removeFishModal!.fishIds.length)">10</Button>
-            <Button class="justify-center py-0.5" @click="removeFishQty = Math.min(50, removeFishModal!.fishIds.length)">50</Button>
-            <Button class="justify-center py-0.5" @click="removeFishQty = removeFishModal!.fishIds.length">全部</Button>
+            <Button class="justify-center py-0.5" @click="setRemoveFishQty(1)">1</Button>
+            <Button class="justify-center py-0.5" @click="setRemoveFishQty(10)">10</Button>
+            <Button class="justify-center py-0.5" @click="setRemoveFishQty(50)">50</Button>
+            <Button class="justify-center py-0.5" @click="setRemoveFishQty(removeFishModal!.fishIds.length)">全部</Button>
           </div>
           <Button class="w-full justify-center !bg-accent !text-bg" @click="confirmRemoveFishBatch">
             确认取出
@@ -570,7 +571,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { ref, computed, toRef } from 'vue'
   import { Waves, Droplets, Sparkles, HeartPulse, Package, ArrowUp, Hammer, Lock, Fish, Heart, X, Star } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
@@ -581,6 +582,8 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { addLog, showFloat } from '@/composables/useGameLog'
   import { handleEndDay } from '@/composables/useEndDay'
+  import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
+  import { clampQuantity, useQuantityPicker } from '@/composables/game/useQuantityPicker'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { POND_BUILD_COST, POND_UPGRADE_COSTS, POND_CAPACITY, PONDABLE_FISH, getPondableFish, FISH_BREEDING_DAYS } from '@/data/fishPond'
   import { getBreedById, getBreedsByGeneration, BREED_COUNTS } from '@/data/pondBreeds'
@@ -598,13 +601,17 @@
   const detailGroupFishId = ref<string | null>(null)
   const detailBreedId = ref<string | null>(null)
   const removeFishModal = ref<{ name: string; fishIds: string[] } | null>(null)
-  const removeFishQty = ref(1)
   const compendiumGen = ref<1 | 2 | 3 | 4 | 5>(1)
-  const PAGE_SIZE = 50
-  const fishGroupPage = ref(1)
-  const pondableFishPage = ref(1)
-  const nurseryPage = ref(1)
-  const reproductionPage = ref(1)
+  const PAGE_SIZE = DEFAULT_PAGE_SIZE
+  const removeFishQuantityPicker = useQuantityPicker({
+    initialQuantity: 1,
+    maxQuantity: () => removeFishModal.value?.fishIds.length ?? 1
+  })
+  const removeFishQty = removeFishQuantityPicker.quantity
+  const setRemoveFishQty = removeFishQuantityPicker.setQuantity
+  const onRemoveFishQtyInput = (event: Event) => {
+    removeFishQuantityPicker.setQuantityFromInput((event.target as HTMLInputElement).value)
+  }
 
   /** 建造/升级统一弹窗 */
   const pondModal = ref<'build' | 'upgrade' | null>(null)
@@ -660,6 +667,7 @@
   const formatCapacity = (capacity: number): string => (Number.isFinite(capacity) ? String(capacity) : '无限')
   const getBreedingProgress = (daysLeft: number): number => ((breedingTotalDays - daysLeft) / breedingTotalDays) * 100
   const pondCapacityLabel = computed(() => formatCapacity(fishPondStore.capacity))
+  const remainingPondCapacity = computed(() => Math.max(0, fishPondStore.capacity - fishPondStore.fishCount))
   const detailGroup = computed(() => fishPondStore.fishGroups.find(group => group.fishId === detailGroupFishId.value) ?? null)
   const detailFishRows = computed(() => {
     if (!detailGroup.value) return []
@@ -724,9 +732,14 @@
         }
       })
   )
-  const paginate = <T>(items: T[], page: number): T[] => items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const pagedFishGroups = computed(() => paginate(fishPondStore.fishGroups, fishGroupPage.value))
-  const pagedReproductionGroups = computed(() => paginate(reproductionGroups.value, reproductionPage.value))
+  const {
+    currentPage: fishGroupPage,
+    pagedItems: pagedFishGroups
+  } = usePagination(toRef(fishPondStore, 'fishGroups'), PAGE_SIZE)
+  const {
+    currentPage: reproductionPage,
+    pagedItems: pagedReproductionGroups
+  } = usePagination(toRef(reproductionGroups), PAGE_SIZE)
 
   // === 建造/升级统一弹窗 ===
 
@@ -794,8 +807,16 @@
     }
     return result
   })
-  const pagedPondableFishInBag = computed(() => paginate(pondableFishInBag.value, pondableFishPage.value))
-  const pagedNurseryBreeding = computed(() => paginate(fishPondStore.pond.nurseryBreeding, nurseryPage.value))
+  const getMaxAddFishQuantity = (fishInBagCount: number): number => Math.min(fishInBagCount, remainingPondCapacity.value)
+  const {
+    currentPage: pondableFishPage,
+    pagedItems: pagedPondableFishInBag
+  } = usePagination(toRef(pondableFishInBag), PAGE_SIZE)
+  const nurseryBreeding = computed(() => fishPondStore.pond.nurseryBreeding)
+  const {
+    currentPage: nurseryPage,
+    pagedItems: pagedNurseryBreeding
+  } = usePagination(toRef(nurseryBreeding), PAGE_SIZE)
 
   /** 鱼详情弹窗属性条 */
   const fishAttributes = computed(() => {
@@ -884,7 +905,9 @@
   }
 
   const handleAddFish = (fishId: string, quantity = 1) => {
-    const added = fishPondStore.addFish(fishId, quantity)
+    const maxQuantity = getMaxAddFishQuantity(inventoryStore.getItemCount(fishId))
+    const addQuantity = maxQuantity > 0 ? clampQuantity(quantity, maxQuantity) : 0
+    const added = addQuantity > 0 ? fishPondStore.addFish(fishId, addQuantity) : 0
     if (added > 0) {
       const name = getPondableFishName(fishId)
       addLog(`放入了${added}条${name}。`)
@@ -907,12 +930,12 @@
 
   const openRemoveFishModal = (row: (typeof detailFishRows.value)[number]) => {
     removeFishModal.value = { name: row.name, fishIds: row.fishIds }
-    removeFishQty.value = Math.min(1, row.fishIds.length)
+    removeFishQuantityPicker.resetQuantity(1)
   }
 
   const confirmRemoveFishBatch = () => {
     if (!removeFishModal.value) return
-    const qty = Math.min(Math.max(1, Math.floor(removeFishQty.value || 1)), removeFishModal.value.fishIds.length)
+    const qty = removeFishQty.value
     let removed = 0
     for (const fishId of removeFishModal.value.fishIds.slice(0, qty)) {
       if (fishPondStore.removeFish(fishId)) removed++

@@ -1,6 +1,7 @@
 import { createApp, toRaw } from 'vue'
 import { createPinia } from 'pinia'
 import router from '@/router'
+import { mountAfterRouterReady } from '@/bootstrap'
 import App from './App.vue'
 import './app.css'
 
@@ -20,4 +21,5 @@ pinia.use(({ store }) => {
 
 app.use(pinia)
 app.use(router)
-app.mount('#app')
+
+void mountAfterRouterReady(app, router)

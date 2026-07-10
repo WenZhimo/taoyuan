@@ -11,6 +11,8 @@ import { GREENHOUSE_PLOT_COUNT } from '@/data/buildings'
 import { useWalletStore } from './useWalletStore'
 import { useGameStore } from './useGameStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
+import { forEachEndDayChunk } from '@/domain/endDay/types'
+import type { EndDayChunkOptions } from '@/domain/endDay/types'
 
 /** 已放置洒水器 */
 export interface PlacedSprinkler {
@@ -401,7 +403,10 @@ export const useFarmStore = defineStore('farm', () => {
   }
 
   /** 每日更新所有地块 */
-  const dailyUpdate = (isRainy: boolean): { newInfestations: number; pestDeaths: number; newWeeds: number; weedDeaths: number } => {
+  const dailyUpdate = (
+    isRainy: boolean,
+    chunkOptions: EndDayChunkOptions = {}
+  ): { newInfestations: number; pestDeaths: number; newWeeds: number; weedDeaths: number } => {
     const sprinklerWatered = getAllWateredBySprinklers()
     const walletGrowth = useWalletStore().getCropGrowthBonus()
     const gameStore = useGameStore()
@@ -412,8 +417,8 @@ export const useFarmStore = defineStore('farm', () => {
     let newWeeds = 0
     let weedDeaths = 0
 
-    for (const plot of plots.value) {
-      if (plot.state !== 'planted' && plot.state !== 'growing') continue
+    forEachEndDayChunk(plots.value, plot => {
+      if (plot.state !== 'planted' && plot.state !== 'growing') return
 
       // 虫害处理：感染中的地块不生长、不枯萎
       if (plot.infested) {
@@ -434,7 +439,7 @@ export const useFarmStore = defineStore('farm', () => {
           plot.weedyDays = 0
           pestDeaths++
         }
-        continue
+        return
       }
 
       // 杂草处理：长草中的地块生长减速
@@ -455,7 +460,7 @@ export const useFarmStore = defineStore('farm', () => {
           plot.weedy = false
           plot.weedyDays = 0
           weedDeaths++
-          continue
+          return
         }
       }
 
@@ -531,7 +536,7 @@ export const useFarmStore = defineStore('farm', () => {
           newWeeds++
         }
       }
-    }
+    }, chunkOptions)
 
     return { newInfestations, pestDeaths, newWeeds, weedDeaths }
   }
@@ -952,10 +957,10 @@ export const useFarmStore = defineStore('farm', () => {
   }
 
   /** 温室每日更新（自动浇水，无天气影响） */
-  const greenhouseDailyUpdate = (): void => {
+  const greenhouseDailyUpdate = (chunkOptions: EndDayChunkOptions = {}): void => {
     const walletGrowth = useWalletStore().getCropGrowthBonus()
-    for (const plot of greenhousePlots.value) {
-      if (plot.state !== 'planted' && plot.state !== 'growing') continue
+    forEachEndDayChunk(greenhousePlots.value, plot => {
+      if (plot.state !== 'planted' && plot.state !== 'growing') return
       plot.watered = true
       const fertDef = plot.fertilizer ? getFertilizerById(plot.fertilizer) : null
       const speedup = (fertDef?.growthSpeedup ?? 0) + walletGrowth
@@ -970,7 +975,7 @@ export const useFarmStore = defineStore('farm', () => {
         }
       }
       plot.watered = false
-    }
+    }, chunkOptions)
   }
 
   /** 温室升级：扩展地块数量 */

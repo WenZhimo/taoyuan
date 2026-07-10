@@ -1066,6 +1066,7 @@
   import type { MarketTrend } from '@/data/market'
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { useAchievementStore } from '@/stores/useAchievementStore'
+  import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
 
   const RAIN_TOTEM_PRICE = 300
   const WOOD_PRICE = 50
@@ -1181,30 +1182,23 @@
     return getItemById(data.itemId) ?? null
   })
 
-  const buyQuantity = ref(1)
-
-  const buyTotalPrice = computed(() => {
-    if (!buyModalData.value) return 0
-    return buyModalData.value.price * buyQuantity.value
-  })
-
   const maxBuyQuantity = computed(() => {
     if (!buyModalData.value?.batchBuy) return 1
     return Math.max(1, buyModalData.value.batchBuy.maxCount())
   })
 
-  const setBuyQuantity = (val: number) => {
-    buyQuantity.value = Math.max(1, Math.min(val, maxBuyQuantity.value))
-  }
+  const buyQuantityPicker = useQuantityPicker({
+    maxQuantity: () => maxBuyQuantity.value
+  })
+  const buyQuantity = buyQuantityPicker.quantity
+  const setBuyQuantity = buyQuantityPicker.setQuantity
+  const addBuyQuantity = buyQuantityPicker.addQuantity
+  const onBuyQuantityInput = (e: Event) => buyQuantityPicker.setQuantityFromInput((e.target as HTMLInputElement).value)
 
-  const addBuyQuantity = (delta: number) => {
-    setBuyQuantity(buyQuantity.value + delta)
-  }
-
-  const onBuyQuantityInput = (e: Event) => {
-    const val = parseInt((e.target as HTMLInputElement).value, 10)
-    if (!isNaN(val)) setBuyQuantity(val)
-  }
+  const buyTotalPrice = computed(() => {
+    if (!buyModalData.value) return 0
+    return buyModalData.value.price * buyQuantity.value
+  })
 
   const getMaxBuyable = (unitPrice: number, stockLimit?: number): number => {
     const affordable = unitPrice > 0 ? Math.floor(playerStore.money / unitPrice) : 0
@@ -1236,7 +1230,7 @@
     batchMaxCount: () => number,
     itemId?: string
   ) => {
-    buyQuantity.value = 1
+    buyQuantityPicker.resetQuantity(1)
     shopModal.value = {
       type: 'buy',
       name,
@@ -1248,8 +1242,6 @@
       itemId
     }
   }
-
-  const sellQuantity = ref(1)
 
   const sellUnitPrice = computed(() => {
     const data = sellModalData.value
@@ -1267,21 +1259,16 @@
     return item.quantity
   })
 
-  const setSellQuantity = (val: number) => {
-    sellQuantity.value = Math.max(1, Math.min(val, maxSellQuantity.value))
-  }
-
-  const addSellQuantity = (delta: number) => {
-    setSellQuantity(sellQuantity.value + delta)
-  }
-
-  const onSellQuantityInput = (e: Event) => {
-    const val = parseInt((e.target as HTMLInputElement).value, 10)
-    if (!isNaN(val)) setSellQuantity(val)
-  }
+  const sellQuantityPicker = useQuantityPicker({
+    maxQuantity: () => maxSellQuantity.value
+  })
+  const sellQuantity = sellQuantityPicker.quantity
+  const setSellQuantity = sellQuantityPicker.setQuantity
+  const addSellQuantity = sellQuantityPicker.addQuantity
+  const onSellQuantityInput = (e: Event) => sellQuantityPicker.setQuantityFromInput((e.target as HTMLInputElement).value)
 
   const openSellModal = (itemId: string, quality: Quality, inventoryIndex: number) => {
-    sellQuantity.value = 1
+    sellQuantityPicker.resetQuantity(1)
     shopModal.value = { type: 'sell', itemId, quality, inventoryIndex }
   }
 
@@ -1334,7 +1321,7 @@
     if (!remaining) {
       shopModal.value = null
     } else if (sellQuantity.value > remaining.quantity) {
-      sellQuantity.value = remaining.quantity
+      sellQuantityPicker.setQuantity(remaining.quantity)
     }
   }
 

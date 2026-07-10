@@ -378,16 +378,18 @@ export const useHanhaiStore = defineStore('hanhai', () => {
   }
 
   /** 每日通商结算：减少剩余天数，到期的发放积分 */
-  const dailyTradeUpdate = (): { completed: { itemId: string; points: number }[] } => {
-    const completed: { itemId: string; points: number }[] = []
+  const dailyTradeUpdate = (): { completed: { itemId: string; quantity: number; points: number }[] } => {
+    const completed: { itemId: string; quantity: number; points: number }[] = []
     const remaining: TradeSlot[] = []
     for (const slot of tradeSlots.value) {
       slot.daysRemaining--
       if (slot.daysRemaining <= 0) {
         tradePoints.value += slot.pointsReward
-        completed.push({ itemId: slot.itemId, points: slot.pointsReward })
-        const itemDef = getItemById(slot.itemId)
-        addLog(`通商售出${itemDef?.name ?? slot.itemId}×${slot.quantity}，获得${slot.pointsReward}通商积分。`)
+        completed.push({
+          itemId: slot.itemId,
+          quantity: slot.quantity,
+          points: slot.pointsReward
+        })
       } else {
         remaining.push(slot)
       }

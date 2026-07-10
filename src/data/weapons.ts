@@ -1,4 +1,11 @@
 import type { EquipmentEffect, WeaponDef, EnchantmentDef, WeaponType } from '@/types'
+import {
+  formatEnchantmentSummary as formatEnchantmentSummaryFromDefs,
+  summarizeEnchantments as summarizeEnchantmentDefs,
+  type EnchantmentSummary,
+  type EnchantmentSummaryFormatOptions
+} from '@/domain/enchantments/summarizeEnchantments'
+import { collectEquipmentEffects } from '@/domain/enchantments/equipmentEffects'
 
 export type WeaponEnchantInput = string | string[] | null | undefined
 
@@ -217,56 +224,18 @@ export const getOwnedWeaponEnchantments = (weapon: { enchantmentId?: string | nu
 export const getOwnedEquipmentEnchantments = (equipment: { enchantmentId?: string | null; enchantmentIds?: string[] }): EnchantmentDef[] =>
   getOwnedWeaponEnchantments(equipment)
 
-export interface EnchantmentSummary {
-  id: string
-  name: string
-  description: string
-  count: number
-}
-
-export interface EnchantmentSummaryFormatOptions {
-  maxVisible?: number
-}
-
 export const summarizeEnchantments = (input: WeaponEnchantInput | EnchantmentDef[]): EnchantmentSummary[] => {
   const enchantments = Array.isArray(input) && input.length > 0 && typeof input[0] === 'object' ? (input as EnchantmentDef[]) : getWeaponEnchantments(input as WeaponEnchantInput)
-  const summary = new Map<string, EnchantmentSummary>()
-
-  for (const enchant of enchantments) {
-    const current = summary.get(enchant.id)
-    if (current) {
-      current.count += 1
-    } else {
-      summary.set(enchant.id, {
-        id: enchant.id,
-        name: enchant.name,
-        description: enchant.description,
-        count: 1
-      })
-    }
-  }
-
-  return [...summary.values()]
+  return summarizeEnchantmentDefs(enchantments)
 }
 
 export const formatEnchantmentSummary = (input: WeaponEnchantInput | EnchantmentDef[], options: EnchantmentSummaryFormatOptions = {}): string => {
-  const summary = summarizeEnchantments(input)
-  const maxVisible = Math.max(1, options.maxVisible ?? 4)
-  const visible = summary.slice(0, maxVisible)
-  const names = visible
-    .map(enchant => (enchant.count > 1 ? `${enchant.name}x${enchant.count}` : enchant.name))
-    .join('、')
-
-  if (summary.length > visible.length) return `${names}等${summary.length - visible.length}种附魔`
-  return names
+  const enchantments = Array.isArray(input) && input.length > 0 && typeof input[0] === 'object' ? (input as EnchantmentDef[]) : getWeaponEnchantments(input as WeaponEnchantInput)
+  return formatEnchantmentSummaryFromDefs(enchantments, options)
 }
 
 export const getEnchantmentEffects = (enchantmentIds: WeaponEnchantInput): EquipmentEffect[] => {
-  const effects: EquipmentEffect[] = []
-  for (const id of normalizeEnchantmentIds(enchantmentIds)) {
-    effects.push(...(ENCHANTMENT_EFFECTS[id] ?? []))
-  }
-  return effects
+  return collectEquipmentEffects(normalizeEnchantmentIds(enchantmentIds), ENCHANTMENT_EFFECTS)
 }
 
 export const getEnchantmentCost = (enchantmentId: string): number => {

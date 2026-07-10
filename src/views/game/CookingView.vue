@@ -17,7 +17,9 @@
       <div class="flex items-center justify-between gap-2">
         <div>
           <p class="text-xs text-accent">墨墨的fumo</p>
-          <p class="text-[10px] text-muted">提交青菜×2000，转化为极品墨墨的fumo×2000</p>
+          <p class="text-[10px] text-muted">
+            提交青菜×{{ FUMO_EXCHANGE_QUANTITY }}，转化为极品墨墨的fumo×{{ FUMO_OUTPUT_QUANTITY }}
+          </p>
           <p class="text-[10px]" :class="canExchangeFumo ? 'text-success' : 'text-danger'">当前青菜：{{ cabbageCount }}/{{ FUMO_EXCHANGE_QUANTITY }}</p>
         </div>
         <Button
@@ -118,7 +120,7 @@
             <div class="flex items-center justify-between mb-1.5">
               <span class="text-xs text-muted">数量</span>
               <div class="flex items-center space-x-1">
-                <Button class="h-6 px-1.5 py-0.5 text-xs justify-center" :disabled="modalQty <= 1" @click="modalQty--">
+                <Button class="h-6 px-1.5 py-0.5 text-xs justify-center" :disabled="modalQty <= 1" @click="addModalQty(-1)">
                   <Minus :size="12" />
                 </Button>
                 <input
@@ -129,14 +131,14 @@
                   class="w-24 h-6 px-2 py-0.5 bg-bg border border-accent/30 rounded-xs text-xs text-center text-accent outline-none focus:border-accent transition-colors"
                   @input="onModalQtyInput"
                 />
-                <Button class="h-6 px-1.5 py-0.5 text-xs justify-center" :disabled="modalQty >= modalInfo.maxQty" @click="modalQty++">
+                <Button class="h-6 px-1.5 py-0.5 text-xs justify-center" :disabled="modalQty >= modalInfo.maxQty" @click="addModalQty(1)">
                   <Plus :size="12" />
                 </Button>
               </div>
             </div>
             <div class="flex space-x-1">
-              <Button class="flex-1 justify-center" :disabled="modalQty <= 1" @click="modalQty = 1">最少</Button>
-              <Button class="flex-1 justify-center" :disabled="modalQty >= modalInfo.maxQty" @click="modalQty = modalInfo.maxQty">
+              <Button class="flex-1 justify-center" :disabled="modalQty <= 1" @click="setModalQty(1)">最少</Button>
+              <Button class="flex-1 justify-center" :disabled="modalQty >= modalInfo.maxQty" @click="setModalQty(modalInfo.maxQty)">
                 最多
               </Button>
             </div>
@@ -173,10 +175,12 @@
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { getCombinedItemCount, removeCombinedItem } from '@/composables/useCombinedInventory'
   import { getItemById } from '@/data'
+  import { MOMO_FUMO_EXCHANGE } from '@/data/specialItems'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { sfxClick } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
   import { handleEndDay } from '@/composables/useEndDay'
+  import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
   import { QUALITY_NAMES } from '@/composables/useFarmActions'
   import type { Quality } from '@/types'
   import Button from '@/components/game/Button.vue'
@@ -187,13 +191,16 @@
   const achievementStore = useAchievementStore()
   const tutorialStore = useTutorialStore()
 
-  const FUMO_EXCHANGE_QUANTITY = 2000
-  const FUMO_SOURCE_ITEM_ID = 'cabbage'
-  const FUMO_ITEM_ID = 'momo_fumo'
+  const {
+    sourceItemId: FUMO_SOURCE_ITEM_ID,
+    sourceQuantity: FUMO_EXCHANGE_QUANTITY,
+    outputItemId: FUMO_ITEM_ID,
+    outputQuantity: FUMO_OUTPUT_QUANTITY,
+    outputQuality: FUMO_OUTPUT_QUALITY
+  } = MOMO_FUMO_EXCHANGE
 
   const showOnlyMakeable = ref(false)
   const modalRecipeId = ref<string | null>(null)
-  const modalQty = ref(1)
   const cabbageCount = computed(() => getCombinedItemCount(FUMO_SOURCE_ITEM_ID))
   const canExchangeFumo = computed(() => cabbageCount.value >= FUMO_EXCHANGE_QUANTITY)
 
@@ -229,9 +236,16 @@
     return recipeInfos.value.find(i => i.recipe.id === modalRecipeId.value) ?? null
   })
 
+  const modalQuantityPicker = useQuantityPicker({
+    maxQuantity: () => modalInfo.value?.maxQty ?? 1
+  })
+  const modalQty = modalQuantityPicker.quantity
+  const setModalQty = modalQuantityPicker.setQuantity
+  const addModalQty = modalQuantityPicker.addQuantity
+
   const openModal = (recipeId: string) => {
     modalRecipeId.value = recipeId
-    modalQty.value = 1
+    modalQuantityPicker.resetQuantity(1)
   }
 
   const closeModal = () => {
@@ -239,9 +253,7 @@
   }
 
   const onModalQtyInput = (event: Event) => {
-    const val = parseInt((event.target as HTMLInputElement).value) || 1
-    const max = modalInfo.value?.maxQty ?? 1
-    modalQty.value = Math.max(1, Math.min(val, max))
+    modalQuantityPicker.setQuantityFromInput((event.target as HTMLInputElement).value)
   }
 
   const qualityTextClass = (quality: Quality): string => {
@@ -282,9 +294,9 @@
       addLog('青菜不足，无法转化墨墨的fumo。')
       return
     }
-    inventoryStore.addItem(FUMO_ITEM_ID, FUMO_EXCHANGE_QUANTITY, 'supreme')
+    inventoryStore.addItem(FUMO_ITEM_ID, FUMO_OUTPUT_QUANTITY, FUMO_OUTPUT_QUALITY)
     achievementStore.discoverItem(FUMO_ITEM_ID)
     sfxClick()
-    addLog(`提交了${FUMO_EXCHANGE_QUANTITY}个青菜，转化为极品墨墨的fumo×${FUMO_EXCHANGE_QUANTITY}。`)
+    addLog(`提交了${FUMO_EXCHANGE_QUANTITY}个青菜，转化为极品墨墨的fumo×${FUMO_OUTPUT_QUANTITY}。`)
   }
 </script>

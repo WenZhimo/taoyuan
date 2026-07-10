@@ -8,6 +8,7 @@ import { WEAPONS, getWeaponSellPrice } from './weapons'
 import { RINGS } from './rings'
 import { HATS } from './hats'
 import { SHOES } from './shoes'
+import { MOMO_FUMO_ITEM_ID } from './specialItems'
 
 /** 从作物定义自动生成种子物品（排除已手动定义的种子） */
 const SEED_ITEMS: ItemDef[] = CROPS.filter(
@@ -60,6 +61,7 @@ const ORE_ITEMS: ItemDef[] = [
 /** 杂项 */
 const MISC_ITEMS: ItemDef[] = [
   { id: 'wood', name: '木材', category: 'material', description: '建造和制作的基础材料。', sellPrice: 5, edible: false },
+  { id: 'stone', name: '石头', category: 'material', description: '随处可见的普通石块。', sellPrice: 1, edible: false },
   { id: 'bamboo', name: '竹子', category: 'material', description: '竹林中采集的翠竹。', sellPrice: 10, edible: false },
   { id: 'herb', name: '草药', category: 'material', description: '山间野生的草药。', sellPrice: 15, edible: false },
   { id: 'firewood', name: '柴火', category: 'material', description: '烹饪用的燃料。', sellPrice: 5, edible: false },
@@ -105,7 +107,7 @@ const MISC_ITEMS: ItemDef[] = [
     edible: false
   },
   {
-    id: 'momo_fumo',
+    id: MOMO_FUMO_ITEM_ID,
     name: '墨墨的fumo',
     category: 'gift',
     description: '墨墨亲手凝成的神秘fumo。所有村民都会把它视作最珍贵的礼物。',
@@ -738,16 +740,20 @@ const ANIMAL_PRODUCT_ITEMS: ItemDef[] = [
 ]
 
 /** 果树水果 */
-const FRUIT_TREE_ITEMS: ItemDef[] = FRUIT_TREE_DEFS.map(t => ({
-  id: t.fruitId,
-  name: t.fruitName,
-  category: 'fruit' as const,
-  description: `${t.name}结出的${t.fruitName}。`,
-  sellPrice: Math.floor(t.fruitSellPrice * 1.5),
-  edible: true,
-  staminaRestore: Math.floor(t.fruitSellPrice / 5),
-  healthRestore: Math.floor(t.fruitSellPrice / 10)
-}))
+const CROP_ITEM_IDS = new Set(CROPS.map(crop => crop.id))
+const FRUIT_TREE_ITEMS: ItemDef[] = FRUIT_TREE_DEFS
+  // 柿子等同时属于作物和果树产物时，复用已有作物物品定义。
+  .filter(tree => !CROP_ITEM_IDS.has(tree.fruitId))
+  .map(tree => ({
+    id: tree.fruitId,
+    name: tree.fruitName,
+    category: 'fruit' as const,
+    description: `${tree.name}结出的${tree.fruitName}。`,
+    sellPrice: Math.floor(tree.fruitSellPrice * 1.5),
+    edible: true,
+    staminaRestore: Math.floor(tree.fruitSellPrice / 5),
+    healthRestore: Math.floor(tree.fruitSellPrice / 10)
+  }))
 
 /** 树苗 */
 const SAPLING_ITEMS: ItemDef[] = FRUIT_TREE_DEFS.map(t => ({
@@ -1015,16 +1021,6 @@ const TEA_DRINK_ITEMS: ItemDef[] = [
     healthRestore: 10
   },
   {
-    id: 'osmanthus_tea',
-    name: '桂花茶',
-    category: 'processed',
-    description: '馥郁芬芳的桂花茶。',
-    sellPrice: 780,
-    edible: true,
-    staminaRestore: 30,
-    healthRestore: 15
-  },
-  {
     id: 'ginseng_tea',
     name: '人参茶',
     category: 'processed',
@@ -1156,34 +1152,46 @@ const INCENSE_ITEMS: ItemDef[] = [
 ]
 
 /** 武器图鉴物品 */
-const WEAPON_ITEMS: ItemDef[] = Object.values(WEAPONS).map(w => ({
-  id: w.id,
-  name: w.name,
-  category: 'weapon' as const,
-  description: w.description,
-  sellPrice: getWeaponSellPrice(w.id, null),
-  edible: false
-}))
+const MANUAL_TRADE_ITEM_IDS = new Set([
+  'trade_desert_blade',
+  'trade_turquoise_pendant',
+  'trade_silk_robe'
+])
+
+const WEAPON_ITEMS: ItemDef[] = Object.values(WEAPONS)
+  .filter(weapon => !MANUAL_TRADE_ITEM_IDS.has(weapon.id))
+  .map(weapon => ({
+    id: weapon.id,
+    name: weapon.name,
+    category: 'weapon' as const,
+    description: weapon.description,
+    sellPrice: getWeaponSellPrice(weapon.id, null),
+    edible: false
+  }))
 
 /** 戒指图鉴物品 */
-const RING_ITEMS: ItemDef[] = RINGS.map(r => ({
-  id: r.id,
-  name: r.name,
-  category: 'ring' as const,
-  description: r.description,
-  sellPrice: r.sellPrice,
-  edible: false
-}))
+const RING_ITEMS: ItemDef[] = RINGS
+  .filter(ring => !MANUAL_TRADE_ITEM_IDS.has(ring.id))
+  .map(ring => ({
+    id: ring.id,
+    name: ring.name,
+    category: 'ring' as const,
+    description: ring.description,
+    sellPrice: ring.sellPrice,
+    edible: false
+  }))
 
 /** 帽子图鉴物品 */
-const HAT_ITEMS: ItemDef[] = HATS.map(h => ({
-  id: h.id,
-  name: h.name,
-  category: 'hat' as const,
-  description: h.description,
-  sellPrice: h.sellPrice,
-  edible: false
-}))
+const HAT_ITEMS: ItemDef[] = HATS
+  .filter(hat => !MANUAL_TRADE_ITEM_IDS.has(hat.id))
+  .map(hat => ({
+    id: hat.id,
+    name: hat.name,
+    category: 'hat' as const,
+    description: hat.description,
+    sellPrice: hat.sellPrice,
+    edible: false
+  }))
 
 /** 鞋子图鉴物品 */
 const SHOE_ITEMS: ItemDef[] = SHOES.map(s => ({
@@ -1625,15 +1633,7 @@ export const ITEMS: ItemDef[] = [
     edible: false
   },
 
-  // 结缘物品
-  {
-    id: 'dragon_pearl',
-    name: '龙珠',
-    category: 'misc',
-    description: '以龙玉、月光石与棱彩碎片炼成的灵珠，是龙族至高的缘定信物。',
-    sellPrice: 0,
-    edible: false
-  },
+  // 结缘物品（dragon_pearl 复用同名杂交作物定义）
   {
     id: 'eternal_blossom',
     name: '不凋花',

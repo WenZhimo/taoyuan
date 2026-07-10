@@ -9,69 +9,26 @@
     </div>
     <p v-if="tutorialHint" class="text-[10px] text-muted/50 mb-2">{{ tutorialHint }}</p>
 
-    <!-- 骷髅矿穴 -->
-    <div v-if="miningStore.isSkullCavernUnlocked()" class="border border-accent/20 rounded-xs p-3 mb-4">
-      <div class="flex items-center justify-between mb-1">
-        <p class="text-sm text-danger">
-          <Skull :size="14" class="inline" />
-          骷髅矿穴
-        </p>
-        <span v-if="miningStore.skullCavernBestFloor > 0" class="text-xs text-muted">最深 第{{ miningStore.skullCavernBestFloor }}层</span>
-        <span v-else class="text-xs text-muted/40">未探索</span>
-      </div>
-      <p class="text-xs text-muted">无限层 · 每10层安全点 · 铱矿来源 · 怪物随深度增强</p>
-      <p v-if="miningStore.skullSafePointFloor > 0" class="text-xs text-muted mt-0.5">安全点：第{{ miningStore.skullSafePointFloor }}层</p>
-    </div>
+    <SkullCavernStatusPanel
+      v-if="miningStore.isSkullCavernUnlocked()"
+      :best-floor="miningStore.skullCavernBestFloor"
+      :safe-point-floor="miningStore.skullSafePointFloor"
+    />
 
-    <!-- 装备与状态 -->
-    <div class="border border-accent/20 rounded-xs p-3 mb-4">
-      <div class="flex items-center justify-between mb-2">
-        <p class="text-sm text-accent">
-          <Swords :size="14" class="inline" />
-          装备与状态
-        </p>
-      </div>
-      <div class="flex flex-col space-y-1">
-        <div class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5">
-          <span class="text-xs">武器</span>
-          <span class="text-xs text-accent">{{ weaponDisplayName }}</span>
-        </div>
-        <div class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5">
-          <span class="text-xs">攻击力</span>
-          <span class="text-xs text-accent">{{ weaponAttack }}</span>
-        </div>
-        <div class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5">
-          <span class="text-xs">类型 · 暴击</span>
-          <span class="text-xs text-muted">{{ weaponTypeName }} · {{ critRateDisplay }}</span>
-        </div>
-        <div v-if="weaponEnchantName" class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5 gap-2">
-          <span class="text-xs">附魔</span>
-          <div class="flex items-center justify-end gap-1 min-w-0">
-            <span class="text-xs text-success truncate">{{ weaponEnchantName }}</span>
-            <Button class="py-0 px-1 shrink-0" @click="viewWeaponEnchantmentDetail">详情</Button>
-          </div>
-        </div>
-        <div class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5">
-          <span class="text-xs">HP</span>
-          <div class="flex items-center space-x-2">
-            <div class="w-20 h-1.5 bg-bg rounded-xs border border-accent/10">
-              <div
-                class="h-full rounded-xs transition-all"
-                :class="playerStore.getIsLowHp() ? 'bg-danger' : 'bg-success'"
-                :style="{ width: playerStore.getHpPercent() + '%' }"
-              />
-            </div>
-            <span class="text-xs" :class="playerStore.getIsLowHp() ? 'text-danger' : 'text-muted'">
-              {{ playerStore.hp }}/{{ playerStore.getMaxHp() }}
-            </span>
-          </div>
-        </div>
-        <div class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5">
-          <span class="text-xs">体力</span>
-          <span class="text-xs text-muted">{{ playerStore.stamina }}/{{ playerStore.maxStamina }}</span>
-        </div>
-      </div>
-    </div>
+    <MiningEquipmentStatusPanel
+      :weapon-display-name="weaponDisplayName"
+      :weapon-attack="weaponAttack"
+      :weapon-type-name="weaponTypeName"
+      :crit-rate-display="critRateDisplay"
+      :weapon-enchant-name="weaponEnchantName"
+      :hp="playerStore.hp"
+      :max-hp="playerStore.getMaxHp()"
+      :hp-percent="playerStore.getHpPercent()"
+      :is-low-hp="playerStore.getIsLowHp()"
+      :stamina="playerStore.stamina"
+      :max-stamina="playerStore.maxStamina"
+      @view-enchantment-detail="viewWeaponEnchantmentDetail"
+    />
 
     <!-- 进入矿洞 -->
     <div
@@ -85,145 +42,22 @@
       <span class="text-xs text-muted">第{{ miningStore.safePointFloor + 1 }}层</span>
     </div>
 
-    <!-- 已击败BOSS -->
-    <div v-if="miningStore.defeatedBosses.length > 0" class="border border-accent/20 rounded-xs p-3">
-      <p class="text-sm text-accent mb-2">
-        <Skull :size="14" class="inline" />
-        已击败BOSS
-      </p>
-      <div class="flex flex-col space-y-1">
-        <div
-          v-for="zone in mineZones.filter(z => z.bossDefeated)"
-          :key="zone.id"
-          class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5"
-        >
-          <span class="text-xs text-success">{{ zone.bossName }}</span>
-          <span class="text-xs text-muted">{{ zone.name }}</span>
-        </div>
-      </div>
-    </div>
+    <DefeatedBossListPanel :defeated-zones="defeatedBossZones" />
 
-    <!-- 矿洞地图弹窗 -->
-    <Transition name="panel-fade">
-      <div
-        v-if="showMapModal"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[30] p-4"
-        @click.self="showMapModal = false"
-      >
-        <div class="game-panel max-w-xs w-full">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-sm text-accent">
-              <Map :size="14" class="inline" />
-              矿洞地图
-            </p>
-            <Button class="py-0 px-1" :icon="X" :icon-size="12" @click="showMapModal = false" />
-          </div>
-          <p class="text-xs text-muted mb-2">安全点：{{ miningStore.safePointFloor > 0 ? `第${miningStore.safePointFloor}层` : '入口' }}</p>
-          <div class="flex flex-col space-y-1.5">
-            <div
-              v-for="zone in mineZones"
-              :key="zone.id"
-              class="border rounded-xs p-2"
-              :class="zone.isCurrentZone ? 'border-accent/40' : 'border-accent/10'"
-            >
-              <div class="flex justify-between items-center text-xs mb-1">
-                <span :class="zone.isCurrentZone ? 'text-accent' : zone.reached ? 'text-text' : 'text-muted/40'">
-                  {{ zone.name }}
-                  <span class="text-muted ml-1">{{ zone.start }}-{{ zone.end }}层</span>
-                </span>
-                <span v-if="zone.bossDefeated" class="text-success flex items-center">
-                  <Check :size="12" class="mr-0.5" />
-                  {{ zone.bossName }}
-                </span>
-                <span v-else-if="zone.reached" class="text-danger/70">{{ zone.bossName }}</span>
-                <span v-else class="text-muted/30">
-                  <Lock :size="12" class="inline" />
-                </span>
-              </div>
-              <div class="bg-bg rounded-xs h-1.5">
-                <div class="h-1.5 rounded-xs transition-all" :class="zone.barColor" :style="{ width: zone.progress + '%' }" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <MineMapDialog :show="showMapModal" :safe-point-floor="miningStore.safePointFloor" :zones="mineZones" @close="showMapModal = false" />
 
-    <!-- 电梯弹窗 -->
-    <Transition name="panel-fade">
-      <div
-        v-if="showElevatorModal"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[30] p-4"
-        @click.self="showElevatorModal = false"
-      >
-        <div class="game-panel max-w-xs w-full relative">
-          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showElevatorModal = false">
-            <X :size="14" />
-          </button>
-
-          <p class="text-sm text-accent mb-1">
-            <Pickaxe :size="14" class="inline" />
-            探索
-          </p>
-          <p class="text-xs text-muted mb-2">安全点：{{ miningStore.safePointFloor > 0 ? `第${miningStore.safePointFloor}层` : '入口' }}</p>
-
-          <button
-            class="border rounded-xs px-3 py-1.5 mb-2 w-full text-xs"
-            :class="autoExploreOnEntry ? 'border-accent text-accent bg-accent/10' : 'border-accent/20 text-muted'"
-            type="button"
-            @click="autoExploreOnEntry = !autoExploreOnEntry"
-          >
-            自动探索：{{ autoExploreOnEntry ? '开启，选择起点后开始' : '关闭' }}
-          </button>
-
-          <!-- 进入矿洞（前线） -->
-          <div
-            class="flex items-center justify-between border border-accent/30 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5 mb-2"
-            @click="handleEnterMine(undefined, autoExploreOnEntry)"
-          >
-            <span class="text-xs text-accent">进入矿洞</span>
-            <span class="text-xs text-muted">第{{ miningStore.safePointFloor + 1 }}层</span>
-          </div>
-
-          <!-- 电梯楼层（按区域分组网格） -->
-          <div v-if="elevatorZones.length > 0" class="max-h-48 overflow-y-auto mb-2">
-            <div v-for="zone in elevatorZones" :key="zone.name" class="mb-2 last:mb-0">
-              <p class="text-[10px] text-muted mb-1">{{ zone.name }}</p>
-              <div class="flex flex-wrap space-x-1">
-                <Button v-for="sp in zone.floors" :key="sp" class="py-0.5 px-0 min-w-9 justify-center" @click="handleEnterMine(sp, autoExploreOnEntry)">
-                  {{ sp + 1 }}
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 骷髅矿穴 -->
-          <div v-if="miningStore.isSkullCavernUnlocked()">
-            <div
-              class="flex items-center justify-between border border-danger/30 rounded-xs px-3 py-1.5 mb-2 cursor-pointer hover:bg-danger/5"
-              @click="handleEnterSkullCavern(undefined, autoExploreOnEntry)"
-            >
-              <span class="text-xs text-danger">
-                <Skull :size="12" class="inline" />
-                进入骷髅矿穴
-              </span>
-              <span class="text-xs text-muted">第{{ miningStore.skullSafePointFloor + 1 }}层</span>
-            </div>
-            <!-- 骷髅矿穴安全点楼层 -->
-            <div v-if="skullElevatorFloors.length > 0" class="max-h-48 overflow-y-auto grid-cols-5 grid m">
-              <Button
-                v-for="sp in skullElevatorFloors"
-                :key="sp"
-                class="py-0.5 px-0 min-w-9 justify-center !border-danger/30 !text-danger mb-1 mr-1"
-                @click="handleEnterSkullCavern(sp, autoExploreOnEntry)"
-              >
-                {{ sp + 1 }}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <MineElevatorDialog
+      v-model:auto-explore="autoExploreOnEntry"
+      :show="showElevatorModal"
+      :safe-point-floor="miningStore.safePointFloor"
+      :elevator-zones="elevatorZones"
+      :is-skull-cavern-unlocked="miningStore.isSkullCavernUnlocked()"
+      :skull-safe-point-floor="miningStore.skullSafePointFloor"
+      :skull-elevator-floors="skullElevatorFloors"
+      @close="showElevatorModal = false"
+      @enter-mine="handleEnterMine"
+      @enter-skull-cavern="handleEnterSkullCavern"
+    />
 
     <!-- 矿洞探索弹窗 -->
     <Transition name="panel-fade">
@@ -232,629 +66,134 @@
         class="fixed inset-0 bg-black/60 flex items-center justify-center z-[30] p-4"
       >
         <div class="game-panel max-w-sm w-full">
-          <!-- 标题栏 -->
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-sm text-accent">
-              第{{ activeFloorNum }}层
-              <span v-if="!miningStore.isInSkullCavern" class="text-muted">{{ zoneName }}</span>
-              <span v-if="currentFloorSpecial === 'mushroom'" class="text-success ml-1">蘑菇洞穴</span>
-              <span v-if="currentFloorSpecial === 'treasure'" class="text-accent ml-1">宝箱层</span>
-              <span v-if="currentFloorSpecial === 'infested'" class="text-danger ml-1">感染层</span>
-              <span v-if="currentFloorSpecial === 'dark'" class="text-muted ml-1">暗河层</span>
-              <span v-if="currentFloorSpecial === 'boss'" class="text-danger ml-1">BOSS层</span>
-            </p>
-            <Button class="py-0 px-1" :icon="X" :icon-size="12" @click="showLeaveConfirm = true" />
-          </div>
+          <MineExplorationHeaderPanel
+            :active-floor-num="activeFloorNum"
+            :is-in-skull-cavern="miningStore.isInSkullCavern"
+            :zone-name="zoneName"
+            :current-floor-special="currentFloorSpecial"
+            :remaining-monsters="remainingMonsters"
+            :auto-explore-active="autoExploreActive"
+            :bomb-mode-active="Boolean(bombModeId)"
+            :weapon-display-name="weaponDisplayName"
+            :weapon-type-name="weaponTypeName"
+            :weapon-attack="weaponAttack"
+            :crit-rate-display="critRateDisplay"
+            :weapon-enchant-name="weaponEnchantName"
+            @request-leave="showLeaveConfirm = true"
+            @view-enchantment-detail="viewWeaponEnchantmentDetail"
+            @cancel-bomb-mode="bombModeId = null"
+          />
 
-          <!-- 武器信息 -->
-          <div class="text-xs text-muted mb-2 border-b border-accent/20 pb-2 space-y-0.5">
-            <p>
-              <Swords :size="12" class="inline" />
-              {{ weaponDisplayName }}（{{ weaponTypeName }} · 攻击 {{ weaponAttack }} · 暴击 {{ critRateDisplay }}）
-            </p>
-            <div v-if="weaponEnchantName" class="flex items-center gap-1 text-success">
-              <span class="truncate">附魔：{{ weaponEnchantName }}</span>
-              <Button class="py-0 px-1 shrink-0" @click="viewWeaponEnchantmentDetail">详情</Button>
-            </div>
-          </div>
+          <MineGridPanel
+            :tiles="miningStore.floorGrid"
+            :get-tile-class="getTileClass"
+            :get-tile-icon="getTileIcon"
+            :is-tile-clickable="isTileClickable"
+            @select-tile="handleTileClick"
+          />
 
-          <!-- 感染层提示 -->
-          <p v-if="currentFloorSpecial === 'infested' && remainingMonsters > 0" class="text-xs text-danger mb-2">
-            感染层：还需击败 {{ remainingMonsters }} 只怪物
-          </p>
-          <p v-if="autoExploreActive" class="text-xs text-accent mb-2 border border-accent/30 rounded-xs px-2 py-1">
-            自动探索中：将自动连战并前往下一层
-          </p>
+          <MineExplorationActionsPanel
+            :sweep-preview="sweepPreview"
+            :can-sweep-to-safe-point="canSweepToSafePoint"
+            :remaining-combat-tiles="remainingCombatTiles"
+            :auto-explore-active="autoExploreActive"
+            :bombs="availableBombs"
+            :active-bomb-id="bombModeId"
+            :has-monster-lure="hasMonsterLure"
+            :monster-lure-count="inventoryStore.getItemCount('monster_lure')"
+            :combat-item-count="availableCombatItems.length"
+            :stairs-found="miningStore.stairsFound"
+            :stairs-usable="miningStore.stairsUsable"
+            :is-in-skull-cavern="miningStore.isInSkullCavern"
+            @sweep-to-safe-point="handleSweepToSafePoint"
+            @start-chain-battle="handleStartChainBattle"
+            @toggle-auto-explore="autoExploreActive ? stopAutoExplore('自动探索已停止。') : startAutoExplore()"
+            @toggle-bomb-mode="toggleBombMode"
+            @use-monster-lure="handleUseMonsterLure"
+            @open-combat-items="showCombatItems = true"
+            @next-floor="handleNextFloor"
+            @request-leave="showLeaveConfirm = true"
+          />
 
-          <!-- 炸弹模式指示 -->
-          <div v-if="bombModeId" class="text-xs text-accent mb-2 border border-accent/30 rounded-xs px-2 py-1">
-            <Zap :size="12" class="inline" />
-            炸弹模式：点击已探索格子作为爆炸中心
-            <button class="text-muted ml-2 underline" @click="bombModeId = null">取消</button>
-          </div>
-
-          <!-- 6×6 格子 -->
-          <div class="flex justify-center mb-3">
-            <div class="grid grid-cols-6 gap-1" style="max-width: 264px">
-              <button
-                v-for="tile in miningStore.floorGrid"
-                :key="tile.index"
-                class="w-10 h-10 rounded-xs flex items-center justify-center text-xs border transition-colors"
-                :class="getTileClass(tile)"
-                :disabled="!isTileClickable(tile)"
-                @click="handleTileClick(tile)"
-              >
-                {{ getTileIcon(tile) }}
-              </button>
-            </div>
-          </div>
-
-          <!-- 操作区 -->
-          <div class="flex flex-col space-y-1 mb-3">
-            <div
-              v-if="sweepPreview.targetFloor"
-              class="flex items-center justify-between border rounded-xs px-3 py-1.5"
-              :class="canSweepToSafePoint ? 'border-accent/30 cursor-pointer hover:bg-accent/5' : 'border-danger/20 opacity-60'"
-              @click="canSweepToSafePoint && handleSweepToSafePoint()"
-            >
-              <span class="text-xs" :class="canSweepToSafePoint ? 'text-accent' : 'text-danger'">
-                <ChevronDown :size="12" class="inline" />
-                扫荡至安全点
-              </span>
-              <span class="text-xs text-muted">HP-{{ sweepPreview.estimatedDamage }} · 第{{ sweepPreview.targetFloor }}层</span>
-            </div>
-            <div
-              v-if="remainingCombatTiles > 0"
-              class="flex items-center justify-between border border-danger/30 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-danger/5"
-              @click="handleStartChainBattle"
-            >
-              <span class="text-xs text-danger">
-                <Swords :size="12" class="inline" />
-                连战本层
-              </span>
-              <span class="text-xs text-muted">{{ remainingCombatTiles }}个敌人</span>
-            </div>
-            <div
-              class="flex items-center justify-between border rounded-xs px-3 py-1.5 cursor-pointer"
-              :class="autoExploreActive ? 'border-danger/30 hover:bg-danger/5' : 'border-accent/20 hover:bg-accent/5'"
-              @click="autoExploreActive ? stopAutoExplore('自动探索已停止。') : startAutoExplore()"
-            >
-              <span class="text-xs" :class="autoExploreActive ? 'text-danger' : 'text-accent'">
-                <Swords :size="12" class="inline" />
-                {{ autoExploreActive ? '停止自动探索' : '自动探索' }}
-              </span>
-              <span class="text-xs text-muted">直到倒下或手动停止</span>
-            </div>
-            <div v-for="bombItem in availableBombs" :key="bombItem.id">
-              <div
-                class="flex items-center justify-between border rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
-                :class="bombModeId === bombItem.id ? 'border-accent text-accent' : 'border-accent/20'"
-                @click="toggleBombMode(bombItem.id)"
-              >
-                <span class="text-xs">
-                  <Zap :size="12" class="inline" />
-                  {{ bombItem.name }}
-                </span>
-                <span class="text-xs text-muted">&times;{{ bombItem.count }}</span>
-              </div>
-            </div>
-            <div
-              v-if="hasMonsterLure"
-              class="flex items-center justify-between border border-danger/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-danger/5"
-              @click="handleUseMonsterLure"
-            >
-              <span class="text-xs text-danger">
-                <Skull :size="12" class="inline" />
-                怪物诱饵
-              </span>
-              <span class="text-xs text-muted">&times;{{ inventoryStore.getItemCount('monster_lure') }}</span>
-            </div>
-            <div
-              v-if="availableCombatItems.length > 0"
-              class="flex items-center justify-between border border-success/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-success/5"
-              @click="showCombatItems = true"
-            >
-              <span class="text-xs text-success">
-                <Backpack :size="12" class="inline" />
-                使用道具
-              </span>
-              <span class="text-xs text-muted">{{ availableCombatItems.length }}种</span>
-            </div>
-            <div
-              v-if="miningStore.stairsFound"
-              class="flex items-center justify-between border border-success/30 rounded-xs px-3 py-1.5"
-              :class="miningStore.stairsUsable ? 'cursor-pointer hover:bg-success/5' : 'opacity-50'"
-              @click="miningStore.stairsUsable && handleNextFloor()"
-            >
-              <span class="text-xs text-success">
-                <ChevronDown :size="12" class="inline" />
-                下一层
-              </span>
-              <span v-if="!miningStore.stairsUsable" class="text-xs text-muted">楼梯不可用</span>
-            </div>
-            <div
-              class="flex items-center justify-between border border-danger/30 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-danger/5"
-              @click="showLeaveConfirm = true"
-            >
-              <span class="text-xs text-danger">
-                <LogOut :size="12" class="inline" />
-                {{ miningStore.isInSkullCavern ? '离开骷髅矿穴' : '离开矿洞' }}
-              </span>
-            </div>
-          </div>
-
-          <!-- 探索日志 -->
-          <div class="text-xs text-muted space-y-0.5 max-h-24 overflow-y-auto">
-            <p v-for="(msg, i) in recentLog" :key="i" :class="{ 'text-text': i === recentLog.length - 1 }">{{ msg }}</p>
-          </div>
+          <MineExplorationLogPanel :logs="recentLog" />
         </div>
       </div>
     </Transition>
 
-    <!-- 战斗弹窗 -->
-    <Transition name="panel-fade">
-      <div v-if="miningStore.inCombat" class="fixed inset-0 bg-black/60 flex items-center justify-center z-[31] p-4">
-        <div class="game-panel max-w-xs w-full">
-          <!-- 标题 -->
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-sm" :class="miningStore.combatIsBoss ? 'text-danger' : 'text-accent'">
-              {{ miningStore.combatIsBoss ? 'BOSS 战' : '遭遇怪物' }}
-            </p>
-          </div>
+    <MineCombatDialog
+      :show="miningStore.inCombat"
+      :combat-is-boss="miningStore.combatIsBoss"
+      :player-hp="playerStore.hp"
+      :player-max-hp="playerStore.getMaxHp()"
+      :player-hp-percent="playerStore.getHpPercent()"
+      :player-is-low-hp="playerStore.getIsLowHp()"
+      :player-statuses="miningStore.combatPlayerStatuses"
+      :player-anim="playerAnim"
+      :player-float="playerFloat"
+      :monster-name="miningStore.combatMonster?.name"
+      :monster-hp="miningStore.combatMonsterHp"
+      :monster-max-hp="miningStore.combatMonster?.hp"
+      :monster-statuses="miningStore.combatMonsterStatuses"
+      :monster-anim="monsterAnim"
+      :monster-float="monsterFloat"
+      :combat-anim-lock="combatAnimLock"
+      :weapon-attack="weaponAttack"
+      :auto-combat-mode="autoCombatMode"
+      :combat-item-count="availableCombatItems.length"
+      :preset-count="inventoryStore.equipmentPresets.length"
+      :active-preset-name="activePresetName"
+      :combat-log="miningStore.combatLog"
+      :get-status-detail="getStatusDetail"
+      @combat-action="handleCombat"
+      @set-auto-combat-mode="setAutoCombatMode"
+      @open-combat-items="showCombatItems = true"
+      @open-preset-list="showPresetListModal = true"
+    />
 
-          <!-- 玩家 vs 怪物 -->
-          <div class="grid grid-cols-[1fr_auto_1fr] gap-1.5 mb-3 items-center">
-            <!-- 玩家 -->
-            <div class="border border-accent/10 rounded-xs p-2 relative" :class="playerAnim">
-              <p class="text-xs text-center mb-1.5 truncate">你</p>
-              <div class="bg-bg rounded-xs h-1.5 mb-1">
-                <div
-                  class="h-1.5 rounded-xs transition-all"
-                  :class="playerStore.getIsLowHp() ? 'bg-danger' : 'bg-success'"
-                  :style="{ width: `${playerStore.getHpPercent()}%` }"
-                />
-              </div>
-              <p class="text-[10px]" :class="playerStore.getIsLowHp() ? 'text-danger' : 'text-muted'">
-                {{ playerStore.hp }}/{{ playerStore.getMaxHp() }}
-              </p>
-              <div v-if="miningStore.combatPlayerStatuses.length > 0" class="flex flex-wrap gap-0.5 mt-1">
-                <span
-                  v-for="status in miningStore.combatPlayerStatuses"
-                  :key="status.type"
-                  class="text-[9px] border border-accent/20 rounded-xs px-1 text-accent"
-                  :title="getStatusDetail(status)"
-                >
-                  {{ status.name }}{{ status.remainingTurns === null ? '' : status.remainingTurns }}
-                </span>
-              </div>
-              <span
-                v-if="playerFloat"
-                :key="playerFloat.key"
-                class="absolute -top-1 right-0 text-danger text-[11px] font-bold anim-float-up pointer-events-none"
-              >
-                {{ playerFloat.text }}
-              </span>
-            </div>
-            <!-- VS -->
-            <span class="text-[10px] text-muted/40">VS</span>
-            <!-- 怪物 -->
-            <div class="border border-danger/20 rounded-xs p-2 relative" :class="monsterAnim">
-              <p class="text-xs text-center text-danger mb-1.5 truncate">
-                {{ miningStore.combatMonster?.name }}
-                <span v-if="miningStore.combatIsBoss" class="text-[10px]">[BOSS]</span>
-              </p>
-              <div class="bg-bg rounded-xs h-1.5 mb-1">
-                <div
-                  class="h-1.5 bg-danger rounded-xs transition-all"
-                  :style="{
-                    width: `${Math.max(0, Math.min(100, miningStore.combatMonster ? (miningStore.combatMonsterHp / miningStore.combatMonster.hp) * 100 : 0))}%`
-                  }"
-                />
-              </div>
-              <p class="text-[10px] text-muted">{{ miningStore.combatMonsterHp }}/{{ miningStore.combatMonster?.hp }}</p>
-              <div v-if="miningStore.combatMonsterStatuses.length > 0" class="flex flex-wrap gap-0.5 mt-1">
-                <span
-                  v-for="status in miningStore.combatMonsterStatuses"
-                  :key="status.type"
-                  class="text-[9px] border border-danger/20 rounded-xs px-1 text-danger"
-                  :title="getStatusDetail(status)"
-                >
-                  {{ status.name }}{{ status.remainingTurns === null ? '' : status.remainingTurns }}
-                </span>
-              </div>
-              <span
-                v-if="monsterFloat"
-                :key="monsterFloat.key"
-                class="absolute -top-1 right-0 text-accent text-[11px] font-bold anim-float-up pointer-events-none"
-              >
-                {{ monsterFloat.text }}
-              </span>
-            </div>
-          </div>
+    <MineCombatItemListDialog
+      :show="showCombatItems"
+      :items="availableCombatItems"
+      @close="showCombatItems = false"
+      @select-item="handlePendingItem"
+    />
 
-          <!-- 战斗操作 -->
-          <div class="mb-3 space-y-1">
-            <!-- 攻击 / 防御 / 逃跑 -->
-            <div class="grid grid-cols-3 gap-1">
-              <div
-                class="flex flex-col items-center border border-accent/20 rounded-xs py-1.5"
-                :class="combatAnimLock ? 'opacity-50' : 'cursor-pointer hover:bg-accent/5'"
-                @click="!combatAnimLock && handleCombat('attack')"
-              >
-                <span class="text-xs">
-                  <Swords :size="12" class="inline" />
-                  攻击
-                </span>
-                <span class="text-[10px] text-muted">{{ weaponAttack }}攻击力</span>
-              </div>
-              <div
-                class="flex flex-col items-center border border-accent/20 rounded-xs py-1.5"
-                :class="combatAnimLock ? 'opacity-50' : 'cursor-pointer hover:bg-accent/5'"
-                @click="!combatAnimLock && handleCombat('defend')"
-              >
-                <span class="text-xs">
-                  <Shield :size="12" class="inline" />
-                  防御
-                </span>
-                <span class="text-[10px] text-muted">减免伤害</span>
-              </div>
-              <div
-                class="flex flex-col items-center border rounded-xs py-1.5"
-                :class="
-                  miningStore.combatIsBoss || combatAnimLock
-                    ? 'border-accent/10 opacity-50'
-                    : 'border-danger/20 cursor-pointer hover:bg-danger/5'
-                "
-                @click="!miningStore.combatIsBoss && !combatAnimLock && handleCombat('flee')"
-              >
-                <span class="text-xs" :class="miningStore.combatIsBoss ? 'text-muted' : 'text-danger'">
-                  <MoveRight :size="12" class="inline" />
-                  {{ miningStore.combatIsBoss ? '无法' : '逃跑' }}
-                </span>
-                <span v-if="miningStore.combatIsBoss" class="text-[10px] text-muted/40">BOSS战</span>
-              </div>
-            </div>
-            <!-- 自动战斗 -->
-            <div class="grid grid-cols-4 gap-1">
-              <button
-                class="border rounded-xs py-1 text-[10px]"
-                :class="autoCombatMode === 'smart' ? 'border-accent text-accent bg-accent/10' : 'border-accent/20 text-muted'"
-                type="button"
-                @click="setAutoCombatMode(autoCombatMode === 'smart' ? 'off' : 'smart')"
-              >
-                智能
-              </button>
-              <button
-                class="border rounded-xs py-1 text-[10px]"
-                :class="autoCombatMode === 'attack' ? 'border-danger text-danger bg-danger/10' : 'border-accent/20 text-muted'"
-                type="button"
-                @click="setAutoCombatMode(autoCombatMode === 'attack' ? 'off' : 'attack')"
-              >
-                攻击
-              </button>
-              <button
-                class="border rounded-xs py-1 text-[10px]"
-                :class="autoCombatMode === 'defend' ? 'border-success text-success bg-success/10' : 'border-accent/20 text-muted'"
-                type="button"
-                @click="setAutoCombatMode(autoCombatMode === 'defend' ? 'off' : 'defend')"
-              >
-                防御
-              </button>
-              <button
-                class="border rounded-xs py-1 text-[10px]"
-                :class="autoCombatMode === 'off' ? 'border-accent/20 text-muted' : 'border-accent text-accent'"
-                type="button"
-                @click="setAutoCombatMode('off')"
-              >
-                关闭
-              </button>
-            </div>
-            <!-- 使用道具 -->
-            <div
-              v-if="availableCombatItems.length > 0"
-              class="flex items-center justify-between border border-success/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-success/5"
-              @click="showCombatItems = true"
-            >
-              <span class="text-xs text-success">
-                <Backpack :size="12" class="inline" />
-                使用道具
-              </span>
-              <span class="text-xs text-muted">{{ availableCombatItems.length }}种</span>
-            </div>
-            <!-- 切换装备方案 -->
-            <div
-              v-if="inventoryStore.equipmentPresets.length > 0"
-              class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
-              @click="showPresetListModal = true"
-            >
-              <span class="text-xs text-accent">
-                <BookMarked :size="12" class="inline" />
-                切换装备方案
-              </span>
-              <span v-if="inventoryStore.activePresetId" class="text-[10px] text-muted">
-                {{ inventoryStore.equipmentPresets.find(p => p.id === inventoryStore.activePresetId)?.name ?? '' }}
-              </span>
-            </div>
-          </div>
+    <MineCombatItemConfirmDialog
+      :item="pendingItem"
+      :can-batch="pendingCanBatch"
+      :quantity="pendingUseQty"
+      @cancel="pendingItemId = null"
+      @decrease-quantity="addUseQty(-1)"
+      @increase-quantity="addUseQty(1)"
+      @set-quantity="setUseQty"
+      @input-quantity="onUseQtyInput"
+      @confirm="handleConfirmUseItem"
+    />
 
-          <!-- 战斗日志 -->
-          <div class="text-xs space-y-0.5 max-h-28 overflow-y-auto">
-            <p
-              v-for="(msg, i) in miningStore.combatLog"
-              :key="i"
-              :class="i < miningStore.combatLog.length - 1 ? 'text-muted' : 'text-text'"
-            >
-              {{ msg }}
-            </p>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <MineLeaveConfirmDialog
+      :show="showLeaveConfirm"
+      :is-skull-cavern="miningStore.isInSkullCavern"
+      :leave-hint="leaveHint"
+      @cancel="showLeaveConfirm = false"
+      @confirm="confirmLeave"
+    />
 
-    <!-- 道具使用弹窗（战斗/探索共用） -->
-    <Transition name="panel-fade">
-      <div
-        v-if="showCombatItems"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
-        @click.self="showCombatItems = false"
-      >
-        <div class="game-panel max-w-xs w-full">
-          <div class="flex items-center justify-between mb-2">
-            <p class="text-sm text-accent">
-              <Backpack :size="14" class="inline" />
-              使用道具
-            </p>
-            <Button class="py-0 px-1" :icon="X" :icon-size="12" @click="showCombatItems = false" />
-          </div>
-          <div class="flex flex-col space-y-1 max-h-48 overflow-y-auto">
-            <div
-              v-for="item in availableCombatItems"
-              :key="item.itemId"
-              class="flex items-center justify-between border border-success/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-success/5"
-              @click="handlePendingItem(item.itemId)"
-            >
-              <div class="flex flex-col">
-                <span class="text-xs">{{ item.name }}</span>
-                <span class="text-[10px] text-muted">{{ item.desc }}</span>
-              </div>
-              <span class="text-xs text-muted">&times;{{ item.count }}</span>
-            </div>
-          </div>
-          <p v-if="availableCombatItems.length === 0" class="text-xs text-muted text-center py-2">没有可用道具</p>
-        </div>
-      </div>
-    </Transition>
+    <MineEquipmentPresetListDialog
+      :show="showPresetListModal"
+      :presets="inventoryStore.equipmentPresets"
+      :active-preset-id="inventoryStore.activePresetId"
+      @close="showPresetListModal = false"
+      @apply-preset="quickApplyPreset"
+      @view-preset="viewPresetDetail"
+    />
 
-    <!-- 道具使用确认弹窗 -->
-    <Transition name="panel-fade">
-      <div
-        v-if="pendingItem"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
-        @click.self="pendingItemId = null"
-      >
-        <div class="game-panel max-w-xs w-full relative">
-          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="pendingItemId = null">
-            <X :size="14" />
-          </button>
-          <p class="text-sm text-accent mb-2">使用道具</p>
-          <div class="border border-accent/10 rounded-xs p-2 mb-2">
-            <div class="flex items-center justify-between">
-              <span class="text-xs text-muted">道具</span>
-              <span class="text-xs">{{ pendingItem.name }}</span>
-            </div>
-            <div class="flex items-center justify-between mt-0.5">
-              <span class="text-xs text-muted">效果</span>
-              <span class="text-xs text-success">{{ pendingItem.desc }}</span>
-            </div>
-            <div class="flex items-center justify-between mt-0.5">
-              <span class="text-xs text-muted">剩余</span>
-              <span class="text-xs">×{{ pendingItem.count }}</span>
-            </div>
-          </div>
-          <!-- 批量数量选择（仅永久增益类道具） -->
-          <div v-if="pendingCanBatch && pendingItem.count > 1" class="border border-accent/10 rounded-xs p-2 mb-2">
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="text-xs text-muted">使用数量</span>
-              <div class="flex items-center space-x-1">
-                <Button class="h-6 px-1.5 py-0.5 text-xs justify-center" :disabled="pendingUseQty <= 1" @click="addUseQty(-1)">-</Button>
-                <input
-                  type="number"
-                  :value="pendingUseQty"
-                  min="1"
-                  :max="pendingItem.count"
-                  class="w-24 h-6 px-2 py-0.5 bg-bg border border-accent/30 rounded-xs text-xs text-center text-accent outline-none focus:border-accent transition-colors"
-                  @input="onUseQtyInput"
-                />
-                <Button
-                  class="h-6 px-1.5 py-0.5 text-xs justify-center"
-                  :disabled="pendingUseQty >= pendingItem.count"
-                  @click="addUseQty(1)"
-                >
-                  +
-                </Button>
-              </div>
-            </div>
-            <div class="flex space-x-1">
-              <Button class="flex-1 justify-center" :disabled="pendingUseQty <= 1" @click="pendingUseQty = 1">最少</Button>
-              <Button
-                class="flex-1 justify-center"
-                :disabled="pendingUseQty >= pendingItem.count"
-                @click="pendingUseQty = pendingItem.count"
-              >
-                最多
-              </Button>
-            </div>
-          </div>
-          <div class="flex space-x-1.5">
-            <Button class="flex-1 justify-center" @click="pendingItemId = null">取消</Button>
-            <Button class="flex-1 justify-center !bg-accent !text-bg" @click="handleConfirmUseItem">
-              确认使用{{ pendingCanBatch && pendingUseQty > 1 ? ` ×${pendingUseQty}` : '' }}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <MineEquipmentPresetDetailDialog
+      :show="showPresetDetailModal"
+      :preset="detailPreset"
+      @close="showPresetDetailModal = false"
+      @view-equipment="viewEquipProperty"
+    />
 
-    <!-- 离开矿洞确认弹窗 -->
-    <Transition name="panel-fade">
-      <div
-        v-if="showLeaveConfirm"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
-        @click.self="showLeaveConfirm = false"
-      >
-        <div class="game-panel max-w-xs w-full">
-          <p class="text-sm text-accent mb-2">确认离开</p>
-          <p class="text-xs text-muted mb-3">确定要离开{{ miningStore.isInSkullCavern ? '骷髅矿穴' : '矿洞' }}吗？{{ leaveHint }}</p>
-          <div class="flex space-x-1.5">
-            <Button class="flex-1 justify-center" @click="showLeaveConfirm = false">继续探索</Button>
-            <Button class="flex-1 justify-center btn-danger" :icon="LogOut" @click="confirmLeave">确认离开</Button>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- 快速切装：方案列表弹窗 -->
-    <Transition name="panel-fade">
-      <div
-        v-if="showPresetListModal"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[32] p-4"
-        @click.self="showPresetListModal = false"
-      >
-        <div class="game-panel max-w-xs w-full relative">
-          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showPresetListModal = false">
-            <X :size="14" />
-          </button>
-          <p class="text-sm text-accent mb-2">
-            <BookMarked :size="14" class="inline" />
-            装备方案
-          </p>
-          <div v-if="inventoryStore.equipmentPresets.length > 0" class="flex flex-col space-y-1.5 max-h-60 overflow-y-auto">
-            <div
-              v-for="preset in inventoryStore.equipmentPresets"
-              :key="preset.id"
-              class="border rounded-xs p-2"
-              :class="inventoryStore.activePresetId === preset.id ? 'border-accent/40' : 'border-accent/10'"
-            >
-              <div class="flex items-center justify-between mb-1">
-                <p class="text-xs text-accent truncate">{{ preset.name }}</p>
-                <span v-if="inventoryStore.activePresetId === preset.id" class="text-[10px] text-success shrink-0 ml-1">使用中</span>
-              </div>
-              <div class="grid grid-cols-2 gap-1">
-                <Button
-                  class="py-0 px-1.5 text-[10px]"
-                  :disabled="inventoryStore.activePresetId === preset.id"
-                  @click="quickApplyPreset(preset.id)"
-                >
-                  使用
-                </Button>
-                <Button class="py-0 px-1.5 text-[10px]" @click="viewPresetDetail(preset.id)">查看</Button>
-              </div>
-            </div>
-          </div>
-          <div v-else class="flex flex-col items-center justify-center py-6">
-            <BookMarked :size="24" class="text-muted/30" />
-            <p class="text-xs text-muted mt-1">暂无方案</p>
-            <p class="text-[10px] text-muted/60 mt-0.5">前往背包装备页创建方案</p>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- 快速切装：方案详情弹窗 -->
-    <Transition name="panel-fade">
-      <div
-        v-if="showPresetDetailModal && detailPreset"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[33] p-4"
-        @click.self="showPresetDetailModal = false"
-      >
-        <div class="game-panel max-w-xs w-full relative">
-          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showPresetDetailModal = false">
-            <X :size="14" />
-          </button>
-          <p class="text-sm text-accent mb-2">{{ detailPreset.name }}</p>
-          <div class="flex flex-col space-y-1">
-            <div
-              class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5"
-              :class="detailPreset.weaponDefId ? 'cursor-pointer hover:bg-accent/5' : ''"
-              @click="detailPreset.weaponDefId && viewEquipProperty('weapon', detailPreset.weaponDefId)"
-            >
-              <span class="text-xs text-muted">武器</span>
-              <span class="text-xs" :class="detailPreset.weaponDefId ? 'text-accent' : 'text-muted/40'">
-                {{ detailPreset.weaponDefId ? (getWeaponById(detailPreset.weaponDefId)?.name ?? '未知') : '无' }}
-              </span>
-            </div>
-            <div
-              class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5"
-              :class="detailPreset.ringSlot1DefId ? 'cursor-pointer hover:bg-accent/5' : ''"
-              @click="detailPreset.ringSlot1DefId && viewEquipProperty('ring', detailPreset.ringSlot1DefId)"
-            >
-              <span class="text-xs text-muted">戒指1</span>
-              <span class="text-xs" :class="detailPreset.ringSlot1DefId ? 'text-accent' : 'text-muted/40'">
-                {{ detailPreset.ringSlot1DefId ? (getRingById(detailPreset.ringSlot1DefId)?.name ?? '未知') : '无' }}
-              </span>
-            </div>
-            <div
-              class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5"
-              :class="detailPreset.ringSlot2DefId ? 'cursor-pointer hover:bg-accent/5' : ''"
-              @click="detailPreset.ringSlot2DefId && viewEquipProperty('ring', detailPreset.ringSlot2DefId)"
-            >
-              <span class="text-xs text-muted">戒指2</span>
-              <span class="text-xs" :class="detailPreset.ringSlot2DefId ? 'text-accent' : 'text-muted/40'">
-                {{ detailPreset.ringSlot2DefId ? (getRingById(detailPreset.ringSlot2DefId)?.name ?? '未知') : '无' }}
-              </span>
-            </div>
-            <div
-              class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5"
-              :class="detailPreset.hatDefId ? 'cursor-pointer hover:bg-accent/5' : ''"
-              @click="detailPreset.hatDefId && viewEquipProperty('hat', detailPreset.hatDefId)"
-            >
-              <span class="text-xs text-muted">帽子</span>
-              <span class="text-xs" :class="detailPreset.hatDefId ? 'text-accent' : 'text-muted/40'">
-                {{ detailPreset.hatDefId ? (getHatById(detailPreset.hatDefId)?.name ?? '未知') : '无' }}
-              </span>
-            </div>
-            <div
-              class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1.5"
-              :class="detailPreset.shoeDefId ? 'cursor-pointer hover:bg-accent/5' : ''"
-              @click="detailPreset.shoeDefId && viewEquipProperty('shoe', detailPreset.shoeDefId)"
-            >
-              <span class="text-xs text-muted">鞋子</span>
-              <span class="text-xs" :class="detailPreset.shoeDefId ? 'text-accent' : 'text-muted/40'">
-                {{ detailPreset.shoeDefId ? (getShoeById(detailPreset.shoeDefId)?.name ?? '未知') : '无' }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
-
-    <!-- 快速切装：装备属性弹窗 -->
-    <Transition name="panel-fade">
-      <div
-        v-if="showEquipPropertyModal && equipPropertyInfo"
-        class="fixed inset-0 bg-black/60 flex items-center justify-center z-[34] p-4"
-        @click.self="showEquipPropertyModal = false"
-      >
-        <div class="game-panel max-w-xs w-full relative">
-          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showEquipPropertyModal = false">
-            <X :size="14" />
-          </button>
-          <p class="text-[10px] text-muted mb-0.5">{{ equipPropertyInfo.category }}</p>
-          <p class="text-sm text-accent mb-1">{{ equipPropertyInfo.name }}</p>
-          <p class="text-xs text-muted mb-2">{{ equipPropertyInfo.description }}</p>
-          <div v-if="equipPropertyInfo.effects.length > 0" class="flex flex-col space-y-1">
-            <div
-              v-for="(eff, i) in equipPropertyInfo.effects"
-              :key="i"
-              class="flex items-center justify-between border border-accent/10 rounded-xs px-3 py-1"
-            >
-              <span class="text-xs text-muted">{{ eff.label }}</span>
-              <span class="text-xs text-accent">{{ eff.value }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Transition>
+    <MineEquipmentPropertyDialog :show="showEquipPropertyModal" :info="equipPropertyInfo" @close="showEquipPropertyModal = false" />
   </div>
 </template>
 
@@ -863,19 +202,7 @@
   import {
     Mountain,
     Pickaxe,
-    Zap,
-    ChevronDown,
-    LogOut,
-    Swords,
-    Shield,
-    MoveRight,
-    Skull,
-    X,
     Map,
-    Backpack,
-    Lock,
-    BookMarked,
-    Check
   } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import { useAchievementStore } from '@/stores/useAchievementStore'
@@ -886,17 +213,43 @@
   import { useSkillStore } from '@/stores/useSkillStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { ZONE_NAMES, getFloor, BOSS_MONSTERS } from '@/data'
-  import { getWeaponById, getOwnedWeaponEnchantments, getWeaponDisplayName, WEAPON_TYPE_NAMES, formatEnchantmentSummary, summarizeEnchantments } from '@/data/weapons'
+  import { getWeaponById, getOwnedWeaponEnchantments, getWeaponDisplayName, WEAPON_TYPE_NAMES, formatEnchantmentSummary } from '@/data/weapons'
   import { getRingById, getHatById, getShoeById } from '@/data'
-  import type { EquipmentEffectType } from '@/types'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { BOMBS } from '@/data/processing'
   import { getItemById } from '@/data/items'
   import type { CombatAction, CombatStatusEffect, MineTile } from '@/types'
+  import {
+    AUTO_EXPLORE_BEDTIME_STOP_MESSAGE,
+    AUTO_EXPLORE_NO_ACTION_STOP_MESSAGE,
+    chooseAutoExploreStep
+  } from '@/domain/mining/autoExplore'
+  import { chooseAutoCombatAction as chooseAutoCombatActionRule } from '@/domain/mining/combat'
+  import { buildMineElevatorZones, buildMineMapZones, buildSkullElevatorFloors, createMineLeaveHint } from '@/domain/mining/navigationDisplay'
+  import { getMineTileClass, getMineTileIcon, isMineTileClickable } from '@/domain/mining/tileDisplay'
+  import { createHatDetailInfo, createRingDetailInfo, createShoeDetailInfo, createWeaponDetailInfo } from '@/domain/enchantments/equipmentEffects'
+  import { createWeaponEnchantmentDetailInfo } from '@/domain/enchantments/summarizeEnchantments'
   import { sfxMine, sfxAttack, sfxHurt, sfxClick, sfxEncounter, sfxDefend, sfxFlee, sfxVictory } from '@/composables/useAudio'
   import { useAudio } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
   import { handleAdvanceTimeResult, handleSleepOrPassOut } from '@/composables/useEndDay'
+  import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
+  import MineCombatDialog from '@/components/game/mining/MineCombatDialog.vue'
+  import DefeatedBossListPanel from '@/components/game/mining/DefeatedBossListPanel.vue'
+  import MineCombatItemConfirmDialog from '@/components/game/mining/MineCombatItemConfirmDialog.vue'
+  import MineCombatItemListDialog from '@/components/game/mining/MineCombatItemListDialog.vue'
+  import MineElevatorDialog from '@/components/game/mining/MineElevatorDialog.vue'
+  import MineEquipmentPropertyDialog from '@/components/game/mining/MineEquipmentPropertyDialog.vue'
+  import MineEquipmentPresetDetailDialog from '@/components/game/mining/MineEquipmentPresetDetailDialog.vue'
+  import MineEquipmentPresetListDialog from '@/components/game/mining/MineEquipmentPresetListDialog.vue'
+  import MineExplorationActionsPanel from '@/components/game/mining/MineExplorationActionsPanel.vue'
+  import MineExplorationHeaderPanel from '@/components/game/mining/MineExplorationHeaderPanel.vue'
+  import MineExplorationLogPanel from '@/components/game/mining/MineExplorationLogPanel.vue'
+  import MineGridPanel from '@/components/game/mining/MineGridPanel.vue'
+  import MineLeaveConfirmDialog from '@/components/game/mining/MineLeaveConfirmDialog.vue'
+  import MineMapDialog from '@/components/game/mining/MineMapDialog.vue'
+  import MiningEquipmentStatusPanel from '@/components/game/mining/MiningEquipmentStatusPanel.vue'
+  import SkullCavernStatusPanel from '@/components/game/mining/SkullCavernStatusPanel.vue'
 
   const miningStore = useMiningStore()
   const gameStore = useGameStore()
@@ -943,22 +296,18 @@
     guardian_potion: '本次探索受到伤害-35%'
   }
   const pendingItemId = ref<string | null>(null)
-  const pendingUseQty = ref(1)
   const pendingItem = computed(() => {
     if (!pendingItemId.value) return null
     return availableCombatItems.value.find(i => i.itemId === pendingItemId.value) ?? null
   })
   const pendingCanBatch = computed(() => pendingItemId.value !== null && BATCH_USABLE_ITEMS.has(pendingItemId.value))
-
-  const addUseQty = (delta: number) => {
-    const max = pendingItem.value?.count ?? 1
-    pendingUseQty.value = Math.max(1, Math.min(max, pendingUseQty.value + delta))
-  }
-  const onUseQtyInput = (e: Event) => {
-    const val = parseInt((e.target as HTMLInputElement).value) || 1
-    const max = pendingItem.value?.count ?? 1
-    pendingUseQty.value = Math.max(1, Math.min(max, val))
-  }
+  const pendingUseQuantityPicker = useQuantityPicker({
+    maxQuantity: () => pendingItem.value?.count ?? 1
+  })
+  const pendingUseQty = pendingUseQuantityPicker.quantity
+  const setUseQty = pendingUseQuantityPicker.setQuantity
+  const addUseQty = pendingUseQuantityPicker.addQuantity
+  const onUseQtyInput = (e: Event) => pendingUseQuantityPicker.setQuantityFromInput((e.target as HTMLInputElement).value)
 
   /** 离开矿洞确认 */
   const showLeaveConfirm = ref(false)
@@ -1123,32 +472,14 @@
 
   /** 矿洞地图区域数据 */
   const mineZones = computed(() => {
-    const zones = [
-      { id: 'shallow', name: '浅矿·土石洞穴', start: 1, end: 20, bossFloor: 20 },
-      { id: 'frost', name: '冰窟·冰霜暗河', start: 21, end: 40, bossFloor: 40 },
-      { id: 'lava', name: '熔岩层·地火暗涌', start: 41, end: 60, bossFloor: 60 },
-      { id: 'crystal', name: '晶窟·水晶迷宫', start: 61, end: 80, bossFloor: 80 },
-      { id: 'shadow', name: '幽境·暗影裂隙', start: 81, end: 100, bossFloor: 100 },
-      { id: 'abyss', name: '深渊·无底深渊', start: 101, end: 120, bossFloor: 120 }
-    ]
-    const sp = miningStore.safePointFloor
-    return zones.map(z => {
-      const reached = sp >= z.start - 1
-      const boss = BOSS_MONSTERS[z.bossFloor]
-      const bossDefeated = boss ? miningStore.defeatedBosses.includes(boss.id) : false
-      const progress = Math.min(100, Math.max(0, ((sp - (z.start - 1)) / 20) * 100))
-      const isCurrentZone = sp >= z.start - 1 && sp < z.end
-      return {
-        ...z,
-        reached,
-        bossName: boss?.name ?? '???',
-        bossDefeated,
-        progress: reached ? Math.max(5, progress) : 0,
-        isCurrentZone,
-        barColor: bossDefeated ? 'bg-success' : isCurrentZone ? 'bg-accent' : reached ? 'bg-accent/50' : 'bg-bg'
-      }
+    return buildMineMapZones({
+      safePointFloor: miningStore.safePointFloor,
+      defeatedBossIds: miningStore.defeatedBosses,
+      bossesByFloor: BOSS_MONSTERS
     })
   })
+
+  const defeatedBossZones = computed(() => mineZones.value.filter(zone => zone.bossDefeated))
 
   /** 当前层是否为特殊楼层 */
   const currentFloorSpecial = computed(() => {
@@ -1188,108 +519,53 @@
     const owned = inventoryStore.getEquippedWeapon()
     return formatEnchantmentSummary(getOwnedWeaponEnchantments(owned))
   })
+  const activePresetName = computed(() => {
+    return inventoryStore.equipmentPresets.find(p => p.id === inventoryStore.activePresetId)?.name ?? ''
+  })
 
   /** 电梯楼层按区域分组 */
   const elevatorZones = computed(() => {
-    const allSafePoints = miningStore.getUnlockedSafePoints().filter(sp => sp < miningStore.safePointFloor)
-    const zones = [
-      { name: '浅矿', min: 0, max: 20 },
-      { name: '冰窟', min: 21, max: 40 },
-      { name: '熔岩', min: 41, max: 60 },
-      { name: '晶窟', min: 61, max: 80 },
-      { name: '幽境', min: 81, max: 100 },
-      { name: '深渊', min: 101, max: 120 }
-    ]
-    return zones
-      .map(z => ({
-        name: z.name,
-        floors: allSafePoints.filter(sp => sp >= z.min && sp <= z.max)
-      }))
-      .filter(z => z.floors.length > 0)
+    return buildMineElevatorZones(miningStore.getUnlockedSafePoints(), miningStore.safePointFloor)
   })
 
   /** 离开矿洞提示文案 */
   const leaveHint = computed(() => {
-    if (miningStore.isInSkullCavern) {
-      const floorData = miningStore.getActiveFloorData()
-      if (floorData?.isSafePoint) return `当前为安全点，进度将保存至第${miningStore.skullCavernFloor}层。`
-      const lastSafe = miningStore.skullSafePointFloor
-      return lastSafe > 0 ? `下次将从第${lastSafe + 1}层开始。` : '当前进度不会保留。'
-    }
-    return '当前进度不会保留。'
+    return createMineLeaveHint({
+      isInSkullCavern: miningStore.isInSkullCavern,
+      activeFloorIsSafePoint: Boolean(miningStore.getActiveFloorData()?.isSafePoint),
+      skullCavernFloor: miningStore.skullCavernFloor,
+      skullSafePointFloor: miningStore.skullSafePointFloor
+    })
   })
 
   /** 骷髅矿穴可选安全点楼层（排除最高安全点，因为主按钮已默认从那里开始） */
   const skullElevatorFloors = computed(() => {
-    return miningStore.getUnlockedSkullSafePoints().filter(sp => sp < miningStore.skullSafePointFloor)
+    return buildSkullElevatorFloors(miningStore.getUnlockedSkullSafePoints(), miningStore.skullSafePointFloor)
   })
 
   // ==================== 格子 UI 辅助 ====================
 
   /** 格子样式 */
   const getTileClass = (tile: MineTile): string => {
-    if (tile.state === 'hidden') {
-      if (bombModeId.value) return 'bg-panel/50 border-accent/10 cursor-not-allowed opacity-40'
-      if (miningStore.canRevealTile(tile.index)) return 'bg-panel border-accent/30 hover:border-accent cursor-pointer'
-      return 'bg-panel/50 border-accent/10 cursor-not-allowed opacity-40'
-    }
-    switch (tile.type) {
-      case 'empty':
-        return 'bg-bg border-accent/10'
-      case 'ore':
-        return tile.state === 'collected' ? 'bg-bg border-accent/10' : 'bg-accent/20 border-accent/40'
-      case 'monster':
-        return tile.state === 'defeated' ? 'bg-bg border-accent/10' : 'bg-danger/20 border-danger/40 cursor-pointer'
-      case 'boss':
-        return tile.state === 'defeated' ? 'bg-bg border-accent/10' : 'bg-danger/30 border-danger/50 cursor-pointer'
-      case 'stairs':
-        return 'bg-success/20 border-success/40'
-      case 'trap':
-        return 'bg-danger/10 border-danger/20'
-      case 'treasure':
-        return tile.state === 'collected' ? 'bg-bg border-accent/10' : 'bg-accent/30 border-accent/50'
-      case 'mushroom':
-        return tile.state === 'collected' ? 'bg-bg border-accent/10' : 'bg-success/20 border-success/30'
-      default:
-        return 'bg-bg border-accent/10'
-    }
+    return getMineTileClass({
+      tile,
+      bombModeActive: Boolean(bombModeId.value),
+      canReveal: miningStore.canRevealTile(tile.index)
+    })
   }
 
   /** 格子图标 */
   const getTileIcon = (tile: MineTile): string => {
-    if (tile.state === 'hidden') return '?'
-    switch (tile.type) {
-      case 'empty':
-        return '\u00B7'
-      case 'ore':
-        return tile.state === 'collected' ? '\u00B7' : '\u25C6'
-      case 'monster':
-        return tile.state === 'defeated' ? '\u00D7' : '!'
-      case 'boss':
-        return tile.state === 'defeated' ? '\u00D7' : '\u2620'
-      case 'stairs':
-        return '\u25BC'
-      case 'trap':
-        return '\u25B3'
-      case 'treasure':
-        return tile.state === 'collected' ? '\u00B7' : '\u2605'
-      case 'mushroom':
-        return tile.state === 'collected' ? '\u00B7' : '\u273F'
-      default:
-        return '\u00B7'
-    }
+    return getMineTileIcon(tile)
   }
 
   /** 格子是否可点击 */
   const isTileClickable = (tile: MineTile): boolean => {
-    if (bombModeId.value) {
-      return tile.state !== 'hidden'
-    }
-    // 已揭示的怪物/BOSS格可以重新交战
-    if (tile.state === 'revealed' && (tile.type === 'monster' || tile.type === 'boss') && tile.data?.monster) {
-      return true
-    }
-    return tile.state === 'hidden' && miningStore.canRevealTile(tile.index)
+    return isMineTileClickable({
+      tile,
+      bombModeActive: Boolean(bombModeId.value),
+      canReveal: miningStore.canRevealTile(tile.index)
+    })
   }
 
   /** 格子点击处理 */
@@ -1439,7 +715,7 @@
 
   const handlePendingItem = (itemId: string) => {
     pendingItemId.value = itemId
-    pendingUseQty.value = 1
+    pendingUseQuantityPicker.resetQuantity(1)
     showCombatItems.value = false
   }
 
@@ -1531,58 +807,66 @@
   }
 
   const runAutoExplore = () => {
-    if (!autoExploreActive.value) return
-    if (!miningStore.isExploring || playerStore.hp <= 0) {
-      stopAutoExplore()
-      return
-    }
-    if (gameStore.isPastBedtime) {
-      stopAutoExplore('太晚了，自动探索已停止。')
-      handleSleepOrPassOut()
-      return
-    }
-    if (miningStore.inCombat) {
-      if (autoCombatMode.value === 'off') autoCombatMode.value = 'smart'
-      scheduleAutoCombat()
-      return
-    }
+    const step = chooseAutoExploreStep({
+      autoExploreActive: autoExploreActive.value,
+      isExploring: miningStore.isExploring,
+      playerHp: playerStore.hp,
+      isPastBedtime: gameStore.isPastBedtime,
+      inCombat: miningStore.inCombat,
+      remainingCombatTiles: remainingCombatTiles.value,
+      stairsUsable: miningStore.stairsUsable
+    })
 
-    showCombatItems.value = false
-    if (remainingCombatTiles.value > 0) {
-      const result = miningStore.startChainBattle()
-      sfxClick()
-      addLog(result.message)
-      exploreLog.value.push(result.message)
-      if (result.startsCombat) {
-        startBattleBgm()
-        sfxEncounter()
+    switch (step) {
+      case 'idle':
+        return
+      case 'stop':
+        stopAutoExplore()
+        return
+      case 'sleepOrPassOut':
+        stopAutoExplore(AUTO_EXPLORE_BEDTIME_STOP_MESSAGE)
+        handleSleepOrPassOut()
+        return
+      case 'continueCombat':
+        if (autoCombatMode.value === 'off') autoCombatMode.value = 'smart'
         scheduleAutoCombat()
-      } else {
-        scheduleAutoExplore()
+        return
+      case 'startChainBattle': {
+        showCombatItems.value = false
+        const result = miningStore.startChainBattle()
+        sfxClick()
+        addLog(result.message)
+        exploreLog.value.push(result.message)
+        if (result.startsCombat) {
+          startBattleBgm()
+          sfxEncounter()
+          scheduleAutoCombat()
+        } else {
+          scheduleAutoExplore()
+        }
+        return
       }
-      return
+      case 'goNextFloor':
+        showCombatItems.value = false
+        handleNextFloor()
+        scheduleAutoExplore(700)
+        return
+      case 'stopNoAction':
+        showCombatItems.value = false
+        stopAutoExplore(AUTO_EXPLORE_NO_ACTION_STOP_MESSAGE)
+        return
     }
-
-    if (miningStore.stairsUsable) {
-      handleNextFloor()
-      scheduleAutoExplore(700)
-      return
-    }
-
-    stopAutoExplore('本层没有可连战的敌人或可用楼梯，自动探索已停止。')
   }
 
   const chooseAutoCombatAction = (): CombatAction => {
-    if (autoCombatMode.value === 'attack') return 'attack'
-    if (autoCombatMode.value === 'defend') return 'defend'
-
-    const monsterAttack = miningStore.combatMonster?.attack ?? 0
-    const hp = playerStore.hp
-    const maxHp = playerStore.getMaxHp()
-    const dangerLine = Math.max(maxHp * 0.35, monsterAttack * 2.2)
-    if (hp <= dangerLine) return 'defend'
-    if (miningStore.combatMonsterHp <= Math.max(1, weaponAttack.value * 1.2)) return 'attack'
-    return 'attack'
+    return chooseAutoCombatActionRule({
+      mode: autoCombatMode.value,
+      monsterAttack: miningStore.combatMonster?.attack ?? 0,
+      playerHp: playerStore.hp,
+      playerMaxHp: playerStore.getMaxHp(),
+      monsterHp: miningStore.combatMonsterHp,
+      playerAttack: weaponAttack.value
+    })
   }
 
   const scheduleAutoCombat = () => {
@@ -1649,60 +933,6 @@
 
   const equipPropertyInfo = ref<EquipPropertyInfo | null>(null)
 
-  const EFFECT_NAMES: Record<EquipmentEffectType, string> = {
-    attack_bonus: '攻击力',
-    crit_rate_bonus: '暴击率',
-    defense_bonus: '防御',
-    vampiric: '吸血',
-    max_hp_bonus: '最大HP',
-    stamina_reduction: '体力消耗',
-    mining_stamina: '采矿体力',
-    farming_stamina: '农作体力',
-    fishing_stamina: '钓鱼体力',
-    crop_quality_bonus: '作物品质',
-    crop_growth_bonus: '作物生长',
-    fish_quality_bonus: '鱼类品质',
-    fishing_calm: '钓鱼稳定',
-    sell_price_bonus: '售价加成',
-    shop_discount: '商店折扣',
-    gift_friendship: '送礼好感',
-    monster_drop_bonus: '掉落率',
-    exp_bonus: '经验加成',
-    treasure_find: '宝箱概率',
-    ore_bonus: '矿石加成',
-    luck: '幸运',
-    travel_speed: '旅行加速',
-    combat_regen: '回合自愈'
-  }
-
-  const PCTG_EFFECTS: Set<EquipmentEffectType> = new Set([
-    'crit_rate_bonus',
-    'vampiric',
-    'stamina_reduction',
-    'mining_stamina',
-    'farming_stamina',
-    'fishing_stamina',
-    'crop_quality_bonus',
-    'crop_growth_bonus',
-    'fish_quality_bonus',
-    'fishing_calm',
-    'sell_price_bonus',
-    'shop_discount',
-    'gift_friendship',
-    'monster_drop_bonus',
-    'exp_bonus',
-    'treasure_find',
-    'ore_bonus',
-    'luck',
-    'travel_speed',
-    'defense_bonus'
-  ])
-
-  const fmtEffect = (eff: { type: EquipmentEffectType; value: number }): string => {
-    if (PCTG_EFFECTS.has(eff.type)) return `+${Math.round(eff.value * 100)}%`
-    return `+${eff.value}`
-  }
-
   const detailPreset = computed(() => {
     if (!detailPresetId.value) return null
     return inventoryStore.equipmentPresets.find(p => p.id === detailPresetId.value) ?? null
@@ -1720,17 +950,9 @@
   }
 
   const viewWeaponEnchantmentDetail = () => {
-    const summary = summarizeEnchantments(getOwnedWeaponEnchantments(inventoryStore.getEquippedWeapon()))
-    if (summary.length === 0) return
-    equipPropertyInfo.value = {
-      category: '武器附魔',
-      name: weaponDisplayName.value,
-      description: '同种附魔已合并显示。',
-      effects: summary.map(enchant => ({
-        label: enchant.count > 1 ? `${enchant.name}x${enchant.count}` : enchant.name,
-        value: enchant.description
-      }))
-    }
+    const info = createWeaponEnchantmentDetailInfo(weaponDisplayName.value, getOwnedWeaponEnchantments(inventoryStore.getEquippedWeapon()))
+    if (!info) return
+    equipPropertyInfo.value = info
     showEquipPropertyModal.value = true
   }
 
@@ -1738,43 +960,19 @@
     if (type === 'weapon') {
       const def = getWeaponById(defId)
       if (!def) return
-      equipPropertyInfo.value = {
-        category: '武器',
-        name: def.name,
-        description: def.description,
-        effects: [
-          { label: '攻击力', value: `${def.attack}` },
-          { label: '类型', value: WEAPON_TYPE_NAMES[def.type] },
-          { label: '暴击率', value: `${Math.round(def.critRate * 100)}%` }
-        ]
-      }
+      equipPropertyInfo.value = createWeaponDetailInfo(def, WEAPON_TYPE_NAMES[def.type])
     } else if (type === 'ring') {
       const def = getRingById(defId)
       if (!def) return
-      equipPropertyInfo.value = {
-        category: '戒指',
-        name: def.name,
-        description: def.description,
-        effects: def.effects.map(e => ({ label: EFFECT_NAMES[e.type], value: fmtEffect(e) }))
-      }
+      equipPropertyInfo.value = createRingDetailInfo(def)
     } else if (type === 'hat') {
       const def = getHatById(defId)
       if (!def) return
-      equipPropertyInfo.value = {
-        category: '帽子',
-        name: def.name,
-        description: def.description,
-        effects: def.effects.map(e => ({ label: EFFECT_NAMES[e.type], value: fmtEffect(e) }))
-      }
+      equipPropertyInfo.value = createHatDetailInfo(def)
     } else {
       const def = getShoeById(defId)
       if (!def) return
-      equipPropertyInfo.value = {
-        category: '鞋子',
-        name: def.name,
-        description: def.description,
-        effects: def.effects.map(e => ({ label: EFFECT_NAMES[e.type], value: fmtEffect(e) }))
-      }
+      equipPropertyInfo.value = createShoeDetailInfo(def)
     }
     showEquipPropertyModal.value = true
   }

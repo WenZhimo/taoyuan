@@ -665,7 +665,7 @@
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, ref, toRef } from 'vue'
   import { ArrowUp, Calendar, Gift, Hammer, Home, Heart, MessageCircle, UserPlus, Users, Wine, X } from 'lucide-vue-next'
   import { useCookingStore } from '@/stores/useCookingStore'
   import { useGameStore } from '@/stores/useGameStore'
@@ -683,6 +683,7 @@
   import { addLog } from '@/composables/useGameLog'
   import { showChildProposal, triggerHeartEvent } from '@/composables/useDialogs'
   import { handleEndDay } from '@/composables/useEndDay'
+  import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
   import Button from '@/components/game/Button.vue'
   import PaginationControls from '@/components/game/PaginationControls.vue'
 
@@ -703,8 +704,12 @@
   const dismissConfirmNpcId = ref<string | null>(null)
   const removeAgingConfirmIdx = ref<number | null>(null)
   const showCellarUpgradeModal = ref(false)
-  const PAGE_SIZE = 50
-  const cellarPage = ref(1)
+  const PAGE_SIZE = DEFAULT_PAGE_SIZE
+  const cellarSlotRows = computed(() => homeStore.cellarSlots.map((slot, index) => ({ slot, index })))
+  const {
+    currentPage: cellarPage,
+    pagedItems: pagedCellarSlots
+  } = usePagination(toRef(cellarSlotRows), PAGE_SIZE)
   const cellarCapacityLabel = computed(() => (Number.isFinite(homeStore.cellarMaxSlots) ? String(homeStore.cellarMaxSlots) : '无限'))
   const cellarUpgradeCapacityLabel = computed(() => {
     const upgrade = homeStore.nextCellarUpgrade
@@ -718,12 +723,6 @@
   const hireableNpcs = computed(() => npcStore.getHireableNpcs())
   const currentHelpers = computed(() => npcStore.hiredHelpers)
   const hireConfirmNpc = computed(() => (hireConfirmNpcId.value ? getNpcById(hireConfirmNpcId.value) : null))
-  const pagedCellarSlots = computed(() =>
-    homeStore.cellarSlots
-      .map((slot, index) => ({ slot, index }))
-      .slice((cellarPage.value - 1) * PAGE_SIZE, cellarPage.value * PAGE_SIZE)
-  )
-
   const handleHire = (npcId: string) => {
     const result = npcStore.hireHelper(npcId, selectedHireTask.value)
     addLog(result.message)

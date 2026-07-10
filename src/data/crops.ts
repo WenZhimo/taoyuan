@@ -4944,14 +4944,22 @@ export const CROPS: CropDef[] = [
   }
 ]
 
+const CROP_BY_ID = new Map<string, CropDef>()
+const CROP_BY_SEED_ID = new Map<string, CropDef>()
+
+for (const crop of CROPS) {
+  if (!CROP_BY_ID.has(crop.id)) CROP_BY_ID.set(crop.id, crop)
+  if (!CROP_BY_SEED_ID.has(crop.seedId)) CROP_BY_SEED_ID.set(crop.seedId, crop)
+}
+
 /** 根据ID查找作物 */
 export const getCropById = (id: string): CropDef | undefined => {
-  return CROPS.find(c => c.id === id)
+  return CROP_BY_ID.get(id)
 }
 
 /** 根据种子ID获取作物定义 */
 export const getCropBySeedId = (seedId: string): CropDef | undefined => {
-  return CROPS.find(c => c.seedId === seedId)
+  return CROP_BY_SEED_ID.get(seedId)
 }
 
 /** 根据季节获取可种作物 */

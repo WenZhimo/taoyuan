@@ -456,26 +456,7 @@ export const useProcessingStore = defineStore('processing', () => {
         }
       }
     }
-    if (collected.length > 0) {
-      const counts = new Map<string, number>()
-      for (const name of collected) {
-        counts.set(name, (counts.get(name) ?? 0) + 1)
-      }
-      const summary = Array.from(counts.entries())
-        .map(([name, count]) => (count > 1 ? `${name}x${count}` : name))
-        .join('、')
-      addLog(`工坊自动收取了：${summary}。`)
-    }
-    if (readyNames.length > 0) {
-      const counts = new Map<string, number>()
-      for (const name of readyNames) {
-        counts.set(name, (counts.get(name) ?? 0) + 1)
-      }
-      const summary = Array.from(counts.entries())
-        .map(([name, count]) => (count > 1 ? `${name}x${count}` : name))
-        .join('、')
-      addLog(`加工完成：${summary}，去工坊收取吧。`)
-    }
+    return { collected, readyNames }
   }
 
   // === 工坊升级 ===

@@ -571,6 +571,7 @@
   import { ACTION_TIME_COSTS, isNpcAvailable } from '@/data/timeConstants'
   import { TIP_NPC_LABELS } from '@/data/npcTips'
   import type { TipNpcId } from '@/data/npcTips'
+  import { isMomoFumo } from '@/data/specialItems'
   import { addLog } from '@/composables/useGameLog'
   import { triggerHeartEvent } from '@/composables/useDialogs'
   import { handleEndDay } from '@/composables/useEndDay'
@@ -713,8 +714,6 @@
 
   const oneClickTalkTargets = computed(() => NPCS.filter(npc => npcAvailable(npc.id) && !npcStore.getNpcState(npc.id)?.talkedToday))
   const oneClickTalkCount = computed(() => oneClickTalkTargets.value.length)
-  const FUMO_ITEM_ID = 'momo_fumo'
-
   const QUALITY_SCORE: Record<Quality, number> = {
     normal: 0,
     fine: 1,
@@ -723,7 +722,7 @@
   }
 
   const getGiftPreferenceForNpc = (npcDef: NonNullable<ReturnType<typeof getNpcById>>, itemId: string): GiftPreference => {
-    if (itemId === FUMO_ITEM_ID) return 'loved'
+    if (isMomoFumo(itemId)) return 'loved'
     if (npcDef.lovedItems.includes(itemId)) return 'loved'
     if (npcDef.likedItems.includes(itemId)) return 'liked'
     if (npcDef.hatedItems.includes(itemId)) return 'hated'
