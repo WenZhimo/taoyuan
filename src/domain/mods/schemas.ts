@@ -146,6 +146,32 @@ export const ItemDefSchema = Type.Object(
   { $id: 'taoyuan.registry.ItemDef', additionalProperties: false }
 )
 
+export const SeasonSchema = Type.Union([
+  Type.Literal('spring'),
+  Type.Literal('summer'),
+  Type.Literal('autumn'),
+  Type.Literal('winter')
+])
+
+export const CropDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    seedId: ContentIdSchema,
+    season: Type.Array(SeasonSchema, { minItems: 1, uniqueItems: true }),
+    growthDays: Type.Integer({ minimum: 1 }),
+    sellPrice: Type.Integer({ minimum: 0 }),
+    seedPrice: Type.Integer({ minimum: 0 }),
+    deepWatering: Type.Boolean(),
+    description: LocalizedTextRefSchema,
+    regrowth: Type.Optional(Type.Boolean()),
+    regrowthDays: Type.Optional(Type.Integer({ minimum: 1 })),
+    maxHarvests: Type.Optional(Type.Integer({ minimum: 1 })),
+    giantCropEligible: Type.Optional(Type.Boolean())
+  },
+  { $id: 'taoyuan.registry.CropDef', additionalProperties: false }
+)
+
 export const DropTableEntrySchema = Type.Object(
   {
     itemId: ContentIdSchema,
@@ -263,6 +289,7 @@ export const ShopOfferDefSchema = Type.Object(
 export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:tag': TagDefSchema,
   'taoyuan:item': ItemDefSchema,
+  'taoyuan:crop': CropDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
   'taoyuan:drop_table': DropTableDefSchema,
@@ -277,6 +304,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'resource-attribution.schema.json': ResourceAttributionSchema,
   'tag.schema.json': TagDefSchema,
   'item.schema.json': ItemDefSchema,
+  'crop.schema.json': CropDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
   'drop-table.schema.json': DropTableDefSchema,
@@ -291,6 +319,8 @@ export type PackageSettingDefinition = Static<typeof PackageSettingDefinitionSch
 export type ResourceAttribution = Static<typeof ResourceAttributionSchema>
 export type TagDef = Static<typeof TagDefSchema>
 export type ItemDef = Static<typeof ItemDefSchema>
+export type Season = Static<typeof SeasonSchema>
+export type CropDef = Static<typeof CropDefSchema>
 export type DropTableDef = Static<typeof DropTableDefSchema>
 export type MonsterDef = Static<typeof MonsterDefSchema>
 export type EnchantmentDef = Static<typeof EnchantmentDefSchema>

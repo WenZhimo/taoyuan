@@ -1,4 +1,5 @@
 import { ITEMS } from '@/data/items'
+import { CROPS } from '@/data/crops'
 import { RECIPES } from '@/data/recipes'
 import { ENCHANTMENTS } from '@/data/weapons'
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
@@ -6,6 +7,7 @@ import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
 import type { RecipeDef as LegacyRecipeDef } from '@/types'
+import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { MonsterDef as LegacyMonsterDef } from '@/types/skill'
 import {
   requirePackageId,
@@ -18,6 +20,7 @@ import type {
   DropTableDef,
   EnchantmentDef,
   ItemDef,
+  CropDef,
   MonsterDef,
   RecipeDef,
   RecipeIngredient,
@@ -40,6 +43,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('item'),
     description: '物品定义',
     schemaName: 'item.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('crop'),
+    description: '作物定义',
+    schemaName: 'crop.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('monster'),
@@ -119,6 +127,22 @@ export const adaptLegacyItem = (item: (typeof ITEMS)[number]): ItemDef => ({
   staminaRestore: item.staminaRestore,
   healthRestore: item.healthRestore,
   tags: deriveLegacyItemTags(item)
+})
+
+export const adaptLegacyCrop = (crop: LegacyCropDef): CropDef => ({
+  id: toOfficialContentId(crop.id),
+  name: text(`taoyuan.crop.${crop.id}.name`, crop.name),
+  seedId: toOfficialContentId(crop.seedId),
+  season: crop.season,
+  growthDays: crop.growthDays,
+  sellPrice: crop.sellPrice,
+  seedPrice: crop.seedPrice,
+  deepWatering: crop.deepWatering,
+  description: text(`taoyuan.crop.${crop.id}.description`, crop.description),
+  ...(crop.regrowth !== undefined ? { regrowth: crop.regrowth } : {}),
+  ...(crop.regrowthDays !== undefined ? { regrowthDays: crop.regrowthDays } : {}),
+  ...(crop.maxHarvests !== undefined ? { maxHarvests: crop.maxHarvests } : {}),
+  ...(crop.giantCropEligible !== undefined ? { giantCropEligible: crop.giantCropEligible } : {})
 })
 
 export const normalizeLegacyRecipeIngredient = (
@@ -234,6 +258,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
 
   const tagRegistry = registrySet.get<TagDef>(toOfficialRegistryTypeId('tag'))
   const itemRegistry = registrySet.get<ItemDef>(toOfficialRegistryTypeId('item'))
+  const cropRegistry = registrySet.get<CropDef>(toOfficialRegistryTypeId('crop'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
   const dropTableRegistry = registrySet.get<DropTableDef>(toOfficialRegistryTypeId('drop_table'))
@@ -242,6 +267,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
+  for (const crop of CROPS.map(adaptLegacyCrop)) cropRegistry.register(owner, crop, { file: 'src/data/crops.ts' })
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {
     enchantmentRegistry.register(owner, adaptLegacyEnchantment(id, enchantment), { file: 'src/data/weapons.ts' })

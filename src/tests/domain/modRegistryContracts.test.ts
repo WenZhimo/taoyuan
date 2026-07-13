@@ -12,7 +12,13 @@ import {
   type RegistryEntry
 } from '@/domain/mods/registry'
 import { compileSchema, validateUnknown } from '@/domain/mods/schemaValidation'
-import { ItemDefSchema, PUBLIC_JSON_SCHEMAS, PackageManifestSchema, type ItemDef } from '@/domain/mods/schemas'
+import {
+  ItemDefSchema,
+  PUBLIC_JSON_SCHEMAS,
+  PackageManifestSchema,
+  type CropDef,
+  type ItemDef
+} from '@/domain/mods/schemas'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import hashGoldenVectors from '../fixtures/mods/hash-golden-vectors.json'
@@ -214,6 +220,8 @@ describe('mod registry contracts', () => {
     expect(restoredSnapshot.snapshotHash).toBe(snapshot.snapshotHash)
     expect(restored.get<ItemDef>(toOfficialRegistryTypeId('item')).require(toOfficialContentId('cabbage')).sellPrice)
       .toBe(registrySet.get<ItemDef>(toOfficialRegistryTypeId('item')).require(toOfficialContentId('cabbage')).sellPrice)
+    expect(restored.get<CropDef>(toOfficialRegistryTypeId('crop')).require(toOfficialContentId('cabbage')).seedId)
+      .toBe(registrySet.get<CropDef>(toOfficialRegistryTypeId('crop')).require(toOfficialContentId('cabbage')).seedId)
     expect(JSON.stringify(snapshot)).not.toMatch(/[A-Za-z]:\\/)
     expect(JSON.stringify(snapshot)).not.toContain('function')
 

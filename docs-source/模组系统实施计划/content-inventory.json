@@ -1144,8 +1144,10 @@
           "consumers": [
             "src/data/items.ts",
             "src/data/travelingMerchant.ts",
+            "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
             "src/tests/domain/cropLookup.test.ts",
+            "src/tests/domain/cropRegistryPilot.test.ts",
             "src/views/game/FarmView.vue"
           ],
           "migrationPhase": [
@@ -1153,7 +1155,7 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
-          "rationale": "Phase 2 pilot audited CROPS through the cabbage crop/item query link; crop data remains on the legacy static path until a Crop registry schema is introduced."
+          "rationale": "Phase 2 crop registry pilot verifies CROPS through the official crop registry adapter; legacy static export remains available as the rollback path."
         },
         {
           "file": "src/data/crops.ts",
@@ -1170,7 +1172,6 @@
             "src/composables/useEndDay.ts",
             "src/composables/useFarmActions.ts",
             "src/data/breeding.ts",
-            "src/domain/mods/contentAccess.ts",
             "src/stores/useBreedingStore.ts",
             "src/stores/useFarmStore.ts",
             "src/tests/composables/useFarmBatchPlantQuality.test.ts",
@@ -1179,6 +1180,7 @@
             "src/tests/composables/useGreenhouseUi.test.ts",
             "src/tests/composables/useSleepFlow.test.ts",
             "src/tests/domain/cropLookup.test.ts",
+            "src/tests/domain/cropRegistryPilot.test.ts",
             "src/views/GameLayout.vue",
             "src/views/game/BreedingView.vue",
             "src/views/game/FarmView.vue"
@@ -1187,7 +1189,7 @@
             2
           ],
           "status": "verified",
-          "rationale": "Legacy getCropById() signature is retained; contentAccess exposes getOfficialCropById() as a rollback-safe bridge for the crop side of the pilot."
+          "rationale": "Legacy getCropById() signature is retained; contentAccess now resolves getOfficialCropById() through taoyuan:crop and returns the same local-ID CropDef shape."
         },
         {
           "file": "src/data/crops.ts",

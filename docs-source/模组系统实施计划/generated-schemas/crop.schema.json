@@ -1,0 +1,117 @@
+{
+  "$id": "taoyuan.registry.CropDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "seedId",
+    "season",
+    "growthDays",
+    "sellPrice",
+    "seedPrice",
+    "deepWatering",
+    "description"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "seedId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "season": {
+      "minItems": 1,
+      "uniqueItems": true,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "const": "spring",
+            "type": "string"
+          },
+          {
+            "const": "summer",
+            "type": "string"
+          },
+          {
+            "const": "autumn",
+            "type": "string"
+          },
+          {
+            "const": "winter",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "growthDays": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sellPrice": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "seedPrice": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "deepWatering": {
+      "type": "boolean"
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "regrowth": {
+      "type": "boolean"
+    },
+    "regrowthDays": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "maxHarvests": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "giantCropEligible": {
+      "type": "boolean"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

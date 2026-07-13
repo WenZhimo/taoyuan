@@ -258,11 +258,11 @@ const getRationale = (classification, syntaxKind) => {
 const symbolReviewOverrides = new Map(Object.entries({
   'src/data/crops.ts:CROPS': {
     status: 'verified',
-    rationale: 'Phase 2 pilot audited CROPS through the cabbage crop/item query link; crop data remains on the legacy static path until a Crop registry schema is introduced.'
+    rationale: 'Phase 2 crop registry pilot verifies CROPS through the official crop registry adapter; legacy static export remains available as the rollback path.'
   },
   'src/data/crops.ts:getCropById': {
     status: 'verified',
-    rationale: 'Legacy getCropById() signature is retained; contentAccess exposes getOfficialCropById() as a rollback-safe bridge for the crop side of the pilot.'
+    rationale: 'Legacy getCropById() signature is retained; contentAccess now resolves getOfficialCropById() through taoyuan:crop and returns the same local-ID CropDef shape.'
   },
   'src/data/items.ts:ITEMS': {
     status: 'verified',

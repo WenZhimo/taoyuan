@@ -1,12 +1,13 @@
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import type { ContentId, PackageId } from './ids'
 import { requireContentId, toOfficialRegistryTypeId } from './ids'
-import type { DropTableDef, MonsterDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef } from './schemas'
+import type { CropDef, DropTableDef, MonsterDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef } from './schemas'
 import type { RegistrySet } from './registry'
 
 const REGISTRY_IDS = {
   tag: toOfficialRegistryTypeId('tag'),
   item: toOfficialRegistryTypeId('item'),
+  crop: toOfficialRegistryTypeId('crop'),
   monster: toOfficialRegistryTypeId('monster'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
   recipe: toOfficialRegistryTypeId('recipe'),
@@ -39,6 +40,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const diagnostics: ModDiagnostic[] = []
   const tagRegistry = registrySet.get<TagDef>(REGISTRY_IDS.tag)
   const itemRegistry = registrySet.get(REGISTRY_IDS.item)
+  const cropRegistry = registrySet.get<CropDef>(REGISTRY_IDS.crop)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const recipeRegistry = registrySet.get<RecipeDef>(REGISTRY_IDS.recipe)
@@ -107,6 +109,25 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         )
       }
     })
+  }
+
+  for (const record of cropRegistry.entries()) {
+    if (!itemRegistry.has(contentId(record.entry.id))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.id),
+        fieldPath: '/id'
+      })
+    }
+    if (!itemRegistry.has(contentId(record.entry.seedId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.seedId),
+        fieldPath: '/seedId'
+      })
+    }
   }
 
   for (const record of monsterRegistry.entries()) {
