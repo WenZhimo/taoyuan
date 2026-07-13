@@ -5978,6 +5978,10 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/ShopView.vue"
           ],
           "migrationPhase": [
@@ -5994,14 +5998,16 @@
           "targetRegistry": "taoyuan:shop",
           "persistentIds": true,
           "consumers": [
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/ShopView.vue"
           ],
           "migrationPhase": [
             3
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 3 shop registry pilot verifies SHOPS through the official shop registry adapter; legacy static export remains available as the rollback path."
         },
         {
           "file": "src/data/shops.ts",
@@ -6010,13 +6016,14 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/FarmView.vue"
           ],
           "migrationPhase": [
             3
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getShopById() signature is retained; the Phase 3 query facade resolves getOfficialShopById() through taoyuan:shop and returns the same local-ID ShopDef shape."
         },
         {
           "file": "src/data/shops.ts",
@@ -6025,6 +6032,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
             "src/views/game/ShopView.vue"
           ],
@@ -6041,6 +6049,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
             "src/views/game/ShopView.vue"
           ],

@@ -1,7 +1,8 @@
 import type { CropDef as LegacyCropDef } from '@/types/farm'
+import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import type { RegistrySet } from './registry'
-import type { CropDef, ItemDef, RecipeDef, TagDef } from './schemas'
+import type { CropDef, ItemDef, RecipeDef, ShopDef, TagDef } from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
 
 let officialRegistrySet: RegistrySet | null = null
@@ -50,8 +51,16 @@ export const getOfficialRecipeDef = (id: string): Readonly<RecipeDef> | undefine
   return contentId ? getOfficialRegistrySet().get<RecipeDef>(toOfficialRegistryTypeId('recipe')).get(contentId) : undefined
 }
 
+export const getOfficialShopDef = (id: string): Readonly<ShopDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<ShopDef>(toOfficialRegistryTypeId('shop')).get(contentId) : undefined
+}
+
 export const getOfficialItemDefs = (): readonly Readonly<ItemDef>[] =>
   getOfficialRegistrySet().get<ItemDef>(toOfficialRegistryTypeId('item')).values()
+
+export const getOfficialShopDefs = (): readonly Readonly<ShopDef>[] =>
+  getOfficialRegistrySet().get<ShopDef>(toOfficialRegistryTypeId('shop')).values()
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)
@@ -98,3 +107,20 @@ export const getOfficialCropsBySeason = (season: string): readonly LegacyCropDef
 
 export const getOfficialCropDefs = (): readonly LegacyCropDef[] =>
   getOfficialRegistrySet().get<CropDef>(toOfficialRegistryTypeId('crop')).values().map(toLegacyCropDef)
+
+const toLegacyShopDef = (shop: Readonly<ShopDef>): LegacyShopDef => ({
+  id: getLocalContentId(shop.id),
+  name: shop.name.fallback,
+  description: shop.description.fallback,
+  npcName: shop.npcName.fallback,
+  closedDays: [...shop.closedDays] as LegacyShopDef['closedDays'],
+  openHour: shop.openHour,
+  closeHour: shop.closeHour,
+  closedWeathers: [...shop.closedWeathers] as LegacyShopDef['closedWeathers'],
+  closedSeasons: [...shop.closedSeasons] as LegacyShopDef['closedSeasons']
+})
+
+export const getOfficialShopById = (id: string): LegacyShopDef | undefined => {
+  const shop = getOfficialShopDef(id)
+  return shop ? toLegacyShopDef(shop) : undefined
+}

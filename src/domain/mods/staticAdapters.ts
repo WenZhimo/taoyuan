@@ -6,6 +6,7 @@ import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
+import { SHOPS, type ShopDef as LegacyShopDef } from '@/data/shops'
 import type { RecipeDef as LegacyRecipeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { MonsterDef as LegacyMonsterDef } from '@/types/skill'
@@ -24,6 +25,7 @@ import type {
   MonsterDef,
   RecipeDef,
   RecipeIngredient,
+  ShopDef,
   ShopOfferDef,
   TagDef
 } from './schemas'
@@ -68,6 +70,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('recipe'),
     description: '配方定义',
     schemaName: 'recipe.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('shop'),
+    description: '商店定义',
+    schemaName: 'shop.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('shop_offer'),
@@ -215,6 +222,20 @@ export const adaptLegacyMonster = (monster: LegacyMonsterDef): MonsterDef => ({
   description: text(`taoyuan.monster.${monster.id}.description`, monster.description)
 })
 
+export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
+  id: toOfficialContentId(shop.id),
+  name: text(`taoyuan.shop.${shop.id}.name`, shop.name),
+  description: text(`taoyuan.shop.${shop.id}.description`, shop.description),
+  npcName: text(`taoyuan.shop.${shop.id}.npcName`, shop.npcName),
+  closedDays: [...shop.closedDays],
+  openHour: shop.openHour,
+  closeHour: shop.closeHour,
+  closedWeathers: [...shop.closedWeathers],
+  closedSeasons: [...shop.closedSeasons]
+})
+
+export const createOfficialShops = (): ShopDef[] => SHOPS.map(adaptLegacyShop)
+
 const createShopOffer = (
   shopId: string,
   itemId: string,
@@ -270,12 +291,14 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
   const dropTableRegistry = registrySet.get<DropTableDef>(toOfficialRegistryTypeId('drop_table'))
   const recipeRegistry = registrySet.get<RecipeDef>(toOfficialRegistryTypeId('recipe'))
+  const shopRegistry = registrySet.get<ShopDef>(toOfficialRegistryTypeId('shop'))
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer'))
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
   for (const crop of CROPS.map(adaptLegacyCrop)) cropRegistry.register(owner, crop, { file: 'src/data/crops.ts' })
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
+  for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {
     enchantmentRegistry.register(owner, adaptLegacyEnchantment(id, enchantment), { file: 'src/data/weapons.ts' })
   }

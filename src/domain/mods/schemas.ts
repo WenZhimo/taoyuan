@@ -153,6 +153,25 @@ export const SeasonSchema = Type.Union([
   Type.Literal('winter')
 ])
 
+export const WeatherSchema = Type.Union([
+  Type.Literal('sunny'),
+  Type.Literal('rainy'),
+  Type.Literal('stormy'),
+  Type.Literal('snowy'),
+  Type.Literal('windy'),
+  Type.Literal('green_rain')
+])
+
+export const WeekdaySchema = Type.Union([
+  Type.Literal('mon'),
+  Type.Literal('tue'),
+  Type.Literal('wed'),
+  Type.Literal('thu'),
+  Type.Literal('fri'),
+  Type.Literal('sat'),
+  Type.Literal('sun')
+])
+
 export const CropDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -319,6 +338,21 @@ export const RecipeDefSchema = Type.Object(
   { $id: 'taoyuan.registry.RecipeDef', additionalProperties: false }
 )
 
+export const ShopDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    npcName: LocalizedTextRefSchema,
+    closedDays: Type.Array(WeekdaySchema, { uniqueItems: true }),
+    openHour: Type.Integer({ minimum: 0, maximum: 26 }),
+    closeHour: Type.Integer({ minimum: 0, maximum: 26 }),
+    closedWeathers: Type.Array(WeatherSchema, { uniqueItems: true }),
+    closedSeasons: Type.Array(SeasonSchema, { uniqueItems: true })
+  },
+  { $id: 'taoyuan.registry.ShopDef', additionalProperties: false }
+)
+
 export const ShopOfferDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -341,6 +375,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:enchantment': EnchantmentDefSchema,
   'taoyuan:drop_table': DropTableDefSchema,
   'taoyuan:recipe': RecipeDefSchema,
+  'taoyuan:shop': ShopDefSchema,
   'taoyuan:shop_offer': ShopOfferDefSchema
 } as const satisfies Record<string, TSchema>
 
@@ -356,6 +391,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'enchantment.schema.json': EnchantmentDefSchema,
   'drop-table.schema.json': DropTableDefSchema,
   'recipe.schema.json': RecipeDefSchema,
+  'shop.schema.json': ShopDefSchema,
   'shop-offer.schema.json': ShopOfferDefSchema
 } as const satisfies Record<string, TSchema>
 
@@ -367,12 +403,15 @@ export type ResourceAttribution = Static<typeof ResourceAttributionSchema>
 export type TagDef = Static<typeof TagDefSchema>
 export type ItemDef = Static<typeof ItemDefSchema>
 export type Season = Static<typeof SeasonSchema>
+export type Weather = Static<typeof WeatherSchema>
+export type Weekday = Static<typeof WeekdaySchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type DropTableDef = Static<typeof DropTableDefSchema>
 export type MonsterDef = Static<typeof MonsterDefSchema>
 export type EnchantmentDef = Static<typeof EnchantmentDefSchema>
 export type RecipeIngredient = Static<typeof RecipeIngredientSchema>
 export type RecipeDef = Static<typeof RecipeDefSchema>
+export type ShopDef = Static<typeof ShopDefSchema>
 export type ShopOfferDef = Static<typeof ShopOfferDefSchema>
 
 export type OfficialRegistryId = keyof typeof OFFICIAL_REGISTRY_SCHEMAS

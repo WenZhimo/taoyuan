@@ -287,6 +287,14 @@ const symbolReviewOverrides = new Map(Object.entries({
   'src/data/recipes.ts:getRecipeById': {
     status: 'verified',
     rationale: 'Legacy getRecipeById() signature is retained for display/effects and static compatibility tests; cooking now reads normalized registry ingredients through contentAccess.'
+  },
+  'src/data/shops.ts:SHOPS': {
+    status: 'verified',
+    rationale: 'Phase 3 shop registry pilot verifies SHOPS through the official shop registry adapter; legacy static export remains available as the rollback path.'
+  },
+  'src/data/shops.ts:getShopById': {
+    status: 'verified',
+    rationale: 'Legacy getShopById() signature is retained; the Phase 3 query facade resolves getOfficialShopById() through taoyuan:shop and returns the same local-ID ShopDef shape.'
   }
 }))
 

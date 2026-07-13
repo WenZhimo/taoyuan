@@ -54738,6 +54738,192 @@
       ]
     },
     {
+      "registryId": "taoyuan:shop",
+      "schemaName": "shop.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shops.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "closeHour": 22,
+            "closedDays": [],
+            "closedSeasons": [],
+            "closedWeathers": [
+              "stormy"
+            ],
+            "description": {
+              "fallback": "云飞开设的镖局，出售武器和战斗用品。",
+              "key": "taoyuan.shop.biaoju.description"
+            },
+            "id": "taoyuan:biaoju",
+            "name": {
+              "fallback": "镖局",
+              "key": "taoyuan.shop.biaoju.name"
+            },
+            "npcName": {
+              "fallback": "云飞",
+              "key": "taoyuan.shop.biaoju.npcName"
+            },
+            "openHour": 10
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shops.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "closeHour": 18,
+            "closedDays": [
+              "sat",
+              "sun"
+            ],
+            "closedSeasons": [],
+            "closedWeathers": [],
+            "description": {
+              "fallback": "素素的绸缎庄，出售布匹和精美礼品。",
+              "key": "taoyuan.shop.chouduanzhuang.description"
+            },
+            "id": "taoyuan:chouduanzhuang",
+            "name": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.shop.chouduanzhuang.name"
+            },
+            "npcName": {
+              "fallback": "素素",
+              "key": "taoyuan.shop.chouduanzhuang.npcName"
+            },
+            "openHour": 9
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shops.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "closeHour": 18,
+            "closedDays": [
+              "sun"
+            ],
+            "closedSeasons": [],
+            "closedWeathers": [],
+            "description": {
+              "fallback": "孙铁匠的铁匠铺，出售矿石和金属制品。",
+              "key": "taoyuan.shop.tiejiangpu.description"
+            },
+            "id": "taoyuan:tiejiangpu",
+            "name": {
+              "fallback": "铁匠铺",
+              "key": "taoyuan.shop.tiejiangpu.name"
+            },
+            "npcName": {
+              "fallback": "孙铁匠",
+              "key": "taoyuan.shop.tiejiangpu.npcName"
+            },
+            "openHour": 7
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shops.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "closeHour": 20,
+            "closedDays": [
+              "wed"
+            ],
+            "closedSeasons": [],
+            "closedWeathers": [],
+            "description": {
+              "fallback": "陈伯经营的杂货铺，出售种子和日用品。",
+              "key": "taoyuan.shop.wanwupu.description"
+            },
+            "id": "taoyuan:wanwupu",
+            "name": {
+              "fallback": "万物铺",
+              "key": "taoyuan.shop.wanwupu.name"
+            },
+            "npcName": {
+              "fallback": "陈伯",
+              "key": "taoyuan.shop.wanwupu.npcName"
+            },
+            "openHour": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shops.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "closeHour": 20,
+            "closedDays": [],
+            "closedSeasons": [
+              "winter"
+            ],
+            "closedWeathers": [
+              "stormy"
+            ],
+            "description": {
+              "fallback": "林老的药铺，出售肥料和草药。",
+              "key": "taoyuan.shop.yaopu.description"
+            },
+            "id": "taoyuan:yaopu",
+            "name": {
+              "fallback": "药铺",
+              "key": "taoyuan.shop.yaopu.name"
+            },
+            "npcName": {
+              "fallback": "林老",
+              "key": "taoyuan.shop.yaopu.npcName"
+            },
+            "openHour": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shops.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "closeHour": 17,
+            "closedDays": [
+              "mon",
+              "tue"
+            ],
+            "closedSeasons": [],
+            "closedWeathers": [
+              "stormy"
+            ],
+            "description": {
+              "fallback": "秋月的渔具小店，出售鱼饵和浮漂。",
+              "key": "taoyuan.shop.yugupu.description"
+            },
+            "id": "taoyuan:yugupu",
+            "name": {
+              "fallback": "渔具铺",
+              "key": "taoyuan.shop.yugupu.name"
+            },
+            "npcName": {
+              "fallback": "秋月",
+              "key": "taoyuan.shop.yugupu.npcName"
+            },
+            "openHour": 6
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:shop_offer",
       "schemaName": "shop-offer.schema.json",
       "entries": [
@@ -55657,5 +55843,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:daad92862358e2fdca6cd99ea06c812e44338649721e97086e9d336b911f2000"
+  "snapshotHash": "sha256:a1d522960de67d295025aeca726ce2064480aa2a27bd2ea86713b51de815aee5"
 }

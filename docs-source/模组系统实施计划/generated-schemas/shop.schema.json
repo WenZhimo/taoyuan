@@ -1,0 +1,179 @@
+{
+  "$id": "taoyuan.registry.ShopDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "npcName",
+    "closedDays",
+    "openHour",
+    "closeHour",
+    "closedWeathers",
+    "closedSeasons"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "npcName": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "closedDays": {
+      "uniqueItems": true,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "const": "mon",
+            "type": "string"
+          },
+          {
+            "const": "tue",
+            "type": "string"
+          },
+          {
+            "const": "wed",
+            "type": "string"
+          },
+          {
+            "const": "thu",
+            "type": "string"
+          },
+          {
+            "const": "fri",
+            "type": "string"
+          },
+          {
+            "const": "sat",
+            "type": "string"
+          },
+          {
+            "const": "sun",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "openHour": {
+      "minimum": 0,
+      "maximum": 26,
+      "type": "integer"
+    },
+    "closeHour": {
+      "minimum": 0,
+      "maximum": 26,
+      "type": "integer"
+    },
+    "closedWeathers": {
+      "uniqueItems": true,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "const": "sunny",
+            "type": "string"
+          },
+          {
+            "const": "rainy",
+            "type": "string"
+          },
+          {
+            "const": "stormy",
+            "type": "string"
+          },
+          {
+            "const": "snowy",
+            "type": "string"
+          },
+          {
+            "const": "windy",
+            "type": "string"
+          },
+          {
+            "const": "green_rain",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    "closedSeasons": {
+      "uniqueItems": true,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "const": "spring",
+            "type": "string"
+          },
+          {
+            "const": "summer",
+            "type": "string"
+          },
+          {
+            "const": "autumn",
+            "type": "string"
+          },
+          {
+            "const": "winter",
+            "type": "string"
+          }
+        ]
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}
