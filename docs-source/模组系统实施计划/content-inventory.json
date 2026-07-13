@@ -171,8 +171,7 @@
           "persistentIds": false,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6

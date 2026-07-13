@@ -13,6 +13,8 @@ import type { MarketCategory } from '@/data/market'
 import type { TravelingMerchantStock } from '@/data/travelingMerchant'
 import type { Quality } from '@/types'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
+import { getOfficialShopOfferGroupsForShop } from '@/domain/mods/contentAccess'
+import type { ShopOfferPurchaseKind } from '@/domain/mods/schemas'
 
 /** 商铺商品项 */
 export interface ShopItemEntry {
@@ -21,6 +23,21 @@ export interface ShopItemEntry {
   price: number
   description: string
 }
+
+export interface ShopOfferEntry extends ShopItemEntry {
+  id: string
+  groupId: string
+  groupName: string
+  purchaseKind?: ShopOfferPurchaseKind
+}
+
+export interface ShopOfferGroupEntry {
+  groupId: string
+  groupName: string
+  offers: ShopOfferEntry[]
+}
+
+const localContentId = (id: string): string => id.slice(id.indexOf(':') + 1)
 
 export const useShopStore = defineStore('shop', () => {
   const gameStore = useGameStore()
@@ -32,6 +49,32 @@ export const useShopStore = defineStore('shop', () => {
 
   /** 当前选中的商铺（null=商圈总览） */
   const currentShopId = ref<string | null>(null)
+
+  const currentShopOfferGroups = computed<ShopOfferGroupEntry[]>(() => {
+    if (!currentShopId.value) return []
+    const groups = getOfficialShopOfferGroupsForShop({
+      shopId: currentShopId.value,
+      season: gameStore.season
+    })
+    return groups.map(group => ({
+      groupId: group.groupId,
+      groupName: group.groupName,
+      offers: group.offers.map(offer => {
+        const itemId = localContentId(offer.itemId)
+        const itemDef = getItemById(itemId)
+        return {
+          id: offer.id,
+          itemId,
+          name: offer.name?.fallback ?? itemDef?.name ?? itemId,
+          description: offer.description?.fallback ?? itemDef?.description ?? '',
+          price: offer.price,
+          groupId: group.groupId,
+          groupName: group.groupName,
+          purchaseKind: offer.purchaseKind
+        }
+      })
+    }))
+  })
 
   // === 折扣系统 ===
 
@@ -388,6 +431,7 @@ export const useShopStore = defineStore('shop', () => {
   return {
     // 导航
     currentShopId,
+    currentShopOfferGroups,
     // 折扣
     applyDiscount,
     // 万物铺
