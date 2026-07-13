@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { ITEMS } from '@/data/items'
+import { ITEMS, getItemById } from '@/data/items'
 import { CROPS } from '@/data/crops'
-import { RECIPES } from '@/data/recipes'
+import { RECIPES, getRecipeById } from '@/data/recipes'
 import { getOfficialCropDef, getOfficialItemDefs, getOfficialRecipeDef } from '@/domain/mods/contentAccess'
 import { toOfficialContentId } from '@/domain/mods/ids'
 import type { ItemDef, RecipeDef, RecipeIngredient } from '@/domain/mods/schemas'
@@ -141,5 +141,19 @@ describe('official content registry equivalence', () => {
       expect(officialRecipe, recipe.id).toBeDefined()
       expect(normalizeOfficialRecipe(officialRecipe!)).toEqual(normalizeLegacyRecipe(recipe))
     }
+  })
+
+  it('keeps legacy item and recipe query entrypoints equivalent to the old local shapes', () => {
+    for (const item of ITEMS) {
+      expect(normalizeLegacyItem(getItemById(item.id)!)).toEqual(normalizeLegacyItem(item))
+    }
+
+    for (const recipe of RECIPES) {
+      expect(getRecipeById(recipe.id)).toEqual(recipe)
+    }
+
+    expect(getRecipeById('steamed_bun')?.ingredients).toEqual([
+      { itemId: 'wheat_flour', quantity: 1 }
+    ])
   })
 })

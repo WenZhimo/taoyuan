@@ -9,6 +9,8 @@ import { RINGS } from './rings'
 import { HATS } from './hats'
 import { SHOES } from './shoes'
 import { MOMO_FUMO_ITEM_ID } from './specialItems'
+import { getOfficialItemDef } from '@/domain/mods/contentAccess'
+import type { ItemDef as RegistryItemDef } from '@/domain/mods/schemas'
 
 /** 从作物定义自动生成种子物品（排除已手动定义的种子） */
 const SEED_ITEMS: ItemDef[] = CROPS.filter(
@@ -1719,9 +1721,24 @@ export const ITEMS: ItemDef[] = [
   }
 ]
 
+/** 将注册表物品适配为旧入口形状 */
+const toLocalContentId = (id: string): string => id.slice(id.indexOf(':') + 1)
+
+const toLegacyItemDef = (item: Readonly<RegistryItemDef>): ItemDef => ({
+  id: toLocalContentId(item.id),
+  name: item.name.fallback,
+  category: item.category,
+  description: item.description.fallback,
+  sellPrice: item.sellPrice,
+  edible: item.edible,
+  ...(item.staminaRestore !== undefined ? { staminaRestore: item.staminaRestore } : {}),
+  ...(item.healthRestore !== undefined ? { healthRestore: item.healthRestore } : {})
+})
+
 /** 根据ID查找物品 */
 export const getItemById = (id: string): ItemDef | undefined => {
-  return ITEMS.find(i => i.id === id)
+  const item = getOfficialItemDef(id)
+  return item ? toLegacyItemDef(item) : ITEMS.find(i => i.id === id)
 }
 
 /** 物品分类默认来源 */

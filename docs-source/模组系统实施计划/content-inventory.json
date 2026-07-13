@@ -4,7 +4,7 @@
   "capturedAt": "2026-07-13",
   "summary": {
     "fileCount": 44,
-    "approximateLineCount": 30793,
+    "approximateLineCount": 30834,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 423
@@ -3963,7 +3963,7 @@
     },
     {
       "file": "src/data/items.ts",
-      "lines": 1996,
+      "lines": 2013,
       "classification": "mixed",
       "domains": [
         "item",
@@ -4027,6 +4027,7 @@
             "src/stores/useWarehouseStore.ts",
             "src/tests/composables/useShippingBoxUi.test.ts",
             "src/tests/composables/useVoidChestUi.test.ts",
+            "src/tests/domain/contentRegistryEquivalence.test.ts",
             "src/views/GameLayout.vue",
             "src/views/game/AchievementView.vue",
             "src/views/game/AnimalView.vue",
@@ -5569,7 +5570,7 @@
     },
     {
       "file": "src/data/recipes.ts",
-      "lines": 2226,
+      "lines": 2250,
       "classification": "mixed",
       "domains": [
         "recipe",
@@ -5615,6 +5616,7 @@
           "persistentIds": false,
           "consumers": [
             "src/stores/useCookingStore.ts",
+            "src/tests/domain/contentRegistryEquivalence.test.ts",
             "src/tests/domain/cookingIngredientPlanner.test.ts",
             "src/views/game/InventoryView.vue"
           ],

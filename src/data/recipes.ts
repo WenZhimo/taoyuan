@@ -1,4 +1,6 @@
 import type { RecipeDef } from '@/types'
+import { getOfficialRecipeDef } from '@/domain/mods/contentAccess'
+import type { RecipeDef as RegistryRecipeDef } from '@/domain/mods/schemas'
 
 /** 所有食谱定义 */
 export const RECIPES: RecipeDef[] = [
@@ -2219,7 +2221,29 @@ export const RECIPES: RecipeDef[] = [
   }
 ]
 
+/** 将注册表食谱适配为旧入口形状 */
+const toLocalContentId = (id: string): string => id.slice(id.indexOf(':') + 1)
+
+const toLegacyRecipeDef = (recipe: Readonly<RegistryRecipeDef>): RecipeDef => ({
+  id: toLocalContentId(recipe.id),
+  name: recipe.name.fallback,
+  ingredients: recipe.ingredients.flatMap(ingredient =>
+    ingredient.type === 'item'
+      ? [{ itemId: toLocalContentId(ingredient.itemId), quantity: ingredient.quantity }]
+      : []
+  ),
+  effect: {
+    staminaRestore: recipe.effect.staminaRestore,
+    ...(recipe.effect.healthRestore !== undefined ? { healthRestore: recipe.effect.healthRestore } : {}),
+    ...(recipe.effect.buff ? { buff: { ...recipe.effect.buff } } : {})
+  },
+  unlockSource: recipe.unlockSource,
+  description: recipe.description.fallback,
+  ...(recipe.requiredSkill ? { requiredSkill: { ...recipe.requiredSkill } } : {})
+})
+
 /** 根据ID获取食谱 */
 export const getRecipeById = (id: string): RecipeDef | undefined => {
-  return RECIPES.find(r => r.id === id)
+  const recipe = getOfficialRecipeDef(id)
+  return recipe ? toLegacyRecipeDef(recipe) : RECIPES.find(r => r.id === id)
 }
