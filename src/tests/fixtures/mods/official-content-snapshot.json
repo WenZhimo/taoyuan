@@ -961,7 +961,11 @@
               "key": "taoyuan.item.abyss_leviathan.name"
             },
             "sellPrice": 1200,
-            "staminaRestore": 160
+            "staminaRestore": 160,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -1007,7 +1011,10 @@
               "key": "taoyuan.item.allium_king.name"
             },
             "sellPrice": 247,
-            "staminaRestore": 33
+            "staminaRestore": 33,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1093,7 +1100,10 @@
               "key": "taoyuan.item.amber_yam.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1137,7 +1147,10 @@
               "key": "taoyuan.item.ancient_apex9_bloom.name"
             },
             "sellPrice": 3525,
-            "staminaRestore": 470
+            "staminaRestore": 470,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1202,7 +1215,10 @@
               "key": "taoyuan.item.ancient_empyrean_bud.name"
             },
             "sellPrice": 3900,
-            "staminaRestore": 520
+            "staminaRestore": 520,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1225,7 +1241,10 @@
               "key": "taoyuan.item.ancient_fruit.name"
             },
             "sellPrice": 6000,
-            "staminaRestore": 800
+            "staminaRestore": 800,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1269,7 +1288,10 @@
               "key": "taoyuan.item.ancient_meng_bean.name"
             },
             "sellPrice": 3337,
-            "staminaRestore": 445
+            "staminaRestore": 445,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1292,7 +1314,11 @@
               "key": "taoyuan.item.ancient_newt.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -1357,7 +1383,10 @@
               "key": "taoyuan.item.ancient_spirit9_apricot.name"
             },
             "sellPrice": 4087,
-            "staminaRestore": 545
+            "staminaRestore": 545,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1380,7 +1409,10 @@
               "key": "taoyuan.item.ancient_wilder_sesame.name"
             },
             "sellPrice": 3712,
-            "staminaRestore": 495
+            "staminaRestore": 495,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1468,7 +1500,10 @@
               "key": "taoyuan.item.antler_velvet.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 30
+            "staminaRestore": 30,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -1491,7 +1526,10 @@
               "key": "taoyuan.item.apricot.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1535,7 +1573,10 @@
               "key": "taoyuan.item.autumn_bean.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1558,7 +1599,10 @@
               "key": "taoyuan.item.autumn_gem.name"
             },
             "sellPrice": 345,
-            "staminaRestore": 46
+            "staminaRestore": 46,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1581,7 +1625,10 @@
               "key": "taoyuan.item.azure_fortune_green.name"
             },
             "sellPrice": 1377,
-            "staminaRestore": 183
+            "staminaRestore": 183,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1604,7 +1651,10 @@
               "key": "taoyuan.item.azure_glory_sprout.name"
             },
             "sellPrice": 1438,
-            "staminaRestore": 191
+            "staminaRestore": 191,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1627,7 +1677,10 @@
               "key": "taoyuan.item.azure_hua_lotus.name"
             },
             "sellPrice": 1255,
-            "staminaRestore": 167
+            "staminaRestore": 167,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1650,7 +1703,10 @@
               "key": "taoyuan.item.azure_prism4_peach_t.name"
             },
             "sellPrice": 1500,
-            "staminaRestore": 200
+            "staminaRestore": 200,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1673,7 +1729,10 @@
               "key": "taoyuan.item.azure_shine_herb.name"
             },
             "sellPrice": 1317,
-            "staminaRestore": 175
+            "staminaRestore": 175,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1759,7 +1818,10 @@
               "key": "taoyuan.item.bamboo_shoot.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1845,7 +1907,11 @@
               "key": "taoyuan.item.bass.name"
             },
             "sellPrice": 90,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -1889,7 +1955,10 @@
               "key": "taoyuan.item.bean_eggplant.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -1998,7 +2067,11 @@
               "key": "taoyuan.item.bighead_carp.name"
             },
             "sellPrice": 45,
-            "staminaRestore": 6
+            "staminaRestore": 6,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2105,7 +2178,10 @@
               "key": "taoyuan.item.broad_bean.name"
             },
             "sellPrice": 127,
-            "staminaRestore": 17
+            "staminaRestore": 17,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2237,7 +2313,10 @@
               "key": "taoyuan.item.buffalo_milk.name"
             },
             "sellPrice": 150,
-            "staminaRestore": 8
+            "staminaRestore": 8,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2260,7 +2339,10 @@
               "key": "taoyuan.item.cabbage.name"
             },
             "sellPrice": 52,
-            "staminaRestore": 7
+            "staminaRestore": 7,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2352,7 +2434,10 @@
               "key": "taoyuan.item.camel_milk.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2438,7 +2523,11 @@
               "key": "taoyuan.item.carp.name"
             },
             "sellPrice": 37,
-            "staminaRestore": 5
+            "staminaRestore": 5,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2461,7 +2550,11 @@
               "key": "taoyuan.item.catfish.name"
             },
             "sellPrice": 67,
-            "staminaRestore": 9
+            "staminaRestore": 9,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2484,7 +2577,11 @@
               "key": "taoyuan.item.cave_blindfish.name"
             },
             "sellPrice": 150,
-            "staminaRestore": 20
+            "staminaRestore": 20,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2507,7 +2604,11 @@
               "key": "taoyuan.item.cave_loach.name"
             },
             "sellPrice": 52,
-            "staminaRestore": 7
+            "staminaRestore": 7,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2530,7 +2631,11 @@
               "key": "taoyuan.item.cave_shrimp.name"
             },
             "sellPrice": 40,
-            "staminaRestore": 8
+            "staminaRestore": 8,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2553,7 +2658,10 @@
               "key": "taoyuan.item.celestial_rice.name"
             },
             "sellPrice": 750,
-            "staminaRestore": 100
+            "staminaRestore": 100,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2576,7 +2684,10 @@
               "key": "taoyuan.item.chaos_core_peach_t.name"
             },
             "sellPrice": 3300,
-            "staminaRestore": 440
+            "staminaRestore": 440,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2599,7 +2710,10 @@
               "key": "taoyuan.item.chaos_glory8_sprout.name"
             },
             "sellPrice": 3049,
-            "staminaRestore": 406
+            "staminaRestore": 406,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2622,7 +2736,10 @@
               "key": "taoyuan.item.chaos_origin_green.name"
             },
             "sellPrice": 2800,
-            "staminaRestore": 373
+            "staminaRestore": 373,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2645,7 +2762,10 @@
               "key": "taoyuan.item.chaos_vital8_lotus.name"
             },
             "sellPrice": 2925,
-            "staminaRestore": 390
+            "staminaRestore": 390,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2668,7 +2788,10 @@
               "key": "taoyuan.item.chaos_zenith_herb.name"
             },
             "sellPrice": 3175,
-            "staminaRestore": 423
+            "staminaRestore": 423,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2756,7 +2879,10 @@
               "key": "taoyuan.item.chili.name"
             },
             "sellPrice": 90,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2779,7 +2905,11 @@
               "key": "taoyuan.item.chinese_sturgeon.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -2802,7 +2932,10 @@
               "key": "taoyuan.item.chive_gourd.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2825,7 +2958,10 @@
               "key": "taoyuan.item.chive_mustard.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2848,7 +2984,10 @@
               "key": "taoyuan.item.chive_persimmon.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2871,7 +3010,10 @@
               "key": "taoyuan.item.chives.name"
             },
             "sellPrice": 45,
-            "staminaRestore": 6
+            "staminaRestore": 6,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2894,7 +3036,10 @@
               "key": "taoyuan.item.chrysanthemum.name"
             },
             "sellPrice": 180,
-            "staminaRestore": 24
+            "staminaRestore": 24,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2940,7 +3085,10 @@
               "key": "taoyuan.item.chrysanthemum_jujube.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2963,7 +3111,10 @@
               "key": "taoyuan.item.chrysanthemum_melon.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -2986,7 +3137,10 @@
               "key": "taoyuan.item.chrysanthemum_persimmon.name"
             },
             "sellPrice": 285,
-            "staminaRestore": 38
+            "staminaRestore": 38,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3009,7 +3163,10 @@
               "key": "taoyuan.item.chrysanthemum_rice.name"
             },
             "sellPrice": 285,
-            "staminaRestore": 38
+            "staminaRestore": 38,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3097,7 +3254,10 @@
               "key": "taoyuan.item.cloud_aura_bloom.name"
             },
             "sellPrice": 1165,
-            "staminaRestore": 155
+            "staminaRestore": 155,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3120,7 +3280,10 @@
               "key": "taoyuan.item.cloud_bean.name"
             },
             "sellPrice": 981,
-            "staminaRestore": 130
+            "staminaRestore": 130,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3143,7 +3306,10 @@
               "key": "taoyuan.item.cloud_glow_bud.name"
             },
             "sellPrice": 1225,
-            "staminaRestore": 163
+            "staminaRestore": 163,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3166,7 +3332,10 @@
               "key": "taoyuan.item.cloud_jade3_apricot.name"
             },
             "sellPrice": 1104,
-            "staminaRestore": 147
+            "staminaRestore": 147,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3189,7 +3358,10 @@
               "key": "taoyuan.item.cloud_splendor_sesame.name"
             },
             "sellPrice": 1042,
-            "staminaRestore": 139
+            "staminaRestore": 139,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3340,7 +3512,10 @@
               "key": "taoyuan.item.corn.name"
             },
             "sellPrice": 127,
-            "staminaRestore": 17
+            "staminaRestore": 17,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3428,7 +3603,11 @@
               "key": "taoyuan.item.crab.name"
             },
             "sellPrice": 30,
-            "staminaRestore": 6
+            "staminaRestore": 6,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -3472,7 +3651,10 @@
               "key": "taoyuan.item.crane_dance_shoot.name"
             },
             "sellPrice": 2400,
-            "staminaRestore": 320
+            "staminaRestore": 320,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3495,7 +3677,10 @@
               "key": "taoyuan.item.crane_gleam7_root.name"
             },
             "sellPrice": 2494,
-            "staminaRestore": 332
+            "staminaRestore": 332,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3518,7 +3703,10 @@
               "key": "taoyuan.item.crane_roar_berry.name"
             },
             "sellPrice": 2682,
-            "staminaRestore": 357
+            "staminaRestore": 357,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3541,7 +3729,10 @@
               "key": "taoyuan.item.crane_shadow_gourd.name"
             },
             "sellPrice": 2587,
-            "staminaRestore": 345
+            "staminaRestore": 345,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3564,7 +3755,10 @@
               "key": "taoyuan.item.crane_song_tuber.name"
             },
             "sellPrice": 2307,
-            "staminaRestore": 307
+            "staminaRestore": 307,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3587,7 +3781,10 @@
               "key": "taoyuan.item.cream_peanut.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3610,7 +3807,10 @@
               "key": "taoyuan.item.creation_change_melon.name"
             },
             "sellPrice": 4200,
-            "staminaRestore": 560
+            "staminaRestore": 560,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3633,7 +3833,10 @@
               "key": "taoyuan.item.creation_destiny_vine.name"
             },
             "sellPrice": 4857,
-            "staminaRestore": 647
+            "staminaRestore": 647,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3656,7 +3859,10 @@
               "key": "taoyuan.item.creation_form_chestnut.name"
             },
             "sellPrice": 5074,
-            "staminaRestore": 676
+            "staminaRestore": 676,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3679,7 +3885,10 @@
               "key": "taoyuan.item.creation_lasting_fruit.name"
             },
             "sellPrice": 4419,
-            "staminaRestore": 589
+            "staminaRestore": 589,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3702,7 +3911,10 @@
               "key": "taoyuan.item.creation_timeless_wheat.name"
             },
             "sellPrice": 4638,
-            "staminaRestore": 618
+            "staminaRestore": 618,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -3725,7 +3937,11 @@
               "key": "taoyuan.item.creek_chub.name"
             },
             "sellPrice": 27,
-            "staminaRestore": 3
+            "staminaRestore": 3,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -3748,7 +3964,11 @@
               "key": "taoyuan.item.creek_king.name"
             },
             "sellPrice": 210,
-            "staminaRestore": 28
+            "staminaRestore": 28,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -3771,7 +3991,11 @@
               "key": "taoyuan.item.creek_perch.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -3794,7 +4018,11 @@
               "key": "taoyuan.item.creek_salmon.name"
             },
             "sellPrice": 97,
-            "staminaRestore": 13
+            "staminaRestore": 13,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -3817,7 +4045,11 @@
               "key": "taoyuan.item.creek_shrimp.name"
             },
             "sellPrice": 45,
-            "staminaRestore": 6
+            "staminaRestore": 6,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -3840,7 +4072,11 @@
               "key": "taoyuan.item.crucian.name"
             },
             "sellPrice": 22,
-            "staminaRestore": 3
+            "staminaRestore": 3,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -3863,7 +4099,11 @@
               "key": "taoyuan.item.crucian_pond.name"
             },
             "sellPrice": 27,
-            "staminaRestore": 3
+            "staminaRestore": 3,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -4033,7 +4273,11 @@
               "key": "taoyuan.item.crystal_shrimp.name"
             },
             "sellPrice": 90,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -4077,7 +4321,10 @@
               "key": "taoyuan.item.crystal_yam.name"
             },
             "sellPrice": 330,
-            "staminaRestore": 44
+            "staminaRestore": 44,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4167,7 +4414,10 @@
               "key": "taoyuan.item.dawn_aura_pepper.name"
             },
             "sellPrice": 1201,
-            "staminaRestore": 160
+            "staminaRestore": 160,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4190,7 +4440,10 @@
               "key": "taoyuan.item.dawn_glow_pear.name"
             },
             "sellPrice": 1263,
-            "staminaRestore": 168
+            "staminaRestore": 168,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4213,7 +4466,10 @@
               "key": "taoyuan.item.dawn_jade3_rice.name"
             },
             "sellPrice": 1140,
-            "staminaRestore": 152
+            "staminaRestore": 152,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4236,7 +4492,10 @@
               "key": "taoyuan.item.dawn_splendor_orchid.name"
             },
             "sellPrice": 1078,
-            "staminaRestore": 143
+            "staminaRestore": 143,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4259,7 +4518,10 @@
               "key": "taoyuan.item.dawn_tea.name"
             },
             "sellPrice": 1018,
-            "staminaRestore": 135
+            "staminaRestore": 135,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4368,7 +4630,10 @@
               "key": "taoyuan.item.dew_aura_sesame.name"
             },
             "sellPrice": 1195,
-            "staminaRestore": 159
+            "staminaRestore": 159,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4391,7 +4656,10 @@
               "key": "taoyuan.item.dew_bloom.name"
             },
             "sellPrice": 1011,
-            "staminaRestore": 134
+            "staminaRestore": 134,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4414,7 +4682,10 @@
               "key": "taoyuan.item.dew_glow_apricot.name"
             },
             "sellPrice": 1257,
-            "staminaRestore": 167
+            "staminaRestore": 167,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4437,7 +4708,10 @@
               "key": "taoyuan.item.dew_jade3_bean.name"
             },
             "sellPrice": 1134,
-            "staminaRestore": 151
+            "staminaRestore": 151,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4460,7 +4734,10 @@
               "key": "taoyuan.item.dew_splendor_bud.name"
             },
             "sellPrice": 1072,
-            "staminaRestore": 143
+            "staminaRestore": 143,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4483,7 +4760,10 @@
               "key": "taoyuan.item.divine_dream_gourd.name"
             },
             "sellPrice": 2137,
-            "staminaRestore": 285
+            "staminaRestore": 285,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4506,7 +4786,10 @@
               "key": "taoyuan.item.divine_grace6_shoot.name"
             },
             "sellPrice": 1950,
-            "staminaRestore": 260
+            "staminaRestore": 260,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4529,7 +4812,10 @@
               "key": "taoyuan.item.divine_phantom_root.name"
             },
             "sellPrice": 2044,
-            "staminaRestore": 272
+            "staminaRestore": 272,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4552,7 +4838,10 @@
               "key": "taoyuan.item.divine_wonder_tuber.name"
             },
             "sellPrice": 1857,
-            "staminaRestore": 247
+            "staminaRestore": 247,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4575,7 +4864,10 @@
               "key": "taoyuan.item.divine_zen_berry.name"
             },
             "sellPrice": 2232,
-            "staminaRestore": 297
+            "staminaRestore": 297,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4598,7 +4890,10 @@
               "key": "taoyuan.item.donkey_milk.name"
             },
             "sellPrice": 120,
-            "staminaRestore": 6
+            "staminaRestore": 6,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -4621,7 +4916,10 @@
               "key": "taoyuan.item.double_lotus.name"
             },
             "sellPrice": 420,
-            "staminaRestore": 56
+            "staminaRestore": 56,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4644,7 +4942,10 @@
               "key": "taoyuan.item.double_nut.name"
             },
             "sellPrice": 247,
-            "staminaRestore": 33
+            "staminaRestore": 33,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4667,7 +4968,10 @@
               "key": "taoyuan.item.double_oil_seed.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4690,7 +4994,10 @@
               "key": "taoyuan.item.draco_dance_fruit.name"
             },
             "sellPrice": 2344,
-            "staminaRestore": 312
+            "staminaRestore": 312,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4713,7 +5020,10 @@
               "key": "taoyuan.item.draco_gleam7_wheat.name"
             },
             "sellPrice": 2437,
-            "staminaRestore": 325
+            "staminaRestore": 325,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4736,7 +5046,10 @@
               "key": "taoyuan.item.draco_roar_chestnut.name"
             },
             "sellPrice": 2625,
-            "staminaRestore": 350
+            "staminaRestore": 350,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4759,7 +5072,10 @@
               "key": "taoyuan.item.draco_shadow_vine.name"
             },
             "sellPrice": 2532,
-            "staminaRestore": 337
+            "staminaRestore": 337,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4782,7 +5098,10 @@
               "key": "taoyuan.item.draco_song_melon.name"
             },
             "sellPrice": 2250,
-            "staminaRestore": 300
+            "staminaRestore": 300,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4805,7 +5124,10 @@
               "key": "taoyuan.item.dragon_fire.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 90
+            "staminaRestore": 90,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4870,7 +5192,10 @@
               "key": "taoyuan.item.dragon_pearl.name"
             },
             "sellPrice": 900,
-            "staminaRestore": 120
+            "staminaRestore": 120,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -4977,7 +5302,11 @@
               "key": "taoyuan.item.dragonfish.name"
             },
             "sellPrice": 750,
-            "staminaRestore": 100
+            "staminaRestore": 100,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -5226,7 +5555,10 @@
               "key": "taoyuan.item.duck_egg.name"
             },
             "sellPrice": 142,
-            "staminaRestore": 8
+            "staminaRestore": 8,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -5270,7 +5602,10 @@
               "key": "taoyuan.item.dusk_aura_root.name"
             },
             "sellPrice": 1207,
-            "staminaRestore": 161
+            "staminaRestore": 161,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5293,7 +5628,10 @@
               "key": "taoyuan.item.dusk_glow_berry.name"
             },
             "sellPrice": 1269,
-            "staminaRestore": 169
+            "staminaRestore": 169,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5316,7 +5654,10 @@
               "key": "taoyuan.item.dusk_jade3_tuber.name"
             },
             "sellPrice": 1146,
-            "staminaRestore": 152
+            "staminaRestore": 152,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5339,7 +5680,10 @@
               "key": "taoyuan.item.dusk_shoot.name"
             },
             "sellPrice": 1024,
-            "staminaRestore": 136
+            "staminaRestore": 136,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5362,7 +5706,10 @@
               "key": "taoyuan.item.dusk_splendor_gourd.name"
             },
             "sellPrice": 1084,
-            "staminaRestore": 144
+            "staminaRestore": 144,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5385,7 +5732,11 @@
               "key": "taoyuan.item.eel.name"
             },
             "sellPrice": 127,
-            "staminaRestore": 17
+            "staminaRestore": 17,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -5408,7 +5759,10 @@
               "key": "taoyuan.item.egg.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 5
+            "staminaRestore": 5,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -5431,7 +5785,10 @@
               "key": "taoyuan.item.eggplant.name"
             },
             "sellPrice": 135,
-            "staminaRestore": 18
+            "staminaRestore": 18,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5454,7 +5811,10 @@
               "key": "taoyuan.item.emerald_jade_tea.name"
             },
             "sellPrice": 630,
-            "staminaRestore": 84
+            "staminaRestore": 84,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5477,7 +5837,10 @@
               "key": "taoyuan.item.emerald_radish.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5500,7 +5863,10 @@
               "key": "taoyuan.item.emerald_rice.name"
             },
             "sellPrice": 600,
-            "staminaRestore": 80
+            "staminaRestore": 80,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5523,7 +5889,10 @@
               "key": "taoyuan.item.emerald_yam.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5588,7 +5957,10 @@
               "key": "taoyuan.item.eternal_change_bean.name"
             },
             "sellPrice": 4243,
-            "staminaRestore": 565
+            "staminaRestore": 565,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5611,7 +5983,10 @@
               "key": "taoyuan.item.eternal_destiny_bud.name"
             },
             "sellPrice": 4900,
-            "staminaRestore": 653
+            "staminaRestore": 653,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5634,7 +6009,10 @@
               "key": "taoyuan.item.eternal_form_apricot.name"
             },
             "sellPrice": 5119,
-            "staminaRestore": 682
+            "staminaRestore": 682,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5657,7 +6035,10 @@
               "key": "taoyuan.item.eternal_lasting_bloom.name"
             },
             "sellPrice": 4462,
-            "staminaRestore": 595
+            "staminaRestore": 595,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5680,7 +6061,10 @@
               "key": "taoyuan.item.eternal_timeless_sesame.name"
             },
             "sellPrice": 4681,
-            "staminaRestore": 624
+            "staminaRestore": 624,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5703,7 +6087,10 @@
               "key": "taoyuan.item.evergreen_herb.name"
             },
             "sellPrice": 225,
-            "staminaRestore": 30
+            "staminaRestore": 30,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5747,7 +6134,10 @@
               "key": "taoyuan.item.fairy_chrysanthemum.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5770,7 +6160,10 @@
               "key": "taoyuan.item.fairy_dream_bud.name"
             },
             "sellPrice": 2100,
-            "staminaRestore": 280
+            "staminaRestore": 280,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5793,7 +6186,10 @@
               "key": "taoyuan.item.fairy_grace6_bloom.name"
             },
             "sellPrice": 1912,
-            "staminaRestore": 255
+            "staminaRestore": 255,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5816,7 +6212,10 @@
               "key": "taoyuan.item.fairy_phantom_sesame.name"
             },
             "sellPrice": 2007,
-            "staminaRestore": 267
+            "staminaRestore": 267,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5839,7 +6238,10 @@
               "key": "taoyuan.item.fairy_wonder_bean.name"
             },
             "sellPrice": 1819,
-            "staminaRestore": 242
+            "staminaRestore": 242,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5862,7 +6264,10 @@
               "key": "taoyuan.item.fairy_zen_apricot.name"
             },
             "sellPrice": 2194,
-            "staminaRestore": 292
+            "staminaRestore": 292,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5927,7 +6332,10 @@
               "key": "taoyuan.item.fenghuang_dance_bloom.name"
             },
             "sellPrice": 2362,
-            "staminaRestore": 315
+            "staminaRestore": 315,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5950,7 +6358,10 @@
               "key": "taoyuan.item.fenghuang_gleam7_sesame.name"
             },
             "sellPrice": 2457,
-            "staminaRestore": 327
+            "staminaRestore": 327,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5973,7 +6384,10 @@
               "key": "taoyuan.item.fenghuang_roar_apricot.name"
             },
             "sellPrice": 2644,
-            "staminaRestore": 352
+            "staminaRestore": 352,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -5996,7 +6410,10 @@
               "key": "taoyuan.item.fenghuang_shadow_bud.name"
             },
             "sellPrice": 2550,
-            "staminaRestore": 340
+            "staminaRestore": 340,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6019,7 +6436,10 @@
               "key": "taoyuan.item.fenghuang_song_bean.name"
             },
             "sellPrice": 2269,
-            "staminaRestore": 302
+            "staminaRestore": 302,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6063,7 +6483,10 @@
               "key": "taoyuan.item.fire_bean.name"
             },
             "sellPrice": 247,
-            "staminaRestore": 33
+            "staminaRestore": 33,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6086,7 +6509,10 @@
               "key": "taoyuan.item.fire_ginger.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6109,7 +6535,10 @@
               "key": "taoyuan.item.fire_sesame.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6153,7 +6582,10 @@
               "key": "taoyuan.item.firmament_core_apricot.name"
             },
             "sellPrice": 3225,
-            "staminaRestore": 430
+            "staminaRestore": 430,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6176,7 +6608,10 @@
               "key": "taoyuan.item.firmament_glory8_sesame.name"
             },
             "sellPrice": 2974,
-            "staminaRestore": 396
+            "staminaRestore": 396,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6199,7 +6634,10 @@
               "key": "taoyuan.item.firmament_origin_bean.name"
             },
             "sellPrice": 2725,
-            "staminaRestore": 363
+            "staminaRestore": 363,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6222,7 +6660,10 @@
               "key": "taoyuan.item.firmament_vital8_bloom.name"
             },
             "sellPrice": 2850,
-            "staminaRestore": 380
+            "staminaRestore": 380,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6245,7 +6686,10 @@
               "key": "taoyuan.item.firmament_zenith_bud.name"
             },
             "sellPrice": 3100,
-            "staminaRestore": 413
+            "staminaRestore": 413,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -6352,7 +6796,11 @@
               "key": "taoyuan.item.flying_fish.name"
             },
             "sellPrice": 105,
-            "staminaRestore": 14
+            "staminaRestore": 14,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -9930,7 +10378,11 @@
               "key": "taoyuan.item.freshwater_shrimp.name"
             },
             "sellPrice": 20,
-            "staminaRestore": 4
+            "staminaRestore": 4,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -9974,7 +10426,10 @@
               "key": "taoyuan.item.frost_bamboo.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 90
+            "staminaRestore": 90,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -9997,7 +10452,10 @@
               "key": "taoyuan.item.frost_chrysanthemum.name"
             },
             "sellPrice": 750,
-            "staminaRestore": 100
+            "staminaRestore": 100,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10041,7 +10499,10 @@
               "key": "taoyuan.item.frost_garlic.name"
             },
             "sellPrice": 570,
-            "staminaRestore": 76
+            "staminaRestore": 76,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10085,7 +10546,10 @@
               "key": "taoyuan.item.frost_melon.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10108,7 +10572,10 @@
               "key": "taoyuan.item.frost_pumpkin.name"
             },
             "sellPrice": 705,
-            "staminaRestore": 94
+            "staminaRestore": 94,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10215,7 +10682,10 @@
               "key": "taoyuan.item.frost_radish.name"
             },
             "sellPrice": 690,
-            "staminaRestore": 92
+            "staminaRestore": 92,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10238,7 +10708,10 @@
               "key": "taoyuan.item.frost_rapeseed.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10282,7 +10755,10 @@
               "key": "taoyuan.item.frost_winter_wheat.name"
             },
             "sellPrice": 705,
-            "staminaRestore": 94
+            "staminaRestore": 94,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10305,7 +10781,10 @@
               "key": "taoyuan.item.frost_yam.name"
             },
             "sellPrice": 705,
-            "staminaRestore": 94
+            "staminaRestore": 94,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10370,7 +10849,10 @@
               "key": "taoyuan.item.garlic.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10393,7 +10875,10 @@
               "key": "taoyuan.item.garlic_cabbage.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10416,7 +10901,10 @@
               "key": "taoyuan.item.garlic_jujube.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10439,7 +10927,10 @@
               "key": "taoyuan.item.garlic_sesame.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10462,7 +10953,10 @@
               "key": "taoyuan.item.gem_fortune_berry.name"
             },
             "sellPrice": 1341,
-            "staminaRestore": 178
+            "staminaRestore": 178,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10485,7 +10979,10 @@
               "key": "taoyuan.item.gem_glory_shoot.name"
             },
             "sellPrice": 1402,
-            "staminaRestore": 187
+            "staminaRestore": 187,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10508,7 +11005,10 @@
               "key": "taoyuan.item.gem_hua_tuber.name"
             },
             "sellPrice": 1218,
-            "staminaRestore": 162
+            "staminaRestore": 162,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10531,7 +11031,10 @@
               "key": "taoyuan.item.gem_prism4_gourd.name"
             },
             "sellPrice": 1464,
-            "staminaRestore": 195
+            "staminaRestore": 195,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10554,7 +11057,10 @@
               "key": "taoyuan.item.gem_shine_root.name"
             },
             "sellPrice": 1279,
-            "staminaRestore": 170
+            "staminaRestore": 170,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10577,7 +11083,10 @@
               "key": "taoyuan.item.genesis_apex9_lotus.name"
             },
             "sellPrice": 3637,
-            "staminaRestore": 485
+            "staminaRestore": 485,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10600,7 +11109,10 @@
               "key": "taoyuan.item.genesis_empyrean_herb.name"
             },
             "sellPrice": 4012,
-            "staminaRestore": 535
+            "staminaRestore": 535,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10623,7 +11135,10 @@
               "key": "taoyuan.item.genesis_meng_green.name"
             },
             "sellPrice": 3450,
-            "staminaRestore": 460
+            "staminaRestore": 460,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10646,7 +11161,10 @@
               "key": "taoyuan.item.genesis_spirit9_peach_t.name"
             },
             "sellPrice": 4200,
-            "staminaRestore": 560
+            "staminaRestore": 560,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10669,7 +11187,10 @@
               "key": "taoyuan.item.genesis_wilder_sprout.name"
             },
             "sellPrice": 3825,
-            "staminaRestore": 510
+            "staminaRestore": 510,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10692,7 +11213,11 @@
               "key": "taoyuan.item.giant_salamander.name"
             },
             "sellPrice": 450,
-            "staminaRestore": 60
+            "staminaRestore": 60,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -10715,7 +11240,10 @@
               "key": "taoyuan.item.ginger.name"
             },
             "sellPrice": 105,
-            "staminaRestore": 14
+            "staminaRestore": 14,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10738,7 +11266,10 @@
               "key": "taoyuan.item.ginger_blossom.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10761,7 +11292,10 @@
               "key": "taoyuan.item.ginger_jade_green.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10784,7 +11318,10 @@
               "key": "taoyuan.item.ginger_yam.name"
             },
             "sellPrice": 300,
-            "staminaRestore": 40
+            "staminaRestore": 40,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -10874,7 +11411,11 @@
               "key": "taoyuan.item.glowfish.name"
             },
             "sellPrice": 37,
-            "staminaRestore": 5
+            "staminaRestore": 5,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -10920,7 +11461,10 @@
               "key": "taoyuan.item.goat_milk.name"
             },
             "sellPrice": 165,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -11048,7 +11592,11 @@
               "key": "taoyuan.item.golden_carp.name"
             },
             "sellPrice": 225,
-            "staminaRestore": 30
+            "staminaRestore": 30,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -11071,7 +11619,10 @@
               "key": "taoyuan.item.golden_corn.name"
             },
             "sellPrice": 285,
-            "staminaRestore": 38
+            "staminaRestore": 38,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11094,7 +11645,10 @@
               "key": "taoyuan.item.golden_corn_king.name"
             },
             "sellPrice": 705,
-            "staminaRestore": 94
+            "staminaRestore": 94,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11138,7 +11692,10 @@
               "key": "taoyuan.item.golden_dragon.name"
             },
             "sellPrice": 825,
-            "staminaRestore": 110
+            "staminaRestore": 110,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11182,7 +11739,10 @@
               "key": "taoyuan.item.golden_fruit.name"
             },
             "sellPrice": 345,
-            "staminaRestore": 46
+            "staminaRestore": 46,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11205,7 +11765,10 @@
               "key": "taoyuan.item.golden_jujube.name"
             },
             "sellPrice": 795,
-            "staminaRestore": 106
+            "staminaRestore": 106,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11228,7 +11791,10 @@
               "key": "taoyuan.item.golden_lotus.name"
             },
             "sellPrice": 735,
-            "staminaRestore": 98
+            "staminaRestore": 98,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11251,7 +11817,10 @@
               "key": "taoyuan.item.golden_melon.name"
             },
             "sellPrice": 600,
-            "staminaRestore": 80
+            "staminaRestore": 80,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11274,7 +11843,10 @@
               "key": "taoyuan.item.golden_peanut_yam.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11297,7 +11869,11 @@
               "key": "taoyuan.item.golden_perch.name"
             },
             "sellPrice": 165,
-            "staminaRestore": 22
+            "staminaRestore": 22,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -11320,7 +11896,10 @@
               "key": "taoyuan.item.golden_persimmon.name"
             },
             "sellPrice": 330,
-            "staminaRestore": 44
+            "staminaRestore": 44,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11343,7 +11922,10 @@
               "key": "taoyuan.item.golden_pumpkin.name"
             },
             "sellPrice": 765,
-            "staminaRestore": 102
+            "staminaRestore": 102,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11366,7 +11948,10 @@
               "key": "taoyuan.item.golden_rice.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11389,7 +11974,10 @@
               "key": "taoyuan.item.golden_sesame.name"
             },
             "sellPrice": 720,
-            "staminaRestore": 96
+            "staminaRestore": 96,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11412,7 +12000,10 @@
               "key": "taoyuan.item.golden_sweet.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11435,7 +12026,10 @@
               "key": "taoyuan.item.golden_tuber.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11458,7 +12052,10 @@
               "key": "taoyuan.item.golden_tuber_lotus.name"
             },
             "sellPrice": 660,
-            "staminaRestore": 88
+            "staminaRestore": 88,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11481,7 +12078,11 @@
               "key": "taoyuan.item.golden_turtle.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 90
+            "staminaRestore": 90,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -11504,7 +12105,10 @@
               "key": "taoyuan.item.golden_watermelon.name"
             },
             "sellPrice": 840,
-            "staminaRestore": 112
+            "staminaRestore": 112,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11548,7 +12152,10 @@
               "key": "taoyuan.item.goose_egg.name"
             },
             "sellPrice": 165,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -11592,7 +12199,11 @@
               "key": "taoyuan.item.grass_carp.name"
             },
             "sellPrice": 60,
-            "staminaRestore": 8
+            "staminaRestore": 8,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -11615,7 +12226,10 @@
               "key": "taoyuan.item.green_bean.name"
             },
             "sellPrice": 67,
-            "staminaRestore": 9
+            "staminaRestore": 9,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11638,7 +12252,11 @@
               "key": "taoyuan.item.green_fish.name"
             },
             "sellPrice": 42,
-            "staminaRestore": 5
+            "staminaRestore": 5,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -11684,7 +12302,10 @@
               "key": "taoyuan.item.green_wheat.name"
             },
             "sellPrice": 247,
-            "staminaRestore": 33
+            "staminaRestore": 33,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11875,7 +12496,10 @@
               "key": "taoyuan.item.hanhai_cactus.name"
             },
             "sellPrice": 1125,
-            "staminaRestore": 150
+            "staminaRestore": 150,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -11940,7 +12564,10 @@
               "key": "taoyuan.item.hanhai_date.name"
             },
             "sellPrice": 750,
-            "staminaRestore": 100
+            "staminaRestore": 100,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12195,7 +12822,10 @@
               "key": "taoyuan.item.hawthorn.name"
             },
             "sellPrice": 97,
-            "staminaRestore": 13
+            "staminaRestore": 13,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12239,7 +12869,10 @@
               "key": "taoyuan.item.heavenly_change_tuber.name"
             },
             "sellPrice": 4332,
-            "staminaRestore": 577
+            "staminaRestore": 577,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12262,7 +12895,10 @@
               "key": "taoyuan.item.heavenly_destiny_gourd.name"
             },
             "sellPrice": 4987,
-            "staminaRestore": 665
+            "staminaRestore": 665,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12285,7 +12921,10 @@
               "key": "taoyuan.item.heavenly_form_berry.name"
             },
             "sellPrice": 5206,
-            "staminaRestore": 694
+            "staminaRestore": 694,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12308,7 +12947,10 @@
               "key": "taoyuan.item.heavenly_lasting_shoot.name"
             },
             "sellPrice": 4549,
-            "staminaRestore": 606
+            "staminaRestore": 606,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12331,7 +12973,10 @@
               "key": "taoyuan.item.heavenly_timeless_root.name"
             },
             "sellPrice": 4768,
-            "staminaRestore": 635
+            "staminaRestore": 635,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12419,7 +13064,10 @@
               "key": "taoyuan.item.hoar_aura_shoot.name"
             },
             "sellPrice": 1177,
-            "staminaRestore": 157
+            "staminaRestore": 157,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12442,7 +13090,10 @@
               "key": "taoyuan.item.hoar_glow_gourd.name"
             },
             "sellPrice": 1239,
-            "staminaRestore": 165
+            "staminaRestore": 165,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12465,7 +13116,10 @@
               "key": "taoyuan.item.hoar_jade3_berry.name"
             },
             "sellPrice": 1116,
-            "staminaRestore": 148
+            "staminaRestore": 148,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12488,7 +13142,10 @@
               "key": "taoyuan.item.hoar_splendor_root.name"
             },
             "sellPrice": 1054,
-            "staminaRestore": 140
+            "staminaRestore": 140,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12511,7 +13168,10 @@
               "key": "taoyuan.item.hoar_tuber.name"
             },
             "sellPrice": 993,
-            "staminaRestore": 132
+            "staminaRestore": 132,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12534,7 +13194,10 @@
               "key": "taoyuan.item.holy_dream_orchid.name"
             },
             "sellPrice": 2119,
-            "staminaRestore": 282
+            "staminaRestore": 282,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12557,7 +13220,10 @@
               "key": "taoyuan.item.holy_grace6_tea.name"
             },
             "sellPrice": 1932,
-            "staminaRestore": 257
+            "staminaRestore": 257,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12580,7 +13246,10 @@
               "key": "taoyuan.item.holy_phantom_pepper.name"
             },
             "sellPrice": 2025,
-            "staminaRestore": 270
+            "staminaRestore": 270,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12603,7 +13272,10 @@
               "key": "taoyuan.item.holy_wonder_rice.name"
             },
             "sellPrice": 1837,
-            "staminaRestore": 245
+            "staminaRestore": 245,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12626,7 +13298,10 @@
               "key": "taoyuan.item.holy_zen_pear.name"
             },
             "sellPrice": 2212,
-            "staminaRestore": 295
+            "staminaRestore": 295,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12672,7 +13347,10 @@
               "key": "taoyuan.item.honey_gourd.name"
             },
             "sellPrice": 247,
-            "staminaRestore": 33
+            "staminaRestore": 33,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12695,7 +13373,10 @@
               "key": "taoyuan.item.honey_peach_melon.name"
             },
             "sellPrice": 315,
-            "staminaRestore": 42
+            "staminaRestore": 42,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12739,7 +13420,11 @@
               "key": "taoyuan.item.ice_fish.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -12762,7 +13447,10 @@
               "key": "taoyuan.item.ice_lotus.name"
             },
             "sellPrice": 780,
-            "staminaRestore": 104
+            "staminaRestore": 104,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12785,7 +13473,10 @@
               "key": "taoyuan.item.immortal_flower.name"
             },
             "sellPrice": 870,
-            "staminaRestore": 116
+            "staminaRestore": 116,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12829,7 +13520,10 @@
               "key": "taoyuan.item.imperial_cabbage.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12852,7 +13546,10 @@
               "key": "taoyuan.item.infinite_apex9_tea.name"
             },
             "sellPrice": 3562,
-            "staminaRestore": 475
+            "staminaRestore": 475,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12875,7 +13572,10 @@
               "key": "taoyuan.item.infinite_empyrean_orchid.name"
             },
             "sellPrice": 3937,
-            "staminaRestore": 525
+            "staminaRestore": 525,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12898,7 +13598,10 @@
               "key": "taoyuan.item.infinite_meng_rice.name"
             },
             "sellPrice": 3375,
-            "staminaRestore": 450
+            "staminaRestore": 450,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12921,7 +13624,10 @@
               "key": "taoyuan.item.infinite_spirit9_pear.name"
             },
             "sellPrice": 4125,
-            "staminaRestore": 550
+            "staminaRestore": 550,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -12944,7 +13650,10 @@
               "key": "taoyuan.item.infinite_wilder_pepper.name"
             },
             "sellPrice": 3750,
-            "staminaRestore": 500
+            "staminaRestore": 500,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13179,7 +13888,10 @@
               "key": "taoyuan.item.jade_bamboo_corn.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13202,7 +13914,10 @@
               "key": "taoyuan.item.jade_chive.name"
             },
             "sellPrice": 630,
-            "staminaRestore": 84
+            "staminaRestore": 84,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13246,7 +13961,11 @@
               "key": "taoyuan.item.jade_dragon.name"
             },
             "sellPrice": 900,
-            "staminaRestore": 120
+            "staminaRestore": 120,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -13269,7 +13988,10 @@
               "key": "taoyuan.item.jade_golden_melon.name"
             },
             "sellPrice": 840,
-            "staminaRestore": 112
+            "staminaRestore": 112,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13334,7 +14056,10 @@
               "key": "taoyuan.item.jade_loofah.name"
             },
             "sellPrice": 645,
-            "staminaRestore": 86
+            "staminaRestore": 86,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13357,7 +14082,10 @@
               "key": "taoyuan.item.jade_melon.name"
             },
             "sellPrice": 300,
-            "staminaRestore": 40
+            "staminaRestore": 40,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13380,7 +14108,10 @@
               "key": "taoyuan.item.jade_melon_tea.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 90
+            "staminaRestore": 90,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13424,7 +14155,10 @@
               "key": "taoyuan.item.jade_peach_tea.name"
             },
             "sellPrice": 705,
-            "staminaRestore": 94
+            "staminaRestore": 94,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13447,7 +14181,10 @@
               "key": "taoyuan.item.jade_peanut.name"
             },
             "sellPrice": 630,
-            "staminaRestore": 84
+            "staminaRestore": 84,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13491,7 +14228,10 @@
               "key": "taoyuan.item.jade_persimmon.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 90
+            "staminaRestore": 90,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13514,7 +14254,10 @@
               "key": "taoyuan.item.jade_pumpkin.name"
             },
             "sellPrice": 315,
-            "staminaRestore": 42
+            "staminaRestore": 42,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13537,7 +14280,10 @@
               "key": "taoyuan.item.jade_rapeseed.name"
             },
             "sellPrice": 645,
-            "staminaRestore": 86
+            "staminaRestore": 86,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13581,7 +14327,10 @@
               "key": "taoyuan.item.jade_shoot.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13604,7 +14353,10 @@
               "key": "taoyuan.item.jade_shoot_ginger.name"
             },
             "sellPrice": 630,
-            "staminaRestore": 84
+            "staminaRestore": 84,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13648,7 +14400,10 @@
               "key": "taoyuan.item.jade_snow.name"
             },
             "sellPrice": 750,
-            "staminaRestore": 100
+            "staminaRestore": 100,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13713,7 +14468,10 @@
               "key": "taoyuan.item.jade_tea.name"
             },
             "sellPrice": 525,
-            "staminaRestore": 70
+            "staminaRestore": 70,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13736,7 +14494,10 @@
               "key": "taoyuan.item.jade_white.name"
             },
             "sellPrice": 225,
-            "staminaRestore": 30
+            "staminaRestore": 30,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13759,7 +14520,10 @@
               "key": "taoyuan.item.jujube.name"
             },
             "sellPrice": 150,
-            "staminaRestore": 20
+            "staminaRestore": 20,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13782,7 +14546,10 @@
               "key": "taoyuan.item.jujube_blossom.name"
             },
             "sellPrice": 330,
-            "staminaRestore": 44
+            "staminaRestore": 44,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -13828,7 +14595,11 @@
               "key": "taoyuan.item.knife_fish.name"
             },
             "sellPrice": 112,
-            "staminaRestore": 15
+            "staminaRestore": 15,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -13851,7 +14622,11 @@
               "key": "taoyuan.item.koi.name"
             },
             "sellPrice": 180,
-            "staminaRestore": 24
+            "staminaRestore": 24,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -13958,7 +14733,11 @@
               "key": "taoyuan.item.lava_snail.name"
             },
             "sellPrice": 105,
-            "staminaRestore": 14
+            "staminaRestore": 14,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -14044,7 +14823,11 @@
               "key": "taoyuan.item.loach.name"
             },
             "sellPrice": 33,
-            "staminaRestore": 4
+            "staminaRestore": 4,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -14067,7 +14850,11 @@
               "key": "taoyuan.item.lobster.name"
             },
             "sellPrice": 50,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -14090,7 +14877,10 @@
               "key": "taoyuan.item.loofah.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14113,7 +14903,10 @@
               "key": "taoyuan.item.lotus_cabbage.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14136,7 +14929,11 @@
               "key": "taoyuan.item.lotus_carp.name"
             },
             "sellPrice": 97,
-            "staminaRestore": 13
+            "staminaRestore": 13,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -14180,7 +14977,10 @@
               "key": "taoyuan.item.lotus_potato.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14203,7 +15003,10 @@
               "key": "taoyuan.item.lotus_root.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14226,7 +15029,10 @@
               "key": "taoyuan.item.lotus_seed.name"
             },
             "sellPrice": 300,
-            "staminaRestore": 40
+            "staminaRestore": 40,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14249,7 +15055,10 @@
               "key": "taoyuan.item.lotus_tea.name"
             },
             "sellPrice": 390,
-            "staminaRestore": 52
+            "staminaRestore": 52,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14335,7 +15144,10 @@
               "key": "taoyuan.item.lustrous_dewdrop_sprout.name"
             },
             "sellPrice": 1719,
-            "staminaRestore": 229
+            "staminaRestore": 229,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14358,7 +15170,10 @@
               "key": "taoyuan.item.lustrous_hua5_lotus.name"
             },
             "sellPrice": 1641,
-            "staminaRestore": 218
+            "staminaRestore": 218,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14381,7 +15196,10 @@
               "key": "taoyuan.item.lustrous_light5_green.name"
             },
             "sellPrice": 1563,
-            "staminaRestore": 208
+            "staminaRestore": 208,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14404,7 +15222,10 @@
               "key": "taoyuan.item.lustrous_silk5_peach_t.name"
             },
             "sellPrice": 1875,
-            "staminaRestore": 250
+            "staminaRestore": 250,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14427,7 +15248,10 @@
               "key": "taoyuan.item.lustrous_soul_herb.name"
             },
             "sellPrice": 1797,
-            "staminaRestore": 239
+            "staminaRestore": 239,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14450,7 +15274,10 @@
               "key": "taoyuan.item.lychee.name"
             },
             "sellPrice": 120,
-            "staminaRestore": 16
+            "staminaRestore": 16,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14935,7 +15762,10 @@
               "key": "taoyuan.item.magnif_dewdrop_pepper.name"
             },
             "sellPrice": 1687,
-            "staminaRestore": 225
+            "staminaRestore": 225,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14958,7 +15788,10 @@
               "key": "taoyuan.item.magnif_hua5_tea.name"
             },
             "sellPrice": 1609,
-            "staminaRestore": 214
+            "staminaRestore": 214,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -14981,7 +15814,10 @@
               "key": "taoyuan.item.magnif_light5_rice.name"
             },
             "sellPrice": 1531,
-            "staminaRestore": 204
+            "staminaRestore": 204,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15004,7 +15840,10 @@
               "key": "taoyuan.item.magnif_silk5_pear.name"
             },
             "sellPrice": 1843,
-            "staminaRestore": 245
+            "staminaRestore": 245,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15027,7 +15866,10 @@
               "key": "taoyuan.item.magnif_soul_orchid.name"
             },
             "sellPrice": 1765,
-            "staminaRestore": 235
+            "staminaRestore": 235,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15050,7 +15892,10 @@
               "key": "taoyuan.item.mandarin.name"
             },
             "sellPrice": 105,
-            "staminaRestore": 14
+            "staminaRestore": 14,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15073,7 +15918,11 @@
               "key": "taoyuan.item.mandarin_fish.name"
             },
             "sellPrice": 105,
-            "staminaRestore": 14
+            "staminaRestore": 14,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -15159,7 +16008,10 @@
               "key": "taoyuan.item.melon_tea_fruit.name"
             },
             "sellPrice": 720,
-            "staminaRestore": 96
+            "staminaRestore": 96,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15245,7 +16097,11 @@
               "key": "taoyuan.item.miasma_fish.name"
             },
             "sellPrice": 165,
-            "staminaRestore": 22
+            "staminaRestore": 22,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -15268,7 +16124,10 @@
               "key": "taoyuan.item.milk.name"
             },
             "sellPrice": 187,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -15354,7 +16213,11 @@
               "key": "taoyuan.item.minnow.name"
             },
             "sellPrice": 15,
-            "staminaRestore": 2
+            "staminaRestore": 2,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -15440,7 +16303,11 @@
               "key": "taoyuan.item.moon_fish.name"
             },
             "sellPrice": 112,
-            "staminaRestore": 15
+            "staminaRestore": 15,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -15463,7 +16330,10 @@
               "key": "taoyuan.item.moon_fortune_chestnut.name"
             },
             "sellPrice": 1323,
-            "staminaRestore": 176
+            "staminaRestore": 176,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15486,7 +16356,10 @@
               "key": "taoyuan.item.moon_glory_fruit.name"
             },
             "sellPrice": 1383,
-            "staminaRestore": 184
+            "staminaRestore": 184,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15530,7 +16403,10 @@
               "key": "taoyuan.item.moon_hua_melon.name"
             },
             "sellPrice": 1200,
-            "staminaRestore": 160
+            "staminaRestore": 160,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15553,7 +16429,10 @@
               "key": "taoyuan.item.moon_prism4_vine.name"
             },
             "sellPrice": 1444,
-            "staminaRestore": 192
+            "staminaRestore": 192,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15576,7 +16455,10 @@
               "key": "taoyuan.item.moon_shine_wheat.name"
             },
             "sellPrice": 1261,
-            "staminaRestore": 168
+            "staminaRestore": 168,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15620,7 +16502,10 @@
               "key": "taoyuan.item.moonlight_cabbage.name"
             },
             "sellPrice": 705,
-            "staminaRestore": 94
+            "staminaRestore": 94,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15643,7 +16528,10 @@
               "key": "taoyuan.item.moonlight_corn.name"
             },
             "sellPrice": 735,
-            "staminaRestore": 98
+            "staminaRestore": 98,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15666,7 +16554,10 @@
               "key": "taoyuan.item.moonlight_frost.name"
             },
             "sellPrice": 795,
-            "staminaRestore": 106
+            "staminaRestore": 106,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15689,7 +16580,10 @@
               "key": "taoyuan.item.moonlight_lotus.name"
             },
             "sellPrice": 735,
-            "staminaRestore": 98
+            "staminaRestore": 98,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15712,7 +16606,10 @@
               "key": "taoyuan.item.moonlight_rice.name"
             },
             "sellPrice": 420,
-            "staminaRestore": 56
+            "staminaRestore": 56,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15756,7 +16653,10 @@
               "key": "taoyuan.item.moonlight_spinach.name"
             },
             "sellPrice": 660,
-            "staminaRestore": 88
+            "staminaRestore": 88,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15779,7 +16679,10 @@
               "key": "taoyuan.item.moonlight_tea.name"
             },
             "sellPrice": 750,
-            "staminaRestore": 100
+            "staminaRestore": 100,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15802,7 +16705,10 @@
               "key": "taoyuan.item.moonlight_yam.name"
             },
             "sellPrice": 705,
-            "staminaRestore": 94
+            "staminaRestore": 94,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15846,7 +16752,10 @@
               "key": "taoyuan.item.mountain_bamboo.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15869,7 +16778,10 @@
               "key": "taoyuan.item.mountain_lotus.name"
             },
             "sellPrice": 360,
-            "staminaRestore": 48
+            "staminaRestore": 48,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15892,7 +16804,11 @@
               "key": "taoyuan.item.mountain_minnow.name"
             },
             "sellPrice": 30,
-            "staminaRestore": 4
+            "staminaRestore": 4,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -15915,7 +16831,10 @@
               "key": "taoyuan.item.mountain_nut.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -15980,7 +16899,11 @@
               "key": "taoyuan.item.mud_loach.name"
             },
             "sellPrice": 22,
-            "staminaRestore": 3
+            "staminaRestore": 3,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -16026,7 +16949,10 @@
               "key": "taoyuan.item.mustard_bean.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16049,7 +16975,10 @@
               "key": "taoyuan.item.mustard_eggplant.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16072,7 +17001,10 @@
               "key": "taoyuan.item.mustard_ginger.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16095,7 +17027,10 @@
               "key": "taoyuan.item.mustard_green.name"
             },
             "sellPrice": 67,
-            "staminaRestore": 9
+            "staminaRestore": 9,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16118,7 +17053,10 @@
               "key": "taoyuan.item.myriad_change_green.name"
             },
             "sellPrice": 4375,
-            "staminaRestore": 583
+            "staminaRestore": 583,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16141,7 +17079,10 @@
               "key": "taoyuan.item.myriad_destiny_herb.name"
             },
             "sellPrice": 5031,
-            "staminaRestore": 670
+            "staminaRestore": 670,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16164,7 +17105,10 @@
               "key": "taoyuan.item.myriad_form_peach_t.name"
             },
             "sellPrice": 5250,
-            "staminaRestore": 700
+            "staminaRestore": 700,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16187,7 +17131,10 @@
               "key": "taoyuan.item.myriad_lasting_lotus.name"
             },
             "sellPrice": 4594,
-            "staminaRestore": 612
+            "staminaRestore": 612,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16210,7 +17157,10 @@
               "key": "taoyuan.item.myriad_timeless_sprout.name"
             },
             "sellPrice": 4812,
-            "staminaRestore": 641
+            "staminaRestore": 641,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16233,7 +17183,10 @@
               "key": "taoyuan.item.napa_cabbage.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16298,7 +17251,10 @@
               "key": "taoyuan.item.nut_corn.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16321,7 +17277,10 @@
               "key": "taoyuan.item.nut_potato.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16449,7 +17408,10 @@
               "key": "taoyuan.item.osmanthus.name"
             },
             "sellPrice": 300,
-            "staminaRestore": 40
+            "staminaRestore": 40,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16472,7 +17434,10 @@
               "key": "taoyuan.item.osmanthus_garlic.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16539,7 +17504,10 @@
               "key": "taoyuan.item.osmanthus_lotus.name"
             },
             "sellPrice": 405,
-            "staminaRestore": 54
+            "staminaRestore": 54,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16562,7 +17530,10 @@
               "key": "taoyuan.item.osmanthus_tea.name"
             },
             "sellPrice": 420,
-            "staminaRestore": 56
+            "staminaRestore": 56,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16608,7 +17579,10 @@
               "key": "taoyuan.item.osmanthus_yam.name"
             },
             "sellPrice": 315,
-            "staminaRestore": 42
+            "staminaRestore": 42,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16631,7 +17605,10 @@
               "key": "taoyuan.item.ostrich_egg.name"
             },
             "sellPrice": 300,
-            "staminaRestore": 15
+            "staminaRestore": 15,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -16696,7 +17673,10 @@
               "key": "taoyuan.item.peach.name"
             },
             "sellPrice": 210,
-            "staminaRestore": 28
+            "staminaRestore": 28,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16719,7 +17699,10 @@
               "key": "taoyuan.item.peach_blossom_tea.name"
             },
             "sellPrice": 375,
-            "staminaRestore": 50
+            "staminaRestore": 50,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16742,7 +17725,10 @@
               "key": "taoyuan.item.peach_rice.name"
             },
             "sellPrice": 690,
-            "staminaRestore": 92
+            "staminaRestore": 92,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16809,7 +17795,10 @@
               "key": "taoyuan.item.peanut.name"
             },
             "sellPrice": 97,
-            "staminaRestore": 13
+            "staminaRestore": 13,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16855,7 +17844,10 @@
               "key": "taoyuan.item.pearl_grain.name"
             },
             "sellPrice": 330,
-            "staminaRestore": 44
+            "staminaRestore": 44,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16878,7 +17870,10 @@
               "key": "taoyuan.item.pearl_osmanthus.name"
             },
             "sellPrice": 690,
-            "staminaRestore": 92
+            "staminaRestore": 92,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16901,7 +17896,10 @@
               "key": "taoyuan.item.pearl_peach.name"
             },
             "sellPrice": 690,
-            "staminaRestore": 92
+            "staminaRestore": 92,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16924,7 +17922,10 @@
               "key": "taoyuan.item.persimmon.name"
             },
             "sellPrice": 225,
-            "staminaRestore": 30
+            "staminaRestore": 30,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -16989,7 +17990,10 @@
               "key": "taoyuan.item.phoenix_broad_bean.name"
             },
             "sellPrice": 630,
-            "staminaRestore": 84
+            "staminaRestore": 84,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17012,7 +18016,10 @@
               "key": "taoyuan.item.phoenix_corn.name"
             },
             "sellPrice": 690,
-            "staminaRestore": 92
+            "staminaRestore": 92,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17056,7 +18063,10 @@
               "key": "taoyuan.item.phoenix_eggplant.name"
             },
             "sellPrice": 645,
-            "staminaRestore": 86
+            "staminaRestore": 86,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17079,7 +18089,10 @@
               "key": "taoyuan.item.phoenix_garlic.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 90
+            "staminaRestore": 90,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17102,7 +18115,10 @@
               "key": "taoyuan.item.phoenix_peach.name"
             },
             "sellPrice": 720,
-            "staminaRestore": 96
+            "staminaRestore": 96,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17125,7 +18141,10 @@
               "key": "taoyuan.item.phoenix_pepper.name"
             },
             "sellPrice": 480,
-            "staminaRestore": 64
+            "staminaRestore": 64,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17148,7 +18167,10 @@
               "key": "taoyuan.item.phoenix_sesame.name"
             },
             "sellPrice": 675,
-            "staminaRestore": 90
+            "staminaRestore": 90,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17240,7 +18262,10 @@
               "key": "taoyuan.item.pigeon_egg.name"
             },
             "sellPrice": 67,
-            "staminaRestore": 5
+            "staminaRestore": 5,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -17263,7 +18288,11 @@
               "key": "taoyuan.item.pike.name"
             },
             "sellPrice": 97,
-            "staminaRestore": 13
+            "staminaRestore": 13,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -17349,7 +18378,10 @@
               "key": "taoyuan.item.plum_blossom.name"
             },
             "sellPrice": 150,
-            "staminaRestore": 20
+            "staminaRestore": 20,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17393,7 +18425,10 @@
               "key": "taoyuan.item.pomegranate.name"
             },
             "sellPrice": 142,
-            "staminaRestore": 19
+            "staminaRestore": 19,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17416,7 +18451,11 @@
               "key": "taoyuan.item.pond_snail.name"
             },
             "sellPrice": 18,
-            "staminaRestore": 2
+            "staminaRestore": 2,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -17439,7 +18478,11 @@
               "key": "taoyuan.item.pond_turtle.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -17462,7 +18505,10 @@
               "key": "taoyuan.item.potato.name"
             },
             "sellPrice": 120,
-            "staminaRestore": 16
+            "staminaRestore": 16,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17485,7 +18531,10 @@
               "key": "taoyuan.item.precious_dewdrop_wheat.name"
             },
             "sellPrice": 1656,
-            "staminaRestore": 220
+            "staminaRestore": 220,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17508,7 +18557,10 @@
               "key": "taoyuan.item.precious_hua5_fruit.name"
             },
             "sellPrice": 1578,
-            "staminaRestore": 210
+            "staminaRestore": 210,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17531,7 +18583,10 @@
               "key": "taoyuan.item.precious_light5_melon.name"
             },
             "sellPrice": 1500,
-            "staminaRestore": 200
+            "staminaRestore": 200,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17554,7 +18609,10 @@
               "key": "taoyuan.item.precious_silk5_chestnut.name"
             },
             "sellPrice": 1812,
-            "staminaRestore": 241
+            "staminaRestore": 241,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17577,7 +18635,10 @@
               "key": "taoyuan.item.precious_soul_vine.name"
             },
             "sellPrice": 1734,
-            "staminaRestore": 231
+            "staminaRestore": 231,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17621,7 +18682,10 @@
               "key": "taoyuan.item.primal_core_berry.name"
             },
             "sellPrice": 3274,
-            "staminaRestore": 436
+            "staminaRestore": 436,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17644,7 +18708,10 @@
               "key": "taoyuan.item.primal_glory8_root.name"
             },
             "sellPrice": 3025,
-            "staminaRestore": 403
+            "staminaRestore": 403,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17667,7 +18734,10 @@
               "key": "taoyuan.item.primal_origin_tuber.name"
             },
             "sellPrice": 2775,
-            "staminaRestore": 370
+            "staminaRestore": 370,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17690,7 +18760,10 @@
               "key": "taoyuan.item.primal_vital8_shoot.name"
             },
             "sellPrice": 2899,
-            "staminaRestore": 386
+            "staminaRestore": 386,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17713,7 +18786,10 @@
               "key": "taoyuan.item.primal_zenith_gourd.name"
             },
             "sellPrice": 3150,
-            "staminaRestore": 420
+            "staminaRestore": 420,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17736,7 +18812,10 @@
               "key": "taoyuan.item.primeval_apex9_shoot.name"
             },
             "sellPrice": 3600,
-            "staminaRestore": 480
+            "staminaRestore": 480,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17759,7 +18838,10 @@
               "key": "taoyuan.item.primeval_empyrean_gourd.name"
             },
             "sellPrice": 3975,
-            "staminaRestore": 530
+            "staminaRestore": 530,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17782,7 +18864,10 @@
               "key": "taoyuan.item.primeval_meng_tuber.name"
             },
             "sellPrice": 3412,
-            "staminaRestore": 455
+            "staminaRestore": 455,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17805,7 +18890,10 @@
               "key": "taoyuan.item.primeval_spirit9_berry.name"
             },
             "sellPrice": 4162,
-            "staminaRestore": 555
+            "staminaRestore": 555,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17828,7 +18916,10 @@
               "key": "taoyuan.item.primeval_wilder_root.name"
             },
             "sellPrice": 3787,
-            "staminaRestore": 505
+            "staminaRestore": 505,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17872,7 +18963,10 @@
               "key": "taoyuan.item.prism_fortune_peach_t.name"
             },
             "sellPrice": 1347,
-            "staminaRestore": 179
+            "staminaRestore": 179,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17895,7 +18989,10 @@
               "key": "taoyuan.item.prism_glory_lotus.name"
             },
             "sellPrice": 1408,
-            "staminaRestore": 187
+            "staminaRestore": 187,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17918,7 +19015,10 @@
               "key": "taoyuan.item.prism_hua_green.name"
             },
             "sellPrice": 1224,
-            "staminaRestore": 163
+            "staminaRestore": 163,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17941,7 +19041,10 @@
               "key": "taoyuan.item.prism_prism4_herb.name"
             },
             "sellPrice": 1470,
-            "staminaRestore": 196
+            "staminaRestore": 196,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -17964,7 +19067,10 @@
               "key": "taoyuan.item.prism_shine_sprout.name"
             },
             "sellPrice": 1285,
-            "staminaRestore": 171
+            "staminaRestore": 171,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18029,7 +19135,10 @@
               "key": "taoyuan.item.pumpkin.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18075,7 +19184,10 @@
               "key": "taoyuan.item.pumpkin_rice.name"
             },
             "sellPrice": 300,
-            "staminaRestore": 40
+            "staminaRestore": 40,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18098,7 +19210,10 @@
               "key": "taoyuan.item.purple_bamboo.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18121,7 +19236,10 @@
               "key": "taoyuan.item.purple_lotus.name"
             },
             "sellPrice": 315,
-            "staminaRestore": 42
+            "staminaRestore": 42,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18144,7 +19262,10 @@
               "key": "taoyuan.item.purple_melon.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18167,7 +19288,10 @@
               "key": "taoyuan.item.purple_persimmon.name"
             },
             "sellPrice": 315,
-            "staminaRestore": 42
+            "staminaRestore": 42,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18190,7 +19314,10 @@
               "key": "taoyuan.item.purple_yam.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18213,7 +19340,10 @@
               "key": "taoyuan.item.qilin_dance_tea.name"
             },
             "sellPrice": 2382,
-            "staminaRestore": 317
+            "staminaRestore": 317,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18236,7 +19366,10 @@
               "key": "taoyuan.item.qilin_gleam7_pepper.name"
             },
             "sellPrice": 2475,
-            "staminaRestore": 330
+            "staminaRestore": 330,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18259,7 +19392,10 @@
               "key": "taoyuan.item.qilin_roar_pear.name"
             },
             "sellPrice": 2662,
-            "staminaRestore": 355
+            "staminaRestore": 355,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18282,7 +19418,10 @@
               "key": "taoyuan.item.qilin_shadow_orchid.name"
             },
             "sellPrice": 2569,
-            "staminaRestore": 342
+            "staminaRestore": 342,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18305,7 +19444,10 @@
               "key": "taoyuan.item.qilin_song_rice.name"
             },
             "sellPrice": 2287,
-            "staminaRestore": 305
+            "staminaRestore": 305,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18328,7 +19470,10 @@
               "key": "taoyuan.item.quail_egg.name"
             },
             "sellPrice": 37,
-            "staminaRestore": 3
+            "staminaRestore": 3,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -18519,7 +19664,10 @@
               "key": "taoyuan.item.radiant_dewdrop_root.name"
             },
             "sellPrice": 1702,
-            "staminaRestore": 227
+            "staminaRestore": 227,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18542,7 +19690,10 @@
               "key": "taoyuan.item.radiant_hua5_shoot.name"
             },
             "sellPrice": 1624,
-            "staminaRestore": 216
+            "staminaRestore": 216,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18565,7 +19716,10 @@
               "key": "taoyuan.item.radiant_light5_tuber.name"
             },
             "sellPrice": 1546,
-            "staminaRestore": 206
+            "staminaRestore": 206,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18588,7 +19742,10 @@
               "key": "taoyuan.item.radiant_silk5_berry.name"
             },
             "sellPrice": 1860,
-            "staminaRestore": 248
+            "staminaRestore": 248,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18611,7 +19768,10 @@
               "key": "taoyuan.item.radiant_soul_gourd.name"
             },
             "sellPrice": 1782,
-            "staminaRestore": 237
+            "staminaRestore": 237,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18634,7 +19794,10 @@
               "key": "taoyuan.item.radish.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18657,7 +19820,10 @@
               "key": "taoyuan.item.rain_aura_tea.name"
             },
             "sellPrice": 1171,
-            "staminaRestore": 156
+            "staminaRestore": 156,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18680,7 +19846,10 @@
               "key": "taoyuan.item.rain_glow_orchid.name"
             },
             "sellPrice": 1231,
-            "staminaRestore": 164
+            "staminaRestore": 164,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18703,7 +19872,10 @@
               "key": "taoyuan.item.rain_jade3_pear.name"
             },
             "sellPrice": 1110,
-            "staminaRestore": 148
+            "staminaRestore": 148,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18726,7 +19898,10 @@
               "key": "taoyuan.item.rain_rice.name"
             },
             "sellPrice": 987,
-            "staminaRestore": 131
+            "staminaRestore": 131,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18749,7 +19924,10 @@
               "key": "taoyuan.item.rain_splendor_pepper.name"
             },
             "sellPrice": 1048,
-            "staminaRestore": 139
+            "staminaRestore": 139,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18793,7 +19971,10 @@
               "key": "taoyuan.item.rainbow_aura_wheat.name"
             },
             "sellPrice": 1189,
-            "staminaRestore": 158
+            "staminaRestore": 158,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18816,7 +19997,10 @@
               "key": "taoyuan.item.rainbow_fruit.name"
             },
             "sellPrice": 1005,
-            "staminaRestore": 134
+            "staminaRestore": 134,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18839,7 +20023,10 @@
               "key": "taoyuan.item.rainbow_glow_chestnut.name"
             },
             "sellPrice": 1251,
-            "staminaRestore": 166
+            "staminaRestore": 166,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18862,7 +20049,10 @@
               "key": "taoyuan.item.rainbow_jade3_melon.name"
             },
             "sellPrice": 1128,
-            "staminaRestore": 150
+            "staminaRestore": 150,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18885,7 +20075,10 @@
               "key": "taoyuan.item.rainbow_splendor_vine.name"
             },
             "sellPrice": 1066,
-            "staminaRestore": 142
+            "staminaRestore": 142,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18908,7 +20101,11 @@
               "key": "taoyuan.item.rainbow_trout.name"
             },
             "sellPrice": 67,
-            "staminaRestore": 9
+            "staminaRestore": 9,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -18931,7 +20128,10 @@
               "key": "taoyuan.item.rapeseed.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -18977,7 +20177,10 @@
               "key": "taoyuan.item.rare_dewdrop_sesame.name"
             },
             "sellPrice": 1672,
-            "staminaRestore": 223
+            "staminaRestore": 223,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19000,7 +20203,10 @@
               "key": "taoyuan.item.rare_hua5_bloom.name"
             },
             "sellPrice": 1594,
-            "staminaRestore": 212
+            "staminaRestore": 212,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19023,7 +20229,10 @@
               "key": "taoyuan.item.rare_light5_bean.name"
             },
             "sellPrice": 1515,
-            "staminaRestore": 202
+            "staminaRestore": 202,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19046,7 +20255,10 @@
               "key": "taoyuan.item.rare_silk5_apricot.name"
             },
             "sellPrice": 1828,
-            "staminaRestore": 243
+            "staminaRestore": 243,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19069,7 +20281,10 @@
               "key": "taoyuan.item.rare_soul_bud.name"
             },
             "sellPrice": 1750,
-            "staminaRestore": 233
+            "staminaRestore": 233,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19092,7 +20307,11 @@
               "key": "taoyuan.item.red_tail.name"
             },
             "sellPrice": 37,
-            "staminaRestore": 5
+            "staminaRestore": 5,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -19136,7 +20355,10 @@
               "key": "taoyuan.item.rice.name"
             },
             "sellPrice": 112,
-            "staminaRestore": 15
+            "staminaRestore": 15,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19201,7 +20423,11 @@
               "key": "taoyuan.item.river_crab.name"
             },
             "sellPrice": 120,
-            "staminaRestore": 16
+            "staminaRestore": 16,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -19224,7 +20450,11 @@
               "key": "taoyuan.item.river_dragon.name"
             },
             "sellPrice": 825,
-            "staminaRestore": 110
+            "staminaRestore": 110,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -19247,7 +20477,11 @@
               "key": "taoyuan.item.river_eel.name"
             },
             "sellPrice": 150,
-            "staminaRestore": 20
+            "staminaRestore": 20,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -19270,7 +20504,11 @@
               "key": "taoyuan.item.rock_eel.name"
             },
             "sellPrice": 195,
-            "staminaRestore": 26
+            "staminaRestore": 26,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -19293,7 +20531,11 @@
               "key": "taoyuan.item.rock_fish.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -19337,7 +20579,10 @@
               "key": "taoyuan.item.ruby_bean.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19360,7 +20605,10 @@
               "key": "taoyuan.item.ruby_fire.name"
             },
             "sellPrice": 645,
-            "staminaRestore": 86
+            "staminaRestore": 86,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19404,7 +20652,10 @@
               "key": "taoyuan.item.ruby_melon.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19616,7 +20867,10 @@
               "key": "taoyuan.item.scarlet_fortune_tuber.name"
             },
             "sellPrice": 1371,
-            "staminaRestore": 182
+            "staminaRestore": 182,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19639,7 +20893,10 @@
               "key": "taoyuan.item.scarlet_glory_root.name"
             },
             "sellPrice": 1432,
-            "staminaRestore": 191
+            "staminaRestore": 191,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19662,7 +20919,10 @@
               "key": "taoyuan.item.scarlet_hua_shoot.name"
             },
             "sellPrice": 1249,
-            "staminaRestore": 166
+            "staminaRestore": 166,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19685,7 +20945,10 @@
               "key": "taoyuan.item.scarlet_prism4_berry.name"
             },
             "sellPrice": 1494,
-            "staminaRestore": 199
+            "staminaRestore": 199,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -19708,7 +20971,10 @@
               "key": "taoyuan.item.scarlet_shine_gourd.name"
             },
             "sellPrice": 1309,
-            "staminaRestore": 174
+            "staminaRestore": 174,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -28866,7 +30132,10 @@
               "key": "taoyuan.item.sesame.name"
             },
             "sellPrice": 67,
-            "staminaRestore": 9
+            "staminaRestore": 9,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -28954,7 +30223,11 @@
               "key": "taoyuan.item.shadow_fish.name"
             },
             "sellPrice": 180,
-            "staminaRestore": 24
+            "staminaRestore": 24,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -29229,7 +30502,10 @@
               "key": "taoyuan.item.silk_bean.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29273,7 +30549,10 @@
               "key": "taoyuan.item.silk_corn.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29382,7 +30661,10 @@
               "key": "taoyuan.item.silkie_egg.name"
             },
             "sellPrice": 195,
-            "staminaRestore": 15
+            "staminaRestore": 15,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -29426,7 +30708,11 @@
               "key": "taoyuan.item.silver_carp.name"
             },
             "sellPrice": 30,
-            "staminaRestore": 4
+            "staminaRestore": 4,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -29449,7 +30735,10 @@
               "key": "taoyuan.item.silver_fortune_melon.name"
             },
             "sellPrice": 1353,
-            "staminaRestore": 180
+            "staminaRestore": 180,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29472,7 +30761,10 @@
               "key": "taoyuan.item.silver_glory_wheat.name"
             },
             "sellPrice": 1414,
-            "staminaRestore": 188
+            "staminaRestore": 188,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29495,7 +30787,10 @@
               "key": "taoyuan.item.silver_hua_fruit.name"
             },
             "sellPrice": 1230,
-            "staminaRestore": 164
+            "staminaRestore": 164,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29518,7 +30813,10 @@
               "key": "taoyuan.item.silver_prism4_chestnut.name"
             },
             "sellPrice": 1476,
-            "staminaRestore": 196
+            "staminaRestore": 196,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29541,7 +30839,10 @@
               "key": "taoyuan.item.silver_shine_vine.name"
             },
             "sellPrice": 1291,
-            "staminaRestore": 172
+            "staminaRestore": 172,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29585,7 +30886,10 @@
               "key": "taoyuan.item.sky_fortune_pear.name"
             },
             "sellPrice": 1335,
-            "staminaRestore": 178
+            "staminaRestore": 178,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29608,7 +30912,10 @@
               "key": "taoyuan.item.sky_glory_tea.name"
             },
             "sellPrice": 1396,
-            "staminaRestore": 186
+            "staminaRestore": 186,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29631,7 +30938,10 @@
               "key": "taoyuan.item.sky_hua_rice.name"
             },
             "sellPrice": 1212,
-            "staminaRestore": 161
+            "staminaRestore": 161,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29654,7 +30964,10 @@
               "key": "taoyuan.item.sky_prism4_orchid.name"
             },
             "sellPrice": 1456,
-            "staminaRestore": 194
+            "staminaRestore": 194,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29677,7 +30990,10 @@
               "key": "taoyuan.item.sky_shine_pepper.name"
             },
             "sellPrice": 1273,
-            "staminaRestore": 169
+            "staminaRestore": 169,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -29993,7 +31309,11 @@
               "key": "taoyuan.item.snail.name"
             },
             "sellPrice": 15,
-            "staminaRestore": 3
+            "staminaRestore": 3,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -30016,7 +31336,11 @@
               "key": "taoyuan.item.snapping_turtle.name"
             },
             "sellPrice": 97,
-            "staminaRestore": 13
+            "staminaRestore": 13,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -30039,7 +31363,10 @@
               "key": "taoyuan.item.snow_chrysanthemum.name"
             },
             "sellPrice": 465,
-            "staminaRestore": 62
+            "staminaRestore": 62,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30062,7 +31389,10 @@
               "key": "taoyuan.item.snow_fire_pepper.name"
             },
             "sellPrice": 427,
-            "staminaRestore": 57
+            "staminaRestore": 57,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30085,7 +31415,10 @@
               "key": "taoyuan.item.snow_lotus.name"
             },
             "sellPrice": 525,
-            "staminaRestore": 70
+            "staminaRestore": 70,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30131,7 +31464,10 @@
               "key": "taoyuan.item.snow_lotus_pearl.name"
             },
             "sellPrice": 300,
-            "staminaRestore": 40
+            "staminaRestore": 40,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30154,7 +31490,10 @@
               "key": "taoyuan.item.snow_pumpkin.name"
             },
             "sellPrice": 480,
-            "staminaRestore": 64
+            "staminaRestore": 64,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30177,7 +31516,10 @@
               "key": "taoyuan.item.snow_tea.name"
             },
             "sellPrice": 450,
-            "staminaRestore": 60
+            "staminaRestore": 60,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30265,7 +31607,10 @@
               "key": "taoyuan.item.spice_jujube.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30332,7 +31677,10 @@
               "key": "taoyuan.item.spicy_radish.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30355,7 +31703,10 @@
               "key": "taoyuan.item.spicy_sesame.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30378,7 +31729,10 @@
               "key": "taoyuan.item.spinach.name"
             },
             "sellPrice": 60,
-            "staminaRestore": 8
+            "staminaRestore": 8,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30422,7 +31776,10 @@
               "key": "taoyuan.item.spirit_dream_vine.name"
             },
             "sellPrice": 2082,
-            "staminaRestore": 277
+            "staminaRestore": 277,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30445,7 +31802,10 @@
               "key": "taoyuan.item.spirit_grace6_fruit.name"
             },
             "sellPrice": 1894,
-            "staminaRestore": 252
+            "staminaRestore": 252,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30491,7 +31851,10 @@
               "key": "taoyuan.item.spirit_phantom_wheat.name"
             },
             "sellPrice": 1987,
-            "staminaRestore": 265
+            "staminaRestore": 265,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30514,7 +31877,10 @@
               "key": "taoyuan.item.spirit_wonder_melon.name"
             },
             "sellPrice": 1800,
-            "staminaRestore": 240
+            "staminaRestore": 240,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30537,7 +31903,10 @@
               "key": "taoyuan.item.spirit_zen_chestnut.name"
             },
             "sellPrice": 2175,
-            "staminaRestore": 290
+            "staminaRestore": 290,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30560,7 +31929,10 @@
               "key": "taoyuan.item.spring_chive.name"
             },
             "sellPrice": 225,
-            "staminaRestore": 30
+            "staminaRestore": 30,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30583,7 +31955,10 @@
               "key": "taoyuan.item.spring_green_peach.name"
             },
             "sellPrice": 277,
-            "staminaRestore": 37
+            "staminaRestore": 37,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30692,7 +32067,10 @@
               "key": "taoyuan.item.star_aura_sprout.name"
             },
             "sellPrice": 1213,
-            "staminaRestore": 161
+            "staminaRestore": 161,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30715,7 +32093,10 @@
               "key": "taoyuan.item.star_glow_peach_t.name"
             },
             "sellPrice": 1275,
-            "staminaRestore": 170
+            "staminaRestore": 170,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30738,7 +32119,10 @@
               "key": "taoyuan.item.star_jade3_green.name"
             },
             "sellPrice": 1152,
-            "staminaRestore": 153
+            "staminaRestore": 153,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30761,7 +32145,10 @@
               "key": "taoyuan.item.star_lotus.name"
             },
             "sellPrice": 1030,
-            "staminaRestore": 137
+            "staminaRestore": 137,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30784,7 +32171,10 @@
               "key": "taoyuan.item.star_splendor_herb.name"
             },
             "sellPrice": 1092,
-            "staminaRestore": 145
+            "staminaRestore": 145,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -30870,7 +32260,11 @@
               "key": "taoyuan.item.stone_crab.name"
             },
             "sellPrice": 45,
-            "staminaRestore": 6
+            "staminaRestore": 6,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -30893,7 +32287,11 @@
               "key": "taoyuan.item.stone_loach.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -30958,7 +32356,11 @@
               "key": "taoyuan.item.sturgeon.name"
             },
             "sellPrice": 195,
-            "staminaRestore": 26
+            "staminaRestore": 26,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -30981,7 +32383,10 @@
               "key": "taoyuan.item.sun_fortune_apricot.name"
             },
             "sellPrice": 1329,
-            "staminaRestore": 177
+            "staminaRestore": 177,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31004,7 +32409,10 @@
               "key": "taoyuan.item.sun_glory_bloom.name"
             },
             "sellPrice": 1390,
-            "staminaRestore": 185
+            "staminaRestore": 185,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31027,7 +32435,10 @@
               "key": "taoyuan.item.sun_hua_bean.name"
             },
             "sellPrice": 1206,
-            "staminaRestore": 160
+            "staminaRestore": 160,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31050,7 +32461,10 @@
               "key": "taoyuan.item.sun_prism4_bud.name"
             },
             "sellPrice": 1450,
-            "staminaRestore": 193
+            "staminaRestore": 193,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31073,7 +32487,10 @@
               "key": "taoyuan.item.sun_shine_sesame.name"
             },
             "sellPrice": 1267,
-            "staminaRestore": 169
+            "staminaRestore": 169,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31117,7 +32534,10 @@
               "key": "taoyuan.item.supreme_core_chestnut.name"
             },
             "sellPrice": 3199,
-            "staminaRestore": 426
+            "staminaRestore": 426,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31140,7 +32560,10 @@
               "key": "taoyuan.item.supreme_glory8_wheat.name"
             },
             "sellPrice": 2950,
-            "staminaRestore": 393
+            "staminaRestore": 393,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31163,7 +32586,10 @@
               "key": "taoyuan.item.supreme_origin_melon.name"
             },
             "sellPrice": 2700,
-            "staminaRestore": 360
+            "staminaRestore": 360,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31186,7 +32612,10 @@
               "key": "taoyuan.item.supreme_vital8_fruit.name"
             },
             "sellPrice": 2824,
-            "staminaRestore": 376
+            "staminaRestore": 376,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31209,7 +32638,10 @@
               "key": "taoyuan.item.supreme_zenith_vine.name"
             },
             "sellPrice": 3075,
-            "staminaRestore": 410
+            "staminaRestore": 410,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31232,7 +32664,11 @@
               "key": "taoyuan.item.swamp_catfish.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -31255,7 +32691,11 @@
               "key": "taoyuan.item.swamp_crab.name"
             },
             "sellPrice": 45,
-            "staminaRestore": 9
+            "staminaRestore": 9,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -31278,7 +32718,11 @@
               "key": "taoyuan.item.swamp_frog.name"
             },
             "sellPrice": 52,
-            "staminaRestore": 7
+            "staminaRestore": 7,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -31301,7 +32745,10 @@
               "key": "taoyuan.item.sweet_gourd.name"
             },
             "sellPrice": 255,
-            "staminaRestore": 34
+            "staminaRestore": 34,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31324,7 +32771,10 @@
               "key": "taoyuan.item.sweet_potato.name"
             },
             "sellPrice": 97,
-            "staminaRestore": 13
+            "staminaRestore": 13,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31389,7 +32839,10 @@
               "key": "taoyuan.item.tea.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31433,7 +32886,10 @@
               "key": "taoyuan.item.terra_core_pear.name"
             },
             "sellPrice": 3250,
-            "staminaRestore": 433
+            "staminaRestore": 433,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31456,7 +32912,10 @@
               "key": "taoyuan.item.terra_glory8_pepper.name"
             },
             "sellPrice": 3000,
-            "staminaRestore": 400
+            "staminaRestore": 400,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31479,7 +32938,10 @@
               "key": "taoyuan.item.terra_origin_rice.name"
             },
             "sellPrice": 2749,
-            "staminaRestore": 366
+            "staminaRestore": 366,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31502,7 +32964,10 @@
               "key": "taoyuan.item.terra_vital8_tea.name"
             },
             "sellPrice": 2875,
-            "staminaRestore": 383
+            "staminaRestore": 383,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31525,7 +32990,10 @@
               "key": "taoyuan.item.terra_zenith_orchid.name"
             },
             "sellPrice": 3124,
-            "staminaRestore": 416
+            "staminaRestore": 416,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31548,7 +33016,10 @@
               "key": "taoyuan.item.thunder_aura_lotus.name"
             },
             "sellPrice": 1183,
-            "staminaRestore": 157
+            "staminaRestore": 157,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31571,7 +33042,10 @@
               "key": "taoyuan.item.thunder_glow_herb.name"
             },
             "sellPrice": 1245,
-            "staminaRestore": 166
+            "staminaRestore": 166,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31594,7 +33068,10 @@
               "key": "taoyuan.item.thunder_green.name"
             },
             "sellPrice": 999,
-            "staminaRestore": 133
+            "staminaRestore": 133,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31617,7 +33094,10 @@
               "key": "taoyuan.item.thunder_jade3_peach_t.name"
             },
             "sellPrice": 1122,
-            "staminaRestore": 149
+            "staminaRestore": 149,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31640,7 +33120,10 @@
               "key": "taoyuan.item.thunder_splendor_sprout.name"
             },
             "sellPrice": 1060,
-            "staminaRestore": 141
+            "staminaRestore": 141,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31707,7 +33190,10 @@
               "key": "taoyuan.item.tiger_dance_lotus.name"
             },
             "sellPrice": 2419,
-            "staminaRestore": 322
+            "staminaRestore": 322,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31772,7 +33258,10 @@
               "key": "taoyuan.item.tiger_gleam7_sprout.name"
             },
             "sellPrice": 2512,
-            "staminaRestore": 335
+            "staminaRestore": 335,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31837,7 +33326,10 @@
               "key": "taoyuan.item.tiger_roar_peach_t.name"
             },
             "sellPrice": 2700,
-            "staminaRestore": 360
+            "staminaRestore": 360,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31860,7 +33352,10 @@
               "key": "taoyuan.item.tiger_shadow_herb.name"
             },
             "sellPrice": 2607,
-            "staminaRestore": 347
+            "staminaRestore": 347,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31883,7 +33378,10 @@
               "key": "taoyuan.item.tiger_song_green.name"
             },
             "sellPrice": 2325,
-            "staminaRestore": 310
+            "staminaRestore": 310,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -31929,7 +33427,11 @@
               "key": "taoyuan.item.torrent_fish.name"
             },
             "sellPrice": 90,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -32162,7 +33664,10 @@
               "key": "taoyuan.item.tree_peach.name"
             },
             "sellPrice": 90,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32206,7 +33711,10 @@
               "key": "taoyuan.item.trueth_dream_herb.name"
             },
             "sellPrice": 2157,
-            "staminaRestore": 287
+            "staminaRestore": 287,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32229,7 +33737,10 @@
               "key": "taoyuan.item.trueth_grace6_lotus.name"
             },
             "sellPrice": 1969,
-            "staminaRestore": 262
+            "staminaRestore": 262,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32252,7 +33763,10 @@
               "key": "taoyuan.item.trueth_phantom_sprout.name"
             },
             "sellPrice": 2062,
-            "staminaRestore": 275
+            "staminaRestore": 275,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32275,7 +33789,10 @@
               "key": "taoyuan.item.trueth_wonder_green.name"
             },
             "sellPrice": 1875,
-            "staminaRestore": 250
+            "staminaRestore": 250,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32298,7 +33815,10 @@
               "key": "taoyuan.item.trueth_zen_peach_t.name"
             },
             "sellPrice": 2250,
-            "staminaRestore": 300
+            "staminaRestore": 300,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32321,7 +33841,10 @@
               "key": "taoyuan.item.truffle.name"
             },
             "sellPrice": 450,
-            "staminaRestore": 5
+            "staminaRestore": 5,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -32409,7 +33932,10 @@
               "key": "taoyuan.item.twin_bean.name"
             },
             "sellPrice": 232,
-            "staminaRestore": 31
+            "staminaRestore": 31,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32432,7 +33958,10 @@
               "key": "taoyuan.item.twin_blossom.name"
             },
             "sellPrice": 360,
-            "staminaRestore": 48
+            "staminaRestore": 48,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32455,7 +33984,10 @@
               "key": "taoyuan.item.twin_golden_bean.name"
             },
             "sellPrice": 600,
-            "staminaRestore": 80
+            "staminaRestore": 80,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32478,7 +34010,10 @@
               "key": "taoyuan.item.twin_grain.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32501,7 +34036,10 @@
               "key": "taoyuan.item.undying_change_rice.name"
             },
             "sellPrice": 4287,
-            "staminaRestore": 571
+            "staminaRestore": 571,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32524,7 +34062,10 @@
               "key": "taoyuan.item.undying_destiny_orchid.name"
             },
             "sellPrice": 4944,
-            "staminaRestore": 659
+            "staminaRestore": 659,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32547,7 +34088,10 @@
               "key": "taoyuan.item.undying_form_pear.name"
             },
             "sellPrice": 5163,
-            "staminaRestore": 688
+            "staminaRestore": 688,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32570,7 +34114,10 @@
               "key": "taoyuan.item.undying_lasting_tea.name"
             },
             "sellPrice": 4506,
-            "staminaRestore": 600
+            "staminaRestore": 600,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32593,7 +34140,10 @@
               "key": "taoyuan.item.undying_timeless_pepper.name"
             },
             "sellPrice": 4725,
-            "staminaRestore": 630
+            "staminaRestore": 630,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32616,7 +34166,10 @@
               "key": "taoyuan.item.vast_apex9_fruit.name"
             },
             "sellPrice": 3487,
-            "staminaRestore": 465
+            "staminaRestore": 465,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32639,7 +34192,10 @@
               "key": "taoyuan.item.vast_empyrean_vine.name"
             },
             "sellPrice": 3862,
-            "staminaRestore": 515
+            "staminaRestore": 515,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32662,7 +34218,10 @@
               "key": "taoyuan.item.vast_meng_melon.name"
             },
             "sellPrice": 3300,
-            "staminaRestore": 440
+            "staminaRestore": 440,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32685,7 +34244,10 @@
               "key": "taoyuan.item.vast_spirit9_chestnut.name"
             },
             "sellPrice": 4050,
-            "staminaRestore": 540
+            "staminaRestore": 540,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32708,7 +34270,10 @@
               "key": "taoyuan.item.vast_wilder_wheat.name"
             },
             "sellPrice": 3675,
-            "staminaRestore": 490
+            "staminaRestore": 490,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32731,7 +34296,10 @@
               "key": "taoyuan.item.verdant_fortune_bean.name"
             },
             "sellPrice": 1359,
-            "staminaRestore": 181
+            "staminaRestore": 181,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32754,7 +34322,10 @@
               "key": "taoyuan.item.verdant_glory_sesame.name"
             },
             "sellPrice": 1420,
-            "staminaRestore": 189
+            "staminaRestore": 189,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32777,7 +34348,10 @@
               "key": "taoyuan.item.verdant_hua_bloom.name"
             },
             "sellPrice": 1236,
-            "staminaRestore": 164
+            "staminaRestore": 164,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32800,7 +34374,10 @@
               "key": "taoyuan.item.verdant_prism4_apricot.name"
             },
             "sellPrice": 1482,
-            "staminaRestore": 197
+            "staminaRestore": 197,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32823,7 +34400,10 @@
               "key": "taoyuan.item.verdant_shine_bud.name"
             },
             "sellPrice": 1297,
-            "staminaRestore": 173
+            "staminaRestore": 173,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32846,7 +34426,10 @@
               "key": "taoyuan.item.violet_fortune_rice.name"
             },
             "sellPrice": 1365,
-            "staminaRestore": 182
+            "staminaRestore": 182,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32869,7 +34452,10 @@
               "key": "taoyuan.item.violet_glory_pepper.name"
             },
             "sellPrice": 1426,
-            "staminaRestore": 190
+            "staminaRestore": 190,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32892,7 +34478,10 @@
               "key": "taoyuan.item.violet_hua_tea.name"
             },
             "sellPrice": 1243,
-            "staminaRestore": 165
+            "staminaRestore": 165,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32915,7 +34504,10 @@
               "key": "taoyuan.item.violet_prism4_pear.name"
             },
             "sellPrice": 1488,
-            "staminaRestore": 198
+            "staminaRestore": 198,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -32938,7 +34530,10 @@
               "key": "taoyuan.item.violet_shine_orchid.name"
             },
             "sellPrice": 1303,
-            "staminaRestore": 173
+            "staminaRestore": 173,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33194,7 +34789,11 @@
               "key": "taoyuan.item.waterfall_crab.name"
             },
             "sellPrice": 82,
-            "staminaRestore": 11
+            "staminaRestore": 11,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -33217,7 +34816,10 @@
               "key": "taoyuan.item.watermelon.name"
             },
             "sellPrice": 195,
-            "staminaRestore": 26
+            "staminaRestore": 26,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33284,7 +34886,10 @@
               "key": "taoyuan.item.wheat_mustard.name"
             },
             "sellPrice": 240,
-            "staminaRestore": 32
+            "staminaRestore": 32,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33307,7 +34912,10 @@
               "key": "taoyuan.item.wheat_potato.name"
             },
             "sellPrice": 262,
-            "staminaRestore": 35
+            "staminaRestore": 35,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33330,7 +34938,10 @@
               "key": "taoyuan.item.wheat_yam.name"
             },
             "sellPrice": 285,
-            "staminaRestore": 38
+            "staminaRestore": 38,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33420,7 +35031,10 @@
               "key": "taoyuan.item.wind_aura_fruit.name"
             },
             "sellPrice": 1158,
-            "staminaRestore": 154
+            "staminaRestore": 154,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33443,7 +35057,10 @@
               "key": "taoyuan.item.wind_glow_vine.name"
             },
             "sellPrice": 1219,
-            "staminaRestore": 162
+            "staminaRestore": 162,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33466,7 +35083,10 @@
               "key": "taoyuan.item.wind_jade3_chestnut.name"
             },
             "sellPrice": 1098,
-            "staminaRestore": 146
+            "staminaRestore": 146,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33489,7 +35109,10 @@
               "key": "taoyuan.item.wind_melon.name"
             },
             "sellPrice": 975,
-            "staminaRestore": 130
+            "staminaRestore": 130,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33512,7 +35135,10 @@
               "key": "taoyuan.item.wind_splendor_wheat.name"
             },
             "sellPrice": 1036,
-            "staminaRestore": 138
+            "staminaRestore": 138,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33579,7 +35205,10 @@
               "key": "taoyuan.item.winter_corn.name"
             },
             "sellPrice": 270,
-            "staminaRestore": 36
+            "staminaRestore": 36,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33602,7 +35231,10 @@
               "key": "taoyuan.item.winter_pumpkin.name"
             },
             "sellPrice": 292,
-            "staminaRestore": 39
+            "staminaRestore": 39,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33625,7 +35257,10 @@
               "key": "taoyuan.item.winter_wheat.name"
             },
             "sellPrice": 90,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33839,7 +35474,10 @@
               "key": "taoyuan.item.yak_milk.name"
             },
             "sellPrice": 210,
-            "staminaRestore": 12
+            "staminaRestore": 12,
+            "tags": [
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -33862,7 +35500,10 @@
               "key": "taoyuan.item.yam.name"
             },
             "sellPrice": 225,
-            "staminaRestore": 30
+            "staminaRestore": 30,
+            "tags": [
+              "taoyuan:vegetarian"
+            ]
           }
         },
         {
@@ -33885,7 +35526,11 @@
               "key": "taoyuan.item.yellow_eel.name"
             },
             "sellPrice": 75,
-            "staminaRestore": 10
+            "staminaRestore": 10,
+            "tags": [
+              "taoyuan:meat",
+              "taoyuan:protein"
+            ]
           }
         },
         {
@@ -40384,5 +42029,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:29c7686c2192fa522226ec537bd86ab4d9108cb76fcc6d186f91a2c5021d54d0"
+  "snapshotHash": "sha256:bc4a764f9a2929a70c2075f7165ba131eb1dff1efe1c053962d83aa52d993388"
 }

@@ -28,6 +28,7 @@ import type {
 export const OFFICIAL_PACKAGE_ID = requirePackageId('taoyuan-core')
 
 const text = (key: string, fallback: string) => ({ key, fallback })
+const tag = (id: string) => toOfficialContentId(id)
 
 export const OFFICIAL_REGISTRY_DEFINITIONS = [
   {
@@ -97,6 +98,17 @@ export const createOfficialTags = (): TagDef[] => [
   }
 ]
 
+const deriveLegacyItemTags = (item: (typeof ITEMS)[number]): ItemDef['tags'] | undefined => {
+  const tags = new Set<NonNullable<ItemDef['tags']>[number]>()
+  if (item.category === 'crop' || item.category === 'fruit') tags.add(tag('vegetarian'))
+  if (item.category === 'fish') {
+    tags.add(tag('meat'))
+    tags.add(tag('protein'))
+  }
+  if (item.category === 'animal_product' && item.edible) tags.add(tag('protein'))
+  return tags.size > 0 ? Array.from(tags).sort() : undefined
+}
+
 export const adaptLegacyItem = (item: (typeof ITEMS)[number]): ItemDef => ({
   id: toOfficialContentId(item.id),
   name: text(`taoyuan.item.${item.id}.name`, item.name),
@@ -105,7 +117,8 @@ export const adaptLegacyItem = (item: (typeof ITEMS)[number]): ItemDef => ({
   sellPrice: item.sellPrice,
   edible: item.edible,
   staminaRestore: item.staminaRestore,
-  healthRestore: item.healthRestore
+  healthRestore: item.healthRestore,
+  tags: deriveLegacyItemTags(item)
 })
 
 export const normalizeLegacyRecipeIngredient = (

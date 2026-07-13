@@ -9,7 +9,15 @@ import { useAchievementStore } from './useAchievementStore'
 import { useWalletStore } from './useWalletStore'
 import { useHomeStore } from './useHomeStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
-import { getCombinedItemCount, removeCombinedItem, getLowestCombinedQuality } from '@/composables/useCombinedInventory'
+import { useWarehouseStore } from './useWarehouseStore'
+import { getLowestCombinedQuality, removeCombinedItem } from '@/composables/useCombinedInventory'
+import { getOfficialItemDefs, getOfficialRecipeDef } from '@/domain/mods/contentAccess'
+import {
+  createIngredientAllocationPlan,
+  getMaxIngredientCraftQuantity,
+  type CookingIngredient,
+  type IngredientInventoryStack
+} from '@/domain/cooking/ingredientPlanner'
 
 const QUALITY_ORDER: Quality[] = ['normal', 'fine', 'excellent', 'supreme']
 const QUALITY_MULTIPLIER: Record<Quality, number> = { normal: 1, fine: 1.25, excellent: 1.5, supreme: 2 }
@@ -17,6 +25,7 @@ const QUALITY_LABEL: Record<Quality, string> = { normal: '', fine: '优良', exc
 
 export const useCookingStore = defineStore('cooking', () => {
   const inventoryStore = useInventoryStore()
+  const warehouseStore = useWarehouseStore()
   const playerStore = usePlayerStore()
   const skillStore = useSkillStore()
 
@@ -46,17 +55,47 @@ export const useCookingStore = defineStore('cooking', () => {
   /** 已解锁的食谱定义 */
   const recipes = computed(() => unlockedRecipes.value.map(id => getRecipeById(id)).filter((r): r is RecipeDef => r !== undefined))
 
+  const hasSkillForRecipe = (recipe: RecipeDef): boolean => {
+    if (!recipe.requiredSkill) return true
+    const skill = skillStore.getSkill(recipe.requiredSkill.type)
+    return skill.level >= recipe.requiredSkill.level
+  }
+
+  const getCookingIngredients = (recipe: RecipeDef): readonly CookingIngredient[] =>
+    getOfficialRecipeDef(recipe.id)?.ingredients ?? recipe.ingredients
+
+  const getCookingInventoryStacks = (): IngredientInventoryStack[] => {
+    const stacks: IngredientInventoryStack[] = inventoryStore.items.map(item => ({
+      itemId: item.itemId,
+      quality: item.quality,
+      quantity: item.quantity
+    }))
+    if (warehouseStore.unlocked) {
+      for (const chest of warehouseStore.chests) {
+        for (const item of chest.items) {
+          stacks.push({ itemId: item.itemId, quality: item.quality, quantity: item.quantity })
+        }
+      }
+    }
+    return stacks
+  }
+
+  const createCookingPlan = (recipe: RecipeDef, quantity: number) =>
+    createIngredientAllocationPlan({
+      ingredients: getCookingIngredients(recipe),
+      quantity,
+      inventory: getCookingInventoryStacks(),
+      items: getOfficialItemDefs()
+    })
+
   /** 检查是否有足够材料 */
   const canCook = (recipeId: string): boolean => {
     const recipe = getRecipeById(recipeId)
     if (!recipe) return false
     if (!unlockedRecipes.value.includes(recipeId)) return false
     // 检查技能等级门槛
-    if (recipe.requiredSkill) {
-      const skill = skillStore.getSkill(recipe.requiredSkill.type)
-      if (skill.level < recipe.requiredSkill.level) return false
-    }
-    return recipe.ingredients.every(ing => getCombinedItemCount(ing.itemId) >= ing.quantity)
+    if (!hasSkillForRecipe(recipe)) return false
+    return createCookingPlan(recipe, 1).success
   }
 
   /** 计算最多能烹饪几份 */
@@ -64,29 +103,27 @@ export const useCookingStore = defineStore('cooking', () => {
     const recipe = getRecipeById(recipeId)
     if (!recipe) return 0
     if (!unlockedRecipes.value.includes(recipeId)) return 0
-    if (recipe.requiredSkill) {
-      const skill = skillStore.getSkill(recipe.requiredSkill.type)
-      if (skill.level < recipe.requiredSkill.level) return 0
-    }
-    let max = Infinity
-    for (const ing of recipe.ingredients) {
-      const available = getCombinedItemCount(ing.itemId)
-      max = Math.min(max, Math.floor(available / ing.quantity))
-    }
-    return max === Infinity ? 0 : max
+    if (!hasSkillForRecipe(recipe)) return 0
+    return getMaxIngredientCraftQuantity({
+      ingredients: getCookingIngredients(recipe),
+      inventory: getCookingInventoryStacks(),
+      items: getOfficialItemDefs()
+    })
   }
 
   /** 预览烹饪品质（取所有材料最低品质） */
   const previewCookQuality = (recipeId: string): Quality => {
     const recipe = getRecipeById(recipeId)
     if (!recipe) return 'normal'
-    let minIdx = 3
+    const plan = createCookingPlan(recipe, 1)
+    if (plan.success) return plan.resultQuality
+
+    let minIdx = QUALITY_ORDER.length - 1
     for (const ing of recipe.ingredients) {
-      const q = getLowestCombinedQuality(ing.itemId)
-      const idx = QUALITY_ORDER.indexOf(q)
+      const idx = QUALITY_ORDER.indexOf(getLowestCombinedQuality(ing.itemId))
       if (idx < minIdx) minIdx = idx
     }
-    return QUALITY_ORDER[minIdx]!
+    return QUALITY_ORDER[minIdx] ?? 'normal'
   }
 
   /** 烹饪 */
@@ -96,25 +133,21 @@ export const useCookingStore = defineStore('cooking', () => {
     if (!unlockedRecipes.value.includes(recipeId)) return { success: false, message: '尚未解锁此食谱。' }
 
     // 计算最多能做几份
-    let maxPossible = quantity
-    for (const ing of recipe.ingredients) {
-      const available = getCombinedItemCount(ing.itemId)
-      maxPossible = Math.min(maxPossible, Math.floor(available / ing.quantity))
-    }
+    const maxPossible = getMaxIngredientCraftQuantity({
+      ingredients: getCookingIngredients(recipe),
+      inventory: getCookingInventoryStacks(),
+      items: getOfficialItemDefs(),
+      upperLimit: quantity
+    })
     if (maxPossible <= 0) return { success: false, message: '材料不足。' }
 
-    // 计算品质（取所有材料中最低品质）
-    let minQualityIndex = 3
-    for (const ing of recipe.ingredients) {
-      const quality = getLowestCombinedQuality(ing.itemId)
-      const idx = QUALITY_ORDER.indexOf(quality)
-      if (idx < minQualityIndex) minQualityIndex = idx
-    }
-    const resultQuality = QUALITY_ORDER[minQualityIndex]!
+    const plan = createCookingPlan(recipe, maxPossible)
+    if (!plan.success) return { success: false, message: '材料不足。' }
+    const resultQuality = plan.resultQuality
 
     // 批量消耗材料
-    for (const ing of recipe.ingredients) {
-      removeCombinedItem(ing.itemId, ing.quantity * maxPossible)
+    for (const removal of plan.removals) {
+      removeCombinedItem(removal.itemId, removal.quantity, removal.quality)
     }
 
     // 添加食物到背包
