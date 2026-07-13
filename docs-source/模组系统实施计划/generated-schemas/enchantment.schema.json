@@ -6,9 +6,12 @@
     "id",
     "name",
     "description",
+    "rarity",
+    "randomWeight",
     "attackBonus",
     "critBonus",
-    "special"
+    "special",
+    "effects"
   ],
   "properties": {
     "id": {
@@ -51,6 +54,14 @@
         }
       }
     },
+    "rarity": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "randomWeight": {
+      "minimum": 0,
+      "type": "number"
+    },
     "attackBonus": {
       "type": "number"
     },
@@ -91,6 +102,118 @@
           "type": "null"
         }
       ]
+    },
+    "effects": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "value"
+        ],
+        "properties": {
+          "type": {
+            "anyOf": [
+              {
+                "const": "attack_bonus",
+                "type": "string"
+              },
+              {
+                "const": "crit_rate_bonus",
+                "type": "string"
+              },
+              {
+                "const": "defense_bonus",
+                "type": "string"
+              },
+              {
+                "const": "vampiric",
+                "type": "string"
+              },
+              {
+                "const": "max_hp_bonus",
+                "type": "string"
+              },
+              {
+                "const": "stamina_reduction",
+                "type": "string"
+              },
+              {
+                "const": "mining_stamina",
+                "type": "string"
+              },
+              {
+                "const": "farming_stamina",
+                "type": "string"
+              },
+              {
+                "const": "fishing_stamina",
+                "type": "string"
+              },
+              {
+                "const": "crop_quality_bonus",
+                "type": "string"
+              },
+              {
+                "const": "crop_growth_bonus",
+                "type": "string"
+              },
+              {
+                "const": "fish_quality_bonus",
+                "type": "string"
+              },
+              {
+                "const": "fishing_calm",
+                "type": "string"
+              },
+              {
+                "const": "sell_price_bonus",
+                "type": "string"
+              },
+              {
+                "const": "shop_discount",
+                "type": "string"
+              },
+              {
+                "const": "gift_friendship",
+                "type": "string"
+              },
+              {
+                "const": "monster_drop_bonus",
+                "type": "string"
+              },
+              {
+                "const": "exp_bonus",
+                "type": "string"
+              },
+              {
+                "const": "treasure_find",
+                "type": "string"
+              },
+              {
+                "const": "ore_bonus",
+                "type": "string"
+              },
+              {
+                "const": "luck",
+                "type": "string"
+              },
+              {
+                "const": "travel_speed",
+                "type": "string"
+              },
+              {
+                "const": "combat_regen",
+                "type": "string"
+              }
+            ]
+          },
+          "value": {
+            "type": "number"
+          }
+        }
+      }
     }
   },
   "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."

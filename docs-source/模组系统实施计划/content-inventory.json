@@ -4377,13 +4377,14 @@
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             5
           ],
           "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "rationale": "Phase 4 drop table pilot verifies the monster.drops projection into taoyuan:drop_table; full monster definition and pool migration remain Phase 5 scope."
         },
         {
           "file": "src/data/mine.ts",
@@ -4394,13 +4395,14 @@
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             5
           ],
           "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "rationale": "Phase 4 drop table pilot verifies skull cavern monster drops through taoyuan:drop_table; cavern monster pools remain Phase 5 scope."
         },
         {
           "file": "src/data/mine.ts",
@@ -4429,6 +4431,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
             "src/views/game/GuildView.vue",
             "src/views/game/MiningView.vue"
           ],
@@ -4436,7 +4439,7 @@
             5
           ],
           "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "rationale": "Phase 4 drop table pilot verifies boss monster drops through taoyuan:drop_table; boss combat and reward rules remain framework-owned until Phase 5."
         },
         {
           "file": "src/data/mine.ts",
@@ -7237,10 +7240,12 @@
           "file": "src/data/weapons.ts",
           "exportName": "ENCHANTMENTS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
+          "classification": "content",
+          "targetRegistry": "taoyuan:enchantment",
+          "persistentIds": true,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/InventoryView.vue"
           ],
@@ -7248,50 +7253,66 @@
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 4 enchantment registry pilot verifies ENCHANTMENTS through taoyuan:enchantment, including display fields, combat bonuses and special effects while the legacy static export remains available as the rollback path."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "ENCHANTMENT_RARITY",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [],
+          "classification": "derived",
+          "targetRegistry": "taoyuan:enchantment",
+          "persistentIds": true,
+          "consumers": [
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 4 enchantment registry pilot folds legacy rarity into official enchantment definitions and verifies existing cost inputs remain equivalent."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "RANDOM_ENCHANT_IDS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [],
+          "classification": "derived",
+          "targetRegistry": "taoyuan:enchantment",
+          "persistentIds": true,
+          "consumers": [
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 4 enchantment registry pilot converts legacy random enchantment membership and rarity into deterministic randomWeight fields without changing rollWeightedEnchantment()."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "ENCHANTMENT_EFFECTS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [],
+          "classification": "derived",
+          "targetRegistry": "taoyuan:enchantment",
+          "persistentIds": true,
+          "consumers": [
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 4 enchantment registry pilot carries existing standard equipment effect parameters into taoyuan:enchantment while runtime collection still uses the legacy map."
         },
         {
           "file": "src/data/weapons.ts",
@@ -7631,6 +7652,7 @@
           "persistentIds": false,
           "consumers": [
             "src/stores/useInventoryStore.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
             "src/views/game/CharInfoView.vue"
           ],
           "migrationPhase": [

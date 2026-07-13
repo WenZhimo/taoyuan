@@ -234,14 +234,51 @@ export const EnchantmentSpecialSchema = Type.Union([
   Type.Null()
 ])
 
+export const EquipmentEffectTypeSchema = Type.Union([
+  Type.Literal('attack_bonus'),
+  Type.Literal('crit_rate_bonus'),
+  Type.Literal('defense_bonus'),
+  Type.Literal('vampiric'),
+  Type.Literal('max_hp_bonus'),
+  Type.Literal('stamina_reduction'),
+  Type.Literal('mining_stamina'),
+  Type.Literal('farming_stamina'),
+  Type.Literal('fishing_stamina'),
+  Type.Literal('crop_quality_bonus'),
+  Type.Literal('crop_growth_bonus'),
+  Type.Literal('fish_quality_bonus'),
+  Type.Literal('fishing_calm'),
+  Type.Literal('sell_price_bonus'),
+  Type.Literal('shop_discount'),
+  Type.Literal('gift_friendship'),
+  Type.Literal('monster_drop_bonus'),
+  Type.Literal('exp_bonus'),
+  Type.Literal('treasure_find'),
+  Type.Literal('ore_bonus'),
+  Type.Literal('luck'),
+  Type.Literal('travel_speed'),
+  Type.Literal('combat_regen')
+])
+
+export const EquipmentEffectSchema = Type.Object(
+  {
+    type: EquipmentEffectTypeSchema,
+    value: Type.Number()
+  },
+  { additionalProperties: false }
+)
+
 export const EnchantmentDefSchema = Type.Object(
   {
     id: ContentIdSchema,
     name: LocalizedTextRefSchema,
     description: LocalizedTextRefSchema,
+    rarity: Type.Integer({ minimum: 1 }),
+    randomWeight: Type.Number({ minimum: 0 }),
     attackBonus: Type.Number(),
     critBonus: Type.Number(),
-    special: EnchantmentSpecialSchema
+    special: EnchantmentSpecialSchema,
+    effects: Type.Array(EquipmentEffectSchema)
   },
   { $id: 'taoyuan.registry.EnchantmentDef', additionalProperties: false }
 )
@@ -422,6 +459,7 @@ export type Weekday = Static<typeof WeekdaySchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type DropTableDef = Static<typeof DropTableDefSchema>
 export type MonsterDef = Static<typeof MonsterDefSchema>
+export type EquipmentEffect = Static<typeof EquipmentEffectSchema>
 export type EnchantmentDef = Static<typeof EnchantmentDefSchema>
 export type RecipeIngredient = Static<typeof RecipeIngredientSchema>
 export type RecipeDef = Static<typeof RecipeDefSchema>

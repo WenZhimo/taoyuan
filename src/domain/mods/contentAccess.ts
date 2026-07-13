@@ -1,8 +1,9 @@
+import type { EnchantmentDef as LegacyEnchantmentDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import type { RegistrySet } from './registry'
-import type { CropDef, ItemDef, RecipeDef, Season, ShopDef, ShopOfferDef, TagDef } from './schemas'
+import type { CropDef, DropTableDef, EnchantmentDef, ItemDef, RecipeDef, Season, ShopDef, ShopOfferDef, TagDef } from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
 
 let officialRegistrySet: RegistrySet | null = null
@@ -64,6 +65,39 @@ export const getOfficialShopDefs = (): readonly Readonly<ShopDef>[] =>
 
 export const getOfficialShopOfferDefs = (): readonly Readonly<ShopOfferDef>[] =>
   getOfficialRegistrySet().get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer')).values()
+
+export const getOfficialEnchantmentDef = (id: string): Readonly<EnchantmentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment')).get(contentId) : undefined
+}
+
+export const getOfficialEnchantmentDefs = (): readonly Readonly<EnchantmentDef>[] =>
+  getOfficialRegistrySet().get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment')).values()
+
+const toLegacyEnchantmentDef = (enchantment: Readonly<EnchantmentDef>): LegacyEnchantmentDef => ({
+  id: getLocalContentId(enchantment.id),
+  name: enchantment.name.fallback,
+  description: enchantment.description.fallback,
+  attackBonus: enchantment.attackBonus,
+  critBonus: enchantment.critBonus,
+  special: enchantment.special
+})
+
+export const getOfficialEnchantmentById = (id: string): LegacyEnchantmentDef | undefined => {
+  const enchantment = getOfficialEnchantmentDef(id)
+  return enchantment ? toLegacyEnchantmentDef(enchantment) : undefined
+}
+
+export const getOfficialDropTableDef = (id: string): Readonly<DropTableDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<DropTableDef>(toOfficialRegistryTypeId('drop_table')).get(contentId) : undefined
+}
+
+export const getOfficialDropTableDefs = (): readonly Readonly<DropTableDef>[] =>
+  getOfficialRegistrySet().get<DropTableDef>(toOfficialRegistryTypeId('drop_table')).values()
+
+export const getOfficialMonsterDropTableDef = (monsterId: string): Readonly<DropTableDef> | undefined =>
+  getOfficialDropTableDef(monsterId.includes('/') ? monsterId : `drop/monster/${monsterId}`)
 
 export interface OfficialShopOfferQuery {
   shopId: string

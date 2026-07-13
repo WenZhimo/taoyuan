@@ -1,7 +1,7 @@
 import { ITEMS } from '@/data/items'
 import { CROPS } from '@/data/crops'
 import { RECIPES } from '@/data/recipes'
-import { ENCHANTMENTS, SHOP_WEAPONS } from '@/data/weapons'
+import { ENCHANTMENTS, ENCHANTMENT_EFFECTS, ENCHANTMENT_RARITY, RANDOM_ENCHANT_IDS, SHOP_WEAPONS } from '@/data/weapons'
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
@@ -194,13 +194,24 @@ export const adaptLegacyRecipe = (recipe: LegacyRecipeDef): RecipeDef => ({
   ...(recipe.requiredSkill ? { requiredSkill: { ...recipe.requiredSkill } } : {})
 })
 
+const getLegacyEnchantmentRarity = (id: string): number => ENCHANTMENT_RARITY[id] ?? 1
+
+const getLegacyEnchantmentRandomWeight = (id: string): number => {
+  if (!RANDOM_ENCHANT_IDS.includes(id)) return 0
+  const rarity = getLegacyEnchantmentRarity(id)
+  return 1 / (rarity * rarity)
+}
+
 export const adaptLegacyEnchantment = (id: string, enchantment: (typeof ENCHANTMENTS)[string]): EnchantmentDef => ({
   id: toOfficialContentId(id),
   name: text(`taoyuan.enchantment.${id}.name`, enchantment.name),
   description: text(`taoyuan.enchantment.${id}.description`, enchantment.description),
+  rarity: getLegacyEnchantmentRarity(id),
+  randomWeight: getLegacyEnchantmentRandomWeight(id),
   attackBonus: enchantment.attackBonus,
   critBonus: enchantment.critBonus,
-  special: enchantment.special
+  special: enchantment.special,
+  effects: (ENCHANTMENT_EFFECTS[id] ?? []).map(effect => ({ ...effect }))
 })
 
 const createMonsterDropTableId = (monsterId: string): ReturnType<typeof toOfficialContentId> =>

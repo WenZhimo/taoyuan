@@ -12641,11 +12641,19 @@
               "fallback": "聊天与送礼好感+25%",
               "key": "taoyuan.enchantment.beloved.description"
             },
+            "effects": [
+              {
+                "type": "gift_friendship",
+                "value": 0.25
+              }
+            ],
             "id": "taoyuan:beloved",
             "name": {
               "fallback": "亲和",
               "key": "taoyuan.enchantment.beloved.name"
             },
+            "randomWeight": 0.0625,
+            "rarity": 4,
             "special": null
           }
         },
@@ -12662,11 +12670,19 @@
               "fallback": "攻击力+5",
               "key": "taoyuan.enchantment.fierce.description"
             },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 5
+              }
+            ],
             "id": "taoyuan:fierce",
             "name": {
               "fallback": "炽热",
               "key": "taoyuan.enchantment.fierce.name"
             },
+            "randomWeight": 0.25,
+            "rarity": 2,
             "special": null
           }
         },
@@ -12683,11 +12699,14 @@
               "fallback": "攻击时有概率点燃敌人",
               "key": "taoyuan.enchantment.flame.description"
             },
+            "effects": [],
             "id": "taoyuan:flame",
             "name": {
               "fallback": "燃焰",
               "key": "taoyuan.enchantment.flame.name"
             },
+            "randomWeight": 0.1111111111111111,
+            "rarity": 3,
             "special": "burn"
           }
         },
@@ -12704,11 +12723,14 @@
               "fallback": "攻击时有概率冻结敌人",
               "key": "taoyuan.enchantment.frost.description"
             },
+            "effects": [],
             "id": "taoyuan:frost",
             "name": {
               "fallback": "霜寒",
               "key": "taoyuan.enchantment.frost.name"
             },
+            "randomWeight": 0.0625,
+            "rarity": 4,
             "special": "freeze"
           }
         },
@@ -12725,11 +12747,19 @@
               "fallback": "体力消耗-5%",
               "key": "taoyuan.enchantment.frugal.description"
             },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.05
+              }
+            ],
             "id": "taoyuan:frugal",
             "name": {
               "fallback": "节用",
               "key": "taoyuan.enchantment.frugal.name"
             },
+            "randomWeight": 0.1111111111111111,
+            "rarity": 3,
             "special": null
           }
         },
@@ -12746,11 +12776,14 @@
               "fallback": "攻击时有概率附加辐射",
               "key": "taoyuan.enchantment.irradiated.description"
             },
+            "effects": [],
             "id": "taoyuan:irradiated",
             "name": {
               "fallback": "辐照",
               "key": "taoyuan.enchantment.irradiated.name"
             },
+            "randomWeight": 0.04,
+            "rarity": 5,
             "special": "radiation"
           }
         },
@@ -12767,11 +12800,23 @@
               "fallback": "怪物掉落率+20%",
               "key": "taoyuan.enchantment.lucky.description"
             },
+            "effects": [
+              {
+                "type": "monster_drop_bonus",
+                "value": 0.2
+              },
+              {
+                "type": "luck",
+                "value": 0.05
+              }
+            ],
             "id": "taoyuan:lucky",
             "name": {
               "fallback": "幸运",
               "key": "taoyuan.enchantment.lucky.name"
             },
+            "randomWeight": 0.0625,
+            "rarity": 4,
             "special": "lucky"
           }
         },
@@ -12788,11 +12833,19 @@
               "fallback": "暴击率+10%",
               "key": "taoyuan.enchantment.precise.description"
             },
+            "effects": [
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.1
+              }
+            ],
             "id": "taoyuan:precise",
             "name": {
               "fallback": "精准",
               "key": "taoyuan.enchantment.precise.name"
             },
+            "randomWeight": 0.25,
+            "rarity": 2,
             "special": null
           }
         },
@@ -12809,11 +12862,19 @@
               "fallback": "战斗中每回合回复3HP",
               "key": "taoyuan.enchantment.regenerating.description"
             },
+            "effects": [
+              {
+                "type": "combat_regen",
+                "value": 3
+              }
+            ],
             "id": "taoyuan:regenerating",
             "name": {
               "fallback": "回春",
               "key": "taoyuan.enchantment.regenerating.name"
             },
+            "randomWeight": 0.0625,
+            "rarity": 4,
             "special": null
           }
         },
@@ -12830,11 +12891,19 @@
               "fallback": "技能经验+20%",
               "key": "taoyuan.enchantment.scholar.description"
             },
+            "effects": [
+              {
+                "type": "exp_bonus",
+                "value": 0.2
+              }
+            ],
             "id": "taoyuan:scholar",
             "name": {
               "fallback": "学识",
               "key": "taoyuan.enchantment.scholar.name"
             },
+            "randomWeight": 0.0625,
+            "rarity": 4,
             "special": null
           }
         },
@@ -12851,11 +12920,19 @@
               "fallback": "攻击力+3",
               "key": "taoyuan.enchantment.sharp.description"
             },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 3
+              }
+            ],
             "id": "taoyuan:sharp",
             "name": {
               "fallback": "锋利",
               "key": "taoyuan.enchantment.sharp.name"
             },
+            "randomWeight": 1,
+            "rarity": 1,
             "special": null
           }
         },
@@ -12872,11 +12949,19 @@
               "fallback": "受到伤害-15%",
               "key": "taoyuan.enchantment.sturdy.description"
             },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.15
+              }
+            ],
             "id": "taoyuan:sturdy",
             "name": {
               "fallback": "坚韧",
               "key": "taoyuan.enchantment.sturdy.name"
             },
+            "randomWeight": 0.1111111111111111,
+            "rarity": 3,
             "special": "sturdy"
           }
         },
@@ -12893,11 +12978,19 @@
               "fallback": "旅行时间-8%",
               "key": "taoyuan.enchantment.swift.description"
             },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.08
+              }
+            ],
             "id": "taoyuan:swift",
             "name": {
               "fallback": "轻捷",
               "key": "taoyuan.enchantment.swift.name"
             },
+            "randomWeight": 0.1111111111111111,
+            "rarity": 3,
             "special": null
           }
         },
@@ -12914,11 +13007,19 @@
               "fallback": "宝箱与稀有发现概率+10%",
               "key": "taoyuan.enchantment.treasure.description"
             },
+            "effects": [
+              {
+                "type": "treasure_find",
+                "value": 0.1
+              }
+            ],
             "id": "taoyuan:treasure",
             "name": {
               "fallback": "寻宝",
               "key": "taoyuan.enchantment.treasure.name"
             },
+            "randomWeight": 0.0625,
+            "rarity": 4,
             "special": null
           }
         },
@@ -12935,11 +13036,19 @@
               "fallback": "造成伤害的15%回复HP",
               "key": "taoyuan.enchantment.vampiric.description"
             },
+            "effects": [
+              {
+                "type": "vampiric",
+                "value": 0.15
+              }
+            ],
             "id": "taoyuan:vampiric",
             "name": {
               "fallback": "吸血",
               "key": "taoyuan.enchantment.vampiric.name"
             },
+            "randomWeight": 0.0625,
+            "rarity": 4,
             "special": "vampiric"
           }
         },
@@ -12956,11 +13065,14 @@
               "fallback": "攻击时有概率使敌人中毒",
               "key": "taoyuan.enchantment.venom.description"
             },
+            "effects": [],
             "id": "taoyuan:venom",
             "name": {
               "fallback": "淬毒",
               "key": "taoyuan.enchantment.venom.name"
             },
+            "randomWeight": 0.1111111111111111,
+            "rarity": 3,
             "special": "poison"
           }
         }
@@ -59374,5 +59486,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:e0c44dbdad73107ebb77650c07180791fbb933991d02e871fcf4aec7c375d284"
+  "snapshotHash": "sha256:eded24348921b741787e1c3b4f060202387fa63b1cee994bdc94d741fdd39286"
 }

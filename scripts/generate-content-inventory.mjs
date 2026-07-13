@@ -327,6 +327,50 @@ const symbolReviewOverrides = new Map(Object.entries({
   'src/data/fruitTrees.ts:FRUIT_TREE_DEFS': {
     status: 'verified',
     rationale: 'Phase 3 shop offer pilot verifies fruit-tree sapling shop projection through taoyuan:shop_offer; tree growth and harvest behavior remain later agriculture migration scope.'
+  },
+  'src/data/weapons.ts:ENCHANTMENTS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 enchantment registry pilot verifies ENCHANTMENTS through taoyuan:enchantment, including display fields, combat bonuses and special effects while the legacy static export remains available as the rollback path.'
+  },
+  'src/data/weapons.ts:ENCHANTMENT_RARITY': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 enchantment registry pilot folds legacy rarity into official enchantment definitions and verifies existing cost inputs remain equivalent.'
+  },
+  'src/data/weapons.ts:RANDOM_ENCHANT_IDS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 enchantment registry pilot converts legacy random enchantment membership and rarity into deterministic randomWeight fields without changing rollWeightedEnchantment().'
+  },
+  'src/data/weapons.ts:ENCHANTMENT_EFFECTS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 enchantment registry pilot carries existing standard equipment effect parameters into taoyuan:enchantment while runtime collection still uses the legacy map.'
+  },
+  'src/data/mine.ts:MONSTERS': {
+    status: 'baselined',
+    rationale: 'Phase 4 drop table pilot verifies the monster.drops projection into taoyuan:drop_table; full monster definition and pool migration remain Phase 5 scope.'
+  },
+  'src/data/mine.ts:BOSS_MONSTERS': {
+    status: 'baselined',
+    rationale: 'Phase 4 drop table pilot verifies boss monster drops through taoyuan:drop_table; boss combat and reward rules remain framework-owned until Phase 5.'
+  },
+  'src/data/mine.ts:SKULL_CAVERN_MONSTERS': {
+    status: 'baselined',
+    rationale: 'Phase 4 drop table pilot verifies skull cavern monster drops through taoyuan:drop_table; cavern monster pools remain Phase 5 scope.'
   }
 }))
 
@@ -342,21 +386,23 @@ const entries = dataFiles.map(file => {
   }
   const lineCount = readText(file).split(/\r?\n/).length
   const symbols = getExportedSymbols(file).map(symbol => {
-    const classification = classifySymbol(existing, symbol)
     const reviewOverride = symbolReviewOverrides.get(`${rel}:${symbol.exportName}`)
+    const classification = reviewOverride?.classification ?? classifySymbol(existing, symbol)
     return {
       file: rel,
       exportName: symbol.exportName,
       syntaxKind: symbol.syntaxKind,
       classification,
-      targetRegistry: getTargetRegistry(existing, classification),
-      persistentIds: classification === 'content' || classification === 'derived',
+      targetRegistry: reviewOverride?.targetRegistry ?? getTargetRegistry(existing, classification),
+      persistentIds: reviewOverride?.persistentIds ?? (classification === 'content' || classification === 'derived'),
       consumers: getConsumers(symbol.exportName, rel),
       migrationPhase: existing.phases ?? [6],
       snapshotFixture:
-        classification === 'content' || classification === 'derived'
-          ? 'src/tests/fixtures/mods/official-content-snapshot.json'
-          : undefined,
+        reviewOverride?.snapshotFixture ?? (
+          classification === 'content' || classification === 'derived'
+            ? 'src/tests/fixtures/mods/official-content-snapshot.json'
+            : undefined
+        ),
       status: reviewOverride?.status ?? getStatus(classification),
       rationale: reviewOverride?.rationale ?? getRationale(classification, symbol.syntaxKind)
     }
