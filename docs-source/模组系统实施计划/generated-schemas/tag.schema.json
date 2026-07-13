@@ -1,0 +1,73 @@
+{
+  "$id": "taoyuan.registry.TagDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name"
+  ],
+  "properties": {
+    "id": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "description": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "propagateToCraftedOutput": {
+      "type": "boolean"
+    },
+    "stackPolicy": {
+      "anyOf": [
+        {
+          "const": "merge",
+          "type": "string"
+        },
+        {
+          "const": "separate",
+          "type": "string"
+        }
+      ]
+    },
+    "behaviorSensitive": {
+      "type": "boolean"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

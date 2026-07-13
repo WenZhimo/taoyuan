@@ -1,0 +1,892 @@
+{
+  "game": {
+    "year": 1,
+    "season": "autumn",
+    "day": 13,
+    "hour": 22,
+    "weather": "rainy",
+    "tomorrowWeather": "sunny",
+    "currentLocation": "mine",
+    "currentLocationGroup": "mine",
+    "farmMapType": "standard",
+    "dailyLuck": 0.05
+  },
+  "player": {
+    "playerName": "旧档玩家",
+    "gender": "female",
+    "money": 12345,
+    "stamina": 80,
+    "maxStamina": 160,
+    "staminaCapLevel": 1,
+    "hp": 72,
+    "baseMaxHp": 100
+  },
+  "inventory": {
+    "items": [
+      {
+        "itemId": "cabbage",
+        "quantity": 42,
+        "quality": "normal"
+      },
+      {
+        "itemId": "cabbage",
+        "quantity": 3,
+        "quality": "supreme"
+      },
+      {
+        "itemId": "sleeping_bag",
+        "quantity": 1,
+        "quality": "normal"
+      }
+    ],
+    "weapons": [
+      {
+        "defId": "rusty_sword",
+        "enchantmentId": "sharp"
+      }
+    ],
+    "equippedWeaponIndex": 0,
+    "rings": [],
+    "hats": [],
+    "shoes": [],
+    "pendingUpgrade": {
+      "toolType": "pickaxe",
+      "targetTier": "iron",
+      "daysRemaining": 1
+    }
+  },
+  "farm": {
+    "farmSize": 4,
+    "plots": [
+      {
+        "id": 0,
+        "state": "planted",
+        "cropId": "cabbage",
+        "growthDays": 3,
+        "watered": true,
+        "unwateredDays": 0,
+        "fertilizer": "compost"
+      },
+      {
+        "id": 1,
+        "state": "tilled",
+        "cropId": null,
+        "growthDays": 0,
+        "watered": false,
+        "unwateredDays": 0,
+        "fertilizer": null
+      },
+      {
+        "id": 2,
+        "state": "wasteland",
+        "cropId": null,
+        "growthDays": 0,
+        "watered": false,
+        "unwateredDays": 0,
+        "fertilizer": null
+      },
+      {
+        "id": 3,
+        "state": "harvestable",
+        "cropId": "potato",
+        "growthDays": 6,
+        "watered": true,
+        "unwateredDays": 0,
+        "fertilizer": null
+      }
+    ],
+    "sprinklers": [],
+    "fruitTrees": [],
+    "greenhousePlots": [
+      {
+        "id": 0,
+        "state": "planted",
+        "cropId": "tomato",
+        "growthDays": 5,
+        "watered": true,
+        "unwateredDays": 0,
+        "fertilizer": "bone_meal"
+      }
+    ],
+    "greenhouseLevel": 1,
+    "wildTrees": [],
+    "nextFruitTreeId": 0,
+    "nextWildTreeId": 0,
+    "lightningRods": 0,
+    "scarecrows": 1
+  },
+  "cooking": {
+    "unlockedRecipes": [
+      "fried_egg",
+      "vegetable_soup"
+    ],
+    "activeBuff": null
+  },
+  "mining": {
+    "defeatedBosses": [
+      "boss_slime_king"
+    ],
+    "deepestFloor": 45,
+    "currentFloor": 18,
+    "inMine": true,
+    "inCombat": true,
+    "combatMonster": {
+      "id": "slime",
+      "name": "史莱姆",
+      "hp": 12,
+      "attack": 4,
+      "defense": 0,
+      "expReward": 5,
+      "drops": [],
+      "description": "测试怪物"
+    },
+    "combatLog": [
+      "旧档战斗中"
+    ],
+    "skullCavernUnlocked": true,
+    "skullDeepestFloor": 12,
+    "skullSafePoint": 10
+  },
+  "npc": {
+    "npcStates": [
+      {
+        "npcId": "chen_bo",
+        "friendship": 120,
+        "giftsThisWeek": 1,
+        "talkedToday": true
+      }
+    ],
+    "seenHeartEvents": [
+      "chen_bo_2"
+    ]
+  },
+  "quest": {
+    "boardQuests": [],
+    "activeQuests": [
+      {
+        "id": "legacy_delivery",
+        "type": "delivery",
+        "npcId": "chen_bo",
+        "npcName": "陈伯",
+        "description": "交付青菜",
+        "targetItemId": "cabbage",
+        "targetItemName": "青菜",
+        "targetQuantity": 5,
+        "collectedQuantity": 2,
+        "moneyReward": 500,
+        "friendshipReward": 20,
+        "daysRemaining": 2,
+        "accepted": true
+      }
+    ],
+    "completedQuestCount": 3,
+    "storyState": {
+      "activeQuestId": "spring_1",
+      "completedQuestIds": [],
+      "objectiveProgress": {}
+    }
+  },
+  "fishPond": {
+    "ponds": [
+      {
+        "id": 0,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 1,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 2,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 3,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 4,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 5,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 6,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 7,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 8,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 9,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 10,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 11,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 12,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 13,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 14,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 15,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 16,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 17,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 18,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 19,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 20,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 21,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 22,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 23,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 24,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 25,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 26,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 27,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 28,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 29,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 30,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 31,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 32,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 33,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 34,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 35,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 36,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 37,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 38,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 39,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 40,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 41,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 42,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 43,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 44,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 45,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 46,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 47,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 48,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 49,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 50,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 51,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 52,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 53,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      },
+      {
+        "id": 54,
+        "fishId": "carp",
+        "quantity": 1,
+        "level": 1
+      }
+    ]
+  },
+  "processing": {
+    "cellarItems": [
+      {
+        "id": 0,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 0
+      },
+      {
+        "id": 1,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 1
+      },
+      {
+        "id": 2,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 2
+      },
+      {
+        "id": 3,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 3
+      },
+      {
+        "id": 4,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 4
+      },
+      {
+        "id": 5,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 5
+      },
+      {
+        "id": 6,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 6
+      },
+      {
+        "id": 7,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 7
+      },
+      {
+        "id": 8,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 8
+      },
+      {
+        "id": 9,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 9
+      },
+      {
+        "id": 10,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 10
+      },
+      {
+        "id": 11,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 11
+      },
+      {
+        "id": 12,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 12
+      },
+      {
+        "id": 13,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 13
+      },
+      {
+        "id": 14,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 14
+      },
+      {
+        "id": 15,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 15
+      },
+      {
+        "id": 16,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 16
+      },
+      {
+        "id": 17,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 17
+      },
+      {
+        "id": 18,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 18
+      },
+      {
+        "id": 19,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 19
+      },
+      {
+        "id": 20,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 20
+      },
+      {
+        "id": 21,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 21
+      },
+      {
+        "id": 22,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 22
+      },
+      {
+        "id": 23,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 23
+      },
+      {
+        "id": 24,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 24
+      },
+      {
+        "id": 25,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 25
+      },
+      {
+        "id": 26,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 26
+      },
+      {
+        "id": 27,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 27
+      },
+      {
+        "id": 28,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 28
+      },
+      {
+        "id": 29,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 29
+      },
+      {
+        "id": 30,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 30
+      },
+      {
+        "id": 31,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 31
+      },
+      {
+        "id": 32,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 32
+      },
+      {
+        "id": 33,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 33
+      },
+      {
+        "id": 34,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 34
+      },
+      {
+        "id": 35,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 35
+      },
+      {
+        "id": 36,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 36
+      },
+      {
+        "id": 37,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 37
+      },
+      {
+        "id": 38,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 38
+      },
+      {
+        "id": 39,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 39
+      },
+      {
+        "id": 40,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 40
+      },
+      {
+        "id": 41,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 41
+      },
+      {
+        "id": 42,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 42
+      },
+      {
+        "id": 43,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 43
+      },
+      {
+        "id": 44,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 44
+      },
+      {
+        "id": 45,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 45
+      },
+      {
+        "id": 46,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 46
+      },
+      {
+        "id": 47,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 47
+      },
+      {
+        "id": 48,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 48
+      },
+      {
+        "id": 49,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 49
+      },
+      {
+        "id": 50,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 50
+      },
+      {
+        "id": 51,
+        "itemId": "wine",
+        "quality": "normal",
+        "value": 100,
+        "daysAged": 51
+      }
+    ]
+  },
+  "savedAt": "2026-07-13T00:00:00.000Z"
+}

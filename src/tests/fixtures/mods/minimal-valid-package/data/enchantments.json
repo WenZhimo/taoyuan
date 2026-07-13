@@ -1,0 +1,16 @@
+[
+  {
+    "id": "example_mod:test_enchantment",
+    "name": {
+      "key": "example_mod.enchantment.test.name",
+      "fallback": "测试附魔"
+    },
+    "description": {
+      "key": "example_mod.enchantment.test.description",
+      "fallback": "用于模组契约测试的附魔"
+    },
+    "attackBonus": 0,
+    "critBonus": 0,
+    "special": null
+  }
+]

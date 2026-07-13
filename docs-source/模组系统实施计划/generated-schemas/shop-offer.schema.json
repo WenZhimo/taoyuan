@@ -1,0 +1,64 @@
+{
+  "$id": "taoyuan.registry.ShopOfferDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "shopId",
+    "itemId",
+    "price"
+  ],
+  "properties": {
+    "id": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "shopId": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "itemId": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "price": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "quantity": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "weeklyLimit": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "totalLimit": {
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

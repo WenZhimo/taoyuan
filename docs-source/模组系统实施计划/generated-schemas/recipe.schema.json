@@ -1,0 +1,152 @@
+{
+  "$id": "taoyuan.registry.RecipeDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "ingredients",
+    "outputItemId",
+    "outputQuantity",
+    "description"
+  ],
+  "properties": {
+    "id": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "ingredients": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "type": {
+                "const": "item",
+                "type": "string"
+              },
+              "itemId": {
+                "$id": "taoyuan.schema.ContentId",
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "tagId",
+              "quantity"
+            ],
+            "properties": {
+              "type": {
+                "const": "tag",
+                "type": "string"
+              },
+              "tagId": {
+                "$id": "taoyuan.schema.ContentId",
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "tagIds",
+              "quantity"
+            ],
+            "properties": {
+              "type": {
+                "const": "anyOfTags",
+                "type": "string"
+              },
+              "tagIds": {
+                "minItems": 1,
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "$id": "taoyuan.schema.ContentId",
+                  "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                  "type": "string"
+                }
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "outputItemId": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "outputQuantity": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "description": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

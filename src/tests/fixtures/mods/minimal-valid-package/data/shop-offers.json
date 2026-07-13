@@ -1,0 +1,9 @@
+[
+  {
+    "id": "example_mod:test_offer",
+    "shopId": "taoyuan:wanwupu",
+    "itemId": "example_mod:test_item",
+    "price": 10,
+    "quantity": 1
+  }
+]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "example_mod:test_recipe",
+    "name": {
+      "key": "example_mod.recipe.test.name",
+      "fallback": "测试配方"
+    },
+    "ingredients": [
+      {
+        "type": "item",
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      },
+      {
+        "type": "tag",
+        "tagId": "example_mod:test_tag",
+        "quantity": 1
+      },
+      {
+        "type": "anyOfTags",
+        "tagIds": ["example_mod:test_tag"],
+        "quantity": 1
+      }
+    ],
+    "outputItemId": "example_mod:test_item",
+    "outputQuantity": 1,
+    "description": {
+      "key": "example_mod.recipe.test.description",
+      "fallback": "用于模组契约测试的配方"
+    }
+  }
+]

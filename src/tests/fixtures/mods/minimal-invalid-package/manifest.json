@@ -1,0 +1,17 @@
+{
+  "id": "Example Mod",
+  "name": {
+    "key": "",
+    "fallback": ""
+  },
+  "version": "not-semver",
+  "gameVersion": "2.4.0",
+  "engineApiVersion": "1",
+  "contentSchemaVersion": "1",
+  "defaultLocale": "not a locale",
+  "locales": {},
+  "authors": [],
+  "entrypoints": {
+    "example_mod:unknown_registry": []
+  }
+}

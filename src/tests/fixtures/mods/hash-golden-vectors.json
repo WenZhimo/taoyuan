@@ -1,0 +1,52 @@
+{
+  "algorithm": "sha256",
+  "canonicalization": "RFC 8785 JSON Canonicalization Scheme subset",
+  "vectors": {
+    "objectKeyOrder": {
+      "inputA": {
+        "b": 2,
+        "a": 1
+      },
+      "inputB": {
+        "a": 1,
+        "b": 2
+      },
+      "expected": "sha256:43258cff783fe7036d8a43033f830adfc60ec037382473548ac742b888292777"
+    },
+    "pathNormalization": {
+      "inputA": [
+        {
+          "path": "data\\items.json",
+          "size": 3,
+          "sha256": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        },
+        {
+          "path": "manifest.json",
+          "size": 2,
+          "sha256": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        }
+      ],
+      "inputB": [
+        {
+          "path": "manifest.json",
+          "size": 2,
+          "sha256": "sha256:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+        },
+        {
+          "path": "data/items.json",
+          "size": 3,
+          "sha256": "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        }
+      ],
+      "expected": "sha256:317d791bfdcb3a8914b2b481fe10ca0bd37508315ad707459403b8d600c926ce"
+    },
+    "lineEndings": {
+      "lf": "sha256:911169ddaaf146aff539f58c26c489af3b892dff0fe283c1c264c65ae5aa59a2",
+      "crlf": "sha256:58055bdcc73787eb88c78d36f0b4939e9c5dc1c3ad17e25cc85a6833cf1a0cab"
+    },
+    "payloadJson": {
+      "input": "{\"b\":2,\"a\":1}",
+      "expected": "sha256:3fb75453225c732a76b7899ea2096dda1455189c89817239732182f73fe5a09f"
+    }
+  }
+}

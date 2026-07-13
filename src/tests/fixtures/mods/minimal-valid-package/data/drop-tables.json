@@ -1,0 +1,13 @@
+[
+  {
+    "id": "example_mod:test_drop",
+    "entries": [
+      {
+        "itemId": "example_mod:test_item",
+        "chance": 1,
+        "minQuantity": 1,
+        "maxQuantity": 1
+      }
+    ]
+  }
+]

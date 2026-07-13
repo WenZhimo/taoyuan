@@ -1,0 +1,6 @@
+{
+  "example_mod.package.name": "示例内容包",
+  "example_mod.tag.test.name": "测试标签",
+  "example_mod.item.test.name": "测试物品",
+  "example_mod.item.test.description": "用于模组契约测试的物品"
+}

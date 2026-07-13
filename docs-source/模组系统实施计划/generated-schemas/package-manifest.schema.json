@@ -1,0 +1,188 @@
+{
+  "$id": "taoyuan.schema.PackageManifest",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "version",
+    "gameVersion",
+    "engineApiVersion",
+    "contentSchemaVersion",
+    "defaultLocale",
+    "locales",
+    "authors",
+    "license",
+    "entrypoints"
+  ],
+  "properties": {
+    "id": {
+      "$id": "taoyuan.schema.PackageId",
+      "pattern": "^[a-z0-9_.-]+$",
+      "type": "string"
+    },
+    "name": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "version": {
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+      "type": "string"
+    },
+    "gameVersion": {
+      "pattern": "^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$",
+      "type": "string"
+    },
+    "engineApiVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "contentSchemaVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "defaultLocale": {
+      "pattern": "^[A-Za-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$",
+      "type": "string"
+    },
+    "locales": {
+      "type": "object",
+      "patternProperties": {
+        "^(.*)$": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "authors": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$id": "taoyuan.schema.AuthorMetadata",
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "role": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "url": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    },
+    "contributors": {
+      "type": "array",
+      "items": {
+        "$id": "taoyuan.schema.AuthorMetadata",
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "role": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "url": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    },
+    "license": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "homepage": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "issues": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "version"
+        ],
+        "properties": {
+          "id": {
+            "$id": "taoyuan.schema.PackageId",
+            "pattern": "^[a-z0-9_.-]+$",
+            "type": "string"
+          },
+          "version": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    },
+    "entrypoints": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-z0-9_.-]+:[a-z0-9_./-]+$": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    },
+    "settings": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "attributions": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "assets": {
+      "minLength": 1,
+      "type": "string"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

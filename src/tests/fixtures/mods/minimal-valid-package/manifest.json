@@ -1,0 +1,36 @@
+{
+  "id": "example_mod",
+  "name": {
+    "key": "example_mod.package.name",
+    "fallback": "示例内容包"
+  },
+  "version": "1.0.0",
+  "gameVersion": "2.4.0",
+  "engineApiVersion": "1",
+  "contentSchemaVersion": "1",
+  "defaultLocale": "zh-CN",
+  "locales": {
+    "zh-CN": "locales/zh-CN.json"
+  },
+  "authors": [
+    {
+      "name": "示例作者",
+      "role": "developer"
+    }
+  ],
+  "license": "MIT",
+  "homepage": "https://example.com/mod",
+  "issues": "https://example.com/mod/issues",
+  "dependencies": [],
+  "entrypoints": {
+    "taoyuan:tag": ["data/tags.json"],
+    "taoyuan:item": ["data/items.json"],
+    "taoyuan:monster": ["data/monsters.json"],
+    "taoyuan:enchantment": ["data/enchantments.json"],
+    "taoyuan:drop_table": ["data/drop-tables.json"],
+    "taoyuan:recipe": ["data/recipes.json"],
+    "taoyuan:shop_offer": ["data/shop-offers.json"]
+  },
+  "attributions": "attributions.json",
+  "assets": "assets"
+}

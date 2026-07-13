@@ -1,0 +1,186 @@
+{
+  "$id": "taoyuan.registry.ItemDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "category",
+    "description",
+    "sellPrice",
+    "edible"
+  ],
+  "properties": {
+    "id": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "category": {
+      "anyOf": [
+        {
+          "const": "seed",
+          "type": "string"
+        },
+        {
+          "const": "crop",
+          "type": "string"
+        },
+        {
+          "const": "fish",
+          "type": "string"
+        },
+        {
+          "const": "ore",
+          "type": "string"
+        },
+        {
+          "const": "gem",
+          "type": "string"
+        },
+        {
+          "const": "gift",
+          "type": "string"
+        },
+        {
+          "const": "food",
+          "type": "string"
+        },
+        {
+          "const": "material",
+          "type": "string"
+        },
+        {
+          "const": "misc",
+          "type": "string"
+        },
+        {
+          "const": "processed",
+          "type": "string"
+        },
+        {
+          "const": "machine",
+          "type": "string"
+        },
+        {
+          "const": "sprinkler",
+          "type": "string"
+        },
+        {
+          "const": "fertilizer",
+          "type": "string"
+        },
+        {
+          "const": "animal_product",
+          "type": "string"
+        },
+        {
+          "const": "sapling",
+          "type": "string"
+        },
+        {
+          "const": "fruit",
+          "type": "string"
+        },
+        {
+          "const": "bait",
+          "type": "string"
+        },
+        {
+          "const": "tackle",
+          "type": "string"
+        },
+        {
+          "const": "bomb",
+          "type": "string"
+        },
+        {
+          "const": "fossil",
+          "type": "string"
+        },
+        {
+          "const": "artifact",
+          "type": "string"
+        },
+        {
+          "const": "weapon",
+          "type": "string"
+        },
+        {
+          "const": "ring",
+          "type": "string"
+        },
+        {
+          "const": "hat",
+          "type": "string"
+        },
+        {
+          "const": "shoe",
+          "type": "string"
+        }
+      ]
+    },
+    "description": {
+      "$id": "taoyuan.schema.LocalizedTextRef",
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "sellPrice": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "edible": {
+      "type": "boolean"
+    },
+    "staminaRestore": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "healthRestore": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "$id": "taoyuan.schema.ContentId",
+        "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+        "type": "string"
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

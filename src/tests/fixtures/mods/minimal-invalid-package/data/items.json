@@ -1,0 +1,17 @@
+[
+  {
+    "id": "missing_namespace",
+    "name": {
+      "key": "example_mod.item.invalid.name",
+      "fallback": "非法物品"
+    },
+    "category": "misc",
+    "description": {
+      "key": "example_mod.item.invalid.description",
+      "fallback": "缺少命名空间"
+    },
+    "sellPrice": -1,
+    "edible": false,
+    "extra": true
+  }
+]

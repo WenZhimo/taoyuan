@@ -1,0 +1,17 @@
+[
+  {
+    "id": "example_mod:test_item",
+    "name": {
+      "key": "example_mod.item.test.name",
+      "fallback": "测试物品"
+    },
+    "category": "misc",
+    "description": {
+      "key": "example_mod.item.test.description",
+      "fallback": "用于模组契约测试的物品"
+    },
+    "sellPrice": 1,
+    "edible": false,
+    "tags": ["example_mod:test_tag"]
+  }
+]

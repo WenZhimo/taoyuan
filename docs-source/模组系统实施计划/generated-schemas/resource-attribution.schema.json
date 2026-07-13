@@ -1,0 +1,33 @@
+{
+  "$id": "taoyuan.schema.ResourceAttribution",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "path",
+    "author",
+    "license",
+    "modified"
+  ],
+  "properties": {
+    "path": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "author": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "source": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "license": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "modified": {
+      "type": "boolean"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

@@ -1,0 +1,33 @@
+{
+  "$id": "taoyuan.schema.PackageSettingDefinition",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "scope",
+    "default",
+    "schema"
+  ],
+  "properties": {
+    "id": {
+      "$id": "taoyuan.schema.ContentId",
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "scope": {
+      "anyOf": [
+        {
+          "const": "installation",
+          "type": "string"
+        },
+        {
+          "const": "save",
+          "type": "string"
+        }
+      ]
+    },
+    "default": {},
+    "schema": {}
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

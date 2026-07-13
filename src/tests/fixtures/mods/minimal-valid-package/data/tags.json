@@ -1,0 +1,11 @@
+[
+  {
+    "id": "example_mod:test_tag",
+    "name": {
+      "key": "example_mod.tag.test.name",
+      "fallback": "测试标签"
+    },
+    "propagateToCraftedOutput": true,
+    "stackPolicy": "merge"
+  }
+]
