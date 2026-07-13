@@ -8,6 +8,8 @@
     "ingredients",
     "outputItemId",
     "outputQuantity",
+    "effect",
+    "unlockSource",
     "description"
   ],
   "properties": {
@@ -122,6 +124,85 @@
       "minimum": 1,
       "type": "integer"
     },
+    "effect": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "staminaRestore"
+      ],
+      "properties": {
+        "staminaRestore": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "healthRestore": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "buff": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "value",
+            "description"
+          ],
+          "properties": {
+            "type": {
+              "anyOf": [
+                {
+                  "const": "fishing",
+                  "type": "string"
+                },
+                {
+                  "const": "mining",
+                  "type": "string"
+                },
+                {
+                  "const": "giftBonus",
+                  "type": "string"
+                },
+                {
+                  "const": "speed",
+                  "type": "string"
+                },
+                {
+                  "const": "defense",
+                  "type": "string"
+                },
+                {
+                  "const": "luck",
+                  "type": "string"
+                },
+                {
+                  "const": "farming",
+                  "type": "string"
+                },
+                {
+                  "const": "stamina",
+                  "type": "string"
+                },
+                {
+                  "const": "all_skills",
+                  "type": "string"
+                }
+              ]
+            },
+            "value": {
+              "type": "number"
+            },
+            "description": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "unlockSource": {
+      "minLength": 1,
+      "type": "string"
+    },
     "description": {
       "additionalProperties": false,
       "type": "object",
@@ -137,6 +218,44 @@
         "fallback": {
           "minLength": 1,
           "type": "string"
+        }
+      }
+    },
+    "requiredSkill": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type",
+        "level"
+      ],
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "const": "farming",
+              "type": "string"
+            },
+            {
+              "const": "foraging",
+              "type": "string"
+            },
+            {
+              "const": "fishing",
+              "type": "string"
+            },
+            {
+              "const": "mining",
+              "type": "string"
+            },
+            {
+              "const": "combat",
+              "type": "string"
+            }
+          ]
+        },
+        "level": {
+          "minimum": 0,
+          "type": "integer"
         }
       }
     }

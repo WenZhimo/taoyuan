@@ -48173,6 +48173,15 @@
               "fallback": "深渊探索者的秘制炖菜。",
               "key": "taoyuan.recipe.abyss_stew.description"
             },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-20%（当天）",
+                "type": "defense",
+                "value": 20
+              },
+              "healthRestore": 35,
+              "staminaRestore": 60
+            },
             "id": "taoyuan:abyss_stew",
             "ingredients": [
               {
@@ -48196,7 +48205,8 @@
               "key": "taoyuan.recipe.abyss_stew.name"
             },
             "outputItemId": "taoyuan:food_abyss_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：到达矿洞50层"
           }
         },
         {
@@ -48209,6 +48219,10 @@
             "description": {
               "fallback": "陈伯秘传的萝卜炖肉，入味三分。",
               "key": "taoyuan.recipe.aged_radish_stew.description"
+            },
+            "effect": {
+              "healthRestore": 25,
+              "staminaRestore": 40
             },
             "id": "taoyuan:aged_radish_stew",
             "ingredients": [
@@ -48228,7 +48242,8 @@
               "key": "taoyuan.recipe.aged_radish_stew.name"
             },
             "outputItemId": "taoyuan:food_aged_radish_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "陈伯好感「相知」"
           }
         },
         {
@@ -48241,6 +48256,15 @@
             "description": {
               "fallback": "渔夫才能拼出的海鲜拼盘。",
               "key": "taoyuan.recipe.anglers_platter.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+2（当天）",
+                "type": "fishing",
+                "value": 2
+              },
+              "healthRestore": 25,
+              "staminaRestore": 45
             },
             "id": "taoyuan:anglers_platter",
             "ingredients": [
@@ -48265,7 +48289,8 @@
               "key": "taoyuan.recipe.anglers_platter.name"
             },
             "outputItemId": "taoyuan:food_anglers_platter",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：钓到20条鱼"
           }
         },
         {
@@ -48278,6 +48303,15 @@
             "description": {
               "fallback": "大补之物，一碗下去神清气爽。",
               "key": "taoyuan.recipe.antler_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "体力全恢复",
+                "type": "stamina",
+                "value": 100
+              },
+              "healthRestore": 40,
+              "staminaRestore": 80
             },
             "id": "taoyuan:antler_soup",
             "ingredients": [
@@ -48302,7 +48336,8 @@
               "key": "taoyuan.recipe.antler_soup.name"
             },
             "outputItemId": "taoyuan:food_antler_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "林老好感「知己」"
           }
         },
         {
@@ -48315,6 +48350,15 @@
             "description": {
               "fallback": "珍贵的滋补汤品，喝后精力充沛。",
               "key": "taoyuan.recipe.antler_tonic.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "采矿技能+2（当天）",
+                "type": "mining",
+                "value": 2
+              },
+              "healthRestore": 40,
+              "staminaRestore": 60
             },
             "id": "taoyuan:antler_tonic",
             "ingredients": [
@@ -48334,7 +48378,8 @@
               "key": "taoyuan.recipe.antler_tonic.name"
             },
             "outputItemId": "taoyuan:food_antler_tonic",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "林老好感「知己」"
           }
         },
         {
@@ -48347,6 +48392,15 @@
             "description": {
               "fallback": "秋月为挚友备的秋夜佳宴。",
               "key": "taoyuan.recipe.autumn_moon_feast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+20%（当天）",
+                "type": "luck",
+                "value": 20
+              },
+              "healthRestore": 30,
+              "staminaRestore": 60
             },
             "id": "taoyuan:autumn_moon_feast",
             "ingredients": [
@@ -48371,7 +48425,8 @@
               "key": "taoyuan.recipe.autumn_moon_feast.name"
             },
             "outputItemId": "taoyuan:food_autumn_moon_feast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "秋月好感「挚友」"
           }
         },
         {
@@ -48384,6 +48439,10 @@
             "description": {
               "fallback": "鲜香的冬笋炒肉片。",
               "key": "taoyuan.recipe.bamboo_shoot_stir_fry.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:bamboo_shoot_stir_fry",
             "ingredients": [
@@ -48403,7 +48462,8 @@
               "key": "taoyuan.recipe.bamboo_shoot_stir_fry.name"
             },
             "outputItemId": "taoyuan:food_bamboo_shoot_stir_fry",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -48416,6 +48476,15 @@
             "description": {
               "fallback": "提升战斗力的辛辣炖菜。",
               "key": "taoyuan.recipe.battle_stew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-15%（当天）",
+                "type": "defense",
+                "value": 15
+              },
+              "healthRestore": 30,
+              "staminaRestore": 35
             },
             "id": "taoyuan:battle_stew",
             "ingredients": [
@@ -48440,7 +48509,12 @@
               "key": "taoyuan.recipe.battle_stew.name"
             },
             "outputItemId": "taoyuan:food_battle_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "combat"
+            },
+            "unlockSource": "战斗等级4"
           }
         },
         {
@@ -48453,6 +48527,10 @@
             "description": {
               "fallback": "最朴实的营养来源。",
               "key": "taoyuan.recipe.boiled_egg.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 15
             },
             "id": "taoyuan:boiled_egg",
             "ingredients": [
@@ -48467,7 +48545,8 @@
               "key": "taoyuan.recipe.boiled_egg.name"
             },
             "outputItemId": "taoyuan:food_boiled_egg",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -48480,6 +48559,10 @@
             "description": {
               "fallback": "庆祝百次丰收的粥。",
               "key": "taoyuan.recipe.bountiful_porridge.description"
+            },
+            "effect": {
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:bountiful_porridge",
             "ingredients": [
@@ -48499,7 +48582,8 @@
               "key": "taoyuan.recipe.bountiful_porridge.name"
             },
             "outputItemId": "taoyuan:food_bountiful_porridge",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：收获100次作物"
           }
         },
         {
@@ -48512,6 +48596,15 @@
             "description": {
               "fallback": "鲜香可口的红烧鲤鱼。",
               "key": "taoyuan.recipe.braised_carp.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+1（当天）",
+                "type": "fishing",
+                "value": 1
+              },
+              "healthRestore": 15,
+              "staminaRestore": 30
             },
             "id": "taoyuan:braised_carp",
             "ingredients": [
@@ -48531,7 +48624,8 @@
               "key": "taoyuan.recipe.braised_carp.name"
             },
             "outputItemId": "taoyuan:food_braised_carp",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "秋月好感「相识」"
           }
         },
         {
@@ -48544,6 +48638,15 @@
             "description": {
               "fallback": "辣味十足的红烧鲶鱼。",
               "key": "taoyuan.recipe.braised_catfish.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+1（当天）",
+                "type": "fishing",
+                "value": 1
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:braised_catfish",
             "ingredients": [
@@ -48563,7 +48666,12 @@
               "key": "taoyuan.recipe.braised_catfish.name"
             },
             "outputItemId": "taoyuan:food_braised_catfish",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "fishing"
+            },
+            "unlockSource": "钓鱼等级4"
           }
         },
         {
@@ -48576,6 +48684,15 @@
             "description": {
               "fallback": "以锦缎为皮的极品饺子，御赐级别的送礼佳品。",
               "key": "taoyuan.recipe.brocade_dumpling.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×5（当天）",
+                "type": "giftBonus",
+                "value": 5
+              },
+              "healthRestore": 40,
+              "staminaRestore": 75
             },
             "id": "taoyuan:brocade_dumpling",
             "ingredients": [
@@ -48600,7 +48717,8 @@
               "key": "taoyuan.recipe.brocade_dumpling.name"
             },
             "outputItemId": "taoyuan:food_brocade_dumpling",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "通商等级5解锁"
           }
         },
         {
@@ -48613,6 +48731,15 @@
             "description": {
               "fallback": "厚实的水牛奶酪配上辣椒，战斗前的最佳选择。",
               "key": "taoyuan.recipe.buffalo_cheese_pizza.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-20%（当天）",
+                "type": "defense",
+                "value": 20
+              },
+              "healthRestore": 35,
+              "staminaRestore": 55
             },
             "id": "taoyuan:buffalo_cheese_pizza",
             "ingredients": [
@@ -48637,7 +48764,12 @@
               "key": "taoyuan.recipe.buffalo_cheese_pizza.name"
             },
             "outputItemId": "taoyuan:food_buffalo_cheese_pizza",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 7,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级7"
           }
         },
         {
@@ -48650,6 +48782,10 @@
             "description": {
               "fallback": "清爽可口的仙人掌沙拉，搭配西域香料别有风味。",
               "key": "taoyuan.recipe.cactus_salad.description"
+            },
+            "effect": {
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:cactus_salad",
             "ingredients": [
@@ -48669,7 +48805,8 @@
               "key": "taoyuan.recipe.cactus_salad.name"
             },
             "outputItemId": "taoyuan:food_cactus_salad",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "解锁瀚海后自动获得"
           }
         },
         {
@@ -48682,6 +48819,15 @@
             "description": {
               "fallback": "丝滑醇香的驼奶茶。",
               "key": "taoyuan.recipe.camel_milk_tea.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "行动速度+15%（当天）",
+                "type": "speed",
+                "value": 15
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:camel_milk_tea",
             "ingredients": [
@@ -48701,7 +48847,8 @@
               "key": "taoyuan.recipe.camel_milk_tea.name"
             },
             "outputItemId": "taoyuan:food_camel_milk_tea",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "陈伯好感「挚友」"
           }
         },
         {
@@ -48714,6 +48861,15 @@
             "description": {
               "fallback": "浓郁奶酪与米饭的完美融合。",
               "key": "taoyuan.recipe.cheese_baked_rice.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕技能+1（当天）",
+                "type": "farming",
+                "value": 1
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:cheese_baked_rice",
             "ingredients": [
@@ -48733,7 +48889,12 @@
               "key": "taoyuan.recipe.cheese_baked_rice.name"
             },
             "outputItemId": "taoyuan:food_cheese_baked_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级5"
           }
         },
         {
@@ -48746,6 +48907,10 @@
             "description": {
               "fallback": "大厨才能做出的特供菜。",
               "key": "taoyuan.recipe.chef_special.description"
+            },
+            "effect": {
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:chef_special",
             "ingredients": [
@@ -48770,7 +48935,8 @@
               "key": "taoyuan.recipe.chef_special.name"
             },
             "outputItemId": "taoyuan:food_chef_special",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：烹饪20道菜"
           }
         },
         {
@@ -48783,6 +48949,10 @@
             "description": {
               "fallback": "韭菜与鸡蛋的经典搭配。",
               "key": "taoyuan.recipe.chive_egg_stir_fry.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 22
             },
             "id": "taoyuan:chive_egg_stir_fry",
             "ingredients": [
@@ -48802,7 +48972,8 @@
               "key": "taoyuan.recipe.chive_egg_stir_fry.name"
             },
             "outputItemId": "taoyuan:food_chive_egg_stir_fry",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -48815,6 +48986,15 @@
             "description": {
               "fallback": "清凉透亮的菊花冻，吃后心旷神怡。",
               "key": "taoyuan.recipe.chrysanthemum_jelly.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+2（当天）",
+                "type": "luck",
+                "value": 2
+              },
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:chrysanthemum_jelly",
             "ingredients": [
@@ -48834,7 +49014,12 @@
               "key": "taoyuan.recipe.chrysanthemum_jelly.name"
             },
             "outputItemId": "taoyuan:food_chrysanthemum_jelly",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级5"
           }
         },
         {
@@ -48847,6 +49032,15 @@
             "description": {
               "fallback": "重阳佳节的菊花酿。",
               "key": "taoyuan.recipe.chrysanthemum_wine.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+12%（当天）",
+                "type": "luck",
+                "value": 12
+              },
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:chrysanthemum_wine",
             "ingredients": [
@@ -48866,7 +49060,8 @@
               "key": "taoyuan.recipe.chrysanthemum_wine.name"
             },
             "outputItemId": "taoyuan:food_chrysanthemum_wine",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "重阳投壶奖励"
           }
         },
         {
@@ -48879,6 +49074,15 @@
             "description": {
               "fallback": "用珍稀食材做的收藏家宴。",
               "key": "taoyuan.recipe.collectors_banquet.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+25%（当天）",
+                "type": "luck",
+                "value": 25
+              },
+              "healthRestore": 40,
+              "staminaRestore": 80
             },
             "id": "taoyuan:collectors_banquet",
             "ingredients": [
@@ -48908,7 +49112,8 @@
               "key": "taoyuan.recipe.collectors_banquet.name"
             },
             "outputItemId": "taoyuan:food_collectors_banquet",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：发现50种物品"
           }
         },
         {
@@ -48921,6 +49126,10 @@
             "description": {
               "fallback": "清淡养胃的白粥。",
               "key": "taoyuan.recipe.congee.description"
+            },
+            "effect": {
+              "healthRestore": 5,
+              "staminaRestore": 15
             },
             "id": "taoyuan:congee",
             "ingredients": [
@@ -48935,7 +49144,8 @@
               "key": "taoyuan.recipe.congee.name"
             },
             "outputItemId": "taoyuan:food_congee",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -48948,6 +49158,10 @@
             "description": {
               "fallback": "金黄酥脆的玉米烙。",
               "key": "taoyuan.recipe.corn_pancake.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:corn_pancake",
             "ingredients": [
@@ -48967,7 +49181,8 @@
               "key": "taoyuan.recipe.corn_pancake.name"
             },
             "outputItemId": "taoyuan:food_corn_pancake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -48980,6 +49195,15 @@
             "description": {
               "fallback": "玉米酒焖出的浓香肉菜，力气十足。",
               "key": "taoyuan.recipe.corn_wine_braised_pork.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-15%（当天）",
+                "type": "defense",
+                "value": 15
+              },
+              "healthRestore": 30,
+              "staminaRestore": 50
             },
             "id": "taoyuan:corn_wine_braised_pork",
             "ingredients": [
@@ -48999,7 +49223,12 @@
               "key": "taoyuan.recipe.corn_wine_braised_pork.name"
             },
             "outputItemId": "taoyuan:food_corn_wine_braised_pork",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级5"
           }
         },
         {
@@ -49012,6 +49241,15 @@
             "description": {
               "fallback": "鲜美浓郁的蟹黄汤。",
               "key": "taoyuan.recipe.crab_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+15%（当天）",
+                "type": "luck",
+                "value": 15
+              },
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:crab_soup",
             "ingredients": [
@@ -49031,7 +49269,12 @@
               "key": "taoyuan.recipe.crab_soup.name"
             },
             "outputItemId": "taoyuan:food_crab_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 6,
+              "type": "fishing"
+            },
+            "unlockSource": "钓鱼等级6"
           }
         },
         {
@@ -49044,6 +49287,15 @@
             "description": {
               "fallback": "晶莹剔透的水晶冻。",
               "key": "taoyuan.recipe.crystal_jelly.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-25%（当天）",
+                "type": "mining",
+                "value": 25
+              },
+              "healthRestore": 25,
+              "staminaRestore": 40
             },
             "id": "taoyuan:crystal_jelly",
             "ingredients": [
@@ -49063,7 +49315,12 @@
               "key": "taoyuan.recipe.crystal_jelly.name"
             },
             "outputItemId": "taoyuan:food_crystal_jelly",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "mining"
+            },
+            "unlockSource": "采矿等级5"
           }
         },
         {
@@ -49076,6 +49333,15 @@
             "description": {
               "fallback": "甜蜜软糯的枣糕，补气养血。",
               "key": "taoyuan.recipe.date_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "种植技能+2（当天）",
+                "type": "farming",
+                "value": 2
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:date_cake",
             "ingredients": [
@@ -49095,7 +49361,8 @@
               "key": "taoyuan.recipe.date_cake.name"
             },
             "outputItemId": "taoyuan:food_date_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "收获椰枣后解锁"
           }
         },
         {
@@ -49108,6 +49375,10 @@
             "description": {
               "fallback": "温热滋补的枣泥粥，暖胃养身。",
               "key": "taoyuan.recipe.date_porridge.description"
+            },
+            "effect": {
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:date_porridge",
             "ingredients": [
@@ -49127,7 +49398,8 @@
               "key": "taoyuan.recipe.date_porridge.name"
             },
             "outputItemId": "taoyuan:food_date_porridge",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "解锁瀚海后自动获得"
           }
         },
         {
@@ -49140,6 +49412,15 @@
             "description": {
               "fallback": "阿石在矿洞深处发明的炖菜。",
               "key": "taoyuan.recipe.deep_mine_stew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-30%（当天）",
+                "type": "mining",
+                "value": 30
+              },
+              "healthRestore": 35,
+              "staminaRestore": 45
             },
             "id": "taoyuan:deep_mine_stew",
             "ingredients": [
@@ -49164,7 +49445,8 @@
               "key": "taoyuan.recipe.deep_mine_stew.name"
             },
             "outputItemId": "taoyuan:food_deep_mine_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "阿石好感「相知」"
           }
         },
         {
@@ -49177,6 +49459,15 @@
             "description": {
               "fallback": "清凉解暑的仙人掌汤，沙漠旅人的续命良方。",
               "key": "taoyuan.recipe.desert_cactus_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "体力上限+30（当天）",
+                "type": "stamina",
+                "value": 30
+              },
+              "healthRestore": 40,
+              "staminaRestore": 50
             },
             "id": "taoyuan:desert_cactus_soup",
             "ingredients": [
@@ -49196,7 +49487,8 @@
               "key": "taoyuan.recipe.desert_cactus_soup.name"
             },
             "outputItemId": "taoyuan:food_desert_cactus_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "收获仙人掌后解锁"
           }
         },
         {
@@ -49209,6 +49501,15 @@
             "description": {
               "fallback": "集西域精华于一桌的豪华宴席，食之精力充沛。",
               "key": "taoyuan.recipe.desert_feast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "全技能+1（当天）",
+                "type": "all_skills",
+                "value": 1
+              },
+              "healthRestore": 50,
+              "staminaRestore": 80
             },
             "id": "taoyuan:desert_feast",
             "ingredients": [
@@ -49233,7 +49534,8 @@
               "key": "taoyuan.recipe.desert_feast.name"
             },
             "outputItemId": "taoyuan:food_desert_feast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "通商等级3解锁"
           }
         },
         {
@@ -49246,6 +49548,15 @@
             "description": {
               "fallback": "斗茶会上的经典茶饮，清香沁脾。",
               "key": "taoyuan.recipe.dou_cha_yin.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "全技能+1（当天）",
+                "type": "all_skills",
+                "value": 1
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:dou_cha_yin",
             "ingredients": [
@@ -49265,7 +49576,8 @@
               "key": "taoyuan.recipe.dou_cha_yin.name"
             },
             "outputItemId": "taoyuan:food_dou_cha_yin",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "斗茶大会奖励"
           }
         },
         {
@@ -49278,6 +49590,15 @@
             "description": {
               "fallback": "竹叶清香的端午粽子。",
               "key": "taoyuan.recipe.dragon_boat_zongzi.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "行动速度+10%（当天）",
+                "type": "speed",
+                "value": 10
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:dragon_boat_zongzi",
             "ingredients": [
@@ -49297,7 +49618,8 @@
               "key": "taoyuan.recipe.dragon_boat_zongzi.name"
             },
             "outputItemId": "taoyuan:food_dragon_boat_zongzi",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "端午赛龙舟奖励"
           }
         },
         {
@@ -49310,6 +49632,15 @@
             "description": {
               "fallback": "传说龙鱼制成的极品刺身。",
               "key": "taoyuan.recipe.dragon_sashimi.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+4（当天）",
+                "type": "fishing",
+                "value": 4
+              },
+              "healthRestore": 35,
+              "staminaRestore": 70
             },
             "id": "taoyuan:dragon_sashimi",
             "ingredients": [
@@ -49329,7 +49660,12 @@
               "key": "taoyuan.recipe.dragon_sashimi.name"
             },
             "outputItemId": "taoyuan:food_dragon_sashimi",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 8,
+              "type": "fishing"
+            },
+            "unlockSource": "钓鱼等级8"
           }
         },
         {
@@ -49342,6 +49678,15 @@
             "description": {
               "fallback": "三种果脯的酸甜组合，行路必备干粮。",
               "key": "taoyuan.recipe.dried_fruit_mix.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+2（当天）",
+                "type": "luck",
+                "value": 2
+              },
+              "healthRestore": 15,
+              "staminaRestore": 40
             },
             "id": "taoyuan:dried_fruit_mix",
             "ingredients": [
@@ -49366,7 +49711,12 @@
               "key": "taoyuan.recipe.dried_fruit_mix.name"
             },
             "outputItemId": "taoyuan:food_dried_fruit_mix",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级4"
           }
         },
         {
@@ -49379,6 +49729,15 @@
             "description": {
               "fallback": "干蘑菇的鲜味在慢炖中完全释放。",
               "key": "taoyuan.recipe.dried_mushroom_stew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "采矿技能+1（当天）",
+                "type": "mining",
+                "value": 1
+              },
+              "healthRestore": 30,
+              "staminaRestore": 55
             },
             "id": "taoyuan:dried_mushroom_stew",
             "ingredients": [
@@ -49398,7 +49757,12 @@
               "key": "taoyuan.recipe.dried_mushroom_stew.name"
             },
             "outputItemId": "taoyuan:food_dried_mushroom_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 6,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级6"
           }
         },
         {
@@ -49411,6 +49775,10 @@
             "description": {
               "fallback": "晒干的柿饼，甘甜绵密。",
               "key": "taoyuan.recipe.dried_persimmon.description"
+            },
+            "effect": {
+              "healthRestore": 5,
+              "staminaRestore": 20
             },
             "id": "taoyuan:dried_persimmon",
             "ingredients": [
@@ -49425,7 +49793,8 @@
               "key": "taoyuan.recipe.dried_persimmon.name"
             },
             "outputItemId": "taoyuan:food_dried_persimmon",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -49438,6 +49807,15 @@
             "description": {
               "fallback": "红豆婚后传授的酒香名菜。",
               "key": "taoyuan.recipe.drunken_chicken.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农作体力消耗-30%（当天）",
+                "type": "farming",
+                "value": 30
+              },
+              "healthRestore": 40,
+              "staminaRestore": 70
             },
             "id": "taoyuan:drunken_chicken",
             "ingredients": [
@@ -49462,7 +49840,8 @@
               "key": "taoyuan.recipe.drunken_chicken.name"
             },
             "outputItemId": "taoyuan:food_drunken_chicken",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与红豆结婚后"
           }
         },
         {
@@ -49475,6 +49854,15 @@
             "description": {
               "fallback": "柳娘精心制作的绣囊糕。",
               "key": "taoyuan.recipe.embroidered_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×2（当天）",
+                "type": "giftBonus",
+                "value": 2
+              },
+              "healthRestore": 15,
+              "staminaRestore": 30
             },
             "id": "taoyuan:embroidered_cake",
             "ingredients": [
@@ -49494,7 +49882,8 @@
               "key": "taoyuan.recipe.embroidered_cake.name"
             },
             "outputItemId": "taoyuan:food_embroidered_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "柳娘好感「相知」"
           }
         },
         {
@@ -49507,6 +49896,15 @@
             "description": {
               "fallback": "陈伯压箱底的农家大菜。",
               "key": "taoyuan.recipe.farmers_feast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-25%（当天）",
+                "type": "farming",
+                "value": 25
+              },
+              "healthRestore": 40,
+              "staminaRestore": 70
             },
             "id": "taoyuan:farmers_feast",
             "ingredients": [
@@ -49536,7 +49934,8 @@
               "key": "taoyuan.recipe.farmers_feast.name"
             },
             "outputItemId": "taoyuan:food_farmers_feast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "陈伯好感「挚友」"
           }
         },
         {
@@ -49549,6 +49948,10 @@
             "description": {
               "fallback": "第一次钓鱼的纪念汤。",
               "key": "taoyuan.recipe.first_catch_soup.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 20
             },
             "id": "taoyuan:first_catch_soup",
             "ingredients": [
@@ -49568,7 +49971,8 @@
               "key": "taoyuan.recipe.first_catch_soup.name"
             },
             "outputItemId": "taoyuan:food_first_catch_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：初次钓鱼"
           }
         },
         {
@@ -49581,6 +49985,10 @@
             "description": {
               "fallback": "鲜美的鱼汤面。",
               "key": "taoyuan.recipe.fish_noodle.description"
+            },
+            "effect": {
+              "healthRestore": 15,
+              "staminaRestore": 30
             },
             "id": "taoyuan:fish_noodle",
             "ingredients": [
@@ -49600,7 +50008,12 @@
               "key": "taoyuan.recipe.fish_noodle.name"
             },
             "outputItemId": "taoyuan:food_fish_noodle",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 2,
+              "type": "fishing"
+            },
+            "unlockSource": "钓鱼等级2"
           }
         },
         {
@@ -49613,6 +50026,15 @@
             "description": {
               "fallback": "林中珍材熬制的补药。",
               "key": "taoyuan.recipe.forest_tonic.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-20%（当天）",
+                "type": "farming",
+                "value": 20
+              },
+              "healthRestore": 30,
+              "staminaRestore": 55
             },
             "id": "taoyuan:forest_tonic",
             "ingredients": [
@@ -49637,7 +50059,12 @@
               "key": "taoyuan.recipe.forest_tonic.name"
             },
             "outputItemId": "taoyuan:food_forest_tonic",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 7,
+              "type": "foraging"
+            },
+            "unlockSource": "采集等级7"
           }
         },
         {
@@ -49650,6 +50077,15 @@
             "description": {
               "fallback": "阿石独创的锻造师能量餐。",
               "key": "taoyuan.recipe.forgemasters_meal.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-25%（当天）",
+                "type": "defense",
+                "value": 25
+              },
+              "healthRestore": 50,
+              "staminaRestore": 60
             },
             "id": "taoyuan:forgemasters_meal",
             "ingredients": [
@@ -49674,7 +50110,8 @@
               "key": "taoyuan.recipe.forgemasters_meal.name"
             },
             "outputItemId": "taoyuan:food_forgemasters_meal",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "阿石好感「挚友」"
           }
         },
         {
@@ -49687,6 +50124,15 @@
             "description": {
               "fallback": "腌姜与绿茶的搭配，暖身又提神。",
               "key": "taoyuan.recipe.ginger_green_tea.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "旅行加速+1（当天）",
+                "type": "speed",
+                "value": 1
+              },
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:ginger_green_tea",
             "ingredients": [
@@ -49706,7 +50152,12 @@
               "key": "taoyuan.recipe.ginger_green_tea.name"
             },
             "outputItemId": "taoyuan:food_ginger_green_tea",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级3"
           }
         },
         {
@@ -49719,6 +50170,15 @@
             "description": {
               "fallback": "驱寒暖胃的姜汤。",
               "key": "taoyuan.recipe.ginger_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "行动速度+15%（当天）",
+                "type": "speed",
+                "value": 15
+              },
+              "healthRestore": 10,
+              "staminaRestore": 20
             },
             "id": "taoyuan:ginger_soup",
             "ingredients": [
@@ -49738,7 +50198,8 @@
               "key": "taoyuan.recipe.ginger_soup.name"
             },
             "outputItemId": "taoyuan:food_ginger_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -49751,6 +50212,15 @@
             "description": {
               "fallback": "滋补元气的人参汤。",
               "key": "taoyuan.recipe.ginseng_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-20%（当天）",
+                "type": "farming",
+                "value": 20
+              },
+              "healthRestore": 30,
+              "staminaRestore": 60
             },
             "id": "taoyuan:ginseng_soup",
             "ingredients": [
@@ -49775,7 +50245,12 @@
               "key": "taoyuan.recipe.ginseng_soup.name"
             },
             "outputItemId": "taoyuan:food_ginseng_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "foraging"
+            },
+            "unlockSource": "采集等级5"
           }
         },
         {
@@ -49788,6 +50263,15 @@
             "description": {
               "fallback": "用人参茶泡饭，简单却元气满满。",
               "key": "taoyuan.recipe.ginseng_tea_rice.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "采矿技能+1（当天）",
+                "type": "mining",
+                "value": 1
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:ginseng_tea_rice",
             "ingredients": [
@@ -49807,7 +50291,12 @@
               "key": "taoyuan.recipe.ginseng_tea_rice.name"
             },
             "outputItemId": "taoyuan:food_ginseng_tea_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 6,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级6"
           }
         },
         {
@@ -49820,6 +50309,15 @@
             "description": {
               "fallback": "清爽酸甜，搭配山羊奶酪恰到好处。",
               "key": "taoyuan.recipe.goat_cheese_salad.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+1（当天）",
+                "type": "luck",
+                "value": 1
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:goat_cheese_salad",
             "ingredients": [
@@ -49839,7 +50337,12 @@
               "key": "taoyuan.recipe.goat_cheese_salad.name"
             },
             "outputItemId": "taoyuan:food_goat_cheese_salad",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 6,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级6"
           }
         },
         {
@@ -49852,6 +50355,10 @@
             "description": {
               "fallback": "温热醇厚的羊奶汤。",
               "key": "taoyuan.recipe.goat_milk_soup.description"
+            },
+            "effect": {
+              "healthRestore": 25,
+              "staminaRestore": 45
             },
             "id": "taoyuan:goat_milk_soup",
             "ingredients": [
@@ -49871,7 +50378,8 @@
               "key": "taoyuan.recipe.goat_milk_soup.name"
             },
             "outputItemId": "taoyuan:food_goat_milk_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "大牛好感「挚友」"
           }
         },
         {
@@ -49884,6 +50392,15 @@
             "description": {
               "fallback": "金粉入馅的矿工饺子。",
               "key": "taoyuan.recipe.gold_dumpling.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-30%（当天）",
+                "type": "mining",
+                "value": 30
+              },
+              "healthRestore": 30,
+              "staminaRestore": 55
             },
             "id": "taoyuan:gold_dumpling",
             "ingredients": [
@@ -49903,7 +50420,12 @@
               "key": "taoyuan.recipe.gold_dumpling.name"
             },
             "outputItemId": "taoyuan:food_gold_dumpling",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 7,
+              "type": "mining"
+            },
+            "unlockSource": "采矿等级7"
           }
         },
         {
@@ -49916,6 +50438,15 @@
             "description": {
               "fallback": "粒粒金黄的炒饭。",
               "key": "taoyuan.recipe.golden_fried_rice.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-20%（当天）",
+                "type": "farming",
+                "value": 20
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:golden_fried_rice",
             "ingredients": [
@@ -49940,7 +50471,12 @@
               "key": "taoyuan.recipe.golden_fried_rice.name"
             },
             "outputItemId": "taoyuan:food_golden_fried_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 7,
+              "type": "farming"
+            },
+            "unlockSource": "农耕等级7"
           }
         },
         {
@@ -49953,6 +50489,15 @@
             "description": {
               "fallback": "外焦里嫩的烤鳗鱼。",
               "key": "taoyuan.recipe.grilled_eel.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+2（当天）",
+                "type": "fishing",
+                "value": 2
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:grilled_eel",
             "ingredients": [
@@ -49977,7 +50522,12 @@
               "key": "taoyuan.recipe.grilled_eel.name"
             },
             "outputItemId": "taoyuan:food_grilled_eel",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "fishing"
+            },
+            "unlockSource": "钓鱼等级5"
           }
         },
         {
@@ -49990,6 +50540,15 @@
             "description": {
               "fallback": "丰收宴上的传统大菜。",
               "key": "taoyuan.recipe.harvest_feast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-20%（当天）",
+                "type": "farming",
+                "value": 20
+              },
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:harvest_feast",
             "ingredients": [
@@ -50019,7 +50578,8 @@
               "key": "taoyuan.recipe.harvest_feast.name"
             },
             "outputItemId": "taoyuan:food_harvest_feast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "丰收宴奖励"
           }
         },
         {
@@ -50032,6 +50592,10 @@
             "description": {
               "fallback": "草药膏熬成的汤剂，恢复力极强。",
               "key": "taoyuan.recipe.herbal_healing_soup.description"
+            },
+            "effect": {
+              "healthRestore": 45,
+              "staminaRestore": 50
             },
             "id": "taoyuan:herbal_healing_soup",
             "ingredients": [
@@ -50051,7 +50615,8 @@
               "key": "taoyuan.recipe.herbal_healing_soup.name"
             },
             "outputItemId": "taoyuan:food_herbal_healing_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "林老好感「相熟」"
           }
         },
         {
@@ -50064,6 +50629,10 @@
             "description": {
               "fallback": "林老配方的百草良药。",
               "key": "taoyuan.recipe.herbal_pill.description"
+            },
+            "effect": {
+              "healthRestore": 30,
+              "staminaRestore": 60
             },
             "id": "taoyuan:herbal_pill",
             "ingredients": [
@@ -50083,7 +50652,8 @@
               "key": "taoyuan.recipe.herbal_pill.name"
             },
             "outputItemId": "taoyuan:food_herbal_pill",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "林老好感「相知」"
           }
         },
         {
@@ -50096,6 +50666,10 @@
             "description": {
               "fallback": "调理身体的药膳粥。",
               "key": "taoyuan.recipe.herbal_porridge.description"
+            },
+            "effect": {
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:herbal_porridge",
             "ingredients": [
@@ -50115,7 +50689,8 @@
               "key": "taoyuan.recipe.herbal_porridge.name"
             },
             "outputItemId": "taoyuan:food_herbal_porridge",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "林老好感「相识」"
           }
         },
         {
@@ -50128,6 +50703,15 @@
             "description": {
               "fallback": "桂花蜜制成的精致糕点，送礼上佳。",
               "key": "taoyuan.recipe.honey_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×3（当天）",
+                "type": "giftBonus",
+                "value": 3
+              },
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:honey_cake",
             "ingredients": [
@@ -50147,7 +50731,8 @@
               "key": "taoyuan.recipe.honey_cake.name"
             },
             "outputItemId": "taoyuan:food_honey_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "柳娘好感「知己」"
           }
         },
         {
@@ -50160,6 +50745,10 @@
             "description": {
               "fallback": "甜蜜温润的蜂蜜茶。",
               "key": "taoyuan.recipe.honey_tea.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:honey_tea",
             "ingredients": [
@@ -50179,7 +50768,8 @@
               "key": "taoyuan.recipe.honey_tea.name"
             },
             "outputItemId": "taoyuan:food_honey_tea",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -50192,6 +50782,15 @@
             "description": {
               "fallback": "以鲜花入馅的精致糕点。",
               "key": "taoyuan.recipe.hua_gao.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+10%（当天）",
+                "type": "luck",
+                "value": 10
+              },
+              "healthRestore": 10,
+              "staminaRestore": 35
             },
             "id": "taoyuan:hua_gao",
             "ingredients": [
@@ -50216,7 +50815,8 @@
               "key": "taoyuan.recipe.hua_gao.name"
             },
             "outputItemId": "taoyuan:food_hua_gao",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "花朝节奖励"
           }
         },
         {
@@ -50229,6 +50829,15 @@
             "description": {
               "fallback": "云飞婚后教你的山野烤法。",
               "key": "taoyuan.recipe.hunters_roast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "防御+3（当天）",
+                "type": "defense",
+                "value": 3
+              },
+              "healthRestore": 45,
+              "staminaRestore": 60
             },
             "id": "taoyuan:hunters_roast",
             "ingredients": [
@@ -50253,7 +50862,8 @@
               "key": "taoyuan.recipe.hunters_roast.name"
             },
             "outputItemId": "taoyuan:food_hunters_roast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与云飞结婚后"
           }
         },
         {
@@ -50266,6 +50876,15 @@
             "description": {
               "fallback": "拳师专用的铁拳汤。",
               "key": "taoyuan.recipe.iron_fist_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-20%（当天）",
+                "type": "defense",
+                "value": 20
+              },
+              "healthRestore": 35,
+              "staminaRestore": 40
             },
             "id": "taoyuan:iron_fist_soup",
             "ingredients": [
@@ -50290,7 +50909,12 @@
               "key": "taoyuan.recipe.iron_fist_soup.name"
             },
             "outputItemId": "taoyuan:food_iron_fist_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "combat"
+            },
+            "unlockSource": "战斗等级5"
           }
         },
         {
@@ -50303,6 +50927,15 @@
             "description": {
               "fallback": "强筋健骨的铁骨汤。",
               "key": "taoyuan.recipe.iron_tonic.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-20%（当天）",
+                "type": "defense",
+                "value": 20
+              },
+              "healthRestore": 35,
+              "staminaRestore": 50
             },
             "id": "taoyuan:iron_tonic",
             "ingredients": [
@@ -50327,7 +50960,12 @@
               "key": "taoyuan.recipe.iron_tonic.name"
             },
             "outputItemId": "taoyuan:food_iron_tonic",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 6,
+              "type": "mining"
+            },
+            "unlockSource": "采矿等级6"
           }
         },
         {
@@ -50340,6 +50978,15 @@
             "description": {
               "fallback": "阿铁婚后做的粗犷炖菜，量大管饱。",
               "key": "taoyuan.recipe.ironforge_stew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-40%（当天）",
+                "type": "mining",
+                "value": 40
+              },
+              "healthRestore": 50,
+              "staminaRestore": 80
             },
             "id": "taoyuan:ironforge_stew",
             "ingredients": [
@@ -50364,7 +51011,8 @@
               "key": "taoyuan.recipe.ironforge_stew.name"
             },
             "outputItemId": "taoyuan:food_ironforge_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与阿铁结婚后"
           }
         },
         {
@@ -50377,6 +51025,15 @@
             "description": {
               "fallback": "冬至时节包的暖心饺子。",
               "key": "taoyuan.recipe.jiaozi.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "矿工技能+1（当天）",
+                "type": "mining",
+                "value": 1
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:jiaozi",
             "ingredients": [
@@ -50396,7 +51053,8 @@
               "key": "taoyuan.recipe.jiaozi.name"
             },
             "outputItemId": "taoyuan:food_jiaozi",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "冬至包饺子奖励"
           }
         },
         {
@@ -50409,6 +51067,10 @@
             "description": {
               "fallback": "香甜软糯的红枣糕。",
               "key": "taoyuan.recipe.jujube_cake.description"
+            },
+            "effect": {
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:jujube_cake",
             "ingredients": [
@@ -50428,7 +51090,12 @@
               "key": "taoyuan.recipe.jujube_cake.name"
             },
             "outputItemId": "taoyuan:food_jujube_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 2,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级2"
           }
         },
         {
@@ -50441,6 +51108,15 @@
             "description": {
               "fallback": "红枣酒炖煮的甜品，补气养血。",
               "key": "taoyuan.recipe.jujube_wine_stew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "体力消耗-20%（当天）",
+                "type": "stamina",
+                "value": 20
+              },
+              "healthRestore": 25,
+              "staminaRestore": 45
             },
             "id": "taoyuan:jujube_wine_stew",
             "ingredients": [
@@ -50460,7 +51136,8 @@
               "key": "taoyuan.recipe.jujube_wine_stew.name"
             },
             "outputItemId": "taoyuan:food_jujube_wine_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "红豆好感「知己」"
           }
         },
         {
@@ -50473,6 +51150,10 @@
             "description": {
               "fallback": "暖胃驱寒的腊八粥。",
               "key": "taoyuan.recipe.la_ba_zhou.description"
+            },
+            "effect": {
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:la_ba_zhou",
             "ingredients": [
@@ -50497,7 +51178,8 @@
               "key": "taoyuan.recipe.la_ba_zhou.name"
             },
             "outputItemId": "taoyuan:food_la_ba_zhou",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "腊八粥会奖励"
           }
         },
         {
@@ -50510,6 +51192,15 @@
             "description": {
               "fallback": "用传说之鱼做的极品盛宴。",
               "key": "taoyuan.recipe.legendary_feast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+4（当天）",
+                "type": "fishing",
+                "value": 4
+              },
+              "healthRestore": 40,
+              "staminaRestore": 80
             },
             "id": "taoyuan:legendary_feast",
             "ingredients": [
@@ -50529,7 +51220,8 @@
               "key": "taoyuan.recipe.legendary_feast.name"
             },
             "outputItemId": "taoyuan:food_legendary_feast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：钓到传说鱼"
           }
         },
         {
@@ -50542,6 +51234,10 @@
             "description": {
               "fallback": "林老毕生心血的养生秘方。",
               "key": "taoyuan.recipe.longevity_soup.description"
+            },
+            "effect": {
+              "healthRestore": 40,
+              "staminaRestore": 80
             },
             "id": "taoyuan:longevity_soup",
             "ingredients": [
@@ -50566,7 +51262,8 @@
               "key": "taoyuan.recipe.longevity_soup.name"
             },
             "outputItemId": "taoyuan:food_longevity_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "林老好感「挚友」"
           }
         },
         {
@@ -50579,6 +51276,15 @@
             "description": {
               "fallback": "荷灯节限定的荷灯糕。",
               "key": "taoyuan.recipe.lotus_lantern_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+15%（当天）",
+                "type": "luck",
+                "value": 15
+              },
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:lotus_lantern_cake",
             "ingredients": [
@@ -50603,7 +51309,8 @@
               "key": "taoyuan.recipe.lotus_lantern_cake.name"
             },
             "outputItemId": "taoyuan:food_lotus_lantern_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "荷灯节奖励"
           }
         },
         {
@@ -50616,6 +51323,15 @@
             "description": {
               "fallback": "清心安神的莲子羹。",
               "key": "taoyuan.recipe.lotus_seed_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+15%（当天）",
+                "type": "luck",
+                "value": 15
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:lotus_seed_soup",
             "ingredients": [
@@ -50635,7 +51351,12 @@
               "key": "taoyuan.recipe.lotus_seed_soup.name"
             },
             "outputItemId": "taoyuan:food_lotus_seed_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级5"
           }
         },
         {
@@ -50648,6 +51369,15 @@
             "description": {
               "fallback": "柳娘专为有情人做的鸳鸯酥。",
               "key": "taoyuan.recipe.lovers_pastry.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×3（当天）",
+                "type": "giftBonus",
+                "value": 3
+              },
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:lovers_pastry",
             "ingredients": [
@@ -50672,7 +51402,8 @@
               "key": "taoyuan.recipe.lovers_pastry.name"
             },
             "outputItemId": "taoyuan:food_lovers_pastry",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "柳娘好感「挚友」"
           }
         },
         {
@@ -50685,6 +51416,15 @@
             "description": {
               "fallback": "秋月独创的枫叶烤鱼法。",
               "key": "taoyuan.recipe.maple_grilled_fish.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+2（当天）",
+                "type": "fishing",
+                "value": 2
+              },
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:maple_grilled_fish",
             "ingredients": [
@@ -50704,7 +51444,8 @@
               "key": "taoyuan.recipe.maple_grilled_fish.name"
             },
             "outputItemId": "taoyuan:food_maple_grilled_fish",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "秋月好感「相知」"
           }
         },
         {
@@ -50717,6 +51458,10 @@
             "description": {
               "fallback": "简单却美味的拌面，蛋黄酱的浓郁令人回味。",
               "key": "taoyuan.recipe.mayo_noodles.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:mayo_noodles",
             "ingredients": [
@@ -50736,7 +51481,12 @@
               "key": "taoyuan.recipe.mayo_noodles.name"
             },
             "outputItemId": "taoyuan:food_mayo_noodles",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 2,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级2"
           }
         },
         {
@@ -50749,6 +51499,15 @@
             "description": {
               "fallback": "矿工们的铁锅大杂烩。",
               "key": "taoyuan.recipe.miner_iron_pot.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-25%（当天）",
+                "type": "mining",
+                "value": 25
+              },
+              "healthRestore": 30,
+              "staminaRestore": 35
             },
             "id": "taoyuan:miner_iron_pot",
             "ingredients": [
@@ -50773,7 +51532,12 @@
               "key": "taoyuan.recipe.miner_iron_pot.name"
             },
             "outputItemId": "taoyuan:food_miner_iron_pot",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "mining"
+            },
+            "unlockSource": "挖矿等级4"
           }
         },
         {
@@ -50786,6 +51550,15 @@
             "description": {
               "fallback": "实打实的矿工饭。",
               "key": "taoyuan.recipe.miner_lunch.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-20%（当天）",
+                "type": "mining",
+                "value": 20
+              },
+              "healthRestore": 25,
+              "staminaRestore": 25
             },
             "id": "taoyuan:miner_lunch",
             "ingredients": [
@@ -50805,7 +51578,8 @@
               "key": "taoyuan.recipe.miner_lunch.name"
             },
             "outputItemId": "taoyuan:food_miner_lunch",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "阿石好感「相识」"
           }
         },
         {
@@ -50818,6 +51592,15 @@
             "description": {
               "fallback": "矿工荣耀的象征。",
               "key": "taoyuan.recipe.miners_glory.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-25%（当天）",
+                "type": "mining",
+                "value": 25
+              },
+              "healthRestore": 30,
+              "staminaRestore": 50
             },
             "id": "taoyuan:miners_glory",
             "ingredients": [
@@ -50842,7 +51625,8 @@
               "key": "taoyuan.recipe.miners_glory.name"
             },
             "outputItemId": "taoyuan:food_miners_glory",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：到达矿洞30层"
           }
         },
         {
@@ -50855,6 +51639,15 @@
             "description": {
               "fallback": "阿石婚后教你的熔岩铁锅料理。",
               "key": "taoyuan.recipe.molten_hotpot.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-35%（当天）",
+                "type": "mining",
+                "value": 35
+              },
+              "healthRestore": 50,
+              "staminaRestore": 60
             },
             "id": "taoyuan:molten_hotpot",
             "ingredients": [
@@ -50879,7 +51672,8 @@
               "key": "taoyuan.recipe.molten_hotpot.name"
             },
             "outputItemId": "taoyuan:food_molten_hotpot",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与阿石结婚后"
           }
         },
         {
@@ -50892,6 +51686,15 @@
             "description": {
               "fallback": "秋月婚后分享的月下刺身。",
               "key": "taoyuan.recipe.moonlight_sashimi.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+3（当天）",
+                "type": "fishing",
+                "value": 3
+              },
+              "healthRestore": 20,
+              "staminaRestore": 50
             },
             "id": "taoyuan:moonlight_sashimi",
             "ingredients": [
@@ -50911,7 +51714,8 @@
               "key": "taoyuan.recipe.moonlight_sashimi.name"
             },
             "outputItemId": "taoyuan:food_moonlight_sashimi",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与秋月结婚后"
           }
         },
         {
@@ -50924,6 +51728,15 @@
             "description": {
               "fallback": "墨白婚后常在月下泡的清淡茶饭。",
               "key": "taoyuan.recipe.moonlit_tea_rice.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+2（当天）",
+                "type": "luck",
+                "value": 2
+              },
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:moonlit_tea_rice",
             "ingredients": [
@@ -50948,7 +51761,8 @@
               "key": "taoyuan.recipe.moonlit_tea_rice.name"
             },
             "outputItemId": "taoyuan:food_moonlit_tea_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与墨白结婚后"
           }
         },
         {
@@ -50961,6 +51775,15 @@
             "description": {
               "fallback": "野生蘑菇慢炖的浓汤。",
               "key": "taoyuan.recipe.mushroom_stew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "行动速度+15%（当天）",
+                "type": "speed",
+                "value": 15
+              },
+              "healthRestore": 20,
+              "staminaRestore": 35
             },
             "id": "taoyuan:mushroom_stew",
             "ingredients": [
@@ -50980,7 +51803,12 @@
               "key": "taoyuan.recipe.mushroom_stew.name"
             },
             "outputItemId": "taoyuan:food_mushroom_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "foraging"
+            },
+            "unlockSource": "采集等级4"
           }
         },
         {
@@ -50993,6 +51821,15 @@
             "description": {
               "fallback": "除夕夜包的幸运饺子。",
               "key": "taoyuan.recipe.new_year_dumpling.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+20%（当天）",
+                "type": "luck",
+                "value": 20
+              },
+              "healthRestore": 30,
+              "staminaRestore": 60
             },
             "id": "taoyuan:new_year_dumpling",
             "ingredients": [
@@ -51017,7 +51854,8 @@
               "key": "taoyuan.recipe.new_year_dumpling.name"
             },
             "outputItemId": "taoyuan:food_new_year_dumpling",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "除夕守岁奖励"
           }
         },
         {
@@ -51030,6 +51868,15 @@
             "description": {
               "fallback": "「年年高」的吉祥年糕。",
               "key": "taoyuan.recipe.nian_gao.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-10%（当天）",
+                "type": "farming",
+                "value": 10
+              },
+              "healthRestore": 15,
+              "staminaRestore": 40
             },
             "id": "taoyuan:nian_gao",
             "ingredients": [
@@ -51049,7 +51896,8 @@
               "key": "taoyuan.recipe.nian_gao.name"
             },
             "outputItemId": "taoyuan:food_nian_gao",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "元日奖励"
           }
         },
         {
@@ -51062,6 +51910,15 @@
             "description": {
               "fallback": "精致的桂花糕，送礼极佳。",
               "key": "taoyuan.recipe.osmanthus_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×2（当天）",
+                "type": "giftBonus",
+                "value": 2
+              },
+              "healthRestore": 5,
+              "staminaRestore": 20
             },
             "id": "taoyuan:osmanthus_cake",
             "ingredients": [
@@ -51081,7 +51938,8 @@
               "key": "taoyuan.recipe.osmanthus_cake.name"
             },
             "outputItemId": "taoyuan:food_osmanthus_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "柳娘好感「相识」"
           }
         },
         {
@@ -51094,6 +51952,15 @@
             "description": {
               "fallback": "清香四溢的桂花藕粉。",
               "key": "taoyuan.recipe.osmanthus_lotus_root.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+10%（当天）",
+                "type": "luck",
+                "value": 10
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:osmanthus_lotus_root",
             "ingredients": [
@@ -51113,7 +51980,12 @@
               "key": "taoyuan.recipe.osmanthus_lotus_root.name"
             },
             "outputItemId": "taoyuan:food_osmanthus_lotus_root",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级3"
           }
         },
         {
@@ -51126,6 +51998,15 @@
             "description": {
               "fallback": "桂花酒的幽香渗入鸡肉，雅致非凡。",
               "key": "taoyuan.recipe.osmanthus_wine_chicken.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×2（当天）",
+                "type": "giftBonus",
+                "value": 2
+              },
+              "healthRestore": 30,
+              "staminaRestore": 55
             },
             "id": "taoyuan:osmanthus_wine_chicken",
             "ingredients": [
@@ -51150,7 +52031,8 @@
               "key": "taoyuan.recipe.osmanthus_wine_chicken.name"
             },
             "outputItemId": "taoyuan:food_osmanthus_wine_chicken",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "柳娘好感「相熟」"
           }
         },
         {
@@ -51163,6 +52045,15 @@
             "description": {
               "fallback": "春日限定的桃花饼。",
               "key": "taoyuan.recipe.peach_blossom_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×2（当天）",
+                "type": "giftBonus",
+                "value": 2
+              },
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:peach_blossom_cake",
             "ingredients": [
@@ -51182,7 +52073,12 @@
               "key": "taoyuan.recipe.peach_blossom_cake.name"
             },
             "outputItemId": "taoyuan:food_peach_blossom_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级3"
           }
         },
         {
@@ -51195,6 +52091,15 @@
             "description": {
               "fallback": "传说中的孔雀宴，尊贵无比。",
               "key": "taoyuan.recipe.peacock_feast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "全技能+1（当天）",
+                "type": "all_skills",
+                "value": 1
+              },
+              "healthRestore": 50,
+              "staminaRestore": 90
             },
             "id": "taoyuan:peacock_feast",
             "ingredients": [
@@ -51219,7 +52124,8 @@
               "key": "taoyuan.recipe.peacock_feast.name"
             },
             "outputItemId": "taoyuan:food_peacock_feast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "结婚后解锁"
           }
         },
         {
@@ -51232,6 +52138,10 @@
             "description": {
               "fallback": "酥脆香甜的花生糖。",
               "key": "taoyuan.recipe.peanut_candy.description"
+            },
+            "effect": {
+              "healthRestore": 5,
+              "staminaRestore": 18
             },
             "id": "taoyuan:peanut_candy",
             "ingredients": [
@@ -51251,7 +52161,8 @@
               "key": "taoyuan.recipe.peanut_candy.name"
             },
             "outputItemId": "taoyuan:food_peanut_candy",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -51264,6 +52175,15 @@
             "description": {
               "fallback": "绵密顺滑的花生豆腐羹，暖胃养身。",
               "key": "taoyuan.recipe.peanut_tofu_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-15%（当天）",
+                "type": "defense",
+                "value": 15
+              },
+              "healthRestore": 20,
+              "staminaRestore": 40
             },
             "id": "taoyuan:peanut_tofu_soup",
             "ingredients": [
@@ -51283,7 +52203,12 @@
               "key": "taoyuan.recipe.peanut_tofu_soup.name"
             },
             "outputItemId": "taoyuan:food_peanut_tofu_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级5"
           }
         },
         {
@@ -51296,6 +52221,15 @@
             "description": {
               "fallback": "柳娘婚后传授的凤凰糕秘方。",
               "key": "taoyuan.recipe.phoenix_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×3（当天）",
+                "type": "giftBonus",
+                "value": 3
+              },
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:phoenix_cake",
             "ingredients": [
@@ -51325,7 +52259,8 @@
               "key": "taoyuan.recipe.phoenix_cake.name"
             },
             "outputItemId": "taoyuan:food_phoenix_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与柳娘结婚后"
           }
         },
         {
@@ -51338,6 +52273,15 @@
             "description": {
               "fallback": "麻辣鲜香的泡椒鱼，吃了浑身充满力量。",
               "key": "taoyuan.recipe.pickled_chili_fish.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-15%（当天）",
+                "type": "defense",
+                "value": 15
+              },
+              "healthRestore": 30,
+              "staminaRestore": 40
             },
             "id": "taoyuan:pickled_chili_fish",
             "ingredients": [
@@ -51357,7 +52301,12 @@
               "key": "taoyuan.recipe.pickled_chili_fish.name"
             },
             "outputItemId": "taoyuan:food_pickled_chili_fish",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级5"
           }
         },
         {
@@ -51370,6 +52319,10 @@
             "description": {
               "fallback": "腌白菜的咸香与蛋炒饭完美结合。",
               "key": "taoyuan.recipe.pickled_veggie_fried_rice.description"
+            },
+            "effect": {
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:pickled_veggie_fried_rice",
             "ingredients": [
@@ -51394,7 +52347,12 @@
               "key": "taoyuan.recipe.pickled_veggie_fried_rice.name"
             },
             "outputItemId": "taoyuan:food_pickled_veggie_fried_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级3"
           }
         },
         {
@@ -51407,6 +52365,15 @@
             "description": {
               "fallback": "金黄松软的南瓜饼。",
               "key": "taoyuan.recipe.pumpkin_pie.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-15%（当天）",
+                "type": "farming",
+                "value": 15
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:pumpkin_pie",
             "ingredients": [
@@ -51426,7 +52393,12 @@
               "key": "taoyuan.recipe.pumpkin_pie.name"
             },
             "outputItemId": "taoyuan:food_pumpkin_pie",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 6,
+              "type": "farming"
+            },
+            "unlockSource": "农耕等级6"
           }
         },
         {
@@ -51439,6 +52411,15 @@
             "description": {
               "fallback": "香甜的南瓜酱夹心饼，田间劳作的好伙伴。",
               "key": "taoyuan.recipe.pumpkin_preserve_cake.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕技能+1（当天）",
+                "type": "farming",
+                "value": 1
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:pumpkin_preserve_cake",
             "ingredients": [
@@ -51458,7 +52439,12 @@
               "key": "taoyuan.recipe.pumpkin_preserve_cake.name"
             },
             "outputItemId": "taoyuan:food_pumpkin_preserve_cake",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级4"
           }
         },
         {
@@ -51471,6 +52457,15 @@
             "description": {
               "fallback": "七夕乞巧的传统小点。",
               "key": "taoyuan.recipe.qiao_guo.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+1（当天）",
+                "type": "fishing",
+                "value": 1
+              },
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:qiao_guo",
             "ingredients": [
@@ -51495,7 +52490,8 @@
               "key": "taoyuan.recipe.qiao_guo.name"
             },
             "outputItemId": "taoyuan:food_qiao_guo",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "七夕猜灯谜奖励"
           }
         },
         {
@@ -51508,6 +52504,15 @@
             "description": {
               "fallback": "草药清香的踏青小食。",
               "key": "taoyuan.recipe.qing_tuan.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-15%（当天）",
+                "type": "farming",
+                "value": 15
+              },
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:qing_tuan",
             "ingredients": [
@@ -51527,7 +52532,8 @@
               "key": "taoyuan.recipe.qing_tuan.name"
             },
             "outputItemId": "taoyuan:food_qing_tuan",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "上巳踏青奖励"
           }
         },
         {
@@ -51540,6 +52546,10 @@
             "description": {
               "fallback": "热腾腾的萝卜汤，暖身又暖心。",
               "key": "taoyuan.recipe.radish_soup.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:radish_soup",
             "ingredients": [
@@ -51559,7 +52569,8 @@
               "key": "taoyuan.recipe.radish_soup.name"
             },
             "outputItemId": "taoyuan:food_radish_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "陈伯好感「相识」"
           }
         },
         {
@@ -51572,6 +52583,15 @@
             "description": {
               "fallback": "大牛婚后常做的香浓奶汤。",
               "key": "taoyuan.recipe.ranch_milk_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农作体力消耗-25%（当天）",
+                "type": "farming",
+                "value": 25
+              },
+              "healthRestore": 35,
+              "staminaRestore": 55
             },
             "id": "taoyuan:ranch_milk_soup",
             "ingredients": [
@@ -51596,7 +52616,8 @@
               "key": "taoyuan.recipe.ranch_milk_soup.name"
             },
             "outputItemId": "taoyuan:food_ranch_milk_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与大牛结婚后"
           }
         },
         {
@@ -51609,6 +52630,15 @@
             "description": {
               "fallback": "菜花蜜香甜的面包，出门采集前来一块。",
               "key": "taoyuan.recipe.rapeseed_honey_bread.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+1（当天）",
+                "type": "luck",
+                "value": 1
+              },
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:rapeseed_honey_bread",
             "ingredients": [
@@ -51628,7 +52658,12 @@
               "key": "taoyuan.recipe.rapeseed_honey_bread.name"
             },
             "outputItemId": "taoyuan:food_rapeseed_honey_bread",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级3"
           }
         },
         {
@@ -51641,6 +52676,10 @@
             "description": {
               "fallback": "简单捏制的米饭团子，方便携带。",
               "key": "taoyuan.recipe.rice_ball.description"
+            },
+            "effect": {
+              "healthRestore": 3,
+              "staminaRestore": 12
             },
             "id": "taoyuan:rice_ball",
             "ingredients": [
@@ -51655,7 +52694,8 @@
               "key": "taoyuan.recipe.rice_ball.name"
             },
             "outputItemId": "taoyuan:food_rice_ball",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -51668,6 +52708,10 @@
             "description": {
               "fallback": "香甜绵软的烤红薯。",
               "key": "taoyuan.recipe.roasted_sweet_potato.description"
+            },
+            "effect": {
+              "healthRestore": 5,
+              "staminaRestore": 20
             },
             "id": "taoyuan:roasted_sweet_potato",
             "ingredients": [
@@ -51682,7 +52726,8 @@
               "key": "taoyuan.recipe.roasted_sweet_potato.name"
             },
             "outputItemId": "taoyuan:food_roasted_sweet_potato",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -51695,6 +52740,15 @@
             "description": {
               "fallback": "丹青婚后按古方熬煮的养心粥。",
               "key": "taoyuan.recipe.scholars_porridge.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "移动速度+2（当天）",
+                "type": "speed",
+                "value": 2
+              },
+              "healthRestore": 30,
+              "staminaRestore": 50
             },
             "id": "taoyuan:scholars_porridge",
             "ingredients": [
@@ -51719,7 +52773,8 @@
               "key": "taoyuan.recipe.scholars_porridge.name"
             },
             "outputItemId": "taoyuan:food_scholars_porridge",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与丹青结婚后"
           }
         },
         {
@@ -51732,6 +52787,10 @@
             "description": {
               "fallback": "简单可口的蛋炒饭。",
               "key": "taoyuan.recipe.scrambled_egg_rice.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 20
             },
             "id": "taoyuan:scrambled_egg_rice",
             "ingredients": [
@@ -51751,7 +52810,8 @@
               "key": "taoyuan.recipe.scrambled_egg_rice.name"
             },
             "outputItemId": "taoyuan:food_scrambled_egg_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -51764,6 +52824,10 @@
             "description": {
               "fallback": "浓郁香滑的芝麻糊。",
               "key": "taoyuan.recipe.sesame_paste.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:sesame_paste",
             "ingredients": [
@@ -51783,7 +52847,8 @@
               "key": "taoyuan.recipe.sesame_paste.name"
             },
             "outputItemId": "taoyuan:food_sesame_paste",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -51796,6 +52861,15 @@
             "description": {
               "fallback": "浓香麻酱配上劲道凉面，夏日消暑佳品。",
               "key": "taoyuan.recipe.sesame_paste_noodles.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "体力消耗-15%（当天）",
+                "type": "stamina",
+                "value": 15
+              },
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:sesame_paste_noodles",
             "ingredients": [
@@ -51815,7 +52889,12 @@
               "key": "taoyuan.recipe.sesame_paste_noodles.name"
             },
             "outputItemId": "taoyuan:food_sesame_paste_noodles",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级3"
           }
         },
         {
@@ -51828,6 +52907,15 @@
             "description": {
               "fallback": "暗影矿石酿制的神秘饮品。",
               "key": "taoyuan.recipe.shadow_brew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-25%（当天）",
+                "type": "defense",
+                "value": 25
+              },
+              "healthRestore": 40,
+              "staminaRestore": 55
             },
             "id": "taoyuan:shadow_brew",
             "ingredients": [
@@ -51852,7 +52940,12 @@
               "key": "taoyuan.recipe.shadow_brew.name"
             },
             "outputItemId": "taoyuan:food_shadow_brew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 7,
+              "type": "combat"
+            },
+            "unlockSource": "战斗等级7"
           }
         },
         {
@@ -51865,6 +52958,15 @@
             "description": {
               "fallback": "素素婚后教你包的精致饺子，形如锦囊。",
               "key": "taoyuan.recipe.silk_dumpling.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×2（当天）",
+                "type": "giftBonus",
+                "value": 2
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:silk_dumpling",
             "ingredients": [
@@ -51889,7 +52991,8 @@
               "key": "taoyuan.recipe.silk_dumpling.name"
             },
             "outputItemId": "taoyuan:food_silk_dumpling",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与素素结婚后"
           }
         },
         {
@@ -51902,6 +53005,15 @@
             "description": {
               "fallback": "用丝绸包裹的精致饺子，配以西域香料，送礼佳品。",
               "key": "taoyuan.recipe.silk_dumpling_deluxe.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×3（当天）",
+                "type": "giftBonus",
+                "value": 3
+              },
+              "healthRestore": 35,
+              "staminaRestore": 70
             },
             "id": "taoyuan:silk_dumpling_deluxe",
             "ingredients": [
@@ -51926,7 +53038,8 @@
               "key": "taoyuan.recipe.silk_dumpling_deluxe.name"
             },
             "outputItemId": "taoyuan:food_silk_dumpling_deluxe",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "瀚海驿站购买丝绸后解锁"
           }
         },
         {
@@ -51939,6 +53052,15 @@
             "description": {
               "fallback": "用丝绸包裹蒸制的嫩滑豆腐，口感如丝绸般细腻。",
               "key": "taoyuan.recipe.silk_tofu.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+1（当天）",
+                "type": "fishing",
+                "value": 1
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:silk_tofu",
             "ingredients": [
@@ -51958,7 +53080,8 @@
               "key": "taoyuan.recipe.silk_tofu.name"
             },
             "outputItemId": "taoyuan:food_silk_tofu",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "解锁瀚海后自动获得"
           }
         },
         {
@@ -51971,6 +53094,10 @@
             "description": {
               "fallback": "滋补养生的乌鸡蛋羹。",
               "key": "taoyuan.recipe.silkie_egg_soup.description"
+            },
+            "effect": {
+              "healthRestore": 30,
+              "staminaRestore": 50
             },
             "id": "taoyuan:silkie_egg_soup",
             "ingredients": [
@@ -51990,7 +53117,8 @@
               "key": "taoyuan.recipe.silkie_egg_soup.name"
             },
             "outputItemId": "taoyuan:food_silkie_egg_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -52003,6 +53131,15 @@
             "description": {
               "fallback": "烟熏鳗鱼铺在热饭上，淋上麻油，鲜美无比。",
               "key": "taoyuan.recipe.smoked_eel_rice.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+1（当天）",
+                "type": "fishing",
+                "value": 1
+              },
+              "healthRestore": 25,
+              "staminaRestore": 60
             },
             "id": "taoyuan:smoked_eel_rice",
             "ingredients": [
@@ -52027,7 +53164,12 @@
               "key": "taoyuan.recipe.smoked_eel_rice.name"
             },
             "outputItemId": "taoyuan:food_smoked_eel_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 6,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级6"
           }
         },
         {
@@ -52040,6 +53182,15 @@
             "description": {
               "fallback": "精心摆盘的双色烟熏鱼，鲜香四溢。",
               "key": "taoyuan.recipe.smoked_fish_platter.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+2（当天）",
+                "type": "fishing",
+                "value": 2
+              },
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:smoked_fish_platter",
             "ingredients": [
@@ -52059,7 +53210,8 @@
               "key": "taoyuan.recipe.smoked_fish_platter.name"
             },
             "outputItemId": "taoyuan:food_smoked_fish_platter",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "秋月好感「知己」"
           }
         },
         {
@@ -52072,6 +53224,10 @@
             "description": {
               "fallback": "极品滋补圣品，雪莲蜜与人参精的至高结合。",
               "key": "taoyuan.recipe.snow_lotus_honey_paste.description"
+            },
+            "effect": {
+              "healthRestore": 50,
+              "staminaRestore": 80
             },
             "id": "taoyuan:snow_lotus_honey_paste",
             "ingredients": [
@@ -52091,7 +53247,8 @@
               "key": "taoyuan.recipe.snow_lotus_honey_paste.name"
             },
             "outputItemId": "taoyuan:food_snow_lotus_honey_paste",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "林老好感「挚友」"
           }
         },
         {
@@ -52104,6 +53261,15 @@
             "description": {
               "fallback": "雪芹婚后分享的画室私房羹汤。",
               "key": "taoyuan.recipe.snow_plum_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+3（当天）",
+                "type": "luck",
+                "value": 3
+              },
+              "healthRestore": 35,
+              "staminaRestore": 65
             },
             "id": "taoyuan:snow_plum_soup",
             "ingredients": [
@@ -52123,7 +53289,8 @@
               "key": "taoyuan.recipe.snow_plum_soup.name"
             },
             "outputItemId": "taoyuan:food_snow_plum_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与雪芹结婚后"
           }
         },
         {
@@ -52136,6 +53303,15 @@
             "description": {
               "fallback": "社交达人的特调花茶。",
               "key": "taoyuan.recipe.social_tea.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×2（当天）",
+                "type": "giftBonus",
+                "value": 2
+              },
+              "healthRestore": 15,
+              "staminaRestore": 30
             },
             "id": "taoyuan:social_tea",
             "ingredients": [
@@ -52155,7 +53331,8 @@
               "key": "taoyuan.recipe.social_tea.name"
             },
             "outputItemId": "taoyuan:food_social_tea",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "成就：3位NPC达到相知"
           }
         },
         {
@@ -52168,6 +53345,15 @@
             "description": {
               "fallback": "西域香料翻炒的米饭，粒粒喷香，干活有劲。",
               "key": "taoyuan.recipe.spice_fried_rice.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "种植技能+1（当天）",
+                "type": "farming",
+                "value": 1
+              },
+              "healthRestore": 25,
+              "staminaRestore": 55
             },
             "id": "taoyuan:spice_fried_rice",
             "ingredients": [
@@ -52187,7 +53373,8 @@
               "key": "taoyuan.recipe.spice_fried_rice.name"
             },
             "outputItemId": "taoyuan:food_spice_fried_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "解锁瀚海后自动获得"
           }
         },
         {
@@ -52200,6 +53387,15 @@
             "description": {
               "fallback": "西域风味的烤羊肉，香气扑鼻，力量倍增。",
               "key": "taoyuan.recipe.spiced_lamb.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "采矿技能+2（当天）",
+                "type": "mining",
+                "value": 2
+              },
+              "healthRestore": 30,
+              "staminaRestore": 60
             },
             "id": "taoyuan:spiced_lamb",
             "ingredients": [
@@ -52219,7 +53415,8 @@
               "key": "taoyuan.recipe.spiced_lamb.name"
             },
             "outputItemId": "taoyuan:food_spiced_lamb",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "瀚海驿站购买香料后解锁"
           }
         },
         {
@@ -52232,6 +53429,15 @@
             "description": {
               "fallback": "火辣辣的麻辣火锅，驱寒暖身。",
               "key": "taoyuan.recipe.spicy_hotpot.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-20%（当天）",
+                "type": "defense",
+                "value": 20
+              },
+              "healthRestore": 40,
+              "staminaRestore": 50
             },
             "id": "taoyuan:spicy_hotpot",
             "ingredients": [
@@ -52256,7 +53462,12 @@
               "key": "taoyuan.recipe.spicy_hotpot.name"
             },
             "outputItemId": "taoyuan:food_spicy_hotpot",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级4"
           }
         },
         {
@@ -52269,6 +53480,15 @@
             "description": {
               "fallback": "小满用灵果酿的幸运酒。",
               "key": "taoyuan.recipe.spirit_fruit_wine.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+25%（当天）",
+                "type": "luck",
+                "value": 25
+              },
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:spirit_fruit_wine",
             "ingredients": [
@@ -52288,7 +53508,8 @@
               "key": "taoyuan.recipe.spirit_fruit_wine.name"
             },
             "outputItemId": "taoyuan:food_spirit_fruit_wine",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "小满好感「挚友」"
           }
         },
         {
@@ -52301,6 +53522,15 @@
             "description": {
               "fallback": "采集大师秘传的灵草药剂。",
               "key": "taoyuan.recipe.spirit_herb_elixir.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+25%（当天）",
+                "type": "luck",
+                "value": 25
+              },
+              "healthRestore": 40,
+              "staminaRestore": 80
             },
             "id": "taoyuan:spirit_herb_elixir",
             "ingredients": [
@@ -52325,7 +53555,12 @@
               "key": "taoyuan.recipe.spirit_herb_elixir.name"
             },
             "outputItemId": "taoyuan:food_spirit_herb_elixir",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 9,
+              "type": "foraging"
+            },
+            "unlockSource": "采集等级9"
           }
         },
         {
@@ -52338,6 +53573,15 @@
             "description": {
               "fallback": "春耕祭传统的春卷。",
               "key": "taoyuan.recipe.spring_roll.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "行动速度+15%（当天）",
+                "type": "speed",
+                "value": 15
+              },
+              "healthRestore": 15,
+              "staminaRestore": 30
             },
             "id": "taoyuan:spring_roll",
             "ingredients": [
@@ -52362,7 +53606,8 @@
               "key": "taoyuan.recipe.spring_roll.name"
             },
             "outputItemId": "taoyuan:food_spring_roll",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "春耕祭奖励"
           }
         },
         {
@@ -52375,6 +53620,15 @@
             "description": {
               "fallback": "鲜嫩的清蒸鲈鱼。",
               "key": "taoyuan.recipe.steamed_bass.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+2（当天）",
+                "type": "fishing",
+                "value": 2
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:steamed_bass",
             "ingredients": [
@@ -52394,7 +53648,12 @@
               "key": "taoyuan.recipe.steamed_bass.name"
             },
             "outputItemId": "taoyuan:food_steamed_bass",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "fishing"
+            },
+            "unlockSource": "钓鱼等级3"
           }
         },
         {
@@ -52407,6 +53666,10 @@
             "description": {
               "fallback": "松软的白面馒头，最朴素的主食。",
               "key": "taoyuan.recipe.steamed_bun.description"
+            },
+            "effect": {
+              "healthRestore": 3,
+              "staminaRestore": 12
             },
             "id": "taoyuan:steamed_bun",
             "ingredients": [
@@ -52429,7 +53692,8 @@
               "key": "taoyuan.recipe.steamed_bun.name"
             },
             "outputItemId": "taoyuan:food_steamed_bun",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -52442,6 +53706,10 @@
             "description": {
               "fallback": "简单朴素的家常菜。",
               "key": "taoyuan.recipe.stir_fried_cabbage.description"
+            },
+            "effect": {
+              "healthRestore": 5,
+              "staminaRestore": 15
             },
             "id": "taoyuan:stir_fried_cabbage",
             "ingredients": [
@@ -52456,7 +53724,8 @@
               "key": "taoyuan.recipe.stir_fried_cabbage.name"
             },
             "outputItemId": "taoyuan:food_stir_fried_cabbage",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -52469,6 +53738,10 @@
             "description": {
               "fallback": "酸辣爽脆的炒土豆丝。",
               "key": "taoyuan.recipe.stir_fried_potato.description"
+            },
+            "effect": {
+              "healthRestore": 5,
+              "staminaRestore": 18
             },
             "id": "taoyuan:stir_fried_potato",
             "ingredients": [
@@ -52483,7 +53756,8 @@
               "key": "taoyuan.recipe.stir_fried_potato.name"
             },
             "outputItemId": "taoyuan:food_stir_fried_potato",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -52496,6 +53770,10 @@
             "description": {
               "fallback": "矿洞中就地取材的汤。",
               "key": "taoyuan.recipe.stone_soup.description"
+            },
+            "effect": {
+              "healthRestore": 20,
+              "staminaRestore": 25
             },
             "id": "taoyuan:stone_soup",
             "ingredients": [
@@ -52520,7 +53798,12 @@
               "key": "taoyuan.recipe.stone_soup.name"
             },
             "outputItemId": "taoyuan:food_stone_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "mining"
+            },
+            "unlockSource": "采矿等级3"
           }
         },
         {
@@ -52533,6 +53816,15 @@
             "description": {
               "fallback": "珍贵的鲟鱼炖羹。",
               "key": "taoyuan.recipe.sturgeon_stew.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "钓鱼技能+3（当天）",
+                "type": "fishing",
+                "value": 3
+              },
+              "healthRestore": 30,
+              "staminaRestore": 55
             },
             "id": "taoyuan:sturgeon_stew",
             "ingredients": [
@@ -52557,7 +53849,12 @@
               "key": "taoyuan.recipe.sturgeon_stew.name"
             },
             "outputItemId": "taoyuan:food_sturgeon_stew",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 7,
+              "type": "fishing"
+            },
+            "unlockSource": "钓鱼等级7"
           }
         },
         {
@@ -52570,6 +53867,15 @@
             "description": {
               "fallback": "集四季精华的田园盛筵。",
               "key": "taoyuan.recipe.supreme_farm_feast.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕体力消耗-30%（当天）",
+                "type": "farming",
+                "value": 30
+              },
+              "healthRestore": 35,
+              "staminaRestore": 70
             },
             "id": "taoyuan:supreme_farm_feast",
             "ingredients": [
@@ -52599,7 +53905,12 @@
               "key": "taoyuan.recipe.supreme_farm_feast.name"
             },
             "outputItemId": "taoyuan:food_supreme_farm_feast",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 9,
+              "type": "farming"
+            },
+            "unlockSource": "农耕等级9"
           }
         },
         {
@@ -52612,6 +53923,15 @@
             "description": {
               "fallback": "芬芳甜蜜的桂花甜茶。",
               "key": "taoyuan.recipe.sweet_osmanthus_tea.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+10%（当天）",
+                "type": "luck",
+                "value": 10
+              },
+              "healthRestore": 5,
+              "staminaRestore": 20
             },
             "id": "taoyuan:sweet_osmanthus_tea",
             "ingredients": [
@@ -52631,7 +53951,8 @@
               "key": "taoyuan.recipe.sweet_osmanthus_tea.name"
             },
             "outputItemId": "taoyuan:food_sweet_osmanthus_tea",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "小满好感「相识」"
           }
         },
         {
@@ -52644,6 +53965,15 @@
             "description": {
               "fallback": "团团圆圆的花生汤圆。",
               "key": "taoyuan.recipe.tangyuan.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "全技能+1（当天）",
+                "type": "all_skills",
+                "value": 1
+              },
+              "healthRestore": 25,
+              "staminaRestore": 50
             },
             "id": "taoyuan:tangyuan",
             "ingredients": [
@@ -52668,7 +53998,8 @@
               "key": "taoyuan.recipe.tangyuan.name"
             },
             "outputItemId": "taoyuan:food_tangyuan",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "年末烟花会奖励"
           }
         },
         {
@@ -52681,6 +54012,15 @@
             "description": {
               "fallback": "春兰婚后传授的茶宴配方，以茶入馔。",
               "key": "taoyuan.recipe.tea_banquet.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "送礼好感×2（当天）",
+                "type": "giftBonus",
+                "value": 2
+              },
+              "healthRestore": 30,
+              "staminaRestore": 55
             },
             "id": "taoyuan:tea_banquet",
             "ingredients": [
@@ -52705,7 +54045,8 @@
               "key": "taoyuan.recipe.tea_banquet.name"
             },
             "outputItemId": "taoyuan:food_tea_banquet",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "与春兰结婚后"
           }
         },
         {
@@ -52718,6 +54059,15 @@
             "description": {
               "fallback": "山茶油煎出的金黄蛋饼，清香扑鼻。",
               "key": "taoyuan.recipe.tea_oil_fried_egg.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "旅行加速+1（当天）",
+                "type": "speed",
+                "value": 1
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:tea_oil_fried_egg",
             "ingredients": [
@@ -52737,7 +54087,12 @@
               "key": "taoyuan.recipe.tea_oil_fried_egg.name"
             },
             "outputItemId": "taoyuan:food_tea_oil_fried_egg",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 4,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级4"
           }
         },
         {
@@ -52750,6 +54105,15 @@
             "description": {
               "fallback": "奢侈的松露炒饭，香气四溢。",
               "key": "taoyuan.recipe.truffle_fried_rice.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "农耕技能+1（当天）",
+                "type": "farming",
+                "value": 1
+              },
+              "healthRestore": 30,
+              "staminaRestore": 60
             },
             "id": "taoyuan:truffle_fried_rice",
             "ingredients": [
@@ -52774,7 +54138,8 @@
               "key": "taoyuan.recipe.truffle_fried_rice.name"
             },
             "outputItemId": "taoyuan:food_truffle_fried_rice",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "大牛好感「知己」"
           }
         },
         {
@@ -52787,6 +54152,15 @@
             "description": {
               "fallback": "奢侈的松露油炒饭，每一口都是享受。",
               "key": "taoyuan.recipe.truffle_oil_risotto.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "全技能+1（当天）",
+                "type": "all_skills",
+                "value": 1
+              },
+              "healthRestore": 30,
+              "staminaRestore": 70
             },
             "id": "taoyuan:truffle_oil_risotto",
             "ingredients": [
@@ -52811,7 +54185,12 @@
               "key": "taoyuan.recipe.truffle_oil_risotto.name"
             },
             "outputItemId": "taoyuan:food_truffle_oil_risotto",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 8,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级8"
           }
         },
         {
@@ -52824,6 +54203,15 @@
             "description": {
               "fallback": "以绿松石粉入茶，据说能增强矿石感应力。",
               "key": "taoyuan.recipe.turquoise_tea.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "采矿技能+2（当天）",
+                "type": "mining",
+                "value": 2
+              },
+              "healthRestore": 30,
+              "staminaRestore": 60
             },
             "id": "taoyuan:turquoise_tea",
             "ingredients": [
@@ -52843,7 +54231,8 @@
               "key": "taoyuan.recipe.turquoise_tea.name"
             },
             "outputItemId": "taoyuan:food_turquoise_tea",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "解锁瀚海后自动获得"
           }
         },
         {
@@ -52856,6 +54245,10 @@
             "description": {
               "fallback": "新鲜蔬菜熬制的清汤。",
               "key": "taoyuan.recipe.vegetable_soup.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:vegetable_soup",
             "ingredients": [
@@ -52880,7 +54273,8 @@
               "key": "taoyuan.recipe.vegetable_soup.name"
             },
             "outputItemId": "taoyuan:food_vegetable_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "初始自带"
           }
         },
         {
@@ -52893,6 +54287,10 @@
             "description": {
               "fallback": "酸爽开胃的家常菜，米醋的妙用。",
               "key": "taoyuan.recipe.vinegar_cabbage.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 30
             },
             "id": "taoyuan:vinegar_cabbage",
             "ingredients": [
@@ -52912,7 +54310,12 @@
               "key": "taoyuan.recipe.vinegar_cabbage.name"
             },
             "outputItemId": "taoyuan:food_vinegar_cabbage",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级3"
           }
         },
         {
@@ -52925,6 +54328,15 @@
             "description": {
               "fallback": "战斗大师炼制的终极药剂。",
               "key": "taoyuan.recipe.void_elixir.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-30%（当天）",
+                "type": "defense",
+                "value": 30
+              },
+              "healthRestore": 50,
+              "staminaRestore": 70
             },
             "id": "taoyuan:void_elixir",
             "ingredients": [
@@ -52949,7 +54361,12 @@
               "key": "taoyuan.recipe.void_elixir.name"
             },
             "outputItemId": "taoyuan:food_void_elixir",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 9,
+              "type": "combat"
+            },
+            "unlockSource": "战斗等级9"
           }
         },
         {
@@ -52962,6 +54379,15 @@
             "description": {
               "fallback": "虚空矿石炼制的神秘汤剂。",
               "key": "taoyuan.recipe.void_essence_soup.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "挖矿体力消耗-35%（当天）",
+                "type": "mining",
+                "value": 35
+              },
+              "healthRestore": 40,
+              "staminaRestore": 70
             },
             "id": "taoyuan:void_essence_soup",
             "ingredients": [
@@ -52986,7 +54412,12 @@
               "key": "taoyuan.recipe.void_essence_soup.name"
             },
             "outputItemId": "taoyuan:food_void_essence_soup",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 8,
+              "type": "mining"
+            },
+            "unlockSource": "采矿等级8"
           }
         },
         {
@@ -52999,6 +54430,10 @@
             "description": {
               "fallback": "简单实用的战士口粮。",
               "key": "taoyuan.recipe.warrior_ration.description"
+            },
+            "effect": {
+              "healthRestore": 25,
+              "staminaRestore": 25
             },
             "id": "taoyuan:warrior_ration",
             "ingredients": [
@@ -53018,7 +54453,12 @@
               "key": "taoyuan.recipe.warrior_ration.name"
             },
             "outputItemId": "taoyuan:food_warrior_ration",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "combat"
+            },
+            "unlockSource": "战斗等级3"
           }
         },
         {
@@ -53031,6 +54471,15 @@
             "description": {
               "fallback": "冰爽的西瓜酒冰沙，夏日消暑极品。",
               "key": "taoyuan.recipe.watermelon_wine_sorbet.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "旅行加速+2（当天）",
+                "type": "speed",
+                "value": 2
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:watermelon_wine_sorbet",
             "ingredients": [
@@ -53050,7 +54499,12 @@
               "key": "taoyuan.recipe.watermelon_wine_sorbet.name"
             },
             "outputItemId": "taoyuan:food_watermelon_wine_sorbet",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 5,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级5"
           }
         },
         {
@@ -53063,6 +54517,15 @@
             "description": {
               "fallback": "小满用林中野果做的果酱。",
               "key": "taoyuan.recipe.wild_berry_jam.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "行动速度+20%（当天）",
+                "type": "speed",
+                "value": 20
+              },
+              "healthRestore": 10,
+              "staminaRestore": 25
             },
             "id": "taoyuan:wild_berry_jam",
             "ingredients": [
@@ -53082,7 +54545,8 @@
               "key": "taoyuan.recipe.wild_berry_jam.name"
             },
             "outputItemId": "taoyuan:food_wild_berry_jam",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "小满好感「相知」"
           }
         },
         {
@@ -53095,6 +54559,10 @@
             "description": {
               "fallback": "山间新鲜野菜拌成的沙拉。",
               "key": "taoyuan.recipe.wild_salad.description"
+            },
+            "effect": {
+              "healthRestore": 10,
+              "staminaRestore": 20
             },
             "id": "taoyuan:wild_salad",
             "ingredients": [
@@ -53114,7 +54582,12 @@
               "key": "taoyuan.recipe.wild_salad.name"
             },
             "outputItemId": "taoyuan:food_wild_salad",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 3,
+              "type": "foraging"
+            },
+            "unlockSource": "采集等级3"
           }
         },
         {
@@ -53127,6 +54600,15 @@
             "description": {
               "fallback": "浓厚的牦牛奶酪与萝卜干炖煮，冬日暖食。",
               "key": "taoyuan.recipe.yak_cheese_hotpot.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "受到伤害-25%（当天）",
+                "type": "defense",
+                "value": 25
+              },
+              "healthRestore": 35,
+              "staminaRestore": 65
             },
             "id": "taoyuan:yak_cheese_hotpot",
             "ingredients": [
@@ -53151,7 +54633,12 @@
               "key": "taoyuan.recipe.yak_cheese_hotpot.name"
             },
             "outputItemId": "taoyuan:food_yak_cheese_hotpot",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "requiredSkill": {
+              "level": 8,
+              "type": "farming"
+            },
+            "unlockSource": "烹饪等级8"
           }
         },
         {
@@ -53164,6 +54651,15 @@
             "description": {
               "fallback": "月圆之夜的莲蓉月饼。",
               "key": "taoyuan.recipe.yue_bing.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "幸运+15%（当天）",
+                "type": "luck",
+                "value": 15
+              },
+              "healthRestore": 20,
+              "staminaRestore": 45
             },
             "id": "taoyuan:yue_bing",
             "ingredients": [
@@ -53188,7 +54684,8 @@
               "key": "taoyuan.recipe.yue_bing.name"
             },
             "outputItemId": "taoyuan:food_yue_bing",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "中秋赏月奖励"
           }
         },
         {
@@ -53201,6 +54698,15 @@
             "description": {
               "fallback": "风筝节上的应景糕点，形如纸鸢。",
               "key": "taoyuan.recipe.zhi_yuan_gao.description"
+            },
+            "effect": {
+              "buff": {
+                "description": "行动速度+12%（当天）",
+                "type": "speed",
+                "value": 12
+              },
+              "healthRestore": 15,
+              "staminaRestore": 35
             },
             "id": "taoyuan:zhi_yuan_gao",
             "ingredients": [
@@ -53225,7 +54731,8 @@
               "key": "taoyuan.recipe.zhi_yuan_gao.name"
             },
             "outputItemId": "taoyuan:food_zhi_yuan_gao",
-            "outputQuantity": 1
+            "outputQuantity": 1,
+            "unlockSource": "秋风筝会奖励"
           }
         }
       ]
@@ -54150,5 +55657,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:4773b795f53d465966a1e2cb5f1ae45413c29be47b0fee8c6ec679c3ebd0c528"
+  "snapshotHash": "sha256:daad92862358e2fdca6cd99ea06c812e44338649721e97086e9d336b911f2000"
 }

@@ -1146,6 +1146,7 @@
             "src/data/travelingMerchant.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/contentRegistryEquivalence.test.ts",
             "src/tests/domain/cropLookup.test.ts",
             "src/tests/domain/cropRegistryPilot.test.ts",
             "src/views/game/FarmView.vue"
@@ -3992,6 +3993,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useAchievementStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/contentRegistryEquivalence.test.ts",
             "src/views/game/AchievementView.vue"
           ],
           "migrationPhase": [
@@ -5594,7 +5596,8 @@
             "src/data/items.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useNpcStore.ts",
-            "src/tests/data/gameDataValidation.test.ts"
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/contentRegistryEquivalence.test.ts"
           ],
           "migrationPhase": [
             2

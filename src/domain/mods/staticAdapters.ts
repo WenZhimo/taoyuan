@@ -172,7 +172,14 @@ export const adaptLegacyRecipe = (recipe: LegacyRecipeDef): RecipeDef => ({
   ingredients: adaptLegacyRecipeIngredients(recipe),
   outputItemId: toOfficialContentId(`food_${recipe.id}`),
   outputQuantity: 1,
-  description: text(`taoyuan.recipe.${recipe.id}.description`, recipe.description)
+  effect: {
+    staminaRestore: recipe.effect.staminaRestore,
+    ...(recipe.effect.healthRestore !== undefined ? { healthRestore: recipe.effect.healthRestore } : {}),
+    ...(recipe.effect.buff ? { buff: { ...recipe.effect.buff } } : {})
+  },
+  unlockSource: recipe.unlockSource,
+  description: text(`taoyuan.recipe.${recipe.id}.description`, recipe.description),
+  ...(recipe.requiredSkill ? { requiredSkill: { ...recipe.requiredSkill } } : {})
 })
 
 export const adaptLegacyEnchantment = (id: string, enchantment: (typeof ENCHANTMENTS)[string]): EnchantmentDef => ({

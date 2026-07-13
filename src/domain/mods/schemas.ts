@@ -260,6 +260,50 @@ export const RecipeIngredientSchema = Type.Union([
   RecipeIngredientAnyOfTagsSchema
 ])
 
+export const RecipeEffectBuffSchema = Type.Object(
+  {
+    type: Type.Union([
+      Type.Literal('fishing'),
+      Type.Literal('mining'),
+      Type.Literal('giftBonus'),
+      Type.Literal('speed'),
+      Type.Literal('defense'),
+      Type.Literal('luck'),
+      Type.Literal('farming'),
+      Type.Literal('stamina'),
+      Type.Literal('all_skills')
+    ]),
+    value: Type.Number(),
+    description: Type.String({ minLength: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const RecipeEffectSchema = Type.Object(
+  {
+    staminaRestore: Type.Integer({ minimum: 0 }),
+    healthRestore: Type.Optional(Type.Integer({ minimum: 0 })),
+    buff: Type.Optional(RecipeEffectBuffSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const SkillTypeSchema = Type.Union([
+  Type.Literal('farming'),
+  Type.Literal('foraging'),
+  Type.Literal('fishing'),
+  Type.Literal('mining'),
+  Type.Literal('combat')
+])
+
+export const RecipeRequiredSkillSchema = Type.Object(
+  {
+    type: SkillTypeSchema,
+    level: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
 export const RecipeDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -267,7 +311,10 @@ export const RecipeDefSchema = Type.Object(
     ingredients: Type.Array(RecipeIngredientSchema),
     outputItemId: ContentIdSchema,
     outputQuantity: Type.Integer({ minimum: 1 }),
-    description: LocalizedTextRefSchema
+    effect: RecipeEffectSchema,
+    unlockSource: Type.String({ minLength: 1 }),
+    description: LocalizedTextRefSchema,
+    requiredSkill: Type.Optional(RecipeRequiredSkillSchema)
   },
   { $id: 'taoyuan.registry.RecipeDef', additionalProperties: false }
 )
