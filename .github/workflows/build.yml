@@ -47,13 +47,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 【关键点】上传 zip 产物
-      - name: 上传 Electron 安装包
+      - name: 上传 Electron 未压缩版
         uses: actions/upload-artifact@v4
         with:
-          name: electron-${{ matrix.platform }}
+          name: electron-${{ matrix.platform }}-unpacked
           path: |
-            pkg/*.zip
+            pkg/win-unpacked/**
+          if-no-files-found: error
 
   # 2. 构建 Android APK
   build-android:
@@ -127,11 +127,18 @@ jobs:
         run: |
           mkdir -p ./final-release
 
-          # 移动 Electron zip 包
-          find ./raw-assets/electron-* -type f -name "*.zip" -exec cp {} ./final-release/ \;
+          # Windows 桌面端只保留 win-unpacked 目录版，作为 Actions artifact 下载，不再生成或发布 zip。
+          if [ -d "./raw-assets/electron-win-unpacked" ]; then
+            echo "Electron win-unpacked artifact is available in this workflow run."
+          fi
 
           # 移动 Android APK
           find ./raw-assets/android-apk -type f -name "*.apk" -exec cp {} ./final-release/ \; || true
+
+          if ! find ./final-release -type f | grep -q .; then
+            echo "No release files were collected."
+            exit 1
+          fi
 
           # 检查结果
           echo "Final assets to upload:"

@@ -83,6 +83,13 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "当前版本: $VERSION"
 
+      - name: 准备镜像名称
+        id: image
+        run: |
+          OWNER_LOWER=$(echo "${GITHUB_REPOSITORY_OWNER}" | tr '[:upper:]' '[:lower:]')
+          echo "repository=ghcr.io/${OWNER_LOWER}/taoyuan" >> "$GITHUB_OUTPUT"
+          echo "GHCR 镜像仓库: ghcr.io/${OWNER_LOWER}/taoyuan"
+
       - name: 准备 CI 构建环境
         run: |
           cp .dockerignore.ci .dockerignore
@@ -120,9 +127,9 @@ jobs:
           no-cache: false
           pull: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/taoyuan:latest
-            ghcr.io/${{ github.repository_owner }}/taoyuan:${{ steps.version.outputs.version }}
-            ghcr.io/${{ github.repository_owner }}/taoyuan:${{ github.sha }}
+            ${{ steps.image.outputs.repository }}:latest
+            ${{ steps.image.outputs.repository }}:${{ steps.version.outputs.version }}
+            ${{ steps.image.outputs.repository }}:${{ github.sha }}
             ${{ env.DOCKERHUB_USERNAME && format('{0}/taoyuan:latest', env.DOCKERHUB_USERNAME) || '' }}
             ${{ env.DOCKERHUB_USERNAME && format('{0}/taoyuan:{1}', env.DOCKERHUB_USERNAME, steps.version.outputs.version) || '' }}
             ${{ env.DOCKERHUB_USERNAME && format('{0}/taoyuan:{1}', env.DOCKERHUB_USERNAME, github.sha) || '' }}
