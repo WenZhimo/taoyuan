@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { CROPS, getCropById } from '@/data/crops'
-import { getOfficialCropById, getOfficialCropDef, getOfficialCropDefs } from '@/domain/mods/contentAccess'
+import { CROPS, getCropById, getCropBySeedId, getCropsBySeason } from '@/data/crops'
+import {
+  getOfficialCropById,
+  getOfficialCropBySeedId,
+  getOfficialCropDef,
+  getOfficialCropDefs,
+  getOfficialCropsBySeason
+} from '@/domain/mods/contentAccess'
 import { requirePackageId, toOfficialContentId, toOfficialRegistryTypeId } from '@/domain/mods/ids'
 import { RegistrySet } from '@/domain/mods/registry'
 import { type CropDef, type ItemDef } from '@/domain/mods/schemas'
@@ -28,9 +34,19 @@ describe('crop registry pilot', () => {
 
     for (const crop of CROPS) {
       expect(getOfficialCropById(crop.id)).toEqual(getCropById(crop.id))
+      expect(getOfficialCropBySeedId(crop.seedId)).toEqual(getCropBySeedId(crop.seedId))
     }
 
     expect(getOfficialCropById('missing_crop')).toBeUndefined()
+    expect(getOfficialCropBySeedId('missing_seed')).toBeUndefined()
+  })
+
+  it('keeps official crop season queries equivalent to the legacy crop table', () => {
+    for (const season of ['spring', 'summer', 'autumn', 'winter']) {
+      expect(getOfficialCropsBySeason(season).map(normalizeLegacyCrop)).toEqual(
+        getCropsBySeason(season).map(normalizeLegacyCrop)
+      )
+    }
   })
 
   it('stores crop definitions with namespaced item and seed references', () => {

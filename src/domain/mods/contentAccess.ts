@@ -79,5 +79,22 @@ export const getOfficialCropById = (id: string): LegacyCropDef | undefined => {
   return crop ? toLegacyCropDef(crop) : undefined
 }
 
+export const getOfficialCropBySeedId = (seedId: string): LegacyCropDef | undefined => {
+  const contentId = toQueryContentId(seedId)
+  if (!contentId) return undefined
+  const crop = getOfficialRegistrySet()
+    .get<CropDef>(toOfficialRegistryTypeId('crop'))
+    .values()
+    .find(candidate => candidate.seedId === contentId)
+  return crop ? toLegacyCropDef(crop) : undefined
+}
+
+export const getOfficialCropsBySeason = (season: string): readonly LegacyCropDef[] =>
+  getOfficialRegistrySet()
+    .get<CropDef>(toOfficialRegistryTypeId('crop'))
+    .values()
+    .filter(crop => crop.season.includes(season as LegacyCropDef['season'][number]))
+    .map(toLegacyCropDef)
+
 export const getOfficialCropDefs = (): readonly LegacyCropDef[] =>
   getOfficialRegistrySet().get<CropDef>(toOfficialRegistryTypeId('crop')).values().map(toLegacyCropDef)

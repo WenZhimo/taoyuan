@@ -1201,13 +1201,14 @@
           "persistentIds": false,
           "consumers": [
             "src/tests/domain/cropLookup.test.ts",
+            "src/tests/domain/cropRegistryPilot.test.ts",
             "src/views/game/ShopView.vue"
           ],
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getCropBySeedId() signature is retained; Phase 2 verifies it against the official crop registry seed lookup facade."
         },
         {
           "file": "src/data/crops.ts",
@@ -1218,13 +1219,14 @@
           "persistentIds": false,
           "consumers": [
             "src/stores/useShopStore.ts",
+            "src/tests/domain/cropRegistryPilot.test.ts",
             "src/views/game/FarmView.vue"
           ],
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getCropsBySeason() signature is retained; Phase 2 verifies season filtering against the official crop registry facade."
         }
       ]
     },

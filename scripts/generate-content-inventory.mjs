@@ -264,6 +264,14 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Legacy getCropById() signature is retained; contentAccess now resolves getOfficialCropById() through taoyuan:crop and returns the same local-ID CropDef shape.'
   },
+  'src/data/crops.ts:getCropBySeedId': {
+    status: 'verified',
+    rationale: 'Legacy getCropBySeedId() signature is retained; Phase 2 verifies it against the official crop registry seed lookup facade.'
+  },
+  'src/data/crops.ts:getCropsBySeason': {
+    status: 'verified',
+    rationale: 'Legacy getCropsBySeason() signature is retained; Phase 2 verifies season filtering against the official crop registry facade.'
+  },
   'src/data/items.ts:ITEMS': {
     status: 'verified',
     rationale: 'Phase 2 pilot verifies ITEMS through the official item registry adapter, including local ID preservation and minimal cooking tags, while the legacy static export remains available.'
