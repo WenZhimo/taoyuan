@@ -10,22 +10,18 @@
   ],
   "properties": {
     "id": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
     "shopId": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
     "itemId": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
     "name": {
-      "$id": "taoyuan.schema.LocalizedTextRef",
       "additionalProperties": false,
       "type": "object",
       "required": [

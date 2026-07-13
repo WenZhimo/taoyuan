@@ -999,7 +999,8 @@
           "targetRegistry": "engine/domain/facilities",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFarmStore.ts"
+            "src/stores/useFarmStore.ts",
+            "src/tests/stores/legacySaveBaseline.test.ts"
           ],
           "migrationPhase": [
             6

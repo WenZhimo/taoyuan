@@ -5,13 +5,16 @@ import { requirePackageId, toOfficialContentId, toOfficialRegistryTypeId } from 
 import {
   Registry,
   RegistryError,
+  RegistrySet,
   createSerializableRegistrySnapshot,
-  registerEntriesInChunks
+  registerEntriesInChunks,
+  restoreRegistrySetFromSnapshot,
+  type RegistryEntry
 } from '@/domain/mods/registry'
 import { compileSchema, validateUnknown } from '@/domain/mods/schemaValidation'
 import { ItemDefSchema, PUBLIC_JSON_SCHEMAS, PackageManifestSchema, type ItemDef } from '@/domain/mods/schemas'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
-import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
+import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import hashGoldenVectors from '../fixtures/mods/hash-golden-vectors.json'
 import invalidItems from '../fixtures/mods/minimal-invalid-package/data/items.json'
 import invalidManifest from '../fixtures/mods/minimal-invalid-package/manifest.json'
@@ -124,6 +127,75 @@ describe('mod registry contracts', () => {
     expect(bulkRegistry.has(toOfficialContentId('bulk/2499'))).toBe(true)
   })
 
+  it('allows the same content ID in different registries but rejects duplicate full IDs', () => {
+    const owner = requirePackageId('test_mod')
+    const registrySet = new RegistrySet()
+    const sharedId = toOfficialContentId('shared_entry')
+    const itemRegistry = registrySet.defineRegistry<RegistryEntry>({
+      registryId: toOfficialRegistryTypeId('item'),
+      description: 'items',
+      schemaName: 'item.schema.json'
+    })
+    const recipeRegistry = registrySet.defineRegistry<RegistryEntry>({
+      registryId: toOfficialRegistryTypeId('recipe'),
+      description: 'recipes',
+      schemaName: 'recipe.schema.json'
+    })
+
+    expect(() =>
+      registrySet.defineRegistry({
+        registryId: toOfficialRegistryTypeId('item'),
+        description: 'duplicate item registry',
+        schemaName: 'item.schema.json'
+      })
+    ).toThrow(RegistryError)
+
+    registrySet.freezeDefinitions()
+    itemRegistry.register(owner, { id: sharedId })
+    recipeRegistry.register(owner, { id: sharedId })
+
+    expect(itemRegistry.has(sharedId)).toBe(true)
+    expect(recipeRegistry.has(sharedId)).toBe(true)
+    expect(() => itemRegistry.register(owner, { id: sharedId })).toThrow(RegistryError)
+    expect(() =>
+      registrySet.defineRegistry({
+        registryId: toOfficialRegistryTypeId('monster'),
+        description: 'too late',
+        schemaName: 'monster.schema.json'
+      })
+    ).toThrow(RegistryError)
+  })
+
+  it('registers and queries 100000 definitions in responsive chunks', async() => {
+    const owner = requirePackageId('stress_mod')
+    const registry = new Registry<RegistryEntry>({
+      registryId: toOfficialRegistryTypeId('stress_entry'),
+      description: 'large registry stress test',
+      schemaName: 'stress-entry.schema.json'
+    })
+    const total = 100_000
+    const entries = Array.from({ length: total }, (_, index) => ({ id: toOfficialContentId(`stress/${index}`) }))
+    const progress: number[] = []
+    let yieldCount = 0
+
+    await registerEntriesInChunks(registry, owner, entries, {
+      chunkSize: 1000,
+      onProgress: processed => progress.push(processed),
+      yieldToMain: async() => {
+        yieldCount += 1
+        await Promise.resolve()
+      }
+    })
+
+    expect(progress[0]).toBe(1000)
+    expect(progress[progress.length - 1]).toBe(total)
+    expect(yieldCount).toBe(100)
+    expect(registry.has(toOfficialContentId('stress/0'))).toBe(true)
+    expect(registry.has(toOfficialContentId('stress/49999'))).toBe(true)
+    expect(registry.has(toOfficialContentId('stress/99999'))).toBe(true)
+    expect(registry.get(toOfficialContentId('stress/missing'))).toBeUndefined()
+  })
+
   it('keeps the official static registry snapshot semantically valid and stable', () => {
     const registrySet = buildOfficialRegistrySetFromStaticData()
     const diagnostics = validateRegistrySemantics(registrySet)
@@ -131,5 +203,28 @@ describe('mod registry contracts', () => {
 
     const snapshot = createSerializableRegistrySnapshot(registrySet)
     expect(snapshot.snapshotHash).toBe(officialContentSnapshot.snapshotHash)
+  })
+
+  it('restores serializable registry snapshots without changing query results or hash', () => {
+    const registrySet = buildOfficialRegistrySetFromStaticData()
+    const snapshot = createSerializableRegistrySnapshot(registrySet)
+    const restored = restoreRegistrySetFromSnapshot(OFFICIAL_REGISTRY_DEFINITIONS, snapshot)
+    const restoredSnapshot = createSerializableRegistrySnapshot(restored)
+
+    expect(restoredSnapshot.snapshotHash).toBe(snapshot.snapshotHash)
+    expect(restored.get<ItemDef>(toOfficialRegistryTypeId('item')).require(toOfficialContentId('cabbage')).sellPrice)
+      .toBe(registrySet.get<ItemDef>(toOfficialRegistryTypeId('item')).require(toOfficialContentId('cabbage')).sellPrice)
+    expect(JSON.stringify(snapshot)).not.toMatch(/[A-Za-z]:\\/)
+    expect(JSON.stringify(snapshot)).not.toContain('function')
+
+    const tampered = {
+      ...snapshot,
+      registries: snapshot.registries.map(registry =>
+        registry.registryId === toOfficialRegistryTypeId('tag')
+          ? { ...registry, entries: registry.entries.slice(1) }
+          : registry
+      )
+    }
+    expect(() => restoreRegistrySetFromSnapshot(OFFICIAL_REGISTRY_DEFINITIONS, tampered)).toThrow(/hash mismatch/)
   })
 })

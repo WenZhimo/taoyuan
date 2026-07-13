@@ -8,7 +8,6 @@
   ],
   "properties": {
     "id": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
@@ -23,7 +22,6 @@
         ],
         "properties": {
           "itemId": {
-            "$id": "taoyuan.schema.ContentId",
             "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
             "type": "string"
           },

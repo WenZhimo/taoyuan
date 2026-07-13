@@ -2,6 +2,7 @@ import Ajv, { type ErrorObject, type ValidateFunction } from 'ajv'
 import type { Static, TSchema } from '@sinclair/typebox'
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import type { PackageId } from './ids'
+import { cloneSchemaWithoutNestedIds } from './publicSchemas'
 
 export interface SchemaValidationContext {
   stage: string
@@ -20,18 +21,6 @@ export const createModAjv = (): Ajv =>
     allowUnionTypes: true
   })
 
-const stripNestedSchemaIds = <Schema extends TSchema>(schema: Schema): Schema => {
-  const cloned = JSON.parse(JSON.stringify(schema)) as Record<string, unknown>
-  const visit = (node: unknown, isRoot: boolean): void => {
-    if (!node || typeof node !== 'object') return
-    const record = node as Record<string, unknown>
-    if (!isRoot) delete record.$id
-    for (const value of Object.values(record)) visit(value, false)
-  }
-  visit(cloned, true)
-  return cloned as unknown as Schema
-}
-
 const toFieldPath = (error: ErrorObject): string => {
   const path = error.instancePath || '/'
   if (error.keyword === 'required' && typeof error.params?.missingProperty === 'string') {
@@ -49,7 +38,7 @@ export const compileSchema = <Schema extends TSchema>(
 ): SchemaValidationResult<ValidateFunction<Static<Schema>>> => {
   try {
     const ajv = createModAjv()
-    return { ok: true, data: ajv.compile<Static<Schema>>(stripNestedSchemaIds(schema)) }
+    return { ok: true, data: ajv.compile<Static<Schema>>(cloneSchemaWithoutNestedIds(schema)) }
   } catch (error) {
     return {
       ok: false,

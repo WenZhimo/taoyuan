@@ -17,12 +17,10 @@
   ],
   "properties": {
     "id": {
-      "$id": "taoyuan.schema.PackageId",
       "pattern": "^[a-z0-9_.-]+$",
       "type": "string"
     },
     "name": {
-      "$id": "taoyuan.schema.LocalizedTextRef",
       "additionalProperties": false,
       "type": "object",
       "required": [
@@ -73,7 +71,6 @@
       "minItems": 1,
       "type": "array",
       "items": {
-        "$id": "taoyuan.schema.AuthorMetadata",
         "additionalProperties": false,
         "type": "object",
         "required": [
@@ -98,7 +95,6 @@
     "contributors": {
       "type": "array",
       "items": {
-        "$id": "taoyuan.schema.AuthorMetadata",
         "additionalProperties": false,
         "type": "object",
         "required": [
@@ -147,7 +143,6 @@
         ],
         "properties": {
           "id": {
-            "$id": "taoyuan.schema.PackageId",
             "pattern": "^[a-z0-9_.-]+$",
             "type": "string"
           },

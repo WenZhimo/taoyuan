@@ -6,7 +6,7 @@ import * as esbuild from 'esbuild'
 const root = process.cwd()
 const outputDir = path.join(root, 'docs-source', '模组系统实施计划', 'generated-schemas')
 const tempDir = path.join(root, 'node_modules', '.cache', 'taoyuan-mod-schemas')
-const bundlePath = path.join(tempDir, 'generate.mjs')
+const bundlePath = path.join(tempDir, 'validate.mjs')
 const aliasPlugin = {
   name: 'taoyuan-alias',
   setup(build) {
@@ -22,7 +22,6 @@ const aliasPlugin = {
   }
 }
 
-fs.mkdirSync(outputDir, { recursive: true })
 fs.mkdirSync(tempDir, { recursive: true })
 
 await esbuild.build({
@@ -34,10 +33,20 @@ await esbuild.build({
       import { createPublicJsonSchema } from '${path.join(root, 'src/domain/mods/publicSchemas.ts').replaceAll('\\', '/')}'
 
       const outputDir = ${JSON.stringify(outputDir.replaceAll('\\', '/'))}
-      fs.mkdirSync(outputDir, { recursive: true })
+      const failures = []
       for (const [fileName, schema] of Object.entries(PUBLIC_JSON_SCHEMAS)) {
-        const output = createPublicJsonSchema(schema)
-        fs.writeFileSync(path.join(outputDir, fileName), JSON.stringify(output, null, 2) + '\\n', 'utf8')
+        const expected = JSON.stringify(createPublicJsonSchema(schema), null, 2) + '\\n'
+        const filePath = path.join(outputDir, fileName)
+        const actual = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : null
+        if (actual !== expected) failures.push(fileName)
+      }
+      const knownFiles = new Set(Object.keys(PUBLIC_JSON_SCHEMAS))
+      const extraFiles = fs.existsSync(outputDir)
+        ? fs.readdirSync(outputDir).filter(file => file.endsWith('.schema.json') && !knownFiles.has(file))
+        : []
+      if (extraFiles.length > 0) failures.push(...extraFiles.map(file => 'extra:' + file))
+      if (failures.length > 0) {
+        throw new Error('Generated schemas are stale: ' + failures.join(', '))
       }
     `,
     resolveDir: root,
@@ -53,4 +62,4 @@ await esbuild.build({
 })
 
 await import(`${pathToFileURL(bundlePath).href}?t=${Date.now()}`)
-console.log(`Generated JSON schemas in ${path.relative(root, outputDir).replaceAll('\\', '/')}`)
+console.log(`Validated JSON schemas in ${path.relative(root, outputDir).replaceAll('\\', '/')}`)

@@ -13,12 +13,10 @@
   ],
   "properties": {
     "id": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
     "name": {
-      "$id": "taoyuan.schema.LocalizedTextRef",
       "additionalProperties": false,
       "type": "object",
       "required": [
@@ -53,12 +51,10 @@
       "type": "integer"
     },
     "dropTableId": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
     "description": {
-      "$id": "taoyuan.schema.LocalizedTextRef",
       "additionalProperties": false,
       "type": "object",
       "required": [

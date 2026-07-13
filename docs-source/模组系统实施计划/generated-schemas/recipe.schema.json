@@ -12,12 +12,10 @@
   ],
   "properties": {
     "id": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
     "name": {
-      "$id": "taoyuan.schema.LocalizedTextRef",
       "additionalProperties": false,
       "type": "object",
       "required": [
@@ -53,7 +51,6 @@
                 "type": "string"
               },
               "itemId": {
-                "$id": "taoyuan.schema.ContentId",
                 "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
                 "type": "string"
               },
@@ -77,7 +74,6 @@
                 "type": "string"
               },
               "tagId": {
-                "$id": "taoyuan.schema.ContentId",
                 "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
                 "type": "string"
               },
@@ -105,7 +101,6 @@
                 "uniqueItems": true,
                 "type": "array",
                 "items": {
-                  "$id": "taoyuan.schema.ContentId",
                   "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
                   "type": "string"
                 }
@@ -120,7 +115,6 @@
       }
     },
     "outputItemId": {
-      "$id": "taoyuan.schema.ContentId",
       "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
       "type": "string"
     },
@@ -129,7 +123,6 @@
       "type": "integer"
     },
     "description": {
-      "$id": "taoyuan.schema.LocalizedTextRef",
       "additionalProperties": false,
       "type": "object",
       "required": [
