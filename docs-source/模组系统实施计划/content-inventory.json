@@ -1152,8 +1152,8 @@
             2
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 2 pilot audited CROPS through the cabbage crop/item query link; crop data remains on the legacy static path until a Crop registry schema is introduced."
         },
         {
           "file": "src/data/crops.ts",
@@ -1185,8 +1185,8 @@
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getCropById() signature is retained; contentAccess exposes getOfficialCropById() as a rollback-safe bridge for the crop side of the pilot."
         },
         {
           "file": "src/data/crops.ts",
@@ -3994,8 +3994,8 @@
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Phase 2 pilot verifies ITEMS through the official item registry adapter, including local ID preservation and minimal cooking tags, while the legacy static export remains available."
         },
         {
           "file": "src/data/items.ts",
@@ -4046,8 +4046,8 @@
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getItemById() signature is retained; the new contentAccess item lookup provides the registry read path used by cooking ingredient planning tests."
         },
         {
           "file": "src/data/items.ts",
@@ -5597,8 +5597,8 @@
             2
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 2 pilot verifies RECIPES through the official recipe registry adapter, including legacy itemId + quantity normalization to type:item."
         },
         {
           "file": "src/data/recipes.ts",
@@ -5614,8 +5614,8 @@
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getRecipeById() signature is retained for display/effects; cooking now reads normalized registry ingredients through contentAccess."
         }
       ]
     },
