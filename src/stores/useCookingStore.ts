@@ -14,14 +14,20 @@ import { getLowestCombinedQuality, removeCombinedItem } from '@/composables/useC
 import { getOfficialItemDefs, getOfficialRecipeDef } from '@/domain/mods/contentAccess'
 import {
   createIngredientAllocationPlan,
+  getIngredientCandidates,
   getMaxIngredientCraftQuantity,
   type CookingIngredient,
-  type IngredientInventoryStack
+  type IngredientAllocationResult,
+  type IngredientCandidate,
+  type IngredientInventoryStack,
+  type IngredientSelectionMap
 } from '@/domain/cooking/ingredientPlanner'
 
 const QUALITY_ORDER: Quality[] = ['normal', 'fine', 'excellent', 'supreme']
 const QUALITY_MULTIPLIER: Record<Quality, number> = { normal: 1, fine: 1.25, excellent: 1.5, supreme: 2 }
 const QUALITY_LABEL: Record<Quality, string> = { normal: '', fine: '优良', excellent: '精品', supreme: '极品' }
+
+export type CookingIngredientSelections = IngredientSelectionMap
 
 export const useCookingStore = defineStore('cooking', () => {
   const inventoryStore = useInventoryStore()
@@ -64,6 +70,11 @@ export const useCookingStore = defineStore('cooking', () => {
   const getCookingIngredients = (recipe: RecipeDef): readonly CookingIngredient[] =>
     getOfficialRecipeDef(recipe.id)?.ingredients ?? recipe.ingredients
 
+  const getRecipeCookingIngredients = (recipeId: string): readonly CookingIngredient[] => {
+    const recipe = getRecipeById(recipeId)
+    return recipe ? getCookingIngredients(recipe) : []
+  }
+
   const getCookingInventoryStacks = (): IngredientInventoryStack[] => {
     const stacks: IngredientInventoryStack[] = inventoryStore.items.map(item => ({
       itemId: item.itemId,
@@ -80,26 +91,57 @@ export const useCookingStore = defineStore('cooking', () => {
     return stacks
   }
 
-  const createCookingPlan = (recipe: RecipeDef, quantity: number) =>
+  const createCookingPlan = (
+    recipe: RecipeDef,
+    quantity: number,
+    selectedItemIds?: CookingIngredientSelections
+  ): IngredientAllocationResult =>
     createIngredientAllocationPlan({
       ingredients: getCookingIngredients(recipe),
       quantity,
       inventory: getCookingInventoryStacks(),
-      items: getOfficialItemDefs()
+      items: getOfficialItemDefs(),
+      selectedItemIds
     })
 
+  const getRecipeIngredientPlan = (
+    recipeId: string,
+    quantity: number = 1,
+    selectedItemIds?: CookingIngredientSelections
+  ): IngredientAllocationResult | null => {
+    const recipe = getRecipeById(recipeId)
+    return recipe ? createCookingPlan(recipe, quantity, selectedItemIds) : null
+  }
+
+  const getRecipeIngredientCandidates = (
+    recipeId: string,
+    ingredientIndex: number,
+    selectedItemIds?: CookingIngredientSelections
+  ): IngredientCandidate[] => {
+    const recipe = getRecipeById(recipeId)
+    if (!recipe) return []
+    const ingredient = getCookingIngredients(recipe)[ingredientIndex]
+    if (!ingredient) return []
+    return getIngredientCandidates({
+      ingredient,
+      inventory: getCookingInventoryStacks(),
+      items: getOfficialItemDefs(),
+      selectedItemId: selectedItemIds?.[ingredientIndex]
+    })
+  }
+
   /** 检查是否有足够材料 */
-  const canCook = (recipeId: string): boolean => {
+  const canCook = (recipeId: string, selectedItemIds?: CookingIngredientSelections): boolean => {
     const recipe = getRecipeById(recipeId)
     if (!recipe) return false
     if (!unlockedRecipes.value.includes(recipeId)) return false
     // 检查技能等级门槛
     if (!hasSkillForRecipe(recipe)) return false
-    return createCookingPlan(recipe, 1).success
+    return createCookingPlan(recipe, 1, selectedItemIds).success
   }
 
   /** 计算最多能烹饪几份 */
-  const maxCookable = (recipeId: string): number => {
+  const maxCookable = (recipeId: string, selectedItemIds?: CookingIngredientSelections): number => {
     const recipe = getRecipeById(recipeId)
     if (!recipe) return 0
     if (!unlockedRecipes.value.includes(recipeId)) return 0
@@ -107,15 +149,16 @@ export const useCookingStore = defineStore('cooking', () => {
     return getMaxIngredientCraftQuantity({
       ingredients: getCookingIngredients(recipe),
       inventory: getCookingInventoryStacks(),
-      items: getOfficialItemDefs()
+      items: getOfficialItemDefs(),
+      selectedItemIds
     })
   }
 
   /** 预览烹饪品质（取所有材料最低品质） */
-  const previewCookQuality = (recipeId: string): Quality => {
+  const previewCookQuality = (recipeId: string, selectedItemIds?: CookingIngredientSelections): Quality => {
     const recipe = getRecipeById(recipeId)
     if (!recipe) return 'normal'
-    const plan = createCookingPlan(recipe, 1)
+    const plan = createCookingPlan(recipe, 1, selectedItemIds)
     if (plan.success) return plan.resultQuality
 
     let minIdx = QUALITY_ORDER.length - 1
@@ -127,7 +170,11 @@ export const useCookingStore = defineStore('cooking', () => {
   }
 
   /** 烹饪 */
-  const cook = (recipeId: string, quantity: number = 1): { success: boolean; message: string } => {
+  const cook = (
+    recipeId: string,
+    quantity: number = 1,
+    selectedItemIds?: CookingIngredientSelections
+  ): { success: boolean; message: string } => {
     const recipe = getRecipeById(recipeId)
     if (!recipe) return { success: false, message: '食谱不存在。' }
     if (!unlockedRecipes.value.includes(recipeId)) return { success: false, message: '尚未解锁此食谱。' }
@@ -137,11 +184,12 @@ export const useCookingStore = defineStore('cooking', () => {
       ingredients: getCookingIngredients(recipe),
       inventory: getCookingInventoryStacks(),
       items: getOfficialItemDefs(),
+      selectedItemIds,
       upperLimit: quantity
     })
     if (maxPossible <= 0) return { success: false, message: '材料不足。' }
 
-    const plan = createCookingPlan(recipe, maxPossible)
+    const plan = createCookingPlan(recipe, maxPossible, selectedItemIds)
     if (!plan.success) return { success: false, message: '材料不足。' }
     const resultQuality = plan.resultQuality
 
@@ -235,6 +283,9 @@ export const useCookingStore = defineStore('cooking', () => {
     unlockedRecipes,
     activeBuff,
     recipes,
+    getRecipeCookingIngredients,
+    getRecipeIngredientPlan,
+    getRecipeIngredientCandidates,
     canCook,
     maxCookable,
     previewCookQuality,

@@ -109,9 +109,23 @@
           <!-- 材料 -->
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <p class="text-xs text-muted mb-1">所需材料</p>
-            <div v-for="ing in modalInfo.ingredients" :key="ing.itemId" class="flex items-center justify-between">
-              <span class="text-xs text-muted">{{ ing.name }}</span>
-              <span class="text-xs" :class="ing.enough ? '' : 'text-danger'">{{ ing.available }}/{{ ing.quantity }}</span>
+            <div v-for="ing in modalInfo.ingredients" :key="ing.key" class="py-1 border-b border-accent/5 last:border-b-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-xs text-muted">{{ ing.name }}</span>
+                <span class="text-xs shrink-0" :class="ing.enough ? '' : 'text-danger'">{{ ing.available }}/{{ ing.required }}</span>
+              </div>
+              <p v-if="ing.allocationText" class="text-[10px] text-muted/70 mt-0.5">将消耗：{{ ing.allocationText }}</p>
+              <select
+                v-if="ing.selectable"
+                class="mt-1 w-full h-7 bg-bg border border-accent/20 rounded-xs px-2 text-[10px] text-text outline-none focus:border-accent"
+                :value="ing.selectedItemId"
+                @change="onIngredientSelectionChange(ing.index, $event)"
+              >
+                <option value="">自动选择</option>
+                <option v-for="candidate in ing.candidates" :key="candidate.itemId" :value="candidate.itemId">
+                  {{ candidate.label }}
+                </option>
+              </select>
             </div>
           </div>
 
@@ -166,10 +180,10 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue'
+  import { ref, computed, watch } from 'vue'
   import { UtensilsCrossed, Zap, X, Minus, Plus, Sparkles } from 'lucide-vue-next'
   import { useAchievementStore } from '@/stores/useAchievementStore'
-  import { useCookingStore } from '@/stores/useCookingStore'
+  import { useCookingStore, type CookingIngredientSelections } from '@/stores/useCookingStore'
   import { useGameStore } from '@/stores/useGameStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
@@ -182,7 +196,10 @@
   import { handleEndDay } from '@/composables/useEndDay'
   import { useQuantityPicker } from '@/composables/game/useQuantityPicker'
   import { QUALITY_NAMES } from '@/composables/useFarmActions'
-  import type { Quality } from '@/types'
+  import { getOfficialItemDef, getOfficialTagDef } from '@/domain/mods/contentAccess'
+  import type { CookingIngredient, IngredientAllocation, IngredientAllocationPlan, IngredientCandidate } from '@/domain/cooking/ingredientPlanner'
+  import type { RecipeIngredient } from '@/domain/mods/schemas'
+  import type { Quality, RecipeDef } from '@/types'
   import Button from '@/components/game/Button.vue'
 
   const cookingStore = useCookingStore()
@@ -201,8 +218,46 @@
 
   const showOnlyMakeable = ref(false)
   const modalRecipeId = ref<string | null>(null)
+  const manualIngredientSelections = ref<Record<number, string>>({})
   const cabbageCount = computed(() => getCombinedItemCount(FUMO_SOURCE_ITEM_ID))
   const canExchangeFumo = computed(() => cabbageCount.value >= FUMO_EXCHANGE_QUANTITY)
+
+  const toLocalItemId = (id: string): string => id.slice(id.indexOf(':') + 1)
+  const toMaybeLocalItemId = (id: string): string => id.includes(':') ? toLocalItemId(id) : id
+  const isRegistryIngredient = (ingredient: CookingIngredient): ingredient is RecipeIngredient => 'type' in ingredient
+
+  const getIngredientQuantity = (ingredient: CookingIngredient): number => ingredient.quantity
+
+  const getFixedIngredientItemId = (ingredient: CookingIngredient): string | null => {
+    if (!isRegistryIngredient(ingredient)) return toMaybeLocalItemId(ingredient.itemId)
+    return ingredient.type === 'item' ? toMaybeLocalItemId(ingredient.itemId) : null
+  }
+
+  const getItemName = (itemId: string): string => {
+    const localId = toMaybeLocalItemId(itemId)
+    return getItemById(localId)?.name ?? getOfficialItemDef(localId)?.name.fallback ?? localId
+  }
+
+  const getTagName = (tagId: string): string =>
+    getOfficialTagDef(tagId)?.name.fallback ?? toMaybeLocalItemId(tagId)
+
+  const getIngredientName = (ingredient: CookingIngredient): string => {
+    if (!isRegistryIngredient(ingredient)) return getItemName(ingredient.itemId)
+    if (ingredient.type === 'item') return getItemName(ingredient.itemId)
+    if (ingredient.type === 'tag') return `${getTagName(ingredient.tagId)}材料`
+    return `${ingredient.tagIds.map(getTagName).join('或')}材料`
+  }
+
+  const formatAllocationText = (allocations: readonly IngredientAllocation[]): string =>
+    allocations.map(allocation => {
+      const qualityLabel = allocation.quality === 'normal' ? '' : `（${QUALITY_NAMES[allocation.quality]}）`
+      return `${getItemName(allocation.itemId)}${qualityLabel}×${allocation.quantity}`
+    }).join('、')
+
+  const formatCandidateLabel = (candidate: IngredientCandidate): string => {
+    const qualityText = candidate.qualities.map(entry => `${QUALITY_NAMES[entry.quality]}×${entry.quantity}`).join(' ')
+    return `${getItemName(candidate.itemId)} · ${candidate.available}${qualityText ? ` · ${qualityText}` : ''}`
+  }
 
   /** 预计算食谱信息（不含数量，避免改数量触发全量重算） */
   const recipeInfos = computed(() => {
@@ -210,18 +265,7 @@
       const canCook = cookingStore.canCook(recipe.id)
       const maxQty = cookingStore.maxCookable(recipe.id)
       const quality = cookingStore.previewCookQuality(recipe.id)
-      const ingredients = recipe.ingredients.map(ing => {
-        const item = getItemById(ing.itemId)
-        const available = getCombinedItemCount(ing.itemId)
-        return {
-          itemId: ing.itemId,
-          name: item?.name ?? ing.itemId,
-          quantity: ing.quantity,
-          available,
-          enough: available >= ing.quantity
-        }
-      })
-      return { recipe, canCook, maxQty, quality, ingredients }
+      return { recipe, canCook, maxQty, quality }
     })
   })
 
@@ -230,31 +274,101 @@
     return recipeInfos.value.filter(info => info.canCook)
   })
 
-  /** 当前弹窗对应的食谱信息（响应式，材料变化时自动更新） */
-  const modalInfo = computed(() => {
+  const modalRecipe = computed<RecipeDef | null>(() => {
     if (!modalRecipeId.value) return null
-    return recipeInfos.value.find(i => i.recipe.id === modalRecipeId.value) ?? null
+    return recipeInfos.value.find(i => i.recipe.id === modalRecipeId.value)?.recipe ?? null
   })
 
+  const modalSelections = computed<CookingIngredientSelections>(() => ({ ...manualIngredientSelections.value }))
+  const modalMaxQty = computed(() => modalRecipe.value ? cookingStore.maxCookable(modalRecipe.value.id, modalSelections.value) : 1)
+
   const modalQuantityPicker = useQuantityPicker({
-    maxQuantity: () => modalInfo.value?.maxQty ?? 1
+    maxQuantity: modalMaxQty
   })
   const modalQty = modalQuantityPicker.quantity
   const setModalQty = modalQuantityPicker.setQuantity
   const addModalQty = modalQuantityPicker.addQuantity
+  const modalPlan = computed(() =>
+    modalRecipe.value
+      ? cookingStore.getRecipeIngredientPlan(modalRecipe.value.id, modalQty.value, modalSelections.value)
+      : null
+  )
+
+  const createModalIngredientInfos = (
+    recipe: RecipeDef,
+    quantity: number,
+    plan: IngredientAllocationPlan | null
+  ) => cookingStore.getRecipeCookingIngredients(recipe.id).map((ingredient, index) => {
+    const required = getIngredientQuantity(ingredient) * quantity
+    const fixedItemId = getFixedIngredientItemId(ingredient)
+    const candidates = fixedItemId ? [] : cookingStore.getRecipeIngredientCandidates(recipe.id, index)
+    const selectedItemId = manualIngredientSelections.value[index] ?? ''
+    const selectedCandidate = selectedItemId ? candidates.find(candidate => candidate.itemId === selectedItemId) : null
+    const available = fixedItemId
+      ? getCombinedItemCount(fixedItemId)
+      : selectedCandidate
+        ? selectedCandidate.available
+        : candidates.reduce((sum, candidate) => sum + candidate.available, 0)
+    const allocations = plan?.slots[index]?.allocations ?? []
+    return {
+      key: `${index}:${fixedItemId ?? getIngredientName(ingredient)}`,
+      index,
+      name: getIngredientName(ingredient),
+      required,
+      available,
+      enough: available >= required,
+      selectable: !fixedItemId,
+      selectedItemId,
+      candidates: candidates.map(candidate => ({
+        itemId: candidate.itemId,
+        label: formatCandidateLabel(candidate)
+      })),
+      allocationText: allocations.length > 0 ? formatAllocationText(allocations) : ''
+    }
+  })
+
+  /** 当前弹窗对应的食谱信息（响应式，材料、数量和手动选择变化时自动更新） */
+  const modalInfo = computed(() => {
+    const recipe = modalRecipe.value
+    if (!recipe) return null
+    const plan = modalPlan.value
+    const successfulPlan = plan?.success ? plan : null
+    return {
+      recipe,
+      canCook: Boolean(successfulPlan),
+      maxQty: modalMaxQty.value,
+      quality: successfulPlan?.resultQuality ?? cookingStore.previewCookQuality(recipe.id, modalSelections.value),
+      ingredients: createModalIngredientInfos(recipe, modalQty.value, successfulPlan)
+    }
+  })
 
   const openModal = (recipeId: string) => {
     modalRecipeId.value = recipeId
+    manualIngredientSelections.value = {}
     modalQuantityPicker.resetQuantity(1)
   }
 
   const closeModal = () => {
     modalRecipeId.value = null
+    manualIngredientSelections.value = {}
   }
 
   const onModalQtyInput = (event: Event) => {
     modalQuantityPicker.setQuantityFromInput((event.target as HTMLInputElement).value)
   }
+
+  const onIngredientSelectionChange = (index: number, event: Event) => {
+    const value = (event.target as HTMLSelectElement).value
+    const next = { ...manualIngredientSelections.value }
+    if (value) next[index] = value
+    else delete next[index]
+    manualIngredientSelections.value = next
+    setModalQty(modalQty.value)
+  }
+
+  watch(modalMaxQty, () => {
+    setModalQty(modalQty.value)
+  })
 
   const qualityTextClass = (quality: Quality): string => {
     if (quality === 'fine') return 'text-quality-fine'
@@ -279,7 +393,7 @@
       return
     }
     const qty = Math.min(modalQty.value, modalInfo.value.maxQty)
-    const result = cookingStore.cook(modalInfo.value.recipe.id, qty)
+    const result = cookingStore.cook(modalInfo.value.recipe.id, qty, modalSelections.value)
     sfxClick()
     addLog(result.message)
     const tr = gameStore.advanceTime(ACTION_TIME_COSTS.cook * qty)

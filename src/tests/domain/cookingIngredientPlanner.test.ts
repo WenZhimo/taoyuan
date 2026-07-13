@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   createIngredientAllocationPlan,
+  getIngredientCandidates,
   getMaxIngredientCraftQuantity,
   normalizeCookingIngredient,
   type IngredientInventoryStack
 } from '@/domain/cooking/ingredientPlanner'
 import { getOfficialCropById, getOfficialItemDef, getOfficialItemDefs, getOfficialRecipeDef } from '@/domain/mods/contentAccess'
 import { toOfficialContentId } from '@/domain/mods/ids'
+import { getRecipeById } from '@/data/recipes'
 import type { ItemDef } from '@/domain/mods/schemas'
 
 const item = (id: string, tags: string[] = [], sellPrice = 1, category: ItemDef['category'] = 'material'): ItemDef => ({
@@ -87,6 +89,44 @@ describe('cooking ingredient planner', () => {
     if (!plan.success) return
     expect(plan.resultQuality).toBe('normal')
     expect(plan.slots[1]?.allocations).toEqual([{ itemId: 'carp', quality: 'normal', quantity: 2 }])
+
+    const selectedPlan = createIngredientAllocationPlan({
+      ingredients,
+      quantity: 1,
+      inventory,
+      items: [
+        item('wheat_flour', [], 5),
+        item('cabbage', ['vegetarian'], 10, 'crop'),
+        item('carp', ['meat'], 20, 'fish')
+      ],
+      selectedItemIds: { 1: 'cabbage' }
+    })
+
+    expect(selectedPlan.success).toBe(true)
+    if (!selectedPlan.success) return
+    expect(selectedPlan.resultQuality).toBe('fine')
+    expect(selectedPlan.slots[1]?.allocations).toEqual([{ itemId: 'cabbage', quality: 'supreme', quantity: 1 }])
+  })
+
+  it('returns stable ingredient candidates for tag slots and respects manual selection in max quantity', () => {
+    const ingredients = [
+      { type: 'anyOfTags' as const, tagIds: [toOfficialContentId('vegetarian'), toOfficialContentId('meat')], quantity: 1 }
+    ]
+    const inventory: IngredientInventoryStack[] = [
+      { itemId: 'cabbage', quantity: 1, quality: 'supreme' },
+      { itemId: 'carp', quantity: 2, quality: 'normal' }
+    ]
+    const items = [
+      item('cabbage', ['vegetarian'], 52, 'crop'),
+      item('carp', ['meat'], 37, 'fish')
+    ]
+
+    expect(getIngredientCandidates({ ingredient: ingredients[0]!, inventory, items }).map(candidate => candidate.itemId)).toEqual([
+      'carp',
+      'cabbage'
+    ])
+    expect(getMaxIngredientCraftQuantity({ ingredients, inventory, items })).toBe(3)
+    expect(getMaxIngredientCraftQuantity({ ingredients, inventory, items, selectedItemIds: { 0: 'cabbage' } })).toBe(1)
   })
 
   it('does not count the same inventory unit twice across overlapping tag slots', () => {
@@ -125,6 +165,20 @@ describe('cooking ingredient planner', () => {
     expect(cabbageCrop?.name).toBe('青菜')
     expect(recipe?.ingredients).toEqual([
       { type: 'item', itemId: toOfficialContentId('cabbage'), quantity: 2 }
+    ])
+  })
+
+  it('exposes the steamed bun registry pilot without changing the legacy static recipe', () => {
+    expect(getRecipeById('steamed_bun')?.ingredients).toEqual([
+      { itemId: 'wheat_flour', quantity: 1 }
+    ])
+    expect(getOfficialRecipeDef('steamed_bun')?.ingredients).toEqual([
+      { type: 'item', itemId: toOfficialContentId('wheat_flour'), quantity: 1 },
+      {
+        type: 'anyOfTags',
+        tagIds: [toOfficialContentId('vegetarian'), toOfficialContentId('meat')],
+        quantity: 1
+      }
     ])
   })
 })

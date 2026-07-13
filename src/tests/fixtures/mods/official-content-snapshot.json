@@ -40301,6 +40301,14 @@
                 "itemId": "taoyuan:wheat_flour",
                 "quantity": 1,
                 "type": "item"
+              },
+              {
+                "quantity": 1,
+                "tagIds": [
+                  "taoyuan:vegetarian",
+                  "taoyuan:meat"
+                ],
+                "type": "anyOfTags"
               }
             ],
             "name": {
@@ -42029,5 +42037,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:bc4a764f9a2929a70c2075f7165ba131eb1dff1efe1c053962d83aa52d993388"
+  "snapshotHash": "sha256:10e54f6ce794aa437d17d05a807882159ea488351fb7adeb902787b4fcd6690a"
 }

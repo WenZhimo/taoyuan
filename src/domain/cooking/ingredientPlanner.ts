@@ -26,6 +26,21 @@ export interface IngredientAllocationSlot {
   allocations: IngredientAllocation[]
 }
 
+export interface IngredientCandidateQuality {
+  quality: Quality
+  quantity: number
+}
+
+export interface IngredientCandidate {
+  itemId: string
+  available: number
+  lowestQuality: Quality
+  qualities: IngredientCandidateQuality[]
+  sellPrice: number
+}
+
+export type IngredientSelectionMap = Readonly<Record<number, string | undefined>>
+
 export interface IngredientAllocationPlan {
   success: true
   quantity: number
@@ -45,6 +60,14 @@ const QUALITY_ORDER: Quality[] = ['normal', 'fine', 'excellent', 'supreme']
 const QUALITY_RANK = new Map<Quality, number>(QUALITY_ORDER.map((quality, index) => [quality, index]))
 
 const toContentId = (id: string): ContentId => requireContentId(id.includes(':') ? id : toOfficialContentId(id))
+const tryContentId = (id: string | undefined): ContentId | null => {
+  if (!id) return null
+  try {
+    return toContentId(id)
+  } catch {
+    return null
+  }
+}
 
 export const normalizeCookingIngredient = (ingredient: CookingIngredient): RecipeIngredient => {
   if ('type' in ingredient) {
@@ -96,9 +119,17 @@ const matchesIngredient = (
 const getCandidateItemIds = (
   ingredient: RecipeIngredient,
   itemDefinitions: Map<string, Readonly<ItemDef>>,
-  availability: Map<string, Map<Quality, number>>
+  availability: Map<string, Map<Quality, number>>,
+  selectedItemId?: string
 ): string[] => {
   if (ingredient.type === 'item') return [ingredient.itemId]
+
+  const selectedContentId = tryContentId(selectedItemId)
+  if (selectedContentId) {
+    return availability.has(selectedContentId) && matchesIngredient(itemDefinitions.get(selectedContentId), ingredient)
+      ? [selectedContentId]
+      : []
+  }
 
   return Array.from(availability.keys())
     .filter(itemId => matchesIngredient(itemDefinitions.get(itemId), ingredient))
@@ -114,9 +145,10 @@ const consumeFromCandidates = (
   ingredient: RecipeIngredient,
   needed: number,
   itemDefinitions: Map<string, Readonly<ItemDef>>,
-  availability: Map<string, Map<Quality, number>>
+  availability: Map<string, Map<Quality, number>>,
+  selectedItemId?: string
 ): IngredientAllocation[] | null => {
-  const candidates = getCandidateItemIds(ingredient, itemDefinitions, availability)
+  const candidates = getCandidateItemIds(ingredient, itemDefinitions, availability, selectedItemId)
   const allocations: IngredientAllocation[] = []
   let remaining = needed
 
@@ -171,6 +203,7 @@ export const createIngredientAllocationPlan = (options: {
   quantity: number
   inventory: readonly IngredientInventoryStack[]
   items: readonly Readonly<ItemDef>[]
+  selectedItemIds?: IngredientSelectionMap
 }): IngredientAllocationResult => {
   const quantity = Math.floor(options.quantity)
   const ingredients = options.ingredients.map(normalizeCookingIngredient)
@@ -184,9 +217,15 @@ export const createIngredientAllocationPlan = (options: {
     return { success: false, missing: ingredients[0] ?? { type: 'item', itemId: toOfficialContentId('unknown'), quantity: 1 } }
   }
 
-  for (const ingredient of ingredients) {
+  for (const [slotIndex, ingredient] of ingredients.entries()) {
     const needed = ingredient.quantity * quantity
-    const allocations = consumeFromCandidates(ingredient, needed, itemDefinitions, availability)
+    const allocations = consumeFromCandidates(
+      ingredient,
+      needed,
+      itemDefinitions,
+      availability,
+      options.selectedItemIds?.[slotIndex]
+    )
     if (!allocations) return { success: false, missing: ingredient }
     for (const allocation of allocations) {
       removals.push(allocation)
@@ -209,6 +248,7 @@ export const getMaxIngredientCraftQuantity = (options: {
   ingredients: readonly CookingIngredient[]
   inventory: readonly IngredientInventoryStack[]
   items: readonly Readonly<ItemDef>[]
+  selectedItemIds?: IngredientSelectionMap
   upperLimit?: number
 }): number => {
   const ingredients = options.ingredients.map(normalizeCookingIngredient)
@@ -217,8 +257,13 @@ export const getMaxIngredientCraftQuantity = (options: {
   const availability = normalizeStacks(options.inventory)
   const itemDefinitions = buildItemDefinitions(options.items)
   let upper = options.upperLimit ?? Infinity
-  for (const ingredient of ingredients) {
-    const total = getCandidateItemIds(ingredient, itemDefinitions, availability).reduce((sum, itemId) => {
+  for (const [slotIndex, ingredient] of ingredients.entries()) {
+    const total = getCandidateItemIds(
+      ingredient,
+      itemDefinitions,
+      availability,
+      options.selectedItemIds?.[slotIndex]
+    ).reduce((sum, itemId) => {
       const byQuality = availability.get(itemId)
       return sum + (byQuality ? Array.from(byQuality.values()).reduce((inner, count) => inner + count, 0) : 0)
     }, 0)
@@ -234,10 +279,37 @@ export const getMaxIngredientCraftQuantity = (options: {
       ingredients,
       quantity: mid,
       inventory: options.inventory,
-      items: options.items
+      items: options.items,
+      selectedItemIds: options.selectedItemIds
     })
     if (plan.success) low = mid
     else high = mid - 1
   }
   return low
+}
+
+export const getIngredientCandidates = (options: {
+  ingredient: CookingIngredient
+  inventory: readonly IngredientInventoryStack[]
+  items: readonly Readonly<ItemDef>[]
+  selectedItemId?: string
+}): IngredientCandidate[] => {
+  const ingredient = normalizeCookingIngredient(options.ingredient)
+  const availability = normalizeStacks(options.inventory)
+  const itemDefinitions = buildItemDefinitions(options.items)
+  return getCandidateItemIds(ingredient, itemDefinitions, availability, options.selectedItemId).map(itemId => {
+    const byQuality = availability.get(itemId) ?? new Map<Quality, number>()
+    const qualities = QUALITY_ORDER.map(quality => ({
+      quality,
+      quantity: byQuality.get(quality) ?? 0
+    })).filter(entry => entry.quantity > 0)
+    const available = qualities.reduce((sum, entry) => sum + entry.quantity, 0)
+    return {
+      itemId: toLocalItemId(itemId),
+      available,
+      lowestQuality: qualities[0]?.quality ?? 'normal',
+      qualities,
+      sellPrice: itemDefinitions.get(itemId)?.sellPrice ?? 0
+    }
+  })
 }

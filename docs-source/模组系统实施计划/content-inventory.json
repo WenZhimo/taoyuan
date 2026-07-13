@@ -1170,6 +1170,7 @@
             "src/composables/useEndDay.ts",
             "src/composables/useFarmActions.ts",
             "src/data/breeding.ts",
+            "src/domain/mods/contentAccess.ts",
             "src/stores/useBreedingStore.ts",
             "src/stores/useFarmStore.ts",
             "src/tests/composables/useFarmBatchPlantQuality.test.ts",
@@ -4047,7 +4048,7 @@
             2
           ],
           "status": "verified",
-          "rationale": "Legacy getItemById() signature is retained; the new contentAccess item lookup provides the registry read path used by cooking ingredient planning tests."
+          "rationale": "Legacy getItemById() signature is retained; CookingView still uses it for display fallback while tag-material candidates are read from the official item registry adapter."
         },
         {
           "file": "src/data/items.ts",
@@ -5598,7 +5599,7 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
-          "rationale": "Phase 2 pilot verifies RECIPES through the official recipe registry adapter, including legacy itemId + quantity normalization to type:item."
+          "rationale": "Phase 2 pilot verifies RECIPES through the official recipe registry adapter, including legacy itemId + quantity normalization and the registry-only steamed_bun anyOfTags material slice."
         },
         {
           "file": "src/data/recipes.ts",
@@ -5609,13 +5610,14 @@
           "persistentIds": false,
           "consumers": [
             "src/stores/useCookingStore.ts",
+            "src/tests/domain/cookingIngredientPlanner.test.ts",
             "src/views/game/InventoryView.vue"
           ],
           "migrationPhase": [
             2
           ],
           "status": "verified",
-          "rationale": "Legacy getRecipeById() signature is retained for display/effects; cooking now reads normalized registry ingredients through contentAccess."
+          "rationale": "Legacy getRecipeById() signature is retained for display/effects and static compatibility tests; cooking now reads normalized registry ingredients through contentAccess."
         }
       ]
     },

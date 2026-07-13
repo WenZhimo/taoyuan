@@ -255,6 +255,33 @@ const getRationale = (classification, syntaxKind) => {
   return 'Barrel re-export; no content registry ownership.'
 }
 
+const symbolReviewOverrides = new Map(Object.entries({
+  'src/data/crops.ts:CROPS': {
+    status: 'verified',
+    rationale: 'Phase 2 pilot audited CROPS through the cabbage crop/item query link; crop data remains on the legacy static path until a Crop registry schema is introduced.'
+  },
+  'src/data/crops.ts:getCropById': {
+    status: 'verified',
+    rationale: 'Legacy getCropById() signature is retained; contentAccess exposes getOfficialCropById() as a rollback-safe bridge for the crop side of the pilot.'
+  },
+  'src/data/items.ts:ITEMS': {
+    status: 'verified',
+    rationale: 'Phase 2 pilot verifies ITEMS through the official item registry adapter, including local ID preservation and minimal cooking tags, while the legacy static export remains available.'
+  },
+  'src/data/items.ts:getItemById': {
+    status: 'verified',
+    rationale: 'Legacy getItemById() signature is retained; CookingView still uses it for display fallback while tag-material candidates are read from the official item registry adapter.'
+  },
+  'src/data/recipes.ts:RECIPES': {
+    status: 'verified',
+    rationale: 'Phase 2 pilot verifies RECIPES through the official recipe registry adapter, including legacy itemId + quantity normalization and the registry-only steamed_bun anyOfTags material slice.'
+  },
+  'src/data/recipes.ts:getRecipeById': {
+    status: 'verified',
+    rationale: 'Legacy getRecipeById() signature is retained for display/effects and static compatibility tests; cooking now reads normalized registry ingredients through contentAccess.'
+  }
+}))
+
 const entries = dataFiles.map(file => {
   const rel = relative(file)
   const existing = fileDefaults.get(rel) ?? {
@@ -268,6 +295,7 @@ const entries = dataFiles.map(file => {
   const lineCount = readText(file).split(/\r?\n/).length
   const symbols = getExportedSymbols(file).map(symbol => {
     const classification = classifySymbol(existing, symbol)
+    const reviewOverride = symbolReviewOverrides.get(`${rel}:${symbol.exportName}`)
     return {
       file: rel,
       exportName: symbol.exportName,
@@ -281,8 +309,8 @@ const entries = dataFiles.map(file => {
         classification === 'content' || classification === 'derived'
           ? 'src/tests/fixtures/mods/official-content-snapshot.json'
           : undefined,
-      status: getStatus(classification),
-      rationale: getRationale(classification, symbol.syntaxKind)
+      status: reviewOverride?.status ?? getStatus(classification),
+      rationale: reviewOverride?.rationale ?? getRationale(classification, symbol.syntaxKind)
     }
   })
 

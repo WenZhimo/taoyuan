@@ -129,10 +129,23 @@ export const normalizeLegacyRecipeIngredient = (
   quantity: ingredient.quantity
 })
 
+const adaptLegacyRecipeIngredients = (recipe: LegacyRecipeDef): RecipeIngredient[] => {
+  const ingredients = recipe.ingredients.map(normalizeLegacyRecipeIngredient)
+  if (recipe.id !== 'steamed_bun') return ingredients
+  return [
+    ...ingredients,
+    {
+      type: 'anyOfTags',
+      tagIds: [tag('vegetarian'), tag('meat')],
+      quantity: 1
+    }
+  ]
+}
+
 export const adaptLegacyRecipe = (recipe: LegacyRecipeDef): RecipeDef => ({
   id: toOfficialContentId(recipe.id),
   name: text(`taoyuan.recipe.${recipe.id}.name`, recipe.name),
-  ingredients: recipe.ingredients.map(normalizeLegacyRecipeIngredient),
+  ingredients: adaptLegacyRecipeIngredients(recipe),
   outputItemId: toOfficialContentId(`food_${recipe.id}`),
   outputQuantity: 1,
   description: text(`taoyuan.recipe.${recipe.id}.description`, recipe.description)
