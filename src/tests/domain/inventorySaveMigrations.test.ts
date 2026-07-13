@@ -21,16 +21,25 @@ const normalizeEnchantmentIds = (input: string | string[] | null | undefined): s
 }
 
 describe('inventory save migration rules', () => {
-  it('filters unknown saved inventory items and preserves valid item data', () => {
+  it('preserves saved inventory items and defaults missing composition tags', () => {
     const saved = [
-      { itemId: 'wood', quantity: 5, quality: 'normal' as const, locked: true },
+      {
+        itemId: 'wood',
+        quantity: 5,
+        quality: 'normal' as const,
+        locked: true,
+        compositionTags: ['taoyuan:vegetarian', 'taoyuan:vegetarian']
+      },
       { itemId: 'missing_item', quantity: 1, quality: 'fine' as const }
     ]
 
     const result = migrateSavedInventoryItems(saved, itemId => itemId === 'wood')
     result[0]!.quantity = 99
 
-    expect(result).toEqual([{ itemId: 'wood', quantity: 99, quality: 'normal', locked: true }])
+    expect(result).toEqual([
+      { itemId: 'wood', quantity: 99, quality: 'normal', locked: true, compositionTags: ['taoyuan:vegetarian'] },
+      { itemId: 'missing_item', quantity: 1, quality: 'fine', compositionTags: [] }
+    ])
     expect(saved[0]!.quantity).toBe(5)
   })
 

@@ -32,6 +32,14 @@ export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
   return contentId ? getOfficialRegistrySet().get<TagDef>(toOfficialRegistryTypeId('tag')).get(contentId) : undefined
 }
 
+export const getOfficialTagDefs = (): readonly Readonly<TagDef>[] =>
+  getOfficialRegistrySet().get<TagDef>(toOfficialRegistryTypeId('tag')).values()
+
+export const getOfficialSeparateStackTagIds = (): readonly string[] =>
+  getOfficialTagDefs()
+    .filter(tag => tag.stackPolicy === 'separate')
+    .map(tag => tag.id)
+
 export const getOfficialItemDef = (id: string): Readonly<ItemDef> | undefined => {
   const contentId = toQueryContentId(id)
   return contentId ? getOfficialRegistrySet().get<ItemDef>(toOfficialRegistryTypeId('item')).get(contentId) : undefined

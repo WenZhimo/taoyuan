@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+﻿import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { InventoryItem, Quality, Tool, ToolType, ToolTier, OwnedWeapon, OwnedRing, RingEffectType, OwnedHat, OwnedShoe } from '@/types'
 import type { EquipmentPresetState } from '@/domain/inventory/equipmentPresets'
@@ -26,11 +26,13 @@ import { EQUIPMENT_SETS } from '@/data/equipmentSets'
 import {
   addItemToStacks,
   calculateAddableItemQuantity,
+  compactItemStacks,
   countCarriedItemQuantity,
   countItemQuantity,
   moveTempItemToStacks,
   removeItemFromStacks
 } from '@/domain/inventory/itemStacks'
+import { getOfficialSeparateStackTagIds } from '@/domain/mods/contentAccess'
 import {
   applyEquipmentEnchantments,
   createCustomizeEnchantmentsResult,
@@ -100,7 +102,7 @@ import { useAchievementStore } from './useAchievementStore'
 const INITIAL_CAPACITY = INITIAL_INVENTORY_CAPACITY
 const MAX_CAPACITY = MAX_STANDARD_INVENTORY_CAPACITY
 export const MAX_STACK = 999_999_999
-const TEMP_CAPACITY = 10
+export const TEMP_CAPACITY = 10
 export type EnchantableEquipmentType = 'weapon' | 'ring' | 'hat' | 'shoe'
 type EnchantableEquipment = OwnedWeapon | OwnedRing | OwnedHat | OwnedShoe
 type EnchantResult = EnchantmentOperationResult
@@ -317,7 +319,12 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   /** 添加物品到背包 */
-  const addItem = (itemId: string, quantity: number = 1, quality: Quality = 'normal'): boolean => {
+  const addItem = (
+    itemId: string,
+    quantity: number = 1,
+    quality: Quality = 'normal',
+    compositionTags?: readonly string[]
+  ): boolean => {
     // 校验物品是否存在
     if (!getItemById(itemId)) return false
     // 自动注册到图鉴
@@ -328,6 +335,8 @@ export const useInventoryStore = defineStore('inventory', () => {
       itemId,
       quantity,
       quality,
+      compositionTags,
+      separateTagIds: getOfficialSeparateStackTagIds(),
       mainCapacity: capacity.value,
       tempCapacity: TEMP_CAPACITY,
       maxStack: MAX_STACK
@@ -358,6 +367,13 @@ export const useInventoryStore = defineStore('inventory', () => {
     return true
   }
 
+  const takeItemStacks = (itemId: string, quantity: number = 1, quality?: Quality): InventoryItem[] => {
+    const result = removeItemFromStacks({ items: items.value, itemId, quantity, quality, trackRemoved: true })
+    if (!result.success) return []
+    items.value = result.items
+    return result.removed ?? []
+  }
+
   /** 查询物品数量 */
   const getItemCount = (itemId: string, quality?: Quality): number => {
     return countItemQuantity(items.value, itemId, quality)
@@ -379,13 +395,19 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   /** 查询当前还能放入多少同类物品（主背包 + 临时背包） */
-  const getAddableItemQuantity = (itemId: string, quality: Quality = 'normal'): number => {
+  const getAddableItemQuantity = (
+    itemId: string,
+    quality: Quality = 'normal',
+    compositionTags?: readonly string[]
+  ): number => {
     if (!getItemById(itemId)) return 0
     return calculateAddableItemQuantity({
       items: items.value,
       tempItems: tempItems.value,
       itemId,
       quality,
+      compositionTags,
+      separateTagIds: getOfficialSeparateStackTagIds(),
       mainCapacity: capacity.value,
       tempCapacity: TEMP_CAPACITY,
       maxStack: MAX_STACK
@@ -393,8 +415,13 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   /** 检查是否能完整放入物品，避免购买时先扣钱后部分溢出 */
-  const canAddItem = (itemId: string, quantity: number = 1, quality: Quality = 'normal'): boolean => {
-    return getAddableItemQuantity(itemId, quality) >= quantity
+  const canAddItem = (
+    itemId: string,
+    quantity: number = 1,
+    quality: Quality = 'normal',
+    compositionTags?: readonly string[]
+  ): boolean => {
+    return getAddableItemQuantity(itemId, quality, compositionTags) >= quantity
   }
 
   /** 物品分类排序优先级 */
@@ -430,27 +457,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 一键整理背包（按分类→物品ID→品质排序，合并同类栈） */
   const sortItems = () => {
-    // 先合并同类栈（任一栈锁定则合并后保持锁定）
-    const merged: InventoryItem[] = []
-    for (const item of items.value) {
-      const existing = merged.find(m => m.itemId === item.itemId && m.quality === item.quality)
-      if (existing) {
-        existing.quantity += item.quantity
-        if (item.locked) existing.locked = true
-      } else {
-        merged.push({ ...item })
-      }
-    }
-    // 拆分超过 MAX_STACK 的栈（保留锁定状态）
-    const split: InventoryItem[] = []
-    for (const item of merged) {
-      let remaining = item.quantity
-      while (remaining > 0) {
-        const batch = Math.min(remaining, MAX_STACK)
-        split.push({ itemId: item.itemId, quantity: batch, quality: item.quality, locked: item.locked })
-        remaining -= batch
-      }
-    }
+    const split = compactItemStacks(items.value, MAX_STACK, getOfficialSeparateStackTagIds())
     // 按分类 → 物品ID → 品质排序
     const qualityOrder: Record<string, number> = { normal: 0, fine: 1, excellent: 2, supreme: 3 }
     split.sort((a, b) => {
@@ -486,6 +493,7 @@ export const useInventoryStore = defineStore('inventory', () => {
       items: items.value,
       tempItems: tempItems.value,
       tempIndex: index,
+      separateTagIds: getOfficialSeparateStackTagIds(),
       mainCapacity: capacity.value,
       maxStack: MAX_STACK
     })
@@ -1011,6 +1019,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     isAllFull,
     addItem,
     removeItem,
+    takeItemStacks,
     getItemCount,
     getCarriedItemCount,
     hasItem,

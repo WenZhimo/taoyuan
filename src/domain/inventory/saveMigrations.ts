@@ -1,6 +1,7 @@
 import type { InventoryItem, OwnedHat, OwnedRing, OwnedShoe, OwnedWeapon, Tool, ToolType } from '@/types'
 import type { EquipmentPresetState } from '@/domain/inventory/equipmentPresets'
 import type { PendingToolUpgrade } from '@/domain/inventory/toolUpgrades'
+import { normalizeCompositionTags } from './itemStacks'
 
 export type EnchantmentNormalizer = (input: string | string[] | null | undefined) => string[]
 
@@ -62,13 +63,26 @@ export const migrateSavedTools = (savedTools?: readonly Tool[]): Tool[] => {
   return migratedTools
 }
 
+const QUALITY_VALUES = new Set(['normal', 'fine', 'excellent', 'supreme'])
+
 export const migrateSavedInventoryItems = (
   savedItems: readonly InventoryItem[] | undefined,
-  isKnownItem: (itemId: string) => boolean
+  _isKnownItem: (itemId: string) => boolean
 ): InventoryItem[] => {
   return (savedItems ?? [])
-    .filter(item => isKnownItem(item.itemId))
-    .map(item => ({ ...item }))
+    .filter(item =>
+      typeof item.itemId === 'string' &&
+      Number.isFinite(item.quantity) &&
+      item.quantity > 0 &&
+      QUALITY_VALUES.has(item.quality)
+    )
+    .map(item => ({
+      itemId: item.itemId,
+      quantity: item.quantity,
+      quality: item.quality,
+      ...(item.locked !== undefined ? { locked: item.locked } : {}),
+      compositionTags: normalizeCompositionTags(item.compositionTags)
+    }))
 }
 
 export const migrateSavedCapacity = (savedCapacity: number | undefined, fallbackCapacity: number): number => {

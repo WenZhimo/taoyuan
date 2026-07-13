@@ -28,7 +28,7 @@ fishPond, tutorial, hiddenNpc, savedAt
 2. **缺失字段必须有默认值。** 不允许因为旧存档没有新字段而报错。
 3. **旧字段先兼容读取，再停止写入。** 不能在同一次改动中直接重命名并删除旧字段入口。
 4. **数组和对象不能直接复用存档引用。** 应克隆后写入响应式状态。
-5. **无效 ID 要有明确策略。** 可过滤已删除内容、映射替代 ID，或保留为占位项；不可让查找结果在运行时崩溃。
+5. **无效 ID 要有明确策略。** 可过滤已删除内容、映射替代 ID，或保留为占位项；模组内容相关背包物品默认保留 ID、数量、品质和 `compositionTags`，不可静默清零。
 6. **数值校验不能依赖 truthy。** `0` 可能是合法值，应使用 `??`、`Number.isFinite()` 和明确边界。
 7. **迁移必须幂等。** 同一份旧数据重复经过迁移，结果应稳定。
 
@@ -82,7 +82,7 @@ const currentValue = data.newField ?? data.oldField ?? DEFAULT_VALUE
 
 `src/domain/inventory/saveMigrations.ts` 已覆盖：
 
-- 过滤不存在的物品 ID，同时克隆有效物品。
+- 保留背包物品 ID、数量、品质、锁定状态和 `compositionTags`；旧存档缺少 `compositionTags` 时迁移为空数组，未知物品不再被过滤。
 - 为旧存档补齐所有必需工具。
 - 将旧的单个 `weapon.tier` 映射到当前武器定义 ID。
 - 将单个 `enchantmentId` 规范化为 `enchantmentIds` 数组。

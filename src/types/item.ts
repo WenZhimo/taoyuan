@@ -50,6 +50,7 @@ export interface InventoryItem {
   quantity: number
   quality: Quality
   locked?: boolean
+  compositionTags?: string[]
 }
 
 /** 工具等级 */

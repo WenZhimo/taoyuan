@@ -83,6 +83,9 @@ describe('cooking store material planning', () => {
     expect(inventoryStore.getItemCount('cabbage', 'supreme')).toBe(0)
     expect(inventoryStore.getItemCount('carp', 'normal')).toBe(2)
     expect(inventoryStore.getItemCount('food_steamed_bun', 'fine')).toBe(1)
+    expect(inventoryStore.items.find(item => item.itemId === 'food_steamed_bun')?.compositionTags).toEqual([
+      'taoyuan:vegetarian'
+    ])
   })
 
   it('does not partially remove ingredients when a manual tag selection is unavailable', () => {

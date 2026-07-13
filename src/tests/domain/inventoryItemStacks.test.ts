@@ -74,6 +74,75 @@ describe('inventory item stack rules', () => {
     })
   })
 
+
+  it('merges ordinary composition tags but keeps separate-policy tags apart', () => {
+    const separateTagIds = ['taoyuan:human_meat']
+
+    const ordinary = addItemToStacks({
+      items: [{ itemId: 'food_steamed_bun', quality: 'normal', quantity: 1, compositionTags: ['taoyuan:vegetarian'] }],
+      tempItems: [],
+      itemId: 'food_steamed_bun',
+      quantity: 1,
+      quality: 'normal',
+      compositionTags: ['taoyuan:meat'],
+      separateTagIds,
+      mainCapacity: 5,
+      tempCapacity: 0,
+      maxStack: 100
+    })
+
+    expect(ordinary.items).toEqual([
+      {
+        itemId: 'food_steamed_bun',
+        quality: 'normal',
+        quantity: 2,
+        compositionTags: ['taoyuan:meat', 'taoyuan:vegetarian']
+      }
+    ])
+
+    const separated = addItemToStacks({
+      items: ordinary.items,
+      tempItems: [],
+      itemId: 'food_steamed_bun',
+      quantity: 1,
+      quality: 'normal',
+      compositionTags: ['taoyuan:human_meat'],
+      separateTagIds,
+      mainCapacity: 5,
+      tempCapacity: 0,
+      maxStack: 100
+    })
+
+    expect(separated.items).toEqual([
+      {
+        itemId: 'food_steamed_bun',
+        quality: 'normal',
+        quantity: 2,
+        compositionTags: ['taoyuan:meat', 'taoyuan:vegetarian']
+      },
+      {
+        itemId: 'food_steamed_bun',
+        quality: 'normal',
+        quantity: 1,
+        compositionTags: ['taoyuan:human_meat']
+      }
+    ])
+    expect(countItemQuantity(separated.items, 'food_steamed_bun', 'normal')).toBe(3)
+    expect(
+      calculateAddableItemQuantity({
+        items: [{ itemId: 'food_steamed_bun', quality: 'normal', quantity: 90 }],
+        tempItems: [],
+        itemId: 'food_steamed_bun',
+        quality: 'normal',
+        compositionTags: ['taoyuan:human_meat'],
+        separateTagIds,
+        mainCapacity: 1,
+        tempCapacity: 0,
+        maxStack: 100
+      })
+    ).toBe(0)
+  })
+
   it('overflows into temporary stacks when the main inventory is full', () => {
     const result = addItemToStacks({
       items: [

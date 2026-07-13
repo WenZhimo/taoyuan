@@ -11,7 +11,7 @@ import { useHomeStore } from './useHomeStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
 import { useWarehouseStore } from './useWarehouseStore'
 import { getLowestCombinedQuality, removeCombinedItem } from '@/composables/useCombinedInventory'
-import { getOfficialItemDefs, getOfficialRecipeDef } from '@/domain/mods/contentAccess'
+import { getOfficialItemDef, getOfficialItemDefs, getOfficialRecipeDef, getOfficialTagDef } from '@/domain/mods/contentAccess'
 import {
   createIngredientAllocationPlan,
   getIngredientCandidates,
@@ -79,12 +79,18 @@ export const useCookingStore = defineStore('cooking', () => {
     const stacks: IngredientInventoryStack[] = inventoryStore.items.map(item => ({
       itemId: item.itemId,
       quality: item.quality,
-      quantity: item.quantity
+      quantity: item.quantity,
+      compositionTags: item.compositionTags
     }))
     if (warehouseStore.unlocked) {
       for (const chest of warehouseStore.chests) {
         for (const item of chest.items) {
-          stacks.push({ itemId: item.itemId, quality: item.quality, quantity: item.quantity })
+          stacks.push({
+            itemId: item.itemId,
+            quality: item.quality,
+            quantity: item.quantity,
+            compositionTags: item.compositionTags
+          })
         }
       }
     }
@@ -103,6 +109,17 @@ export const useCookingStore = defineStore('cooking', () => {
       items: getOfficialItemDefs(),
       selectedItemIds
     })
+
+  const getCraftedCompositionTags = (plan: Extract<IngredientAllocationResult, { success: true }>): string[] => {
+    const tags = new Set<string>()
+    for (const removal of plan.removals) {
+      const itemDef = getOfficialItemDef(removal.itemId)
+      for (const tagId of itemDef?.tags ?? []) {
+        if (getOfficialTagDef(tagId)?.propagateToCraftedOutput) tags.add(tagId)
+      }
+    }
+    return Array.from(tags).sort()
+  }
 
   const getRecipeIngredientPlan = (
     recipeId: string,
@@ -199,7 +216,7 @@ export const useCookingStore = defineStore('cooking', () => {
     }
 
     // 添加食物到背包
-    inventoryStore.addItem(`food_${recipe.id}`, maxPossible, resultQuality)
+    inventoryStore.addItem(`food_${recipe.id}`, maxPossible, resultQuality, getCraftedCompositionTags(plan))
     for (let i = 0; i < maxPossible; i++) {
       useAchievementStore().recordRecipeCooked()
     }

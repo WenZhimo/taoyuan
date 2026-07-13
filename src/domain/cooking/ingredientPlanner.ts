@@ -1,4 +1,4 @@
-import type { Quality } from '@/types'
+﻿import type { Quality } from '@/types'
 import { requireContentId, toOfficialContentId, type ContentId } from '@/domain/mods/ids'
 import type { ItemDef, RecipeIngredient } from '@/domain/mods/schemas'
 
@@ -13,6 +13,7 @@ export interface IngredientInventoryStack {
   itemId: string
   quantity: number
   quality: Quality
+  compositionTags?: readonly string[]
 }
 
 export interface IngredientAllocation {
