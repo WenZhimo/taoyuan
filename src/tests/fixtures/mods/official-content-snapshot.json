@@ -54934,14 +54934,990 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/adventurer_ration/1",
+            "description": {
+              "fallback": "坚韧的毛竹削成的长杖，轻便趁手。",
+              "key": "taoyuan.shop.biaoju.bamboo_staff.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/bamboo_staff/7",
+            "itemId": "taoyuan:bamboo_staff",
+            "name": {
+              "fallback": "竹杖",
+              "key": "taoyuan.shop.biaoju.bamboo_staff.name"
+            },
+            "price": 400,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 7
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "铜铸的短剑，可靠的入门武器。",
+              "key": "taoyuan.shop.biaoju.copper_sword.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/copper_sword/0",
+            "itemId": "taoyuan:copper_sword",
+            "name": {
+              "fallback": "铜剑",
+              "key": "taoyuan.shop.biaoju.copper_sword.name"
+            },
+            "price": 300,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 0
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "水晶矿石铸成的长剑，折射七彩光芒。",
+              "key": "taoyuan.shop.biaoju.crystal_blade.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/crystal_blade/4",
+            "itemId": "taoyuan:crystal_blade",
+            "name": {
+              "fallback": "水晶长剑",
+              "key": "taoyuan.shop.biaoju.crystal_blade.name"
+            },
+            "price": 5000,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "金光闪烁的长戟，威力非凡。",
+              "key": "taoyuan.shop.biaoju.gold_halberd.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/gold_halberd/3",
+            "itemId": "taoyuan:gold_halberd",
+            "name": {
+              "fallback": "金戟",
+              "key": "taoyuan.shop.biaoju.gold_halberd.name"
+            },
+            "price": 2500,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "镶金铁骨扇，展开如刃，合拢如棍。",
+              "key": "taoyuan.shop.biaoju.golden_fan.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/golden_fan/9",
+            "itemId": "taoyuan:golden_fan",
+            "name": {
+              "fallback": "金扇",
+              "key": "taoyuan.shop.biaoju.golden_fan.name"
+            },
+            "price": 2000,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 9
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "精铁打造的长刀，锋利坚固。",
+              "key": "taoyuan.shop.biaoju.iron_blade.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/iron_blade/1",
+            "itemId": "taoyuan:iron_blade",
+            "name": {
+              "fallback": "铁刀",
+              "key": "taoyuan.shop.biaoju.iron_blade.name"
+            },
+            "price": 800,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "精铁打磨的短匕，出手极快。",
+              "key": "taoyuan.shop.biaoju.iron_dagger.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/iron_dagger/8",
+            "itemId": "taoyuan:iron_dagger",
+            "name": {
+              "fallback": "铁匕",
+              "key": "taoyuan.shop.biaoju.iron_dagger.name"
+            },
+            "price": 600,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "黑曜石锻造的弯刀，刀锋削铁如泥。",
+              "key": "taoyuan.shop.biaoju.obsidian_blade.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/obsidian_blade/10",
+            "itemId": "taoyuan:obsidian_blade",
+            "name": {
+              "fallback": "黑曜刀",
+              "key": "taoyuan.shop.biaoju.obsidian_blade.name"
+            },
+            "price": 4000,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 10
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暗影矿石锻造的重锤，一击溃敌。",
+              "key": "taoyuan.shop.biaoju.shadow_mace.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/shadow_mace/5",
+            "itemId": "taoyuan:shadow_mace",
+            "name": {
+              "fallback": "暗影锤",
+              "key": "taoyuan.shop.biaoju.shadow_mace.name"
+            },
+            "price": 8000,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "虚空矿石淬炼的极品太刀，斩天裂地。",
+              "key": "taoyuan.shop.biaoju.void_katana.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/void_katana/6",
+            "itemId": "taoyuan:void_katana",
+            "name": {
+              "fallback": "虚空太刀",
+              "key": "taoyuan.shop.biaoju.void_katana.name"
+            },
+            "price": 15000,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 6
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "沉重的铁锤，一击碎石。",
+              "key": "taoyuan.shop.biaoju.war_hammer.description"
+            },
+            "groupId": "weapons",
+            "groupName": {
+              "fallback": "武器",
+              "key": "taoyuan.shop.biaoju.weapons.name"
+            },
+            "id": "taoyuan:shop/biaoju/weapons/war_hammer/2",
+            "itemId": "taoyuan:war_hammer",
+            "name": {
+              "fallback": "战锤",
+              "key": "taoyuan.shop.biaoju.war_hammer.name"
+            },
+            "price": 1200,
+            "purchaseKind": "weapon",
+            "shopId": "taoyuan:biaoju",
+            "sortOrder": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "竹编斗笠，遮阳挡雨，减少体力消耗。",
+              "key": "taoyuan.shop.chouduanzhuang.bamboo_hat.description"
+            },
+            "groupId": "hats",
+            "groupName": {
+              "fallback": "帽子",
+              "key": "taoyuan.shop.chouduanzhuang.hats.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/hats/bamboo_hat/101",
+            "itemId": "taoyuan:bamboo_hat",
+            "name": {
+              "fallback": "竹笠",
+              "key": "taoyuan.shop.chouduanzhuang.bamboo_hat.name"
+            },
+            "price": 300,
+            "purchaseKind": "hat",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 101
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "宽檐遮阳帽，钓鱼时更加专注。",
+              "key": "taoyuan.shop.chouduanzhuang.fisher_hat.description"
+            },
+            "groupId": "hats",
+            "groupName": {
+              "fallback": "帽子",
+              "key": "taoyuan.shop.chouduanzhuang.hats.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/hats/fisher_hat/103",
+            "itemId": "taoyuan:fisher_hat",
+            "name": {
+              "fallback": "渔夫帽",
+              "key": "taoyuan.shop.chouduanzhuang.fisher_hat.name"
+            },
+            "price": 800,
+            "purchaseKind": "hat",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 103
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "柔软的兽皮帽，矿洞中格外实用。",
+              "key": "taoyuan.shop.chouduanzhuang.fur_cap.description"
+            },
+            "groupId": "hats",
+            "groupName": {
+              "fallback": "帽子",
+              "key": "taoyuan.shop.chouduanzhuang.hats.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/hats/fur_cap/105",
+            "itemId": "taoyuan:fur_cap",
+            "name": {
+              "fallback": "皮毛帽",
+              "key": "taoyuan.shop.chouduanzhuang.fur_cap.name"
+            },
+            "price": 600,
+            "purchaseKind": "hat",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 105
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "以莲叶编成的清凉帽子，减少全局体力消耗。",
+              "key": "taoyuan.shop.chouduanzhuang.lotus_hat.description"
+            },
+            "groupId": "hats",
+            "groupName": {
+              "fallback": "帽子",
+              "key": "taoyuan.shop.chouduanzhuang.hats.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/hats/lotus_hat/104",
+            "itemId": "taoyuan:lotus_hat",
+            "name": {
+              "fallback": "莲花帽",
+              "key": "taoyuan.shop.chouduanzhuang.lotus_hat.name"
+            },
+            "price": 500,
+            "purchaseKind": "hat",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 104
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "带有灯座的皮帽，矿洞探索体力大幅降低。",
+              "key": "taoyuan.shop.chouduanzhuang.miner_helmet.description"
+            },
+            "groupId": "hats",
+            "groupName": {
+              "fallback": "帽子",
+              "key": "taoyuan.shop.chouduanzhuang.hats.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/hats/miner_helmet/102",
+            "itemId": "taoyuan:miner_helmet",
+            "name": {
+              "fallback": "矿工帽",
+              "key": "taoyuan.shop.chouduanzhuang.miner_helmet.name"
+            },
+            "price": 800,
+            "purchaseKind": "hat",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 102
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "华美的丝绸头巾，提升售价并增加送礼好感。",
+              "key": "taoyuan.shop.chouduanzhuang.silk_turban.description"
+            },
+            "groupId": "hats",
+            "groupName": {
+              "fallback": "帽子",
+              "key": "taoyuan.shop.chouduanzhuang.hats.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/hats/silk_turban/106",
+            "itemId": "taoyuan:silk_turban",
+            "name": {
+              "fallback": "丝绸头巾",
+              "key": "taoyuan.shop.chouduanzhuang.silk_turban.name"
+            },
+            "price": 1000,
+            "purchaseKind": "hat",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 106
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "轻便的草编帽子，农作时减少体力消耗。",
+              "key": "taoyuan.shop.chouduanzhuang.straw_hat.description"
+            },
+            "groupId": "hats",
+            "groupName": {
+              "fallback": "帽子",
+              "key": "taoyuan.shop.chouduanzhuang.hats.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/hats/straw_hat/100",
+            "itemId": "taoyuan:straw_hat",
+            "name": {
+              "fallback": "草帽",
+              "key": "taoyuan.shop.chouduanzhuang.straw_hat.name"
+            },
+            "price": 200,
+            "purchaseKind": "hat",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 100
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "舒适的布鞋，农作时更加轻松。",
+              "key": "taoyuan.shop.chouduanzhuang.cloth_shoes.description"
+            },
+            "groupId": "shoes",
+            "groupName": {
+              "fallback": "鞋子",
+              "key": "taoyuan.shop.chouduanzhuang.shoes.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/shoes/cloth_shoes/201",
+            "itemId": "taoyuan:cloth_shoes",
+            "name": {
+              "fallback": "布鞋",
+              "key": "taoyuan.shop.chouduanzhuang.cloth_shoes.name"
+            },
+            "price": 300,
+            "purchaseKind": "shoe",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 201
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "柔软保暖的棉鞋，减少日常体力消耗。",
+              "key": "taoyuan.shop.chouduanzhuang.cotton_shoes.description"
+            },
+            "groupId": "shoes",
+            "groupName": {
+              "fallback": "鞋子",
+              "key": "taoyuan.shop.chouduanzhuang.shoes.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/shoes/cotton_shoes/204",
+            "itemId": "taoyuan:cotton_shoes",
+            "name": {
+              "fallback": "棉鞋",
+              "key": "taoyuan.shop.chouduanzhuang.cotton_shoes.name"
+            },
+            "price": 400,
+            "purchaseKind": "shoe",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 204
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "防水长靴，钓鱼时更加从容。",
+              "key": "taoyuan.shop.chouduanzhuang.fishing_waders.description"
+            },
+            "groupId": "shoes",
+            "groupName": {
+              "fallback": "鞋子",
+              "key": "taoyuan.shop.chouduanzhuang.shoes.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/shoes/fishing_waders/205",
+            "itemId": "taoyuan:fishing_waders",
+            "name": {
+              "fallback": "钓鱼靴",
+              "key": "taoyuan.shop.chouduanzhuang.fishing_waders.name"
+            },
+            "price": 700,
+            "purchaseKind": "shoe",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 205
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "翡翠镶底的绣花鞋，提升售价并增加送礼好感。",
+              "key": "taoyuan.shop.chouduanzhuang.jade_slippers.description"
+            },
+            "groupId": "shoes",
+            "groupName": {
+              "fallback": "鞋子",
+              "key": "taoyuan.shop.chouduanzhuang.shoes.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/shoes/jade_slippers/206",
+            "itemId": "taoyuan:jade_slippers",
+            "name": {
+              "fallback": "玉底鞋",
+              "key": "taoyuan.shop.chouduanzhuang.jade_slippers.name"
+            },
+            "price": 1200,
+            "purchaseKind": "shoe",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 206
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "结实的皮革长靴，走路更快。",
+              "key": "taoyuan.shop.chouduanzhuang.leather_boots.description"
+            },
+            "groupId": "shoes",
+            "groupName": {
+              "fallback": "鞋子",
+              "key": "taoyuan.shop.chouduanzhuang.shoes.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/shoes/leather_boots/202",
+            "itemId": "taoyuan:leather_boots",
+            "name": {
+              "fallback": "皮靴",
+              "key": "taoyuan.shop.chouduanzhuang.leather_boots.name"
+            },
+            "price": 800,
+            "purchaseKind": "shoe",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 202
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "厚底铁头靴，矿洞探索更加安全。",
+              "key": "taoyuan.shop.chouduanzhuang.miner_boots.description"
+            },
+            "groupId": "shoes",
+            "groupName": {
+              "fallback": "鞋子",
+              "key": "taoyuan.shop.chouduanzhuang.shoes.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/shoes/miner_boots/203",
+            "itemId": "taoyuan:miner_boots",
+            "name": {
+              "fallback": "矿工靴",
+              "key": "taoyuan.shop.chouduanzhuang.miner_boots.name"
+            },
+            "price": 1000,
+            "purchaseKind": "shoe",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 203
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "朴素的草编鞋，减少体力消耗。",
+              "key": "taoyuan.shop.chouduanzhuang.straw_sandals.description"
+            },
+            "groupId": "shoes",
+            "groupName": {
+              "fallback": "鞋子",
+              "key": "taoyuan.shop.chouduanzhuang.shoes.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/shoes/straw_sandals/200",
+            "itemId": "taoyuan:straw_sandals",
+            "name": {
+              "fallback": "草鞋",
+              "key": "taoyuan.shop.chouduanzhuang.straw_sandals.name"
+            },
+            "price": 200,
+            "purchaseKind": "shoe",
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "极其柔软的羊驼绒布",
+              "key": "taoyuan.shop.chouduanzhuang.alpaca_cloth.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/alpaca_cloth/2",
+            "itemId": "taoyuan:alpaca_cloth",
+            "name": {
+              "fallback": "羊驼绒",
+              "key": "taoyuan.shop.chouduanzhuang.alpaca_cloth.name"
+            },
+            "price": 900,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "提神醒脑",
+              "key": "taoyuan.shop.chouduanzhuang.camphor_incense.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/camphor_incense/8",
+            "itemId": "taoyuan:camphor_incense",
+            "name": {
+              "fallback": "樟脑香",
+              "key": "taoyuan.shop.chouduanzhuang.camphor_incense.name"
+            },
+            "price": 400,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用羊毛纺织的布匹",
+              "key": "taoyuan.shop.chouduanzhuang.cloth.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/cloth/0",
+            "itemId": "taoyuan:cloth",
+            "name": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.cloth.name"
+            },
+            "price": 1200,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 0
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用兔毛压制的毛毡",
+              "key": "taoyuan.shop.chouduanzhuang.felt.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/felt/3",
+            "itemId": "taoyuan:felt",
+            "name": {
+              "fallback": "毛毡",
+              "key": "taoyuan.shop.chouduanzhuang.felt.name"
+            },
+            "price": 600,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "可以用来求婚",
+              "key": "taoyuan.shop.chouduanzhuang.jade_ring.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/jade_ring/5",
+            "itemId": "taoyuan:jade_ring",
+            "name": {
+              "fallback": "翡翠戒指",
+              "key": "taoyuan.shop.chouduanzhuang.jade_ring.name"
+            },
+            "price": 1500,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "馥郁的桂花香",
+              "key": "taoyuan.shop.chouduanzhuang.osmanthus_incense.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/osmanthus_incense/9",
+            "itemId": "taoyuan:osmanthus_incense",
+            "name": {
+              "fallback": "桂花香",
+              "key": "taoyuan.shop.chouduanzhuang.osmanthus_incense.name"
+            },
+            "price": 800,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 9
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "清新的松香",
+              "key": "taoyuan.shop.chouduanzhuang.pine_incense.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/pine_incense/7",
+            "itemId": "taoyuan:pine_incense",
+            "name": {
+              "fallback": "松香",
+              "key": "taoyuan.shop.chouduanzhuang.pine_incense.name"
+            },
+            "price": 250,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 7
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "华美的丝绸",
+              "key": "taoyuan.shop.chouduanzhuang.silk_cloth.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/silk_cloth/1",
+            "itemId": "taoyuan:silk_cloth",
+            "name": {
+              "fallback": "丝绸",
+              "key": "taoyuan.shop.chouduanzhuang.silk_cloth.name"
+            },
+            "price": 500,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "精心绣制的丝帕",
+              "key": "taoyuan.shop.chouduanzhuang.silk_ribbon.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/silk_ribbon/4",
+            "itemId": "taoyuan:silk_ribbon",
+            "name": {
+              "fallback": "丝帕",
+              "key": "taoyuan.shop.chouduanzhuang.silk_ribbon.name"
+            },
+            "price": 500,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "赠予同性挚友可结为知己",
+              "key": "taoyuan.shop.chouduanzhuang.zhiji_jade.description"
+            },
+            "groupId": "textiles",
+            "groupName": {
+              "fallback": "布匹",
+              "key": "taoyuan.shop.chouduanzhuang.textiles.name"
+            },
+            "id": "taoyuan:shop/chouduanzhuang/textiles/zhiji_jade/6",
+            "itemId": "taoyuan:zhiji_jade",
+            "name": {
+              "fallback": "知己玉佩",
+              "key": "taoyuan.shop.chouduanzhuang.zhiji_jade.name"
+            },
+            "price": 1500,
+            "shopId": "taoyuan:chouduanzhuang",
+            "sortOrder": 6
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/adventurer_ration/1",
             "itemId": "taoyuan:adventurer_ration",
             "name": {
               "fallback": "冒险口粮",
               "key": "taoyuan.shop.guild.adventurer_ration.name"
             },
             "price": 350,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 1
           }
         },
         {
@@ -54951,14 +55927,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/attack_potion/12",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/attack_potion/12",
             "itemId": "taoyuan:attack_potion",
             "name": {
               "fallback": "狂战药剂",
               "key": "taoyuan.shop.guild.attack_potion.name"
             },
             "price": 2500,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 12
           }
         },
         {
@@ -54968,14 +55950,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/bomb/8",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/bomb/8",
             "itemId": "taoyuan:bomb",
             "name": {
               "fallback": "炸弹",
               "key": "taoyuan.shop.guild.bomb.name"
             },
             "price": 600,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 8
           }
         },
         {
@@ -54985,14 +55973,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/combat_tonic/0",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/combat_tonic/0",
             "itemId": "taoyuan:combat_tonic",
             "name": {
               "fallback": "战斗补剂",
               "key": "taoyuan.shop.guild.combat_tonic.name"
             },
             "price": 200,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 0
           }
         },
         {
@@ -55002,7 +55996,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/defense_charm/21",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/defense_charm/21",
             "itemId": "taoyuan:defense_charm",
             "name": {
               "fallback": "守护符",
@@ -55010,6 +56009,7 @@
             },
             "price": 0,
             "shopId": "taoyuan:guild",
+            "sortOrder": 21,
             "weeklyLimit": 3
           }
         },
@@ -55020,14 +56020,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/fortify_brew/2",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/fortify_brew/2",
             "itemId": "taoyuan:fortify_brew",
             "name": {
               "fallback": "强化药水",
               "key": "taoyuan.shop.guild.fortify_brew.name"
             },
             "price": 500,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 2
           }
         },
         {
@@ -55037,14 +56043,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/guardian_potion/13",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/guardian_potion/13",
             "itemId": "taoyuan:guardian_potion",
             "name": {
               "fallback": "守护药剂",
               "key": "taoyuan.shop.guild.guardian_potion.name"
             },
             "price": 2200,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 13
           }
         },
         {
@@ -55054,7 +56066,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/guild_badge/19",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/guild_badge/19",
             "itemId": "taoyuan:guild_badge",
             "name": {
               "fallback": "公会徽章",
@@ -55062,6 +56079,7 @@
             },
             "price": 0,
             "shopId": "taoyuan:guild",
+            "sortOrder": 19,
             "weeklyLimit": 10
           }
         },
@@ -55072,14 +56090,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/guild_war_blade/18",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/guild_war_blade/18",
             "itemId": "taoyuan:guild_war_blade",
             "name": {
               "fallback": "公会战刃",
               "key": "taoyuan.shop.guild.guild_war_blade.name"
             },
             "price": 0,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 18
           }
         },
         {
@@ -55089,14 +56113,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/guild_war_boots/17",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/guild_war_boots/17",
             "itemId": "taoyuan:guild_war_boots",
             "name": {
               "fallback": "公会战靴",
               "key": "taoyuan.shop.guild.guild_war_boots.name"
             },
             "price": 0,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 17
           }
         },
         {
@@ -55106,14 +56136,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/guild_war_helm/16",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/guild_war_helm/16",
             "itemId": "taoyuan:guild_war_helm",
             "name": {
               "fallback": "公会战盔",
               "key": "taoyuan.shop.guild.guild_war_helm.name"
             },
             "price": 0,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 16
           }
         },
         {
@@ -55123,14 +56159,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/guild_war_ring/15",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/guild_war_ring/15",
             "itemId": "taoyuan:guild_war_ring",
             "name": {
               "fallback": "公会战戒",
               "key": "taoyuan.shop.guild.guild_war_ring.name"
             },
             "price": 0,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 15
           }
         },
         {
@@ -55140,14 +56182,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/ice_bomb/11",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/ice_bomb/11",
             "itemId": "taoyuan:ice_bomb",
             "name": {
               "fallback": "冰弹",
               "key": "taoyuan.shop.guild.ice_bomb.name"
             },
             "price": 1200,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 11
           }
         },
         {
@@ -55157,14 +56205,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/ironhide_potion/3",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/ironhide_potion/3",
             "itemId": "taoyuan:ironhide_potion",
             "name": {
               "fallback": "铁壁药剂",
               "key": "taoyuan.shop.guild.ironhide_potion.name"
             },
             "price": 800,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 3
           }
         },
         {
@@ -55174,14 +56228,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/life_talisman/20",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/life_talisman/20",
             "itemId": "taoyuan:life_talisman",
             "name": {
               "fallback": "生命护符",
               "key": "taoyuan.shop.guild.life_talisman.name"
             },
             "price": 0,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 20
           }
         },
         {
@@ -55191,7 +56251,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/lucky_coin/22",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/lucky_coin/22",
             "itemId": "taoyuan:lucky_coin",
             "name": {
               "fallback": "幸运铜钱",
@@ -55199,6 +56264,7 @@
             },
             "price": 0,
             "shopId": "taoyuan:guild",
+            "sortOrder": 22,
             "weeklyLimit": 3
           }
         },
@@ -55209,14 +56275,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/mega_bomb/9",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/mega_bomb/9",
             "itemId": "taoyuan:mega_bomb",
             "name": {
               "fallback": "超级炸弹",
               "key": "taoyuan.shop.guild.mega_bomb.name"
             },
             "price": 1800,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 9
           }
         },
         {
@@ -55226,14 +56298,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/monster_lure/7",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/monster_lure/7",
             "itemId": "taoyuan:monster_lure",
             "name": {
               "fallback": "怪物诱饵",
               "key": "taoyuan.shop.guild.monster_lure.name"
             },
             "price": 2000,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 7
           }
         },
         {
@@ -55243,7 +56321,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/nuclear_bomb/14",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/nuclear_bomb/14",
             "itemId": "taoyuan:nuclear_bomb",
             "name": {
               "fallback": "核弹",
@@ -55251,6 +56334,7 @@
             },
             "price": 12000,
             "shopId": "taoyuan:guild",
+            "sortOrder": 14,
             "weeklyLimit": 1
           }
         },
@@ -55261,14 +56345,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/poison_arrow/10",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/poison_arrow/10",
             "itemId": "taoyuan:poison_arrow",
             "name": {
               "fallback": "毒箭",
               "key": "taoyuan.shop.guild.poison_arrow.name"
             },
             "price": 500,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 10
           }
         },
         {
@@ -55278,14 +56368,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/slayer_charm/5",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/slayer_charm/5",
             "itemId": "taoyuan:slayer_charm",
             "name": {
               "fallback": "猎魔符",
               "key": "taoyuan.shop.guild.slayer_charm.name"
             },
             "price": 1500,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 5
           }
         },
         {
@@ -55295,14 +56391,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/stamina_elixir/6",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/stamina_elixir/6",
             "itemId": "taoyuan:stamina_elixir",
             "name": {
               "fallback": "精力药剂",
               "key": "taoyuan.shop.guild.stamina_elixir.name"
             },
             "price": 600,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 6
           }
         },
         {
@@ -55312,14 +56414,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/guild/warriors_feast/4",
+            "groupId": "guild",
+            "groupName": {
+              "fallback": "行会商品",
+              "key": "taoyuan.shop.guild.guild.name"
+            },
+            "id": "taoyuan:shop/guild/guild/warriors_feast/4",
             "itemId": "taoyuan:warriors_feast",
             "name": {
               "fallback": "勇者盛宴",
               "key": "taoyuan.shop.guild.warriors_feast.name"
             },
             "price": 1000,
-            "shopId": "taoyuan:guild"
+            "shopId": "taoyuan:guild",
+            "sortOrder": 4
           }
         },
         {
@@ -55329,7 +56437,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_amber/5",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_amber/5",
             "itemId": "taoyuan:hanhai_amber",
             "name": {
               "fallback": "戈壁琥珀",
@@ -55337,6 +56450,7 @@
             },
             "price": 450,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 5,
             "weeklyLimit": 3
           }
         },
@@ -55347,7 +56461,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_carpet/4",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_carpet/4",
             "itemId": "taoyuan:hanhai_carpet",
             "name": {
               "fallback": "飞毯碎片",
@@ -55355,6 +56474,7 @@
             },
             "price": 1200,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 4,
             "weeklyLimit": 1
           }
         },
@@ -55365,7 +56485,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_dried_fruit/6",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_dried_fruit/6",
             "itemId": "taoyuan:hanhai_dried_fruit",
             "name": {
               "fallback": "西域干果",
@@ -55373,6 +56498,7 @@
             },
             "price": 200,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 6,
             "weeklyLimit": 5
           }
         },
@@ -55383,7 +56509,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_incense/3",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_incense/3",
             "itemId": "taoyuan:hanhai_incense",
             "name": {
               "fallback": "瀚海沉香",
@@ -55391,6 +56522,7 @@
             },
             "price": 500,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 3,
             "weeklyLimit": 2
           }
         },
@@ -55401,7 +56533,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_lapis/9",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_lapis/9",
             "itemId": "taoyuan:hanhai_lapis",
             "name": {
               "fallback": "青金石",
@@ -55409,6 +56546,7 @@
             },
             "price": 550,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 9,
             "weeklyLimit": 2
           }
         },
@@ -55419,7 +56557,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_pottery/7",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_pottery/7",
             "itemId": "taoyuan:hanhai_pottery",
             "name": {
               "fallback": "彩陶",
@@ -55427,6 +56570,7 @@
             },
             "price": 350,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 7,
             "weeklyLimit": 2
           }
         },
@@ -55437,7 +56581,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_saddle_leather/8",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_saddle_leather/8",
             "itemId": "taoyuan:hanhai_saddle_leather",
             "name": {
               "fallback": "鞍具皮革",
@@ -55445,6 +56594,7 @@
             },
             "price": 700,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 8,
             "weeklyLimit": 2
           }
         },
@@ -55455,7 +56605,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_silk/1",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_silk/1",
             "itemId": "taoyuan:hanhai_silk",
             "name": {
               "fallback": "丝绸",
@@ -55463,6 +56618,7 @@
             },
             "price": 800,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 1,
             "weeklyLimit": 2
           }
         },
@@ -55473,7 +56629,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_spice/0",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_spice/0",
             "itemId": "taoyuan:hanhai_spice",
             "name": {
               "fallback": "西域香料",
@@ -55481,6 +56642,7 @@
             },
             "price": 300,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 0,
             "weeklyLimit": 3
           }
         },
@@ -55491,7 +56653,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai_rotating/hanhai_turquoise/2",
+            "groupId": "rotating",
+            "groupName": {
+              "fallback": "轮换商品",
+              "key": "taoyuan.shop.hanhai_rotating.rotating.name"
+            },
+            "id": "taoyuan:shop/hanhai_rotating/rotating/hanhai_turquoise/2",
             "itemId": "taoyuan:hanhai_turquoise",
             "name": {
               "fallback": "绿松石",
@@ -55499,6 +56666,7 @@
             },
             "price": 600,
             "shopId": "taoyuan:hanhai_rotating",
+            "sortOrder": 2,
             "weeklyLimit": 2
           }
         },
@@ -55509,7 +56677,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai/hanhai_cactus_seed/0",
+            "groupId": "fixed",
+            "groupName": {
+              "fallback": "固定商品",
+              "key": "taoyuan.shop.hanhai.fixed.name"
+            },
+            "id": "taoyuan:shop/hanhai/fixed/hanhai_cactus_seed/0",
             "itemId": "taoyuan:hanhai_cactus_seed",
             "name": {
               "fallback": "仙人掌种子",
@@ -55517,6 +56690,7 @@
             },
             "price": 500,
             "shopId": "taoyuan:hanhai",
+            "sortOrder": 0,
             "weeklyLimit": 5
           }
         },
@@ -55527,7 +56701,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai/hanhai_date_seed/1",
+            "groupId": "fixed",
+            "groupName": {
+              "fallback": "固定商品",
+              "key": "taoyuan.shop.hanhai.fixed.name"
+            },
+            "id": "taoyuan:shop/hanhai/fixed/hanhai_date_seed/1",
             "itemId": "taoyuan:hanhai_date_seed",
             "name": {
               "fallback": "红枣种子",
@@ -55535,6 +56714,7 @@
             },
             "price": 400,
             "shopId": "taoyuan:hanhai",
+            "sortOrder": 1,
             "weeklyLimit": 5
           }
         },
@@ -55545,7 +56725,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai/hanhai_map/2",
+            "groupId": "fixed",
+            "groupName": {
+              "fallback": "固定商品",
+              "key": "taoyuan.shop.hanhai.fixed.name"
+            },
+            "id": "taoyuan:shop/hanhai/fixed/hanhai_map/2",
             "itemId": "taoyuan:hanhai_map",
             "name": {
               "fallback": "藏宝图",
@@ -55553,6 +56738,7 @@
             },
             "price": 1000,
             "shopId": "taoyuan:hanhai",
+            "sortOrder": 2,
             "weeklyLimit": 1
           }
         },
@@ -55563,7 +56749,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/hanhai/mega_bomb_recipe/3",
+            "groupId": "fixed",
+            "groupName": {
+              "fallback": "固定商品",
+              "key": "taoyuan.shop.hanhai.fixed.name"
+            },
+            "id": "taoyuan:shop/hanhai/fixed/mega_bomb_recipe/3",
             "itemId": "taoyuan:mega_bomb_recipe",
             "name": {
               "fallback": "巨型炸弹配方",
@@ -55571,6 +56762,7 @@
             },
             "price": 5000,
             "shopId": "taoyuan:hanhai",
+            "sortOrder": 3,
             "weeklyLimit": 1
           }
         },
@@ -55581,14 +56773,209 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/cloth/6",
+            "description": {
+              "fallback": "烧制的木炭",
+              "key": "taoyuan.shop.tiejiangpu.charcoal.description"
+            },
+            "groupId": "materials",
+            "groupName": {
+              "fallback": "材料",
+              "key": "taoyuan.shop.tiejiangpu.materials.name"
+            },
+            "id": "taoyuan:shop/tiejiangpu/materials/charcoal/6",
+            "itemId": "taoyuan:charcoal",
+            "name": {
+              "fallback": "木炭",
+              "key": "taoyuan.shop.tiejiangpu.charcoal.name"
+            },
+            "price": 100,
+            "shopId": "taoyuan:tiejiangpu",
+            "sortOrder": 6
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冶炼好的铜锭",
+              "key": "taoyuan.shop.tiejiangpu.copper_bar.description"
+            },
+            "groupId": "materials",
+            "groupName": {
+              "fallback": "材料",
+              "key": "taoyuan.shop.tiejiangpu.materials.name"
+            },
+            "id": "taoyuan:shop/tiejiangpu/materials/copper_bar/3",
+            "itemId": "taoyuan:copper_bar",
+            "name": {
+              "fallback": "铜锭",
+              "key": "taoyuan.shop.tiejiangpu.copper_bar.name"
+            },
+            "price": 300,
+            "shopId": "taoyuan:tiejiangpu",
+            "sortOrder": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "矿洞中常见的铜矿",
+              "key": "taoyuan.shop.tiejiangpu.copper_ore.description"
+            },
+            "groupId": "materials",
+            "groupName": {
+              "fallback": "材料",
+              "key": "taoyuan.shop.tiejiangpu.materials.name"
+            },
+            "id": "taoyuan:shop/tiejiangpu/materials/copper_ore/0",
+            "itemId": "taoyuan:copper_ore",
+            "name": {
+              "fallback": "铜矿",
+              "key": "taoyuan.shop.tiejiangpu.copper_ore.name"
+            },
+            "price": 100,
+            "shopId": "taoyuan:tiejiangpu",
+            "sortOrder": 0
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冶炼好的金锭",
+              "key": "taoyuan.shop.tiejiangpu.gold_bar.description"
+            },
+            "groupId": "materials",
+            "groupName": {
+              "fallback": "材料",
+              "key": "taoyuan.shop.tiejiangpu.materials.name"
+            },
+            "id": "taoyuan:shop/tiejiangpu/materials/gold_bar/5",
+            "itemId": "taoyuan:gold_bar",
+            "name": {
+              "fallback": "金锭",
+              "key": "taoyuan.shop.tiejiangpu.gold_bar.name"
+            },
+            "price": 1200,
+            "shopId": "taoyuan:tiejiangpu",
+            "sortOrder": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "深层矿洞出产的金矿",
+              "key": "taoyuan.shop.tiejiangpu.gold_ore.description"
+            },
+            "groupId": "materials",
+            "groupName": {
+              "fallback": "材料",
+              "key": "taoyuan.shop.tiejiangpu.materials.name"
+            },
+            "id": "taoyuan:shop/tiejiangpu/materials/gold_ore/2",
+            "itemId": "taoyuan:gold_ore",
+            "name": {
+              "fallback": "金矿",
+              "key": "taoyuan.shop.tiejiangpu.gold_ore.name"
+            },
+            "price": 400,
+            "shopId": "taoyuan:tiejiangpu",
+            "sortOrder": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冶炼好的铁锭",
+              "key": "taoyuan.shop.tiejiangpu.iron_bar.description"
+            },
+            "groupId": "materials",
+            "groupName": {
+              "fallback": "材料",
+              "key": "taoyuan.shop.tiejiangpu.materials.name"
+            },
+            "id": "taoyuan:shop/tiejiangpu/materials/iron_bar/4",
+            "itemId": "taoyuan:iron_bar",
+            "name": {
+              "fallback": "铁锭",
+              "key": "taoyuan.shop.tiejiangpu.iron_bar.name"
+            },
+            "price": 600,
+            "shopId": "taoyuan:tiejiangpu",
+            "sortOrder": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "中层矿洞出产的铁矿",
+              "key": "taoyuan.shop.tiejiangpu.iron_ore.description"
+            },
+            "groupId": "materials",
+            "groupName": {
+              "fallback": "材料",
+              "key": "taoyuan.shop.tiejiangpu.materials.name"
+            },
+            "id": "taoyuan:shop/tiejiangpu/materials/iron_ore/1",
+            "itemId": "taoyuan:iron_ore",
+            "name": {
+              "fallback": "铁矿",
+              "key": "taoyuan.shop.tiejiangpu.iron_ore.name"
+            },
+            "price": 200,
+            "shopId": "taoyuan:tiejiangpu",
+            "sortOrder": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/cloth/6",
             "itemId": "taoyuan:cloth",
             "name": {
               "fallback": "布匹",
               "key": "taoyuan.shop.traveling_merchant.cloth.name"
             },
             "price": 1000,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 6
           }
         },
         {
@@ -55598,14 +56985,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/dragon_jade/0",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/dragon_jade/0",
             "itemId": "taoyuan:dragon_jade",
             "name": {
               "fallback": "龙玉",
               "key": "taoyuan.shop.traveling_merchant.dragon_jade.name"
             },
             "price": 800,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 0
           }
         },
         {
@@ -55615,14 +57008,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/ginseng/3",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/ginseng/3",
             "itemId": "taoyuan:ginseng",
             "name": {
               "fallback": "人参",
               "key": "taoyuan.shop.traveling_merchant.ginseng.name"
             },
             "price": 500,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 3
           }
         },
         {
@@ -55632,14 +57031,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/iridium_ore/5",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/iridium_ore/5",
             "itemId": "taoyuan:iridium_ore",
             "name": {
               "fallback": "铱矿",
               "key": "taoyuan.shop.traveling_merchant.iridium_ore.name"
             },
             "price": 700,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 5
           }
         },
         {
@@ -55649,14 +57054,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/moonstone/2",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/moonstone/2",
             "itemId": "taoyuan:moonstone",
             "name": {
               "fallback": "月光石",
               "key": "taoyuan.shop.traveling_merchant.moonstone.name"
             },
             "price": 400,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 2
           }
         },
         {
@@ -55666,14 +57077,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/prismatic_shard/1",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/prismatic_shard/1",
             "itemId": "taoyuan:prismatic_shard",
             "name": {
               "fallback": "五彩碎片",
               "key": "taoyuan.shop.traveling_merchant.prismatic_shard.name"
             },
             "price": 1200,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 1
           }
         },
         {
@@ -55683,14 +57100,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/rabbit_foot/7",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/rabbit_foot/7",
             "itemId": "taoyuan:rabbit_foot",
             "name": {
               "fallback": "幸运兔脚",
               "key": "taoyuan.shop.traveling_merchant.rabbit_foot.name"
             },
             "price": 1200,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 7
           }
         },
         {
@@ -55700,14 +57123,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/rain_totem/9",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/rain_totem/9",
             "itemId": "taoyuan:rain_totem",
             "name": {
               "fallback": "雨图腾",
               "key": "taoyuan.shop.traveling_merchant.rain_totem.name"
             },
             "price": 500,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 9
           }
         },
         {
@@ -55717,14 +57146,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/silk_ribbon/10",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/silk_ribbon/10",
             "itemId": "taoyuan:silk_ribbon",
             "name": {
               "fallback": "丝帕",
               "key": "taoyuan.shop.traveling_merchant.silk_ribbon.name"
             },
             "price": 500,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 10
           }
         },
         {
@@ -55734,14 +57169,20 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/truffle/8",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/truffle/8",
             "itemId": "taoyuan:truffle",
             "name": {
               "fallback": "松露",
               "key": "taoyuan.shop.traveling_merchant.truffle.name"
             },
             "price": 1400,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 8
           }
         },
         {
@@ -55751,14 +57192,2104 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
-            "id": "taoyuan:shop/traveling_merchant/wintersweet/4",
+            "groupId": "traveling",
+            "groupName": {
+              "fallback": "旅行商人",
+              "key": "taoyuan.shop.traveling_merchant.traveling.name"
+            },
+            "id": "taoyuan:shop/traveling_merchant/traveling/wintersweet/4",
             "itemId": "taoyuan:wintersweet",
             "name": {
               "fallback": "腊梅",
               "key": "taoyuan.shop.traveling_merchant.wintersweet.name"
             },
             "price": 150,
-            "shopId": "taoyuan:traveling_merchant"
+            "shopId": "taoyuan:traveling_merchant",
+            "sortOrder": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "喂养牲畜用",
+              "key": "taoyuan.shop.wanwupu.hay.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/hay/108",
+            "itemId": "taoyuan:hay",
+            "name": {
+              "fallback": "干草",
+              "key": "taoyuan.shop.wanwupu.hay.name"
+            },
+            "price": 50,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 108
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "使用后可以让明天下雨",
+              "key": "taoyuan.shop.wanwupu.rain_totem.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/rain_totem/111",
+            "itemId": "taoyuan:rain_totem",
+            "name": {
+              "fallback": "雨图腾",
+              "key": "taoyuan.shop.wanwupu.rain_totem.name"
+            },
+            "price": 300,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 111
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 杏子",
+              "key": "taoyuan.shop.wanwupu.sapling_apricot.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_apricot/104",
+            "itemId": "taoyuan:sapling_apricot",
+            "name": {
+              "fallback": "杏树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_apricot.name"
+            },
+            "price": 350,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 104
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 山楂",
+              "key": "taoyuan.shop.wanwupu.sapling_hawthorn.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_hawthorn/107",
+            "itemId": "taoyuan:sapling_hawthorn",
+            "name": {
+              "fallback": "山楂树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_hawthorn.name"
+            },
+            "price": 350,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 107
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 荔枝",
+              "key": "taoyuan.shop.wanwupu.sapling_lychee.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_lychee/101",
+            "itemId": "taoyuan:sapling_lychee",
+            "name": {
+              "fallback": "荔枝树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_lychee.name"
+            },
+            "price": 400,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 101
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 橘子",
+              "key": "taoyuan.shop.wanwupu.sapling_mandarin.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_mandarin/102",
+            "itemId": "taoyuan:sapling_mandarin",
+            "name": {
+              "fallback": "橘树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_mandarin.name"
+            },
+            "price": 350,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 102
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 鲜桃",
+              "key": "taoyuan.shop.wanwupu.sapling_peach.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_peach/100",
+            "itemId": "taoyuan:sapling_peach",
+            "name": {
+              "fallback": "桃树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_peach.name"
+            },
+            "price": 300,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 100
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 鲜柿",
+              "key": "taoyuan.shop.wanwupu.sapling_persimmon.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_persimmon/106",
+            "itemId": "taoyuan:sapling_persimmon",
+            "name": {
+              "fallback": "柿树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_persimmon.name"
+            },
+            "price": 400,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 106
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 梅花",
+              "key": "taoyuan.shop.wanwupu.sapling_plum.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_plum/103",
+            "itemId": "taoyuan:sapling_plum",
+            "name": {
+              "fallback": "梅树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_plum.name"
+            },
+            "price": 500,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 103
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "28天成熟 · 石榴",
+              "key": "taoyuan.shop.wanwupu.sapling_pomegranate.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sapling_pomegranate/105",
+            "itemId": "taoyuan:sapling_pomegranate",
+            "name": {
+              "fallback": "石榴树苗",
+              "key": "taoyuan.shop.wanwupu.sapling_pomegranate.name"
+            },
+            "price": 500,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 105
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "资源地点可原地过夜",
+              "key": "taoyuan.shop.wanwupu.sleeping_bag.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/sleeping_bag/110",
+            "itemId": "taoyuan:sleeping_bag",
+            "name": {
+              "fallback": "睡袋",
+              "key": "taoyuan.shop.wanwupu.sleeping_bag.name"
+            },
+            "price": 1200,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 110
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "建筑和加工的基础材料",
+              "key": "taoyuan.shop.wanwupu.wood.description"
+            },
+            "groupId": "goods",
+            "groupName": {
+              "fallback": "杂货",
+              "key": "taoyuan.shop.wanwupu.goods.name"
+            },
+            "id": "taoyuan:shop/wanwupu/goods/wood/109",
+            "itemId": "taoyuan:wood",
+            "name": {
+              "fallback": "木材",
+              "key": "taoyuan.shop.wanwupu.wood.name"
+            },
+            "price": 50,
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 109
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "4天成熟 → 售50文",
+              "key": "taoyuan.shop.wanwupu.seed_bamboo_shoot.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_bamboo_shoot/14",
+            "itemId": "taoyuan:seed_bamboo_shoot",
+            "name": {
+              "fallback": "春笋种子",
+              "key": "taoyuan.shop.wanwupu.seed_bamboo_shoot.name"
+            },
+            "price": 15,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 14
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "7天成熟 → 售85文",
+              "key": "taoyuan.shop.wanwupu.seed_broad_bean.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_broad_bean/13",
+            "itemId": "taoyuan:seed_broad_bean",
+            "name": {
+              "fallback": "蚕豆种子",
+              "key": "taoyuan.shop.wanwupu.seed_broad_bean.name"
+            },
+            "price": 25,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 13
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "3天成熟 → 售35文",
+              "key": "taoyuan.shop.wanwupu.seed_cabbage.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_cabbage/0",
+            "itemId": "taoyuan:seed_cabbage",
+            "name": {
+              "fallback": "青菜种子",
+              "key": "taoyuan.shop.wanwupu.seed_cabbage.name"
+            },
+            "price": 10,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 0
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "5天成熟 → 售60文",
+              "key": "taoyuan.shop.wanwupu.seed_chili.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_chili/19",
+            "itemId": "taoyuan:seed_chili",
+            "name": {
+              "fallback": "辣椒种子",
+              "key": "taoyuan.shop.wanwupu.seed_chili.name"
+            },
+            "price": 15,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 19
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "winter",
+              "spring"
+            ],
+            "description": {
+              "fallback": "4天成熟 → 售30文",
+              "key": "taoyuan.shop.wanwupu.seed_chives.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_chives/30",
+            "itemId": "taoyuan:seed_chives",
+            "name": {
+              "fallback": "韭菜种子",
+              "key": "taoyuan.shop.wanwupu.seed_chives.name"
+            },
+            "price": 8,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 30
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售120文",
+              "key": "taoyuan.shop.wanwupu.seed_chrysanthemum.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_chrysanthemum/10",
+            "itemId": "taoyuan:seed_chrysanthemum",
+            "name": {
+              "fallback": "菊花种子",
+              "key": "taoyuan.shop.wanwupu.seed_chrysanthemum.name"
+            },
+            "price": 35,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 10
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer",
+              "autumn"
+            ],
+            "description": {
+              "fallback": "8天成熟 → 售85文",
+              "key": "taoyuan.shop.wanwupu.seed_corn.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_corn/21",
+            "itemId": "taoyuan:seed_corn",
+            "name": {
+              "fallback": "玉米种子",
+              "key": "taoyuan.shop.wanwupu.seed_corn.name"
+            },
+            "price": 25,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 21
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "7天成熟 → 售90文",
+              "key": "taoyuan.shop.wanwupu.seed_eggplant.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_eggplant/18",
+            "itemId": "taoyuan:seed_eggplant",
+            "name": {
+              "fallback": "茄子种子",
+              "key": "taoyuan.shop.wanwupu.seed_eggplant.name"
+            },
+            "price": 28,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 18
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "winter"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售55文",
+              "key": "taoyuan.shop.wanwupu.seed_garlic.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_garlic/32",
+            "itemId": "taoyuan:seed_garlic",
+            "name": {
+              "fallback": "大蒜种子",
+              "key": "taoyuan.shop.wanwupu.seed_garlic.name"
+            },
+            "price": 15,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 32
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn",
+              "winter"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售70文",
+              "key": "taoyuan.shop.wanwupu.seed_ginger.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_ginger/26",
+            "itemId": "taoyuan:seed_ginger",
+            "name": {
+              "fallback": "生姜种子",
+              "key": "taoyuan.shop.wanwupu.seed_ginger.name"
+            },
+            "price": 20,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 26
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring",
+              "summer"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售45文",
+              "key": "taoyuan.shop.wanwupu.seed_green_bean.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_green_bean/16",
+            "itemId": "taoyuan:seed_green_bean",
+            "name": {
+              "fallback": "豆角种子",
+              "key": "taoyuan.shop.wanwupu.seed_green_bean.name"
+            },
+            "price": 12,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 16
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售100文",
+              "key": "taoyuan.shop.wanwupu.seed_jujube.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_jujube/24",
+            "itemId": "taoyuan:seed_jujube",
+            "name": {
+              "fallback": "红枣种子",
+              "key": "taoyuan.shop.wanwupu.seed_jujube.name"
+            },
+            "price": 30,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 24
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售55文",
+              "key": "taoyuan.shop.wanwupu.seed_loofah.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_loofah/17",
+            "itemId": "taoyuan:seed_loofah",
+            "name": {
+              "fallback": "丝瓜种子",
+              "key": "taoyuan.shop.wanwupu.seed_loofah.name"
+            },
+            "price": 18,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 17
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "8天成熟 → 售170文",
+              "key": "taoyuan.shop.wanwupu.seed_lotus_root.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_lotus_root/6",
+            "itemId": "taoyuan:seed_lotus_root",
+            "name": {
+              "fallback": "莲藕种子",
+              "key": "taoyuan.shop.wanwupu.seed_lotus_root.name"
+            },
+            "price": 50,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 6
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "9天成熟 → 售200文",
+              "key": "taoyuan.shop.wanwupu.seed_lotus_seed.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_lotus_seed/20",
+            "itemId": "taoyuan:seed_lotus_seed",
+            "name": {
+              "fallback": "莲子种子",
+              "key": "taoyuan.shop.wanwupu.seed_lotus_seed.name"
+            },
+            "price": 60,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 20
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "winter"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售45文",
+              "key": "taoyuan.shop.wanwupu.seed_mustard_green.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_mustard_green/29",
+            "itemId": "taoyuan:seed_mustard_green",
+            "name": {
+              "fallback": "芥菜种子",
+              "key": "taoyuan.shop.wanwupu.seed_mustard_green.name"
+            },
+            "price": 12,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 29
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "winter"
+            ],
+            "description": {
+              "fallback": "7天成熟 → 售50文",
+              "key": "taoyuan.shop.wanwupu.seed_napa_cabbage.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_napa_cabbage/27",
+            "itemId": "taoyuan:seed_napa_cabbage",
+            "name": {
+              "fallback": "白菜种子",
+              "key": "taoyuan.shop.wanwupu.seed_napa_cabbage.name"
+            },
+            "price": 12,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 27
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "8天成熟 → 售200文",
+              "key": "taoyuan.shop.wanwupu.seed_osmanthus.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_osmanthus/11",
+            "itemId": "taoyuan:seed_osmanthus",
+            "name": {
+              "fallback": "桂花种子",
+              "key": "taoyuan.shop.wanwupu.seed_osmanthus.name"
+            },
+            "price": 60,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 11
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "7天成熟 → 售140文",
+              "key": "taoyuan.shop.wanwupu.seed_peach.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_peach/15",
+            "itemId": "taoyuan:seed_peach",
+            "name": {
+              "fallback": "水蜜桃种子",
+              "key": "taoyuan.shop.wanwupu.seed_peach.name"
+            },
+            "price": 45,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 15
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "5天成熟 → 售65文",
+              "key": "taoyuan.shop.wanwupu.seed_peanut.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_peanut/23",
+            "itemId": "taoyuan:seed_peanut",
+            "name": {
+              "fallback": "花生种子",
+              "key": "taoyuan.shop.wanwupu.seed_peanut.name"
+            },
+            "price": 18,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 23
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "7天成熟 → 售150文",
+              "key": "taoyuan.shop.wanwupu.seed_persimmon.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_persimmon/25",
+            "itemId": "taoyuan:seed_persimmon",
+            "name": {
+              "fallback": "柿子种子",
+              "key": "taoyuan.shop.wanwupu.seed_persimmon.name"
+            },
+            "price": 40,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 25
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "5天成熟 → 售80文",
+              "key": "taoyuan.shop.wanwupu.seed_potato.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_potato/2",
+            "itemId": "taoyuan:seed_potato",
+            "name": {
+              "fallback": "土豆种子",
+              "key": "taoyuan.shop.wanwupu.seed_potato.name"
+            },
+            "price": 25,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "7天成熟 → 售180文",
+              "key": "taoyuan.shop.wanwupu.seed_pumpkin.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_pumpkin/8",
+            "itemId": "taoyuan:seed_pumpkin",
+            "name": {
+              "fallback": "南瓜种子",
+              "key": "taoyuan.shop.wanwupu.seed_pumpkin.name"
+            },
+            "price": 50,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "4天成熟 → 售55文",
+              "key": "taoyuan.shop.wanwupu.seed_radish.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_radish/1",
+            "itemId": "taoyuan:seed_radish",
+            "name": {
+              "fallback": "萝卜种子",
+              "key": "taoyuan.shop.wanwupu.seed_radish.name"
+            },
+            "price": 15,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "5天成熟 → 售50文",
+              "key": "taoyuan.shop.wanwupu.seed_rapeseed.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_rapeseed/12",
+            "itemId": "taoyuan:seed_rapeseed",
+            "name": {
+              "fallback": "油菜种子",
+              "key": "taoyuan.shop.wanwupu.seed_rapeseed.name"
+            },
+            "price": 15,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 12
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "7天成熟 → 售75文",
+              "key": "taoyuan.shop.wanwupu.seed_rice.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_rice/5",
+            "itemId": "taoyuan:seed_rice",
+            "name": {
+              "fallback": "稻谷种子",
+              "key": "taoyuan.shop.wanwupu.seed_rice.name"
+            },
+            "price": 20,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "4天成熟 → 售45文",
+              "key": "taoyuan.shop.wanwupu.seed_sesame.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_sesame/7",
+            "itemId": "taoyuan:seed_sesame",
+            "name": {
+              "fallback": "芝麻种子",
+              "key": "taoyuan.shop.wanwupu.seed_sesame.name"
+            },
+            "price": 15,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 7
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "winter"
+            ],
+            "description": {
+              "fallback": "12天成熟 → 售350文",
+              "key": "taoyuan.shop.wanwupu.seed_snow_lotus.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_snow_lotus/33",
+            "itemId": "taoyuan:seed_snow_lotus",
+            "name": {
+              "fallback": "雪莲种子",
+              "key": "taoyuan.shop.wanwupu.seed_snow_lotus.name"
+            },
+            "price": 100,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 33
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "winter"
+            ],
+            "description": {
+              "fallback": "5天成熟 → 售40文",
+              "key": "taoyuan.shop.wanwupu.seed_spinach.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_spinach/28",
+            "itemId": "taoyuan:seed_spinach",
+            "name": {
+              "fallback": "菠菜种子",
+              "key": "taoyuan.shop.wanwupu.seed_spinach.name"
+            },
+            "price": 10,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 28
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "5天成熟 → 售65文",
+              "key": "taoyuan.shop.wanwupu.seed_sweet_potato.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_sweet_potato/9",
+            "itemId": "taoyuan:seed_sweet_potato",
+            "name": {
+              "fallback": "红薯种子",
+              "key": "taoyuan.shop.wanwupu.seed_sweet_potato.name"
+            },
+            "price": 20,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 9
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "spring"
+            ],
+            "description": {
+              "fallback": "8天成熟 → 售160文",
+              "key": "taoyuan.shop.wanwupu.seed_tea.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_tea/3",
+            "itemId": "taoyuan:seed_tea",
+            "name": {
+              "fallback": "茶苗种子",
+              "key": "taoyuan.shop.wanwupu.seed_tea.name"
+            },
+            "price": 80,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "summer"
+            ],
+            "description": {
+              "fallback": "6天成熟 → 售130文",
+              "key": "taoyuan.shop.wanwupu.seed_watermelon.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_watermelon/4",
+            "itemId": "taoyuan:seed_watermelon",
+            "name": {
+              "fallback": "西瓜种子",
+              "key": "taoyuan.shop.wanwupu.seed_watermelon.name"
+            },
+            "price": 40,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "winter"
+            ],
+            "description": {
+              "fallback": "10天成熟 → 售60文",
+              "key": "taoyuan.shop.wanwupu.seed_winter_wheat.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_winter_wheat/31",
+            "itemId": "taoyuan:seed_winter_wheat",
+            "name": {
+              "fallback": "冬小麦种子",
+              "key": "taoyuan.shop.wanwupu.seed_winter_wheat.name"
+            },
+            "price": 15,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 31
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "availableSeasons": [
+              "autumn"
+            ],
+            "description": {
+              "fallback": "8天成熟 → 售150文",
+              "key": "taoyuan.shop.wanwupu.seed_yam.description"
+            },
+            "groupId": "seasonal_seeds",
+            "groupName": {
+              "fallback": "当季种子",
+              "key": "taoyuan.shop.wanwupu.seasonal_seeds.name"
+            },
+            "id": "taoyuan:shop/wanwupu/seasonal_seeds/seed_yam/22",
+            "itemId": "taoyuan:seed_yam",
+            "name": {
+              "fallback": "山药种子",
+              "key": "taoyuan.shop.wanwupu.seed_yam.name"
+            },
+            "price": 45,
+            "purchaseKind": "seed",
+            "shopId": "taoyuan:wanwupu",
+            "sortOrder": 22
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "提升作物品质概率+20%。",
+              "key": "taoyuan.shop.yaopu.basic_fertilizer.description"
+            },
+            "groupId": "fertilizers",
+            "groupName": {
+              "fallback": "肥料",
+              "key": "taoyuan.shop.yaopu.fertilizers.name"
+            },
+            "id": "taoyuan:shop/yaopu/fertilizers/basic_fertilizer/0",
+            "itemId": "taoyuan:basic_fertilizer",
+            "name": {
+              "fallback": "基础肥料",
+              "key": "taoyuan.shop.yaopu.basic_fertilizer.name"
+            },
+            "price": 25,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 0
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "加速作物生长33%。",
+              "key": "taoyuan.shop.yaopu.deluxe_speed_gro.description"
+            },
+            "groupId": "fertilizers",
+            "groupName": {
+              "fallback": "肥料",
+              "key": "taoyuan.shop.yaopu.fertilizers.name"
+            },
+            "id": "taoyuan:shop/yaopu/fertilizers/deluxe_speed_gro/3",
+            "itemId": "taoyuan:deluxe_speed_gro",
+            "name": {
+              "fallback": "高级激素",
+              "key": "taoyuan.shop.yaopu.deluxe_speed_gro.name"
+            },
+            "price": 100,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "提升作物品质概率+40%。",
+              "key": "taoyuan.shop.yaopu.quality_fertilizer.description"
+            },
+            "groupId": "fertilizers",
+            "groupName": {
+              "fallback": "肥料",
+              "key": "taoyuan.shop.yaopu.fertilizers.name"
+            },
+            "id": "taoyuan:shop/yaopu/fertilizers/quality_fertilizer/1",
+            "itemId": "taoyuan:quality_fertilizer",
+            "name": {
+              "fallback": "优质肥料",
+              "key": "taoyuan.shop.yaopu.quality_fertilizer.name"
+            },
+            "price": 75,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "100%隔夜保持浇水状态。",
+              "key": "taoyuan.shop.yaopu.quality_retaining_soil.description"
+            },
+            "groupId": "fertilizers",
+            "groupName": {
+              "fallback": "肥料",
+              "key": "taoyuan.shop.yaopu.fertilizers.name"
+            },
+            "id": "taoyuan:shop/yaopu/fertilizers/quality_retaining_soil/6",
+            "itemId": "taoyuan:quality_retaining_soil",
+            "name": {
+              "fallback": "优质保湿土",
+              "key": "taoyuan.shop.yaopu.quality_retaining_soil.name"
+            },
+            "price": 80,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 6
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "50%概率隔夜保持浇水状态。",
+              "key": "taoyuan.shop.yaopu.retaining_soil.description"
+            },
+            "groupId": "fertilizers",
+            "groupName": {
+              "fallback": "肥料",
+              "key": "taoyuan.shop.yaopu.fertilizers.name"
+            },
+            "id": "taoyuan:shop/yaopu/fertilizers/retaining_soil/5",
+            "itemId": "taoyuan:retaining_soil",
+            "name": {
+              "fallback": "保湿土",
+              "key": "taoyuan.shop.yaopu.retaining_soil.name"
+            },
+            "price": 30,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "加速作物生长25%。",
+              "key": "taoyuan.shop.yaopu.speed_gro.description"
+            },
+            "groupId": "fertilizers",
+            "groupName": {
+              "fallback": "肥料",
+              "key": "taoyuan.shop.yaopu.fertilizers.name"
+            },
+            "id": "taoyuan:shop/yaopu/fertilizers/speed_gro/2",
+            "itemId": "taoyuan:speed_gro",
+            "name": {
+              "fallback": "生长激素",
+              "key": "taoyuan.shop.yaopu.speed_gro.name"
+            },
+            "price": 50,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "让任何植物只需一天成熟，第二天即可收获。",
+              "key": "taoyuan.shop.yaopu.super_hormone.description"
+            },
+            "groupId": "fertilizers",
+            "groupName": {
+              "fallback": "肥料",
+              "key": "taoyuan.shop.yaopu.fertilizers.name"
+            },
+            "id": "taoyuan:shop/yaopu/fertilizers/super_hormone/4",
+            "itemId": "taoyuan:super_hormone",
+            "name": {
+              "fallback": "超级激素",
+              "key": "taoyuan.shop.yaopu.super_hormone.name"
+            },
+            "price": 500,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "治疗生病的牲畜",
+              "key": "taoyuan.shop.yaopu.animal_medicine.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/animal_medicine/102",
+            "itemId": "taoyuan:animal_medicine",
+            "name": {
+              "fallback": "兽药",
+              "key": "taoyuan.shop.yaopu.animal_medicine.name"
+            },
+            "price": 150,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 102
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "鱼塘专用饲料",
+              "key": "taoyuan.shop.yaopu.fish_feed.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/fish_feed/106",
+            "itemId": "taoyuan:fish_feed",
+            "name": {
+              "fallback": "鱼饲料",
+              "key": "taoyuan.shop.yaopu.fish_feed.name"
+            },
+            "price": 30,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 106
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "极其珍贵的野生人参",
+              "key": "taoyuan.shop.yaopu.ginseng.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/ginseng/101",
+            "itemId": "taoyuan:ginseng",
+            "name": {
+              "fallback": "人参",
+              "key": "taoyuan.shop.yaopu.ginseng.name"
+            },
+            "price": 600,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 101
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "山间野生的草药",
+              "key": "taoyuan.shop.yaopu.herb.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/herb/100",
+            "itemId": "taoyuan:herb",
+            "name": {
+              "fallback": "草药",
+              "key": "taoyuan.shop.yaopu.herb.name"
+            },
+            "price": 50,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 100
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "加速动物产出",
+              "key": "taoyuan.shop.yaopu.nourishing_feed.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/nourishing_feed/104",
+            "itemId": "taoyuan:nourishing_feed",
+            "name": {
+              "fallback": "滋补饲料",
+              "key": "taoyuan.shop.yaopu.nourishing_feed.name"
+            },
+            "price": 250,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 104
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "提升动物心情和好感",
+              "key": "taoyuan.shop.yaopu.premium_feed.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/premium_feed/103",
+            "itemId": "taoyuan:premium_feed",
+            "name": {
+              "fallback": "精饲料",
+              "key": "taoyuan.shop.yaopu.premium_feed.name"
+            },
+            "price": 200,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 103
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "喂食必定治愈疾病",
+              "key": "taoyuan.shop.yaopu.vitality_feed.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/vitality_feed/105",
+            "itemId": "taoyuan:vitality_feed",
+            "name": {
+              "fallback": "活力饲料",
+              "key": "taoyuan.shop.yaopu.vitality_feed.name"
+            },
+            "price": 300,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 105
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "改善鱼塘水质",
+              "key": "taoyuan.shop.yaopu.water_purifier.description"
+            },
+            "groupId": "medicine",
+            "groupName": {
+              "fallback": "药材",
+              "key": "taoyuan.shop.yaopu.medicine.name"
+            },
+            "id": "taoyuan:shop/yaopu/medicine/water_purifier/107",
+            "itemId": "taoyuan:water_purifier",
+            "name": {
+              "fallback": "水质改良剂",
+              "key": "taoyuan.shop.yaopu.water_purifier.name"
+            },
+            "price": 100,
+            "shopId": "taoyuan:yaopu",
+            "sortOrder": 107
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "鱼更安静，挣扎成功率+5%。",
+              "key": "taoyuan.shop.yugupu.deluxe_bait.description"
+            },
+            "groupId": "baits",
+            "groupName": {
+              "fallback": "鱼饵",
+              "key": "taoyuan.shop.yugupu.baits.name"
+            },
+            "id": "taoyuan:shop/yugupu/baits/deluxe_bait/3",
+            "itemId": "taoyuan:deluxe_bait",
+            "name": {
+              "fallback": "精致鱼饵",
+              "key": "taoyuan.shop.yugupu.deluxe_bait.name"
+            },
+            "price": 80,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "无视季节限制，可钓到所有鱼。",
+              "key": "taoyuan.shop.yugupu.magic_bait.description"
+            },
+            "groupId": "baits",
+            "groupName": {
+              "fallback": "鱼饵",
+              "key": "taoyuan.shop.yugupu.baits.name"
+            },
+            "id": "taoyuan:shop/yugupu/baits/magic_bait/2",
+            "itemId": "taoyuan:magic_bait",
+            "name": {
+              "fallback": "魔法鱼饵",
+              "key": "taoyuan.shop.yugupu.magic_bait.name"
+            },
+            "price": 120,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "使鱼更安静，降低猛冲概率。",
+              "key": "taoyuan.shop.yugupu.standard_bait.description"
+            },
+            "groupId": "baits",
+            "groupName": {
+              "fallback": "鱼饵",
+              "key": "taoyuan.shop.yugupu.baits.name"
+            },
+            "id": "taoyuan:shop/yugupu/baits/standard_bait/0",
+            "itemId": "taoyuan:standard_bait",
+            "name": {
+              "fallback": "普通鱼饵",
+              "key": "taoyuan.shop.yugupu.standard_bait.name"
+            },
+            "price": 5,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 0
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "困难鱼权重×2，传说鱼权重×1.5。",
+              "key": "taoyuan.shop.yugupu.targeted_bait.description"
+            },
+            "groupId": "baits",
+            "groupName": {
+              "fallback": "鱼饵",
+              "key": "taoyuan.shop.yugupu.baits.name"
+            },
+            "id": "taoyuan:shop/yugupu/baits/targeted_bait/4",
+            "itemId": "taoyuan:targeted_bait",
+            "name": {
+              "fallback": "定向鱼饵",
+              "key": "taoyuan.shop.yugupu.targeted_bait.name"
+            },
+            "price": 180,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "25%概率获得双倍鱼获。",
+              "key": "taoyuan.shop.yugupu.wild_bait.description"
+            },
+            "groupId": "baits",
+            "groupName": {
+              "fallback": "鱼饵",
+              "key": "taoyuan.shop.yugupu.baits.name"
+            },
+            "id": "taoyuan:shop/yugupu/baits/wild_bait/1",
+            "itemId": "taoyuan:wild_bait",
+            "name": {
+              "fallback": "野生鱼饵",
+              "key": "taoyuan.shop.yugupu.wild_bait.name"
+            },
+            "price": 25,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "挣扎时成功率+25%。",
+              "key": "taoyuan.shop.yugupu.cork_bobber.description"
+            },
+            "groupId": "tackles",
+            "groupName": {
+              "fallback": "浮漂",
+              "key": "taoyuan.shop.yugupu.tackles.name"
+            },
+            "id": "taoyuan:shop/yugupu/tackles/cork_bobber/102",
+            "itemId": "taoyuan:cork_bobber",
+            "name": {
+              "fallback": "软木浮漂",
+              "key": "taoyuan.shop.yugupu.cork_bobber.name"
+            },
+            "price": 250,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 102
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "减少鱼猛冲和翻腾概率各10%。",
+              "key": "taoyuan.shop.yugupu.lead_bobber.description"
+            },
+            "groupId": "tackles",
+            "groupName": {
+              "fallback": "浮漂",
+              "key": "taoyuan.shop.yugupu.tackles.name"
+            },
+            "id": "taoyuan:shop/yugupu/tackles/lead_bobber/104",
+            "itemId": "taoyuan:lead_bobber",
+            "name": {
+              "fallback": "铅坠浮漂",
+              "key": "taoyuan.shop.yugupu.lead_bobber.name"
+            },
+            "price": 200,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 104
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "钓到的鱼品质+1档。",
+              "key": "taoyuan.shop.yugupu.quality_bobber.description"
+            },
+            "groupId": "tackles",
+            "groupName": {
+              "fallback": "浮漂",
+              "key": "taoyuan.shop.yugupu.tackles.name"
+            },
+            "id": "taoyuan:shop/yugupu/tackles/quality_bobber/103",
+            "itemId": "taoyuan:quality_bobber",
+            "name": {
+              "fallback": "品质浮漂",
+              "key": "taoyuan.shop.yugupu.quality_bobber.name"
+            },
+            "price": 500,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 103
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "减少50%钓鱼体力消耗。",
+              "key": "taoyuan.shop.yugupu.spinner.description"
+            },
+            "groupId": "tackles",
+            "groupName": {
+              "fallback": "浮漂",
+              "key": "taoyuan.shop.yugupu.tackles.name"
+            },
+            "id": "taoyuan:shop/yugupu/tackles/spinner/100",
+            "itemId": "taoyuan:spinner",
+            "name": {
+              "fallback": "旋转浮漂",
+              "key": "taoyuan.shop.yugupu.spinner.name"
+            },
+            "price": 250,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 100
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "断线时获得1次额外机会。",
+              "key": "taoyuan.shop.yugupu.trap_bobber.description"
+            },
+            "groupId": "tackles",
+            "groupName": {
+              "fallback": "浮漂",
+              "key": "taoyuan.shop.yugupu.tackles.name"
+            },
+            "id": "taoyuan:shop/yugupu/tackles/trap_bobber/101",
+            "itemId": "taoyuan:trap_bobber",
+            "name": {
+              "fallback": "陷阱浮漂",
+              "key": "taoyuan.shop.yugupu.trap_bobber.name"
+            },
+            "price": 200,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 101
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*shop*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "放置在钓鱼地点，每日自动捕获水产（需鱼饵）",
+              "key": "taoyuan.shop.yugupu.crab_pot.description"
+            },
+            "groupId": "tools",
+            "groupName": {
+              "fallback": "其他商品",
+              "key": "taoyuan.shop.yugupu.tools.name"
+            },
+            "id": "taoyuan:shop/yugupu/tools/crab_pot/200",
+            "itemId": "taoyuan:crab_pot",
+            "name": {
+              "fallback": "蟹笼",
+              "key": "taoyuan.shop.yugupu.crab_pot.name"
+            },
+            "price": 1500,
+            "shopId": "taoyuan:yugupu",
+            "sortOrder": 200
           }
         }
       ]
@@ -55843,5 +59374,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:a1d522960de67d295025aeca726ce2064480aa2a27bd2ea86713b51de815aee5"
+  "snapshotHash": "sha256:e0c44dbdad73107ebb77650c07180791fbb933991d02e871fcf4aec7c375d284"
 }

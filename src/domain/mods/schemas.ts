@@ -353,16 +353,30 @@ export const ShopDefSchema = Type.Object(
   { $id: 'taoyuan.registry.ShopDef', additionalProperties: false }
 )
 
+export const ShopOfferPurchaseKindSchema = Type.Union([
+  Type.Literal('item'),
+  Type.Literal('seed'),
+  Type.Literal('weapon'),
+  Type.Literal('hat'),
+  Type.Literal('shoe')
+])
+
 export const ShopOfferDefSchema = Type.Object(
   {
     id: ContentIdSchema,
     shopId: ContentIdSchema,
     itemId: ContentIdSchema,
     name: Type.Optional(LocalizedTextRefSchema),
+    description: Type.Optional(LocalizedTextRefSchema),
+    groupId: Type.Optional(Type.String({ minLength: 1 })),
+    groupName: Type.Optional(LocalizedTextRefSchema),
+    purchaseKind: Type.Optional(ShopOfferPurchaseKindSchema),
     price: Type.Integer({ minimum: 0 }),
     quantity: Type.Optional(Type.Integer({ minimum: 1 })),
     weeklyLimit: Type.Optional(Type.Integer({ minimum: 0 })),
-    totalLimit: Type.Optional(Type.Integer({ minimum: 0 }))
+    totalLimit: Type.Optional(Type.Integer({ minimum: 0 })),
+    sortOrder: Type.Optional(Type.Integer({ minimum: 0 })),
+    availableSeasons: Type.Optional(Type.Array(SeasonSchema, { minItems: 1, uniqueItems: true }))
   },
   { $id: 'taoyuan.registry.ShopOfferDef', additionalProperties: false }
 )
@@ -412,6 +426,7 @@ export type EnchantmentDef = Static<typeof EnchantmentDefSchema>
 export type RecipeIngredient = Static<typeof RecipeIngredientSchema>
 export type RecipeDef = Static<typeof RecipeDefSchema>
 export type ShopDef = Static<typeof ShopDefSchema>
+export type ShopOfferPurchaseKind = Static<typeof ShopOfferPurchaseKindSchema>
 export type ShopOfferDef = Static<typeof ShopOfferDefSchema>
 
 export type OfficialRegistryId = keyof typeof OFFICIAL_REGISTRY_SCHEMAS

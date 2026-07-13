@@ -2,7 +2,7 @@ import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import type { RegistrySet } from './registry'
-import type { CropDef, ItemDef, RecipeDef, ShopDef, TagDef } from './schemas'
+import type { CropDef, ItemDef, RecipeDef, Season, ShopDef, ShopOfferDef, TagDef } from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
 
 let officialRegistrySet: RegistrySet | null = null
@@ -61,6 +61,56 @@ export const getOfficialItemDefs = (): readonly Readonly<ItemDef>[] =>
 
 export const getOfficialShopDefs = (): readonly Readonly<ShopDef>[] =>
   getOfficialRegistrySet().get<ShopDef>(toOfficialRegistryTypeId('shop')).values()
+
+export const getOfficialShopOfferDefs = (): readonly Readonly<ShopOfferDef>[] =>
+  getOfficialRegistrySet().get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer')).values()
+
+export interface OfficialShopOfferQuery {
+  shopId: string
+  season?: Season
+}
+
+export interface OfficialShopOfferGroup {
+  groupId: string
+  groupName: string
+  offers: readonly Readonly<ShopOfferDef>[]
+}
+
+const compareShopOffers = (a: Readonly<ShopOfferDef>, b: Readonly<ShopOfferDef>): number =>
+  (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id.localeCompare(b.id)
+
+export const getOfficialShopOffersForShop = (
+  query: OfficialShopOfferQuery
+): readonly Readonly<ShopOfferDef>[] => {
+  const shopId = toQueryContentId(query.shopId)
+  if (!shopId) return []
+  return getOfficialShopOfferDefs()
+    .filter(offer => offer.shopId === shopId)
+    .filter(offer => !query.season || !offer.availableSeasons || offer.availableSeasons.includes(query.season))
+    .slice()
+    .sort(compareShopOffers)
+}
+
+export const getOfficialShopOfferGroupsForShop = (
+  query: OfficialShopOfferQuery
+): readonly OfficialShopOfferGroup[] => {
+  const groups = new Map<string, { groupName: string; offers: Readonly<ShopOfferDef>[] }>()
+  for (const offer of getOfficialShopOffersForShop(query)) {
+    const groupId = offer.groupId ?? 'default'
+    const groupName = offer.groupName?.fallback ?? groupId
+    const group = groups.get(groupId)
+    if (group) {
+      group.offers.push(offer)
+    } else {
+      groups.set(groupId, { groupName, offers: [offer] })
+    }
+  }
+  return Array.from(groups.entries(), ([groupId, group]) => ({
+    groupId,
+    groupName: group.groupName,
+    offers: group.offers
+  }))
+}
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)

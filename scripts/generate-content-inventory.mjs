@@ -295,6 +295,38 @@ const symbolReviewOverrides = new Map(Object.entries({
   'src/data/shops.ts:getShopById': {
     status: 'verified',
     rationale: 'Legacy getShopById() signature is retained; the Phase 3 query facade resolves getOfficialShopById() through taoyuan:shop and returns the same local-ID ShopDef shape.'
+  },
+  'src/data/weapons.ts:SHOP_WEAPONS': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies the SHOP_WEAPONS purchase projection through taoyuan:shop_offer; weapon definitions and combat behavior remain owned by later equipment/enchantment phases.'
+  },
+  'src/data/hats.ts:SHOP_HATS': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies the SHOP_HATS purchase projection through taoyuan:shop_offer; full hat equipment content remains available through legacy data until equipment migration.'
+  },
+  'src/data/shoes.ts:SHOP_SHOES': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies the SHOP_SHOES purchase projection through taoyuan:shop_offer; full shoe equipment content remains available through legacy data until equipment migration.'
+  },
+  'src/data/processing.ts:FERTILIZERS': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies fertilizer shopPrice/name/description projection through taoyuan:shop_offer; processing and fertilizer behavior remain in later production migration scope.'
+  },
+  'src/data/processing.ts:BAITS': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies bait shopPrice/name/description projection through taoyuan:shop_offer; fishing behavior remains framework-owned.'
+  },
+  'src/data/processing.ts:TACKLES': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies tackle shopPrice/name/description projection through taoyuan:shop_offer; tackle durability and fishing behavior remain framework-owned.'
+  },
+  'src/data/animals.ts:HAY_PRICE': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies hay purchase price projection through taoyuan:shop_offer; animal feeding rules remain framework-owned.'
+  },
+  'src/data/fruitTrees.ts:FRUIT_TREE_DEFS': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies fruit-tree sapling shop projection through taoyuan:shop_offer; tree growth and harvest behavior remain later agriculture migration scope.'
   }
 }))
 

@@ -1,12 +1,17 @@
 import { ITEMS } from '@/data/items'
 import { CROPS } from '@/data/crops'
 import { RECIPES } from '@/data/recipes'
-import { ENCHANTMENTS } from '@/data/weapons'
+import { ENCHANTMENTS, SHOP_WEAPONS } from '@/data/weapons'
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
 import { SHOPS, type ShopDef as LegacyShopDef } from '@/data/shops'
+import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
+import { SHOP_HATS } from '@/data/hats'
+import { SHOP_SHOES } from '@/data/shoes'
+import { HAY_PRICE } from '@/data/animals'
+import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
 import type { RecipeDef as LegacyRecipeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { MonsterDef as LegacyMonsterDef } from '@/types/skill'
@@ -236,34 +241,254 @@ export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
 
 export const createOfficialShops = (): ShopDef[] => SHOPS.map(adaptLegacyShop)
 
-const createShopOffer = (
-  shopId: string,
-  itemId: string,
-  price: number,
-  index: number,
-  name?: string,
+interface LegacyShopOfferInput {
+  shopId: string
+  itemId: string
+  price: number
+  index: number
+  groupId?: string
+  groupName?: string
+  name?: string
+  description?: string
+  purchaseKind?: ShopOfferDef['purchaseKind']
   weeklyLimit?: number
-): ShopOfferDef => ({
-  id: toOfficialContentId(`shop/${shopId}/${itemId}/${index}`),
-  shopId: toOfficialContentId(shopId),
-  itemId: toOfficialContentId(itemId),
-  name: name ? text(`taoyuan.shop.${shopId}.${itemId}.name`, name) : undefined,
-  price,
-  weeklyLimit
+  availableSeasons?: ShopOfferDef['availableSeasons']
+}
+
+const createShopOffer = (offer: LegacyShopOfferInput): ShopOfferDef => ({
+  id: toOfficialContentId(`shop/${offer.shopId}/${offer.groupId ?? 'default'}/${offer.itemId}/${offer.index}`),
+  shopId: toOfficialContentId(offer.shopId),
+  itemId: toOfficialContentId(offer.itemId),
+  ...(offer.name ? { name: text(`taoyuan.shop.${offer.shopId}.${offer.itemId}.name`, offer.name) } : {}),
+  ...(offer.description ? { description: text(`taoyuan.shop.${offer.shopId}.${offer.itemId}.description`, offer.description) } : {}),
+  ...(offer.groupId ? { groupId: offer.groupId } : {}),
+  ...(offer.groupName ? { groupName: text(`taoyuan.shop.${offer.shopId}.${offer.groupId}.name`, offer.groupName) } : {}),
+  ...(offer.purchaseKind ? { purchaseKind: offer.purchaseKind } : {}),
+  price: offer.price,
+  ...(offer.weeklyLimit !== undefined ? { weeklyLimit: offer.weeklyLimit } : {}),
+  sortOrder: offer.index,
+  ...(offer.availableSeasons ? { availableSeasons: [...offer.availableSeasons] } : {})
 })
 
+const coreShopItemOffers: LegacyShopOfferInput[] = [
+  ...CROPS.filter(crop => crop.seedPrice > 0).map((crop, index) => ({
+    shopId: 'wanwupu',
+    itemId: crop.seedId,
+    price: crop.seedPrice,
+    index,
+    groupId: 'seasonal_seeds',
+    groupName: '当季种子',
+    name: `${crop.name}种子`,
+    description: `${crop.growthDays}天成熟 → 售${crop.sellPrice}文`,
+    purchaseKind: 'seed' as const,
+    availableSeasons: crop.season
+  })),
+  ...FRUIT_TREE_DEFS.map((tree, index) => ({
+    shopId: 'wanwupu',
+    itemId: tree.saplingId,
+    price: tree.saplingPrice,
+    index: 100 + index,
+    groupId: 'goods',
+    groupName: '杂货',
+    name: `${tree.name}苗`,
+    description: `28天成熟 · ${tree.fruitName}`
+  })),
+  ...[
+    { itemId: 'hay', name: '干草', price: HAY_PRICE, description: '喂养牲畜用' },
+    { itemId: 'wood', name: '木材', price: 50, description: '建筑和加工的基础材料' },
+    { itemId: 'sleeping_bag', name: '睡袋', price: 1200, description: '资源地点可原地过夜' },
+    { itemId: 'rain_totem', name: '雨图腾', price: 300, description: '使用后可以让明天下雨' }
+  ].map((item, index) => ({
+    shopId: 'wanwupu',
+    itemId: item.itemId,
+    price: item.price,
+    index: 100 + FRUIT_TREE_DEFS.length + index,
+    groupId: 'goods',
+    groupName: '杂货',
+    name: item.name,
+    description: item.description
+  })),
+  ...[
+    { itemId: 'copper_ore', name: '铜矿', price: 100, description: '矿洞中常见的铜矿' },
+    { itemId: 'iron_ore', name: '铁矿', price: 200, description: '中层矿洞出产的铁矿' },
+    { itemId: 'gold_ore', name: '金矿', price: 400, description: '深层矿洞出产的金矿' },
+    { itemId: 'copper_bar', name: '铜锭', price: 300, description: '冶炼好的铜锭' },
+    { itemId: 'iron_bar', name: '铁锭', price: 600, description: '冶炼好的铁锭' },
+    { itemId: 'gold_bar', name: '金锭', price: 1200, description: '冶炼好的金锭' },
+    { itemId: 'charcoal', name: '木炭', price: 100, description: '烧制的木炭' }
+  ].map((item, index) => ({
+    shopId: 'tiejiangpu',
+    itemId: item.itemId,
+    price: item.price,
+    index,
+    groupId: 'materials',
+    groupName: '材料',
+    name: item.name,
+    description: item.description
+  })),
+  ...SHOP_WEAPONS.map((weapon, index) => ({
+    shopId: 'biaoju',
+    itemId: weapon.id,
+    price: weapon.shopPrice!,
+    index,
+    groupId: 'weapons',
+    groupName: '武器',
+    name: weapon.name,
+    description: weapon.description,
+    purchaseKind: 'weapon' as const
+  })),
+  ...BAITS.filter(bait => bait.shopPrice !== null).map((bait, index) => ({
+    shopId: 'yugupu',
+    itemId: bait.id,
+    price: bait.shopPrice!,
+    index,
+    groupId: 'baits',
+    groupName: '鱼饵',
+    name: bait.name,
+    description: bait.description
+  })),
+  ...TACKLES.filter(tackle => tackle.shopPrice !== null).map((tackle, index) => ({
+    shopId: 'yugupu',
+    itemId: tackle.id,
+    price: tackle.shopPrice!,
+    index: 100 + index,
+    groupId: 'tackles',
+    groupName: '浮漂',
+    name: tackle.name,
+    description: tackle.description
+  })),
+  {
+    shopId: 'yugupu',
+    itemId: 'crab_pot',
+    price: 1500,
+    index: 200,
+    groupId: 'tools',
+    groupName: '其他商品',
+    name: '蟹笼',
+    description: '放置在钓鱼地点，每日自动捕获水产（需鱼饵）'
+  },
+  ...FERTILIZERS.filter(fertilizer => fertilizer.shopPrice !== null).map((fertilizer, index) => ({
+    shopId: 'yaopu',
+    itemId: fertilizer.id,
+    price: fertilizer.shopPrice!,
+    index: index,
+    groupId: 'fertilizers',
+    groupName: '肥料',
+    name: fertilizer.name,
+    description: fertilizer.description
+  })),
+  ...[
+    { itemId: 'herb', name: '草药', price: 50, description: '山间野生的草药' },
+    { itemId: 'ginseng', name: '人参', price: 600, description: '极其珍贵的野生人参' },
+    { itemId: 'animal_medicine', name: '兽药', price: 150, description: '治疗生病的牲畜' },
+    { itemId: 'premium_feed', name: '精饲料', price: 200, description: '提升动物心情和好感' },
+    { itemId: 'nourishing_feed', name: '滋补饲料', price: 250, description: '加速动物产出' },
+    { itemId: 'vitality_feed', name: '活力饲料', price: 300, description: '喂食必定治愈疾病' },
+    { itemId: 'fish_feed', name: '鱼饲料', price: 30, description: '鱼塘专用饲料' },
+    { itemId: 'water_purifier', name: '水质改良剂', price: 100, description: '改善鱼塘水质' }
+  ].map((item, index) => ({
+    shopId: 'yaopu',
+    itemId: item.itemId,
+    price: item.price,
+    index: 100 + index,
+    groupId: 'medicine',
+    groupName: '药材',
+    name: item.name,
+    description: item.description
+  })),
+  ...[
+    { itemId: 'cloth', name: '布匹', price: 1200, description: '用羊毛纺织的布匹' },
+    { itemId: 'silk_cloth', name: '丝绸', price: 500, description: '华美的丝绸' },
+    { itemId: 'alpaca_cloth', name: '羊驼绒', price: 900, description: '极其柔软的羊驼绒布' },
+    { itemId: 'felt', name: '毛毡', price: 600, description: '用兔毛压制的毛毡' },
+    { itemId: 'silk_ribbon', name: '丝帕', price: 500, description: '精心绣制的丝帕' },
+    { itemId: 'jade_ring', name: '翡翠戒指', price: 1500, description: '可以用来求婚' },
+    { itemId: 'zhiji_jade', name: '知己玉佩', price: 1500, description: '赠予同性挚友可结为知己' },
+    { itemId: 'pine_incense', name: '松香', price: 250, description: '清新的松香' },
+    { itemId: 'camphor_incense', name: '樟脑香', price: 400, description: '提神醒脑' },
+    { itemId: 'osmanthus_incense', name: '桂花香', price: 800, description: '馥郁的桂花香' }
+  ].map((item, index) => ({
+    shopId: 'chouduanzhuang',
+    itemId: item.itemId,
+    price: item.price,
+    index,
+    groupId: 'textiles',
+    groupName: '布匹',
+    name: item.name,
+    description: item.description
+  })),
+  ...SHOP_HATS.map((hat, index) => ({
+    shopId: 'chouduanzhuang',
+    itemId: hat.id,
+    price: hat.shopPrice!,
+    index: 100 + index,
+    groupId: 'hats',
+    groupName: '帽子',
+    name: hat.name,
+    description: hat.description,
+    purchaseKind: 'hat' as const
+  })),
+  ...SHOP_SHOES.map((shoe, index) => ({
+    shopId: 'chouduanzhuang',
+    itemId: shoe.id,
+    price: shoe.shopPrice!,
+    index: 200 + index,
+    groupId: 'shoes',
+    groupName: '鞋子',
+    name: shoe.name,
+    description: shoe.description,
+    purchaseKind: 'shoe' as const
+  }))
+]
+
 export const createOfficialShopOffers = (): ShopOfferDef[] => [
+  ...coreShopItemOffers.map(createShopOffer),
   ...HANHAI_FIXED_ITEMS.map((item, index) =>
-    createShopOffer('hanhai', item.itemId, item.price, index, item.name, item.weeklyLimit)
+    createShopOffer({
+      shopId: 'hanhai',
+      itemId: item.itemId,
+      price: item.price,
+      index,
+      groupId: 'fixed',
+      groupName: '固定商品',
+      name: item.name,
+      weeklyLimit: item.weeklyLimit
+    })
   ),
   ...HANHAI_ROTATING_POOL.map((item, index) =>
-    createShopOffer('hanhai_rotating', item.itemId, item.price, index, item.name, item.weeklyLimit)
+    createShopOffer({
+      shopId: 'hanhai_rotating',
+      itemId: item.itemId,
+      price: item.price,
+      index,
+      groupId: 'rotating',
+      groupName: '轮换商品',
+      name: item.name,
+      weeklyLimit: item.weeklyLimit
+    })
   ),
   ...GUILD_SHOP_ITEMS.map((item, index) =>
-    createShopOffer('guild', item.itemId, item.price, index, item.name, item.weeklyLimit)
+    createShopOffer({
+      shopId: 'guild',
+      itemId: item.itemId,
+      price: item.price,
+      index,
+      groupId: 'guild',
+      groupName: '行会商品',
+      name: item.name,
+      weeklyLimit: item.weeklyLimit
+    })
   ),
   ...TRAVELING_MERCHANT_POOL.map((item, index) =>
-    createShopOffer('traveling_merchant', item.itemId, item.basePrice, index, item.name)
+    createShopOffer({
+      shopId: 'traveling_merchant',
+      itemId: item.itemId,
+      price: item.basePrice,
+      index,
+      groupId: 'traveling',
+      groupName: '旅行商人',
+      name: item.name
+    })
   )
 ]
 
