@@ -134,6 +134,33 @@ fileDefaults.set('src/data/monsters.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/treeDefinitions.ts', {
+  file: 'src/data/treeDefinitions.ts',
+  classification: 'content',
+  domains: ['fruit_tree', 'wild_tree'],
+  candidateTargets: ['taoyuan:tree'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/fruitTrees.ts', {
+  file: 'src/data/fruitTrees.ts',
+  classification: 'mixed',
+  domains: ['fruit_tree', 'lookup'],
+  candidateTargets: ['taoyuan:tree', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/wildTrees.ts', {
+  file: 'src/data/wildTrees.ts',
+  classification: 'mixed',
+  domains: ['wild_tree', 'lookup'],
+  candidateTargets: ['taoyuan:tree', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 const dataFiles = fs.readdirSync(dataRoot)
   .filter(file => file.endsWith('.ts'))
   .map(file => path.join(dataRoot, file))
@@ -334,8 +361,50 @@ const symbolReviewOverrides = new Map(Object.entries({
     rationale: 'Phase 3 shop offer pilot verifies hay purchase price projection through taoyuan:shop_offer; animal feeding rules remain framework-owned.'
   },
   'src/data/fruitTrees.ts:FRUIT_TREE_DEFS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 3 shop offer pilot verifies fruit-tree sapling shop projection through taoyuan:shop_offer; tree growth and harvest behavior remain later agriculture migration scope.'
+    rationale: 'Phase 6 keeps FRUIT_TREE_DEFS as an original-name re-export from the unique treeDefinitions leaf source; runtime Store, composable and ShopView consumers now query taoyuan:tree.'
+  },
+  'src/data/fruitTrees.ts:getFruitTreeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getFruitTreeDef() signature is retained and now resolves taoyuan:tree before returning an equivalent local-ID FruitTreeDef compatibility object.'
+  },
+  'src/data/wildTrees.ts:WILD_TREE_DEFS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps WILD_TREE_DEFS as an original-name re-export from the unique treeDefinitions leaf source; runtime Store and composable consumers now query taoyuan:tree.'
+  },
+  'src/data/wildTrees.ts:getWildTreeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getWildTreeDef() signature is retained and now resolves taoyuan:tree before returning an equivalent local-ID WildTreeDef compatibility object.'
+  },
+  'src/data/treeDefinitions.ts:FRUIT_TREE_DEFINITIONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all eight legacy fruit-tree definitions; Phase 6 projects every field into taoyuan:tree and verifies order and behavior equivalence.'
+  },
+  'src/data/treeDefinitions.ts:WILD_TREE_DEFINITIONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all three legacy wild-tree definitions; Phase 6 projects every field into taoyuan:tree and verifies order and behavior equivalence.'
   },
   'src/data/weapons.ts:MONSTER_DROP_WEAPONS': {
     classification: 'derived',
@@ -619,6 +688,56 @@ const reviewedArtifacts = [
     migrationPhase: [5],
     status: 'verified',
     rationale: 'Resolves the three skull cavern pools while thresholds, boss cadence, scaling and random selection remain framework-owned.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'TreeDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for the strict fruit/wild discriminated union; generated tree.schema.json rejects mixed variants and invalid lifecycle values.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyFruitTree/adaptLegacyWildTree/createOfficialTrees',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects the unique leaf definitions into eleven ordered official tree entries without changing local IDs, names, prices, seasons, lifecycle values or products.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialTreeDef/getOfficialTreeDefs/getOfficialFruitTreeDefs/getOfficialWildTreeDefs',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry definitions by local or namespaced ID and preserves official fruit-then-wild registration order.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialFruitTreeById/getOfficialWildTreeById',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Builds independent legacy compatibility objects for Store and composable consumers while preserving persisted local tree type IDs.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialFruitTreeBySaplingId/getOfficialTreeByProductItemId',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tree',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies ShopView sapling lookup and product lookup for fruit or tap output using local or namespaced item IDs.'
   }
 ]
 
@@ -667,7 +786,7 @@ const entries = dataFiles.map(file => {
 const inventory = {
   inventoryVersion: 2,
   sourceRoot,
-  capturedAt: '2026-07-13',
+  capturedAt: '2026-07-15',
   summary: {
     fileCount: entries.length,
     approximateLineCount: entries.reduce((total, entry) => total + entry.lines, 0),

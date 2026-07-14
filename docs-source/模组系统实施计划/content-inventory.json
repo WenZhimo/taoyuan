@@ -1,14 +1,14 @@
 {
   "inventoryVersion": 2,
   "sourceRoot": "src/data",
-  "capturedAt": "2026-07-13",
+  "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 45,
+    "fileCount": 46,
     "approximateLineCount": 30844,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 427,
-    "reviewedArtifactCount": 10
+    "symbolCount": 429,
+    "reviewedArtifactCount": 15
   },
   "entries": [
     {
@@ -2180,56 +2180,58 @@
     },
     {
       "file": "src/data/fruitTrees.ts",
-      "lines": 100,
       "classification": "mixed",
       "domains": [
         "fruit_tree",
         "lookup"
       ],
       "candidateTargets": [
-        "taoyuan:fruit_tree",
+        "taoyuan:tree",
         "compatibility_adapter"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 8,
       "symbols": [
         {
           "file": "src/data/fruitTrees.ts",
           "exportName": "FRUIT_TREE_DEFS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:fruit_tree",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:tree",
           "persistentIds": true,
           "consumers": [
-            "src/composables/farm/useTreeActions.ts",
             "src/data/items.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useFarmStore.ts",
+            "src/tests/composables/useTreeActions.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/treeRegistryPilot.test.ts",
+            "src/tests/stores/farm.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
-          "rationale": "Phase 3 shop offer pilot verifies fruit-tree sapling shop projection through taoyuan:shop_offer; tree growth and harvest behavior remain later agriculture migration scope."
+          "rationale": "Phase 6 keeps FRUIT_TREE_DEFS as an original-name re-export from the unique treeDefinitions leaf source; runtime Store, composable and ShopView consumers now query taoyuan:tree."
         },
         {
           "file": "src/data/fruitTrees.ts",
           "exportName": "getFruitTreeDef",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:tree",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/treeRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getFruitTreeDef() signature is retained and now resolves taoyuan:tree before returning an equivalent local-ID FruitTreeDef compatibility object."
         }
       ]
     },
@@ -4323,6 +4325,7 @@
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
             "src/tests/domain/miningMonsterPoolRuntime.test.ts",
             "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterPoolResourceLimits.test.ts",
             "src/tests/domain/monsterRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -4740,6 +4743,7 @@
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
             "src/tests/domain/miningMonsterPoolRuntime.test.ts",
             "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterPoolResourceLimits.test.ts",
             "src/tests/domain/monsterRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -7144,6 +7148,63 @@
       ]
     },
     {
+      "file": "src/data/treeDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "fruit_tree",
+        "wild_tree"
+      ],
+      "candidateTargets": [
+        "taoyuan:tree"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 123,
+      "symbols": [
+        {
+          "file": "src/data/treeDefinitions.ts",
+          "exportName": "FRUIT_TREE_DEFINITIONS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:tree",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/fruitTrees.ts",
+            "src/data/items.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/treeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all eight legacy fruit-tree definitions; Phase 6 projects every field into taoyuan:tree and verifies order and behavior equivalence."
+        },
+        {
+          "file": "src/data/treeDefinitions.ts",
+          "exportName": "WILD_TREE_DEFINITIONS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:tree",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/wildTrees.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/treeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all three legacy wild-tree definitions; Phase 6 projects every field into taoyuan:tree and verifies order and behavior equivalence."
+        }
+      ]
+    },
+    {
       "file": "src/data/tutorials.ts",
       "lines": 118,
       "classification": "content",
@@ -7872,54 +7933,55 @@
     },
     {
       "file": "src/data/wildTrees.ts",
-      "lines": 39,
       "classification": "mixed",
       "domains": [
         "wild_tree",
         "lookup"
       ],
       "candidateTargets": [
-        "taoyuan:wild_tree",
+        "taoyuan:tree",
         "compatibility_adapter"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 8,
       "symbols": [
         {
           "file": "src/data/wildTrees.ts",
           "exportName": "WILD_TREE_DEFS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:wild_tree",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:tree",
           "persistentIds": true,
           "consumers": [
-            "src/composables/farm/useTreeActions.ts"
+            "src/tests/composables/useTreeActions.test.ts",
+            "src/tests/domain/treeRegistryPilot.test.ts",
+            "src/tests/stores/farm.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 keeps WILD_TREE_DEFS as an original-name re-export from the unique treeDefinitions leaf source; runtime Store and composable consumers now query taoyuan:tree."
         },
         {
           "file": "src/data/wildTrees.ts",
           "exportName": "getWildTreeDef",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:tree",
           "persistentIds": false,
           "consumers": [
-            "src/composables/farm/useTreeActions.ts",
-            "src/stores/useFarmStore.ts"
+            "src/tests/domain/treeRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getWildTreeDef() signature is retained and now resolves taoyuan:tree before returning an equivalent local-ID WildTreeDef compatibility object."
         }
       ]
     }
@@ -8044,6 +8106,66 @@
       ],
       "status": "verified",
       "rationale": "Resolves the three skull cavern pools while thresholds, boss cadence, scaling and random selection remain framework-owned."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "TreeDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:tree",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for the strict fruit/wild discriminated union; generated tree.schema.json rejects mixed variants and invalid lifecycle values."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyFruitTree/adaptLegacyWildTree/createOfficialTrees",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tree",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects the unique leaf definitions into eleven ordered official tree entries without changing local IDs, names, prices, seasons, lifecycle values or products."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialTreeDef/getOfficialTreeDefs/getOfficialFruitTreeDefs/getOfficialWildTreeDefs",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tree",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry definitions by local or namespaced ID and preserves official fruit-then-wild registration order."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialFruitTreeById/getOfficialWildTreeById",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tree",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Builds independent legacy compatibility objects for Store and composable consumers while preserving persisted local tree type IDs."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialFruitTreeBySaplingId/getOfficialTreeByProductItemId",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tree",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies ShopView sapling lookup and product lookup for fruit or tap output using local or namespaced item IDs."
     }
   ]
 }
