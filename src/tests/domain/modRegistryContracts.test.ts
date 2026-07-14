@@ -1,7 +1,7 @@
 import { Type } from '@sinclair/typebox'
 import { describe, expect, it } from 'vitest'
 import { createCanonicalFileManifestHash, hashCanonicalJson, hashPayloadJson } from '@/domain/mods/hash'
-import { requirePackageId, toOfficialContentId, toOfficialRegistryTypeId } from '@/domain/mods/ids'
+import { requireContentId, requirePackageId, toOfficialContentId, toOfficialRegistryTypeId } from '@/domain/mods/ids'
 import {
   Registry,
   RegistryError,
@@ -16,10 +16,12 @@ import {
   DropTableDefSchema,
   EnchantmentDefSchema,
   ItemDefSchema,
+  MonsterDefSchema,
   PUBLIC_JSON_SCHEMAS,
   PackageManifestSchema,
   type CropDef,
-  type ItemDef
+  type ItemDef,
+  type MonsterDef
 } from '@/domain/mods/schemas'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
@@ -30,6 +32,7 @@ import validDropTables from '../fixtures/mods/minimal-valid-package/data/drop-ta
 import validEnchantments from '../fixtures/mods/minimal-valid-package/data/enchantments.json'
 import validItems from '../fixtures/mods/minimal-valid-package/data/items.json'
 import validManifest from '../fixtures/mods/minimal-valid-package/manifest.json'
+import validMonsters from '../fixtures/mods/minimal-valid-package/data/monsters.json'
 import officialContentSnapshot from '../fixtures/mods/official-content-snapshot.json'
 
 interface HashGoldenVectors {
@@ -142,6 +145,100 @@ describe('mod registry contracts', () => {
         expect.arrayContaining(['/0/entries/0/chance', '/0/entries/0/minQuantity', '/0/entries/0/maxQuantity'])
       )
     }
+  })
+
+  it('validates monster JSON before registration and permits monsters without drops', () => {
+    const externalMonsters: unknown = [
+      ...validMonsters,
+      {
+        id: 'example_mod:no_drop_monster',
+        name: { key: 'example_mod.monster.no_drop.name', fallback: 'No Drop' },
+        hp: 1,
+        attack: 0,
+        defense: 0,
+        expReward: 0,
+        description: { key: 'example_mod.monster.no_drop.description', fallback: 'No drops' }
+      }
+    ]
+    const result = validateUnknown(Type.Array(MonsterDefSchema), externalMonsters, {
+      stage: 'test.monsters'
+    })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+
+    const owner = requirePackageId('example_mod')
+    const registry = new Registry<MonsterDef>({
+      registryId: toOfficialRegistryTypeId('monster'),
+      description: 'test monsters',
+      schemaName: 'monster.schema.json'
+    })
+    for (const monster of result.data) registry.register(owner, monster)
+
+    expect(registry.get(requireContentId('example_mod:test_monster'))?.dropTableId)
+      .toBe(requireContentId('example_mod:test_drop'))
+    expect(registry.get(requireContentId('example_mod:no_drop_monster'))?.dropTableId).toBeUndefined()
+  })
+
+  it('rejects invalid monster combat stats through the public TypeBox schema', () => {
+    const baseMonster = {
+      name: { key: 'example_mod.monster.invalid.name', fallback: 'Invalid' },
+      hp: 1,
+      attack: 0,
+      defense: 0,
+      expReward: 0,
+      description: { key: 'example_mod.monster.invalid.description', fallback: 'Invalid stats' }
+    }
+    const invalidMonsters: unknown = [
+      { ...baseMonster, id: 'example_mod:invalid_hp', hp: 0 },
+      { ...baseMonster, id: 'example_mod:invalid_attack', attack: -1 },
+      { ...baseMonster, id: 'example_mod:invalid_defense', defense: -1 },
+      { ...baseMonster, id: 'example_mod:invalid_exp', expReward: -1 }
+    ]
+    const result = validateUnknown(Type.Array(MonsterDefSchema), invalidMonsters, {
+      stage: 'test.monsters.invalid'
+    })
+
+    expect(result.ok).toBe(false)
+    if (!result.ok) {
+      expect(result.diagnostics.map(diagnostic => diagnostic.fieldPath)).toEqual(
+        expect.arrayContaining(['/0/hp', '/1/attack', '/2/defense', '/3/expReward'])
+      )
+    }
+  })
+
+  it('reports an invalid monster dropTableId with a deterministic semantic diagnostic', () => {
+    const registrySet = buildOfficialRegistrySetFromStaticData()
+    const owner = requirePackageId('example_mod')
+    const monster: MonsterDef = {
+      id: toOfficialContentId('missing_drop_monster'),
+      name: { key: 'example_mod.monster.missing_drop.name', fallback: 'Missing Drop' },
+      hp: 1,
+      attack: 0,
+      defense: 0,
+      expReward: 0,
+      dropTableId: toOfficialContentId('drop/missing'),
+      description: { key: 'example_mod.monster.missing_drop.description', fallback: 'Missing drop table' }
+    }
+    registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster')).register(owner, monster)
+
+    const diagnostics = validateRegistrySemantics(registrySet).filter(
+      diagnostic => diagnostic.contentId === monster.dropTableId
+    )
+    expect(diagnostics).toEqual([
+      expect.objectContaining({
+        code: 'REG-REFERENCE-001',
+        ruleId: 'REG-REFERENCE-001',
+        severity: 'error',
+        stage: 'registry.semantic',
+        packageId: owner,
+        registryId: toOfficialRegistryTypeId('drop_table'),
+        contentId: toOfficialContentId('drop/missing'),
+        fieldPath: '/dropTableId',
+        messageKey: 'mods.error.reg.reference.001',
+        recovery: 'none'
+      })
+    ])
   })
 
   it('enforces registry lifecycle rules and supports chunked registration', async() => {
