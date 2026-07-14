@@ -1,5 +1,6 @@
 import { Type, type Static, type TSchema } from '@sinclair/typebox'
 import { NAMESPACED_ID_PATTERN, PACKAGE_ID_PATTERN } from './ids'
+import { MONSTER_POOL_RESOURCE_LIMITS } from './resourceLimits'
 
 export const ContentIdSchema = Type.String({
   $id: 'taoyuan.schema.ContentId',
@@ -226,7 +227,10 @@ export const MonsterDefSchema = Type.Object(
 export const MonsterPoolEntrySchema = Type.Object(
   {
     monsterId: ContentIdSchema,
-    weight: Type.Optional(Type.Integer({ minimum: 1 }))
+    weight: Type.Optional(Type.Integer({
+      minimum: 1,
+      maximum: MONSTER_POOL_RESOURCE_LIMITS.maxEntryWeight
+    }))
   },
   { additionalProperties: false }
 )
@@ -234,7 +238,10 @@ export const MonsterPoolEntrySchema = Type.Object(
 export const MonsterPoolDefSchema = Type.Object(
   {
     id: ContentIdSchema,
-    entries: Type.Array(MonsterPoolEntrySchema, { minItems: 1 })
+    entries: Type.Array(MonsterPoolEntrySchema, {
+      minItems: 1,
+      maxItems: MONSTER_POOL_RESOURCE_LIMITS.maxEntries
+    })
   },
   { $id: 'taoyuan.registry.MonsterPoolDef', additionalProperties: false }
 )

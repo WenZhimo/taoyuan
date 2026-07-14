@@ -13,6 +13,7 @@
     },
     "entries": {
       "minItems": 1,
+      "maxItems": 250000,
       "type": "array",
       "items": {
         "additionalProperties": false,
@@ -27,6 +28,7 @@
           },
           "weight": {
             "minimum": 1,
+            "maximum": 250000,
             "type": "integer"
           }
         }

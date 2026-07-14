@@ -6,6 +6,7 @@ import {
   REQUIRED_OFFICIAL_MONSTER_POOL_IDS,
   getMainMineBossPoolId
 } from './monsterPoolIds'
+import { getMonsterPoolDefResourceLimitDiagnostics } from './monsterPoolResourceValidation'
 import type { CropDef, DropTableDef, MonsterDef, MonsterPoolDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef } from './schemas'
 import type { RegistrySet } from './registry'
 
@@ -176,6 +177,11 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   }
 
   for (const record of monsterPoolRegistry.entries()) {
+    diagnostics.push(...getMonsterPoolDefResourceLimitDiagnostics(record.entry, {
+      stage: 'registry.semantic',
+      packageId: record.owner,
+      file: record.source?.file
+    }))
     record.entry.entries.forEach((entry, index) => {
       if (!monsterRegistry.has(contentId(entry.monsterId))) {
         pushMissingReference(diagnostics, {

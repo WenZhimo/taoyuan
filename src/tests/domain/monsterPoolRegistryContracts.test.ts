@@ -1,4 +1,3 @@
-import { Type } from '@sinclair/typebox'
 import { describe, expect, it } from 'vitest'
 import {
   getOfficialMainMineBoss,
@@ -23,8 +22,8 @@ import {
 } from '@/domain/mods/monsterPoolIds'
 import { RegistrySet } from '@/domain/mods/registry'
 import { resolveMonsterPoolEntries } from '@/domain/mods/monsterPoolResolution'
-import { validateUnknown } from '@/domain/mods/schemaValidation'
-import { MonsterPoolDefSchema, type MonsterDef, type MonsterPoolDef } from '@/domain/mods/schemas'
+import { validateMonsterPoolsUnknown } from '@/domain/mods/monsterPoolResourceValidation'
+import type { MonsterDef, MonsterPoolDef } from '@/domain/mods/schemas'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import {
   OFFICIAL_REGISTRY_DEFINITIONS,
@@ -39,7 +38,7 @@ const poolMonsterIds = (poolId: string): string[] =>
 describe('monster pool registry contracts', () => {
   it('validates external monster pool JSON before registration', () => {
     const externalPools: unknown = validMonsterPools
-    const result = validateUnknown(Type.Array(MonsterPoolDefSchema), externalPools, {
+    const result = validateMonsterPoolsUnknown(externalPools, {
       stage: 'test.monster-pools'
     })
 
@@ -65,7 +64,7 @@ describe('monster pool registry contracts', () => {
       { id: 'example_mod:negative_weight', entries: [{ monsterId: 'example_mod:test_monster', weight: -1 }] },
       { id: 'example_mod:fractional_weight', entries: [{ monsterId: 'example_mod:test_monster', weight: 1.5 }] }
     ]
-    const result = validateUnknown(Type.Array(MonsterPoolDefSchema), invalidPools, {
+    const result = validateMonsterPoolsUnknown(invalidPools, {
       stage: 'test.monster-pools.invalid'
     })
 
