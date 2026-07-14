@@ -1,0 +1,9 @@
+[
+  {
+    "id": "example_mod:animal_incubation/test_item",
+    "itemId": "example_mod:test_item",
+    "animalId": "example_mod:test_animal",
+    "building": "coop",
+    "days": 3
+  }
+]

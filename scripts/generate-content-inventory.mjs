@@ -233,6 +233,15 @@ fileDefaults.set('src/data/animalBuildingDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/animalIncubationDefinitions.ts', {
+  file: 'src/data/animalIncubationDefinitions.ts',
+  classification: 'mixed',
+  domains: ['animal_incubation'],
+  candidateTargets: ['taoyuan:animal_incubation'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forage.ts', {
   file: 'src/data/forage.ts',
   classification: 'mixed',
@@ -505,6 +514,36 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Unique registry-free leaf source for legacy coop and barn upgrade definitions; Phase 6 nests them under taoyuan:animal_building while preserving levels, names, capacities, costs and materials.'
   },
+  'src/data/animalIncubationDefinitions.ts:AnimalIncubationDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy animal incubation compatibility shape; the public contract is AnimalIncubationDefSchema.'
+  },
+  'src/data/animalIncubationDefinitions.ts:AnimalIncubationMapping': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy item-to-incubation map value shape retained for old INCUBATION_MAP consumers.'
+  },
+  'src/data/animalIncubationDefinitions.ts:ANIMAL_INCUBATIONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy egg-to-animal incubation mappings; Phase 6 projects egg item IDs, animal IDs, buildings and days into taoyuan:animal_incubation.'
+  },
+  'src/data/animalIncubationDefinitions.ts:INCUBATION_MAP': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy map shape generated from ANIMAL_INCUBATIONS for static rollback and old API equivalence checks.'
+  },
   'src/data/animals.ts:ANIMAL_DEFS': {
     classification: 'adapter',
     targetRegistry: 'taoyuan:animal',
@@ -599,6 +638,57 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getBuildingUpgrade() signature is retained and now reads nested upgrade definitions from taoyuan:animal_building while preserving local building IDs.'
+  },
+  'src/data/animals.ts:ANIMAL_INCUBATIONS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps ANIMAL_INCUBATIONS as an original-name re-export from the unique animalIncubationDefinitions leaf source while Store and AnimalView use registry-backed compatibility facades.'
+  },
+  'src/data/animals.ts:INCUBATION_MAP': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps INCUBATION_MAP as an original-name re-export for rollback; runtime incubation lookups now resolve taoyuan:animal_incubation through getIncubationDef()/getIncubationMap().'
+  },
+  'src/data/animals.ts:AnimalIncubationDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy animal incubation compatibility shape.'
+  },
+  'src/data/animals.ts:AnimalIncubationMapping': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy incubation mapping compatibility shape.'
+  },
+  'src/data/animals.ts:getIncubationDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getIncubationDef() signature is retained and now resolves taoyuan:animal_incubation by egg item ID before returning an equivalent local-ID mapping.'
+  },
+  'src/data/animals.ts:getIncubationDefs': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy incubation list query is retained and now returns local-ID incubation definitions reconstructed from taoyuan:animal_incubation.'
+  },
+  'src/data/animals.ts:getIncubationMap': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy incubation map query is retained and now returns local egg item IDs mapped from taoyuan:animal_incubation entries.'
   },
   'src/data/animals.ts:HAY_PRICE': {
     status: 'verified',
@@ -1376,6 +1466,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies local-ID compatibility lookups for construction and upgrade flows in useAnimalStore and AnimalView.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'AnimalIncubationDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for animal incubation mappings; generated animal-incubation.schema.json rejects invalid item IDs, animal IDs, building types and day bounds.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyAnimalIncubation/createOfficialAnimalIncubations',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects legacy egg-to-animal incubation mappings into ordered official entries without changing egg item IDs, hatched animal types, target buildings or incubation days.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalIncubationDef/getOfficialAnimalIncubationDefs/getOfficialAnimalIncubationDefsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry animal incubation definitions by local or namespaced ID and reconstructs legacy incubation definition objects for compatibility checks.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalIncubationByItemId/getOfficialAnimalIncubationMap',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_incubation',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies local egg item ID compatibility lookups and map shape for coop and barn incubation UI and Store flows.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

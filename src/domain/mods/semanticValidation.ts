@@ -11,6 +11,7 @@ import type {
   AnimalBuildingDef,
   AnimalDef,
   AnimalFeedDef,
+  AnimalIncubationDef,
   CropDef,
   DropTableDef,
   FishDef,
@@ -37,6 +38,7 @@ const REGISTRY_IDS = {
   animal: toOfficialRegistryTypeId('animal'),
   animalFeed: toOfficialRegistryTypeId('animal_feed'),
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
+  animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
   monster: toOfficialRegistryTypeId('monster'),
@@ -79,6 +81,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalRegistry = registrySet.get<AnimalDef>(REGISTRY_IDS.animal)
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(REGISTRY_IDS.animalFeed)
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
+  const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
@@ -280,6 +283,34 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         }
       })
     })
+  }
+
+  for (const record of animalIncubationRegistry.entries()) {
+    if (!itemRegistry.has(contentId(record.entry.itemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.itemId),
+        fieldPath: '/itemId'
+      })
+    }
+    if (!animalRegistry.has(contentId(record.entry.animalId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.animal,
+        contentId: contentId(record.entry.animalId),
+        fieldPath: '/animalId'
+      })
+    }
+    const hasBuilding = animalBuildingRegistry.values().some(building => building.building === record.entry.building)
+    if (!hasBuilding) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.animalBuilding,
+        contentId: contentId(`taoyuan:animal_building/${record.entry.building}`),
+        fieldPath: '/building'
+      })
+    }
   }
 
   for (const record of pondableFishRegistry.entries()) {

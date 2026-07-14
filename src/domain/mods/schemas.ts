@@ -269,6 +269,17 @@ export const AnimalBuildingDefSchema = Type.Object(
   { $id: 'taoyuan.registry.AnimalBuildingDef', additionalProperties: false }
 )
 
+export const AnimalIncubationDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    itemId: ContentIdSchema,
+    animalId: ContentIdSchema,
+    building: AnimalBuildingTypeSchema,
+    days: Type.Integer({ minimum: 1 })
+  },
+  { $id: 'taoyuan.registry.AnimalIncubationDef', additionalProperties: false }
+)
+
 export const PondFishGeneticsSchema = Type.Object(
   {
     weight: Type.Integer({ minimum: 0, maximum: 100 }),
@@ -653,6 +664,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:animal': AnimalDefSchema,
   'taoyuan:animal_feed': AnimalFeedDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
+  'taoyuan:animal_incubation': AnimalIncubationDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
   'taoyuan:monster': MonsterDefSchema,
@@ -678,6 +690,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'animal.schema.json': AnimalDefSchema,
   'animal-feed.schema.json': AnimalFeedDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
+  'animal-incubation.schema.json': AnimalIncubationDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
   'monster.schema.json': MonsterDefSchema,
@@ -708,6 +721,7 @@ export type AnimalFeedDef = Static<typeof AnimalFeedDefSchema>
 export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>
 export type AnimalBuildingMaterial = Static<typeof AnimalBuildingMaterialSchema>
 export type AnimalBuildingUpgrade = Static<typeof AnimalBuildingUpgradeSchema>
+export type AnimalIncubationDef = Static<typeof AnimalIncubationDefSchema>
 export type PondFishGenetics = Static<typeof PondFishGeneticsSchema>
 export type PondableFishDef = Static<typeof PondableFishDefSchema>
 export type PondBreedDef = Static<typeof PondBreedDefSchema>

@@ -6,7 +6,7 @@ import {
   getAnimalDef,
   getBuildingDef,
   getBuildingUpgrade,
-  INCUBATION_MAP,
+  getIncubationDef,
   PREMIUM_FEED_ID,
   NOURISHING_FEED_ID,
   VITALITY_FEED_ID
@@ -238,7 +238,7 @@ export const useAnimalStore = defineStore('animal', () => {
     if (incubating.value) {
       return { success: false, message: '孵化器中已有蛋在孵化。' }
     }
-    const mapping = INCUBATION_MAP[itemId]
+    const mapping = getIncubationDef(itemId)
     if (!mapping || mapping.building !== 'coop') {
       return { success: false, message: '这个物品不能在鸡舍孵化。' }
     }
@@ -313,7 +313,7 @@ export const useAnimalStore = defineStore('animal', () => {
     if (barnIncubating.value) {
       return { success: false, message: '牲口棚孵化器中已有蛋在孵化。' }
     }
-    const mapping = INCUBATION_MAP[itemId]
+    const mapping = getIncubationDef(itemId)
     if (!mapping || mapping.building !== 'barn') {
       return { success: false, message: '这个物品不能在牲口棚孵化。' }
     }

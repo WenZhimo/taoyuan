@@ -785,6 +785,110 @@
       ]
     },
     {
+      "registryId": "taoyuan:animal_incubation",
+      "schemaName": "animal-incubation.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalIncubationDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "animalId": "taoyuan:duck",
+            "building": "coop",
+            "days": 7,
+            "id": "taoyuan:animal_incubation/duck_egg",
+            "itemId": "taoyuan:duck_egg"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalIncubationDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "animalId": "taoyuan:chicken",
+            "building": "coop",
+            "days": 5,
+            "id": "taoyuan:animal_incubation/egg",
+            "itemId": "taoyuan:egg"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalIncubationDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "animalId": "taoyuan:goose",
+            "building": "coop",
+            "days": 6,
+            "id": "taoyuan:animal_incubation/goose_egg",
+            "itemId": "taoyuan:goose_egg"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalIncubationDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "animalId": "taoyuan:ostrich",
+            "building": "barn",
+            "days": 10,
+            "id": "taoyuan:animal_incubation/ostrich_egg",
+            "itemId": "taoyuan:ostrich_egg"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalIncubationDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "animalId": "taoyuan:pigeon",
+            "building": "coop",
+            "days": 5,
+            "id": "taoyuan:animal_incubation/pigeon_egg",
+            "itemId": "taoyuan:pigeon_egg"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalIncubationDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "animalId": "taoyuan:quail",
+            "building": "coop",
+            "days": 4,
+            "id": "taoyuan:animal_incubation/quail_egg",
+            "itemId": "taoyuan:quail_egg"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalIncubationDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "animalId": "taoyuan:silkie",
+            "building": "coop",
+            "days": 6,
+            "id": "taoyuan:animal_incubation/silkie_egg",
+            "itemId": "taoyuan:silkie_egg"
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:crop",
       "schemaName": "crop.schema.json",
       "entries": [
@@ -71414,5 +71518,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:11dd128c550a01ed25e324ebe485d52f528252039a57c0750ff01c243b77b21a"
+  "snapshotHash": "sha256:4a816503ee7c27710c2d07edda563aacd1923191575829a5daf898c34e8f2abd"
 }

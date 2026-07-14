@@ -572,7 +572,7 @@
     getBuildingDef,
     getBuildingDefs,
     getBuildingUpgrade,
-    INCUBATION_MAP,
+    getIncubationMap,
     getFeedDef,
     getFeedDefs
   } from '@/data'
@@ -706,7 +706,7 @@
   /** 可在鸡舍孵化的蛋列表 */
   const coopIncubatableEggs = computed(() => {
     const result: { itemId: string; name: string; count: number }[] = []
-    for (const [itemId, mapping] of Object.entries(INCUBATION_MAP)) {
+    for (const [itemId, mapping] of Object.entries(getIncubationMap())) {
       if (mapping.building !== 'coop') continue
       const count = inventoryStore.getItemCount(itemId)
       if (count > 0) {
@@ -720,7 +720,7 @@
   /** 可在牲口棚孵化的蛋列表 */
   const barnIncubatableEggs = computed(() => {
     const result: { itemId: string; name: string; count: number }[] = []
-    for (const [itemId, mapping] of Object.entries(INCUBATION_MAP)) {
+    for (const [itemId, mapping] of Object.entries(getIncubationMap())) {
       if (mapping.building !== 'barn') continue
       const count = inventoryStore.getItemCount(itemId)
       if (count > 0) {

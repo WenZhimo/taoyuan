@@ -1,0 +1,47 @@
+{
+  "$id": "taoyuan.registry.AnimalIncubationDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "itemId",
+    "animalId",
+    "building",
+    "days"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "itemId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "animalId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "building": {
+      "anyOf": [
+        {
+          "const": "coop",
+          "type": "string"
+        },
+        {
+          "const": "barn",
+          "type": "string"
+        },
+        {
+          "const": "stable",
+          "type": "string"
+        }
+      ]
+    },
+    "days": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

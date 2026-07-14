@@ -10,6 +10,10 @@ import type {
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
 import type { AnimalBuildingUpgradeDef as LegacyAnimalBuildingUpgradeDef } from '@/data/animalBuildingDefinitions'
+import type {
+  AnimalIncubationDef as LegacyAnimalIncubationDef,
+  AnimalIncubationMapping as LegacyAnimalIncubationMapping
+} from '@/data/animalIncubationDefinitions'
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
@@ -31,6 +35,7 @@ import type {
   AnimalBuildingDef as AnimalBuildingContentDef,
   AnimalDef as AnimalContentDef,
   AnimalFeedDef as AnimalFeedContentDef,
+  AnimalIncubationDef as AnimalIncubationContentDef,
   CropDef,
   DropTableDef,
   EnchantmentDef,
@@ -381,6 +386,16 @@ export const getOfficialAnimalBuildingDef = (id: string): Readonly<AnimalBuildin
 export const getOfficialAnimalBuildingDefs = (): readonly Readonly<AnimalBuildingContentDef>[] =>
   getOfficialRegistrySet().get<AnimalBuildingContentDef>(toOfficialRegistryTypeId('animal_building')).values()
 
+export const getOfficialAnimalIncubationDef = (id: string): Readonly<AnimalIncubationContentDef> | undefined => {
+  const contentId = toQueryContentId(id.includes('/') ? id : `animal_incubation/${id}`)
+  return contentId
+    ? getOfficialRegistrySet().get<AnimalIncubationContentDef>(toOfficialRegistryTypeId('animal_incubation')).get(contentId)
+    : undefined
+}
+
+export const getOfficialAnimalIncubationDefs = (): readonly Readonly<AnimalIncubationContentDef>[] =>
+  getOfficialRegistrySet().get<AnimalIncubationContentDef>(toOfficialRegistryTypeId('animal_incubation')).values()
+
 const toLegacyAnimalDef = (animal: Readonly<AnimalContentDef>): LegacyAnimalDef => ({
   type: getLocalContentId(animal.id) as LegacyAnimalDef['type'],
   name: animal.name.fallback,
@@ -462,6 +477,39 @@ export const getOfficialAnimalBuildingUpgrade = (
   const upgrade = building?.upgrades.find(candidate => candidate.level === toLevel)
   return building && upgrade ? toLegacyAnimalBuildingUpgradeDef(building, upgrade) : undefined
 }
+
+const toLegacyAnimalIncubationDef = (incubation: Readonly<AnimalIncubationContentDef>): LegacyAnimalIncubationDef => ({
+  itemId: getLocalContentId(incubation.itemId),
+  animalType: getLocalContentId(incubation.animalId) as LegacyAnimalIncubationDef['animalType'],
+  days: incubation.days,
+  building: incubation.building as LegacyAnimalIncubationDef['building']
+})
+
+const toLegacyAnimalIncubationMapping = (
+  incubation: Readonly<AnimalIncubationContentDef>
+): LegacyAnimalIncubationMapping => ({
+  animalType: getLocalContentId(incubation.animalId) as LegacyAnimalIncubationMapping['animalType'],
+  days: incubation.days,
+  building: incubation.building as LegacyAnimalIncubationMapping['building']
+})
+
+export const getOfficialAnimalIncubationByItemId = (itemId: string): LegacyAnimalIncubationMapping | undefined => {
+  const direct = getOfficialAnimalIncubationDef(itemId)
+  if (direct) return toLegacyAnimalIncubationMapping(direct)
+  const incubation = getOfficialAnimalIncubationDefs().find(candidate => getLocalContentId(candidate.itemId) === itemId)
+  return incubation ? toLegacyAnimalIncubationMapping(incubation) : undefined
+}
+
+export const getOfficialAnimalIncubationDefsAsLegacy = (): readonly LegacyAnimalIncubationDef[] =>
+  getOfficialAnimalIncubationDefs().map(toLegacyAnimalIncubationDef)
+
+export const getOfficialAnimalIncubationMap = (): Record<string, LegacyAnimalIncubationMapping> =>
+  Object.fromEntries(
+    getOfficialAnimalIncubationDefs().map(incubation => [
+      getLocalContentId(incubation.itemId),
+      toLegacyAnimalIncubationMapping(incubation)
+    ])
+  )
 
 export const getOfficialPondableFishDef = (id: string): Readonly<PondableFishDef> | undefined => {
   const contentId = toQueryContentId(id)

@@ -1,4 +1,4 @@
-import type { AnimalBuildingDef, AnimalDef, AnimalBuildingType, AnimalType } from '@/types'
+import type { AnimalBuildingDef, AnimalDef, AnimalBuildingType } from '@/types'
 import {
   getOfficialAnimalByType,
   getOfficialAnimalBuildingByType,
@@ -6,7 +6,10 @@ import {
   getOfficialAnimalBuildingUpgrade,
   getOfficialAnimalDefsByBuilding,
   getOfficialAnimalFeedById,
-  getOfficialAnimalFeedDefsAsLegacy
+  getOfficialAnimalFeedDefsAsLegacy,
+  getOfficialAnimalIncubationByItemId,
+  getOfficialAnimalIncubationDefsAsLegacy,
+  getOfficialAnimalIncubationMap
 } from '@/domain/mods/contentAccess'
 import { ANIMAL_DEFS as LEGACY_ANIMAL_DEFS } from './animalDefinitions'
 import { FEED_DEFS as LEGACY_FEED_DEFS } from './animalFeedDefinitions'
@@ -14,6 +17,7 @@ import {
   ANIMAL_BUILDINGS as LEGACY_ANIMAL_BUILDINGS,
   BUILDING_UPGRADES as LEGACY_BUILDING_UPGRADES
 } from './animalBuildingDefinitions'
+import { INCUBATION_MAP as LEGACY_INCUBATION_MAP } from './animalIncubationDefinitions'
 
 export {
   ANIMAL_DEFS,
@@ -25,6 +29,12 @@ export {
 } from './animalDefinitions'
 export { FEED_DEFS, type AnimalFeedDef } from './animalFeedDefinitions'
 export { ANIMAL_BUILDINGS, BUILDING_UPGRADES, type AnimalBuildingUpgradeDef } from './animalBuildingDefinitions'
+export {
+  ANIMAL_INCUBATIONS,
+  INCUBATION_MAP,
+  type AnimalIncubationDef,
+  type AnimalIncubationMapping
+} from './animalIncubationDefinitions'
 
 export const getAnimalDef = (type: string): AnimalDef | undefined => {
   return getOfficialAnimalByType(type) ?? LEGACY_ANIMAL_DEFS.find(d => d.type === type)
@@ -49,13 +59,10 @@ export const getBuildingUpgrade = (type: AnimalBuildingType, toLevel: number) =>
   return getOfficialAnimalBuildingUpgrade(type, toLevel) ?? LEGACY_BUILDING_UPGRADES.find(u => u.type === type && u.level === toLevel)
 }
 
-/** 孵化映射：蛋 → 动物类型 + 孵化天数 + 所属建筑 */
-export const INCUBATION_MAP: Record<string, { animalType: AnimalType; days: number; building: AnimalBuildingType }> = {
-  egg: { animalType: 'chicken', days: 5, building: 'coop' },
-  duck_egg: { animalType: 'duck', days: 7, building: 'coop' },
-  goose_egg: { animalType: 'goose', days: 6, building: 'coop' },
-  quail_egg: { animalType: 'quail', days: 4, building: 'coop' },
-  pigeon_egg: { animalType: 'pigeon', days: 5, building: 'coop' },
-  silkie_egg: { animalType: 'silkie', days: 6, building: 'coop' },
-  ostrich_egg: { animalType: 'ostrich', days: 10, building: 'barn' }
+export const getIncubationDef = (itemId: string) => {
+  return getOfficialAnimalIncubationByItemId(itemId) ?? LEGACY_INCUBATION_MAP[itemId]
 }
+
+export const getIncubationDefs = () => [...getOfficialAnimalIncubationDefsAsLegacy()]
+
+export const getIncubationMap = () => getOfficialAnimalIncubationMap()

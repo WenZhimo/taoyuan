@@ -32,6 +32,7 @@
     "taoyuan:animal": ["data/animals.json"],
     "taoyuan:animal_feed": ["data/animal-feeds.json"],
     "taoyuan:animal_building": ["data/animal-buildings.json"],
+    "taoyuan:animal_incubation": ["data/animal-incubations.json"],
     "taoyuan:tree": ["data/trees.json"],
     "taoyuan:monster": ["data/monsters.json"],
     "taoyuan:monster_pool": ["data/monster-pools.json"],

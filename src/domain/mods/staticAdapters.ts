@@ -31,6 +31,7 @@ import {
   BUILDING_UPGRADES,
   type AnimalBuildingUpgradeDef as LegacyAnimalBuildingUpgradeDef
 } from '@/data/animalBuildingDefinitions'
+import { ANIMAL_INCUBATIONS } from '@/data/animalIncubationDefinitions'
 import { PONDABLE_FISH } from '@/data/fishPondDefinitions'
 import { POND_BREEDS } from '@/data/pondBreedDefinitions'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
@@ -59,6 +60,7 @@ import type {
   AnimalBuildingDef,
   AnimalDef,
   AnimalFeedDef,
+  AnimalIncubationDef,
   DropTableDef,
   EnchantmentDef,
   FishDef,
@@ -129,6 +131,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('animal_building'),
     description: '动物建筑与升级定义',
     schemaName: 'animal-building.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('animal_incubation'),
+    description: '动物孵化映射定义',
+    schemaName: 'animal-incubation.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('pondable_fish'),
@@ -505,6 +512,17 @@ export const adaptLegacyAnimalBuilding = (building: (typeof ANIMAL_BUILDINGS)[nu
 export const createOfficialAnimalBuildings = (): AnimalBuildingDef[] =>
   ANIMAL_BUILDINGS.map(adaptLegacyAnimalBuilding)
 
+export const adaptLegacyAnimalIncubation = (incubation: (typeof ANIMAL_INCUBATIONS)[number]): AnimalIncubationDef => ({
+  id: toOfficialContentId(`animal_incubation/${incubation.itemId}`),
+  itemId: toOfficialContentId(incubation.itemId),
+  animalId: toOfficialContentId(incubation.animalType),
+  building: incubation.building,
+  days: incubation.days
+})
+
+export const createOfficialAnimalIncubations = (): AnimalIncubationDef[] =>
+  ANIMAL_INCUBATIONS.map(adaptLegacyAnimalIncubation)
+
 export const adaptLegacyPondableFish = (fish: LegacyPondableFishDef): PondableFishDef => ({
   id: toOfficialContentId(fish.fishId),
   fishItemId: toOfficialContentId(fish.fishId),
@@ -819,6 +837,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const animalRegistry = registrySet.get<AnimalDef>(toOfficialRegistryTypeId('animal'))
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(toOfficialRegistryTypeId('animal_feed'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
+  const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
   const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
@@ -841,6 +860,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const building of createOfficialAnimalBuildings()) {
     animalBuildingRegistry.register(owner, building, { file: 'src/data/animalBuildingDefinitions.ts' })
+  }
+  for (const incubation of createOfficialAnimalIncubations()) {
+    animalIncubationRegistry.register(owner, incubation, { file: 'src/data/animalIncubationDefinitions.ts' })
   }
   for (const fish of createOfficialPondableFish()) {
     pondableFishRegistry.register(owner, fish, { file: 'src/data/fishPondDefinitions.ts' })
