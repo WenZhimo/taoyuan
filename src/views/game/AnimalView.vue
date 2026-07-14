@@ -572,7 +572,8 @@
     getItemById,
     getBuildingUpgrade,
     INCUBATION_MAP,
-    FEED_DEFS
+    getFeedDef,
+    getFeedDefs
   } from '@/data'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import type { AnimalBuildingType, AnimalType, AnimalDef } from '@/types'
@@ -677,20 +678,20 @@
 
   /** 各类饲料库存数量 */
   const feedCounts = computed(() =>
-    FEED_DEFS.map(f => ({
+    getFeedDefs().map(f => ({
       ...f,
       count: inventoryStore.getItemCount(f.id)
     }))
   )
 
   /** 当前选中饲料的名称 */
-  const selectedFeedName = computed(() => FEED_DEFS.find(f => f.id === selectedFeed.value)?.name ?? '干草')
+  const selectedFeedName = computed(() => getFeedDef(selectedFeed.value)?.name ?? '干草')
 
   /** 当前选中饲料的库存 */
   const selectedFeedCount = computed(() => inventoryStore.getItemCount(selectedFeed.value))
 
   /** 当前选中饲料的价格 */
-  const selectedFeedPrice = computed(() => FEED_DEFS.find(f => f.id === selectedFeed.value)?.price ?? 50)
+  const selectedFeedPrice = computed(() => getFeedDef(selectedFeed.value)?.price ?? 50)
 
   /** 未喂食动物数量 */
   const unfedCount = computed(() => animalStore.animals.filter(a => !a.wasFed).length)
@@ -1010,7 +1011,7 @@
   }
 
   const handleBuyFeed = () => {
-    const feed = FEED_DEFS.find(f => f.id === selectedFeed.value)
+    const feed = getFeedDef(selectedFeed.value)
     if (!feed) return
     // 检查背包主区是否有空间（已有同类栈或有空位），防止溢出到临时背包导致无法使用
     const hasStack = inventoryStore.items.some(s => s.itemId === feed.id && s.quality === 'normal' && s.quantity < 999)

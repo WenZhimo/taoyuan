@@ -215,6 +215,15 @@ fileDefaults.set('src/data/animalDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/animalFeedDefinitions.ts', {
+  file: 'src/data/animalFeedDefinitions.ts',
+  classification: 'mixed',
+  domains: ['animal_feed'],
+  candidateTargets: ['taoyuan:animal_feed'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forage.ts', {
   file: 'src/data/forage.ts',
   classification: 'mixed',
@@ -449,6 +458,21 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Phase 3 shop offer pilot verifies hay purchase price projection through taoyuan:shop_offer; animal feeding rules remain framework-owned.'
   },
+  'src/data/animalFeedDefinitions.ts:AnimalFeedDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy animal feed compatibility shape; the public contract is AnimalFeedDefSchema.'
+  },
+  'src/data/animalFeedDefinitions.ts:FEED_DEFS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all legacy animal feed definitions; Phase 6 projects IDs, display names, prices and descriptions into taoyuan:animal_feed.'
+  },
   'src/data/animals.ts:ANIMAL_DEFS': {
     classification: 'adapter',
     targetRegistry: 'taoyuan:animal',
@@ -470,6 +494,35 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Phase 6 compatibility facade filters official animal definitions by building while preserving the old local-ID AnimalDef shape for UI consumers.'
+  },
+  'src/data/animals.ts:FEED_DEFS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps FEED_DEFS as an original-name re-export from the unique animalFeedDefinitions leaf source while AnimalView uses registry-backed compatibility facades.'
+  },
+  'src/data/animals.ts:AnimalFeedDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy animal feed compatibility shape.'
+  },
+  'src/data/animals.ts:getFeedDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getFeedDef() query is retained and now resolves taoyuan:animal_feed before returning an equivalent local-ID feed definition.'
+  },
+  'src/data/animals.ts:getFeedDefs': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy feed list query is retained and now returns local-ID AnimalFeedDef compatibility objects reconstructed from taoyuan:animal_feed.'
   },
   'src/data/animals.ts:HAY_PRICE': {
     status: 'verified',
@@ -1167,6 +1220,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies local-ID compatibility lookups and building-filtered animal definitions to useAnimalStore and AnimalView.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'AnimalFeedDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for animal feed definitions; generated animal-feed.schema.json rejects invalid localized text and price fields.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyAnimalFeed/createOfficialAnimalFeeds',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy animal feed definition into ordered official entries without changing local IDs, display names, prices or descriptions.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalFeedDef/getOfficialAnimalFeedDefs/getOfficialAnimalFeedDefsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry animal feed definitions by local or namespaced ID and reconstructs legacy AnimalFeedDef objects for compatibility checks.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalFeedById',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_feed',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies the legacy getFeedDef() local-ID compatibility lookup to AnimalView.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

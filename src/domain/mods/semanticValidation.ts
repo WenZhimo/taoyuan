@@ -9,6 +9,7 @@ import {
 import { getMonsterPoolDefResourceLimitDiagnostics } from './monsterPoolResourceValidation'
 import type {
   AnimalDef,
+  AnimalFeedDef,
   CropDef,
   DropTableDef,
   FishDef,
@@ -33,6 +34,7 @@ const REGISTRY_IDS = {
   fish: toOfficialRegistryTypeId('fish'),
   forage: toOfficialRegistryTypeId('forage'),
   animal: toOfficialRegistryTypeId('animal'),
+  animalFeed: toOfficialRegistryTypeId('animal_feed'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
   monster: toOfficialRegistryTypeId('monster'),
@@ -73,6 +75,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const fishRegistry = registrySet.get<FishDef>(REGISTRY_IDS.fish)
   const forageRegistry = registrySet.get<ForageDef>(REGISTRY_IDS.forage)
   const animalRegistry = registrySet.get<AnimalDef>(REGISTRY_IDS.animal)
+  const animalFeedRegistry = registrySet.get<AnimalFeedDef>(REGISTRY_IDS.animalFeed)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
@@ -227,6 +230,17 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         registryId: REGISTRY_IDS.item,
         contentId: contentId(record.entry.productItemId),
         fieldPath: '/productItemId'
+      })
+    }
+  }
+
+  for (const record of animalFeedRegistry.entries()) {
+    if (!itemRegistry.has(contentId(record.entry.id))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.id),
+        fieldPath: '/id'
       })
     }
   }

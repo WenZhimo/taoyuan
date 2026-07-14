@@ -1,9 +1,12 @@
 import type { AnimalBuildingDef, AnimalDef, AnimalBuildingType, AnimalType } from '@/types'
 import {
   getOfficialAnimalByType,
-  getOfficialAnimalDefsByBuilding
+  getOfficialAnimalDefsByBuilding,
+  getOfficialAnimalFeedById,
+  getOfficialAnimalFeedDefsAsLegacy
 } from '@/domain/mods/contentAccess'
 import { ANIMAL_DEFS as LEGACY_ANIMAL_DEFS } from './animalDefinitions'
+import { FEED_DEFS as LEGACY_FEED_DEFS } from './animalFeedDefinitions'
 
 export {
   ANIMAL_DEFS,
@@ -13,6 +16,7 @@ export {
   PREMIUM_FEED_ID,
   VITALITY_FEED_ID
 } from './animalDefinitions'
+export { FEED_DEFS, type AnimalFeedDef } from './animalFeedDefinitions'
 
 /** 畜舍定义 */
 export const ANIMAL_BUILDINGS: AnimalBuildingDef[] = [
@@ -51,20 +55,18 @@ export const ANIMAL_BUILDINGS: AnimalBuildingDef[] = [
   }
 ]
 
-/** 所有饲料定义（UI 遍历用） */
-export const FEED_DEFS: { id: string; name: string; price: number; description: string }[] = [
-  { id: 'hay', name: '干草', price: 50, description: '基础饲料' },
-  { id: 'premium_feed', name: '精饲料', price: 200, description: '心情+60，好感度翻倍' },
-  { id: 'nourishing_feed', name: '滋补饲料', price: 250, description: '产出天数-1' },
-  { id: 'vitality_feed', name: '活力饲料', price: 300, description: '100%治愈疾病' }
-]
-
 export const getAnimalDef = (type: string): AnimalDef | undefined => {
   return getOfficialAnimalByType(type) ?? LEGACY_ANIMAL_DEFS.find(d => d.type === type)
 }
 
 export const getAnimalDefsByBuilding = (type: AnimalBuildingType): AnimalDef[] =>
   [...getOfficialAnimalDefsByBuilding(type)]
+
+export const getFeedDef = (id: string) => {
+  return getOfficialAnimalFeedById(id) ?? LEGACY_FEED_DEFS.find(feed => feed.id === id)
+}
+
+export const getFeedDefs = () => [...getOfficialAnimalFeedDefsAsLegacy()]
 
 export const getBuildingDef = (type: string): AnimalBuildingDef | undefined => {
   return ANIMAL_BUILDINGS.find(b => b.type === type)

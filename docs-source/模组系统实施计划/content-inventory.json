@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 51,
-    "approximateLineCount": 30899,
+    "fileCount": 52,
+    "approximateLineCount": 30918,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 444,
-    "reviewedArtifactCount": 35
+    "symbolCount": 449,
+    "reviewedArtifactCount": 39
   },
   "entries": [
     {
@@ -135,6 +135,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
             "src/stores/useAnimalStore.ts"
           ],
@@ -151,6 +152,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts"
@@ -168,6 +170,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
             "src/stores/useAnimalStore.ts"
           ],
@@ -184,6 +187,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
             "src/stores/useAnimalStore.ts"
           ],
@@ -200,6 +204,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
             "src/stores/useAnimalStore.ts"
           ],
@@ -212,8 +217,65 @@
       ]
     },
     {
+      "file": "src/data/animalFeedDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "animal_feed"
+      ],
+      "candidateTargets": [
+        "taoyuan:animal_feed"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 17,
+      "symbols": [
+        {
+          "file": "src/data/animalFeedDefinitions.ts",
+          "exportName": "AnimalFeedDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/semanticValidation.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalFeedRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy animal feed compatibility shape; the public contract is AnimalFeedDefSchema."
+        },
+        {
+          "file": "src/data/animalFeedDefinitions.ts",
+          "exportName": "FEED_DEFS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalFeedRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy animal feed definitions; Phase 6 projects IDs, display names, prices and descriptions into taoyuan:animal_feed."
+        }
+      ]
+    },
+    {
       "file": "src/data/animals.ts",
-      "lines": 142,
+      "lines": 144,
       "classification": "mixed",
       "domains": [
         "animal",
@@ -259,6 +321,7 @@
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
+            "src/data/animalFeedDefinitions.ts",
             "src/stores/useAnimalStore.ts"
           ],
           "migrationPhase": [
@@ -275,6 +338,7 @@
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
+            "src/data/animalFeedDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
@@ -292,6 +356,7 @@
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
+            "src/data/animalFeedDefinitions.ts",
             "src/stores/useAnimalStore.ts"
           ],
           "migrationPhase": [
@@ -308,6 +373,7 @@
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
+            "src/data/animalFeedDefinitions.ts",
             "src/stores/useAnimalStore.ts"
           ],
           "migrationPhase": [
@@ -324,6 +390,7 @@
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
+            "src/data/animalFeedDefinitions.ts",
             "src/stores/useAnimalStore.ts"
           ],
           "migrationPhase": [
@@ -334,6 +401,46 @@
         },
         {
           "file": "src/data/animals.ts",
+          "exportName": "FEED_DEFS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/animalFeedDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalFeedRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps FEED_DEFS as an original-name re-export from the unique animalFeedDefinitions leaf source while AnimalView uses registry-backed compatibility facades."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "AnimalFeedDef",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animalFeedDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/semanticValidation.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalFeedRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Type-only re-export for the legacy animal feed compatibility shape."
+        },
+        {
+          "file": "src/data/animals.ts",
           "exportName": "ANIMAL_BUILDINGS",
           "syntaxKind": "const",
           "classification": "content",
@@ -341,23 +448,6 @@
           "persistentIds": true,
           "consumers": [
             "src/stores/useAnimalStore.ts",
-            "src/views/game/AnimalView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/animals.ts",
-          "exportName": "FEED_DEFS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:animal",
-          "persistentIds": true,
-          "consumers": [
             "src/views/game/AnimalView.vue"
           ],
           "migrationPhase": [
@@ -401,6 +491,40 @@
           ],
           "status": "verified",
           "rationale": "Phase 6 compatibility facade filters official animal definitions by building while preserving the old local-ID AnimalDef shape for UI consumers."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "getFeedDef",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/animalFeedRegistryPilot.test.ts",
+            "src/views/game/AnimalView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy getFeedDef() query is retained and now resolves taoyuan:animal_feed before returning an equivalent local-ID feed definition."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "getFeedDefs",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/animalFeedRegistryPilot.test.ts",
+            "src/views/game/AnimalView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy feed list query is retained and now returns local-ID AnimalFeedDef compatibility objects reconstructed from taoyuan:animal_feed."
         },
         {
           "file": "src/data/animals.ts",
@@ -8727,6 +8851,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies local-ID compatibility lookups and building-filtered animal definitions to useAnimalStore and AnimalView."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "AnimalFeedDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:animal_feed",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for animal feed definitions; generated animal-feed.schema.json rejects invalid localized text and price fields."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyAnimalFeed/createOfficialAnimalFeeds",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal_feed",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy animal feed definition into ordered official entries without changing local IDs, display names, prices or descriptions."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialAnimalFeedDef/getOfficialAnimalFeedDefs/getOfficialAnimalFeedDefsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal_feed",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry animal feed definitions by local or namespaced ID and reconstructs legacy AnimalFeedDef objects for compatibility checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialAnimalFeedById",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal_feed",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies the legacy getFeedDef() local-ID compatibility lookup to AnimalView."
     },
     {
       "file": "src/domain/mods/schemas.ts",

@@ -7,6 +7,7 @@ import type {
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
+import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
@@ -26,6 +27,7 @@ import type { RegistrySet } from './registry'
 import type {
   AnimalBuildingType,
   AnimalDef as AnimalContentDef,
+  AnimalFeedDef as AnimalFeedContentDef,
   CropDef,
   DropTableDef,
   EnchantmentDef,
@@ -356,6 +358,16 @@ export const getOfficialAnimalDef = (id: string): Readonly<AnimalContentDef> | u
 export const getOfficialAnimalDefs = (): readonly Readonly<AnimalContentDef>[] =>
   getOfficialRegistrySet().get<AnimalContentDef>(toOfficialRegistryTypeId('animal')).values()
 
+export const getOfficialAnimalFeedDef = (id: string): Readonly<AnimalFeedContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<AnimalFeedContentDef>(toOfficialRegistryTypeId('animal_feed')).get(contentId)
+    : undefined
+}
+
+export const getOfficialAnimalFeedDefs = (): readonly Readonly<AnimalFeedContentDef>[] =>
+  getOfficialRegistrySet().get<AnimalFeedContentDef>(toOfficialRegistryTypeId('animal_feed')).values()
+
 const toLegacyAnimalDef = (animal: Readonly<AnimalContentDef>): LegacyAnimalDef => ({
   type: getLocalContentId(animal.id) as LegacyAnimalDef['type'],
   name: animal.name.fallback,
@@ -379,6 +391,21 @@ export const getOfficialAnimalDefsByBuilding = (building: AnimalBuildingType): r
   getOfficialAnimalDefs()
     .filter(animal => animal.building === building)
     .map(toLegacyAnimalDef)
+
+const toLegacyAnimalFeedDef = (feed: Readonly<AnimalFeedContentDef>): LegacyAnimalFeedDef => ({
+  id: getLocalContentId(feed.id),
+  name: feed.name.fallback,
+  price: feed.price,
+  description: feed.description.fallback
+})
+
+export const getOfficialAnimalFeedById = (id: string): LegacyAnimalFeedDef | undefined => {
+  const feed = getOfficialAnimalFeedDef(id)
+  return feed ? toLegacyAnimalFeedDef(feed) : undefined
+}
+
+export const getOfficialAnimalFeedDefsAsLegacy = (): readonly LegacyAnimalFeedDef[] =>
+  getOfficialAnimalFeedDefs().map(toLegacyAnimalFeedDef)
 
 export const getOfficialPondableFishDef = (id: string): Readonly<PondableFishDef> | undefined => {
   const contentId = toQueryContentId(id)

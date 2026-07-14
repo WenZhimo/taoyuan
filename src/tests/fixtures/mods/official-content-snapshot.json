@@ -523,6 +523,88 @@
       ]
     },
     {
+      "registryId": "taoyuan:animal_feed",
+      "schemaName": "animal-feed.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalFeedDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "基础饲料",
+              "key": "taoyuan.animal_feed.hay.description"
+            },
+            "id": "taoyuan:hay",
+            "name": {
+              "fallback": "干草",
+              "key": "taoyuan.animal_feed.hay.name"
+            },
+            "price": 50
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalFeedDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "产出天数-1",
+              "key": "taoyuan.animal_feed.nourishing_feed.description"
+            },
+            "id": "taoyuan:nourishing_feed",
+            "name": {
+              "fallback": "滋补饲料",
+              "key": "taoyuan.animal_feed.nourishing_feed.name"
+            },
+            "price": 250
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalFeedDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "心情+60，好感度翻倍",
+              "key": "taoyuan.animal_feed.premium_feed.description"
+            },
+            "id": "taoyuan:premium_feed",
+            "name": {
+              "fallback": "精饲料",
+              "key": "taoyuan.animal_feed.premium_feed.name"
+            },
+            "price": 200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalFeedDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "100%治愈疾病",
+              "key": "taoyuan.animal_feed.vitality_feed.description"
+            },
+            "id": "taoyuan:vitality_feed",
+            "name": {
+              "fallback": "活力饲料",
+              "key": "taoyuan.animal_feed.vitality_feed.name"
+            },
+            "price": 300
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:crop",
       "schemaName": "crop.schema.json",
       "entries": [
@@ -71152,5 +71234,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:9a74a93e066a57ef2a314da8d87221ac9cae36e58bf711cbb0244bf8eebf21a5"
+  "snapshotHash": "sha256:55d9d3a71069474e21a53c902f5bb61bbf94d0a6b484de44b86bdf4e118ce1d8"
 }
