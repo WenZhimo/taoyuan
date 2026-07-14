@@ -99,6 +99,17 @@ export const getOfficialDropTableDefs = (): readonly Readonly<DropTableDef>[] =>
 export const getOfficialMonsterDropTableDef = (monsterId: string): Readonly<DropTableDef> | undefined =>
   getOfficialDropTableDef(monsterId.includes('/') ? monsterId : `drop/monster/${monsterId}`)
 
+export interface OfficialEquipmentDropTableQuery {
+  source: 'monster' | 'treasure'
+  kind: 'weapon' | 'ring' | 'hat' | 'shoe'
+  zone: string
+}
+
+export const getOfficialEquipmentDropTableDef = (
+  query: OfficialEquipmentDropTableQuery
+): Readonly<DropTableDef> | undefined =>
+  getOfficialDropTableDef(`drop/equipment/${query.source}/${query.kind}/${query.zone}`)
+
 export interface OfficialShopOfferQuery {
   shopId: string
   season?: Season

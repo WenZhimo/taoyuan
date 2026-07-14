@@ -1,15 +1,24 @@
 import { ITEMS } from '@/data/items'
 import { CROPS } from '@/data/crops'
 import { RECIPES } from '@/data/recipes'
-import { ENCHANTMENTS, ENCHANTMENT_EFFECTS, ENCHANTMENT_RARITY, RANDOM_ENCHANT_IDS, SHOP_WEAPONS } from '@/data/weapons'
+import {
+  ENCHANTMENTS,
+  ENCHANTMENT_EFFECTS,
+  ENCHANTMENT_RARITY,
+  MONSTER_DROP_WEAPONS,
+  RANDOM_ENCHANT_IDS,
+  SHOP_WEAPONS,
+  TREASURE_DROP_WEAPONS
+} from '@/data/weapons'
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
 import { SHOPS, type ShopDef as LegacyShopDef } from '@/data/shops'
 import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
-import { SHOP_HATS } from '@/data/hats'
-import { SHOP_SHOES } from '@/data/shoes'
+import { MONSTER_DROP_RINGS, TREASURE_DROP_RINGS } from '@/data/rings'
+import { MONSTER_DROP_HATS, SHOP_HATS, TREASURE_DROP_HATS } from '@/data/hats'
+import { MONSTER_DROP_SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoes'
 import { HAY_PRICE } from '@/data/animals'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
 import type { RecipeDef as LegacyRecipeDef } from '@/types'
@@ -217,6 +226,32 @@ export const adaptLegacyEnchantment = (id: string, enchantment: (typeof ENCHANTM
 const createMonsterDropTableId = (monsterId: string): ReturnType<typeof toOfficialContentId> =>
   toOfficialContentId(`drop/monster/${monsterId}`)
 
+type EquipmentDropSource = 'monster' | 'treasure'
+type EquipmentDropKind = 'weapon' | 'ring' | 'hat' | 'shoe'
+
+const createEquipmentDropTableId = (
+  source: EquipmentDropSource,
+  kind: EquipmentDropKind,
+  zone: string
+): ReturnType<typeof toOfficialContentId> => toOfficialContentId(`drop/equipment/${source}/${kind}/${zone}`)
+
+const adaptLegacyEquipmentDropTable = <T>(
+  source: EquipmentDropSource,
+  kind: EquipmentDropKind,
+  zone: string,
+  drops: readonly T[],
+  getItemId: (drop: T) => string,
+  getChance: (drop: T) => number
+): DropTableDef => ({
+  id: createEquipmentDropTableId(source, kind, zone),
+  entries: drops.map(drop => ({
+    itemId: toOfficialContentId(getItemId(drop)),
+    chance: getChance(drop),
+    minQuantity: 1,
+    maxQuantity: 1
+  }))
+})
+
 export const adaptLegacyMonsterDropTable = (monster: LegacyMonsterDef): DropTableDef => ({
   id: createMonsterDropTableId(monster.id),
   entries: monster.drops.map(drop => ({
@@ -226,6 +261,33 @@ export const adaptLegacyMonsterDropTable = (monster: LegacyMonsterDef): DropTabl
     maxQuantity: 1
   }))
 })
+
+export const createOfficialEquipmentDropTables = (): DropTableDef[] => {
+  const tables: DropTableDef[] = []
+
+  const addTables = <T>(
+    source: EquipmentDropSource,
+    kind: EquipmentDropKind,
+    pools: Record<string, readonly T[]>,
+    getItemId: (drop: T) => string,
+    getChance: (drop: T) => number
+  ) => {
+    for (const [zone, drops] of Object.entries(pools)) {
+      tables.push(adaptLegacyEquipmentDropTable(source, kind, zone, drops, getItemId, getChance))
+    }
+  }
+
+  addTables('monster', 'weapon', MONSTER_DROP_WEAPONS, drop => drop.weaponId, drop => drop.chance)
+  addTables('monster', 'ring', MONSTER_DROP_RINGS, drop => drop.ringId, drop => drop.chance)
+  addTables('monster', 'hat', MONSTER_DROP_HATS, drop => drop.hatId, drop => drop.chance)
+  addTables('monster', 'shoe', MONSTER_DROP_SHOES, drop => drop.shoeId, drop => drop.chance)
+  addTables('treasure', 'weapon', TREASURE_DROP_WEAPONS, drop => drop.weaponId, drop => drop.chance)
+  addTables('treasure', 'ring', TREASURE_DROP_RINGS, drop => drop.ringId, drop => drop.chance)
+  addTables('treasure', 'hat', TREASURE_DROP_HATS, drop => drop.hatId, drop => drop.chance)
+  addTables('treasure', 'shoe', TREASURE_DROP_SHOES, drop => drop.shoeId, drop => drop.chance)
+
+  return tables
+}
 
 export const adaptLegacyMonster = (monster: LegacyMonsterDef): MonsterDef => ({
   id: toOfficialContentId(monster.id),
@@ -542,6 +604,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const monsters = uniqueMonsters()
   for (const table of monsters.filter(monster => monster.drops.length > 0).map(adaptLegacyMonsterDropTable)) {
     dropTableRegistry.register(owner, table, { file: 'src/data/mine.ts' })
+  }
+  for (const table of createOfficialEquipmentDropTables()) {
+    dropTableRegistry.register(owner, table, { file: 'src/data/*equipment-drops*.ts' })
   }
   for (const monster of monsters.map(adaptLegacyMonster)) {
     monsterRegistry.register(owner, monster, { file: 'src/data/mine.ts' })

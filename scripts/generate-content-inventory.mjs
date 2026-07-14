@@ -328,6 +328,70 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Phase 3 shop offer pilot verifies fruit-tree sapling shop projection through taoyuan:shop_offer; tree growth and harvest behavior remain later agriculture migration scope.'
   },
+  'src/data/weapons.ts:MONSTER_DROP_WEAPONS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_WEAPONS through named taoyuan:drop_table entries without changing weapon drop settlement.'
+  },
+  'src/data/weapons.ts:TREASURE_DROP_WEAPONS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_WEAPONS through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
+  },
+  'src/data/rings.ts:MONSTER_DROP_RINGS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_RINGS through named taoyuan:drop_table entries without changing ring drop settlement.'
+  },
+  'src/data/rings.ts:TREASURE_DROP_RINGS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_RINGS through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
+  },
+  'src/data/hats.ts:MONSTER_DROP_HATS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_HATS through named taoyuan:drop_table entries without changing hat drop settlement.'
+  },
+  'src/data/hats.ts:TREASURE_DROP_HATS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_HATS through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
+  },
+  'src/data/shoes.ts:MONSTER_DROP_SHOES': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_SHOES through named taoyuan:drop_table entries without changing shoe drop settlement.'
+  },
+  'src/data/shoes.ts:TREASURE_DROP_SHOES': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_SHOES through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
+  },
   'src/data/weapons.ts:ENCHANTMENTS': {
     classification: 'content',
     targetRegistry: 'taoyuan:enchantment',

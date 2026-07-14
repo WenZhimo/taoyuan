@@ -93,6 +93,7 @@ describe('official enchantment and drop table registry pilot', () => {
   it('keeps monster drop table projections equivalent to legacy monster drops', () => {
     const official = getOfficialDropTableDefs()
       .map(normalizeDropTable)
+      .filter(table => table.id.startsWith('drop/monster/'))
       .sort((a, b) => a.id.localeCompare(b.id))
     const expected = uniqueLegacyMonsters()
       .filter(monster => monster.drops.length > 0)

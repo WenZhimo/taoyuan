@@ -12121,6 +12121,842 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.01,
+                "itemId": "taoyuan:void_visor",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/hat/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/monster/hat/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.015,
+                "itemId": "taoyuan:frost_hood",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/hat/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.015,
+                "itemId": "taoyuan:lava_helm",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/hat/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.012,
+                "itemId": "taoyuan:shadow_mask",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/hat/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/monster/hat/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.015,
+                "itemId": "taoyuan:dragon_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/ring/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.02,
+                "itemId": "taoyuan:moonlight_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              },
+              {
+                "chance": 0.015,
+                "itemId": "taoyuan:crystal_prism_band",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/ring/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.02,
+                "itemId": "taoyuan:jade_guard_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/ring/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.02,
+                "itemId": "taoyuan:jade_spirit_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/ring/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.02,
+                "itemId": "taoyuan:shadow_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/ring/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.02,
+                "itemId": "taoyuan:shallow_guard",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/ring/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.01,
+                "itemId": "taoyuan:void_treads",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/shoe/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.015,
+                "itemId": "taoyuan:crystal_treads",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/shoe/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.015,
+                "itemId": "taoyuan:frost_treads",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/shoe/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/monster/shoe/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.012,
+                "itemId": "taoyuan:shadow_striders",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/shoe/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/monster/shoe/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:void_hammer",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              },
+              {
+                "chance": 0.03,
+                "itemId": "taoyuan:void_fang_dagger",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/weapon/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:crystal_shard_dagger",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              },
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:prism_dagger",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/weapon/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:frost_dagger",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/weapon/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:shadow_blade",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              },
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:magma_blade",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/weapon/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:shadow_katana",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/weapon/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:bone_dagger",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              },
+              {
+                "chance": 0.03,
+                "itemId": "taoyuan:slime_mace",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/monster/weapon/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/treasure/hat/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:lucky_cap",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/hat/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:treasure_cap",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/hat/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:lucky_cap",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/hat/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/treasure/hat/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:treasure_cap",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/hat/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:fortune_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/ring/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.06,
+                "itemId": "taoyuan:exp_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              },
+              {
+                "chance": 0.035,
+                "itemId": "taoyuan:ancient_jade_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/ring/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.08,
+                "itemId": "taoyuan:farmers_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/ring/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.08,
+                "itemId": "taoyuan:anglers_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              },
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:ancient_jade_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/ring/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.06,
+                "itemId": "taoyuan:treasure_hunter_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/ring/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.08,
+                "itemId": "taoyuan:quartz_ring",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/ring/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/treasure/shoe/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:fortune_slippers",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/shoe/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:lucky_boots",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/shoe/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/treasure/shoe/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:fortune_slippers",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/shoe/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:lucky_boots",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/shoe/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.025,
+                "itemId": "taoyuan:ancient_blade",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/weapon/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/treasure/weapon/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.05,
+                "itemId": "taoyuan:jade_sword",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/weapon/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.04,
+                "itemId": "taoyuan:jade_sword",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/weapon/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "chance": 0.03,
+                "itemId": "taoyuan:ancient_blade",
+                "maxQuantity": 1,
+                "minQuantity": 1
+              }
+            ],
+            "id": "taoyuan:drop/equipment/treasure/weapon/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/*equipment-drops*.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [],
+            "id": "taoyuan:drop/equipment/treasure/weapon/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/mine.ts",
             "packageId": "taoyuan-core"
           },
@@ -59486,5 +60322,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:eded24348921b741787e1c3b4f060202387fa63b1cee994bdc94d741fdd39286"
+  "snapshotHash": "sha256:e2c58103ffccc2b124a512d03d7d11aae2f91b798a7b484b1dee52c8452a7aa4"
 }

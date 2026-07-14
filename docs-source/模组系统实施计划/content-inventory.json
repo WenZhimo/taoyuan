@@ -3190,10 +3190,12 @@
           "exportName": "MONSTER_DROP_HATS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
@@ -3201,8 +3203,8 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_HATS through named taoyuan:drop_table entries without changing hat drop settlement."
         },
         {
           "file": "src/data/hats.ts",
@@ -3228,18 +3230,20 @@
           "exportName": "TREASURE_DROP_HATS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_HATS through named taoyuan:drop_table entries while treasure settlement remains framework-owned."
         }
       ]
     },
@@ -5727,10 +5731,12 @@
           "exportName": "MONSTER_DROP_RINGS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
@@ -5738,8 +5744,8 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_RINGS through named taoyuan:drop_table entries without changing ring drop settlement."
         },
         {
           "file": "src/data/rings.ts",
@@ -5765,18 +5771,20 @@
           "exportName": "TREASURE_DROP_RINGS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_RINGS through named taoyuan:drop_table entries while treasure settlement remains framework-owned."
         }
       ]
     },
@@ -5917,10 +5925,12 @@
           "exportName": "MONSTER_DROP_SHOES",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
@@ -5928,8 +5938,8 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_SHOES through named taoyuan:drop_table entries without changing shoe drop settlement."
         },
         {
           "file": "src/data/shoes.ts",
@@ -5955,18 +5965,20 @@
           "exportName": "TREASURE_DROP_SHOES",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_SHOES through named taoyuan:drop_table entries while treasure settlement remains framework-owned."
         }
       ]
     },
@@ -7588,10 +7600,12 @@
           "exportName": "MONSTER_DROP_WEAPONS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
@@ -7599,8 +7613,8 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_WEAPONS through named taoyuan:drop_table entries without changing weapon drop settlement."
         },
         {
           "file": "src/data/weapons.ts",
@@ -7707,18 +7721,20 @@
           "exportName": "TREASURE_DROP_WEAPONS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_WEAPONS through named taoyuan:drop_table entries while treasure settlement remains framework-owned."
         }
       ]
     },
