@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { WALLET_ITEMS } from '@/data/wallet'
-import { FISH } from '@/data/fish'
+import { getOfficialFishDefsAsLegacy } from '@/domain/mods/contentAccess'
 import { useAchievementStore } from './useAchievementStore'
 import { useSkillStore } from './useSkillStore'
 import { useMiningStore } from './useMiningStore'
@@ -54,7 +54,7 @@ export const useWalletStore = defineStore('wallet', () => {
 
     // 垂钓者令牌：钓到30种鱼
     if (!has('anglers_token')) {
-      const fishIdSet = new Set(FISH.map(f => f.id))
+      const fishIdSet = new Set(getOfficialFishDefsAsLegacy().map(f => f.id))
       const fishCount = achievementStore.discoveredItems.filter(id => fishIdSet.has(id)).length
       if (fishCount >= 30) {
         unlock('anglers_token')

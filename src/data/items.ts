@@ -1,6 +1,6 @@
 import type { ItemDef, ItemCategory } from '@/types/item'
 import { CROPS } from './crops'
-import { FISH } from './fish'
+import { FISH } from './fishDefinitions'
 import { RECIPES } from './recipes'
 import { PROCESSING_MACHINES, SPRINKLERS, FERTILIZERS, BAITS, TACKLES, BOMBS } from './processing'
 import { FRUIT_TREE_DEFINITIONS as FRUIT_TREE_DEFS } from './treeDefinitions'

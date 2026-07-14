@@ -14,7 +14,7 @@ import type {
   MiniGameRating
 } from '@/types'
 import { getAvailableFish, getBaitById, getTackleById, getItemById } from '@/data'
-import { FISH } from '@/data/fish'
+import { getOfficialFishDefsAsLegacy } from '@/domain/mods/contentAccess'
 import { useGameStore } from './useGameStore'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
@@ -205,7 +205,9 @@ export const useFishingStore = defineStore('fishing', () => {
     const baitDef = equippedBait.value ? getBaitById(equippedBait.value) : null
     const loc = fishingLocation.value
     const fishPool = baitDef?.ignoresSeason
-      ? FISH.filter(f => (f.location ?? 'creek') === loc && (f.weather.includes('any') || f.weather.includes(gameStore.weather as any)))
+      ? getOfficialFishDefsAsLegacy().filter(
+          f => (f.location ?? 'creek') === loc && (f.weather.includes('any') || f.weather.includes(gameStore.weather as any))
+        )
       : availableFish.value
 
     if (fishPool.length === 0) {

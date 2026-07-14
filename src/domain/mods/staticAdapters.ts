@@ -1,6 +1,6 @@
 import { ITEMS } from '@/data/items'
 import { CROPS } from '@/data/crops'
-import { FISH } from '@/data/fish'
+import { FISH } from '@/data/fishDefinitions'
 import { RECIPES } from '@/data/recipes'
 import {
   ENCHANTMENTS,
@@ -696,7 +696,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
   for (const crop of CROPS.map(adaptLegacyCrop)) cropRegistry.register(owner, crop, { file: 'src/data/crops.ts' })
   for (const tree of createOfficialTrees()) treeRegistry.register(owner, tree, { file: 'src/data/treeDefinitions.ts' })
-  for (const fish of createOfficialFish()) fishRegistry.register(owner, fish, { file: 'src/data/fish.ts' })
+  for (const fish of createOfficialFish()) fishRegistry.register(owner, fish, { file: 'src/data/fishDefinitions.ts' })
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {

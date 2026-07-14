@@ -23,7 +23,6 @@ import { useMiningStore } from '@/stores/useMiningStore'
 import { useWarehouseStore } from '@/stores/useWarehouseStore'
 import { getItemById, getTodayEvent, getNpcById, getCropById, getForageItems } from '@/data'
 import { getFertilizerById } from '@/data/processing'
-import { FISH } from '@/data/fish'
 import { RECIPES } from '@/data/recipes'
 import { CAVE_UNLOCK_EARNINGS } from '@/data/buildings'
 import { TOOL_NAMES, TIER_NAMES } from '@/data/upgrades'
@@ -35,6 +34,7 @@ import { MORNING_NARRATIONS, NARRATIONS_NO_LOSS, MORNING_CHOICE_EVENTS, MORNING_
 import { MORNING_TIPS } from '@/data/tutorials'
 import { TAB_TO_LOCATION_GROUP, getLocationGroupName } from '@/data/timeConstants'
 import { getResourceSleepOptionsForLocation } from '@/domain/sleep/sleepOptions'
+import { getOfficialFishDefsAsLegacy } from '@/domain/mods/contentAccess'
 import { processFishPondEndDay } from '@/domain/endDay/fishPondEndDay'
 import { processCaveEndDay } from '@/domain/endDay/caveEndDay'
 import { processFarmPlotEndDay, processFarmTreeEndDay } from '@/domain/endDay/farmEndDay'
@@ -596,7 +596,7 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     getItemName: itemId => getItemById(itemId)?.name,
     getForageItems: () => getForageItems(gameStore.season),
     getSeasonFish: () =>
-      FISH.filter(
+      getOfficialFishDefsAsLegacy().filter(
         fish =>
           (fish.location ?? 'creek') === 'creek' &&
           fish.season.includes(gameStore.season as (typeof fish.season)[number])

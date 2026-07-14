@@ -3,11 +3,11 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 46,
-    "approximateLineCount": 30844,
+    "fileCount": 47,
+    "approximateLineCount": 30842,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 429,
+    "symbolCount": 431,
     "reviewedArtifactCount": 19
   },
   "entries": [
@@ -1570,51 +1570,49 @@
     },
     {
       "file": "src/data/fish.ts",
-      "lines": 780,
       "classification": "mixed",
       "domains": [
         "fish",
         "fishing_location",
-        "availability_query"
+        "lookup"
       ],
       "candidateTargets": [
         "taoyuan:fish",
-        "taoyuan:fishing_location",
-        "engine/domain/fishing"
+        "compatibility_adapter"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 13,
       "symbols": [
         {
           "file": "src/data/fish.ts",
           "exportName": "FISHING_LOCATIONS",
-          "syntaxKind": "const",
-          "classification": "adapter",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
           "persistentIds": false,
           "consumers": [
+            "src/data/fishDefinitions.ts",
             "src/views/game/FishingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
         },
         {
           "file": "src/data/fish.ts",
           "exportName": "FISH",
-          "syntaxKind": "const",
-          "classification": "content",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:fish",
           "persistentIds": true,
           "consumers": [
-            "src/composables/useEndDay.ts",
+            "src/data/fishDefinitions.ts",
             "src/data/items.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useFishingStore.ts",
-            "src/stores/useWalletStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
             "src/tests/domain/fishRegistryPilot.test.ts"
           ],
@@ -1623,13 +1621,14 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
-          "rationale": "Phase 6 fish contract slice projects all legacy fish definitions into taoyuan:fish and verifies IDs, names, sell prices, seasons, weather, locations, difficulty, mini-game tuning and availability query equivalence."
+          "rationale": "Phase 6 keeps FISH as an original-name re-export from the unique fishDefinitions leaf source; runtime consumers now use registry-backed fish facades."
         },
         {
           "file": "src/data/fish.ts",
           "exportName": "getFishById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:fish",
           "persistentIds": false,
           "consumers": [
             "src/tests/domain/fishRegistryPilot.test.ts"
@@ -1637,14 +1636,15 @@
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getFishById() signature is retained and now resolves taoyuan:fish before returning an equivalent local-ID FishDef compatibility object."
         },
         {
           "file": "src/data/fish.ts",
           "exportName": "getAvailableFish",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:fish",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishingStore.ts",
@@ -1653,8 +1653,65 @@
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getAvailableFish() signature is retained and now resolves season, weather and location availability through the official fish registry facade."
+        }
+      ]
+    },
+    {
+      "file": "src/data/fishDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "fish",
+        "fishing_location"
+      ],
+      "candidateTargets": [
+        "taoyuan:fish",
+        "ui/fishing-location"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 765,
+      "symbols": [
+        {
+          "file": "src/data/fishDefinitions.ts",
+          "exportName": "FISHING_LOCATIONS",
+          "syntaxKind": "const",
+          "classification": "ui",
+          "targetRegistry": "ui/fishing-location",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/fish.ts",
+            "src/views/game/FishingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Fishing location labels and descriptions remain a UI/framework list for this fish-definition slice; location registry migration is out of scope."
+        },
+        {
+          "file": "src/data/fishDefinitions.ts",
+          "exportName": "FISH",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:fish",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/fish.ts",
+            "src/data/items.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/fishRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy fish definitions; Phase 6 projects every field into taoyuan:fish and verifies order and availability equivalence."
         }
       ]
     },

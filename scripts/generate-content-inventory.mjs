@@ -143,6 +143,24 @@ fileDefaults.set('src/data/treeDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/fishDefinitions.ts', {
+  file: 'src/data/fishDefinitions.ts',
+  classification: 'mixed',
+  domains: ['fish', 'fishing_location'],
+  candidateTargets: ['taoyuan:fish', 'ui/fishing-location'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/fish.ts', {
+  file: 'src/data/fish.ts',
+  classification: 'mixed',
+  domains: ['fish', 'fishing_location', 'lookup'],
+  candidateTargets: ['taoyuan:fish', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/fruitTrees.ts', {
   file: 'src/data/fruitTrees.ts',
   classification: 'mixed',
@@ -407,12 +425,41 @@ const symbolReviewOverrides = new Map(Object.entries({
     rationale: 'Unique registry-free leaf source for all three legacy wild-tree definitions; Phase 6 projects every field into taoyuan:tree and verifies order and behavior equivalence.'
   },
   'src/data/fish.ts:FISH': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps FISH as an original-name re-export from the unique fishDefinitions leaf source; runtime consumers now use registry-backed fish facades.'
+  },
+  'src/data/fish.ts:getFishById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getFishById() signature is retained and now resolves taoyuan:fish before returning an equivalent local-ID FishDef compatibility object.'
+  },
+  'src/data/fish.ts:getAvailableFish': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getAvailableFish() signature is retained and now resolves season, weather and location availability through the official fish registry facade.'
+  },
+  'src/data/fishDefinitions.ts:FISH': {
     classification: 'content',
     targetRegistry: 'taoyuan:fish',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 6 fish contract slice projects all legacy fish definitions into taoyuan:fish and verifies IDs, names, sell prices, seasons, weather, locations, difficulty, mini-game tuning and availability query equivalence.'
+    rationale: 'Unique registry-free leaf source for all legacy fish definitions; Phase 6 projects every field into taoyuan:fish and verifies order and availability equivalence.'
+  },
+  'src/data/fishDefinitions.ts:FISHING_LOCATIONS': {
+    classification: 'ui',
+    targetRegistry: 'ui/fishing-location',
+    persistentIds: true,
+    status: 'framework-retained',
+    rationale: 'Fishing location labels and descriptions remain a UI/framework list for this fish-definition slice; location registry migration is out of scope.'
   },
   'src/data/weapons.ts:MONSTER_DROP_WEAPONS': {
     classification: 'derived',
