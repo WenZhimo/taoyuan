@@ -7,7 +7,8 @@
     "approximateLineCount": 30834,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 423
+    "symbolCount": 423,
+    "reviewedArtifactCount": 3
   },
   "entries": [
     {
@@ -4376,37 +4377,43 @@
           "file": "src/data/mine.ts",
           "exportName": "MONSTERS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
+          "classification": "content",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Phase 4 drop table pilot verifies monster.drops projection into taoyuan:drop_table and the registry-backed roll adapter; full monster definition and pool migration remain Phase 5 scope."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 monster registry pilot verifies every MONSTERS definition and ordered drop entry through the taoyuan:monster query facade while retaining the static object as a rollback path."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "SKULL_CAVERN_MONSTERS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
+          "classification": "content",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Phase 4 drop table pilot verifies skull cavern monster drops through taoyuan:drop_table and the shared roll adapter; cavern monster pools remain Phase 5 scope."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 monster registry pilot verifies every SKULL_CAVERN_MONSTERS definition and ordered drop entry through taoyuan:monster while leaving cavern pool selection and scaling unchanged."
         },
         {
           "file": "src/data/mine.ts",
@@ -4429,21 +4436,24 @@
           "file": "src/data/mine.ts",
           "exportName": "BOSS_MONSTERS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
+          "classification": "content",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts",
             "src/views/game/GuildView.vue",
             "src/views/game/MiningView.vue"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Phase 4 drop table pilot verifies boss monster drops through taoyuan:drop_table and semantic drop-table validation; boss combat and reward rules remain framework-owned until Phase 5."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 monster registry pilot verifies every BOSS_MONSTERS definition and ordered drop entry through taoyuan:monster; floor mapping, combat and rewards remain on the legacy framework path."
         },
         {
           "file": "src/data/mine.ts",
@@ -7790,6 +7800,44 @@
           "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
         }
       ]
+    }
+  ],
+  "reviewedArtifacts": [
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialMonsterDef",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Phase 5 query facade resolves both local and namespaced monster IDs to read-only registry MonsterDef entries."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialMonsterDefs",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Phase 5 query facade returns all deduplicated official monster definitions in stable registration order."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialMonsterById",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Phase 5 compatibility facade reconstructs the legacy MonsterDef shape and resolves ordered drops through each registry monster dropTableId."
     }
   ]
 }

@@ -425,18 +425,63 @@ const symbolReviewOverrides = new Map(Object.entries({
     rationale: 'Phase 4 enchantment registry pilot carries existing standard equipment effect parameters into taoyuan:enchantment while runtime collection still uses the legacy map.'
   },
   'src/data/mine.ts:MONSTERS': {
-    status: 'baselined',
-    rationale: 'Phase 4 drop table pilot verifies monster.drops projection into taoyuan:drop_table and the registry-backed roll adapter; full monster definition and pool migration remain Phase 5 scope.'
+    classification: 'content',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 monster registry pilot verifies every MONSTERS definition and ordered drop entry through the taoyuan:monster query facade while retaining the static object as a rollback path.'
   },
   'src/data/mine.ts:BOSS_MONSTERS': {
-    status: 'baselined',
-    rationale: 'Phase 4 drop table pilot verifies boss monster drops through taoyuan:drop_table and semantic drop-table validation; boss combat and reward rules remain framework-owned until Phase 5.'
+    classification: 'content',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 monster registry pilot verifies every BOSS_MONSTERS definition and ordered drop entry through taoyuan:monster; floor mapping, combat and rewards remain on the legacy framework path.'
   },
   'src/data/mine.ts:SKULL_CAVERN_MONSTERS': {
-    status: 'baselined',
-    rationale: 'Phase 4 drop table pilot verifies skull cavern monster drops through taoyuan:drop_table and the shared roll adapter; cavern monster pools remain Phase 5 scope.'
+    classification: 'content',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 monster registry pilot verifies every SKULL_CAVERN_MONSTERS definition and ordered drop entry through taoyuan:monster while leaving cavern pool selection and scaling unchanged.'
   }
 }))
+
+const reviewedArtifacts = [
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMonsterDef',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Phase 5 query facade resolves both local and namespaced monster IDs to read-only registry MonsterDef entries.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMonsterDefs',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Phase 5 query facade returns all deduplicated official monster definitions in stable registration order.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMonsterById',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Phase 5 compatibility facade reconstructs the legacy MonsterDef shape and resolves ordered drops through each registry monster dropTableId.'
+  }
+]
 
 const entries = dataFiles.map(file => {
   const rel = relative(file)
@@ -489,9 +534,11 @@ const inventory = {
     approximateLineCount: entries.reduce((total, entry) => total + entry.lines, 0),
     scope: 'export-symbol-level baseline',
     nextRequiredScope: 'per-domain migration verification before official content package takeover',
-    symbolCount: entries.reduce((total, entry) => total + entry.symbols.length, 0)
+    symbolCount: entries.reduce((total, entry) => total + entry.symbols.length, 0),
+    reviewedArtifactCount: reviewedArtifacts.length
   },
-  entries
+  entries,
+  reviewedArtifacts
 }
 
 fs.writeFileSync(outputPath, `${JSON.stringify(inventory, null, 2)}\n`, 'utf8')
