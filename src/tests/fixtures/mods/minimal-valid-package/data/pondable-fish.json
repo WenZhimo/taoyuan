@@ -1,0 +1,20 @@
+[
+  {
+    "id": "example_mod:test_fish",
+    "fishItemId": "example_mod:test_fish",
+    "name": {
+      "key": "example_mod.pondable_fish.test.name",
+      "fallback": "测试可养殖鱼"
+    },
+    "maturityDays": 2,
+    "baseProductionRate": 0.5,
+    "productItemId": "example_mod:test_item",
+    "defaultGenetics": {
+      "weight": 50,
+      "growthRate": 50,
+      "diseaseRes": 50,
+      "qualityGene": 30,
+      "mutationRate": 10
+    }
+  }
+]

@@ -26,6 +26,7 @@
     "taoyuan:tag": ["data/tags.json"],
     "taoyuan:item": ["data/items.json"],
     "taoyuan:fish": ["data/fish.json"],
+    "taoyuan:pondable_fish": ["data/pondable-fish.json"],
     "taoyuan:forage": ["data/forage.json"],
     "taoyuan:animal": ["data/animals.json"],
     "taoyuan:tree": ["data/trees.json"],

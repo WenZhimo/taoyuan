@@ -1,0 +1,94 @@
+{
+  "$id": "taoyuan.registry.PondableFishDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "fishItemId",
+    "name",
+    "maturityDays",
+    "baseProductionRate",
+    "productItemId",
+    "defaultGenetics"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "fishItemId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "maturityDays": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "baseProductionRate": {
+      "minimum": 0,
+      "maximum": 1,
+      "type": "number"
+    },
+    "productItemId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "defaultGenetics": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "weight",
+        "growthRate",
+        "diseaseRes",
+        "qualityGene",
+        "mutationRate"
+      ],
+      "properties": {
+        "weight": {
+          "minimum": 0,
+          "maximum": 100,
+          "type": "integer"
+        },
+        "growthRate": {
+          "minimum": 0,
+          "maximum": 100,
+          "type": "integer"
+        },
+        "diseaseRes": {
+          "minimum": 0,
+          "maximum": 100,
+          "type": "integer"
+        },
+        "qualityGene": {
+          "minimum": 0,
+          "maximum": 100,
+          "type": "integer"
+        },
+        "mutationRate": {
+          "minimum": 1,
+          "maximum": 50,
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

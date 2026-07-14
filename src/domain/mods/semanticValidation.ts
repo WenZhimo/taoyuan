@@ -16,6 +16,7 @@ import type {
   MonsterDef,
   MonsterPoolDef,
   PackageManifest,
+  PondableFishDef,
   RecipeDef,
   ShopOfferDef,
   TagDef,
@@ -31,6 +32,7 @@ const REGISTRY_IDS = {
   fish: toOfficialRegistryTypeId('fish'),
   forage: toOfficialRegistryTypeId('forage'),
   animal: toOfficialRegistryTypeId('animal'),
+  pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
@@ -69,6 +71,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const fishRegistry = registrySet.get<FishDef>(REGISTRY_IDS.fish)
   const forageRegistry = registrySet.get<ForageDef>(REGISTRY_IDS.forage)
   const animalRegistry = registrySet.get<AnimalDef>(REGISTRY_IDS.animal)
+  const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
@@ -216,6 +219,25 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
 
   for (const record of animalRegistry.entries()) {
     if (record.entry.productItemId && !itemRegistry.has(contentId(record.entry.productItemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.productItemId),
+        fieldPath: '/productItemId'
+      })
+    }
+  }
+
+  for (const record of pondableFishRegistry.entries()) {
+    if (!fishRegistry.has(contentId(record.entry.fishItemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.fish,
+        contentId: contentId(record.entry.fishItemId),
+        fieldPath: '/fishItemId'
+      })
+    }
+    if (!itemRegistry.has(contentId(record.entry.productItemId))) {
       pushMissingReference(diagnostics, {
         packageId: record.owner,
         registryId: REGISTRY_IDS.item,

@@ -52125,6 +52125,337 @@
       ]
     },
     {
+      "registryId": "taoyuan:pondable_fish",
+      "schemaName": "pondable-fish.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.3,
+            "defaultGenetics": {
+              "diseaseRes": 45,
+              "growthRate": 50,
+              "mutationRate": 10,
+              "qualityGene": 30,
+              "weight": 55
+            },
+            "fishItemId": "taoyuan:bass",
+            "id": "taoyuan:bass",
+            "maturityDays": 5,
+            "name": {
+              "fallback": "鲈鱼",
+              "key": "taoyuan.pondable_fish.bass.name"
+            },
+            "productItemId": "taoyuan:bass"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.35,
+            "defaultGenetics": {
+              "diseaseRes": 55,
+              "growthRate": 55,
+              "mutationRate": 10,
+              "qualityGene": 30,
+              "weight": 45
+            },
+            "fishItemId": "taoyuan:carp",
+            "id": "taoyuan:carp",
+            "maturityDays": 4,
+            "name": {
+              "fallback": "鲤鱼",
+              "key": "taoyuan.pondable_fish.carp.name"
+            },
+            "productItemId": "taoyuan:carp"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.3,
+            "defaultGenetics": {
+              "diseaseRes": 50,
+              "growthRate": 45,
+              "mutationRate": 10,
+              "qualityGene": 30,
+              "weight": 65
+            },
+            "fishItemId": "taoyuan:catfish",
+            "id": "taoyuan:catfish",
+            "maturityDays": 5,
+            "name": {
+              "fallback": "鲶鱼",
+              "key": "taoyuan.pondable_fish.catfish.name"
+            },
+            "productItemId": "taoyuan:catfish"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.15,
+            "defaultGenetics": {
+              "diseaseRes": 30,
+              "growthRate": 30,
+              "mutationRate": 25,
+              "qualityGene": 60,
+              "weight": 35
+            },
+            "fishItemId": "taoyuan:cave_blindfish",
+            "id": "taoyuan:cave_blindfish",
+            "maturityDays": 8,
+            "name": {
+              "fallback": "洞穴盲鱼",
+              "key": "taoyuan.pondable_fish.cave_blindfish.name"
+            },
+            "productItemId": "taoyuan:cave_blindfish"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.4,
+            "defaultGenetics": {
+              "diseaseRes": 60,
+              "growthRate": 70,
+              "mutationRate": 10,
+              "qualityGene": 30,
+              "weight": 30
+            },
+            "fishItemId": "taoyuan:crucian",
+            "id": "taoyuan:crucian",
+            "maturityDays": 3,
+            "name": {
+              "fallback": "鲫鱼",
+              "key": "taoyuan.pondable_fish.crucian.name"
+            },
+            "productItemId": "taoyuan:crucian"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.2,
+            "defaultGenetics": {
+              "diseaseRes": 40,
+              "growthRate": 35,
+              "mutationRate": 10,
+              "qualityGene": 50,
+              "weight": 40
+            },
+            "fishItemId": "taoyuan:golden_carp",
+            "id": "taoyuan:golden_carp",
+            "maturityDays": 7,
+            "name": {
+              "fallback": "金鲤",
+              "key": "taoyuan.pondable_fish.golden_carp.name"
+            },
+            "productItemId": "taoyuan:golden_carp"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.3,
+            "defaultGenetics": {
+              "diseaseRes": 50,
+              "growthRate": 45,
+              "mutationRate": 10,
+              "qualityGene": 30,
+              "weight": 60
+            },
+            "fishItemId": "taoyuan:grass_carp",
+            "id": "taoyuan:grass_carp",
+            "maturityDays": 5,
+            "name": {
+              "fallback": "草鱼",
+              "key": "taoyuan.pondable_fish.grass_carp.name"
+            },
+            "productItemId": "taoyuan:grass_carp"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.25,
+            "defaultGenetics": {
+              "diseaseRes": 45,
+              "growthRate": 40,
+              "mutationRate": 10,
+              "qualityGene": 55,
+              "weight": 45
+            },
+            "fishItemId": "taoyuan:koi",
+            "id": "taoyuan:koi",
+            "maturityDays": 6,
+            "name": {
+              "fallback": "锦鲤",
+              "key": "taoyuan.pondable_fish.koi.name"
+            },
+            "productItemId": "taoyuan:koi"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.4,
+            "defaultGenetics": {
+              "diseaseRes": 70,
+              "growthRate": 65,
+              "mutationRate": 10,
+              "qualityGene": 30,
+              "weight": 25
+            },
+            "fishItemId": "taoyuan:mud_loach",
+            "id": "taoyuan:mud_loach",
+            "maturityDays": 3,
+            "name": {
+              "fallback": "沼泽泥鳅",
+              "key": "taoyuan.pondable_fish.mud_loach.name"
+            },
+            "productItemId": "taoyuan:mud_loach"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.5,
+            "defaultGenetics": {
+              "diseaseRes": 75,
+              "growthRate": 80,
+              "mutationRate": 10,
+              "qualityGene": 20,
+              "weight": 15
+            },
+            "fishItemId": "taoyuan:pond_snail",
+            "id": "taoyuan:pond_snail",
+            "maturityDays": 2,
+            "name": {
+              "fallback": "田螺",
+              "key": "taoyuan.pondable_fish.pond_snail.name"
+            },
+            "productItemId": "taoyuan:pond_snail"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.15,
+            "defaultGenetics": {
+              "diseaseRes": 80,
+              "growthRate": 25,
+              "mutationRate": 10,
+              "qualityGene": 40,
+              "weight": 70
+            },
+            "fishItemId": "taoyuan:pond_turtle",
+            "id": "taoyuan:pond_turtle",
+            "maturityDays": 8,
+            "name": {
+              "fallback": "乌龟",
+              "key": "taoyuan.pondable_fish.pond_turtle.name"
+            },
+            "productItemId": "taoyuan:pond_turtle"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.25,
+            "defaultGenetics": {
+              "diseaseRes": 40,
+              "growthRate": 45,
+              "mutationRate": 10,
+              "qualityGene": 50,
+              "weight": 50
+            },
+            "fishItemId": "taoyuan:rainbow_trout",
+            "id": "taoyuan:rainbow_trout",
+            "maturityDays": 6,
+            "name": {
+              "fallback": "虹鳟",
+              "key": "taoyuan.pondable_fish.rainbow_trout.name"
+            },
+            "productItemId": "taoyuan:rainbow_trout"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "baseProductionRate": 0.25,
+            "defaultGenetics": {
+              "diseaseRes": 55,
+              "growthRate": 40,
+              "mutationRate": 10,
+              "qualityGene": 45,
+              "weight": 50
+            },
+            "fishItemId": "taoyuan:yellow_eel",
+            "id": "taoyuan:yellow_eel",
+            "maturityDays": 6,
+            "name": {
+              "fallback": "黄鳝",
+              "key": "taoyuan.pondable_fish.yellow_eel.name"
+            },
+            "productItemId": "taoyuan:yellow_eel"
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:recipe",
       "schemaName": "recipe.schema.json",
       "entries": [
@@ -63615,5 +63946,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:804d4cca570004132ad9faecfe7f12924289740a250e1e762ba837c470326de8"
+  "snapshotHash": "sha256:e242aa8a0914db44339c6a59690f85965b56dba003c7257a0dcf4c26cbc5607b"
 }

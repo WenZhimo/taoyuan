@@ -226,6 +226,30 @@ export const AnimalDefSchema = Type.Object(
   { $id: 'taoyuan.registry.AnimalDef', additionalProperties: false }
 )
 
+export const PondFishGeneticsSchema = Type.Object(
+  {
+    weight: Type.Integer({ minimum: 0, maximum: 100 }),
+    growthRate: Type.Integer({ minimum: 0, maximum: 100 }),
+    diseaseRes: Type.Integer({ minimum: 0, maximum: 100 }),
+    qualityGene: Type.Integer({ minimum: 0, maximum: 100 }),
+    mutationRate: Type.Integer({ minimum: 1, maximum: 50 })
+  },
+  { additionalProperties: false }
+)
+
+export const PondableFishDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    fishItemId: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    maturityDays: Type.Integer({ minimum: 1 }),
+    baseProductionRate: Type.Number({ minimum: 0, maximum: 1 }),
+    productItemId: ContentIdSchema,
+    defaultGenetics: PondFishGeneticsSchema
+  },
+  { $id: 'taoyuan.registry.PondableFishDef', additionalProperties: false }
+)
+
 export const CropDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -566,6 +590,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:fish': FishDefSchema,
   'taoyuan:forage': ForageDefSchema,
   'taoyuan:animal': AnimalDefSchema,
+  'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -587,6 +612,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'fish.schema.json': FishDefSchema,
   'forage.schema.json': ForageDefSchema,
   'animal.schema.json': AnimalDefSchema,
+  'pondable-fish.schema.json': PondableFishDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -611,6 +637,8 @@ export type FishDifficulty = Static<typeof FishDifficultySchema>
 export type Weekday = Static<typeof WeekdaySchema>
 export type AnimalBuildingType = Static<typeof AnimalBuildingTypeSchema>
 export type AnimalDef = Static<typeof AnimalDefSchema>
+export type PondFishGenetics = Static<typeof PondFishGeneticsSchema>
+export type PondableFishDef = Static<typeof PondableFishDefSchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type TreeDef = Static<typeof TreeDefSchema>
 export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>

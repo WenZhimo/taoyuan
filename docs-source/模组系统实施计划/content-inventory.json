@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 49,
-    "approximateLineCount": 30863,
+    "fileCount": 50,
+    "approximateLineCount": 30875,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 440,
-    "reviewedArtifactCount": 27
+    "symbolCount": 442,
+    "reviewedArtifactCount": 31
   },
   "entries": [
     {
@@ -1864,23 +1864,42 @@
     },
     {
       "file": "src/data/fishPond.ts",
-      "lines": 203,
       "classification": "mixed",
       "domains": [
         "pondable_fish",
-        "pond_upgrade",
-        "pond_rules"
+        "fish_pond_rules",
+        "lookup"
       ],
       "candidateTargets": [
         "taoyuan:pondable_fish",
-        "taoyuan:facility_upgrade",
-        "engine/domain/fish-pond"
+        "engine/domain/fish-pond",
+        "compatibility_adapter"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 90,
       "symbols": [
+        {
+          "file": "src/data/fishPond.ts",
+          "exportName": "PONDABLE_FISH",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:pondable_fish",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/fishPondDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/pondableFishRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps PONDABLE_FISH as an original-name re-export from the unique fishPondDefinitions leaf source while fish pond consumers use registry-backed compatibility facades."
+        },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "POND_BUILD_COST",
@@ -1903,6 +1922,7 @@
           "exportName": "POND_UPGRADE_COSTS",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts",
@@ -1919,6 +1939,7 @@
           "exportName": "POND_CAPACITY",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts",
@@ -1935,6 +1956,7 @@
           "exportName": "WATER_QUALITY_DECAY_BASE",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -1950,6 +1972,7 @@
           "exportName": "WATER_QUALITY_DECAY_HALF",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -1965,6 +1988,7 @@
           "exportName": "WATER_QUALITY_DECAY_CROWDED",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -1980,6 +2004,7 @@
           "exportName": "WATER_QUALITY_DECAY_HUNGRY",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -2011,6 +2036,7 @@
           "exportName": "DISEASE_CHANCE_BASE",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -2043,6 +2069,7 @@
           "exportName": "FEED_WATER_RESTORE",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -2058,6 +2085,7 @@
           "exportName": "PURIFIER_WATER_RESTORE",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -2090,6 +2118,7 @@
           "exportName": "GENETICS_FLUCTUATION_BASE",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -2105,6 +2134,7 @@
           "exportName": "POND_MUTATION_JUMP_MIN",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -2120,6 +2150,7 @@
           "exportName": "POND_MUTATION_JUMP_MAX",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts"
@@ -2132,51 +2163,91 @@
         },
         {
           "file": "src/data/fishPond.ts",
-          "exportName": "PONDABLE_FISH",
+          "exportName": "getPondableFishDefs",
           "syntaxKind": "const",
-          "classification": "content",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:pondable_fish",
-          "persistentIds": true,
+          "persistentIds": false,
           "consumers": [
+            "src/tests/domain/pondableFishRegistryPilot.test.ts",
             "src/views/game/FishPondView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Legacy list query is retained and now returns local-ID PondableFishDef compatibility objects reconstructed from taoyuan:pondable_fish."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "getPondableFish",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:pondable_fish",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts",
+            "src/tests/domain/pondableFishRegistryPilot.test.ts",
             "src/views/game/FishPondView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getPondableFish() signature is retained and now resolves taoyuan:pondable_fish before returning an equivalent local-ID PondableFishDef object."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "isPondableFish",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:pondable_fish",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/pondableFishRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy isPondableFish() signature remains the fish pond admission gate and now depends on the registry-backed compatibility lookup."
+        }
+      ]
+    },
+    {
+      "file": "src/data/fishPondDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "pondable_fish"
+      ],
+      "candidateTargets": [
+        "taoyuan:pondable_fish"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 125,
+      "symbols": [
+        {
+          "file": "src/data/fishPondDefinitions.ts",
+          "exportName": "PONDABLE_FISH",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:pondable_fish",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/fishPond.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/pondableFishRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all 13 legacy pondable fish definitions; Phase 6 projects every field into taoyuan:pondable_fish and verifies order, genetics and fish pond runtime behavior."
         }
       ]
     },
@@ -8587,6 +8658,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies local-ID compatibility lookups and building-filtered animal definitions to useAnimalStore and AnimalView."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "PondableFishDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:pondable_fish",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for fish pond species definitions; generated pondable-fish.schema.json rejects invalid item references, maturity days, production rates and genetics bounds."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyPondableFish/createOfficialPondableFish",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:pondable_fish",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy pondable fish definition into ordered official entries without changing local IDs, display names, maturity days, production rates, products or default genetics."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialPondableFishDef/getOfficialPondableFishDefs/getOfficialPondableFishDefsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:pondable_fish",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry pondable fish definitions by local or namespaced ID and reconstructs legacy PondableFishDef objects for compatibility checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialPondableFishById",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:pondable_fish",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies the legacy getPondableFish() local-ID compatibility lookup to useFishPondStore and FishPondView."
     }
   ]
 }

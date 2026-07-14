@@ -161,6 +161,24 @@ fileDefaults.set('src/data/fish.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/fishPondDefinitions.ts', {
+  file: 'src/data/fishPondDefinitions.ts',
+  classification: 'content',
+  domains: ['pondable_fish'],
+  candidateTargets: ['taoyuan:pondable_fish'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/fishPond.ts', {
+  file: 'src/data/fishPond.ts',
+  classification: 'mixed',
+  domains: ['pondable_fish', 'fish_pond_rules', 'lookup'],
+  candidateTargets: ['taoyuan:pondable_fish', 'engine/domain/fish-pond', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forageDefinitions.ts', {
   file: 'src/data/forageDefinitions.ts',
   classification: 'content',
@@ -521,6 +539,43 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: true,
     status: 'framework-retained',
     rationale: 'Fishing location labels and descriptions remain a UI/framework list for this fish-definition slice; location registry migration is out of scope.'
+  },
+  'src/data/fishPondDefinitions.ts:PONDABLE_FISH': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all 13 legacy pondable fish definitions; Phase 6 projects every field into taoyuan:pondable_fish and verifies order, genetics and fish pond runtime behavior.'
+  },
+  'src/data/fishPond.ts:PONDABLE_FISH': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps PONDABLE_FISH as an original-name re-export from the unique fishPondDefinitions leaf source while fish pond consumers use registry-backed compatibility facades.'
+  },
+  'src/data/fishPond.ts:getPondableFishDefs': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy list query is retained and now returns local-ID PondableFishDef compatibility objects reconstructed from taoyuan:pondable_fish.'
+  },
+  'src/data/fishPond.ts:getPondableFish': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getPondableFish() signature is retained and now resolves taoyuan:pondable_fish before returning an equivalent local-ID PondableFishDef object.'
+  },
+  'src/data/fishPond.ts:isPondableFish': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy isPondableFish() signature remains the fish pond admission gate and now depends on the registry-backed compatibility lookup.'
   },
   'src/data/forageDefinitions.ts:FORAGE_ITEMS': {
     classification: 'content',
@@ -1027,6 +1082,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies local-ID compatibility lookups and building-filtered animal definitions to useAnimalStore and AnimalView.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'PondableFishDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for fish pond species definitions; generated pondable-fish.schema.json rejects invalid item references, maturity days, production rates and genetics bounds.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyPondableFish/createOfficialPondableFish',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy pondable fish definition into ordered official entries without changing local IDs, display names, maturity days, production rates, products or default genetics.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialPondableFishDef/getOfficialPondableFishDefs/getOfficialPondableFishDefsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry pondable fish definitions by local or namespaced ID and reconstructs legacy PondableFishDef objects for compatibility checks.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialPondableFishById',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pondable_fish',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies the legacy getPondableFish() local-ID compatibility lookup to useFishPondStore and FishPondView.'
   }
 ]
 

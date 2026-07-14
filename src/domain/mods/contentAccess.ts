@@ -9,6 +9,7 @@ import type {
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
+import type { PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import {
@@ -35,6 +36,7 @@ import type {
   ItemDef,
   MonsterDef,
   MonsterPoolDef,
+  PondableFishDef,
   RecipeDef,
   Season,
   ShopDef,
@@ -376,6 +378,33 @@ export const getOfficialAnimalDefsByBuilding = (building: AnimalBuildingType): r
   getOfficialAnimalDefs()
     .filter(animal => animal.building === building)
     .map(toLegacyAnimalDef)
+
+export const getOfficialPondableFishDef = (id: string): Readonly<PondableFishDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish')).get(contentId)
+    : undefined
+}
+
+export const getOfficialPondableFishDefs = (): readonly Readonly<PondableFishDef>[] =>
+  getOfficialRegistrySet().get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish')).values()
+
+const toLegacyPondableFishDef = (fish: Readonly<PondableFishDef>): LegacyPondableFishDef => ({
+  fishId: getLocalContentId(fish.fishItemId),
+  name: fish.name.fallback,
+  maturityDays: fish.maturityDays,
+  baseProductionRate: fish.baseProductionRate,
+  productItemId: getLocalContentId(fish.productItemId),
+  defaultGenetics: { ...fish.defaultGenetics }
+})
+
+export const getOfficialPondableFishById = (id: string): LegacyPondableFishDef | undefined => {
+  const fish = getOfficialPondableFishDef(id)
+  return fish ? toLegacyPondableFishDef(fish) : undefined
+}
+
+export const getOfficialPondableFishDefsAsLegacy = (): readonly LegacyPondableFishDef[] =>
+  getOfficialPondableFishDefs().map(toLegacyPondableFishDef)
 
 const toLegacyForageItemDef = (forage: Readonly<ForageDef>): LegacyForageItemDef => ({
   itemId: getLocalContentId(forage.itemId),

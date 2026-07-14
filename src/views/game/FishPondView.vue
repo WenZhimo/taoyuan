@@ -585,7 +585,7 @@
   import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
   import { clampQuantity, useQuantityPicker } from '@/composables/game/useQuantityPicker'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
-  import { POND_BUILD_COST, POND_UPGRADE_COSTS, POND_CAPACITY, PONDABLE_FISH, getPondableFish, FISH_BREEDING_DAYS } from '@/data/fishPond'
+  import { POND_BUILD_COST, POND_UPGRADE_COSTS, POND_CAPACITY, getPondableFish, getPondableFishDefs, FISH_BREEDING_DAYS } from '@/data/fishPond'
   import { getBreedById, getBreedsByGeneration, BREED_COUNTS } from '@/data/pondBreeds'
   import { getItemById } from '@/data/items'
   import type { PondFish } from '@/types/fishPond'
@@ -799,7 +799,7 @@
   /** 背包中可放入鱼塘的鱼 */
   const pondableFishInBag = computed(() => {
     const result: { itemId: string; name: string; count: number }[] = []
-    for (const def of PONDABLE_FISH) {
+    for (const def of getPondableFishDefs()) {
       const count = inventoryStore.getItemCount(def.fishId)
       if (count > 0) {
         result.push({ itemId: def.fishId, name: def.name, count })
