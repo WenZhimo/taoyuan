@@ -22,6 +22,7 @@ import type {
   CropDef,
   DropTableDef,
   EnchantmentDef,
+  FruitTreeContentDef,
   ItemDef,
   MonsterDef,
   MonsterPoolDef,
@@ -30,7 +31,8 @@ import type {
   ShopDef,
   ShopOfferDef,
   TagDef,
-  TreeDef
+  TreeDef,
+  WildTreeContentDef
 } from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
 
@@ -316,11 +318,11 @@ export const getOfficialTreeDef = (id: string): Readonly<TreeDef> | undefined =>
 export const getOfficialTreeDefs = (): readonly Readonly<TreeDef>[] =>
   getOfficialRegistrySet().get<TreeDef>(toOfficialRegistryTypeId('tree')).values()
 
-export const getOfficialFruitTreeDefs = () =>
-  getOfficialTreeDefs().filter((tree): tree is Readonly<Extract<TreeDef, { kind: 'fruit' }>> => tree.kind === 'fruit')
+export const getOfficialFruitTreeDefs = (): readonly Readonly<FruitTreeContentDef>[] =>
+  getOfficialTreeDefs().filter((tree): tree is Readonly<FruitTreeContentDef> => tree.kind === 'fruit')
 
-export const getOfficialWildTreeDefs = () =>
-  getOfficialTreeDefs().filter((tree): tree is Readonly<Extract<TreeDef, { kind: 'wild' }>> => tree.kind === 'wild')
+export const getOfficialWildTreeDefs = (): readonly Readonly<WildTreeContentDef>[] =>
+  getOfficialTreeDefs().filter((tree): tree is Readonly<WildTreeContentDef> => tree.kind === 'wild')
 
 const toLegacyFruitTreeDef = (
   tree: Readonly<Extract<TreeDef, { kind: 'fruit' }>>
