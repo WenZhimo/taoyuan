@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-13",
   "summary": {
-    "fileCount": 44,
-    "approximateLineCount": 30834,
+    "fileCount": 45,
+    "approximateLineCount": 30844,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 423,
-    "reviewedArtifactCount": 3
+    "symbolCount": 427,
+    "reviewedArtifactCount": 10
   },
   "entries": [
     {
@@ -4267,7 +4267,7 @@
     },
     {
       "file": "src/data/mine.ts",
-      "lines": 858,
+      "lines": 562,
       "classification": "mixed",
       "domains": [
         "monster",
@@ -4286,6 +4286,95 @@
       ],
       "status": "symbol_inventoried",
       "symbols": [
+        {
+          "file": "src/data/mine.ts",
+          "exportName": "BOSS_MONSTERS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/monsters.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 retains the BOSS_MONSTERS re-export from data/mine.ts for compatibility; boss definitions and floor pools now project from data/monsters.ts and runtime resolves them through monster_pool."
+        },
+        {
+          "file": "src/data/mine.ts",
+          "exportName": "MONSTERS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/monsters.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 retains the MONSTERS re-export from data/mine.ts as a compatibility path; the unique static definition now lives in data/monsters.ts and runtime consumers use registry facades."
+        },
+        {
+          "file": "src/data/mine.ts",
+          "exportName": "SKULL_CAVERN_MONSTERS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/monsters.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 retains the SKULL_CAVERN_MONSTERS re-export from data/mine.ts for compatibility; the source definitions and pool projections now live in the leaf monster data module."
+        },
+        {
+          "file": "src/data/mine.ts",
+          "exportName": "ZONE_MONSTERS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:monster_pool",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/monsters.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 retains the ZONE_MONSTERS re-export as a rollback path while getFloor(), Store and Vue consumers resolve ordered zone pools through taoyuan:monster_pool."
+        },
         {
           "file": "src/data/mine.ts",
           "exportName": "MAX_MINE_FLOOR",
@@ -4375,88 +4464,6 @@
         },
         {
           "file": "src/data/mine.ts",
-          "exportName": "MONSTERS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:monster",
-          "persistentIds": true,
-          "consumers": [
-            "src/domain/mods/staticAdapters.ts",
-            "src/tests/data/gameDataValidation.test.ts",
-            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
-            "src/tests/domain/monsterRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
-          ],
-          "migrationPhase": [
-            5
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "verified",
-          "rationale": "Phase 5 monster registry pilot verifies every MONSTERS definition and ordered drop entry through the taoyuan:monster query facade while retaining the static object as a rollback path."
-        },
-        {
-          "file": "src/data/mine.ts",
-          "exportName": "SKULL_CAVERN_MONSTERS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:monster",
-          "persistentIds": true,
-          "consumers": [
-            "src/domain/mods/staticAdapters.ts",
-            "src/tests/data/gameDataValidation.test.ts",
-            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
-            "src/tests/domain/monsterRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
-          ],
-          "migrationPhase": [
-            5
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "verified",
-          "rationale": "Phase 5 monster registry pilot verifies every SKULL_CAVERN_MONSTERS definition and ordered drop entry through taoyuan:monster while leaving cavern pool selection and scaling unchanged."
-        },
-        {
-          "file": "src/data/mine.ts",
-          "exportName": "ZONE_MONSTERS",
-          "syntaxKind": "const",
-          "classification": "derived",
-          "targetRegistry": "taoyuan:monster",
-          "persistentIds": true,
-          "consumers": [
-            "src/views/game/GuildView.vue"
-          ],
-          "migrationPhase": [
-            5
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
-        },
-        {
-          "file": "src/data/mine.ts",
-          "exportName": "BOSS_MONSTERS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:monster",
-          "persistentIds": true,
-          "consumers": [
-            "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
-            "src/tests/data/gameDataValidation.test.ts",
-            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
-            "src/tests/domain/monsterRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue",
-            "src/views/game/MiningView.vue"
-          ],
-          "migrationPhase": [
-            5
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "verified",
-          "rationale": "Phase 5 monster registry pilot verifies every BOSS_MONSTERS definition and ordered drop entry through taoyuan:monster; floor mapping, combat and rewards remain on the legacy framework path."
-        },
-        {
-          "file": "src/data/mine.ts",
           "exportName": "BOSS_MONEY_REWARDS",
           "syntaxKind": "const",
           "classification": "adapter",
@@ -4491,30 +4498,31 @@
           "exportName": "getWeakenedBoss",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:monster_pool",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Phase 5 resolves the floor boss through the registry facade before applying the unchanged 70 percent framework scaling rule."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "MINE_FLOORS",
           "syntaxKind": "const",
-          "classification": "derived",
-          "targetRegistry": "taoyuan:monster",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
+          "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             5
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "framework-retained",
+          "rationale": "The 120-floor generation table remains framework-owned; Phase 5 only replaces its monster candidates with deterministic registry pool resolution."
         },
         {
           "file": "src/data/mine.ts",
@@ -4524,13 +4532,14 @@
           "persistentIds": false,
           "consumers": [
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
             "src/views/game/MiningView.vue"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Phase 5 getFloor() preserves its signature and 120-floor behavior while returning zone candidates resolved from taoyuan:monster_pool."
         },
         {
           "file": "src/data/mine.ts",
@@ -4570,7 +4579,8 @@
           "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts"
           ],
           "migrationPhase": [
             5
@@ -4586,7 +4596,8 @@
           "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts"
           ],
           "migrationPhase": [
             5
@@ -4601,7 +4612,9 @@
           "classification": "algorithm",
           "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts"
+          ],
           "migrationPhase": [
             5
           ],
@@ -4685,13 +4698,122 @@
           "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts"
           ],
           "migrationPhase": [
             5
           ],
           "status": "framework-retained",
           "rationale": "Rule, calculation, random generator, formatter, or state-independent algorithm retained in framework/domain."
+        }
+      ]
+    },
+    {
+      "file": "src/data/monsters.ts",
+      "classification": "content",
+      "domains": [
+        "monster",
+        "monster_pool"
+      ],
+      "candidateTargets": [
+        "taoyuan:monster",
+        "taoyuan:monster_pool"
+      ],
+      "phases": [
+        5
+      ],
+      "status": "symbol_inventoried",
+      "lines": 306,
+      "symbols": [
+        {
+          "file": "src/data/monsters.ts",
+          "exportName": "MONSTERS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/mine.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 leaf data source for all ordinary monster definitions, projected into taoyuan:monster and verified against compatibility exports."
+        },
+        {
+          "file": "src/data/monsters.ts",
+          "exportName": "SKULL_CAVERN_MONSTERS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/mine.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 leaf data source for skull cavern monsters and the ordered base pool projection."
+        },
+        {
+          "file": "src/data/monsters.ts",
+          "exportName": "ZONE_MONSTERS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:monster_pool",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/mine.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 projects all six ordered legacy zone arrays into required taoyuan:monster_pool entries and verifies fixed-random floor generation equivalence."
+        },
+        {
+          "file": "src/data/monsters.ts",
+          "exportName": "BOSS_MONSTERS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:monster",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/mine.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/miningMonsterPoolRuntime.test.ts",
+            "src/tests/domain/monsterPoolRegistryContracts.test.ts",
+            "src/tests/domain/monsterRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            5
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 5 leaf data source for boss definitions; each floor mapping is also projected into a required ordered taoyuan:monster_pool entry."
         }
       ]
     },
@@ -7838,6 +7960,90 @@
       ],
       "status": "verified",
       "rationale": "Phase 5 compatibility facade reconstructs the legacy MonsterDef shape and resolves ordered drops through each registry monster dropTableId."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "MonsterPoolDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:monster_pool",
+      "persistentIds": true,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for non-empty ordered monster pools and optional positive integer weights."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "createOfficialMonsterPools",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster_pool",
+      "persistentIds": true,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Projects six zone pools, six boss-floor pools and three skull cavern pools without sorting legacy members."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialMonsterPoolDef",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster_pool",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Reads raw frozen monster pool definitions by local or namespaced ID."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "resolveOfficialMonsterPool",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster_pool",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Resolves ordered pool entries to legacy monster shapes and expands weights without consuming randomness."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialMainMineZoneMonsters",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster_pool",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Supplies registry-backed ordered candidates to all 120 main mine floors and display consumers."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialMainMineBoss",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster_pool",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Resolves the six required boss-floor pools and rejects invalid multi-entry boss mappings."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialSkullCavernBaseMonsters/getOfficialSkullCavernDepthMonsters/getOfficialSkullCavernBosses",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:monster_pool",
+      "persistentIds": false,
+      "migrationPhase": [
+        5
+      ],
+      "status": "verified",
+      "rationale": "Resolves the three skull cavern pools while thresholds, boss cadence, scaling and random selection remain framework-owned."
     }
   ]
 }

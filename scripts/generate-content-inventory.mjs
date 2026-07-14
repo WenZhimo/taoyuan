@@ -125,6 +125,15 @@ const fileDefaults = new Map(
   JSON.parse(readText(outputPath)).entries.map(entry => [entry.file, entry])
 )
 
+fileDefaults.set('src/data/monsters.ts', {
+  file: 'src/data/monsters.ts',
+  classification: 'content',
+  domains: ['monster', 'monster_pool'],
+  candidateTargets: ['taoyuan:monster', 'taoyuan:monster_pool'],
+  phases: [5],
+  status: 'symbol_inventoried'
+})
+
 const dataFiles = fs.readdirSync(dataRoot)
   .filter(file => file.endsWith('.ts'))
   .map(file => path.join(dataRoot, file))
@@ -425,28 +434,88 @@ const symbolReviewOverrides = new Map(Object.entries({
     rationale: 'Phase 4 enchantment registry pilot carries existing standard equipment effect parameters into taoyuan:enchantment while runtime collection still uses the legacy map.'
   },
   'src/data/mine.ts:MONSTERS': {
-    classification: 'content',
+    classification: 'adapter',
     targetRegistry: 'taoyuan:monster',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 5 monster registry pilot verifies every MONSTERS definition and ordered drop entry through the taoyuan:monster query facade while retaining the static object as a rollback path.'
+    rationale: 'Phase 5 retains the MONSTERS re-export from data/mine.ts as a compatibility path; the unique static definition now lives in data/monsters.ts and runtime consumers use registry facades.'
   },
   'src/data/mine.ts:BOSS_MONSTERS': {
-    classification: 'content',
+    classification: 'adapter',
     targetRegistry: 'taoyuan:monster',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 5 monster registry pilot verifies every BOSS_MONSTERS definition and ordered drop entry through taoyuan:monster; floor mapping, combat and rewards remain on the legacy framework path.'
+    rationale: 'Phase 5 retains the BOSS_MONSTERS re-export from data/mine.ts for compatibility; boss definitions and floor pools now project from data/monsters.ts and runtime resolves them through monster_pool.'
   },
   'src/data/mine.ts:SKULL_CAVERN_MONSTERS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 retains the SKULL_CAVERN_MONSTERS re-export from data/mine.ts for compatibility; the source definitions and pool projections now live in the leaf monster data module.'
+  },
+  'src/data/mine.ts:ZONE_MONSTERS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 retains the ZONE_MONSTERS re-export as a rollback path while getFloor(), Store and Vue consumers resolve ordered zone pools through taoyuan:monster_pool.'
+  },
+  'src/data/mine.ts:MINE_FLOORS': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/mining',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'The 120-floor generation table remains framework-owned; Phase 5 only replaces its monster candidates with deterministic registry pool resolution.'
+  },
+  'src/data/mine.ts:getFloor': {
+    classification: 'adapter',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Phase 5 getFloor() preserves its signature and 120-floor behavior while returning zone candidates resolved from taoyuan:monster_pool.'
+  },
+  'src/data/mine.ts:getWeakenedBoss': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Phase 5 resolves the floor boss through the registry facade before applying the unchanged 70 percent framework scaling rule.'
+  },
+  'src/data/monsters.ts:MONSTERS': {
     classification: 'content',
     targetRegistry: 'taoyuan:monster',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 5 monster registry pilot verifies every SKULL_CAVERN_MONSTERS definition and ordered drop entry through taoyuan:monster while leaving cavern pool selection and scaling unchanged.'
+    rationale: 'Phase 5 leaf data source for all ordinary monster definitions, projected into taoyuan:monster and verified against compatibility exports.'
+  },
+  'src/data/monsters.ts:BOSS_MONSTERS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 leaf data source for boss definitions; each floor mapping is also projected into a required ordered taoyuan:monster_pool entry.'
+  },
+  'src/data/monsters.ts:SKULL_CAVERN_MONSTERS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:monster',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 leaf data source for skull cavern monsters and the ordered base pool projection.'
+  },
+  'src/data/monsters.ts:ZONE_MONSTERS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 5 projects all six ordered legacy zone arrays into required taoyuan:monster_pool entries and verifies fixed-random floor generation equivalence.'
   }
 }))
 
@@ -480,6 +549,76 @@ const reviewedArtifacts = [
     migrationPhase: [5],
     status: 'verified',
     rationale: 'Phase 5 compatibility facade reconstructs the legacy MonsterDef shape and resolves ordered drops through each registry monster dropTableId.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'MonsterPoolDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: true,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for non-empty ordered monster pools and optional positive integer weights.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'createOfficialMonsterPools',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: true,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Projects six zone pools, six boss-floor pools and three skull cavern pools without sorting legacy members.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMonsterPoolDef',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Reads raw frozen monster pool definitions by local or namespaced ID.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'resolveOfficialMonsterPool',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Resolves ordered pool entries to legacy monster shapes and expands weights without consuming randomness.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMainMineZoneMonsters',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Supplies registry-backed ordered candidates to all 120 main mine floors and display consumers.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMainMineBoss',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Resolves the six required boss-floor pools and rejects invalid multi-entry boss mappings.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialSkullCavernBaseMonsters/getOfficialSkullCavernDepthMonsters/getOfficialSkullCavernBosses',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:monster_pool',
+    persistentIds: false,
+    migrationPhase: [5],
+    status: 'verified',
+    rationale: 'Resolves the three skull cavern pools while thresholds, boss cadence, scaling and random selection remain framework-owned.'
   }
 ]
 
