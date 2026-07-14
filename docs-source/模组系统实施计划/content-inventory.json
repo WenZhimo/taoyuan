@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 52,
-    "approximateLineCount": 30918,
+    "fileCount": 53,
+    "approximateLineCount": 30932,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 449,
-    "reviewedArtifactCount": 39
+    "symbolCount": 454,
+    "reviewedArtifactCount": 43
   },
   "entries": [
     {
@@ -89,6 +89,80 @@
           ],
           "status": "baselined",
           "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+        }
+      ]
+    },
+    {
+      "file": "src/data/animalBuildingDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "animal_building"
+      ],
+      "candidateTargets": [
+        "taoyuan:animal_building"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 96,
+      "symbols": [
+        {
+          "file": "src/data/animalBuildingDefinitions.ts",
+          "exportName": "AnimalBuildingUpgradeDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_building",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy animal building upgrade compatibility shape; the public contract is AnimalBuildingDefSchema."
+        },
+        {
+          "file": "src/data/animalBuildingDefinitions.ts",
+          "exportName": "ANIMAL_BUILDINGS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:animal_building",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy coop, barn and stable build definitions; Phase 6 projects names, descriptions, costs, capacities and materials into taoyuan:animal_building."
+        },
+        {
+          "file": "src/data/animalBuildingDefinitions.ts",
+          "exportName": "BUILDING_UPGRADES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:animal_building",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy coop and barn upgrade definitions; Phase 6 nests them under taoyuan:animal_building while preserving levels, names, capacities, costs and materials."
         }
       ]
     },
@@ -275,7 +349,7 @@
     },
     {
       "file": "src/data/animals.ts",
-      "lines": 144,
+      "lines": 62,
       "classification": "mixed",
       "domains": [
         "animal",
@@ -442,20 +516,59 @@
         {
           "file": "src/data/animals.ts",
           "exportName": "ANIMAL_BUILDINGS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:animal",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_building",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useAnimalStore.ts",
-            "src/views/game/AnimalView.vue"
+            "src/data/animalBuildingDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 keeps ANIMAL_BUILDINGS as an original-name re-export from the unique animalBuildingDefinitions leaf source while Store and AnimalView use registry-backed compatibility facades."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "BUILDING_UPGRADES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_building",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/animalBuildingDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps BUILDING_UPGRADES as an original-name re-export from the unique animalBuildingDefinitions leaf source while upgrade lookups resolve taoyuan:animal_building."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "AnimalBuildingUpgradeDef",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_building",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animalBuildingDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Type-only re-export for the legacy animal building upgrade compatibility shape."
         },
         {
           "file": "src/data/animals.ts",
@@ -528,47 +641,56 @@
         },
         {
           "file": "src/data/animals.ts",
-          "exportName": "getBuildingDef",
+          "exportName": "getBuildingDefs",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_building",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts",
+            "src/views/game/AnimalView.vue"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy animal building list query is retained and now returns local-ID AnimalBuildingDef compatibility objects reconstructed from taoyuan:animal_building."
         },
         {
           "file": "src/data/animals.ts",
-          "exportName": "BUILDING_UPGRADES",
+          "exportName": "getBuildingDef",
           "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:animal",
-          "persistentIds": true,
-          "consumers": [],
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_building",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts",
+            "src/views/game/AnimalView.vue"
+          ],
           "migrationPhase": [
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Legacy getBuildingDef() signature is retained and now resolves taoyuan:animal_building before returning an equivalent local-ID AnimalBuildingDef compatibility object."
         },
         {
           "file": "src/data/animals.ts",
           "exportName": "getBuildingUpgrade",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:animal_building",
           "persistentIds": false,
           "consumers": [
             "src/stores/useAnimalStore.ts",
+            "src/tests/domain/animalBuildingRegistryPilot.test.ts",
             "src/views/game/AnimalView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getBuildingUpgrade() signature is retained and now reads nested upgrade definitions from taoyuan:animal_building while preserving local building IDs."
         },
         {
           "file": "src/data/animals.ts",
@@ -8899,6 +9021,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies the legacy getFeedDef() local-ID compatibility lookup to AnimalView."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "AnimalBuildingDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:animal_building",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for animal building and upgrade definitions; generated animal-building.schema.json rejects invalid building types, numeric bounds and material shapes."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyAnimalBuilding/createOfficialAnimalBuildings",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal_building",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects legacy coop, barn, stable and nested upgrades into ordered official entries without changing local building IDs, costs, capacities or material requirements."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialAnimalBuildingDef/getOfficialAnimalBuildingDefs/getOfficialAnimalBuildingDefsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal_building",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry animal building definitions by local or namespaced ID and reconstructs legacy AnimalBuildingDef objects for compatibility checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialAnimalBuildingByType/getOfficialAnimalBuildingUpgrade",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal_building",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies local-ID compatibility lookups for construction and upgrade flows in useAnimalStore and AnimalView."
     },
     {
       "file": "src/domain/mods/schemas.ts",

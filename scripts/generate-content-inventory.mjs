@@ -224,6 +224,15 @@ fileDefaults.set('src/data/animalFeedDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/animalBuildingDefinitions.ts', {
+  file: 'src/data/animalBuildingDefinitions.ts',
+  classification: 'mixed',
+  domains: ['animal_building'],
+  candidateTargets: ['taoyuan:animal_building'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forage.ts', {
   file: 'src/data/forage.ts',
   classification: 'mixed',
@@ -473,6 +482,29 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Unique registry-free leaf source for all legacy animal feed definitions; Phase 6 projects IDs, display names, prices and descriptions into taoyuan:animal_feed.'
   },
+  'src/data/animalBuildingDefinitions.ts:AnimalBuildingUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy animal building upgrade compatibility shape; the public contract is AnimalBuildingDefSchema.'
+  },
+  'src/data/animalBuildingDefinitions.ts:ANIMAL_BUILDINGS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy coop, barn and stable build definitions; Phase 6 projects names, descriptions, costs, capacities and materials into taoyuan:animal_building.'
+  },
+  'src/data/animalBuildingDefinitions.ts:BUILDING_UPGRADES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy coop and barn upgrade definitions; Phase 6 nests them under taoyuan:animal_building while preserving levels, names, capacities, costs and materials.'
+  },
   'src/data/animals.ts:ANIMAL_DEFS': {
     classification: 'adapter',
     targetRegistry: 'taoyuan:animal',
@@ -523,6 +555,50 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy feed list query is retained and now returns local-ID AnimalFeedDef compatibility objects reconstructed from taoyuan:animal_feed.'
+  },
+  'src/data/animals.ts:ANIMAL_BUILDINGS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps ANIMAL_BUILDINGS as an original-name re-export from the unique animalBuildingDefinitions leaf source while Store and AnimalView use registry-backed compatibility facades.'
+  },
+  'src/data/animals.ts:BUILDING_UPGRADES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps BUILDING_UPGRADES as an original-name re-export from the unique animalBuildingDefinitions leaf source while upgrade lookups resolve taoyuan:animal_building.'
+  },
+  'src/data/animals.ts:AnimalBuildingUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy animal building upgrade compatibility shape.'
+  },
+  'src/data/animals.ts:getBuildingDefs': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy animal building list query is retained and now returns local-ID AnimalBuildingDef compatibility objects reconstructed from taoyuan:animal_building.'
+  },
+  'src/data/animals.ts:getBuildingDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getBuildingDef() signature is retained and now resolves taoyuan:animal_building before returning an equivalent local-ID AnimalBuildingDef compatibility object.'
+  },
+  'src/data/animals.ts:getBuildingUpgrade': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getBuildingUpgrade() signature is retained and now reads nested upgrade definitions from taoyuan:animal_building while preserving local building IDs.'
   },
   'src/data/animals.ts:HAY_PRICE': {
     status: 'verified',
@@ -1260,6 +1336,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies the legacy getFeedDef() local-ID compatibility lookup to AnimalView.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'AnimalBuildingDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for animal building and upgrade definitions; generated animal-building.schema.json rejects invalid building types, numeric bounds and material shapes.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyAnimalBuilding/createOfficialAnimalBuildings',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects legacy coop, barn, stable and nested upgrades into ordered official entries without changing local building IDs, costs, capacities or material requirements.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalBuildingDef/getOfficialAnimalBuildingDefs/getOfficialAnimalBuildingDefsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry animal building definitions by local or namespaced ID and reconstructs legacy AnimalBuildingDef objects for compatibility checks.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalBuildingByType/getOfficialAnimalBuildingUpgrade',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal_building',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies local-ID compatibility lookups for construction and upgrade flows in useAnimalStore and AnimalView.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

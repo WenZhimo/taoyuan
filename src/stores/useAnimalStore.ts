@@ -2,9 +2,9 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { AnimalBuildingType, AnimalType, Animal, Quality, PetState, PetType, IncubationState } from '@/types'
 import {
-  ANIMAL_BUILDINGS,
   HAY_ITEM_ID,
   getAnimalDef,
+  getBuildingDef,
   getBuildingUpgrade,
   INCUBATION_MAP,
   PREMIUM_FEED_ID,
@@ -75,7 +75,7 @@ export const useAnimalStore = defineStore('animal', () => {
     const b = buildings.value.find(b => b.type === type)
     if (!b || b.built) return false
 
-    const def = ANIMAL_BUILDINGS.find(d => d.type === type)
+    const def = getBuildingDef(type)
     if (!def) return false
 
     // 检查材料

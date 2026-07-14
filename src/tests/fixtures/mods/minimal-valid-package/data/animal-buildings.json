@@ -1,0 +1,39 @@
+[
+  {
+    "id": "example_mod:animal_building/test_coop",
+    "building": "coop",
+    "name": {
+      "key": "example_mod.animal_building.test_coop.name",
+      "fallback": "Test Coop"
+    },
+    "description": {
+      "key": "example_mod.animal_building.test_coop.description",
+      "fallback": "A small test animal building."
+    },
+    "capacity": 4,
+    "cost": 100,
+    "materialCost": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 2
+      }
+    ],
+    "upgrades": [
+      {
+        "level": 2,
+        "name": {
+          "key": "example_mod.animal_building.test_coop.upgrade.2.name",
+          "fallback": "Large Test Coop"
+        },
+        "capacity": 8,
+        "cost": 200,
+        "materialCost": [
+          {
+            "itemId": "example_mod:test_item",
+            "quantity": 3
+          }
+        ]
+      }
+    ]
+  }
+]

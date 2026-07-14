@@ -236,6 +236,39 @@ export const AnimalFeedDefSchema = Type.Object(
   { $id: 'taoyuan.registry.AnimalFeedDef', additionalProperties: false }
 )
 
+export const AnimalBuildingMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const AnimalBuildingUpgradeSchema = Type.Object(
+  {
+    level: Type.Integer({ minimum: 2 }),
+    name: LocalizedTextRefSchema,
+    capacity: Type.Integer({ minimum: 1 }),
+    cost: Type.Integer({ minimum: 0 }),
+    materialCost: Type.Array(AnimalBuildingMaterialSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const AnimalBuildingDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    building: AnimalBuildingTypeSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    capacity: Type.Integer({ minimum: 1 }),
+    cost: Type.Integer({ minimum: 0 }),
+    materialCost: Type.Array(AnimalBuildingMaterialSchema),
+    upgrades: Type.Array(AnimalBuildingUpgradeSchema)
+  },
+  { $id: 'taoyuan.registry.AnimalBuildingDef', additionalProperties: false }
+)
+
 export const PondFishGeneticsSchema = Type.Object(
   {
     weight: Type.Integer({ minimum: 0, maximum: 100 }),
@@ -619,6 +652,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:forage': ForageDefSchema,
   'taoyuan:animal': AnimalDefSchema,
   'taoyuan:animal_feed': AnimalFeedDefSchema,
+  'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
   'taoyuan:monster': MonsterDefSchema,
@@ -643,6 +677,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'forage.schema.json': ForageDefSchema,
   'animal.schema.json': AnimalDefSchema,
   'animal-feed.schema.json': AnimalFeedDefSchema,
+  'animal-building.schema.json': AnimalBuildingDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
   'monster.schema.json': MonsterDefSchema,
@@ -670,6 +705,9 @@ export type Weekday = Static<typeof WeekdaySchema>
 export type AnimalBuildingType = Static<typeof AnimalBuildingTypeSchema>
 export type AnimalDef = Static<typeof AnimalDefSchema>
 export type AnimalFeedDef = Static<typeof AnimalFeedDefSchema>
+export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>
+export type AnimalBuildingMaterial = Static<typeof AnimalBuildingMaterialSchema>
+export type AnimalBuildingUpgrade = Static<typeof AnimalBuildingUpgradeSchema>
 export type PondFishGenetics = Static<typeof PondFishGeneticsSchema>
 export type PondableFishDef = Static<typeof PondableFishDefSchema>
 export type PondBreedDef = Static<typeof PondBreedDefSchema>

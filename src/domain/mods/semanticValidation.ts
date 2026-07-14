@@ -8,6 +8,7 @@ import {
 } from './monsterPoolIds'
 import { getMonsterPoolDefResourceLimitDiagnostics } from './monsterPoolResourceValidation'
 import type {
+  AnimalBuildingDef,
   AnimalDef,
   AnimalFeedDef,
   CropDef,
@@ -35,6 +36,7 @@ const REGISTRY_IDS = {
   forage: toOfficialRegistryTypeId('forage'),
   animal: toOfficialRegistryTypeId('animal'),
   animalFeed: toOfficialRegistryTypeId('animal_feed'),
+  animalBuilding: toOfficialRegistryTypeId('animal_building'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
   monster: toOfficialRegistryTypeId('monster'),
@@ -76,6 +78,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const forageRegistry = registrySet.get<ForageDef>(REGISTRY_IDS.forage)
   const animalRegistry = registrySet.get<AnimalDef>(REGISTRY_IDS.animal)
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(REGISTRY_IDS.animalFeed)
+  const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
@@ -224,6 +227,15 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   }
 
   for (const record of animalRegistry.entries()) {
+    const hasBuilding = animalBuildingRegistry.values().some(building => building.building === record.entry.building)
+    if (!hasBuilding) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.animalBuilding,
+        contentId: contentId(`taoyuan:animal_building/${record.entry.building}`),
+        fieldPath: '/building'
+      })
+    }
     if (record.entry.productItemId && !itemRegistry.has(contentId(record.entry.productItemId))) {
       pushMissingReference(diagnostics, {
         packageId: record.owner,
@@ -243,6 +255,31 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/id'
       })
     }
+  }
+
+  for (const record of animalBuildingRegistry.entries()) {
+    record.entry.materialCost.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/materialCost/${index}/itemId`
+        })
+      }
+    })
+    record.entry.upgrades.forEach((upgrade, upgradeIndex) => {
+      upgrade.materialCost.forEach((material, materialIndex) => {
+        if (!itemRegistry.has(contentId(material.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(material.itemId),
+            fieldPath: `/upgrades/${upgradeIndex}/materialCost/${materialIndex}/itemId`
+          })
+        }
+      })
+    })
   }
 
   for (const record of pondableFishRegistry.entries()) {

@@ -1,4 +1,5 @@
 import type {
+  AnimalBuildingDef as LegacyAnimalBuildingDef,
   AnimalDef as LegacyAnimalDef,
   EnchantmentDef as LegacyEnchantmentDef,
   FishDef as LegacyFishDef,
@@ -8,6 +9,7 @@ import type {
 } from '@/types'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
+import type { AnimalBuildingUpgradeDef as LegacyAnimalBuildingUpgradeDef } from '@/data/animalBuildingDefinitions'
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
@@ -26,6 +28,7 @@ import { resolveMonsterPoolEntries } from './monsterPoolResolution'
 import type { RegistrySet } from './registry'
 import type {
   AnimalBuildingType,
+  AnimalBuildingDef as AnimalBuildingContentDef,
   AnimalDef as AnimalContentDef,
   AnimalFeedDef as AnimalFeedContentDef,
   CropDef,
@@ -368,6 +371,16 @@ export const getOfficialAnimalFeedDef = (id: string): Readonly<AnimalFeedContent
 export const getOfficialAnimalFeedDefs = (): readonly Readonly<AnimalFeedContentDef>[] =>
   getOfficialRegistrySet().get<AnimalFeedContentDef>(toOfficialRegistryTypeId('animal_feed')).values()
 
+export const getOfficialAnimalBuildingDef = (id: string): Readonly<AnimalBuildingContentDef> | undefined => {
+  const contentId = toQueryContentId(id.includes('/') ? id : `animal_building/${id}`)
+  return contentId
+    ? getOfficialRegistrySet().get<AnimalBuildingContentDef>(toOfficialRegistryTypeId('animal_building')).get(contentId)
+    : undefined
+}
+
+export const getOfficialAnimalBuildingDefs = (): readonly Readonly<AnimalBuildingContentDef>[] =>
+  getOfficialRegistrySet().get<AnimalBuildingContentDef>(toOfficialRegistryTypeId('animal_building')).values()
+
 const toLegacyAnimalDef = (animal: Readonly<AnimalContentDef>): LegacyAnimalDef => ({
   type: getLocalContentId(animal.id) as LegacyAnimalDef['type'],
   name: animal.name.fallback,
@@ -406,6 +419,49 @@ export const getOfficialAnimalFeedById = (id: string): LegacyAnimalFeedDef | und
 
 export const getOfficialAnimalFeedDefsAsLegacy = (): readonly LegacyAnimalFeedDef[] =>
   getOfficialAnimalFeedDefs().map(toLegacyAnimalFeedDef)
+
+const toLegacyAnimalBuildingMaterial = (material: Readonly<AnimalBuildingContentDef['materialCost'][number]>) => ({
+  itemId: getLocalContentId(material.itemId),
+  quantity: material.quantity
+})
+
+const toLegacyAnimalBuildingUpgradeDef = (
+  building: Readonly<AnimalBuildingContentDef>,
+  upgrade: Readonly<AnimalBuildingContentDef['upgrades'][number]>
+): LegacyAnimalBuildingUpgradeDef => ({
+  type: building.building as LegacyAnimalBuildingUpgradeDef['type'],
+  level: upgrade.level,
+  name: upgrade.name.fallback,
+  capacity: upgrade.capacity,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(toLegacyAnimalBuildingMaterial)
+})
+
+const toLegacyAnimalBuildingDef = (building: Readonly<AnimalBuildingContentDef>): LegacyAnimalBuildingDef => ({
+  type: building.building as LegacyAnimalBuildingDef['type'],
+  name: building.name.fallback,
+  description: building.description.fallback,
+  capacity: building.capacity,
+  cost: building.cost,
+  materialCost: building.materialCost.map(toLegacyAnimalBuildingMaterial)
+})
+
+export const getOfficialAnimalBuildingByType = (type: string): LegacyAnimalBuildingDef | undefined => {
+  const building = getOfficialAnimalBuildingDefs().find(candidate => candidate.building === type)
+  return building ? toLegacyAnimalBuildingDef(building) : undefined
+}
+
+export const getOfficialAnimalBuildingDefsAsLegacy = (): readonly LegacyAnimalBuildingDef[] =>
+  getOfficialAnimalBuildingDefs().map(toLegacyAnimalBuildingDef)
+
+export const getOfficialAnimalBuildingUpgrade = (
+  type: AnimalBuildingType,
+  toLevel: number
+): LegacyAnimalBuildingUpgradeDef | undefined => {
+  const building = getOfficialAnimalBuildingDefs().find(candidate => candidate.building === type)
+  const upgrade = building?.upgrades.find(candidate => candidate.level === toLevel)
+  return building && upgrade ? toLegacyAnimalBuildingUpgradeDef(building, upgrade) : undefined
+}
 
 export const getOfficialPondableFishDef = (id: string): Readonly<PondableFishDef> | undefined => {
   const contentId = toQueryContentId(id)

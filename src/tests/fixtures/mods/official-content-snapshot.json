@@ -523,6 +523,186 @@
       ]
     },
     {
+      "registryId": "taoyuan:animal_building",
+      "schemaName": "animal-building.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalBuildingDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "capacity": 4,
+            "cost": 6000,
+            "description": {
+              "fallback": "饲养牛羊等大型牲畜。",
+              "key": "taoyuan.animal_building.barn.description"
+            },
+            "id": "taoyuan:animal_building/barn",
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 150
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 20
+              }
+            ],
+            "name": {
+              "fallback": "牲口棚",
+              "key": "taoyuan.animal_building.barn.name"
+            },
+            "upgrades": [
+              {
+                "capacity": 8,
+                "cost": 12000,
+                "level": 2,
+                "materialCost": [
+                  {
+                    "itemId": "taoyuan:wood",
+                    "quantity": 250
+                  },
+                  {
+                    "itemId": "taoyuan:iron_ore",
+                    "quantity": 25
+                  }
+                ],
+                "name": {
+                  "fallback": "大型牲口棚",
+                  "key": "taoyuan.animal_building.barn.upgrade.2.name"
+                }
+              },
+              {
+                "capacity": 12,
+                "cost": 25000,
+                "level": 3,
+                "materialCost": [
+                  {
+                    "itemId": "taoyuan:wood",
+                    "quantity": 400
+                  },
+                  {
+                    "itemId": "taoyuan:gold_ore",
+                    "quantity": 15
+                  }
+                ],
+                "name": {
+                  "fallback": "豪华牲口棚",
+                  "key": "taoyuan.animal_building.barn.upgrade.3.name"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalBuildingDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "capacity": 4,
+            "cost": 4000,
+            "description": {
+              "fallback": "饲养鸡鸭等小型家禽。",
+              "key": "taoyuan.animal_building.coop.description"
+            },
+            "id": "taoyuan:animal_building/coop",
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 100
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 50
+              }
+            ],
+            "name": {
+              "fallback": "鸡舍",
+              "key": "taoyuan.animal_building.coop.name"
+            },
+            "upgrades": [
+              {
+                "capacity": 8,
+                "cost": 10000,
+                "level": 2,
+                "materialCost": [
+                  {
+                    "itemId": "taoyuan:wood",
+                    "quantity": 200
+                  },
+                  {
+                    "itemId": "taoyuan:iron_ore",
+                    "quantity": 15
+                  }
+                ],
+                "name": {
+                  "fallback": "大型鸡舍",
+                  "key": "taoyuan.animal_building.coop.upgrade.2.name"
+                }
+              },
+              {
+                "capacity": 12,
+                "cost": 20000,
+                "level": 3,
+                "materialCost": [
+                  {
+                    "itemId": "taoyuan:wood",
+                    "quantity": 300
+                  },
+                  {
+                    "itemId": "taoyuan:gold_ore",
+                    "quantity": 10
+                  }
+                ],
+                "name": {
+                  "fallback": "豪华鸡舍",
+                  "key": "taoyuan.animal_building.coop.upgrade.3.name"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalBuildingDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "stable",
+            "capacity": 1,
+            "cost": 10000,
+            "description": {
+              "fallback": "饲养马匹，骑马出行更快。",
+              "key": "taoyuan.animal_building.stable.description"
+            },
+            "id": "taoyuan:animal_building/stable",
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 200
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 30
+              }
+            ],
+            "name": {
+              "fallback": "马厩",
+              "key": "taoyuan.animal_building.stable.name"
+            },
+            "upgrades": []
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:animal_feed",
       "schemaName": "animal-feed.schema.json",
       "entries": [
@@ -71234,5 +71414,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:55d9d3a71069474e21a53c902f5bb61bbf94d0a6b484de44b86bdf4e118ce1d8"
+  "snapshotHash": "sha256:11dd128c550a01ed25e324ebe485d52f528252039a57c0750ff01c243b77b21a"
 }

@@ -566,10 +566,11 @@
   import { useInventoryStore } from '@/stores/useInventoryStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import {
-    ANIMAL_BUILDINGS,
     getAnimalDef,
     getAnimalDefsByBuilding,
     getItemById,
+    getBuildingDef,
+    getBuildingDefs,
     getBuildingUpgrade,
     INCUBATION_MAP,
     getFeedDef,
@@ -661,10 +662,10 @@
   // === 数据计算 ===
 
   /** 只显示鸡舍和牲口棚（马厩单独渲染） */
-  const mainBuildings = computed(() => ANIMAL_BUILDINGS.filter(b => b.type !== 'stable'))
+  const mainBuildings = computed(() => getBuildingDefs().filter(b => b.type !== 'stable'))
 
   /** 马厩建筑定义 */
-  const stableDef = computed(() => ANIMAL_BUILDINGS.find(b => b.type === 'stable'))
+  const stableDef = computed(() => getBuildingDef('stable'))
 
   const stableAnimalDef = computed(() => getAnimalDef('horse'))
 
@@ -787,7 +788,7 @@
       const upgrade = getBuildingUpgrade(type, level)
       if (upgrade) return upgrade.name
     }
-    return ANIMAL_BUILDINGS.find(b => b.type === type)?.name ?? type
+    return getBuildingDef(type)?.name ?? type
   }
 
   const getBuildingCapacity = (type: AnimalBuildingType): number => {
@@ -897,7 +898,7 @@
 
   const handleBuildBuilding = (type: AnimalBuildingType) => {
     const success = animalStore.buildBuilding(type)
-    const bDef = ANIMAL_BUILDINGS.find(b => b.type === type)
+    const bDef = getBuildingDef(type)
     if (success) {
       addLog(`成功建造了${bDef?.name ?? '畜舍'}！`)
       const tr = gameStore.advanceTime(2)
