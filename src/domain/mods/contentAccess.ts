@@ -1,9 +1,20 @@
-import type { EnchantmentDef as LegacyEnchantmentDef } from '@/types'
+import type { EnchantmentDef as LegacyEnchantmentDef, MonsterDef as LegacyMonsterDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import type { RegistrySet } from './registry'
-import type { CropDef, DropTableDef, EnchantmentDef, ItemDef, RecipeDef, Season, ShopDef, ShopOfferDef, TagDef } from './schemas'
+import type {
+  CropDef,
+  DropTableDef,
+  EnchantmentDef,
+  ItemDef,
+  MonsterDef,
+  RecipeDef,
+  Season,
+  ShopDef,
+  ShopOfferDef,
+  TagDef
+} from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
 
 let officialRegistrySet: RegistrySet | null = null
@@ -95,6 +106,48 @@ export const getOfficialDropTableDef = (id: string): Readonly<DropTableDef> | un
 
 export const getOfficialDropTableDefs = (): readonly Readonly<DropTableDef>[] =>
   getOfficialRegistrySet().get<DropTableDef>(toOfficialRegistryTypeId('drop_table')).values()
+
+export const getOfficialMonsterDef = (id: string): Readonly<MonsterDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<MonsterDef>(toOfficialRegistryTypeId('monster')).get(contentId) : undefined
+}
+
+export const getOfficialMonsterDefs = (): readonly Readonly<MonsterDef>[] =>
+  getOfficialRegistrySet().get<MonsterDef>(toOfficialRegistryTypeId('monster')).values()
+
+const toLegacyMonsterDrops = (monster: Readonly<MonsterDef>): LegacyMonsterDef['drops'] => {
+  if (!monster.dropTableId) return []
+  const table = getOfficialDropTableDef(monster.dropTableId)
+  if (!table) throw new Error(`Missing official monster drop table: ${monster.dropTableId}`)
+
+  return table.entries.map(entry => {
+    const minQuantity = entry.minQuantity ?? 1
+    const maxQuantity = entry.maxQuantity ?? minQuantity
+    if (minQuantity !== 1 || maxQuantity !== 1) {
+      throw new Error(`Legacy monster drops cannot represent quantity range for ${monster.id}: ${entry.itemId}`)
+    }
+    return {
+      itemId: getLocalContentId(entry.itemId),
+      chance: entry.chance
+    }
+  })
+}
+
+const toLegacyMonsterDef = (monster: Readonly<MonsterDef>): LegacyMonsterDef => ({
+  id: getLocalContentId(monster.id),
+  name: monster.name.fallback,
+  hp: monster.hp,
+  attack: monster.attack,
+  defense: monster.defense,
+  expReward: monster.expReward,
+  drops: toLegacyMonsterDrops(monster),
+  description: monster.description.fallback
+})
+
+export const getOfficialMonsterById = (id: string): LegacyMonsterDef | undefined => {
+  const monster = getOfficialMonsterDef(id)
+  return monster ? toLegacyMonsterDef(monster) : undefined
+}
 
 export const getOfficialMonsterDropTableDef = (monsterId: string): Readonly<DropTableDef> | undefined =>
   getOfficialDropTableDef(monsterId.includes('/') ? monsterId : `drop/monster/${monsterId}`)
