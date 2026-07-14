@@ -198,6 +198,34 @@ export const WeekdaySchema = Type.Union([
   Type.Literal('sun')
 ])
 
+export const AnimalBuildingTypeSchema = Type.Union([
+  Type.Literal('coop'),
+  Type.Literal('barn'),
+  Type.Literal('stable')
+])
+
+export const AnimalFriendshipRangeSchema = Type.Object(
+  {
+    min: Type.Integer({ minimum: 0 }),
+    max: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const AnimalDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    building: AnimalBuildingTypeSchema,
+    cost: Type.Integer({ minimum: 0 }),
+    productItemId: Type.Optional(ContentIdSchema),
+    productName: Type.Optional(LocalizedTextRefSchema),
+    produceDays: Type.Integer({ minimum: 0 }),
+    friendship: AnimalFriendshipRangeSchema
+  },
+  { $id: 'taoyuan.registry.AnimalDef', additionalProperties: false }
+)
+
 export const CropDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -537,6 +565,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:tree': TreeDefSchema,
   'taoyuan:fish': FishDefSchema,
   'taoyuan:forage': ForageDefSchema,
+  'taoyuan:animal': AnimalDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -557,6 +586,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'tree.schema.json': TreeDefSchema,
   'fish.schema.json': FishDefSchema,
   'forage.schema.json': ForageDefSchema,
+  'animal.schema.json': AnimalDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -579,6 +609,8 @@ export type FishWeather = Static<typeof FishWeatherSchema>
 export type FishingLocation = Static<typeof FishingLocationSchema>
 export type FishDifficulty = Static<typeof FishDifficultySchema>
 export type Weekday = Static<typeof WeekdaySchema>
+export type AnimalBuildingType = Static<typeof AnimalBuildingTypeSchema>
+export type AnimalDef = Static<typeof AnimalDefSchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type TreeDef = Static<typeof TreeDefSchema>
 export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>

@@ -313,25 +313,12 @@
         </div>
         <div v-else>
           <div
+            v-if="stableAnimalDef"
             class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
-            @click="
-              openBuyModal(
-                {
-                  type: 'horse' as AnimalType,
-                  name: '马',
-                  building: 'stable' as AnimalBuildingType,
-                  cost: 5000,
-                  productId: '',
-                  productName: '无',
-                  produceDays: 0,
-                  friendship: { min: 0, max: 1000 }
-                },
-                'stable'
-              )
-            "
+            @click="openBuyModal(stableAnimalDef, 'stable')"
           >
-            <span class="text-xs">马</span>
-            <span class="text-xs text-accent whitespace-nowrap">5000文</span>
+            <span class="text-xs">{{ stableAnimalDef.name }}</span>
+            <span class="text-xs text-accent whitespace-nowrap">{{ stableAnimalDef.cost }}文</span>
           </div>
           <p class="text-xs text-muted mt-1">拥有马匹可减少30%旅行时间。</p>
         </div>
@@ -578,7 +565,15 @@
   import { useGameStore } from '@/stores/useGameStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
-  import { ANIMAL_BUILDINGS, ANIMAL_DEFS, getItemById, getBuildingUpgrade, INCUBATION_MAP, FEED_DEFS } from '@/data'
+  import {
+    ANIMAL_BUILDINGS,
+    getAnimalDef,
+    getAnimalDefsByBuilding,
+    getItemById,
+    getBuildingUpgrade,
+    INCUBATION_MAP,
+    FEED_DEFS
+  } from '@/data'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import type { AnimalBuildingType, AnimalType, AnimalDef } from '@/types'
   import { addLog } from '@/composables/useGameLog'
@@ -626,7 +621,7 @@
   const openBuyModal = (aDef: AnimalDef, buildingType: AnimalBuildingType) => {
     buyModal.value = {
       name: aDef.name,
-      productName: aDef.productName,
+      productName: aDef.productName || '无',
       produceDays: aDef.produceDays,
       cost: aDef.cost,
       onBuy: () => handleBuyAnimal(aDef.type),
@@ -649,7 +644,7 @@
 
   const sellTargetRefund = computed(() => {
     if (!sellTarget.value) return 0
-    const def = ANIMAL_DEFS.find(d => d.type === sellTarget.value!.type)
+    const def = getAnimalDef(sellTarget.value.type)
     return Math.floor((def?.cost ?? 0) / 2)
   })
 
@@ -669,6 +664,8 @@
 
   /** 马厩建筑定义 */
   const stableDef = computed(() => ANIMAL_BUILDINGS.find(b => b.type === 'stable'))
+
+  const stableAnimalDef = computed(() => getAnimalDef('horse'))
 
   /** 当前选择的饲料类型 */
   const selectedFeed = computed({
@@ -735,7 +732,7 @@
   // === 工具函数 ===
 
   const getAnimalName = (type: AnimalType): string => {
-    return ANIMAL_DEFS.find(d => d.type === type)?.name ?? type
+    return getAnimalDef(type)?.name ?? type
   }
 
   const getItemName = (itemId: string): string => {
@@ -748,7 +745,7 @@
 
   const getAnimalsInBuilding = (type: AnimalBuildingType) => {
     return animalStore.animals.filter(a => {
-      const def = ANIMAL_DEFS.find(d => d.type === a.type)
+      const def = getAnimalDef(a.type)
       return def?.building === type
     })
   }
@@ -776,7 +773,7 @@
   }
 
   const getAnimalDefsForBuilding = (type: AnimalBuildingType) => {
-    return ANIMAL_DEFS.filter(d => d.building === type)
+    return getAnimalDefsByBuilding(type)
   }
 
   const getBuildingLevel = (type: AnimalBuildingType): number => {
@@ -911,7 +908,7 @@
   }
 
   const handleBuyAnimal = (type: AnimalType) => {
-    const aDef = ANIMAL_DEFS.find(d => d.type === type)
+    const aDef = getAnimalDef(type)
     if (!aDef) return
     const count = animalStore.animals.filter(a => a.type === type).length
     const defaultName = `${aDef.name}${count + 1}`

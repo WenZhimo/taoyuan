@@ -1,4 +1,5 @@
 import type {
+  AnimalDef as LegacyAnimalDef,
   EnchantmentDef as LegacyEnchantmentDef,
   FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
@@ -22,6 +23,8 @@ import {
 import { resolveMonsterPoolEntries } from './monsterPoolResolution'
 import type { RegistrySet } from './registry'
 import type {
+  AnimalBuildingType,
+  AnimalDef as AnimalContentDef,
   CropDef,
   DropTableDef,
   EnchantmentDef,
@@ -339,6 +342,40 @@ export const getOfficialForageDef = (id: string): Readonly<ForageDef> | undefine
 
 export const getOfficialForageDefs = (): readonly Readonly<ForageDef>[] =>
   getOfficialRegistrySet().get<ForageDef>(toOfficialRegistryTypeId('forage')).values()
+
+export const getOfficialAnimalDef = (id: string): Readonly<AnimalContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<AnimalContentDef>(toOfficialRegistryTypeId('animal')).get(contentId)
+    : undefined
+}
+
+export const getOfficialAnimalDefs = (): readonly Readonly<AnimalContentDef>[] =>
+  getOfficialRegistrySet().get<AnimalContentDef>(toOfficialRegistryTypeId('animal')).values()
+
+const toLegacyAnimalDef = (animal: Readonly<AnimalContentDef>): LegacyAnimalDef => ({
+  type: getLocalContentId(animal.id) as LegacyAnimalDef['type'],
+  name: animal.name.fallback,
+  building: animal.building as LegacyAnimalDef['building'],
+  cost: animal.cost,
+  productId: animal.productItemId ? getLocalContentId(animal.productItemId) : '',
+  productName: animal.productName?.fallback ?? '',
+  produceDays: animal.produceDays,
+  friendship: { ...animal.friendship }
+})
+
+export const getOfficialAnimalByType = (type: string): LegacyAnimalDef | undefined => {
+  const animal = getOfficialAnimalDef(type)
+  return animal ? toLegacyAnimalDef(animal) : undefined
+}
+
+export const getOfficialAnimalDefsAsLegacy = (): readonly LegacyAnimalDef[] =>
+  getOfficialAnimalDefs().map(toLegacyAnimalDef)
+
+export const getOfficialAnimalDefsByBuilding = (building: AnimalBuildingType): readonly LegacyAnimalDef[] =>
+  getOfficialAnimalDefs()
+    .filter(animal => animal.building === building)
+    .map(toLegacyAnimalDef)
 
 const toLegacyForageItemDef = (forage: Readonly<ForageDef>): LegacyForageItemDef => ({
   itemId: getLocalContentId(forage.itemId),

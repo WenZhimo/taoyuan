@@ -3,8 +3,8 @@ import { defineStore } from 'pinia'
 import type { AnimalBuildingType, AnimalType, Animal, Quality, PetState, PetType, IncubationState } from '@/types'
 import {
   ANIMAL_BUILDINGS,
-  ANIMAL_DEFS,
   HAY_ITEM_ID,
+  getAnimalDef,
   getBuildingUpgrade,
   INCUBATION_MAP,
   PREMIUM_FEED_ID,
@@ -50,14 +50,14 @@ export const useAnimalStore = defineStore('animal', () => {
 
   const coopAnimals = computed(() =>
     animals.value.filter(a => {
-      const def = ANIMAL_DEFS.find(d => d.type === a.type)
+      const def = getAnimalDef(a.type)
       return def?.building === 'coop'
     })
   )
 
   const barnAnimals = computed(() =>
     animals.value.filter(a => {
-      const def = ANIMAL_DEFS.find(d => d.type === a.type)
+      const def = getAnimalDef(a.type)
       return def?.building === 'barn'
     })
   )
@@ -122,7 +122,7 @@ export const useAnimalStore = defineStore('animal', () => {
   const buyAnimal = (animalType: AnimalType, customName: string): boolean => {
     const playerStore = usePlayerStore()
 
-    const def = ANIMAL_DEFS.find(d => d.type === animalType)
+    const def = getAnimalDef(animalType)
     if (!def) return false
 
     // 检查容量 (level × 4, 马厩固定1)
@@ -130,7 +130,7 @@ export const useAnimalStore = defineStore('animal', () => {
     if (!building?.built) return false
     const maxCapacity = def.building === 'stable' ? 1 : building.level * 4
     const currentCount = animals.value.filter(a => {
-      const aDef = ANIMAL_DEFS.find(d => d.type === a.type)
+      const aDef = getAnimalDef(a.type)
       return aDef?.building === def.building
     }).length
     if (currentCount >= maxCapacity) return false
@@ -254,7 +254,7 @@ export const useAnimalStore = defineStore('animal', () => {
     const days = hasCoopmaster ? Math.ceil(mapping.days / 2) : mapping.days
 
     incubating.value = { itemId, animalType: mapping.animalType, daysLeft: days }
-    const animalDef = ANIMAL_DEFS.find(d => d.type === mapping.animalType)
+    const animalDef = getAnimalDef(mapping.animalType)
     return { success: true, message: `开始孵化${animalDef?.name ?? '动物'}，预计${days}天后孵出。` }
   }
 
@@ -265,7 +265,7 @@ export const useAnimalStore = defineStore('animal', () => {
     incubating.value.daysLeft--
     if (incubating.value.daysLeft <= 0) {
       const { animalType, itemId } = incubating.value
-      const def = ANIMAL_DEFS.find(d => d.type === animalType)
+      const def = getAnimalDef(animalType)
 
       // 检查容量
       const building = buildings.value.find(b => b.type === 'coop')
@@ -328,7 +328,7 @@ export const useAnimalStore = defineStore('animal', () => {
     const days = hasCoopmaster ? Math.ceil(mapping.days / 2) : mapping.days
 
     barnIncubating.value = { itemId, animalType: mapping.animalType, daysLeft: days }
-    const animalDef = ANIMAL_DEFS.find(d => d.type === mapping.animalType)
+    const animalDef = getAnimalDef(mapping.animalType)
     return { success: true, message: `开始在牲口棚孵化${animalDef?.name ?? '动物'}，预计${days}天后孵出。` }
   }
 
@@ -339,7 +339,7 @@ export const useAnimalStore = defineStore('animal', () => {
     barnIncubating.value.daysLeft--
     if (barnIncubating.value.daysLeft <= 0) {
       const { animalType, itemId } = barnIncubating.value
-      const def = ANIMAL_DEFS.find(d => d.type === animalType)
+      const def = getAnimalDef(animalType)
 
       const building = buildings.value.find(b => b.type === 'barn')
       const maxCapacity = (building?.level ?? 0) * 4
@@ -546,7 +546,7 @@ export const useAnimalStore = defineStore('animal', () => {
 
       // 自动抚摸机：若所在建筑已安装，自动标记已抚摸
       if (!animal.wasPetted) {
-        const animalDef = ANIMAL_DEFS.find(d => d.type === animal.type)
+        const animalDef = getAnimalDef(animal.type)
         if (animalDef && autoPetterBuildings.value.includes(animalDef.building)) {
           animal.wasPetted = true
         }
@@ -593,7 +593,7 @@ export const useAnimalStore = defineStore('animal', () => {
       }
 
       // 产品检查（跳过马，马无产出；生病时不产出）
-      const def = ANIMAL_DEFS.find(d => d.type === animal.type)
+      const def = getAnimalDef(animal.type)
       if (def && def.produceDays > 0 && animal.wasFed && !animal.sick) {
         const effectiveDays = animal.fedWith === NOURISHING_FEED_ID ? Math.max(1, def.produceDays - 1) : def.produceDays
         if (animal.daysSinceProduct >= effectiveDays) {
@@ -642,7 +642,7 @@ export const useAnimalStore = defineStore('animal', () => {
 
     // 自动抚摸机：为新一天预设抚摸状态，使 UI 正确显示「已摸」
     for (const animal of animals.value) {
-      const animalDef = ANIMAL_DEFS.find(d => d.type === animal.type)
+      const animalDef = getAnimalDef(animal.type)
       if (animalDef && autoPetterBuildings.value.includes(animalDef.building)) {
         animal.wasPetted = true
       }
@@ -656,7 +656,7 @@ export const useAnimalStore = defineStore('animal', () => {
     const idx = animals.value.findIndex(a => a.id === animalId)
     if (idx === -1) return { success: false, refund: 0, name: '' }
     const animal = animals.value[idx]!
-    const def = ANIMAL_DEFS.find(d => d.type === animal.type)
+    const def = getAnimalDef(animal.type)
     const refund = Math.floor((def?.cost ?? 0) / 2)
     const name = animal.name
     animals.value.splice(idx, 1)

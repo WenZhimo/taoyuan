@@ -1,0 +1,102 @@
+{
+  "$id": "taoyuan.registry.AnimalDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "building",
+    "cost",
+    "produceDays",
+    "friendship"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "building": {
+      "anyOf": [
+        {
+          "const": "coop",
+          "type": "string"
+        },
+        {
+          "const": "barn",
+          "type": "string"
+        },
+        {
+          "const": "stable",
+          "type": "string"
+        }
+      ]
+    },
+    "cost": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "productItemId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "productName": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "produceDays": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "friendship": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "min",
+        "max"
+      ],
+      "properties": {
+        "min": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "max": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

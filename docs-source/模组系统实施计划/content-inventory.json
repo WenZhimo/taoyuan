@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 48,
-    "approximateLineCount": 30844,
+    "fileCount": 49,
+    "approximateLineCount": 30863,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 433,
-    "reviewedArtifactCount": 23
+    "symbolCount": 440,
+    "reviewedArtifactCount": 27
   },
   "entries": [
     {
@@ -93,8 +93,127 @@
       ]
     },
     {
+      "file": "src/data/animalDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "animal",
+        "feed"
+      ],
+      "candidateTargets": [
+        "taoyuan:animal",
+        "engine/domain/animal-feed"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 219,
+      "symbols": [
+        {
+          "file": "src/data/animalDefinitions.ts",
+          "exportName": "ANIMAL_DEFS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:animal",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy animal species definitions; Phase 6 projects every field into taoyuan:animal and verifies order, products, prices and runtime store behavior."
+        },
+        {
+          "file": "src/data/animalDefinitions.ts",
+          "exportName": "HAY_ITEM_ID",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "baselined",
+          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+        },
+        {
+          "file": "src/data/animalDefinitions.ts",
+          "exportName": "HAY_PRICE",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Phase 3 shop offer pilot verifies hay purchase price projection through taoyuan:shop_offer; animal feeding rules remain framework-owned."
+        },
+        {
+          "file": "src/data/animalDefinitions.ts",
+          "exportName": "PREMIUM_FEED_ID",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "baselined",
+          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+        },
+        {
+          "file": "src/data/animalDefinitions.ts",
+          "exportName": "NOURISHING_FEED_ID",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "baselined",
+          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+        },
+        {
+          "file": "src/data/animalDefinitions.ts",
+          "exportName": "VITALITY_FEED_ID",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animals.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "baselined",
+          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+        }
+      ]
+    },
+    {
       "file": "src/data/animals.ts",
-      "lines": 342,
+      "lines": 142,
       "classification": "mixed",
       "domains": [
         "animal",
@@ -115,6 +234,106 @@
       "symbols": [
         {
           "file": "src/data/animals.ts",
+          "exportName": "ANIMAL_DEFS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/animalDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/animalRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps ANIMAL_DEFS as an original-name re-export from the unique animalDefinitions leaf source; AnimalView and useAnimalStore now query the registry-backed compatibility facade."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "HAY_ITEM_ID",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animalDefinitions.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "HAY_PRICE",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animalDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Phase 3 shop offer pilot verifies hay purchase price projection through taoyuan:shop_offer; animal feeding rules remain framework-owned."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "NOURISHING_FEED_ID",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animalDefinitions.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "PREMIUM_FEED_ID",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animalDefinitions.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "VITALITY_FEED_ID",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/animalDefinitions.ts",
+            "src/stores/useAnimalStore.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/animals.ts",
           "exportName": "ANIMAL_BUILDINGS",
           "syntaxKind": "const",
           "classification": "content",
@@ -130,100 +349,6 @@
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "baselined",
           "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/animals.ts",
-          "exportName": "ANIMAL_DEFS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:animal",
-          "persistentIds": true,
-          "consumers": [
-            "src/stores/useAnimalStore.ts",
-            "src/views/game/AnimalView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/animals.ts",
-          "exportName": "HAY_ITEM_ID",
-          "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [
-            "src/stores/useAnimalStore.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/animals.ts",
-          "exportName": "HAY_PRICE",
-          "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [
-            "src/domain/mods/staticAdapters.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "status": "verified",
-          "rationale": "Phase 3 shop offer pilot verifies hay purchase price projection through taoyuan:shop_offer; animal feeding rules remain framework-owned."
-        },
-        {
-          "file": "src/data/animals.ts",
-          "exportName": "PREMIUM_FEED_ID",
-          "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [
-            "src/stores/useAnimalStore.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/animals.ts",
-          "exportName": "NOURISHING_FEED_ID",
-          "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [
-            "src/stores/useAnimalStore.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/animals.ts",
-          "exportName": "VITALITY_FEED_ID",
-          "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [
-            "src/stores/useAnimalStore.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
         },
         {
           "file": "src/data/animals.ts",
@@ -247,13 +372,35 @@
           "exportName": "getAnimalDef",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:animal",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/animalRegistryPilot.test.ts",
+            "src/views/game/AnimalView.vue"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getAnimalDef() signature is retained and now resolves taoyuan:animal before returning an equivalent local-ID AnimalDef compatibility object."
+        },
+        {
+          "file": "src/data/animals.ts",
+          "exportName": "getAnimalDefsByBuilding",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:animal",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/animalRegistryPilot.test.ts",
+            "src/views/game/AnimalView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Phase 6 compatibility facade filters official animal definitions by building while preserving the old local-ID AnimalDef shape for UI consumers."
         },
         {
           "file": "src/data/animals.ts",
@@ -8392,6 +8539,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies the legacy getForageItems() seasonal filtering behavior through the official forage registry facade."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "AnimalDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:animal",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for animal species definitions; generated animal.schema.json rejects invalid building, cost, produceDays and friendship fields."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyAnimal/createOfficialAnimals",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy animal species definition into ordered official animal entries without changing local IDs, names, costs, buildings, products or production cycles."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialAnimalDef/getOfficialAnimalDefs/getOfficialAnimalDefsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry animal definitions by local or namespaced ID and reconstructs legacy AnimalDef objects for compatibility checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialAnimalByType/getOfficialAnimalDefsByBuilding",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:animal",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies local-ID compatibility lookups and building-filtered animal definitions to useAnimalStore and AnimalView."
     }
   ]
 }

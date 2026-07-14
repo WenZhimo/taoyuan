@@ -1,0 +1,21 @@
+[
+  {
+    "id": "example_mod:test_animal",
+    "name": {
+      "key": "example_mod.animal.test.name",
+      "fallback": "测试动物"
+    },
+    "building": "coop",
+    "cost": 100,
+    "productItemId": "example_mod:test_item",
+    "productName": {
+      "key": "example_mod.animal.test.product.name",
+      "fallback": "测试产物"
+    },
+    "produceDays": 1,
+    "friendship": {
+      "min": 0,
+      "max": 1000
+    }
+  }
+]

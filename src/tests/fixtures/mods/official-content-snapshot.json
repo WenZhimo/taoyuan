@@ -2,6 +2,527 @@
   "formatVersion": 1,
   "registries": [
     {
+      "registryId": "taoyuan:animal",
+      "schemaName": "animal.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 6000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:alpaca",
+            "name": {
+              "fallback": "羊驼",
+              "key": "taoyuan.animal.alpaca.name"
+            },
+            "produceDays": 3,
+            "productItemId": "taoyuan:alpaca_wool",
+            "productName": {
+              "fallback": "羊驼毛",
+              "key": "taoyuan.animal.alpaca.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 3000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:buffalo",
+            "name": {
+              "fallback": "水牛",
+              "key": "taoyuan.animal.buffalo.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:buffalo_milk",
+            "productName": {
+              "fallback": "水牛奶",
+              "key": "taoyuan.animal.buffalo.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 7000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:camel",
+            "name": {
+              "fallback": "骆驼",
+              "key": "taoyuan.animal.camel.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:camel_milk",
+            "productName": {
+              "fallback": "驼奶",
+              "key": "taoyuan.animal.camel.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 800,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:chicken",
+            "name": {
+              "fallback": "鸡",
+              "key": "taoyuan.animal.chicken.name"
+            },
+            "produceDays": 1,
+            "productItemId": "taoyuan:egg",
+            "productName": {
+              "fallback": "鸡蛋",
+              "key": "taoyuan.animal.chicken.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 1500,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:cow",
+            "name": {
+              "fallback": "牛",
+              "key": "taoyuan.animal.cow.name"
+            },
+            "produceDays": 1,
+            "productItemId": "taoyuan:milk",
+            "productName": {
+              "fallback": "牛奶",
+              "key": "taoyuan.animal.cow.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 12000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:deer",
+            "name": {
+              "fallback": "鹿",
+              "key": "taoyuan.animal.deer.name"
+            },
+            "produceDays": 5,
+            "productItemId": "taoyuan:antler_velvet",
+            "productName": {
+              "fallback": "鹿茸",
+              "key": "taoyuan.animal.deer.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 3000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:donkey",
+            "name": {
+              "fallback": "驴",
+              "key": "taoyuan.animal.donkey.name"
+            },
+            "produceDays": 3,
+            "productItemId": "taoyuan:donkey_milk",
+            "productName": {
+              "fallback": "驴奶",
+              "key": "taoyuan.animal.donkey.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 1200,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:duck",
+            "name": {
+              "fallback": "鸭",
+              "key": "taoyuan.animal.duck.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:duck_egg",
+            "productName": {
+              "fallback": "鸭蛋",
+              "key": "taoyuan.animal.duck.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 4000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:goat",
+            "name": {
+              "fallback": "山羊",
+              "key": "taoyuan.animal.goat.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:goat_milk",
+            "productName": {
+              "fallback": "羊奶",
+              "key": "taoyuan.animal.goat.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 1500,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:goose",
+            "name": {
+              "fallback": "鹅",
+              "key": "taoyuan.animal.goose.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:goose_egg",
+            "productName": {
+              "fallback": "鹅蛋",
+              "key": "taoyuan.animal.goose.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "stable",
+            "cost": 5000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:horse",
+            "name": {
+              "fallback": "马",
+              "key": "taoyuan.animal.horse.name"
+            },
+            "produceDays": 0
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 10000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:ostrich",
+            "name": {
+              "fallback": "鸵鸟",
+              "key": "taoyuan.animal.ostrich.name"
+            },
+            "produceDays": 3,
+            "productItemId": "taoyuan:ostrich_egg",
+            "productName": {
+              "fallback": "鸵鸟蛋",
+              "key": "taoyuan.animal.ostrich.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 8000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:peacock",
+            "name": {
+              "fallback": "孔雀",
+              "key": "taoyuan.animal.peacock.name"
+            },
+            "produceDays": 4,
+            "productItemId": "taoyuan:peacock_feather",
+            "productName": {
+              "fallback": "孔雀羽",
+              "key": "taoyuan.animal.peacock.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 16000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:pig",
+            "name": {
+              "fallback": "猪",
+              "key": "taoyuan.animal.pig.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:truffle",
+            "productName": {
+              "fallback": "松露",
+              "key": "taoyuan.animal.pig.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 1000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:pigeon",
+            "name": {
+              "fallback": "鸽子",
+              "key": "taoyuan.animal.pigeon.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:pigeon_egg",
+            "productName": {
+              "fallback": "鸽子蛋",
+              "key": "taoyuan.animal.pigeon.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 500,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:quail",
+            "name": {
+              "fallback": "鹌鹑",
+              "key": "taoyuan.animal.quail.name"
+            },
+            "produceDays": 1,
+            "productItemId": "taoyuan:quail_egg",
+            "productName": {
+              "fallback": "鹌鹑蛋",
+              "key": "taoyuan.animal.quail.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 2000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:rabbit",
+            "name": {
+              "fallback": "兔",
+              "key": "taoyuan.animal.rabbit.name"
+            },
+            "produceDays": 3,
+            "productItemId": "taoyuan:rabbit_fur",
+            "productName": {
+              "fallback": "兔毛",
+              "key": "taoyuan.animal.rabbit.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 8000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:sheep",
+            "name": {
+              "fallback": "羊",
+              "key": "taoyuan.animal.sheep.name"
+            },
+            "produceDays": 3,
+            "productItemId": "taoyuan:wool",
+            "productName": {
+              "fallback": "羊毛",
+              "key": "taoyuan.animal.sheep.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "coop",
+            "cost": 3000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:silkie",
+            "name": {
+              "fallback": "乌骨鸡",
+              "key": "taoyuan.animal.silkie.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:silkie_egg",
+            "productName": {
+              "fallback": "乌鸡蛋",
+              "key": "taoyuan.animal.silkie.product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/animalDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "building": "barn",
+            "cost": 5000,
+            "friendship": {
+              "max": 1000,
+              "min": 0
+            },
+            "id": "taoyuan:yak",
+            "name": {
+              "fallback": "牦牛",
+              "key": "taoyuan.animal.yak.name"
+            },
+            "produceDays": 2,
+            "productItemId": "taoyuan:yak_milk",
+            "productName": {
+              "fallback": "牦牛奶",
+              "key": "taoyuan.animal.yak.product.name"
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:crop",
       "schemaName": "crop.schema.json",
       "entries": [
@@ -63094,5 +63615,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:122c9a81bc40978a602cc611b59944706df72b921a93ccb48bdeafd8a41b71d5"
+  "snapshotHash": "sha256:804d4cca570004132ad9faecfe7f12924289740a250e1e762ba837c470326de8"
 }

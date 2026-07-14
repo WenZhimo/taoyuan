@@ -27,6 +27,7 @@
     "taoyuan:item": ["data/items.json"],
     "taoyuan:fish": ["data/fish.json"],
     "taoyuan:forage": ["data/forage.json"],
+    "taoyuan:animal": ["data/animals.json"],
     "taoyuan:tree": ["data/trees.json"],
     "taoyuan:monster": ["data/monsters.json"],
     "taoyuan:monster_pool": ["data/monster-pools.json"],

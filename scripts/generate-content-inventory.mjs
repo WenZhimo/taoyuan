@@ -170,6 +170,15 @@ fileDefaults.set('src/data/forageDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/animalDefinitions.ts', {
+  file: 'src/data/animalDefinitions.ts',
+  classification: 'mixed',
+  domains: ['animal', 'feed'],
+  candidateTargets: ['taoyuan:animal', 'engine/domain/animal-feed'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forage.ts', {
   file: 'src/data/forage.ts',
   classification: 'mixed',
@@ -391,6 +400,40 @@ const symbolReviewOverrides = new Map(Object.entries({
   'src/data/processing.ts:TACKLES': {
     status: 'verified',
     rationale: 'Phase 3 shop offer pilot verifies tackle shopPrice/name/description projection through taoyuan:shop_offer; tackle durability and fishing behavior remain framework-owned.'
+  },
+  'src/data/animalDefinitions.ts:ANIMAL_DEFS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all legacy animal species definitions; Phase 6 projects every field into taoyuan:animal and verifies order, products, prices and runtime store behavior.'
+  },
+  'src/data/animalDefinitions.ts:HAY_PRICE': {
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies hay purchase price projection through taoyuan:shop_offer; animal feeding rules remain framework-owned.'
+  },
+  'src/data/animals.ts:ANIMAL_DEFS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps ANIMAL_DEFS as an original-name re-export from the unique animalDefinitions leaf source; AnimalView and useAnimalStore now query the registry-backed compatibility facade.'
+  },
+  'src/data/animals.ts:getAnimalDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getAnimalDef() signature is retained and now resolves taoyuan:animal before returning an equivalent local-ID AnimalDef compatibility object.'
+  },
+  'src/data/animals.ts:getAnimalDefsByBuilding': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Phase 6 compatibility facade filters official animal definitions by building while preserving the old local-ID AnimalDef shape for UI consumers.'
   },
   'src/data/animals.ts:HAY_PRICE': {
     status: 'verified',
@@ -944,6 +987,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies the legacy getForageItems() seasonal filtering behavior through the official forage registry facade.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'AnimalDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for animal species definitions; generated animal.schema.json rejects invalid building, cost, produceDays and friendship fields.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyAnimal/createOfficialAnimals',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy animal species definition into ordered official animal entries without changing local IDs, names, costs, buildings, products or production cycles.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalDef/getOfficialAnimalDefs/getOfficialAnimalDefsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry animal definitions by local or namespaced ID and reconstructs legacy AnimalDef objects for compatibility checks.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAnimalByType/getOfficialAnimalDefsByBuilding',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:animal',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies local-ID compatibility lookups and building-filtered animal definitions to useAnimalStore and AnimalView.'
   }
 ]
 
