@@ -9,8 +9,16 @@
       "key": "example_mod.enchantment.test.description",
       "fallback": "用于模组契约测试的附魔"
     },
+    "rarity": 1,
+    "randomWeight": 1,
     "attackBonus": 0,
     "critBonus": 0,
-    "special": null
+    "special": null,
+    "effects": [
+      {
+        "type": "attack_bonus",
+        "value": 1
+      }
+    ]
   }
 ]

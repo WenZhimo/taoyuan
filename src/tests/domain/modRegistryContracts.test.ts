@@ -13,6 +13,8 @@ import {
 } from '@/domain/mods/registry'
 import { compileSchema, validateUnknown } from '@/domain/mods/schemaValidation'
 import {
+  DropTableDefSchema,
+  EnchantmentDefSchema,
   ItemDefSchema,
   PUBLIC_JSON_SCHEMAS,
   PackageManifestSchema,
@@ -24,6 +26,8 @@ import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData }
 import hashGoldenVectors from '../fixtures/mods/hash-golden-vectors.json'
 import invalidItems from '../fixtures/mods/minimal-invalid-package/data/items.json'
 import invalidManifest from '../fixtures/mods/minimal-invalid-package/manifest.json'
+import validDropTables from '../fixtures/mods/minimal-valid-package/data/drop-tables.json'
+import validEnchantments from '../fixtures/mods/minimal-valid-package/data/enchantments.json'
 import validItems from '../fixtures/mods/minimal-valid-package/data/items.json'
 import validManifest from '../fixtures/mods/minimal-valid-package/manifest.json'
 import officialContentSnapshot from '../fixtures/mods/official-content-snapshot.json'
@@ -84,6 +88,59 @@ describe('mod registry contracts', () => {
     expect(invalidItemResult.ok).toBe(false)
     if (!invalidItemResult.ok) {
       expect(invalidItemResult.diagnostics.map(diagnostic => diagnostic.code)).toContain('SCHEMA-VALIDATE-001')
+    }
+  })
+
+  it('validates stage 4 enchantment and drop table JSON contracts before registration', () => {
+    expect(validateUnknown(Type.Array(EnchantmentDefSchema), validEnchantments as unknown, { stage: 'test.enchantments' }).ok)
+      .toBe(true)
+    expect(validateUnknown(Type.Array(DropTableDefSchema), validDropTables as unknown, { stage: 'test.drop-tables' }).ok)
+      .toBe(true)
+
+    const invalidEnchantments: unknown = [
+      {
+        id: 'example_mod:invalid_enchantment',
+        name: { key: 'example_mod.enchantment.invalid.name', fallback: 'Invalid' },
+        description: { key: 'example_mod.enchantment.invalid.description', fallback: 'Invalid' },
+        rarity: 0,
+        randomWeight: -1,
+        attackBonus: 0,
+        critBonus: 0,
+        special: null,
+        effects: [{ type: 'unknown_effect', value: 1 }]
+      }
+    ]
+    const invalidEnchantmentResult = validateUnknown(Type.Array(EnchantmentDefSchema), invalidEnchantments, {
+      stage: 'test.enchantments.invalid'
+    })
+    expect(invalidEnchantmentResult.ok).toBe(false)
+    if (!invalidEnchantmentResult.ok) {
+      expect(invalidEnchantmentResult.diagnostics.map(diagnostic => diagnostic.fieldPath)).toEqual(
+        expect.arrayContaining(['/0/rarity', '/0/randomWeight', '/0/effects/0/type'])
+      )
+    }
+
+    const invalidDropTables: unknown = [
+      {
+        id: 'example_mod:invalid_drop',
+        entries: [
+          {
+            itemId: 'example_mod:test_item',
+            chance: -0.1,
+            minQuantity: 0,
+            maxQuantity: 0
+          }
+        ]
+      }
+    ]
+    const invalidDropTableResult = validateUnknown(Type.Array(DropTableDefSchema), invalidDropTables, {
+      stage: 'test.drop-tables.invalid'
+    })
+    expect(invalidDropTableResult.ok).toBe(false)
+    if (!invalidDropTableResult.ok) {
+      expect(invalidDropTableResult.diagnostics.map(diagnostic => diagnostic.fieldPath)).toEqual(
+        expect.arrayContaining(['/0/entries/0/chance', '/0/entries/0/minQuantity', '/0/entries/0/maxQuantity'])
+      )
     }
   })
 
