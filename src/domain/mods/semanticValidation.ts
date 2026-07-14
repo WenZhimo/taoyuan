@@ -7,13 +7,14 @@ import {
   getMainMineBossPoolId
 } from './monsterPoolIds'
 import { getMonsterPoolDefResourceLimitDiagnostics } from './monsterPoolResourceValidation'
-import type { CropDef, DropTableDef, MonsterDef, MonsterPoolDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef } from './schemas'
+import type { CropDef, DropTableDef, MonsterDef, MonsterPoolDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef, TreeDef } from './schemas'
 import type { RegistrySet } from './registry'
 
 const REGISTRY_IDS = {
   tag: toOfficialRegistryTypeId('tag'),
   item: toOfficialRegistryTypeId('item'),
   crop: toOfficialRegistryTypeId('crop'),
+  tree: toOfficialRegistryTypeId('tree'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
@@ -48,6 +49,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const tagRegistry = registrySet.get<TagDef>(REGISTRY_IDS.tag)
   const itemRegistry = registrySet.get(REGISTRY_IDS.item)
   const cropRegistry = registrySet.get<CropDef>(REGISTRY_IDS.crop)
+  const treeRegistry = registrySet.get<TreeDef>(REGISTRY_IDS.tree)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
@@ -146,6 +148,28 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         contentId: contentId(record.entry.dropTableId),
         fieldPath: '/dropTableId'
       })
+    }
+  }
+
+  for (const record of treeRegistry.entries()) {
+    const references = record.entry.kind === 'fruit'
+      ? [
+          { itemId: record.entry.seedItemId, fieldPath: '/seedItemId' },
+          { itemId: record.entry.fruitItemId, fieldPath: '/fruitItemId' }
+        ]
+      : [
+          { itemId: record.entry.seedItemId, fieldPath: '/seedItemId' },
+          { itemId: record.entry.tapProductItemId, fieldPath: '/tapProductItemId' }
+        ]
+    for (const reference of references) {
+      if (!itemRegistry.has(contentId(reference.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(reference.itemId),
+          fieldPath: reference.fieldPath
+        })
+      }
     }
   }
 

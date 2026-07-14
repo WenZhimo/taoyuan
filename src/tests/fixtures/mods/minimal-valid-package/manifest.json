@@ -25,6 +25,7 @@
   "entrypoints": {
     "taoyuan:tag": ["data/tags.json"],
     "taoyuan:item": ["data/items.json"],
+    "taoyuan:tree": ["data/trees.json"],
     "taoyuan:monster": ["data/monsters.json"],
     "taoyuan:monster_pool": ["data/monster-pools.json"],
     "taoyuan:enchantment": ["data/enchantments.json"],

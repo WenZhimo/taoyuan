@@ -60593,7 +60593,282 @@
           }
         }
       ]
+    },
+    {
+      "registryId": "taoyuan:tree",
+      "schemaName": "tree.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:apricot",
+            "fruitName": {
+              "fallback": "杏子",
+              "key": "taoyuan.tree.apricot_tree.fruit.name"
+            },
+            "fruitSeason": "spring",
+            "fruitSellPrice": 55,
+            "growthDays": 28,
+            "id": "taoyuan:apricot_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "杏树",
+              "key": "taoyuan.tree.apricot_tree.name"
+            },
+            "saplingPrice": 350,
+            "seedItemId": "taoyuan:sapling_apricot"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "growthDays": 28,
+            "id": "taoyuan:camphor",
+            "kind": "wild",
+            "name": {
+              "fallback": "樟树",
+              "key": "taoyuan.tree.camphor.name"
+            },
+            "seedItemId": "taoyuan:camphor_seed",
+            "tapCycleDays": 7,
+            "tapProductItemId": "taoyuan:camphor_oil",
+            "tapProductName": {
+              "fallback": "樟脑油",
+              "key": "taoyuan.tree.camphor.tap-product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:hawthorn",
+            "fruitName": {
+              "fallback": "山楂",
+              "key": "taoyuan.tree.hawthorn_tree.fruit.name"
+            },
+            "fruitSeason": "winter",
+            "fruitSellPrice": 65,
+            "growthDays": 28,
+            "id": "taoyuan:hawthorn_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "山楂树",
+              "key": "taoyuan.tree.hawthorn_tree.name"
+            },
+            "saplingPrice": 350,
+            "seedItemId": "taoyuan:sapling_hawthorn"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:lychee",
+            "fruitName": {
+              "fallback": "荔枝",
+              "key": "taoyuan.tree.lychee_tree.fruit.name"
+            },
+            "fruitSeason": "summer",
+            "fruitSellPrice": 80,
+            "growthDays": 28,
+            "id": "taoyuan:lychee_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "荔枝树",
+              "key": "taoyuan.tree.lychee_tree.name"
+            },
+            "saplingPrice": 400,
+            "seedItemId": "taoyuan:sapling_lychee"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:mandarin",
+            "fruitName": {
+              "fallback": "橘子",
+              "key": "taoyuan.tree.mandarin_tree.fruit.name"
+            },
+            "fruitSeason": "autumn",
+            "fruitSellPrice": 70,
+            "growthDays": 28,
+            "id": "taoyuan:mandarin_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "橘树",
+              "key": "taoyuan.tree.mandarin_tree.name"
+            },
+            "saplingPrice": 350,
+            "seedItemId": "taoyuan:sapling_mandarin"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "growthDays": 14,
+            "id": "taoyuan:mulberry",
+            "kind": "wild",
+            "name": {
+              "fallback": "桑树",
+              "key": "taoyuan.tree.mulberry.name"
+            },
+            "seedItemId": "taoyuan:mulberry",
+            "tapCycleDays": 4,
+            "tapProductItemId": "taoyuan:silk",
+            "tapProductName": {
+              "fallback": "蚕丝",
+              "key": "taoyuan.tree.mulberry.tap-product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:tree_peach",
+            "fruitName": {
+              "fallback": "鲜桃",
+              "key": "taoyuan.tree.peach_tree.fruit.name"
+            },
+            "fruitSeason": "spring",
+            "fruitSellPrice": 60,
+            "growthDays": 28,
+            "id": "taoyuan:peach_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "桃树",
+              "key": "taoyuan.tree.peach_tree.name"
+            },
+            "saplingPrice": 300,
+            "seedItemId": "taoyuan:sapling_peach"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:persimmon",
+            "fruitName": {
+              "fallback": "鲜柿",
+              "key": "taoyuan.tree.persimmon_tree.fruit.name"
+            },
+            "fruitSeason": "autumn",
+            "fruitSellPrice": 85,
+            "growthDays": 28,
+            "id": "taoyuan:persimmon_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "柿树",
+              "key": "taoyuan.tree.persimmon_tree.name"
+            },
+            "saplingPrice": 400,
+            "seedItemId": "taoyuan:sapling_persimmon"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "growthDays": 21,
+            "id": "taoyuan:pine",
+            "kind": "wild",
+            "name": {
+              "fallback": "松树",
+              "key": "taoyuan.tree.pine.name"
+            },
+            "seedItemId": "taoyuan:pine_cone",
+            "tapCycleDays": 5,
+            "tapProductItemId": "taoyuan:pine_resin",
+            "tapProductName": {
+              "fallback": "松脂",
+              "key": "taoyuan.tree.pine.tap-product.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:plum_blossom",
+            "fruitName": {
+              "fallback": "梅花",
+              "key": "taoyuan.tree.plum_tree.fruit.name"
+            },
+            "fruitSeason": "winter",
+            "fruitSellPrice": 100,
+            "growthDays": 28,
+            "id": "taoyuan:plum_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "梅树",
+              "key": "taoyuan.tree.plum_tree.name"
+            },
+            "saplingPrice": 500,
+            "seedItemId": "taoyuan:sapling_plum"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/treeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fruitItemId": "taoyuan:pomegranate",
+            "fruitName": {
+              "fallback": "石榴",
+              "key": "taoyuan.tree.pomegranate_tree.fruit.name"
+            },
+            "fruitSeason": "summer",
+            "fruitSellPrice": 95,
+            "growthDays": 28,
+            "id": "taoyuan:pomegranate_tree",
+            "kind": "fruit",
+            "name": {
+              "fallback": "石榴树",
+              "key": "taoyuan.tree.pomegranate_tree.name"
+            },
+            "saplingPrice": 500,
+            "seedItemId": "taoyuan:sapling_pomegranate"
+          }
+        }
+      ]
     }
   ],
-  "snapshotHash": "sha256:8aef2b5da480222e6e41d879b297cafd4f38d3d123c681836ea83f412ded4597"
+  "snapshotHash": "sha256:aaa97d207c6d117409686e5ce90d5a1b3c35de381388812652f3a633b7c2a6f7"
 }

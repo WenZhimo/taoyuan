@@ -192,6 +192,42 @@ export const CropDefSchema = Type.Object(
   { $id: 'taoyuan.registry.CropDef', additionalProperties: false }
 )
 
+const TreeCommonFields = {
+  id: ContentIdSchema,
+  name: LocalizedTextRefSchema,
+  seedItemId: ContentIdSchema,
+  growthDays: Type.Integer({ minimum: 1 })
+}
+
+export const FruitTreeDefSchema = Type.Object(
+  {
+    ...TreeCommonFields,
+    kind: Type.Literal('fruit'),
+    saplingPrice: Type.Integer({ minimum: 0 }),
+    fruitItemId: ContentIdSchema,
+    fruitName: LocalizedTextRefSchema,
+    fruitSeason: SeasonSchema,
+    fruitSellPrice: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const WildTreeDefSchema = Type.Object(
+  {
+    ...TreeCommonFields,
+    kind: Type.Literal('wild'),
+    tapProductItemId: ContentIdSchema,
+    tapProductName: LocalizedTextRefSchema,
+    tapCycleDays: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const TreeDefSchema = Type.Union(
+  [FruitTreeDefSchema, WildTreeDefSchema],
+  { $id: 'taoyuan.registry.TreeDef' }
+)
+
 export const DropTableEntrySchema = Type.Object(
   {
     itemId: ContentIdSchema,
@@ -445,6 +481,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:tag': TagDefSchema,
   'taoyuan:item': ItemDefSchema,
   'taoyuan:crop': CropDefSchema,
+  'taoyuan:tree': TreeDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -462,6 +499,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'tag.schema.json': TagDefSchema,
   'item.schema.json': ItemDefSchema,
   'crop.schema.json': CropDefSchema,
+  'tree.schema.json': TreeDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -482,6 +520,9 @@ export type Season = Static<typeof SeasonSchema>
 export type Weather = Static<typeof WeatherSchema>
 export type Weekday = Static<typeof WeekdaySchema>
 export type CropDef = Static<typeof CropDefSchema>
+export type TreeDef = Static<typeof TreeDefSchema>
+export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>
+export type WildTreeContentDef = Extract<TreeDef, { kind: 'wild' }>
 export type DropTableDef = Static<typeof DropTableDefSchema>
 export type MonsterDef = Static<typeof MonsterDefSchema>
 export type MonsterPoolEntry = Static<typeof MonsterPoolEntrySchema>

@@ -15,13 +15,17 @@ import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
 import { SHOPS, type ShopDef as LegacyShopDef } from '@/data/shops'
-import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
+import {
+  FRUIT_TREE_DEFINITIONS,
+  WILD_TREE_DEFINITIONS
+} from '@/data/treeDefinitions'
 import { MONSTER_DROP_RINGS, TREASURE_DROP_RINGS } from '@/data/rings'
 import { MONSTER_DROP_HATS, SHOP_HATS, TREASURE_DROP_HATS } from '@/data/hats'
 import { MONSTER_DROP_SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoes'
 import { HAY_PRICE } from '@/data/animals'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
 import type { RecipeDef as LegacyRecipeDef } from '@/types'
+import type { FruitTreeDef as LegacyFruitTreeDef, WildTreeDef as LegacyWildTreeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { MonsterDef as LegacyMonsterDef } from '@/types/skill'
 import {
@@ -51,8 +55,11 @@ import type {
   RecipeIngredient,
   ShopDef,
   ShopOfferDef,
-  TagDef
+  TagDef,
+  TreeDef
 } from './schemas'
+
+const FRUIT_TREE_DEFS = FRUIT_TREE_DEFINITIONS
 
 export const OFFICIAL_PACKAGE_ID = requirePackageId('taoyuan-core')
 
@@ -74,6 +81,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('crop'),
     description: '作物定义',
     schemaName: 'crop.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('tree'),
+    description: '果树和野树定义',
+    schemaName: 'tree.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('monster'),
@@ -332,6 +344,35 @@ export const createOfficialMonsterPools = (): MonsterPoolDef[] => [
     SKULL_CAVERN_BOSS_POOL_ID,
     MAIN_MINE_BOSS_FLOORS.map(floor => BOSS_MONSTERS[floor]!)
   )
+]
+
+export const adaptLegacyFruitTree = (tree: LegacyFruitTreeDef): TreeDef => ({
+  id: toOfficialContentId(tree.type),
+  kind: 'fruit',
+  name: text(`taoyuan.tree.${tree.type}.name`, tree.name),
+  seedItemId: toOfficialContentId(tree.saplingId),
+  growthDays: tree.growthDays,
+  saplingPrice: tree.saplingPrice,
+  fruitItemId: toOfficialContentId(tree.fruitId),
+  fruitName: text(`taoyuan.tree.${tree.type}.fruit.name`, tree.fruitName),
+  fruitSeason: tree.fruitSeason,
+  fruitSellPrice: tree.fruitSellPrice
+})
+
+export const adaptLegacyWildTree = (tree: LegacyWildTreeDef): TreeDef => ({
+  id: toOfficialContentId(tree.type),
+  kind: 'wild',
+  name: text(`taoyuan.tree.${tree.type}.name`, tree.name),
+  seedItemId: toOfficialContentId(tree.seedItemId),
+  growthDays: tree.growthDays,
+  tapProductItemId: toOfficialContentId(tree.tapProduct),
+  tapProductName: text(`taoyuan.tree.${tree.type}.tap-product.name`, tree.tapProductName),
+  tapCycleDays: tree.tapCycleDays
+})
+
+export const createOfficialTrees = (): TreeDef[] => [
+  ...FRUIT_TREE_DEFINITIONS.map(adaptLegacyFruitTree),
+  ...WILD_TREE_DEFINITIONS.map(adaptLegacyWildTree)
 ]
 
 export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
@@ -619,6 +660,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const tagRegistry = registrySet.get<TagDef>(toOfficialRegistryTypeId('tag'))
   const itemRegistry = registrySet.get<ItemDef>(toOfficialRegistryTypeId('item'))
   const cropRegistry = registrySet.get<CropDef>(toOfficialRegistryTypeId('crop'))
+  const treeRegistry = registrySet.get<TreeDef>(toOfficialRegistryTypeId('tree'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
@@ -630,6 +672,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
   for (const crop of CROPS.map(adaptLegacyCrop)) cropRegistry.register(owner, crop, { file: 'src/data/crops.ts' })
+  for (const tree of createOfficialTrees()) treeRegistry.register(owner, tree, { file: 'src/data/treeDefinitions.ts' })
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {

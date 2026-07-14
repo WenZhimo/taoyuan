@@ -1,0 +1,18 @@
+[
+  {
+    "id": "example_mod:test_tree",
+    "kind": "wild",
+    "name": {
+      "key": "example_mod.tree.test.name",
+      "fallback": "测试树"
+    },
+    "seedItemId": "example_mod:test_item",
+    "growthDays": 7,
+    "tapProductItemId": "example_mod:test_item",
+    "tapProductName": {
+      "key": "example_mod.tree.test.product.name",
+      "fallback": "测试产物"
+    },
+    "tapCycleDays": 3
+  }
+]

@@ -1,0 +1,184 @@
+{
+  "$id": "taoyuan.registry.TreeDef",
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "seedItemId",
+        "growthDays",
+        "kind",
+        "saplingPrice",
+        "fruitItemId",
+        "fruitName",
+        "fruitSeason",
+        "fruitSellPrice"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "seedItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "growthDays": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "kind": {
+          "const": "fruit",
+          "type": "string"
+        },
+        "saplingPrice": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "fruitItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "fruitName": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "fruitSeason": {
+          "anyOf": [
+            {
+              "const": "spring",
+              "type": "string"
+            },
+            {
+              "const": "summer",
+              "type": "string"
+            },
+            {
+              "const": "autumn",
+              "type": "string"
+            },
+            {
+              "const": "winter",
+              "type": "string"
+            }
+          ]
+        },
+        "fruitSellPrice": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "name",
+        "seedItemId",
+        "growthDays",
+        "kind",
+        "tapProductItemId",
+        "tapProductName",
+        "tapCycleDays"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "seedItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "growthDays": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "kind": {
+          "const": "wild",
+          "type": "string"
+        },
+        "tapProductItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "tapProductName": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "tapCycleDays": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    }
+  ],
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

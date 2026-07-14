@@ -1,4 +1,9 @@
-import type { EnchantmentDef as LegacyEnchantmentDef, MonsterDef as LegacyMonsterDef } from '@/types'
+import type {
+  EnchantmentDef as LegacyEnchantmentDef,
+  FruitTreeDef as LegacyFruitTreeDef,
+  MonsterDef as LegacyMonsterDef,
+  WildTreeDef as LegacyWildTreeDef
+} from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
@@ -24,7 +29,8 @@ import type {
   Season,
   ShopDef,
   ShopOfferDef,
-  TagDef
+  TagDef,
+  TreeDef
 } from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
 
@@ -301,6 +307,73 @@ export const getOfficialCropsBySeason = (season: string): readonly LegacyCropDef
 
 export const getOfficialCropDefs = (): readonly LegacyCropDef[] =>
   getOfficialRegistrySet().get<CropDef>(toOfficialRegistryTypeId('crop')).values().map(toLegacyCropDef)
+
+export const getOfficialTreeDef = (id: string): Readonly<TreeDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<TreeDef>(toOfficialRegistryTypeId('tree')).get(contentId) : undefined
+}
+
+export const getOfficialTreeDefs = (): readonly Readonly<TreeDef>[] =>
+  getOfficialRegistrySet().get<TreeDef>(toOfficialRegistryTypeId('tree')).values()
+
+export const getOfficialFruitTreeDefs = () =>
+  getOfficialTreeDefs().filter((tree): tree is Readonly<Extract<TreeDef, { kind: 'fruit' }>> => tree.kind === 'fruit')
+
+export const getOfficialWildTreeDefs = () =>
+  getOfficialTreeDefs().filter((tree): tree is Readonly<Extract<TreeDef, { kind: 'wild' }>> => tree.kind === 'wild')
+
+const toLegacyFruitTreeDef = (
+  tree: Readonly<Extract<TreeDef, { kind: 'fruit' }>>
+): LegacyFruitTreeDef => ({
+  type: getLocalContentId(tree.id) as LegacyFruitTreeDef['type'],
+  name: tree.name.fallback,
+  saplingId: getLocalContentId(tree.seedItemId),
+  saplingPrice: tree.saplingPrice,
+  fruitId: getLocalContentId(tree.fruitItemId),
+  fruitName: tree.fruitName.fallback,
+  fruitSeason: tree.fruitSeason,
+  growthDays: tree.growthDays,
+  fruitSellPrice: tree.fruitSellPrice
+})
+
+const toLegacyWildTreeDef = (
+  tree: Readonly<Extract<TreeDef, { kind: 'wild' }>>
+): LegacyWildTreeDef => ({
+  type: getLocalContentId(tree.id) as LegacyWildTreeDef['type'],
+  name: tree.name.fallback,
+  seedItemId: getLocalContentId(tree.seedItemId),
+  growthDays: tree.growthDays,
+  tapProduct: getLocalContentId(tree.tapProductItemId),
+  tapCycleDays: tree.tapCycleDays,
+  tapProductName: tree.tapProductName.fallback
+})
+
+export const getOfficialFruitTreeById = (id: string): LegacyFruitTreeDef | undefined => {
+  const tree = getOfficialTreeDef(id)
+  return tree?.kind === 'fruit' ? toLegacyFruitTreeDef(tree) : undefined
+}
+
+export const getOfficialWildTreeById = (id: string): LegacyWildTreeDef | undefined => {
+  const tree = getOfficialTreeDef(id)
+  return tree?.kind === 'wild' ? toLegacyWildTreeDef(tree) : undefined
+}
+
+export const getOfficialFruitTreeBySaplingId = (seedItemId: string): LegacyFruitTreeDef | undefined => {
+  const contentId = toQueryContentId(seedItemId)
+  if (!contentId) return undefined
+  const tree = getOfficialFruitTreeDefs().find(candidate => candidate.seedItemId === contentId)
+  return tree ? toLegacyFruitTreeDef(tree) : undefined
+}
+
+export const getOfficialTreeByProductItemId = (productItemId: string): Readonly<TreeDef> | undefined => {
+  const contentId = toQueryContentId(productItemId)
+  if (!contentId) return undefined
+  return getOfficialTreeDefs().find(tree =>
+    tree.kind === 'fruit'
+      ? tree.fruitItemId === contentId
+      : tree.tapProductItemId === contentId
+  )
+}
 
 const toLegacyShopDef = (shop: Readonly<ShopDef>): LegacyShopDef => ({
   id: getLocalContentId(shop.id),
