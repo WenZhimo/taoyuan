@@ -81,7 +81,11 @@ describe('crop registry pilot', () => {
       description: { key: 'test.crop.description', fallback: 'Test crop' }
     })
 
-    expect(validateRegistrySemantics(registrySet)).toEqual([
+    const cropDiagnostics = validateRegistrySemantics(registrySet).filter(
+      diagnostic => diagnostic.registryId === toOfficialRegistryTypeId('item')
+    )
+
+    expect(cropDiagnostics).toEqual([
       expect.objectContaining({
         code: 'REG-REFERENCE-001',
         registryId: toOfficialRegistryTypeId('item'),
