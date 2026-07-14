@@ -16,6 +16,7 @@ import type {
   MonsterDef,
   MonsterPoolDef,
   PackageManifest,
+  PondBreedDef,
   PondableFishDef,
   RecipeDef,
   ShopOfferDef,
@@ -33,6 +34,7 @@ const REGISTRY_IDS = {
   forage: toOfficialRegistryTypeId('forage'),
   animal: toOfficialRegistryTypeId('animal'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
+  pondBreed: toOfficialRegistryTypeId('pond_breed'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
@@ -72,6 +74,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const forageRegistry = registrySet.get<ForageDef>(REGISTRY_IDS.forage)
   const animalRegistry = registrySet.get<AnimalDef>(REGISTRY_IDS.animal)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
+  const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
@@ -243,6 +246,33 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         registryId: REGISTRY_IDS.item,
         contentId: contentId(record.entry.productItemId),
         fieldPath: '/productItemId'
+      })
+    }
+  }
+
+  for (const record of pondBreedRegistry.entries()) {
+    if (!pondableFishRegistry.has(contentId(record.entry.baseFishId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.pondableFish,
+        contentId: contentId(record.entry.baseFishId),
+        fieldPath: '/baseFishId'
+      })
+    }
+    if (record.entry.parentBreedA && !pondBreedRegistry.has(contentId(record.entry.parentBreedA))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.pondBreed,
+        contentId: contentId(record.entry.parentBreedA),
+        fieldPath: '/parentBreedA'
+      })
+    }
+    if (record.entry.parentBreedB && !pondBreedRegistry.has(contentId(record.entry.parentBreedB))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.pondBreed,
+        contentId: contentId(record.entry.parentBreedB),
+        fieldPath: '/parentBreedB'
       })
     }
   }

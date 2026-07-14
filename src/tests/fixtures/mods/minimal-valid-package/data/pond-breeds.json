@@ -1,0 +1,35 @@
+[
+  {
+    "id": "example_mod:test_breed_g1_a",
+    "name": {
+      "key": "example_mod.pond_breed.test_g1_a.name",
+      "fallback": "测试一代甲"
+    },
+    "generation": 1,
+    "baseFishId": "example_mod:test_fish",
+    "parentBreedA": null,
+    "parentBreedB": null
+  },
+  {
+    "id": "example_mod:test_breed_g1_b",
+    "name": {
+      "key": "example_mod.pond_breed.test_g1_b.name",
+      "fallback": "测试一代乙"
+    },
+    "generation": 1,
+    "baseFishId": "example_mod:test_fish",
+    "parentBreedA": null,
+    "parentBreedB": null
+  },
+  {
+    "id": "example_mod:test_breed_g2",
+    "name": {
+      "key": "example_mod.pond_breed.test_g2.name",
+      "fallback": "测试二代"
+    },
+    "generation": 2,
+    "baseFishId": "example_mod:test_fish",
+    "parentBreedA": "example_mod:test_breed_g1_a",
+    "parentBreedB": "example_mod:test_breed_g1_b"
+  }
+]

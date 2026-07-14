@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 50,
-    "approximateLineCount": 30875,
+    "fileCount": 51,
+    "approximateLineCount": 30899,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 442,
-    "reviewedArtifactCount": 31
+    "symbolCount": 444,
+    "reviewedArtifactCount": 35
   },
   "entries": [
     {
@@ -5488,12 +5488,68 @@
       ]
     },
     {
-      "file": "src/data/pondBreeds.ts",
-      "lines": 195,
+      "file": "src/data/pondBreedDefinitions.ts",
       "classification": "mixed",
       "domains": [
         "pond_breed",
-        "breed_lookup"
+        "fish_pond_breed_generation"
+      ],
+      "candidateTargets": [
+        "taoyuan:pond_breed",
+        "engine/domain/fish-pond"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 176,
+      "symbols": [
+        {
+          "file": "src/data/pondBreedDefinitions.ts",
+          "exportName": "POND_BREEDS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:pond_breed",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/pondBreeds.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique leaf source for all 400 generated legacy pond breed definitions; Phase 6 projects every ID, name, generation, base fish and parent link into taoyuan:pond_breed."
+        },
+        {
+          "file": "src/data/pondBreedDefinitions.ts",
+          "exportName": "BREED_COUNTS",
+          "syntaxKind": "const",
+          "classification": "derived",
+          "targetRegistry": "taoyuan:pond_breed",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/pondBreeds.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts",
+            "src/views/game/FishPondView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Derived generation count summary verified alongside the 400 official pond breed registry entries."
+        }
+      ]
+    },
+    {
+      "file": "src/data/pondBreeds.ts",
+      "classification": "mixed",
+      "domains": [
+        "pond_breed",
+        "lookup"
       ],
       "candidateTargets": [
         "taoyuan:pond_breed",
@@ -5503,118 +5559,131 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 43,
       "symbols": [
         {
           "file": "src/data/pondBreeds.ts",
-          "exportName": "POND_BREEDS",
-          "syntaxKind": "const",
-          "classification": "content",
+          "exportName": "BREED_COUNTS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:pond_breed",
           "persistentIds": true,
-          "consumers": [],
+          "consumers": [
+            "src/data/pondBreedDefinitions.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts",
+            "src/views/game/FishPondView.vue"
+          ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 keeps BREED_COUNTS as an original-name re-export while generation queries are verified against taoyuan:pond_breed."
+        },
+        {
+          "file": "src/data/pondBreeds.ts",
+          "exportName": "POND_BREEDS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:pond_breed",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/pondBreedDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps POND_BREEDS as an original-name re-export from the unique pondBreedDefinitions leaf source while runtime queries use registry-backed facades."
         },
         {
           "file": "src/data/pondBreeds.ts",
           "exportName": "getBreedById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:pond_breed",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts",
             "src/views/game/FishPondView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getBreedById() signature is retained and now resolves taoyuan:pond_breed before returning an equivalent local-ID PondBreedDef object."
         },
         {
           "file": "src/data/pondBreeds.ts",
           "exportName": "getBreedsByGeneration",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:pond_breed",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts",
             "src/views/game/FishPondView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy generation query is retained and verified against the official pond breed registry ordering and generation counts."
         },
         {
           "file": "src/data/pondBreeds.ts",
           "exportName": "getBreedsBySpecies",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:pond_breed",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/pondBreedRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy species query is retained and now filters official pond breed entries by namespaced base fish ID before returning local-ID compatibility objects."
         },
         {
           "file": "src/data/pondBreeds.ts",
           "exportName": "getGen1BreedsForFish",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:pond_breed",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy Gen1 fish query is retained for fish pond addFish() and now reads the official pond breed registry."
         },
         {
           "file": "src/data/pondBreeds.ts",
           "exportName": "findBreedByParents",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:pond_breed",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/pondBreedRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/pondBreeds.ts",
-          "exportName": "BREED_COUNTS",
-          "syntaxKind": "const",
-          "classification": "derived",
-          "targetRegistry": "taoyuan:pond_breed",
-          "persistentIds": true,
-          "consumers": [
-            "src/views/game/FishPondView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Legacy parent-pair lookup remains order-insensitive and now resolves parent IDs through taoyuan:pond_breed."
         }
       ]
     },
@@ -8706,6 +8775,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies the legacy getPondableFish() local-ID compatibility lookup to useFishPondStore and FishPondView."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "PondBreedDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:pond_breed",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for fish pond breed definitions; generated pond-breed.schema.json rejects invalid generation values and parent reference shapes."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyPondBreed/createOfficialPondBreeds",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:pond_breed",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects all 400 generated legacy pond breeds into ordered official entries without changing IDs, names, generations, base fish links or parent pairs."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialPondBreedDef/getOfficialPondBreedDefs/getOfficialPondBreedDefsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:pond_breed",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry pond breed definitions by local or namespaced ID and reconstructs legacy PondBreedDef objects for compatibility checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialPondBreedById/getOfficialPondBreedsByGeneration/getOfficialPondBreedsBySpecies/getOfficialGen1PondBreedsForFish/findOfficialPondBreedByParents",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:pond_breed",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies local-ID compatibility lookups, generation/species filters, Gen1 admission candidates and order-insensitive parent-pair lookup to useFishPondStore."
     }
   ]
 }

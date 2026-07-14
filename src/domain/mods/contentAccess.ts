@@ -9,7 +9,7 @@ import type {
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
-import type { PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
+import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import {
@@ -36,6 +36,7 @@ import type {
   ItemDef,
   MonsterDef,
   MonsterPoolDef,
+  PondBreedDef,
   PondableFishDef,
   RecipeDef,
   Season,
@@ -405,6 +406,65 @@ export const getOfficialPondableFishById = (id: string): LegacyPondableFishDef |
 
 export const getOfficialPondableFishDefsAsLegacy = (): readonly LegacyPondableFishDef[] =>
   getOfficialPondableFishDefs().map(toLegacyPondableFishDef)
+
+export const getOfficialPondBreedDef = (id: string): Readonly<PondBreedDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed')).get(contentId)
+    : undefined
+}
+
+export const getOfficialPondBreedDefs = (): readonly Readonly<PondBreedDef>[] =>
+  getOfficialRegistrySet().get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed')).values()
+
+const toLegacyPondBreedDef = (breed: Readonly<PondBreedDef>): LegacyPondBreedDef => ({
+  breedId: getLocalContentId(breed.id),
+  name: breed.name.fallback,
+  generation: breed.generation,
+  baseFishId: getLocalContentId(breed.baseFishId),
+  parentBreedA: breed.parentBreedA ? getLocalContentId(breed.parentBreedA) : null,
+  parentBreedB: breed.parentBreedB ? getLocalContentId(breed.parentBreedB) : null
+})
+
+export const getOfficialPondBreedById = (id: string): LegacyPondBreedDef | undefined => {
+  const breed = getOfficialPondBreedDef(id)
+  return breed ? toLegacyPondBreedDef(breed) : undefined
+}
+
+export const getOfficialPondBreedDefsAsLegacy = (): readonly LegacyPondBreedDef[] =>
+  getOfficialPondBreedDefs().map(toLegacyPondBreedDef)
+
+export const getOfficialPondBreedsByGeneration = (
+  generation: LegacyPondBreedDef['generation']
+): readonly LegacyPondBreedDef[] =>
+  getOfficialPondBreedDefs()
+    .filter(breed => breed.generation === generation)
+    .map(toLegacyPondBreedDef)
+
+export const getOfficialPondBreedsBySpecies = (baseFishId: string): readonly LegacyPondBreedDef[] => {
+  const contentId = toQueryContentId(baseFishId)
+  if (!contentId) return []
+  return getOfficialPondBreedDefs()
+    .filter(breed => breed.baseFishId === contentId)
+    .map(toLegacyPondBreedDef)
+}
+
+export const getOfficialGen1PondBreedsForFish = (fishId: string): readonly LegacyPondBreedDef[] =>
+  getOfficialPondBreedsBySpecies(fishId).filter(breed => breed.generation === 1)
+
+export const findOfficialPondBreedByParents = (
+  breedIdA: string,
+  breedIdB: string
+): LegacyPondBreedDef | undefined => {
+  const parentA = toQueryContentId(breedIdA)
+  const parentB = toQueryContentId(breedIdB)
+  if (!parentA || !parentB) return undefined
+  const breed = getOfficialPondBreedDefs().find(candidate =>
+    (candidate.parentBreedA === parentA && candidate.parentBreedB === parentB) ||
+    (candidate.parentBreedA === parentB && candidate.parentBreedB === parentA)
+  )
+  return breed ? toLegacyPondBreedDef(breed) : undefined
+}
 
 const toLegacyForageItemDef = (forage: Readonly<ForageDef>): LegacyForageItemDef => ({
   itemId: getLocalContentId(forage.itemId),

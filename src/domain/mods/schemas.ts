@@ -250,6 +250,24 @@ export const PondableFishDefSchema = Type.Object(
   { $id: 'taoyuan.registry.PondableFishDef', additionalProperties: false }
 )
 
+export const PondBreedDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    generation: Type.Union([
+      Type.Literal(1),
+      Type.Literal(2),
+      Type.Literal(3),
+      Type.Literal(4),
+      Type.Literal(5)
+    ]),
+    baseFishId: ContentIdSchema,
+    parentBreedA: Type.Union([ContentIdSchema, Type.Null()]),
+    parentBreedB: Type.Union([ContentIdSchema, Type.Null()])
+  },
+  { $id: 'taoyuan.registry.PondBreedDef', additionalProperties: false }
+)
+
 export const CropDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -591,6 +609,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:forage': ForageDefSchema,
   'taoyuan:animal': AnimalDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
+  'taoyuan:pond_breed': PondBreedDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -613,6 +632,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'forage.schema.json': ForageDefSchema,
   'animal.schema.json': AnimalDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
+  'pond-breed.schema.json': PondBreedDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -639,6 +659,7 @@ export type AnimalBuildingType = Static<typeof AnimalBuildingTypeSchema>
 export type AnimalDef = Static<typeof AnimalDefSchema>
 export type PondFishGenetics = Static<typeof PondFishGeneticsSchema>
 export type PondableFishDef = Static<typeof PondableFishDefSchema>
+export type PondBreedDef = Static<typeof PondBreedDefSchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type TreeDef = Static<typeof TreeDefSchema>
 export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>

@@ -179,6 +179,24 @@ fileDefaults.set('src/data/fishPond.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/pondBreedDefinitions.ts', {
+  file: 'src/data/pondBreedDefinitions.ts',
+  classification: 'mixed',
+  domains: ['pond_breed', 'fish_pond_breed_generation'],
+  candidateTargets: ['taoyuan:pond_breed', 'engine/domain/fish-pond'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/pondBreeds.ts', {
+  file: 'src/data/pondBreeds.ts',
+  classification: 'mixed',
+  domains: ['pond_breed', 'lookup'],
+  candidateTargets: ['taoyuan:pond_breed', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forageDefinitions.ts', {
   file: 'src/data/forageDefinitions.ts',
   classification: 'content',
@@ -576,6 +594,73 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy isPondableFish() signature remains the fish pond admission gate and now depends on the registry-backed compatibility lookup.'
+  },
+  'src/data/pondBreedDefinitions.ts:POND_BREEDS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for all 400 generated legacy pond breed definitions; Phase 6 projects every ID, name, generation, base fish and parent link into taoyuan:pond_breed.'
+  },
+  'src/data/pondBreedDefinitions.ts:BREED_COUNTS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Derived generation count summary verified alongside the 400 official pond breed registry entries.'
+  },
+  'src/data/pondBreeds.ts:POND_BREEDS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps POND_BREEDS as an original-name re-export from the unique pondBreedDefinitions leaf source while runtime queries use registry-backed facades.'
+  },
+  'src/data/pondBreeds.ts:BREED_COUNTS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps BREED_COUNTS as an original-name re-export while generation queries are verified against taoyuan:pond_breed.'
+  },
+  'src/data/pondBreeds.ts:getBreedById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getBreedById() signature is retained and now resolves taoyuan:pond_breed before returning an equivalent local-ID PondBreedDef object.'
+  },
+  'src/data/pondBreeds.ts:getBreedsByGeneration': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy generation query is retained and verified against the official pond breed registry ordering and generation counts.'
+  },
+  'src/data/pondBreeds.ts:getBreedsBySpecies': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy species query is retained and now filters official pond breed entries by namespaced base fish ID before returning local-ID compatibility objects.'
+  },
+  'src/data/pondBreeds.ts:getGen1BreedsForFish': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy Gen1 fish query is retained for fish pond addFish() and now reads the official pond breed registry.'
+  },
+  'src/data/pondBreeds.ts:findBreedByParents': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy parent-pair lookup remains order-insensitive and now resolves parent IDs through taoyuan:pond_breed.'
   },
   'src/data/forageDefinitions.ts:FORAGE_ITEMS': {
     classification: 'content',
@@ -1122,6 +1207,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies the legacy getPondableFish() local-ID compatibility lookup to useFishPondStore and FishPondView.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'PondBreedDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for fish pond breed definitions; generated pond-breed.schema.json rejects invalid generation values and parent reference shapes.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyPondBreed/createOfficialPondBreeds',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects all 400 generated legacy pond breeds into ordered official entries without changing IDs, names, generations, base fish links or parent pairs.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialPondBreedDef/getOfficialPondBreedDefs/getOfficialPondBreedDefsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry pond breed definitions by local or namespaced ID and reconstructs legacy PondBreedDef objects for compatibility checks.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialPondBreedById/getOfficialPondBreedsByGeneration/getOfficialPondBreedsBySpecies/getOfficialGen1PondBreedsForFish/findOfficialPondBreedByParents',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:pond_breed',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies local-ID compatibility lookups, generation/species filters, Gen1 admission candidates and order-insensitive parent-pair lookup to useFishPondStore.'
   }
 ]
 

@@ -26,9 +26,10 @@ import { MONSTER_DROP_HATS, SHOP_HATS, TREASURE_DROP_HATS } from '@/data/hats'
 import { MONSTER_DROP_SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoes'
 import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
 import { PONDABLE_FISH } from '@/data/fishPondDefinitions'
+import { POND_BREEDS } from '@/data/pondBreedDefinitions'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
 import type { AnimalDef as LegacyAnimalDef, RecipeDef as LegacyRecipeDef } from '@/types'
-import type { PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
+import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
 import type { FruitTreeDef as LegacyFruitTreeDef, WildTreeDef as LegacyWildTreeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { FishDef as LegacyFishDef, MonsterDef as LegacyMonsterDef } from '@/types/skill'
@@ -58,6 +59,7 @@ import type {
   CropDef,
   MonsterDef,
   MonsterPoolDef,
+  PondBreedDef,
   PondableFishDef,
   RecipeDef,
   RecipeIngredient,
@@ -114,6 +116,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('pondable_fish'),
     description: '鱼塘可养殖鱼种定义',
     schemaName: 'pondable-fish.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('pond_breed'),
+    description: '鱼塘品种图鉴定义',
+    schemaName: 'pond-breed.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('monster'),
@@ -454,6 +461,17 @@ export const adaptLegacyPondableFish = (fish: LegacyPondableFishDef): PondableFi
 
 export const createOfficialPondableFish = (): PondableFishDef[] => PONDABLE_FISH.map(adaptLegacyPondableFish)
 
+export const adaptLegacyPondBreed = (breed: LegacyPondBreedDef): PondBreedDef => ({
+  id: toOfficialContentId(breed.breedId),
+  name: text(`taoyuan.pond_breed.${breed.breedId}.name`, breed.name),
+  generation: breed.generation,
+  baseFishId: toOfficialContentId(breed.baseFishId),
+  parentBreedA: breed.parentBreedA ? toOfficialContentId(breed.parentBreedA) : null,
+  parentBreedB: breed.parentBreedB ? toOfficialContentId(breed.parentBreedB) : null
+})
+
+export const createOfficialPondBreeds = (): PondBreedDef[] => POND_BREEDS.map(adaptLegacyPondBreed)
+
 export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
   id: toOfficialContentId(shop.id),
   name: text(`taoyuan.shop.${shop.id}.name`, shop.name),
@@ -744,6 +762,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const forageRegistry = registrySet.get<ForageDef>(toOfficialRegistryTypeId('forage'))
   const animalRegistry = registrySet.get<AnimalDef>(toOfficialRegistryTypeId('animal'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
+  const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
@@ -761,6 +780,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const animal of createOfficialAnimals()) animalRegistry.register(owner, animal, { file: 'src/data/animalDefinitions.ts' })
   for (const fish of createOfficialPondableFish()) {
     pondableFishRegistry.register(owner, fish, { file: 'src/data/fishPondDefinitions.ts' })
+  }
+  for (const breed of createOfficialPondBreeds()) {
+    pondBreedRegistry.register(owner, breed, { file: 'src/data/pondBreedDefinitions.ts' })
   }
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
