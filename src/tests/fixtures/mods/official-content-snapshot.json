@@ -13915,6 +13915,1859 @@
       ]
     },
     {
+      "registryId": "taoyuan:fish",
+      "schemaName": "fish.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "矿洞最深处的远古巨兽，无人得见其全貌。",
+              "key": "taoyuan.fish.abyss_leviathan.description"
+            },
+            "difficulty": "legendary",
+            "id": "taoyuan:abyss_leviathan",
+            "location": "mine",
+            "miniGameDirChange": 0.15,
+            "miniGameSpeed": 4.5,
+            "name": {
+              "fallback": "深渊巨蟒",
+              "key": "taoyuan.fish.abyss_leviathan.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 800,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "据说从远古时代就生活在沼泽中的蝾螈。",
+              "key": "taoyuan.fish.ancient_newt.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:ancient_newt",
+            "location": "swamp",
+            "miniGameDirChange": 0.08,
+            "miniGameSpeed": 2,
+            "name": {
+              "fallback": "远古蝾螈",
+              "key": "taoyuan.fish.ancient_newt.name"
+            },
+            "season": [
+              "spring",
+              "winter"
+            ],
+            "sellPrice": 160,
+            "weather": [
+              "snowy",
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "秋雨中出没的美味鱼。",
+              "key": "taoyuan.fish.bass.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:bass",
+            "location": "river",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 2,
+            "name": {
+              "fallback": "鲈鱼",
+              "key": "taoyuan.fish.bass.name"
+            },
+            "season": [
+              "autumn"
+            ],
+            "sellPrice": 60,
+            "weather": [
+              "rainy",
+              "stormy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "头大身圆的鳙鱼。",
+              "key": "taoyuan.fish.bighead_carp.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:bighead_carp",
+            "location": "river",
+            "miniGameDirChange": 0.02,
+            "miniGameSpeed": 0.8,
+            "name": {
+              "fallback": "鳙鱼",
+              "key": "taoyuan.fish.bighead_carp.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 30,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "晴天在溪边常能见到的鱼。",
+              "key": "taoyuan.fish.carp.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:carp",
+            "location": "creek",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 1,
+            "name": {
+              "fallback": "鲤鱼",
+              "key": "taoyuan.fish.carp.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ],
+            "sellPrice": 25,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "雨天活跃的鲶鱼。",
+              "key": "taoyuan.fish.catfish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:catfish",
+            "location": "river",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 2.2,
+            "name": {
+              "fallback": "鲶鱼",
+              "key": "taoyuan.fish.catfish.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 45,
+            "weather": [
+              "rainy",
+              "stormy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "矿洞深处的珍稀盲鱼。",
+              "key": "taoyuan.fish.cave_blindfish.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:cave_blindfish",
+            "location": "mine",
+            "miniGameDirChange": 0.09,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "洞穴盲鱼",
+              "key": "taoyuan.fish.cave_blindfish.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 100,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "矿洞地下水中的泥鳅。",
+              "key": "taoyuan.fish.cave_loach.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:cave_loach",
+            "location": "mine",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 2,
+            "name": {
+              "fallback": "矿洞泥鳅",
+              "key": "taoyuan.fish.cave_loach.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 35,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "珍稀的大型洄游鱼类。",
+              "key": "taoyuan.fish.chinese_sturgeon.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:chinese_sturgeon",
+            "location": "river",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "中华鲟",
+              "key": "taoyuan.fish.chinese_sturgeon.name"
+            },
+            "season": [
+              "spring",
+              "autumn"
+            ],
+            "sellPrice": 180,
+            "weather": [
+              "rainy",
+              "stormy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "溪流中灵活的小鱼。",
+              "key": "taoyuan.fish.creek_chub.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:creek_chub",
+            "location": "creek",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 1.3,
+            "name": {
+              "fallback": "溪哥鱼",
+              "key": "taoyuan.fish.creek_chub.name"
+            },
+            "season": [
+              "spring",
+              "autumn"
+            ],
+            "sellPrice": 18,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "溪流中的王者，力大无穷。",
+              "key": "taoyuan.fish.creek_king.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:creek_king",
+            "location": "creek",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 3.5,
+            "name": {
+              "fallback": "溪霸",
+              "key": "taoyuan.fish.creek_king.name"
+            },
+            "season": [
+              "spring",
+              "autumn"
+            ],
+            "sellPrice": 140,
+            "weather": [
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "深秋溪流中的溪鲈。",
+              "key": "taoyuan.fish.creek_perch.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:creek_perch",
+            "location": "creek",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 1.8,
+            "name": {
+              "fallback": "溪鲈",
+              "key": "taoyuan.fish.creek_perch.name"
+            },
+            "season": [
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 50,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "秋天洄游的溪鲑。",
+              "key": "taoyuan.fish.creek_salmon.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:creek_salmon",
+            "location": "creek",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "溪鲑",
+              "key": "taoyuan.fish.creek_salmon.name"
+            },
+            "season": [
+              "autumn"
+            ],
+            "sellPrice": 65,
+            "weather": [
+              "rainy",
+              "windy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "清澈溪水中的小虾。",
+              "key": "taoyuan.fish.creek_shrimp.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:creek_shrimp",
+            "location": "creek",
+            "miniGameDirChange": 0.06,
+            "miniGameSpeed": 2,
+            "name": {
+              "fallback": "溪虾",
+              "key": "taoyuan.fish.creek_shrimp.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 30,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "最常见的淡水鱼，新手的好伙伴。",
+              "key": "taoyuan.fish.crucian.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:crucian",
+            "location": "creek",
+            "miniGameDirChange": 0.02,
+            "miniGameSpeed": 0.8,
+            "name": {
+              "fallback": "鲫鱼",
+              "key": "taoyuan.fish.crucian.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 15,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "池塘里肥美的鲫鱼。",
+              "key": "taoyuan.fish.crucian_pond.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:crucian_pond",
+            "location": "pond",
+            "miniGameDirChange": 0.02,
+            "miniGameSpeed": 0.9,
+            "name": {
+              "fallback": "塘鲫",
+              "key": "taoyuan.fish.crucian_pond.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ],
+            "sellPrice": 18,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "通体透明的矿洞虾，仿佛水晶。",
+              "key": "taoyuan.fish.crystal_shrimp.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:crystal_shrimp",
+            "location": "mine",
+            "miniGameDirChange": 0.06,
+            "miniGameSpeed": 2.2,
+            "name": {
+              "fallback": "水晶虾",
+              "key": "taoyuan.fish.crystal_shrimp.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 60,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暴风雨中才会出现的传说之鱼。",
+              "key": "taoyuan.fish.dragonfish.description"
+            },
+            "difficulty": "legendary",
+            "id": "taoyuan:dragonfish",
+            "location": "creek",
+            "miniGameDirChange": 0.1,
+            "miniGameSpeed": 5,
+            "name": {
+              "fallback": "龙鱼",
+              "key": "taoyuan.fish.dragonfish.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 500,
+            "weather": [
+              "stormy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "滑溜的鳗鱼，不易捕获。",
+              "key": "taoyuan.fish.eel.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:eel",
+            "location": "waterfall",
+            "miniGameDirChange": 0.08,
+            "miniGameSpeed": 3.5,
+            "name": {
+              "fallback": "鳗鱼",
+              "key": "taoyuan.fish.eel.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 85,
+            "weather": [
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "能跃出水面在风中滑翔的奇鱼。",
+              "key": "taoyuan.fish.flying_fish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:flying_fish",
+            "location": "waterfall",
+            "miniGameDirChange": 0.07,
+            "miniGameSpeed": 3,
+            "name": {
+              "fallback": "飞鱼",
+              "key": "taoyuan.fish.flying_fish.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 70,
+            "weather": [
+              "windy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "传说中的神秘生物，只在冬雪中出现。",
+              "key": "taoyuan.fish.giant_salamander.description"
+            },
+            "difficulty": "legendary",
+            "id": "taoyuan:giant_salamander",
+            "location": "swamp",
+            "miniGameDirChange": 0.1,
+            "miniGameSpeed": 2,
+            "name": {
+              "fallback": "娃娃鱼",
+              "key": "taoyuan.fish.giant_salamander.name"
+            },
+            "season": [
+              "winter"
+            ],
+            "sellPrice": 300,
+            "weather": [
+              "snowy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在黑暗中发出微光的小鱼。",
+              "key": "taoyuan.fish.glowfish.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:glowfish",
+            "location": "mine",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 0.8,
+            "name": {
+              "fallback": "荧光鱼",
+              "key": "taoyuan.fish.glowfish.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 25,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "闪闪发光的金色鲤鱼。",
+              "key": "taoyuan.fish.golden_carp.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:golden_carp",
+            "location": "pond",
+            "miniGameDirChange": 0.09,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "金鲤",
+              "key": "taoyuan.fish.golden_carp.name"
+            },
+            "season": [
+              "spring"
+            ],
+            "sellPrice": 150,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "罕见的金色鲈鱼，价值不菲。",
+              "key": "taoyuan.fish.golden_perch.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:golden_perch",
+            "location": "creek",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 3.5,
+            "name": {
+              "fallback": "金鲈",
+              "key": "taoyuan.fish.golden_perch.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 110,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "传说中背负金甲的灵龟，据说见者有福。",
+              "key": "taoyuan.fish.golden_turtle.description"
+            },
+            "difficulty": "legendary",
+            "id": "taoyuan:golden_turtle",
+            "location": "pond",
+            "miniGameDirChange": 0.12,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "金甲龟",
+              "key": "taoyuan.fish.golden_turtle.name"
+            },
+            "season": [
+              "autumn"
+            ],
+            "sellPrice": 450,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "体型较大的淡水鱼。",
+              "key": "taoyuan.fish.grass_carp.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:grass_carp",
+            "location": "pond",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 1.5,
+            "name": {
+              "fallback": "草鱼",
+              "key": "taoyuan.fish.grass_carp.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 40,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "江河中常见的大型淡水鱼。",
+              "key": "taoyuan.fish.green_fish.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:green_fish",
+            "location": "river",
+            "miniGameDirChange": 0.02,
+            "miniGameSpeed": 1,
+            "name": {
+              "fallback": "青鱼",
+              "key": "taoyuan.fish.green_fish.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 28,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冰冷水域中的小鱼。",
+              "key": "taoyuan.fish.ice_fish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:ice_fish",
+            "location": "creek",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 1.8,
+            "name": {
+              "fallback": "冰鱼",
+              "key": "taoyuan.fish.ice_fish.name"
+            },
+            "season": [
+              "winter"
+            ],
+            "sellPrice": 55,
+            "weather": [
+              "snowy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "春雨中化现于瀑布的翠色灵龙。",
+              "key": "taoyuan.fish.jade_dragon.description"
+            },
+            "difficulty": "legendary",
+            "id": "taoyuan:jade_dragon",
+            "location": "waterfall",
+            "miniGameDirChange": 0.07,
+            "miniGameSpeed": 4.5,
+            "name": {
+              "fallback": "翠龙",
+              "key": "taoyuan.fish.jade_dragon.name"
+            },
+            "season": [
+              "spring"
+            ],
+            "sellPrice": 600,
+            "weather": [
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "身形如刀，春汛时洄游。",
+              "key": "taoyuan.fish.knife_fish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:knife_fish",
+            "location": "river",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 2.8,
+            "name": {
+              "fallback": "刀鱼",
+              "key": "taoyuan.fish.knife_fish.name"
+            },
+            "season": [
+              "spring"
+            ],
+            "sellPrice": 75,
+            "weather": [
+              "windy",
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "华丽的锦鲤，非常珍贵。",
+              "key": "taoyuan.fish.koi.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:koi",
+            "location": "pond",
+            "miniGameDirChange": 0.08,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "锦鲤",
+              "key": "taoyuan.fish.koi.name"
+            },
+            "season": [
+              "spring"
+            ],
+            "sellPrice": 120,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "靠近熔岩层的耐热螺类。",
+              "key": "taoyuan.fish.lava_snail.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:lava_snail",
+            "location": "mine",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 1.2,
+            "name": {
+              "fallback": "熔岩螺",
+              "key": "taoyuan.fish.lava_snail.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 70,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "雨后活跃的溪间泥鳅。",
+              "key": "taoyuan.fish.loach.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:loach",
+            "location": "creek",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 1.5,
+            "name": {
+              "fallback": "泥鳅",
+              "key": "taoyuan.fish.loach.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 22,
+            "weather": [
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在荷叶间穿梭的鲤鱼。",
+              "key": "taoyuan.fish.lotus_carp.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:lotus_carp",
+            "location": "pond",
+            "miniGameDirChange": 0.06,
+            "miniGameSpeed": 2.2,
+            "name": {
+              "fallback": "荷花鲤",
+              "key": "taoyuan.fish.lotus_carp.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 65,
+            "weather": [
+              "sunny",
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "肉质鲜美的桂花鱼。",
+              "key": "taoyuan.fish.mandarin_fish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:mandarin_fish",
+            "location": "river",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 2.3,
+            "name": {
+              "fallback": "桂花鱼",
+              "key": "taoyuan.fish.mandarin_fish.name"
+            },
+            "season": [
+              "autumn"
+            ],
+            "sellPrice": 70,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在瘴气弥漫的深沼中出没的诡异鱼。",
+              "key": "taoyuan.fish.miasma_fish.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:miasma_fish",
+            "location": "swamp",
+            "miniGameDirChange": 0.09,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "瘴气鱼",
+              "key": "taoyuan.fish.miasma_fish.name"
+            },
+            "season": [
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 110,
+            "weather": [
+              "rainy",
+              "windy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "最不起眼的溪鱼，三两成群。",
+              "key": "taoyuan.fish.minnow.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:minnow",
+            "location": "creek",
+            "miniGameDirChange": 0.02,
+            "miniGameSpeed": 0.6,
+            "name": {
+              "fallback": "白条鱼",
+              "key": "taoyuan.fish.minnow.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 10,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "秋风起时浮出水面的银白鱼。",
+              "key": "taoyuan.fish.moon_fish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:moon_fish",
+            "location": "pond",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 1.8,
+            "name": {
+              "fallback": "月光鱼",
+              "key": "taoyuan.fish.moon_fish.name"
+            },
+            "season": [
+              "autumn"
+            ],
+            "sellPrice": 75,
+            "weather": [
+              "windy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "瀑布水潭边的小鱼。",
+              "key": "taoyuan.fish.mountain_minnow.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:mountain_minnow",
+            "location": "waterfall",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 1,
+            "name": {
+              "fallback": "山溪鱼",
+              "key": "taoyuan.fish.mountain_minnow.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 20,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "泥浆中翻滚的泥鳅。",
+              "key": "taoyuan.fish.mud_loach.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:mud_loach",
+            "location": "swamp",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 1.2,
+            "name": {
+              "fallback": "沼泽泥鳅",
+              "key": "taoyuan.fish.mud_loach.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 15,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "凶猛的淡水掠食者。",
+              "key": "taoyuan.fish.pike.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:pike",
+            "location": "river",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "鳡鱼",
+              "key": "taoyuan.fish.pike.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 65,
+            "weather": [
+              "sunny",
+              "windy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "池塘底部的田螺。",
+              "key": "taoyuan.fish.pond_snail.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:pond_snail",
+            "location": "pond",
+            "miniGameDirChange": 0.01,
+            "miniGameSpeed": 0.5,
+            "name": {
+              "fallback": "田螺",
+              "key": "taoyuan.fish.pond_snail.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 12,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "晒太阳的池塘小龟。",
+              "key": "taoyuan.fish.pond_turtle.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:pond_turtle",
+            "location": "pond",
+            "miniGameDirChange": 0.02,
+            "miniGameSpeed": 1,
+            "name": {
+              "fallback": "乌龟",
+              "key": "taoyuan.fish.pond_turtle.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 50,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "阳光下闪着七彩光泽的鳟鱼。",
+              "key": "taoyuan.fish.rainbow_trout.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:rainbow_trout",
+            "location": "creek",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 2.2,
+            "name": {
+              "fallback": "虹鳟",
+              "key": "taoyuan.fish.rainbow_trout.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ],
+            "sellPrice": 45,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "尾鳍红艳的观赏鱼。",
+              "key": "taoyuan.fish.red_tail.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:red_tail",
+            "location": "pond",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 1.1,
+            "name": {
+              "fallback": "红尾鱼",
+              "key": "taoyuan.fish.red_tail.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 25,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "秋高蟹肥，膏满黄多。",
+              "key": "taoyuan.fish.river_crab.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:river_crab",
+            "location": "river",
+            "miniGameDirChange": 0.07,
+            "miniGameSpeed": 1.5,
+            "name": {
+              "fallback": "河蟹",
+              "key": "taoyuan.fish.river_crab.name"
+            },
+            "season": [
+              "autumn"
+            ],
+            "sellPrice": 80,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暴风雨中跃出江面的传说巨鱼。",
+              "key": "taoyuan.fish.river_dragon.description"
+            },
+            "difficulty": "legendary",
+            "id": "taoyuan:river_dragon",
+            "location": "river",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 5.5,
+            "name": {
+              "fallback": "江龙",
+              "key": "taoyuan.fish.river_dragon.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 550,
+            "weather": [
+              "stormy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在雨夜活跃的河中鳗鱼。",
+              "key": "taoyuan.fish.river_eel.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:river_eel",
+            "location": "river",
+            "miniGameDirChange": 0.07,
+            "miniGameSpeed": 3.5,
+            "name": {
+              "fallback": "河鳗",
+              "key": "taoyuan.fish.river_eel.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 100,
+            "weather": [
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "盘踞在瀑布深潭岩洞中的大鳗。",
+              "key": "taoyuan.fish.rock_eel.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:rock_eel",
+            "location": "waterfall",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 3,
+            "name": {
+              "fallback": "岩鳗",
+              "key": "taoyuan.fish.rock_eel.name"
+            },
+            "season": [
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 130,
+            "weather": [
+              "rainy",
+              "snowy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "藏在瀑布岩石间的鱼。",
+              "key": "taoyuan.fish.rock_fish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:rock_fish",
+            "location": "waterfall",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 1.8,
+            "name": {
+              "fallback": "岩鱼",
+              "key": "taoyuan.fish.rock_fish.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ],
+            "sellPrice": 50,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暗影裂隙中出没的幽暗鱼。",
+              "key": "taoyuan.fish.shadow_fish.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:shadow_fish",
+            "location": "mine",
+            "miniGameDirChange": 0.08,
+            "miniGameSpeed": 3.5,
+            "name": {
+              "fallback": "暗影鱼",
+              "key": "taoyuan.fish.shadow_fish.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 120,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "常见的银鲢鱼。",
+              "key": "taoyuan.fish.silver_carp.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:silver_carp",
+            "location": "creek",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 1.2,
+            "name": {
+              "fallback": "银鲢",
+              "key": "taoyuan.fish.silver_carp.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ],
+            "sellPrice": 20,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "脾气暴躁的沼泽龟。",
+              "key": "taoyuan.fish.snapping_turtle.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:snapping_turtle",
+            "location": "swamp",
+            "miniGameDirChange": 0.06,
+            "miniGameSpeed": 1.5,
+            "name": {
+              "fallback": "鳄龟",
+              "key": "taoyuan.fish.snapping_turtle.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 65,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "生活在矿洞岩石间的小蟹。",
+              "key": "taoyuan.fish.stone_crab.description"
+            },
+            "difficulty": "easy",
+            "id": "taoyuan:stone_crab",
+            "location": "mine",
+            "miniGameDirChange": 0.02,
+            "miniGameSpeed": 0.7,
+            "name": {
+              "fallback": "石蟹",
+              "key": "taoyuan.fish.stone_crab.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ],
+            "sellPrice": 30,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "躲在溪石缝隙间的斑纹鱼。",
+              "key": "taoyuan.fish.stone_loach.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:stone_loach",
+            "location": "creek",
+            "miniGameDirChange": 0.06,
+            "miniGameSpeed": 1.5,
+            "name": {
+              "fallback": "石斑鱼",
+              "key": "taoyuan.fish.stone_loach.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 55,
+            "weather": [
+              "sunny",
+              "windy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "体型庞大的古老鱼种。",
+              "key": "taoyuan.fish.sturgeon.description"
+            },
+            "difficulty": "hard",
+            "id": "taoyuan:sturgeon",
+            "location": "river",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "鲟鱼",
+              "key": "taoyuan.fish.sturgeon.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 130,
+            "weather": [
+              "sunny"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "沼泽深处的巨型鲶鱼。",
+              "key": "taoyuan.fish.swamp_catfish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:swamp_catfish",
+            "location": "swamp",
+            "miniGameDirChange": 0.04,
+            "miniGameSpeed": 1.8,
+            "name": {
+              "fallback": "沼鲶",
+              "key": "taoyuan.fish.swamp_catfish.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ],
+            "sellPrice": 55,
+            "weather": [
+              "rainy",
+              "stormy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "半蛙半鱼的奇特生物。",
+              "key": "taoyuan.fish.swamp_frog.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:swamp_frog",
+            "location": "swamp",
+            "miniGameDirChange": 0.08,
+            "miniGameSpeed": 2,
+            "name": {
+              "fallback": "蛙鱼",
+              "key": "taoyuan.fish.swamp_frog.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 35,
+            "weather": [
+              "rainy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在激流中逆行的强壮鱼。",
+              "key": "taoyuan.fish.torrent_fish.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:torrent_fish",
+            "location": "waterfall",
+            "miniGameDirChange": 0.03,
+            "miniGameSpeed": 2.5,
+            "name": {
+              "fallback": "激流鱼",
+              "key": "taoyuan.fish.torrent_fish.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ],
+            "sellPrice": 60,
+            "weather": [
+              "rainy",
+              "stormy"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "瀑布下方岩缝中的螃蟹。",
+              "key": "taoyuan.fish.waterfall_crab.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:waterfall_crab",
+            "location": "waterfall",
+            "miniGameDirChange": 0.06,
+            "miniGameSpeed": 1.5,
+            "name": {
+              "fallback": "山溪蟹",
+              "key": "taoyuan.fish.waterfall_crab.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ],
+            "sellPrice": 55,
+            "weather": [
+              "any"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fish.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "雨后钻出泥洞的黄鳝。",
+              "key": "taoyuan.fish.yellow_eel.description"
+            },
+            "difficulty": "normal",
+            "id": "taoyuan:yellow_eel",
+            "location": "swamp",
+            "miniGameDirChange": 0.05,
+            "miniGameSpeed": 2.3,
+            "name": {
+              "fallback": "黄鳝",
+              "key": "taoyuan.fish.yellow_eel.name"
+            },
+            "season": [
+              "summer"
+            ],
+            "sellPrice": 50,
+            "weather": [
+              "rainy",
+              "stormy"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:item",
       "schemaName": "item.schema.json",
       "entries": [
@@ -60870,5 +62723,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:aaa97d207c6d117409686e5ce90d5a1b3c35de381388812652f3a633b7c2a6f7"
+  "snapshotHash": "sha256:7c230c0369349d47b4fc44104403793de2deef473d1541008ce3907f816aa99a"
 }

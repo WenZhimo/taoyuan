@@ -7,7 +7,18 @@ import {
   getMainMineBossPoolId
 } from './monsterPoolIds'
 import { getMonsterPoolDefResourceLimitDiagnostics } from './monsterPoolResourceValidation'
-import type { CropDef, DropTableDef, MonsterDef, MonsterPoolDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef, TreeDef } from './schemas'
+import type {
+  CropDef,
+  DropTableDef,
+  FishDef,
+  MonsterDef,
+  MonsterPoolDef,
+  PackageManifest,
+  RecipeDef,
+  ShopOfferDef,
+  TagDef,
+  TreeDef
+} from './schemas'
 import type { RegistrySet } from './registry'
 
 const REGISTRY_IDS = {
@@ -15,6 +26,7 @@ const REGISTRY_IDS = {
   item: toOfficialRegistryTypeId('item'),
   crop: toOfficialRegistryTypeId('crop'),
   tree: toOfficialRegistryTypeId('tree'),
+  fish: toOfficialRegistryTypeId('fish'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
@@ -50,6 +62,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const itemRegistry = registrySet.get(REGISTRY_IDS.item)
   const cropRegistry = registrySet.get<CropDef>(REGISTRY_IDS.crop)
   const treeRegistry = registrySet.get<TreeDef>(REGISTRY_IDS.tree)
+  const fishRegistry = registrySet.get<FishDef>(REGISTRY_IDS.fish)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
@@ -170,6 +183,17 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
           fieldPath: reference.fieldPath
         })
       }
+    }
+  }
+
+  for (const record of fishRegistry.entries()) {
+    if (!itemRegistry.has(contentId(record.entry.id))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.id),
+        fieldPath: '/id'
+      })
     }
   }
 

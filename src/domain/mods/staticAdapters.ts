@@ -1,5 +1,6 @@
 import { ITEMS } from '@/data/items'
 import { CROPS } from '@/data/crops'
+import { FISH } from '@/data/fish'
 import { RECIPES } from '@/data/recipes'
 import {
   ENCHANTMENTS,
@@ -27,7 +28,7 @@ import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
 import type { RecipeDef as LegacyRecipeDef } from '@/types'
 import type { FruitTreeDef as LegacyFruitTreeDef, WildTreeDef as LegacyWildTreeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
-import type { MonsterDef as LegacyMonsterDef } from '@/types/skill'
+import type { FishDef as LegacyFishDef, MonsterDef as LegacyMonsterDef } from '@/types/skill'
 import {
   requirePackageId,
   toOfficialContentId,
@@ -47,6 +48,7 @@ import { RegistrySet, type RegistryDefinition, type RegistryEntry } from './regi
 import type {
   DropTableDef,
   EnchantmentDef,
+  FishDef,
   ItemDef,
   CropDef,
   MonsterDef,
@@ -86,6 +88,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('tree'),
     description: '果树和野树定义',
     schemaName: 'tree.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('fish'),
+    description: '鱼类定义',
+    schemaName: 'fish.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('monster'),
@@ -375,6 +382,21 @@ export const createOfficialTrees = (): TreeDef[] => [
   ...WILD_TREE_DEFINITIONS.map(adaptLegacyWildTree)
 ]
 
+export const adaptLegacyFish = (fish: LegacyFishDef): FishDef => ({
+  id: toOfficialContentId(fish.id),
+  name: text(`taoyuan.fish.${fish.id}.name`, fish.name),
+  season: [...fish.season],
+  weather: [...fish.weather],
+  difficulty: fish.difficulty,
+  sellPrice: fish.sellPrice,
+  description: text(`taoyuan.fish.${fish.id}.description`, fish.description),
+  ...(fish.location !== undefined ? { location: fish.location } : {}),
+  ...(fish.miniGameSpeed !== undefined ? { miniGameSpeed: fish.miniGameSpeed } : {}),
+  ...(fish.miniGameDirChange !== undefined ? { miniGameDirChange: fish.miniGameDirChange } : {})
+})
+
+export const createOfficialFish = (): FishDef[] => FISH.map(adaptLegacyFish)
+
 export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
   id: toOfficialContentId(shop.id),
   name: text(`taoyuan.shop.${shop.id}.name`, shop.name),
@@ -661,6 +683,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const itemRegistry = registrySet.get<ItemDef>(toOfficialRegistryTypeId('item'))
   const cropRegistry = registrySet.get<CropDef>(toOfficialRegistryTypeId('crop'))
   const treeRegistry = registrySet.get<TreeDef>(toOfficialRegistryTypeId('tree'))
+  const fishRegistry = registrySet.get<FishDef>(toOfficialRegistryTypeId('fish'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
@@ -673,6 +696,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
   for (const crop of CROPS.map(adaptLegacyCrop)) cropRegistry.register(owner, crop, { file: 'src/data/crops.ts' })
   for (const tree of createOfficialTrees()) treeRegistry.register(owner, tree, { file: 'src/data/treeDefinitions.ts' })
+  for (const fish of createOfficialFish()) fishRegistry.register(owner, fish, { file: 'src/data/fish.ts' })
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {

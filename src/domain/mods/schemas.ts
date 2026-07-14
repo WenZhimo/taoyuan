@@ -163,6 +163,31 @@ export const WeatherSchema = Type.Union([
   Type.Literal('green_rain')
 ])
 
+export const FishWeatherSchema = Type.Union([
+  Type.Literal('sunny'),
+  Type.Literal('rainy'),
+  Type.Literal('stormy'),
+  Type.Literal('snowy'),
+  Type.Literal('windy'),
+  Type.Literal('any')
+])
+
+export const FishingLocationSchema = Type.Union([
+  Type.Literal('creek'),
+  Type.Literal('pond'),
+  Type.Literal('river'),
+  Type.Literal('mine'),
+  Type.Literal('waterfall'),
+  Type.Literal('swamp')
+])
+
+export const FishDifficultySchema = Type.Union([
+  Type.Literal('easy'),
+  Type.Literal('normal'),
+  Type.Literal('hard'),
+  Type.Literal('legendary')
+])
+
 export const WeekdaySchema = Type.Union([
   Type.Literal('mon'),
   Type.Literal('tue'),
@@ -226,6 +251,22 @@ export const WildTreeDefSchema = Type.Object(
 export const TreeDefSchema = Type.Union(
   [FruitTreeDefSchema, WildTreeDefSchema],
   { $id: 'taoyuan.registry.TreeDef' }
+)
+
+export const FishDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    season: Type.Array(SeasonSchema, { minItems: 1, uniqueItems: true }),
+    weather: Type.Array(FishWeatherSchema, { minItems: 1, uniqueItems: true }),
+    difficulty: FishDifficultySchema,
+    sellPrice: Type.Integer({ minimum: 0 }),
+    description: LocalizedTextRefSchema,
+    location: Type.Optional(FishingLocationSchema),
+    miniGameSpeed: Type.Optional(Type.Number({ minimum: 0 })),
+    miniGameDirChange: Type.Optional(Type.Number({ minimum: 0 }))
+  },
+  { $id: 'taoyuan.registry.FishDef', additionalProperties: false }
 )
 
 export const DropTableEntrySchema = Type.Object(
@@ -482,6 +523,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:item': ItemDefSchema,
   'taoyuan:crop': CropDefSchema,
   'taoyuan:tree': TreeDefSchema,
+  'taoyuan:fish': FishDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -500,6 +542,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'item.schema.json': ItemDefSchema,
   'crop.schema.json': CropDefSchema,
   'tree.schema.json': TreeDefSchema,
+  'fish.schema.json': FishDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -518,11 +561,15 @@ export type TagDef = Static<typeof TagDefSchema>
 export type ItemDef = Static<typeof ItemDefSchema>
 export type Season = Static<typeof SeasonSchema>
 export type Weather = Static<typeof WeatherSchema>
+export type FishWeather = Static<typeof FishWeatherSchema>
+export type FishingLocation = Static<typeof FishingLocationSchema>
+export type FishDifficulty = Static<typeof FishDifficultySchema>
 export type Weekday = Static<typeof WeekdaySchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type TreeDef = Static<typeof TreeDefSchema>
 export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>
 export type WildTreeContentDef = Extract<TreeDef, { kind: 'wild' }>
+export type FishDef = Static<typeof FishDefSchema>
 export type DropTableDef = Static<typeof DropTableDefSchema>
 export type MonsterDef = Static<typeof MonsterDefSchema>
 export type MonsterPoolEntry = Static<typeof MonsterPoolEntrySchema>

@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 429,
-    "reviewedArtifactCount": 15
+    "reviewedArtifactCount": 19
   },
   "entries": [
     {
@@ -1612,16 +1612,18 @@
           "consumers": [
             "src/composables/useEndDay.ts",
             "src/data/items.ts",
+            "src/domain/mods/staticAdapters.ts",
             "src/stores/useFishingStore.ts",
             "src/stores/useWalletStore.ts",
-            "src/tests/data/gameDataValidation.test.ts"
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/fishRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 fish contract slice projects all legacy fish definitions into taoyuan:fish and verifies IDs, names, sell prices, seasons, weather, locations, difficulty, mini-game tuning and availability query equivalence."
         },
         {
           "file": "src/data/fish.ts",
@@ -1629,7 +1631,9 @@
           "syntaxKind": "const",
           "classification": "adapter",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/fishRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
@@ -1643,7 +1647,8 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishingStore.ts"
+            "src/stores/useFishingStore.ts",
+            "src/tests/domain/fishRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
@@ -8166,6 +8171,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies ShopView sapling lookup and product lookup for fruit or tap output using local or namespaced item IDs."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "FishDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:fish",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for fish definitions; generated fish.schema.json accepts any-weather fish entries and rejects invalid availability, difficulty and tuning fields."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyFish/createOfficialFish",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:fish",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy fish entry into ordered official fish definitions without changing local IDs, names, prices, availability, difficulty or mini-game tuning."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialFishDef/getOfficialFishDefs/getOfficialFishDefsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:fish",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry fish definitions by local or namespaced ID and reconstructs legacy FishDef objects for compatibility checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialFishById/getOfficialAvailableFish",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:fish",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies local-ID compatibility lookups and season/weather/location availability results equivalent to the legacy getFishById() and getAvailableFish() behavior."
     }
   ]
 }

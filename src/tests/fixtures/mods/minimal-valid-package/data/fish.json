@@ -1,0 +1,20 @@
+[
+  {
+    "id": "example_mod:test_fish",
+    "name": {
+      "key": "example_mod.fish.test.name",
+      "fallback": "测试鱼"
+    },
+    "season": ["spring"],
+    "weather": ["any"],
+    "difficulty": "easy",
+    "sellPrice": 1,
+    "description": {
+      "key": "example_mod.fish.test.description",
+      "fallback": "用于测试的鱼。"
+    },
+    "location": "creek",
+    "miniGameSpeed": 0.5,
+    "miniGameDirChange": 0.01
+  }
+]

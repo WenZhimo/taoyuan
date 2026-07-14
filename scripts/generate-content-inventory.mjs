@@ -406,6 +406,14 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Unique registry-free leaf source for all three legacy wild-tree definitions; Phase 6 projects every field into taoyuan:tree and verifies order and behavior equivalence.'
   },
+  'src/data/fish.ts:FISH': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 fish contract slice projects all legacy fish definitions into taoyuan:fish and verifies IDs, names, sell prices, seasons, weather, locations, difficulty, mini-game tuning and availability query equivalence.'
+  },
   'src/data/weapons.ts:MONSTER_DROP_WEAPONS': {
     classification: 'derived',
     targetRegistry: 'taoyuan:drop_table',
@@ -738,6 +746,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies ShopView sapling lookup and product lookup for fruit or tap output using local or namespaced item IDs.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'FishDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for fish definitions; generated fish.schema.json accepts any-weather fish entries and rejects invalid availability, difficulty and tuning fields.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyFish/createOfficialFish',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy fish entry into ordered official fish definitions without changing local IDs, names, prices, availability, difficulty or mini-game tuning.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialFishDef/getOfficialFishDefs/getOfficialFishDefsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry fish definitions by local or namespaced ID and reconstructs legacy FishDef objects for compatibility checks.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialFishById/getOfficialAvailableFish',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:fish',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies local-ID compatibility lookups and season/weather/location availability results equivalent to the legacy getFishById() and getAvailableFish() behavior.'
   }
 ]
 

@@ -1,9 +1,11 @@
 import type {
   EnchantmentDef as LegacyEnchantmentDef,
+  FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
   MonsterDef as LegacyMonsterDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
+import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
@@ -22,6 +24,8 @@ import type {
   CropDef,
   DropTableDef,
   EnchantmentDef,
+  FishDef as FishContentDef,
+  FishWeather,
   FruitTreeContentDef,
   ItemDef,
   MonsterDef,
@@ -317,6 +321,46 @@ export const getOfficialTreeDef = (id: string): Readonly<TreeDef> | undefined =>
 
 export const getOfficialTreeDefs = (): readonly Readonly<TreeDef>[] =>
   getOfficialRegistrySet().get<TreeDef>(toOfficialRegistryTypeId('tree')).values()
+
+export const getOfficialFishDef = (id: string): Readonly<FishContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<FishContentDef>(toOfficialRegistryTypeId('fish')).get(contentId) : undefined
+}
+
+export const getOfficialFishDefs = (): readonly Readonly<FishContentDef>[] =>
+  getOfficialRegistrySet().get<FishContentDef>(toOfficialRegistryTypeId('fish')).values()
+
+const toLegacyFishDef = (fish: Readonly<FishContentDef>): LegacyFishDef => ({
+  id: getLocalContentId(fish.id),
+  name: fish.name.fallback,
+  season: [...fish.season] as LegacyFishDef['season'],
+  weather: [...fish.weather] as LegacyFishDef['weather'],
+  difficulty: fish.difficulty,
+  sellPrice: fish.sellPrice,
+  description: fish.description.fallback,
+  ...(fish.location !== undefined ? { location: fish.location } : {}),
+  ...(fish.miniGameSpeed !== undefined ? { miniGameSpeed: fish.miniGameSpeed } : {}),
+  ...(fish.miniGameDirChange !== undefined ? { miniGameDirChange: fish.miniGameDirChange } : {})
+})
+
+export const getOfficialFishById = (id: string): LegacyFishDef | undefined => {
+  const fish = getOfficialFishDef(id)
+  return fish ? toLegacyFishDef(fish) : undefined
+}
+
+export const getOfficialFishDefsAsLegacy = (): readonly LegacyFishDef[] =>
+  getOfficialFishDefs().map(toLegacyFishDef)
+
+export const getOfficialAvailableFish = (
+  season: string,
+  weather: string,
+  location?: FishingLocation
+): readonly LegacyFishDef[] =>
+  getOfficialFishDefs()
+    .filter(fish => fish.season.includes(season as LegacyFishDef['season'][number]))
+    .filter(fish => fish.weather.includes('any') || fish.weather.includes(weather as FishWeather))
+    .filter(fish => !location || (fish.location ?? 'creek') === location)
+    .map(toLegacyFishDef)
 
 export const getOfficialFruitTreeDefs = (): readonly Readonly<FruitTreeContentDef>[] =>
   getOfficialTreeDefs().filter((tree): tree is Readonly<FruitTreeContentDef> => tree.kind === 'fruit')
