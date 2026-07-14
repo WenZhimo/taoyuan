@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 47,
-    "approximateLineCount": 30842,
+    "fileCount": 48,
+    "approximateLineCount": 30844,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 431,
-    "reviewedArtifactCount": 19
+    "symbolCount": 433,
+    "reviewedArtifactCount": 23
   },
   "entries": [
     {
@@ -2035,45 +2035,73 @@
     },
     {
       "file": "src/data/forage.ts",
-      "lines": 173,
       "classification": "mixed",
       "domains": [
         "forage",
         "friendly_animal",
         "monster",
-        "encounter_rules"
+        "encounter_rules",
+        "lookup"
       ],
       "candidateTargets": [
         "taoyuan:forage",
         "taoyuan:animal",
         "taoyuan:monster",
-        "engine/domain/forage"
+        "engine/domain/forage",
+        "compatibility_adapter"
       ],
       "phases": [
         5,
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 143,
       "symbols": [
         {
           "file": "src/data/forage.ts",
           "exportName": "ForageItemDef",
-          "syntaxKind": "interface",
+          "syntaxKind": "re-export",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:forage",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/data/forageDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/tests/domain/forageRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             5,
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "Legacy TypeScript-only forage item shape is re-exported from the leaf module for compatibility; the public contract is ForageDefSchema."
+        },
+        {
+          "file": "src/data/forage.ts",
+          "exportName": "FORAGE_ITEMS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:forage",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/forageDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/forageRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            5,
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps FORAGE_ITEMS as an original-name re-export from the unique forageDefinitions leaf source while runtime queries use registry-backed forage facades."
         },
         {
           "file": "src/data/forage.ts",
           "exportName": "WEATHER_FORAGE_MODIFIER",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/forage",
           "persistentIds": false,
           "consumers": [
             "src/views/game/ForageView.vue"
@@ -2082,43 +2110,29 @@
             5,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/forage.ts",
-          "exportName": "FORAGE_ITEMS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:forage",
-          "persistentIds": true,
-          "consumers": [],
-          "migrationPhase": [
-            5,
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "framework-retained",
+          "rationale": "Weather probability modifiers remain framework-owned forage rules for this slice; taoyuan:forage only carries base item availability and rewards."
         },
         {
           "file": "src/data/forage.ts",
           "exportName": "getForageItems",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:forage",
           "persistentIds": false,
           "consumers": [
             "src/composables/useEndDay.ts",
             "src/domain/endDay/farmMapEndDay.ts",
             "src/tests/domain/farmMapEndDay.test.ts",
+            "src/tests/domain/forageRegistryPilot.test.ts",
             "src/views/game/ForageView.vue"
           ],
           "migrationPhase": [
             5,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getForageItems() signature is retained and now resolves seasonal bamboo forest forage lists through taoyuan:forage."
         },
         {
           "file": "src/data/forage.ts",
@@ -2142,6 +2156,7 @@
           "exportName": "FriendlyAnimalDef",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/views/game/ForageView.vue"
@@ -2158,7 +2173,7 @@
           "exportName": "FRIENDLY_ANIMALS",
           "syntaxKind": "const",
           "classification": "content",
-          "targetRegistry": "taoyuan:forage",
+          "targetRegistry": "taoyuan:animal",
           "persistentIds": true,
           "consumers": [],
           "migrationPhase": [
@@ -2167,14 +2182,14 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "rationale": "Friendly bamboo forest encounters are intentionally left for the later animal slice; this forage slice does not migrate encounter weights or product collection."
         },
         {
           "file": "src/data/forage.ts",
           "exportName": "HOSTILE_ANIMALS",
           "syntaxKind": "const",
           "classification": "content",
-          "targetRegistry": "taoyuan:forage",
+          "targetRegistry": "taoyuan:monster",
           "persistentIds": true,
           "consumers": [
             "src/tests/data/gameDataValidation.test.ts"
@@ -2185,7 +2200,7 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "rationale": "Hostile bamboo forest encounters are intentionally left for a later monster/encounter slice; this forage slice does not migrate combat or defeat penalties."
         },
         {
           "file": "src/data/forage.ts",
@@ -2237,6 +2252,59 @@
           ],
           "status": "framework-retained",
           "rationale": "Rule, calculation, random generator, formatter, or state-independent algorithm retained in framework/domain."
+        }
+      ]
+    },
+    {
+      "file": "src/data/forageDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "forage"
+      ],
+      "candidateTargets": [
+        "taoyuan:forage"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 32,
+      "symbols": [
+        {
+          "file": "src/data/forageDefinitions.ts",
+          "exportName": "ForageItemDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/forage.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/tests/domain/forageRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "baselined",
+          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+        },
+        {
+          "file": "src/data/forageDefinitions.ts",
+          "exportName": "FORAGE_ITEMS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:forage",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/forage.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/forageRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy bamboo forest forage items; Phase 6 projects every field into taoyuan:forage and verifies order and seasonal filtering equivalence."
         }
       ]
     },
@@ -8276,6 +8344,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies local-ID compatibility lookups and season/weather/location availability results equivalent to the legacy getFishById() and getAvailableFish() behavior."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "ForageDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:forage",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for bamboo forest forage definitions; generated forage.schema.json rejects invalid item references, seasons, chance bounds and experience rewards."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyForage/createOfficialForage",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:forage",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy forage item into ordered official forage definitions without changing local item IDs, names, seasons, chance values or experience rewards."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialForageDef/getOfficialForageDefs/getOfficialForageItems",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:forage",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry forage definitions by local or namespaced ID and reconstructs legacy ForageItemDef objects for compatibility checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialForageItemsBySeason",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:forage",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies the legacy getForageItems() seasonal filtering behavior through the official forage registry facade."
     }
   ]
 }

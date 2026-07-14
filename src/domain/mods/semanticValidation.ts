@@ -11,6 +11,7 @@ import type {
   CropDef,
   DropTableDef,
   FishDef,
+  ForageDef,
   MonsterDef,
   MonsterPoolDef,
   PackageManifest,
@@ -27,6 +28,7 @@ const REGISTRY_IDS = {
   crop: toOfficialRegistryTypeId('crop'),
   tree: toOfficialRegistryTypeId('tree'),
   fish: toOfficialRegistryTypeId('fish'),
+  forage: toOfficialRegistryTypeId('forage'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
@@ -63,6 +65,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const cropRegistry = registrySet.get<CropDef>(REGISTRY_IDS.crop)
   const treeRegistry = registrySet.get<TreeDef>(REGISTRY_IDS.tree)
   const fishRegistry = registrySet.get<FishDef>(REGISTRY_IDS.fish)
+  const forageRegistry = registrySet.get<ForageDef>(REGISTRY_IDS.forage)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
@@ -193,6 +196,17 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         registryId: REGISTRY_IDS.item,
         contentId: contentId(record.entry.id),
         fieldPath: '/id'
+      })
+    }
+  }
+
+  for (const record of forageRegistry.entries()) {
+    if (!itemRegistry.has(contentId(record.entry.itemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.itemId),
+        fieldPath: '/itemId'
       })
     }
   }

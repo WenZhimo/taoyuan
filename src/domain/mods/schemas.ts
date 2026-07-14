@@ -269,6 +269,18 @@ export const FishDefSchema = Type.Object(
   { $id: 'taoyuan.registry.FishDef', additionalProperties: false }
 )
 
+export const ForageDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    itemId: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    season: Type.Array(SeasonSchema, { minItems: 1, uniqueItems: true }),
+    chance: Type.Number({ minimum: 0, maximum: 1 }),
+    expReward: Type.Integer({ minimum: 0 })
+  },
+  { $id: 'taoyuan.registry.ForageDef', additionalProperties: false }
+)
+
 export const DropTableEntrySchema = Type.Object(
   {
     itemId: ContentIdSchema,
@@ -524,6 +536,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:crop': CropDefSchema,
   'taoyuan:tree': TreeDefSchema,
   'taoyuan:fish': FishDefSchema,
+  'taoyuan:forage': ForageDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -543,6 +556,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'crop.schema.json': CropDefSchema,
   'tree.schema.json': TreeDefSchema,
   'fish.schema.json': FishDefSchema,
+  'forage.schema.json': ForageDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -570,6 +584,7 @@ export type TreeDef = Static<typeof TreeDefSchema>
 export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>
 export type WildTreeContentDef = Extract<TreeDef, { kind: 'wild' }>
 export type FishDef = Static<typeof FishDefSchema>
+export type ForageDef = Static<typeof ForageDefSchema>
 export type DropTableDef = Static<typeof DropTableDefSchema>
 export type MonsterDef = Static<typeof MonsterDefSchema>
 export type MonsterPoolEntry = Static<typeof MonsterPoolEntrySchema>

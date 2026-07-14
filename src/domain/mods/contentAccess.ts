@@ -5,6 +5,7 @@ import type {
   MonsterDef as LegacyMonsterDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
+import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
@@ -26,6 +27,7 @@ import type {
   EnchantmentDef,
   FishDef as FishContentDef,
   FishWeather,
+  ForageDef,
   FruitTreeContentDef,
   ItemDef,
   MonsterDef,
@@ -329,6 +331,30 @@ export const getOfficialFishDef = (id: string): Readonly<FishContentDef> | undef
 
 export const getOfficialFishDefs = (): readonly Readonly<FishContentDef>[] =>
   getOfficialRegistrySet().get<FishContentDef>(toOfficialRegistryTypeId('fish')).values()
+
+export const getOfficialForageDef = (id: string): Readonly<ForageDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<ForageDef>(toOfficialRegistryTypeId('forage')).get(contentId) : undefined
+}
+
+export const getOfficialForageDefs = (): readonly Readonly<ForageDef>[] =>
+  getOfficialRegistrySet().get<ForageDef>(toOfficialRegistryTypeId('forage')).values()
+
+const toLegacyForageItemDef = (forage: Readonly<ForageDef>): LegacyForageItemDef => ({
+  itemId: getLocalContentId(forage.itemId),
+  name: forage.name.fallback,
+  season: [...forage.season] as LegacyForageItemDef['season'],
+  chance: forage.chance,
+  expReward: forage.expReward
+})
+
+export const getOfficialForageItems = (): readonly LegacyForageItemDef[] =>
+  getOfficialForageDefs().map(toLegacyForageItemDef)
+
+export const getOfficialForageItemsBySeason = (season: string): readonly LegacyForageItemDef[] =>
+  getOfficialForageDefs()
+    .filter(forage => forage.season.includes(season as LegacyForageItemDef['season'][number]))
+    .map(toLegacyForageItemDef)
 
 const toLegacyFishDef = (fish: Readonly<FishContentDef>): LegacyFishDef => ({
   id: getLocalContentId(fish.id),

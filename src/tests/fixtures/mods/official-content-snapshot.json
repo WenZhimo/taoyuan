@@ -15768,6 +15768,377 @@
       ]
     },
     {
+      "registryId": "taoyuan:forage",
+      "schemaName": "forage.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.03,
+            "expReward": 12,
+            "id": "taoyuan:ancient_pottery",
+            "itemId": "taoyuan:ancient_pottery",
+            "name": {
+              "fallback": "古陶片",
+              "key": "taoyuan.forage.ancient_pottery.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.5,
+            "expReward": 3,
+            "id": "taoyuan:bamboo",
+            "itemId": "taoyuan:bamboo",
+            "name": {
+              "fallback": "竹子",
+              "key": "taoyuan.forage.bamboo.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.03,
+            "expReward": 12,
+            "id": "taoyuan:bamboo_scroll",
+            "itemId": "taoyuan:bamboo_scroll",
+            "name": {
+              "fallback": "竹简",
+              "key": "taoyuan.forage.bamboo_scroll.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.15,
+            "expReward": 5,
+            "id": "taoyuan:camphor_seed",
+            "itemId": "taoyuan:camphor_seed",
+            "name": {
+              "fallback": "樟树种子",
+              "key": "taoyuan.forage.camphor_seed.name"
+            },
+            "season": [
+              "spring",
+              "summer"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.03,
+            "expReward": 12,
+            "id": "taoyuan:fern_fossil",
+            "itemId": "taoyuan:fern_fossil",
+            "name": {
+              "fallback": "蕨叶化石",
+              "key": "taoyuan.forage.fern_fossil.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.7,
+            "expReward": 1,
+            "id": "taoyuan:firewood",
+            "itemId": "taoyuan:firewood",
+            "name": {
+              "fallback": "柴火",
+              "key": "taoyuan.forage.firewood.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.1,
+            "expReward": 15,
+            "id": "taoyuan:ginseng",
+            "itemId": "taoyuan:ginseng",
+            "name": {
+              "fallback": "人参",
+              "key": "taoyuan.forage.ginseng.name"
+            },
+            "season": [
+              "autumn",
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.3,
+            "expReward": 5,
+            "id": "taoyuan:herb",
+            "itemId": "taoyuan:herb",
+            "name": {
+              "fallback": "草药",
+              "key": "taoyuan.forage.herb.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.2,
+            "expReward": 4,
+            "id": "taoyuan:mulberry",
+            "itemId": "taoyuan:mulberry",
+            "name": {
+              "fallback": "桑葚",
+              "key": "taoyuan.forage.mulberry.name"
+            },
+            "season": [
+              "summer",
+              "autumn"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.04,
+            "expReward": 10,
+            "id": "taoyuan:petrified_wood",
+            "itemId": "taoyuan:petrified_wood",
+            "name": {
+              "fallback": "石化木",
+              "key": "taoyuan.forage.petrified_wood.name"
+            },
+            "season": [
+              "autumn",
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.3,
+            "expReward": 5,
+            "id": "taoyuan:pine_cone",
+            "itemId": "taoyuan:pine_cone",
+            "name": {
+              "fallback": "松果",
+              "key": "taoyuan.forage.pine_cone.name"
+            },
+            "season": [
+              "autumn",
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.04,
+            "expReward": 10,
+            "id": "taoyuan:stone_axe_head",
+            "itemId": "taoyuan:stone_axe_head",
+            "name": {
+              "fallback": "石斧头",
+              "key": "taoyuan.forage.stone_axe_head.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.4,
+            "expReward": 4,
+            "id": "taoyuan:wild_berry",
+            "itemId": "taoyuan:wild_berry",
+            "name": {
+              "fallback": "野果",
+              "key": "taoyuan.forage.wild_berry.name"
+            },
+            "season": [
+              "summer"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.35,
+            "expReward": 6,
+            "id": "taoyuan:wild_mushroom",
+            "itemId": "taoyuan:wild_mushroom",
+            "name": {
+              "fallback": "野蘑菇",
+              "key": "taoyuan.forage.wild_mushroom.name"
+            },
+            "season": [
+              "autumn"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.35,
+            "expReward": 8,
+            "id": "taoyuan:winter_bamboo_shoot",
+            "itemId": "taoyuan:winter_bamboo_shoot",
+            "name": {
+              "fallback": "冬笋",
+              "key": "taoyuan.forage.winter_bamboo_shoot.name"
+            },
+            "season": [
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.2,
+            "expReward": 10,
+            "id": "taoyuan:wintersweet",
+            "itemId": "taoyuan:wintersweet",
+            "name": {
+              "fallback": "腊梅",
+              "key": "taoyuan.forage.wintersweet.name"
+            },
+            "season": [
+              "winter"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/forageDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chance": 0.6,
+            "expReward": 2,
+            "id": "taoyuan:wood",
+            "itemId": "taoyuan:wood",
+            "name": {
+              "fallback": "木材",
+              "key": "taoyuan.forage.wood.name"
+            },
+            "season": [
+              "spring",
+              "summer",
+              "autumn",
+              "winter"
+            ]
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:item",
       "schemaName": "item.schema.json",
       "entries": [
@@ -62723,5 +63094,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:3aac9ef437e4abc90ebea35fb940e5af9590ac902708454c917af9b089c24933"
+  "snapshotHash": "sha256:122c9a81bc40978a602cc611b59944706df72b921a93ccb48bdeafd8a41b71d5"
 }

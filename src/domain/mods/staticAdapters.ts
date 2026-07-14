@@ -1,6 +1,7 @@
 import { ITEMS } from '@/data/items'
 import { CROPS } from '@/data/crops'
 import { FISH } from '@/data/fishDefinitions'
+import { FORAGE_ITEMS } from '@/data/forageDefinitions'
 import { RECIPES } from '@/data/recipes'
 import {
   ENCHANTMENTS,
@@ -49,6 +50,7 @@ import type {
   DropTableDef,
   EnchantmentDef,
   FishDef,
+  ForageDef,
   ItemDef,
   CropDef,
   MonsterDef,
@@ -93,6 +95,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('fish'),
     description: '鱼类定义',
     schemaName: 'fish.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('forage'),
+    description: '竹林采集物定义',
+    schemaName: 'forage.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('monster'),
@@ -397,6 +404,17 @@ export const adaptLegacyFish = (fish: LegacyFishDef): FishDef => ({
 
 export const createOfficialFish = (): FishDef[] => FISH.map(adaptLegacyFish)
 
+export const adaptLegacyForage = (forage: (typeof FORAGE_ITEMS)[number]): ForageDef => ({
+  id: toOfficialContentId(forage.itemId),
+  itemId: toOfficialContentId(forage.itemId),
+  name: text(`taoyuan.forage.${forage.itemId}.name`, forage.name),
+  season: [...forage.season],
+  chance: forage.chance,
+  expReward: forage.expReward
+})
+
+export const createOfficialForage = (): ForageDef[] => FORAGE_ITEMS.map(adaptLegacyForage)
+
 export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
   id: toOfficialContentId(shop.id),
   name: text(`taoyuan.shop.${shop.id}.name`, shop.name),
@@ -684,6 +702,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const cropRegistry = registrySet.get<CropDef>(toOfficialRegistryTypeId('crop'))
   const treeRegistry = registrySet.get<TreeDef>(toOfficialRegistryTypeId('tree'))
   const fishRegistry = registrySet.get<FishDef>(toOfficialRegistryTypeId('fish'))
+  const forageRegistry = registrySet.get<ForageDef>(toOfficialRegistryTypeId('forage'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
@@ -697,6 +716,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const crop of CROPS.map(adaptLegacyCrop)) cropRegistry.register(owner, crop, { file: 'src/data/crops.ts' })
   for (const tree of createOfficialTrees()) treeRegistry.register(owner, tree, { file: 'src/data/treeDefinitions.ts' })
   for (const fish of createOfficialFish()) fishRegistry.register(owner, fish, { file: 'src/data/fishDefinitions.ts' })
+  for (const forage of createOfficialForage()) forageRegistry.register(owner, forage, { file: 'src/data/forageDefinitions.ts' })
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {

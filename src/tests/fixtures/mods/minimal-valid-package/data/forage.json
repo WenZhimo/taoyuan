@@ -1,0 +1,13 @@
+[
+  {
+    "id": "example_mod:test_forage",
+    "itemId": "example_mod:test_item",
+    "name": {
+      "key": "example_mod.forage.test.name",
+      "fallback": "测试采集物"
+    },
+    "season": ["spring", "summer"],
+    "chance": 0.25,
+    "expReward": 3
+  }
+]
