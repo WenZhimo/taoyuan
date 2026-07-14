@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useTreeActions } from '@/composables/farm/useTreeActions'
 import type { UseTreeActionsOptions } from '@/composables/farm/useTreeActions'
 import { ACTION_TIME_COSTS } from '@/data/timeConstants'
+import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
+import { WILD_TREE_DEFS } from '@/data/wildTrees'
 import { addLog } from '@/composables/useGameLog'
 import type { PlantedWildTree } from '@/types'
 
@@ -125,7 +127,31 @@ describe('useTreeActions', () => {
     expect(options.attachTapper).toHaveBeenCalledWith(1)
     expect(options.collectTapProduct).toHaveBeenCalledWith(1)
     expect(options.addItem).toHaveBeenCalledWith('pine_resin')
+    expect(addLog).toHaveBeenCalledWith('收取了松脂！')
     expect(chopWildTreeTarget.value).toEqual({ id: 1, type: 'pine', chopCount: 0 })
+  })
+
+  it('lists every owned fruit and wild tree from the registry facade', () => {
+    const { actions } = createTreeActions({
+      hasItem: vi.fn(() => true),
+      getItemCount: vi.fn(() => 2)
+    })
+
+    expect(actions.plantableSaplings.value).toEqual(FRUIT_TREE_DEFS.map(tree => ({
+      type: tree.type,
+      saplingId: tree.saplingId,
+      name: tree.name,
+      count: 2
+    })))
+    expect(actions.plantableWildSeeds.value).toEqual(WILD_TREE_DEFS.map(tree => ({
+      type: tree.type,
+      seedItemId: tree.seedItemId,
+      name: tree.name,
+      count: 2
+    })))
+    expect(actions.getTreeFruitSeason('peach_tree')).toBe('春')
+    expect(actions.getWildTreeGrowthDays('camphor')).toBe(28)
+    expect(actions.getWildTreeTapCycleDays('mulberry')).toBe(4)
   })
 
   it('chops wild trees with lumberjack bonus and advances time', () => {

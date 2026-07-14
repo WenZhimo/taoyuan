@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import type { FarmPlot } from '@/types'
+import type { FarmPlot, PlantedFruitTree, PlantedWildTree, Season } from '@/types'
+import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
+import { WILD_TREE_DEFS } from '@/data/wildTrees'
 import { useFarmStore } from '@/stores/useFarmStore'
 
 const createPlot = (id: number, overrides: Partial<FarmPlot> = {}): FarmPlot => ({
@@ -131,5 +133,140 @@ describe('farm store end day chunking', () => {
 
     expect(farmStore.fruitTrees).toHaveLength(100)
     expect(farmStore.wildTrees).toHaveLength(100)
+  })
+
+  it('keeps fruit tree maturity, seasonal produce, and year aging equivalent', () => {
+    const farmStore = useFarmStore()
+    const seasons: Season[] = ['spring', 'summer', 'autumn', 'winter']
+
+    for (const season of seasons) {
+      farmStore.fruitTrees = FRUIT_TREE_DEFS.map((tree, index): PlantedFruitTree => ({
+        id: index,
+        type: tree.type,
+        growthDays: tree.growthDays - 1,
+        mature: false,
+        yearAge: 0,
+        todayFruit: false
+      }))
+
+      const result = farmStore.dailyFruitTreeUpdate(season)
+      expect(farmStore.fruitTrees.every(tree => tree.mature)).toBe(true)
+      expect(result.fruits).toEqual(
+        FRUIT_TREE_DEFS
+          .filter(tree => tree.fruitSeason === season)
+          .map(tree => ({ fruitId: tree.fruitId, quality: 'normal' }))
+      )
+      expect(farmStore.fruitTrees.map(tree => tree.todayFruit)).toEqual(
+        FRUIT_TREE_DEFS.map(tree => tree.fruitSeason === season)
+      )
+    }
+
+    farmStore.fruitTrees.forEach(tree => {
+      tree.yearAge = 2
+      tree.todayFruit = true
+    })
+    farmStore.fruitTreeSeasonUpdate(false)
+    expect(farmStore.fruitTrees.every(tree => tree.yearAge === 2 && !tree.todayFruit)).toBe(true)
+    farmStore.fruitTreeSeasonUpdate(true)
+    expect(farmStore.fruitTrees.every(tree => tree.yearAge === 3)).toBe(true)
+  })
+
+  it('keeps wild tree growth, tapper timing, and collection equivalent', () => {
+    const farmStore = useFarmStore()
+    farmStore.wildTrees = WILD_TREE_DEFS.map((tree, index): PlantedWildTree => ({
+      id: index,
+      type: tree.type,
+      growthDays: tree.growthDays - 1,
+      mature: false,
+      hasTapper: false,
+      tapDaysElapsed: 0,
+      tapReady: false,
+      chopCount: 0
+    }))
+
+    expect(farmStore.dailyWildTreeUpdate().products).toEqual([])
+    expect(farmStore.wildTrees.every(tree => tree.mature)).toBe(true)
+    for (const [index, tree] of farmStore.wildTrees.entries()) {
+      expect(farmStore.attachTapper(tree.id)).toBe(true)
+      tree.tapDaysElapsed = WILD_TREE_DEFS[index]!.tapCycleDays - 1
+    }
+
+    expect(farmStore.dailyWildTreeUpdate().products).toEqual(WILD_TREE_DEFS.map((tree, index) => ({
+      treeId: index,
+      productId: tree.tapProduct,
+      productName: tree.tapProductName
+    })))
+    for (const [index, tree] of farmStore.wildTrees.entries()) {
+      expect(farmStore.collectTapProduct(tree.id)).toBe(WILD_TREE_DEFS[index]!.tapProduct)
+      expect(tree).toMatchObject({ tapReady: false, tapDaysElapsed: 0 })
+    }
+  })
+
+  it('restores every existing tree type without changing the save shape', () => {
+    const sourceStore = useFarmStore()
+    const payload = sourceStore.serialize()
+    payload.fruitTrees = FRUIT_TREE_DEFS.map((tree, index): PlantedFruitTree => ({
+      id: 100 + index,
+      type: tree.type,
+      growthDays: index,
+      mature: index % 2 === 0,
+      yearAge: index % 4,
+      todayFruit: index % 3 === 0
+    }))
+    payload.wildTrees = WILD_TREE_DEFS.map((tree, index): PlantedWildTree => ({
+      id: 200 + index,
+      type: tree.type,
+      growthDays: index + 1,
+      mature: true,
+      hasTapper: index !== 0,
+      tapDaysElapsed: index,
+      tapReady: index === 2,
+      chopCount: index
+    }))
+    payload.nextFruitTreeId = 108
+    payload.nextWildTreeId = 203
+
+    setActivePinia(createPinia())
+    const restoredStore = useFarmStore()
+    restoredStore.deserialize(payload)
+
+    const restored = restoredStore.serialize()
+    expect(restored.fruitTrees).toEqual(payload.fruitTrees)
+    expect(restored.wildTrees).toEqual(payload.wildTrees)
+    expect(restored.nextFruitTreeId).toBe(108)
+    expect(restored.nextWildTreeId).toBe(203)
+  })
+
+  it('updates 100,000 registered trees without a quantity-order regression', () => {
+    const farmStore = useFarmStore()
+    farmStore.fruitTrees = Array.from({ length: 50_000 }, (_, id): PlantedFruitTree => ({
+      id,
+      type: 'peach_tree',
+      growthDays: 0,
+      mature: false,
+      yearAge: 0,
+      todayFruit: false
+    }))
+    farmStore.wildTrees = Array.from({ length: 50_000 }, (_, id): PlantedWildTree => ({
+      id,
+      type: 'pine',
+      growthDays: 0,
+      mature: false,
+      hasTapper: false,
+      tapDaysElapsed: 0,
+      tapReady: false,
+      chopCount: 0
+    }))
+
+    const start = performance.now()
+    expect(farmStore.dailyFruitTreeUpdate('winter').fruits).toEqual([])
+    expect(farmStore.dailyWildTreeUpdate().products).toEqual([])
+    const elapsed = performance.now() - start
+
+    expect(farmStore.fruitTrees[0]?.growthDays).toBe(1)
+    expect(farmStore.fruitTrees[49_999]?.growthDays).toBe(1)
+    expect(farmStore.wildTrees[0]?.growthDays).toBe(1)
+    expect(farmStore.wildTrees[49_999]?.growthDays).toBe(1)
+    expect(elapsed).toBeLessThan(5_000)
   })
 })
