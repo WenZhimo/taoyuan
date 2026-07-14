@@ -202,10 +202,10 @@ describe('farm store end day chunking', () => {
     }
   })
 
-  it('restores every existing tree type without changing the save shape', () => {
+  it('restores every existing tree type from legacy tree fields without changing IDs', () => {
     const sourceStore = useFarmStore()
     const payload = sourceStore.serialize()
-    payload.fruitTrees = FRUIT_TREE_DEFS.map((tree, index): PlantedFruitTree => ({
+    const expectedFruitTrees = FRUIT_TREE_DEFS.map((tree, index): PlantedFruitTree => ({
       id: 100 + index,
       type: tree.type,
       growthDays: index,
@@ -213,7 +213,7 @@ describe('farm store end day chunking', () => {
       yearAge: index % 4,
       todayFruit: index % 3 === 0
     }))
-    payload.wildTrees = WILD_TREE_DEFS.map((tree, index): PlantedWildTree => ({
+    const expectedWildTrees = WILD_TREE_DEFS.map((tree, index): PlantedWildTree => ({
       id: 200 + index,
       type: tree.type,
       growthDays: index + 1,
@@ -223,16 +223,29 @@ describe('farm store end day chunking', () => {
       tapReady: index === 2,
       chopCount: index
     }))
-    payload.nextFruitTreeId = 108
-    payload.nextWildTreeId = 203
+    const legacyPayload = {
+      ...payload,
+      fruitTrees: expectedFruitTrees.map(({ yearAge, ...tree }) => ({
+        ...tree,
+        seasonAge: yearAge
+      })),
+      wildTrees: expectedWildTrees.map(({ chopCount: _chopCount, ...tree }) => tree),
+      nextFruitTreeId: 108,
+      nextWildTreeId: 203
+    }
 
     setActivePinia(createPinia())
     const restoredStore = useFarmStore()
-    restoredStore.deserialize(payload)
+    restoredStore.deserialize(legacyPayload as unknown as Parameters<typeof restoredStore.deserialize>[0])
 
     const restored = restoredStore.serialize()
-    expect(restored.fruitTrees).toEqual(payload.fruitTrees)
-    expect(restored.wildTrees).toEqual(payload.wildTrees)
+    expect(restored.fruitTrees).toEqual(expectedFruitTrees.map(tree => ({
+      ...tree,
+      seasonAge: tree.yearAge
+    })))
+    expect(restored.wildTrees).toEqual(expectedWildTrees.map(tree => ({ ...tree, chopCount: 0 })))
+    expect(restored.fruitTrees.map(tree => tree.type)).toEqual(FRUIT_TREE_DEFS.map(tree => tree.type))
+    expect(restored.wildTrees.map(tree => tree.type)).toEqual(WILD_TREE_DEFS.map(tree => tree.type))
     expect(restored.nextFruitTreeId).toBe(108)
     expect(restored.nextWildTreeId).toBe(203)
   })

@@ -46,6 +46,20 @@ describe('monster pool resource limits', () => {
     expect(elapsed).toBeLessThan(5_000)
   })
 
+  it('accepts exactly the maximum raw entry count with implicit unit weights', () => {
+    const entry = { monsterId }
+    const externalPools: unknown = [{
+      id: poolId,
+      entries: Array(MONSTER_POOL_RESOURCE_LIMITS.maxEntries).fill(entry)
+    }]
+
+    const result = validateMonsterPoolsUnknown(externalPools, { stage: 'test.monster-pool.limit' })
+
+    expect(result.ok).toBe(true)
+    if (!result.ok) return
+    expect(result.data[0]?.entries).toHaveLength(MONSTER_POOL_RESOURCE_LIMITS.maxEntries)
+  })
+
   it('rejects a raw entry count above the limit without scanning or truncating entries', () => {
     const entry = { monsterId }
     const externalPools: unknown = [{
