@@ -362,15 +362,15 @@ const symbolReviewOverrides = new Map(Object.entries({
   },
   'src/data/mine.ts:MONSTERS': {
     status: 'baselined',
-    rationale: 'Phase 4 drop table pilot verifies the monster.drops projection into taoyuan:drop_table; full monster definition and pool migration remain Phase 5 scope.'
+    rationale: 'Phase 4 drop table pilot verifies monster.drops projection into taoyuan:drop_table and the registry-backed roll adapter; full monster definition and pool migration remain Phase 5 scope.'
   },
   'src/data/mine.ts:BOSS_MONSTERS': {
     status: 'baselined',
-    rationale: 'Phase 4 drop table pilot verifies boss monster drops through taoyuan:drop_table; boss combat and reward rules remain framework-owned until Phase 5.'
+    rationale: 'Phase 4 drop table pilot verifies boss monster drops through taoyuan:drop_table and semantic drop-table validation; boss combat and reward rules remain framework-owned until Phase 5.'
   },
   'src/data/mine.ts:SKULL_CAVERN_MONSTERS': {
     status: 'baselined',
-    rationale: 'Phase 4 drop table pilot verifies skull cavern monster drops through taoyuan:drop_table; cavern monster pools remain Phase 5 scope.'
+    rationale: 'Phase 4 drop table pilot verifies skull cavern monster drops through taoyuan:drop_table and the shared roll adapter; cavern monster pools remain Phase 5 scope.'
   }
 }))
 

@@ -1,4 +1,6 @@
-import { rollChanceQuantity, type RandomSource } from '@/domain/drops/rollChanceQuantity'
+import { rollDropTableEntries, type DropTableEntryDef, type RolledDropTableEntry } from '@/domain/drops/rollDropTable'
+import type { RandomSource } from '@/domain/drops/rollChanceQuantity'
+import type { DropTableDef } from '@/domain/mods/schemas'
 
 export interface MonsterDropBonusInput {
   luckyEnchantCount: number
@@ -8,15 +10,9 @@ export interface MonsterDropBonusInput {
   guildBonusDropRate: number
 }
 
-export interface MonsterDropDef {
-  itemId: string
-  chance: number
-}
+export interface MonsterDropDef extends DropTableEntryDef {}
 
-export interface RolledMonsterDrop {
-  itemId: string
-  quantity: number
-}
+export interface RolledMonsterDrop extends RolledDropTableEntry {}
 
 export const calculateMonsterDropBonus = ({
   luckyEnchantCount,
@@ -33,12 +29,21 @@ export const rollMonsterItemDrops = (
   bonusChance: number,
   random: RandomSource = Math.random
 ): RolledMonsterDrop[] => {
-  const rolled: RolledMonsterDrop[] = []
-  for (const drop of drops) {
-    const quantity = rollChanceQuantity(drop.chance + bonusChance, random)
-    if (quantity > 0) {
-      rolled.push({ itemId: drop.itemId, quantity })
-    }
-  }
-  return rolled
+  return rollDropTableEntries(drops, { bonusChance, random })
 }
+
+const toLocalContentId = (id: string): string => id.slice(id.indexOf(':') + 1)
+
+export const getMonsterDropDefsFromTable = (table: Readonly<DropTableDef>): MonsterDropDef[] =>
+  table.entries.map(entry => ({
+    itemId: toLocalContentId(entry.itemId),
+    chance: entry.chance,
+    ...(entry.minQuantity !== undefined ? { minQuantity: entry.minQuantity } : {}),
+    ...(entry.maxQuantity !== undefined ? { maxQuantity: entry.maxQuantity } : {})
+  }))
+
+export const rollMonsterDropTable = (
+  table: Readonly<DropTableDef>,
+  bonusChance: number,
+  random: RandomSource = Math.random
+): RolledMonsterDrop[] => rollMonsterItemDrops(getMonsterDropDefsFromTable(table), bonusChance, random)

@@ -7,7 +7,7 @@ import {
   getEnchantmentById
 } from '@/data/weapons'
 import { BOSS_MONSTERS, MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
-import { rollMonsterItemDrops } from '@/domain/mining/drops'
+import { getMonsterDropDefsFromTable, rollMonsterDropTable, rollMonsterItemDrops } from '@/domain/mining/drops'
 import {
   getOfficialDropTableDefs,
   getOfficialEnchantmentById,
@@ -15,8 +15,10 @@ import {
   getOfficialEnchantmentDefs,
   getOfficialMonsterDropTableDef
 } from '@/domain/mods/contentAccess'
-import { toOfficialContentId } from '@/domain/mods/ids'
+import { toOfficialContentId, toOfficialRegistryTypeId } from '@/domain/mods/ids'
 import type { DropTableDef, EnchantmentDef } from '@/domain/mods/schemas'
+import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
+import { OFFICIAL_PACKAGE_ID, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import type { MonsterDef } from '@/types'
 
 const localId = (id: string): string => id.slice(id.indexOf(':') + 1)
@@ -111,13 +113,63 @@ describe('official enchantment and drop table registry pilot', () => {
   it('keeps fixed-random monster drop results unchanged when read from the registry table', () => {
     const monster = MONSTERS.stone_crab!
     const table = getOfficialMonsterDropTableDef(monster.id)!
-    const registryDrops = table.entries.map(entry => ({
-      itemId: localId(entry.itemId),
-      chance: entry.chance
-    }))
+    const registryDrops = getMonsterDropDefsFromTable(table)
 
     expect(rollMonsterItemDrops(registryDrops, 0.8, () => 0.1))
       .toEqual(rollMonsterItemDrops(monster.drops, 0.8, () => 0.1))
+    expect(rollMonsterDropTable(table, 0.8, () => 0.1))
+      .toEqual(rollMonsterItemDrops(monster.drops, 0.8, () => 0.1))
     expect(getOfficialMonsterDropTableDef('missing_monster')).toBeUndefined()
+  })
+
+  it('supports named drop table quantity ranges without changing legacy one-item tables', () => {
+    const table: DropTableDef = {
+      id: toOfficialContentId('drop/test/ranged'),
+      entries: [
+        {
+          itemId: toOfficialContentId('copper_ore'),
+          chance: 2.5,
+          minQuantity: 2,
+          maxQuantity: 4
+        }
+      ]
+    }
+    const rolls = [0.4, 0, 0.99, 0.5]
+    const random = () => rolls.shift() ?? 0
+
+    expect(rollMonsterDropTable(table, 0, random)).toEqual([{ itemId: 'copper_ore', quantity: 9 }])
+  })
+
+  it('reports invalid drop table item references and quantity ranges during semantic validation', () => {
+    const registrySet = buildOfficialRegistrySetFromStaticData()
+    registrySet.get<DropTableDef>(toOfficialRegistryTypeId('drop_table')).register(OFFICIAL_PACKAGE_ID, {
+      id: toOfficialContentId('drop/test/invalid'),
+      entries: [
+        {
+          itemId: toOfficialContentId('missing_drop_item'),
+          chance: 1,
+          minQuantity: 5,
+          maxQuantity: 2
+        }
+      ]
+    })
+
+    const diagnostics = validateRegistrySemantics(registrySet)
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'REG-REFERENCE-001',
+        registryId: toOfficialRegistryTypeId('item'),
+        contentId: toOfficialContentId('missing_drop_item'),
+        fieldPath: '/entries/0/itemId'
+      })
+    )
+    expect(diagnostics).toContainEqual(
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        registryId: toOfficialRegistryTypeId('drop_table'),
+        contentId: toOfficialContentId('drop/test/invalid'),
+        fieldPath: '/entries/0/maxQuantity'
+      })
+    )
   })
 })
