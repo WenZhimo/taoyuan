@@ -1,7 +1,11 @@
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import type { ContentId, PackageId } from './ids'
 import { requireContentId, toOfficialRegistryTypeId } from './ids'
-import { REQUIRED_OFFICIAL_MONSTER_POOL_IDS } from './monsterPoolIds'
+import {
+  MAIN_MINE_BOSS_FLOORS,
+  REQUIRED_OFFICIAL_MONSTER_POOL_IDS,
+  getMainMineBossPoolId
+} from './monsterPoolIds'
 import type { CropDef, DropTableDef, MonsterDef, MonsterPoolDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef } from './schemas'
 import type { RegistrySet } from './registry'
 
@@ -151,6 +155,21 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
           stage: 'registry.semantic',
           registryId: REGISTRY_IDS.monsterPool,
           contentId: poolId
+        })
+      )
+    }
+  }
+
+  for (const floor of MAIN_MINE_BOSS_FLOORS) {
+    const poolId = getMainMineBossPoolId(floor)
+    const pool = monsterPoolRegistry.get(poolId)
+    if (pool && (pool.entries.length !== 1 || (pool.entries[0]?.weight ?? 1) !== 1)) {
+      diagnostics.push(
+        createDiagnostic('SCHEMA-VALIDATE-001', {
+          stage: 'registry.semantic',
+          registryId: REGISTRY_IDS.monsterPool,
+          contentId: poolId,
+          fieldPath: '/entries'
         })
       )
     }

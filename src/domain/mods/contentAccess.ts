@@ -2,6 +2,16 @@ import type { EnchantmentDef as LegacyEnchantmentDef, MonsterDef as LegacyMonste
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
+import {
+  MAIN_MINE_BOSS_FLOORS,
+  SKULL_CAVERN_BASE_POOL_ID,
+  SKULL_CAVERN_BOSS_POOL_ID,
+  SKULL_CAVERN_DEPTH_11_POOL_ID,
+  getMainMineBossPoolId,
+  getMainMineZonePoolId,
+  type MainMineZone
+} from './monsterPoolIds'
+import { resolveMonsterPoolEntries } from './monsterPoolResolution'
 import type { RegistrySet } from './registry'
 import type {
   CropDef,
@@ -125,6 +135,31 @@ export const getOfficialMonsterPoolDef = (id: string): Readonly<MonsterPoolDef> 
 
 export const getOfficialMonsterPoolDefs = (): readonly Readonly<MonsterPoolDef>[] =>
   getOfficialRegistrySet().get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool')).values()
+
+export const resolveOfficialMonsterPool = (id: string): readonly LegacyMonsterDef[] => {
+  const pool = getOfficialMonsterPoolDef(id)
+  if (!pool) throw new Error(`Missing required official monster pool: ${id}`)
+  return resolveMonsterPoolEntries(pool, getOfficialMonsterById)
+}
+
+export const getOfficialMainMineZoneMonsters = (zone: MainMineZone): readonly LegacyMonsterDef[] =>
+  resolveOfficialMonsterPool(getMainMineZonePoolId(zone))
+
+export const getOfficialMainMineBoss = (floor: number): LegacyMonsterDef | undefined => {
+  if (!MAIN_MINE_BOSS_FLOORS.some(candidate => candidate === floor)) return undefined
+  const monsters = resolveOfficialMonsterPool(getMainMineBossPoolId(floor))
+  if (monsters.length !== 1) throw new Error(`Main mine boss pool must contain exactly one monster: ${floor}`)
+  return monsters[0]
+}
+
+export const getOfficialSkullCavernBaseMonsters = (): readonly LegacyMonsterDef[] =>
+  resolveOfficialMonsterPool(SKULL_CAVERN_BASE_POOL_ID)
+
+export const getOfficialSkullCavernDepthMonsters = (): readonly LegacyMonsterDef[] =>
+  resolveOfficialMonsterPool(SKULL_CAVERN_DEPTH_11_POOL_ID)
+
+export const getOfficialSkullCavernBosses = (): readonly LegacyMonsterDef[] =>
+  resolveOfficialMonsterPool(SKULL_CAVERN_BOSS_POOL_ID)
 
 const toLegacyMonsterDrops = (monster: Readonly<MonsterDef>): LegacyMonsterDef['drops'] => {
   if (!monster.dropTableId) return []

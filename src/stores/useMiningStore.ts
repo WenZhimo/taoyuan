@@ -5,7 +5,6 @@ import {
   getFloor,
   getRewardNames,
   getInfestedClearRewards,
-  BOSS_MONSTERS,
   BOSS_MONEY_REWARDS,
   BOSS_ORE_REWARDS,
   getWeakenedBoss,
@@ -16,6 +15,7 @@ import {
   getAdjacentIndices,
   getBombIndices
 } from '@/data'
+import { getOfficialMainMineBoss } from '@/domain/mods/contentAccess'
 import { getBombById } from '@/data/processing'
 import { getItemById } from '@/data/items'
 import {
@@ -790,7 +790,7 @@ export const useMiningStore = defineStore('mining', () => {
     const scaleFactor = isInSkullCavern.value ? (cachedSkullFloorData.value?.scaleFactor ?? 1) : 1
 
     const generated = generateFloorGrid(floor, floorNum, isInSkullCavern.value, scaleFactor)
-    const bossId = BOSS_MONSTERS[currentFloor.value]?.id
+    const bossId = getOfficialMainMineBoss(currentFloor.value)?.id
     const result = shouldUseWeakenedBoss({
       floor,
       floorNum,

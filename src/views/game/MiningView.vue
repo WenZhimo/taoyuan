@@ -212,7 +212,7 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useSkillStore } from '@/stores/useSkillStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
-  import { ZONE_NAMES, getFloor, BOSS_MONSTERS } from '@/data'
+  import { ZONE_NAMES, getFloor } from '@/data'
   import { getWeaponById, getOwnedWeaponEnchantments, getWeaponDisplayName, WEAPON_TYPE_NAMES, formatEnchantmentSummary } from '@/data/weapons'
   import { getRingById, getHatById, getShoeById } from '@/data'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
@@ -227,6 +227,8 @@
   import { chooseAutoCombatAction as chooseAutoCombatActionRule } from '@/domain/mining/combat'
   import { buildMineElevatorZones, buildMineMapZones, buildSkullElevatorFloors, createMineLeaveHint } from '@/domain/mining/navigationDisplay'
   import { getMineTileClass, getMineTileIcon, isMineTileClickable } from '@/domain/mining/tileDisplay'
+  import { getOfficialMainMineBoss } from '@/domain/mods/contentAccess'
+  import { MAIN_MINE_BOSS_FLOORS } from '@/domain/mods/monsterPoolIds'
   import { createHatDetailInfo, createRingDetailInfo, createShoeDetailInfo, createWeaponDetailInfo } from '@/domain/enchantments/equipmentEffects'
   import { createWeaponEnchantmentDetailInfo } from '@/domain/enchantments/summarizeEnchantments'
   import { sfxMine, sfxAttack, sfxHurt, sfxClick, sfxEncounter, sfxDefend, sfxFlee, sfxVictory } from '@/composables/useAudio'
@@ -470,12 +472,16 @@
     return floor ? ZONE_NAMES[floor.zone] : ''
   })
 
+  const bossesByFloor = Object.fromEntries(
+    MAIN_MINE_BOSS_FLOORS.map(floor => [floor, getOfficialMainMineBoss(floor)])
+  )
+
   /** 矿洞地图区域数据 */
   const mineZones = computed(() => {
     return buildMineMapZones({
       safePointFloor: miningStore.safePointFloor,
       defeatedBossIds: miningStore.defeatedBosses,
-      bossesByFloor: BOSS_MONSTERS
+      bossesByFloor
     })
   })
 

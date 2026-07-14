@@ -10,7 +10,7 @@ import {
   SHOP_WEAPONS,
   TREASURE_DROP_WEAPONS
 } from '@/data/weapons'
-import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/mine'
+import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/monsters'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
@@ -638,16 +638,16 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
 
   const monsters = uniqueMonsters()
   for (const table of monsters.filter(monster => monster.drops.length > 0).map(adaptLegacyMonsterDropTable)) {
-    dropTableRegistry.register(owner, table, { file: 'src/data/mine.ts' })
+    dropTableRegistry.register(owner, table, { file: 'src/data/monsters.ts' })
   }
   for (const table of createOfficialEquipmentDropTables()) {
     dropTableRegistry.register(owner, table, { file: 'src/data/*equipment-drops*.ts' })
   }
   for (const monster of monsters.map(adaptLegacyMonster)) {
-    monsterRegistry.register(owner, monster, { file: 'src/data/mine.ts' })
+    monsterRegistry.register(owner, monster, { file: 'src/data/monsters.ts' })
   }
   for (const pool of createOfficialMonsterPools()) {
-    monsterPoolRegistry.register(owner, pool, { file: 'src/data/mine.ts' })
+    monsterPoolRegistry.register(owner, pool, { file: 'src/data/monsters.ts' })
   }
   for (const offer of createOfficialShopOffers()) {
     shopOfferRegistry.register(owner, offer, { file: 'src/data/*shop*.ts' })

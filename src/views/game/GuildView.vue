@@ -542,7 +542,6 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
   import { MONSTER_GOALS, GUILD_SHOP_ITEMS, GUILD_DONATIONS } from '@/data/guild'
-  import { MONSTERS, BOSS_MONSTERS, ZONE_MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
   import { MONSTER_DROP_WEAPONS, BOSS_DROP_WEAPONS, getWeaponById } from '@/data/weapons'
   import { MONSTER_DROP_RINGS, BOSS_DROP_RINGS, getRingById } from '@/data/rings'
   import { MONSTER_DROP_HATS, BOSS_DROP_HATS, getHatById } from '@/data/hats'
@@ -550,6 +549,13 @@
   import type { MonsterDef, GuildShopItemDef, MonsterGoalDef } from '@/types'
   import { getItemById } from '@/data/items'
   import { addLog } from '@/composables/useGameLog'
+  import {
+    getOfficialMainMineBoss,
+    getOfficialMainMineZoneMonsters,
+    getOfficialSkullCavernBaseMonsters,
+    getOfficialSkullCavernBosses
+  } from '@/domain/mods/contentAccess'
+  import { MAIN_MINE_BOSS_FLOORS, MAIN_MINE_ZONES } from '@/domain/mods/monsterPoolIds'
 
   type Tab = 'goals' | 'shop' | 'bestiary' | 'donate'
 
@@ -712,26 +718,22 @@
     return guildStore.claimedGoals.includes(monsterId)
   }
 
+  const ordinaryMonsters = MAIN_MINE_ZONES.flatMap(zone => getOfficialMainMineZoneMonsters(zone))
+  const bossMonsters = getOfficialSkullCavernBosses()
+  const skullCavernMonsters = getOfficialSkullCavernBaseMonsters()
+
   /** 怪物图鉴：合并普通怪+BOSS+骷髅矿穴 */
-  const allMonsters = computed<MonsterDef[]>(() => {
-    const list: MonsterDef[] = []
-    for (const m of Object.values(MONSTERS)) {
-      list.push(m)
-    }
-    for (const m of Object.values(BOSS_MONSTERS)) {
-      list.push(m)
-    }
-    for (const m of Object.values(SKULL_CAVERN_MONSTERS)) {
-      list.push(m)
-    }
-    return list
-  })
+  const allMonsters = computed<MonsterDef[]>(() => [
+    ...ordinaryMonsters,
+    ...bossMonsters,
+    ...skullCavernMonsters
+  ])
 
   /** 怪物图鉴分组 */
   const monsterGroups = computed(() => [
-    { label: '普通怪物', monsters: Object.values(MONSTERS) as MonsterDef[] },
-    { label: 'BOSS', monsters: Object.values(BOSS_MONSTERS) as MonsterDef[] },
-    { label: '骷髅矿穴', monsters: Object.values(SKULL_CAVERN_MONSTERS) as MonsterDef[] }
+    { label: '普通怪物', monsters: ordinaryMonsters },
+    { label: 'BOSS', monsters: bossMonsters },
+    { label: '骷髅矿穴', monsters: skullCavernMonsters }
   ])
 
   const getDropName = (itemId: string): string => {
@@ -740,7 +742,8 @@
 
   /** 获取普通怪物所在区域 */
   const getMonsterZone = (monsterId: string): string | null => {
-    for (const [zone, monsters] of Object.entries(ZONE_MONSTERS)) {
+    for (const zone of MAIN_MINE_ZONES) {
+      const monsters = getOfficialMainMineZoneMonsters(zone)
       if (monsters.some(m => m.id === monsterId)) return zone
     }
     return null
@@ -748,8 +751,8 @@
 
   /** 获取 BOSS 所在楼层 */
   const getBossFloor = (monsterId: string): number | null => {
-    for (const [floor, monster] of Object.entries(BOSS_MONSTERS)) {
-      if (monster.id === monsterId) return Number(floor)
+    for (const floor of MAIN_MINE_BOSS_FLOORS) {
+      if (getOfficialMainMineBoss(floor)?.id === monsterId) return floor
     }
     return null
   }
