@@ -1,0 +1,10 @@
+[
+  {
+    "id": "example_mod:test_monster_pool",
+    "entries": [
+      {
+        "monsterId": "example_mod:test_monster"
+      }
+    ]
+  }
+]

@@ -10,7 +10,7 @@ import {
   SHOP_WEAPONS,
   TREASURE_DROP_WEAPONS
 } from '@/data/weapons'
-import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS } from '@/data/mine'
+import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/mine'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_SHOP_ITEMS } from '@/data/guild'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
@@ -30,6 +30,15 @@ import {
   toOfficialRegistryTypeId,
   type PackageId
 } from './ids'
+import {
+  MAIN_MINE_BOSS_FLOORS,
+  MAIN_MINE_ZONES,
+  SKULL_CAVERN_BASE_POOL_ID,
+  SKULL_CAVERN_BOSS_POOL_ID,
+  SKULL_CAVERN_DEPTH_11_POOL_ID,
+  getMainMineBossPoolId,
+  getMainMineZonePoolId
+} from './monsterPoolIds'
 import { RegistrySet, type RegistryDefinition, type RegistryEntry } from './registry'
 import type {
   DropTableDef,
@@ -37,6 +46,7 @@ import type {
   ItemDef,
   CropDef,
   MonsterDef,
+  MonsterPoolDef,
   RecipeDef,
   RecipeIngredient,
   ShopDef,
@@ -69,6 +79,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('monster'),
     description: '怪物定义',
     schemaName: 'monster.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('monster_pool'),
+    description: '有序怪物候选池',
+    schemaName: 'monster-pool.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('enchantment'),
@@ -299,6 +314,25 @@ export const adaptLegacyMonster = (monster: LegacyMonsterDef): MonsterDef => ({
   dropTableId: monster.drops.length > 0 ? createMonsterDropTableId(monster.id) : undefined,
   description: text(`taoyuan.monster.${monster.id}.description`, monster.description)
 })
+
+const adaptLegacyMonsterPool = (
+  id: ReturnType<typeof toOfficialContentId>,
+  monsters: readonly LegacyMonsterDef[]
+): MonsterPoolDef => ({
+  id,
+  entries: monsters.map(monster => ({ monsterId: toOfficialContentId(monster.id) }))
+})
+
+export const createOfficialMonsterPools = (): MonsterPoolDef[] => [
+  ...MAIN_MINE_ZONES.map(zone => adaptLegacyMonsterPool(getMainMineZonePoolId(zone), ZONE_MONSTERS[zone])),
+  ...MAIN_MINE_BOSS_FLOORS.map(floor => adaptLegacyMonsterPool(getMainMineBossPoolId(floor), [BOSS_MONSTERS[floor]!])),
+  adaptLegacyMonsterPool(SKULL_CAVERN_BASE_POOL_ID, Object.values(SKULL_CAVERN_MONSTERS)),
+  adaptLegacyMonsterPool(SKULL_CAVERN_DEPTH_11_POOL_ID, [MONSTERS.shadow_lurker!, MONSTERS.bone_dragon!]),
+  adaptLegacyMonsterPool(
+    SKULL_CAVERN_BOSS_POOL_ID,
+    MAIN_MINE_BOSS_FLOORS.map(floor => BOSS_MONSTERS[floor]!)
+  )
+]
 
 export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
   id: toOfficialContentId(shop.id),
@@ -586,6 +620,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const itemRegistry = registrySet.get<ItemDef>(toOfficialRegistryTypeId('item'))
   const cropRegistry = registrySet.get<CropDef>(toOfficialRegistryTypeId('crop'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
+  const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
   const dropTableRegistry = registrySet.get<DropTableDef>(toOfficialRegistryTypeId('drop_table'))
   const recipeRegistry = registrySet.get<RecipeDef>(toOfficialRegistryTypeId('recipe'))
@@ -610,6 +645,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const monster of monsters.map(adaptLegacyMonster)) {
     monsterRegistry.register(owner, monster, { file: 'src/data/mine.ts' })
+  }
+  for (const pool of createOfficialMonsterPools()) {
+    monsterPoolRegistry.register(owner, pool, { file: 'src/data/mine.ts' })
   }
   for (const offer of createOfficialShopOffers()) {
     shopOfferRegistry.register(owner, offer, { file: 'src/data/*shop*.ts' })

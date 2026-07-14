@@ -49107,6 +49107,279 @@
       ]
     },
     {
+      "registryId": "taoyuan:monster_pool",
+      "schemaName": "monster-pool.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:shadow_sovereign"
+              }
+            ],
+            "id": "taoyuan:pool/mine/boss/100"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:abyss_dragon"
+              }
+            ],
+            "id": "taoyuan:pool/mine/boss/120"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:mud_golem"
+              }
+            ],
+            "id": "taoyuan:pool/mine/boss/20"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:frost_queen"
+              }
+            ],
+            "id": "taoyuan:pool/mine/boss/40"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:lava_lord"
+              }
+            ],
+            "id": "taoyuan:pool/mine/boss/60"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:crystal_king"
+              }
+            ],
+            "id": "taoyuan:pool/mine/boss/80"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:abyss_serpent"
+              },
+              {
+                "monsterId": "taoyuan:bone_dragon"
+              }
+            ],
+            "id": "taoyuan:pool/mine/zone/abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:crystal_golem"
+              },
+              {
+                "monsterId": "taoyuan:prism_spider"
+              }
+            ],
+            "id": "taoyuan:pool/mine/zone/crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:ice_bat"
+              },
+              {
+                "monsterId": "taoyuan:ghost"
+              }
+            ],
+            "id": "taoyuan:pool/mine/zone/frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:fire_bat"
+              },
+              {
+                "monsterId": "taoyuan:shadow_warrior"
+              }
+            ],
+            "id": "taoyuan:pool/mine/zone/lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:shadow_lurker"
+              },
+              {
+                "monsterId": "taoyuan:void_wraith"
+              }
+            ],
+            "id": "taoyuan:pool/mine/zone/shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:mud_worm"
+              },
+              {
+                "monsterId": "taoyuan:stone_crab"
+              }
+            ],
+            "id": "taoyuan:pool/mine/zone/shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:iridium_golem"
+              },
+              {
+                "monsterId": "taoyuan:skull_serpent"
+              },
+              {
+                "monsterId": "taoyuan:ancient_mummy"
+              }
+            ],
+            "id": "taoyuan:pool/skull-cavern/base"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:mud_golem"
+              },
+              {
+                "monsterId": "taoyuan:frost_queen"
+              },
+              {
+                "monsterId": "taoyuan:lava_lord"
+              },
+              {
+                "monsterId": "taoyuan:crystal_king"
+              },
+              {
+                "monsterId": "taoyuan:shadow_sovereign"
+              },
+              {
+                "monsterId": "taoyuan:abyss_dragon"
+              }
+            ],
+            "id": "taoyuan:pool/skull-cavern/boss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/mine.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "entries": [
+              {
+                "monsterId": "taoyuan:shadow_lurker"
+              },
+              {
+                "monsterId": "taoyuan:bone_dragon"
+              }
+            ],
+            "id": "taoyuan:pool/skull-cavern/depth-11"
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:recipe",
       "schemaName": "recipe.schema.json",
       "entries": [
@@ -60322,5 +60595,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:e2c58103ffccc2b124a512d03d7d11aae2f91b798a7b484b1dee52c8452a7aa4"
+  "snapshotHash": "sha256:3c0219ca51739a7aacce8e90cc80f8ea4da48204a65672c15c07872f51710a90"
 }

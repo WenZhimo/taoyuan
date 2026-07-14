@@ -1,7 +1,8 @@
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import type { ContentId, PackageId } from './ids'
 import { requireContentId, toOfficialRegistryTypeId } from './ids'
-import type { CropDef, DropTableDef, MonsterDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef } from './schemas'
+import { REQUIRED_OFFICIAL_MONSTER_POOL_IDS } from './monsterPoolIds'
+import type { CropDef, DropTableDef, MonsterDef, MonsterPoolDef, PackageManifest, RecipeDef, ShopOfferDef, TagDef } from './schemas'
 import type { RegistrySet } from './registry'
 
 const REGISTRY_IDS = {
@@ -9,6 +10,7 @@ const REGISTRY_IDS = {
   item: toOfficialRegistryTypeId('item'),
   crop: toOfficialRegistryTypeId('crop'),
   monster: toOfficialRegistryTypeId('monster'),
+  monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
   recipe: toOfficialRegistryTypeId('recipe'),
   shopOffer: toOfficialRegistryTypeId('shop_offer')
@@ -43,6 +45,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const cropRegistry = registrySet.get<CropDef>(REGISTRY_IDS.crop)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
+  const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
   const recipeRegistry = registrySet.get<RecipeDef>(REGISTRY_IDS.recipe)
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(REGISTRY_IDS.shopOffer)
 
@@ -139,6 +142,31 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/dropTableId'
       })
     }
+  }
+
+  for (const poolId of REQUIRED_OFFICIAL_MONSTER_POOL_IDS) {
+    if (!monsterPoolRegistry.has(poolId)) {
+      diagnostics.push(
+        createDiagnostic('REG-REQUIRED-001', {
+          stage: 'registry.semantic',
+          registryId: REGISTRY_IDS.monsterPool,
+          contentId: poolId
+        })
+      )
+    }
+  }
+
+  for (const record of monsterPoolRegistry.entries()) {
+    record.entry.entries.forEach((entry, index) => {
+      if (!monsterRegistry.has(contentId(entry.monsterId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.monster,
+          contentId: contentId(entry.monsterId),
+          fieldPath: `/entries/${index}/monsterId`
+        })
+      }
+    })
   }
 
   for (const record of shopOfferRegistry.entries()) {

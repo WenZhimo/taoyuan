@@ -53,6 +53,7 @@ export const MOD_ERROR_REGISTRY = [
   { code: 'SCHEMA-MIGRATE-001', ruleId: 'SCHEMA-MIGRATE-001', meaning: '缺少连续无损迁移路径', defaultSeverity: 'error' },
   { code: 'REG-DUPLICATE-001', ruleId: 'REG-DUPLICATE-001', meaning: '同一注册表完整 ID 重复', defaultSeverity: 'error' },
   { code: 'REG-REFERENCE-001', ruleId: 'REG-REFERENCE-001', meaning: '跨注册表引用不存在', defaultSeverity: 'error' },
+  { code: 'REG-REQUIRED-001', ruleId: 'REG-REQUIRED-001', meaning: '游戏运行所需的官方注册表条目缺失', defaultSeverity: 'fatal' },
   { code: 'REG-OWNERSHIP-001', ruleId: 'REG-OWNERSHIP-001', meaning: '包尝试注册或修改无权拥有的内容', defaultSeverity: 'error' },
   { code: 'REG-FROZEN-001', ruleId: 'REG-FROZEN-001', meaning: '冻结后尝试修改注册表', defaultSeverity: 'fatal' },
   { code: 'CFG-SCOPE-001', ruleId: 'CFG-SCOPE-001', meaning: '存档级配置试图影响注册表或依赖', defaultSeverity: 'error' },

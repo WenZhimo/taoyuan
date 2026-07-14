@@ -223,6 +223,22 @@ export const MonsterDefSchema = Type.Object(
   { $id: 'taoyuan.registry.MonsterDef', additionalProperties: false }
 )
 
+export const MonsterPoolEntrySchema = Type.Object(
+  {
+    monsterId: ContentIdSchema,
+    weight: Type.Optional(Type.Integer({ minimum: 1 }))
+  },
+  { additionalProperties: false }
+)
+
+export const MonsterPoolDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    entries: Type.Array(MonsterPoolEntrySchema, { minItems: 1 })
+  },
+  { $id: 'taoyuan.registry.MonsterPoolDef', additionalProperties: false }
+)
+
 export const EnchantmentSpecialSchema = Type.Union([
   Type.Literal('vampiric'),
   Type.Literal('sturdy'),
@@ -423,6 +439,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:item': ItemDefSchema,
   'taoyuan:crop': CropDefSchema,
   'taoyuan:monster': MonsterDefSchema,
+  'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
   'taoyuan:drop_table': DropTableDefSchema,
   'taoyuan:recipe': RecipeDefSchema,
@@ -439,6 +456,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'item.schema.json': ItemDefSchema,
   'crop.schema.json': CropDefSchema,
   'monster.schema.json': MonsterDefSchema,
+  'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
   'drop-table.schema.json': DropTableDefSchema,
   'recipe.schema.json': RecipeDefSchema,
@@ -459,6 +477,8 @@ export type Weekday = Static<typeof WeekdaySchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type DropTableDef = Static<typeof DropTableDefSchema>
 export type MonsterDef = Static<typeof MonsterDefSchema>
+export type MonsterPoolEntry = Static<typeof MonsterPoolEntrySchema>
+export type MonsterPoolDef = Static<typeof MonsterPoolDefSchema>
 export type EquipmentEffect = Static<typeof EquipmentEffectSchema>
 export type EnchantmentDef = Static<typeof EnchantmentDefSchema>
 export type RecipeIngredient = Static<typeof RecipeIngredientSchema>

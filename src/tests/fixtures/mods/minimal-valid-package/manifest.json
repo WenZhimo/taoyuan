@@ -26,6 +26,7 @@
     "taoyuan:tag": ["data/tags.json"],
     "taoyuan:item": ["data/items.json"],
     "taoyuan:monster": ["data/monsters.json"],
+    "taoyuan:monster_pool": ["data/monster-pools.json"],
     "taoyuan:enchantment": ["data/enchantments.json"],
     "taoyuan:drop_table": ["data/drop-tables.json"],
     "taoyuan:recipe": ["data/recipes.json"],

@@ -9,6 +9,7 @@ import type {
   EnchantmentDef,
   ItemDef,
   MonsterDef,
+  MonsterPoolDef,
   RecipeDef,
   Season,
   ShopDef,
@@ -114,6 +115,16 @@ export const getOfficialMonsterDef = (id: string): Readonly<MonsterDef> | undefi
 
 export const getOfficialMonsterDefs = (): readonly Readonly<MonsterDef>[] =>
   getOfficialRegistrySet().get<MonsterDef>(toOfficialRegistryTypeId('monster')).values()
+
+export const getOfficialMonsterPoolDef = (id: string): Readonly<MonsterPoolDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool')).get(contentId)
+    : undefined
+}
+
+export const getOfficialMonsterPoolDefs = (): readonly Readonly<MonsterPoolDef>[] =>
+  getOfficialRegistrySet().get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool')).values()
 
 const toLegacyMonsterDrops = (monster: Readonly<MonsterDef>): LegacyMonsterDef['drops'] => {
   if (!monster.dropTableId) return []
