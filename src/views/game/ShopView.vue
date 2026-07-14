@@ -632,7 +632,7 @@
   import type { ShopDef } from '@/data/shops'
   import { SHOP_WEAPONS, WEAPON_TYPE_NAMES } from '@/data/weapons'
   import type { WeaponDef, RingDef, RingEffectType, Season, Quality, HatDef, ShoeDef, ItemCategory } from '@/types'
-  import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
+  import { getOfficialFruitTreeBySaplingId } from '@/domain/mods/contentAccess'
   import { CRAFTABLE_RINGS } from '@/data/rings'
   import { SHOP_HATS, CRAFTABLE_HATS } from '@/data/hats'
   import { SHOP_SHOES, CRAFTABLE_SHOES } from '@/data/shoes'
@@ -650,7 +650,6 @@
 
 
   const SHOP_WEAPON_BY_ID = new Map(SHOP_WEAPONS.map(weapon => [weapon.id, weapon]))
-  const FRUIT_TREE_BY_SAPLING_ID = new Map(FRUIT_TREE_DEFS.map(tree => [tree.saplingId, tree]))
   const SHOP_HAT_BY_ID = new Map(SHOP_HATS.map(hat => [hat.id, hat]))
   const SHOP_SHOE_BY_ID = new Map(SHOP_SHOES.map(shoe => [shoe.id, shoe]))
 
@@ -1087,7 +1086,7 @@
   const shopOfferName = (offer: ShopOfferEntry): string => {
     const crop = getCropBySeedId(offer.itemId)
     if (crop) return `${crop.name}种子`
-    const tree = FRUIT_TREE_BY_SAPLING_ID.get(offer.itemId)
+    const tree = getOfficialFruitTreeBySaplingId(offer.itemId)
     if (tree) return `${tree.name}苗`
     return SHOP_WEAPON_BY_ID.get(offer.itemId)?.name ?? SHOP_HAT_BY_ID.get(offer.itemId)?.name ?? SHOP_SHOE_BY_ID.get(offer.itemId)?.name ?? offer.name
   }
@@ -1095,8 +1094,8 @@
   const shopOfferDescription = (offer: ShopOfferEntry): string => {
     const seedDescription = seedInlineDescription(offer)
     if (seedDescription) return seedDescription
-    const tree = FRUIT_TREE_BY_SAPLING_ID.get(offer.itemId)
-    if (tree) return `28天成熟 · ${seasonName(tree.fruitSeason)}季产${tree.fruitName}`
+    const tree = getOfficialFruitTreeBySaplingId(offer.itemId)
+    if (tree) return `${tree.growthDays}天成熟 · ${seasonName(tree.fruitSeason)}季产${tree.fruitName}`
     const weapon = SHOP_WEAPON_BY_ID.get(offer.itemId)
     if (weapon) return `${WEAPON_TYPE_NAMES[weapon.type]} · 攻击${weapon.attack}`
     return offer.description
@@ -1474,7 +1473,7 @@
       return
     }
 
-    const tree = FRUIT_TREE_BY_SAPLING_ID.get(offer.itemId)
+    const tree = getOfficialFruitTreeBySaplingId(offer.itemId)
     if (tree) {
       openBatchBuyModal(
         name,

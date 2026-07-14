@@ -1,8 +1,13 @@
 import type { ComputedRef, Ref } from 'vue'
 import { computed } from 'vue'
-import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
-import { WILD_TREE_DEFS, getWildTreeDef } from '@/data/wildTrees'
 import { ACTION_TIME_COSTS } from '@/data/timeConstants'
+import {
+  getOfficialFruitTreeById,
+  getOfficialFruitTreeDefs,
+  getOfficialTreeByProductItemId,
+  getOfficialWildTreeById,
+  getOfficialWildTreeDefs
+} from '@/domain/mods/contentAccess'
 import { SEASON_NAMES } from '@/stores/useGameStore'
 import { addLog } from '@/composables/useGameLog'
 import type { FruitTreeChopConfirmTarget } from '@/components/game/farm/FruitTreeChopConfirmDialog.vue'
@@ -54,18 +59,28 @@ export const useTreeActions = ({
   collectTapProduct,
   chopWildTree
 }: UseTreeActionsOptions) => {
+  const getFruitTreeDefinitions = () => getOfficialFruitTreeDefs().flatMap(tree => {
+    const definition = getOfficialFruitTreeById(tree.id)
+    return definition ? [definition] : []
+  })
+
+  const getWildTreeDefinitions = () => getOfficialWildTreeDefs().flatMap(tree => {
+    const definition = getOfficialWildTreeById(tree.id)
+    return definition ? [definition] : []
+  })
+
   const getTreeName = (type: string): string => {
-    return FRUIT_TREE_DEFS.find(d => d.type === type)?.name ?? type
+    return getOfficialFruitTreeById(type)?.name ?? type
   }
 
   const getTreeFruitSeason = (type: string): string => {
-    const def = FRUIT_TREE_DEFS.find(d => d.type === type)
+    const def = getOfficialFruitTreeById(type)
     if (!def) return '?'
     return SEASON_NAMES[def.fruitSeason as keyof typeof SEASON_NAMES]
   }
 
   const plantableSaplings = computed(() => {
-    return FRUIT_TREE_DEFS.filter(d => hasItem(d.saplingId)).map(d => ({
+    return getFruitTreeDefinitions().filter(d => hasItem(d.saplingId)).map(d => ({
       type: d.type as FruitTreeType,
       saplingId: d.saplingId,
       name: d.name,
@@ -74,19 +89,19 @@ export const useTreeActions = ({
   })
 
   const getWildTreeName = (type: string): string => {
-    return getWildTreeDef(type)?.name ?? type
+    return getOfficialWildTreeById(type)?.name ?? type
   }
 
   const getWildTreeGrowthDays = (type: WildTreeType): number | undefined => {
-    return getWildTreeDef(type)?.growthDays
+    return getOfficialWildTreeById(type)?.growthDays
   }
 
   const getWildTreeTapCycleDays = (type: WildTreeType): number | undefined => {
-    return getWildTreeDef(type)?.tapCycleDays
+    return getOfficialWildTreeById(type)?.tapCycleDays
   }
 
   const plantableWildSeeds = computed(() => {
-    return WILD_TREE_DEFS.filter(d => hasItem(d.seedItemId)).map(d => ({
+    return getWildTreeDefinitions().filter(d => hasItem(d.seedItemId)).map(d => ({
       type: d.type as WildTreeType,
       seedItemId: d.seedItemId,
       name: d.name,
@@ -97,14 +112,14 @@ export const useTreeActions = ({
   const hasTapper = computed(() => getItemCount('tapper') > 0)
 
   const handlePlantTree = (treeType: FruitTreeType) => {
-    const def = FRUIT_TREE_DEFS.find(d => d.type === treeType)
+    const def = getOfficialFruitTreeById(treeType)
     if (!def) return
     if (!removeItem(def.saplingId)) {
       addLog('背包中没有该树苗。')
       return
     }
     if (plantFruitTree(treeType)) {
-      addLog(`种下了${def.name}苗，需28天成熟。`)
+      addLog(`种下了${def.name}苗，需${def.growthDays}天成熟。`)
       const tr = advanceTime(ACTION_TIME_COSTS.plantTree)
       if (tr.message) addLog(tr.message)
     } else {
@@ -144,7 +159,7 @@ export const useTreeActions = ({
   }
 
   const handlePlantWildTree = (treeType: WildTreeType) => {
-    const def = WILD_TREE_DEFS.find(d => d.type === treeType)
+    const def = getOfficialWildTreeById(treeType)
     if (!def) return
     if (!removeItem(def.seedItemId)) {
       addLog('背包中没有该种子。')
@@ -177,8 +192,9 @@ export const useTreeActions = ({
     const productId = collectTapProduct(treeId)
     if (productId) {
       addItem(productId)
-      const def = WILD_TREE_DEFS.find(d => d.tapProduct === productId)
-      addLog(`收取了${def?.tapProductName ?? productId}！`)
+      const tree = getOfficialTreeByProductItemId(productId)
+      const productName = tree?.kind === 'wild' ? tree.tapProductName.fallback : productId
+      addLog(`收取了${productName}！`)
     }
   }
 

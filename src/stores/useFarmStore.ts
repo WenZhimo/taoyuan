@@ -5,8 +5,10 @@ import type { SprinklerType, FertilizerType, PlantedFruitTree, FruitTreeType, Wi
 import type { SeedGenetics } from '@/types/breeding'
 import { getCropById } from '@/data'
 import { SPRINKLERS, getFertilizerById } from '@/data/processing'
-import { FRUIT_TREE_DEFS } from '@/data/fruitTrees'
-import { getWildTreeDef } from '@/data/wildTrees'
+import {
+  getOfficialFruitTreeById,
+  getOfficialWildTreeById
+} from '@/domain/mods/contentAccess'
 import { GREENHOUSE_PLOT_COUNT } from '@/data/buildings'
 import { useWalletStore } from './useWalletStore'
 import { useGameStore } from './useGameStore'
@@ -770,19 +772,17 @@ export const useFarmStore = defineStore('farm', () => {
     for (const tree of fruitTrees.value) {
       tree.growthDays++
       tree.todayFruit = false
-      if (!tree.mature && tree.growthDays >= 28) {
+      const def = getOfficialFruitTreeById(tree.type)
+      if (!tree.mature && tree.growthDays >= (def?.growthDays ?? 28)) {
         tree.mature = true
       }
-      if (tree.mature) {
-        const def = FRUIT_TREE_DEFS.find(d => d.type === tree.type)
-        if (def && def.fruitSeason === currentSeason) {
-          const quality = getFruitQuality(tree.yearAge)
-          // 仙缘能力：灵桃（tao_yao_3）桃树10%概率产灵桃
-          const fruitId = tree.type === 'peach_tree' && spiritPeachActive && Math.random() < 0.1 ? 'spirit_peach' : def.fruitId
-          results.push({ fruitId, quality })
-          if (extraFruit) results.push({ fruitId, quality })
-          tree.todayFruit = true
-        }
+      if (tree.mature && def?.fruitSeason === currentSeason) {
+        const quality = getFruitQuality(tree.yearAge)
+        // 仙缘能力：灵桃（tao_yao_3）桃树10%概率产灵桃
+        const fruitId = tree.type === 'peach_tree' && spiritPeachActive && Math.random() < 0.1 ? 'spirit_peach' : def.fruitId
+        results.push({ fruitId, quality })
+        if (extraFruit) results.push({ fruitId, quality })
+        tree.todayFruit = true
       }
     }
     return { fruits: results }
@@ -845,7 +845,7 @@ export const useFarmStore = defineStore('farm', () => {
   const collectTapProduct = (treeId: number): string | null => {
     const tree = wildTrees.value.find(t => t.id === treeId)
     if (!tree || !tree.tapReady) return null
-    const def = getWildTreeDef(tree.type)
+    const def = getOfficialWildTreeById(tree.type)
     if (!def) return null
     tree.tapReady = false
     tree.tapDaysElapsed = 0
@@ -868,16 +868,15 @@ export const useFarmStore = defineStore('farm', () => {
   const dailyWildTreeUpdate = (): { products: { treeId: number; productId: string; productName: string }[] } => {
     const readyProducts: { treeId: number; productId: string; productName: string }[] = []
     for (const tree of wildTrees.value) {
+      const def = getOfficialWildTreeById(tree.type)
       if (!tree.mature) {
         tree.growthDays++
-        const def = getWildTreeDef(tree.type)
         if (def && tree.growthDays >= def.growthDays) {
           tree.mature = true
         }
       }
       if (tree.hasTapper && tree.mature && !tree.tapReady) {
         tree.tapDaysElapsed++
-        const def = getWildTreeDef(tree.type)
         if (def && tree.tapDaysElapsed >= def.tapCycleDays) {
           tree.tapReady = true
           readyProducts.push({ treeId: tree.id, productId: def.tapProduct, productName: def.tapProductName })
