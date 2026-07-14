@@ -16655,6 +16655,98 @@
       ]
     },
     {
+      "registryId": "taoyuan:fish_pond_facility",
+      "schemaName": "fish-pond-facility.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/fishPondFacilityDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "buildCost": {
+              "materials": [
+                {
+                  "itemId": "taoyuan:wood",
+                  "quantity": 100
+                },
+                {
+                  "itemId": "taoyuan:bamboo",
+                  "quantity": 50
+                }
+              ],
+              "money": 5000
+            },
+            "capacities": [
+              {
+                "capacity": 5,
+                "level": 1
+              },
+              {
+                "capacity": 10,
+                "level": 2
+              },
+              {
+                "capacity": 20,
+                "level": 3
+              }
+            ],
+            "description": {
+              "fallback": "用于养殖鱼类、育种和收集每日产物的设施",
+              "key": "taoyuan.fish_pond_facility.fish_pond.description"
+            },
+            "id": "taoyuan:fish_pond",
+            "name": {
+              "fallback": "鱼塘",
+              "key": "taoyuan.fish_pond_facility.fish_pond.name"
+            },
+            "unlimitedAtLevel": 3,
+            "upgrades": [
+              {
+                "capacity": 10,
+                "cost": {
+                  "materials": [
+                    {
+                      "itemId": "taoyuan:wood",
+                      "quantity": 100
+                    },
+                    {
+                      "itemId": "taoyuan:iron_bar",
+                      "quantity": 5
+                    }
+                  ],
+                  "money": 10000
+                },
+                "level": 2
+              },
+              {
+                "capacity": 20,
+                "cost": {
+                  "materials": [
+                    {
+                      "itemId": "taoyuan:wood",
+                      "quantity": 200
+                    },
+                    {
+                      "itemId": "taoyuan:gold_bar",
+                      "quantity": 5
+                    },
+                    {
+                      "itemId": "taoyuan:iron_bar",
+                      "quantity": 10
+                    }
+                  ],
+                  "money": 25000
+                },
+                "level": 3
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:forage",
       "schemaName": "forage.schema.json",
       "entries": [
@@ -71518,5 +71610,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:4a816503ee7c27710c2d07edda563aacd1923191575829a5daf898c34e8f2abd"
+  "snapshotHash": "sha256:2764f262675cd32f39c79bb54ae6e3d70ccf0d9fc6ceb75a7ca263bee45912fc"
 }

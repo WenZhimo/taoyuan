@@ -585,7 +585,15 @@
   import { DEFAULT_PAGE_SIZE, usePagination } from '@/composables/game/usePagination'
   import { clampQuantity, useQuantityPicker } from '@/composables/game/useQuantityPicker'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
-  import { POND_BUILD_COST, POND_UPGRADE_COSTS, POND_CAPACITY, getPondableFish, getPondableFishDefs, FISH_BREEDING_DAYS } from '@/data/fishPond'
+  import {
+    FISH_BREEDING_DAYS,
+    getPondBuildCost,
+    getPondCapacity,
+    getPondRuntimeCapacity,
+    getPondUpgradeCost,
+    getPondableFish,
+    getPondableFishDefs
+  } from '@/data/fishPond'
   import { getBreedById, getBreedsByGeneration, BREED_COUNTS } from '@/data/pondBreeds'
   import { getItemById } from '@/data/items'
   import type { PondFish } from '@/types/fishPond'
@@ -749,18 +757,20 @@
 
   const modalCurrentLevel = computed(() => (pondModal.value === 'build' ? 1 : fishPondStore.pond.level))
 
-  const modalCurrentCapacity = computed(() => formatCapacity(pondModal.value === 'build' ? POND_CAPACITY[1] : fishPondStore.capacity))
+  const modalCurrentCapacity = computed(() => formatCapacity(pondModal.value === 'build' ? getPondCapacity(1) : fishPondStore.capacity))
 
   const modalTargetLevel = computed(() => upgradeNextLevel.value)
 
-  const modalTargetCapacity = computed(() => formatCapacity(upgradeNextLevel.value >= 3 ? Number.POSITIVE_INFINITY : POND_CAPACITY[upgradeNextLevel.value]))
+  const modalTargetCapacity = computed(() => formatCapacity(getPondRuntimeCapacity(upgradeNextLevel.value)))
 
   const modalMoney = computed(() =>
-    pondModal.value === 'build' ? POND_BUILD_COST.money : POND_UPGRADE_COSTS[upgradeNextLevel.value].money
+    pondModal.value === 'build' ? getPondBuildCost().money : (getPondUpgradeCost(upgradeNextLevel.value)?.money ?? 0)
   )
 
   const modalMaterials = computed(() => {
-    const mats = pondModal.value === 'build' ? POND_BUILD_COST.materials : POND_UPGRADE_COSTS[upgradeNextLevel.value].materials
+    const mats = pondModal.value === 'build'
+      ? getPondBuildCost().materials
+      : (getPondUpgradeCost(upgradeNextLevel.value)?.materials ?? [])
     return mats.map(m => ({
       itemId: m.itemId,
       name: getItemName(m.itemId),

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "example_mod:fish_pond",
+    "name": {
+      "key": "example_mod.fish_pond_facility.fish_pond.name",
+      "fallback": "Test Fish Pond"
+    },
+    "description": {
+      "key": "example_mod.fish_pond_facility.fish_pond.description",
+      "fallback": "A test fish pond facility."
+    },
+    "buildCost": {
+      "money": 100,
+      "materials": [
+        {
+          "itemId": "example_mod:test_item",
+          "quantity": 2
+        }
+      ]
+    },
+    "capacities": [
+      {
+        "level": 1,
+        "capacity": 2
+      },
+      {
+        "level": 2,
+        "capacity": 4
+      },
+      {
+        "level": 3,
+        "capacity": 8
+      }
+    ],
+    "upgrades": [
+      {
+        "level": 2,
+        "capacity": 4,
+        "cost": {
+          "money": 200,
+          "materials": [
+            {
+              "itemId": "example_mod:test_item",
+              "quantity": 3
+            }
+          ]
+        }
+      },
+      {
+        "level": 3,
+        "capacity": 8,
+        "cost": {
+          "money": 400,
+          "materials": [
+            {
+              "itemId": "example_mod:test_item",
+              "quantity": 4
+            }
+          ]
+        }
+      }
+    ],
+    "unlimitedAtLevel": 3
+  }
+]

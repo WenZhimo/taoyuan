@@ -15,6 +15,7 @@ import type {
   CropDef,
   DropTableDef,
   FishDef,
+  FishPondFacilityDef,
   ForageDef,
   MonsterDef,
   MonsterPoolDef,
@@ -41,6 +42,7 @@ const REGISTRY_IDS = {
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
+  fishPondFacility: toOfficialRegistryTypeId('fish_pond_facility'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
@@ -84,6 +86,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
+  const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(REGISTRY_IDS.fishPondFacility)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
@@ -357,6 +360,31 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/parentBreedB'
       })
     }
+  }
+
+  for (const record of fishPondFacilityRegistry.entries()) {
+    record.entry.buildCost.materials.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/buildCost/materials/${index}/itemId`
+        })
+      }
+    })
+    record.entry.upgrades.forEach((upgrade, upgradeIndex) => {
+      upgrade.cost.materials.forEach((material, materialIndex) => {
+        if (!itemRegistry.has(contentId(material.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(material.itemId),
+            fieldPath: `/upgrades/${upgradeIndex}/cost/materials/${materialIndex}/itemId`
+          })
+        }
+      })
+    })
   }
 
   for (const poolId of REQUIRED_OFFICIAL_MONSTER_POOL_IDS) {

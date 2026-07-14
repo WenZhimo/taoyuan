@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 54,
-    "approximateLineCount": 30965,
+    "fileCount": 55,
+    "approximateLineCount": 31060,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 464,
-    "reviewedArtifactCount": 47
+    "symbolCount": 476,
+    "reviewedArtifactCount": 51
   },
   "entries": [
     {
@@ -2319,6 +2319,7 @@
       ],
       "candidateTargets": [
         "taoyuan:pondable_fish",
+        "taoyuan:fish_pond_facility",
         "engine/domain/fish-pond",
         "compatibility_adapter"
       ],
@@ -2326,7 +2327,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 90,
+      "lines": 108,
       "symbols": [
         {
           "file": "src/data/fishPond.ts",
@@ -2349,54 +2350,160 @@
         },
         {
           "file": "src/data/fishPond.ts",
-          "exportName": "POND_BUILD_COST",
+          "exportName": "FISH_POND_FACILITY",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/fishPondFacilityDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps FISH_POND_FACILITY as an original-name re-export from the unique fishPondFacilityDefinitions leaf source."
+        },
+        {
+          "file": "src/data/fishPond.ts",
+          "exportName": "getFishPondFacilityDefs",
           "syntaxKind": "const",
-          "classification": "algorithm",
-          "targetRegistry": "engine/domain/fish-pond",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy list query returns local-ID fish pond facility compatibility objects reconstructed from taoyuan:fish_pond_facility."
+        },
+        {
+          "file": "src/data/fishPond.ts",
+          "exportName": "getPondBuildCost",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishPondStore.ts",
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts",
             "src/views/game/FishPondView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "framework-retained",
-          "rationale": "Rule, calculation, random generator, formatter, or state-independent algorithm retained in framework/domain."
+          "status": "verified",
+          "rationale": "Build cost lookup now resolves the fish pond facility registry while preserving money and material quantities."
+        },
+        {
+          "file": "src/data/fishPond.ts",
+          "exportName": "getPondUpgradeCost",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts",
+            "src/views/game/FishPondView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Upgrade cost lookup now resolves the fish pond facility registry while preserving level 2 and level 3 costs."
+        },
+        {
+          "file": "src/data/fishPond.ts",
+          "exportName": "getPondCapacity",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts",
+            "src/views/game/FishPondView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Static capacity lookup preserves the old POND_CAPACITY table values for all three levels."
+        },
+        {
+          "file": "src/data/fishPond.ts",
+          "exportName": "getPondRuntimeCapacity",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts",
+            "src/views/game/FishPondView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Runtime capacity lookup applies the registry-backed unlimitedAtLevel rule while preserving level 3 as infinite capacity."
+        },
+        {
+          "file": "src/data/fishPond.ts",
+          "exportName": "POND_BUILD_COST",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Legacy build-cost constant is retained for compatibility and now derives from the fish pond facility registry facade."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "POND_UPGRADE_COSTS",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts",
-            "src/views/game/FishPondView.vue"
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Legacy upgrade-cost constant is retained for compatibility and now derives from the fish pond facility registry facade."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "POND_CAPACITY",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts",
-            "src/views/game/FishPondView.vue"
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Legacy static level-capacity constant is retained with level 3 equal to 20 while runtime capacity is resolved through getPondRuntimeCapacity()."
         },
         {
           "file": "src/data/fishPond.ts",
@@ -2695,6 +2802,129 @@
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
           "rationale": "Unique registry-free leaf source for all 13 legacy pondable fish definitions; Phase 6 projects every field into taoyuan:pondable_fish and verifies order, genetics and fish pond runtime behavior."
+        }
+      ]
+    },
+    {
+      "file": "src/data/fishPondFacilityDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "fish_pond_facility"
+      ],
+      "candidateTargets": [
+        "taoyuan:fish_pond_facility"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 77,
+      "symbols": [
+        {
+          "file": "src/data/fishPondFacilityDefinitions.ts",
+          "exportName": "FishPondFacilityMaterial",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/domain/mods/schemas.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy fish pond facility material compatibility shape; the public contract is FishPondFacilityDefSchema."
+        },
+        {
+          "file": "src/data/fishPondFacilityDefinitions.ts",
+          "exportName": "FishPondFacilityCost",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/fishPond.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy fish pond facility cost compatibility shape; the public contract is FishPondFacilityDefSchema."
+        },
+        {
+          "file": "src/data/fishPondFacilityDefinitions.ts",
+          "exportName": "FishPondFacilityCapacity",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/domain/mods/schemas.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy fish pond capacity compatibility shape; the public contract is FishPondFacilityDefSchema."
+        },
+        {
+          "file": "src/data/fishPondFacilityDefinitions.ts",
+          "exportName": "FishPondFacilityUpgrade",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/domain/mods/schemas.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy fish pond upgrade compatibility shape; the public contract is FishPondFacilityDefSchema."
+        },
+        {
+          "file": "src/data/fishPondFacilityDefinitions.ts",
+          "exportName": "FishPondFacilityDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/fishPond.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/semanticValidation.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy fish pond facility compatibility shape; the public contract is FishPondFacilityDefSchema."
+        },
+        {
+          "file": "src/data/fishPondFacilityDefinitions.ts",
+          "exportName": "FISH_POND_FACILITY",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:fish_pond_facility",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/fishPond.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/fishPondFacilityRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for fish pond build cost, upgrade costs, level capacities and level-3 unlimited semantics."
         }
       ]
     },
@@ -9414,6 +9644,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies local-ID compatibility lookups, generation/species filters, Gen1 admission candidates and order-insensitive parent-pair lookup to useFishPondStore."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "FishPondFacilityDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:fish_pond_facility",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for fish pond build cost, upgrade cost, level capacity and unlimited-at-level definitions."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyFishPondFacility/createOfficialFishPondFacilities",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:fish_pond_facility",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects the legacy fish pond facility definition into an official registry entry without changing money costs, material costs, level capacities or unlimited level semantics."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialFishPondFacilityDef/getOfficialFishPondFacilityDefs/getOfficialFishPondFacilitiesAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:fish_pond_facility",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry fish pond facility definitions by local or namespaced ID and reconstructs legacy compatibility objects for equivalence checks."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialFishPondFacilityById",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:fish_pond_facility",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Supplies the local-ID compatibility lookup used by fish pond construction, upgrade and capacity facades."
     }
   ]
 }

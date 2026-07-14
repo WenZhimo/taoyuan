@@ -3,9 +3,6 @@ import { defineStore } from 'pinia'
 import type { PondLevel, FishPondState, PondFish, FishGenetics, PondDailyResult, BreedingPair } from '@/types/fishPond'
 import type { Quality } from '@/types'
 import {
-  POND_BUILD_COST,
-  POND_UPGRADE_COSTS,
-  POND_CAPACITY,
   WATER_QUALITY_DECAY_BASE,
   WATER_QUALITY_DECAY_HALF,
   WATER_QUALITY_DECAY_CROWDED,
@@ -19,6 +16,9 @@ import {
   GENETICS_FLUCTUATION_BASE,
   POND_MUTATION_JUMP_MIN,
   POND_MUTATION_JUMP_MAX,
+  getPondBuildCost,
+  getPondRuntimeCapacity,
+  getPondUpgradeCost,
   getPondableFish,
   isPondableFish
 } from '@/data/fishPond'
@@ -63,8 +63,7 @@ export const useFishPondStore = defineStore('fishPond', () => {
 
   const capacity = computed(() => {
     if (!pond.value.built) return 0
-    if (pond.value.level >= 3) return Number.POSITIVE_INFINITY
-    return POND_CAPACITY[pond.value.level]
+    return getPondRuntimeCapacity(pond.value.level)
   })
   const fishCount = computed(() => pond.value.fish.length)
   const isFull = computed(() => fishCount.value >= capacity.value)
@@ -108,12 +107,13 @@ export const useFishPondStore = defineStore('fishPond', () => {
   const buildPond = (): boolean => {
     if (pond.value.built) return false
     const playerStore = usePlayerStore()
+    const cost = getPondBuildCost()
 
-    for (const mat of POND_BUILD_COST.materials) {
+    for (const mat of cost.materials) {
       if (getCombinedItemCount(mat.itemId) < mat.quantity) return false
     }
-    if (!playerStore.spendMoney(POND_BUILD_COST.money)) return false
-    for (const mat of POND_BUILD_COST.materials) {
+    if (!playerStore.spendMoney(cost.money)) return false
+    for (const mat of cost.materials) {
       removeCombinedItem(mat.itemId, mat.quantity)
     }
 
@@ -127,7 +127,8 @@ export const useFishPondStore = defineStore('fishPond', () => {
     if (!pond.value.built) return false
     if (pond.value.level >= 3) return false
     const nextLevel = (pond.value.level + 1) as 2 | 3
-    const cost = POND_UPGRADE_COSTS[nextLevel]
+    const cost = getPondUpgradeCost(nextLevel)
+    if (!cost) return false
 
     const playerStore = usePlayerStore()
 

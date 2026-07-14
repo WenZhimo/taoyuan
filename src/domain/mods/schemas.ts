@@ -322,6 +322,58 @@ export const PondBreedDefSchema = Type.Object(
   { $id: 'taoyuan.registry.PondBreedDef', additionalProperties: false }
 )
 
+export const PondLevelSchema = Type.Union([
+  Type.Literal(1),
+  Type.Literal(2),
+  Type.Literal(3)
+])
+
+export const FishPondFacilityMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const FishPondFacilityCostSchema = Type.Object(
+  {
+    money: Type.Integer({ minimum: 0 }),
+    materials: Type.Array(FishPondFacilityMaterialSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const FishPondFacilityCapacitySchema = Type.Object(
+  {
+    level: PondLevelSchema,
+    capacity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const FishPondFacilityUpgradeSchema = Type.Object(
+  {
+    level: Type.Union([Type.Literal(2), Type.Literal(3)]),
+    capacity: Type.Integer({ minimum: 1 }),
+    cost: FishPondFacilityCostSchema
+  },
+  { additionalProperties: false }
+)
+
+export const FishPondFacilityDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    buildCost: FishPondFacilityCostSchema,
+    capacities: Type.Array(FishPondFacilityCapacitySchema, { minItems: 1 }),
+    upgrades: Type.Array(FishPondFacilityUpgradeSchema),
+    unlimitedAtLevel: Type.Union([PondLevelSchema, Type.Null()])
+  },
+  { $id: 'taoyuan.registry.FishPondFacilityDef', additionalProperties: false }
+)
+
 export const CropDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -667,6 +719,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
+  'taoyuan:fish_pond_facility': FishPondFacilityDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -693,6 +746,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
+  'fish-pond-facility.schema.json': FishPondFacilityDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -725,6 +779,12 @@ export type AnimalIncubationDef = Static<typeof AnimalIncubationDefSchema>
 export type PondFishGenetics = Static<typeof PondFishGeneticsSchema>
 export type PondableFishDef = Static<typeof PondableFishDefSchema>
 export type PondBreedDef = Static<typeof PondBreedDefSchema>
+export type PondLevelDef = Static<typeof PondLevelSchema>
+export type FishPondFacilityMaterial = Static<typeof FishPondFacilityMaterialSchema>
+export type FishPondFacilityCost = Static<typeof FishPondFacilityCostSchema>
+export type FishPondFacilityCapacity = Static<typeof FishPondFacilityCapacitySchema>
+export type FishPondFacilityUpgrade = Static<typeof FishPondFacilityUpgradeSchema>
+export type FishPondFacilityDef = Static<typeof FishPondFacilityDefSchema>
 export type CropDef = Static<typeof CropDefSchema>
 export type TreeDef = Static<typeof TreeDefSchema>
 export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>

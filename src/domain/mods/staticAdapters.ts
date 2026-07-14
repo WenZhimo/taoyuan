@@ -34,6 +34,10 @@ import {
 import { ANIMAL_INCUBATIONS } from '@/data/animalIncubationDefinitions'
 import { PONDABLE_FISH } from '@/data/fishPondDefinitions'
 import { POND_BREEDS } from '@/data/pondBreedDefinitions'
+import {
+  FISH_POND_FACILITY,
+  type FishPondFacilityDef as LegacyFishPondFacilityDef
+} from '@/data/fishPondFacilityDefinitions'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
 import type { AnimalDef as LegacyAnimalDef, RecipeDef as LegacyRecipeDef } from '@/types'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
@@ -64,6 +68,7 @@ import type {
   DropTableDef,
   EnchantmentDef,
   FishDef,
+  FishPondFacilityDef,
   ForageDef,
   ItemDef,
   CropDef,
@@ -146,6 +151,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('pond_breed'),
     description: '鱼塘品种图鉴定义',
     schemaName: 'pond-breed.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('fish_pond_facility'),
+    description: '鱼塘建造、升级和容量定义',
+    schemaName: 'fish-pond-facility.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('monster'),
@@ -546,6 +556,34 @@ export const adaptLegacyPondBreed = (breed: LegacyPondBreedDef): PondBreedDef =>
 
 export const createOfficialPondBreeds = (): PondBreedDef[] => POND_BREEDS.map(adaptLegacyPondBreed)
 
+const adaptLegacyFishPondFacilityCost = (
+  cost: LegacyFishPondFacilityDef['buildCost']
+): FishPondFacilityDef['buildCost'] => ({
+  money: cost.money,
+  materials: cost.materials.map(material => ({
+    itemId: toOfficialContentId(material.itemId),
+    quantity: material.quantity
+  }))
+})
+
+export const adaptLegacyFishPondFacility = (facility: LegacyFishPondFacilityDef): FishPondFacilityDef => ({
+  id: toOfficialContentId(facility.id),
+  name: text(`taoyuan.fish_pond_facility.${facility.id}.name`, facility.name),
+  description: text(`taoyuan.fish_pond_facility.${facility.id}.description`, facility.description),
+  buildCost: adaptLegacyFishPondFacilityCost(facility.buildCost),
+  capacities: facility.capacities.map(capacity => ({ ...capacity })),
+  upgrades: facility.upgrades.map(upgrade => ({
+    level: upgrade.level,
+    capacity: upgrade.capacity,
+    cost: adaptLegacyFishPondFacilityCost(upgrade.cost)
+  })),
+  unlimitedAtLevel: facility.unlimitedAtLevel
+})
+
+export const createOfficialFishPondFacilities = (): FishPondFacilityDef[] => [
+  adaptLegacyFishPondFacility(FISH_POND_FACILITY)
+]
+
 export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
   id: toOfficialContentId(shop.id),
   name: text(`taoyuan.shop.${shop.id}.name`, shop.name),
@@ -840,6 +878,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
   const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
+  const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(toOfficialRegistryTypeId('fish_pond_facility'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
@@ -869,6 +908,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const breed of createOfficialPondBreeds()) {
     pondBreedRegistry.register(owner, breed, { file: 'src/data/pondBreedDefinitions.ts' })
+  }
+  for (const facility of createOfficialFishPondFacilities()) {
+    fishPondFacilityRegistry.register(owner, facility, { file: 'src/data/fishPondFacilityDefinitions.ts' })
   }
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })

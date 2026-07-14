@@ -1,46 +1,64 @@
 import type { PondLevel, PondableFishDef } from '@/types/fishPond'
 import {
+  getOfficialFishPondFacilitiesAsLegacy,
+  getOfficialFishPondFacilityById,
   getOfficialPondableFishById,
   getOfficialPondableFishDefsAsLegacy
 } from '@/domain/mods/contentAccess'
 import { PONDABLE_FISH as LEGACY_PONDABLE_FISH } from './fishPondDefinitions'
+import {
+  FISH_POND_FACILITY as LEGACY_FISH_POND_FACILITY,
+  type FishPondFacilityCost,
+  type FishPondFacilityDef
+} from './fishPondFacilityDefinitions'
 
 export { PONDABLE_FISH } from './fishPondDefinitions'
+export { FISH_POND_FACILITY } from './fishPondFacilityDefinitions'
 
 // === 建造/升级费用 ===
 
-export const POND_BUILD_COST = {
-  money: 5000,
-  materials: [
-    { itemId: 'wood', quantity: 100 },
-    { itemId: 'bamboo', quantity: 50 }
-  ]
+const cloneFacilityCost = (cost: FishPondFacilityCost): FishPondFacilityCost => ({
+  money: cost.money,
+  materials: cost.materials.map(material => ({ ...material }))
+})
+
+const getFishPondFacility = (): FishPondFacilityDef =>
+  getOfficialFishPondFacilityById('fish_pond') ?? LEGACY_FISH_POND_FACILITY
+
+export const getFishPondFacilityDefs = (): FishPondFacilityDef[] =>
+  [...getOfficialFishPondFacilitiesAsLegacy()]
+
+export const getPondBuildCost = (): FishPondFacilityCost =>
+  cloneFacilityCost(getFishPondFacility().buildCost)
+
+export const getPondUpgradeCost = (level: 2 | 3): FishPondFacilityCost | undefined => {
+  const upgrade = getFishPondFacility().upgrades.find(candidate => candidate.level === level)
+  return upgrade ? cloneFacilityCost(upgrade.cost) : undefined
 }
 
-export const POND_UPGRADE_COSTS: Record<2 | 3, { money: number; materials: { itemId: string; quantity: number }[] }> = {
-  2: {
-    money: 10000,
-    materials: [
-      { itemId: 'wood', quantity: 100 },
-      { itemId: 'iron_bar', quantity: 5 }
-    ]
-  },
-  3: {
-    money: 25000,
-    materials: [
-      { itemId: 'wood', quantity: 200 },
-      { itemId: 'gold_bar', quantity: 5 },
-      { itemId: 'iron_bar', quantity: 10 }
-    ]
-  }
+export const getPondCapacity = (level: PondLevel): number =>
+  getFishPondFacility().capacities.find(capacity => capacity.level === level)?.capacity
+    ?? LEGACY_FISH_POND_FACILITY.capacities.find(capacity => capacity.level === level)!.capacity
+
+export const getPondRuntimeCapacity = (level: PondLevel): number => {
+  const facility = getFishPondFacility()
+  if (facility.unlimitedAtLevel !== null && level >= facility.unlimitedAtLevel) return Number.POSITIVE_INFINITY
+  return getPondCapacity(level)
+}
+
+export const POND_BUILD_COST = getPondBuildCost()
+
+export const POND_UPGRADE_COSTS: Record<2 | 3, FishPondFacilityCost> = {
+  2: getPondUpgradeCost(2) ?? cloneFacilityCost(LEGACY_FISH_POND_FACILITY.upgrades.find(upgrade => upgrade.level === 2)!.cost),
+  3: getPondUpgradeCost(3) ?? cloneFacilityCost(LEGACY_FISH_POND_FACILITY.upgrades.find(upgrade => upgrade.level === 3)!.cost)
 }
 
 // === 容量 ===
 
 export const POND_CAPACITY: Record<PondLevel, number> = {
-  1: 5,
-  2: 10,
-  3: 20
+  1: getPondCapacity(1),
+  2: getPondCapacity(2),
+  3: getPondCapacity(3)
 }
 
 // === 水质参数 ===

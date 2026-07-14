@@ -17,6 +17,10 @@ import type {
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
+import type {
+  FishPondFacilityCost as LegacyFishPondFacilityCost,
+  FishPondFacilityDef as LegacyFishPondFacilityDef
+} from '@/data/fishPondFacilityDefinitions'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import {
@@ -40,6 +44,7 @@ import type {
   DropTableDef,
   EnchantmentDef,
   FishDef as FishContentDef,
+  FishPondFacilityDef as FishPondFacilityContentDef,
   FishWeather,
   ForageDef,
   FruitTreeContentDef,
@@ -596,6 +601,54 @@ export const findOfficialPondBreedByParents = (
   )
   return breed ? toLegacyPondBreedDef(breed) : undefined
 }
+
+export const getOfficialFishPondFacilityDef = (
+  id: string = 'fish_pond'
+): Readonly<FishPondFacilityContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<FishPondFacilityContentDef>(toOfficialRegistryTypeId('fish_pond_facility')).get(contentId)
+    : undefined
+}
+
+export const getOfficialFishPondFacilityDefs = (): readonly Readonly<FishPondFacilityContentDef>[] =>
+  getOfficialRegistrySet().get<FishPondFacilityContentDef>(toOfficialRegistryTypeId('fish_pond_facility')).values()
+
+const toLegacyFishPondFacilityCost = (
+  cost: Readonly<FishPondFacilityContentDef['buildCost']>
+): LegacyFishPondFacilityCost => ({
+  money: cost.money,
+  materials: cost.materials.map(material => ({
+    itemId: getLocalContentId(material.itemId),
+    quantity: material.quantity
+  }))
+})
+
+const toLegacyFishPondFacilityDef = (
+  facility: Readonly<FishPondFacilityContentDef>
+): LegacyFishPondFacilityDef => ({
+  id: getLocalContentId(facility.id),
+  name: facility.name.fallback,
+  description: facility.description.fallback,
+  buildCost: toLegacyFishPondFacilityCost(facility.buildCost),
+  capacities: facility.capacities.map(capacity => ({ ...capacity })),
+  upgrades: facility.upgrades.map(upgrade => ({
+    level: upgrade.level,
+    capacity: upgrade.capacity,
+    cost: toLegacyFishPondFacilityCost(upgrade.cost)
+  })),
+  unlimitedAtLevel: facility.unlimitedAtLevel
+})
+
+export const getOfficialFishPondFacilityById = (
+  id: string = 'fish_pond'
+): LegacyFishPondFacilityDef | undefined => {
+  const facility = getOfficialFishPondFacilityDef(id)
+  return facility ? toLegacyFishPondFacilityDef(facility) : undefined
+}
+
+export const getOfficialFishPondFacilitiesAsLegacy = (): readonly LegacyFishPondFacilityDef[] =>
+  getOfficialFishPondFacilityDefs().map(toLegacyFishPondFacilityDef)
 
 const toLegacyForageItemDef = (forage: Readonly<ForageDef>): LegacyForageItemDef => ({
   itemId: getLocalContentId(forage.itemId),
