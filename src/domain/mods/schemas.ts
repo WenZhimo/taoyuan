@@ -378,6 +378,57 @@ export const GuildLevelDefSchema = Type.Object(
   { $id: 'taoyuan.registry.GuildLevelDef', additionalProperties: false }
 )
 
+export const GenderSchema = Type.Union([
+  Type.Literal('male'),
+  Type.Literal('female')
+])
+
+export const NpcFriendshipLevelSchema = Type.Union([
+  Type.Literal('stranger'),
+  Type.Literal('acquaintance'),
+  Type.Literal('friendly'),
+  Type.Literal('bestFriend')
+])
+
+export const NpcDialoguesSchema = Type.Object(
+  {
+    stranger: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    acquaintance: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    friendly: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    bestFriend: Type.Array(LocalizedTextRefSchema, { minItems: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const NpcBirthdaySchema = Type.Object(
+  {
+    season: SeasonSchema,
+    day: Type.Integer({ minimum: 1, maximum: 28 })
+  },
+  { additionalProperties: false }
+)
+
+export const NpcDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    gender: GenderSchema,
+    role: LocalizedTextRefSchema,
+    personality: LocalizedTextRefSchema,
+    lovedItems: Type.Array(ContentIdSchema),
+    likedItems: Type.Array(ContentIdSchema),
+    hatedItems: Type.Array(ContentIdSchema),
+    dialogues: NpcDialoguesSchema,
+    marriageable: Type.Optional(Type.Boolean()),
+    heartEventIds: Type.Optional(Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })),
+    datingDialogues: Type.Optional(Type.Array(LocalizedTextRefSchema, { minItems: 1 })),
+    zhijiDialogues: Type.Optional(Type.Array(LocalizedTextRefSchema, { minItems: 1 })),
+    zhijiHeartEventIds: Type.Optional(Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })),
+    birthday: Type.Optional(NpcBirthdaySchema)
+  },
+  { $id: 'taoyuan.registry.NpcDef', additionalProperties: false }
+)
+
 export const SecretNoteTypeSchema = Type.Union([
   Type.Literal('tip'),
   Type.Literal('treasure'),
@@ -1315,6 +1366,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:guild_goal': GuildGoalDefSchema,
   'taoyuan:guild_donation': GuildDonationDefSchema,
   'taoyuan:guild_level': GuildLevelDefSchema,
+  'taoyuan:npc': NpcDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
@@ -1360,6 +1412,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'guild-goal.schema.json': GuildGoalDefSchema,
   'guild-donation.schema.json': GuildDonationDefSchema,
   'guild-level.schema.json': GuildLevelDefSchema,
+  'npc.schema.json': NpcDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
@@ -1416,6 +1469,11 @@ export type GuildGoalReward = Static<typeof GuildGoalRewardSchema>
 export type GuildGoalDef = Static<typeof GuildGoalDefSchema>
 export type GuildDonationDef = Static<typeof GuildDonationDefSchema>
 export type GuildLevelDef = Static<typeof GuildLevelDefSchema>
+export type GenderDef = Static<typeof GenderSchema>
+export type NpcFriendshipLevel = Static<typeof NpcFriendshipLevelSchema>
+export type NpcDialogues = Static<typeof NpcDialoguesSchema>
+export type NpcBirthday = Static<typeof NpcBirthdaySchema>
+export type NpcDef = Static<typeof NpcDefSchema>
 export type SecretNoteType = Static<typeof SecretNoteTypeSchema>
 export type SecretNoteRewardItem = Static<typeof SecretNoteRewardItemSchema>
 export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>

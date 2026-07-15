@@ -680,7 +680,7 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { SEASON_NAMES } from '@/stores/useGameStore'
   import { getCombinedItemCount } from '@/composables/useCombinedInventory'
-  import { getItemById, getNpcById, NPCS } from '@/data'
+  import { getItemById, getNpcById, getNpcs } from '@/data'
   import { SEASON_EVENTS } from '@/data/events'
   import { ACTION_TIME_COSTS, WEEKDAYS, WEEKDAY_NAMES } from '@/data/timeConstants'
   import type { Quality, ChildStage, PregnancyStage, Season, FarmHelperTask } from '@/types'
@@ -870,7 +870,7 @@
     const entries = []
     for (let d = 1; d <= 28; d++) {
       const festivals = SEASON_EVENTS.filter(e => e.season === s && e.day === d).map(e => ({ name: e.name, description: e.description }))
-      const birthdays = NPCS.filter(npc => npc.birthday?.season === s && npc.birthday?.day === d).map(npc => ({ npcName: npc.name }))
+      const birthdays = getNpcs().filter(npc => npc.birthday?.season === s && npc.birthday?.day === d).map(npc => ({ npcName: npc.name }))
       entries.push({ day: d, festivals, birthdays, isToday: s === gameStore.season && d === gameStore.day })
     }
     return entries

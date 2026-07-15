@@ -33,6 +33,7 @@ import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
 import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
 import { MUSEUM_CATEGORIES, MUSEUM_ITEMS, MUSEUM_MILESTONES } from '@/data/museumDefinitions'
+import { NPCS } from '@/data/npcDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
 import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
@@ -72,6 +73,7 @@ import type {
   AnimalDef as LegacyAnimalDef,
   CommunityBundleDef as LegacyCommunityBundleDef,
   HatDef as LegacyHatDef,
+  NpcDef as LegacyNpcDef,
   RecipeDef as LegacyRecipeDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
   ProcessingRecipeDef as LegacyProcessingRecipeDef,
@@ -125,6 +127,7 @@ import type {
   CropDef,
   MonsterDef,
   MonsterPoolDef,
+  NpcDef,
   PondBreedDef,
   PondableFishDef,
   ProcessingMachineDef,
@@ -223,6 +226,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('guild_level'),
     description: '行会等级经验定义',
     schemaName: 'guild-level.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('npc'),
+    description: '村民 NPC 定义',
+    schemaName: 'npc.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('secret_note'),
@@ -826,6 +834,44 @@ export const adaptLegacyGuildLevel = (level: (typeof GUILD_LEVELS)[number]): Gui
 
 export const createOfficialGuildLevels = (): GuildLevelDef[] => GUILD_LEVELS.map(adaptLegacyGuildLevel)
 
+const adaptNpcDialogues = (
+  npcId: string,
+  dialogues: LegacyNpcDef['dialogues']
+): NpcDef['dialogues'] => ({
+  stranger: dialogues.stranger.map((line, index) => text(`taoyuan.npc.${npcId}.dialogues.stranger.${index}`, line)),
+  acquaintance: dialogues.acquaintance.map((line, index) => text(`taoyuan.npc.${npcId}.dialogues.acquaintance.${index}`, line)),
+  friendly: dialogues.friendly.map((line, index) => text(`taoyuan.npc.${npcId}.dialogues.friendly.${index}`, line)),
+  bestFriend: dialogues.bestFriend.map((line, index) => text(`taoyuan.npc.${npcId}.dialogues.bestFriend.${index}`, line))
+})
+
+const adaptNpcDialogueList = (
+  npcId: string,
+  key: 'datingDialogues' | 'zhijiDialogues',
+  dialogues: readonly string[] | undefined
+) => dialogues?.map((line, index) => text(`taoyuan.npc.${npcId}.${key}.${index}`, line))
+
+const adaptNpcGiftItems = (items: readonly string[]) => items.map(itemId => toOfficialContentId(itemId))
+
+export const adaptLegacyNpc = (npc: LegacyNpcDef): NpcDef => ({
+  id: toOfficialContentId(`npc/${npc.id}`),
+  name: text(`taoyuan.npc.${npc.id}.name`, npc.name),
+  gender: npc.gender,
+  role: text(`taoyuan.npc.${npc.id}.role`, npc.role),
+  personality: text(`taoyuan.npc.${npc.id}.personality`, npc.personality),
+  lovedItems: adaptNpcGiftItems(npc.lovedItems),
+  likedItems: adaptNpcGiftItems(npc.likedItems),
+  hatedItems: adaptNpcGiftItems(npc.hatedItems),
+  dialogues: adaptNpcDialogues(npc.id, npc.dialogues),
+  ...(npc.marriageable !== undefined ? { marriageable: npc.marriageable } : {}),
+  ...(npc.heartEventIds ? { heartEventIds: [...npc.heartEventIds] } : {}),
+  ...(npc.datingDialogues ? { datingDialogues: adaptNpcDialogueList(npc.id, 'datingDialogues', npc.datingDialogues) } : {}),
+  ...(npc.zhijiDialogues ? { zhijiDialogues: adaptNpcDialogueList(npc.id, 'zhijiDialogues', npc.zhijiDialogues) } : {}),
+  ...(npc.zhijiHeartEventIds ? { zhijiHeartEventIds: [...npc.zhijiHeartEventIds] } : {}),
+  ...(npc.birthday ? { birthday: { ...npc.birthday } } : {})
+})
+
+export const createOfficialNpcs = (): NpcDef[] => NPCS.map(adaptLegacyNpc)
+
 const adaptAchievementRewardItems = (
   items: NonNullable<LegacyAchievementDef['reward']['items']> | NonNullable<LegacyCommunityBundleDef['reward']['items']>
 ) =>
@@ -1424,6 +1470,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const guildGoalRegistry = registrySet.get<GuildGoalDef>(toOfficialRegistryTypeId('guild_goal'))
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(toOfficialRegistryTypeId('guild_donation'))
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(toOfficialRegistryTypeId('guild_level'))
+  const npcRegistry = registrySet.get<NpcDef>(toOfficialRegistryTypeId('npc'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
@@ -1478,6 +1525,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const level of createOfficialGuildLevels()) {
     guildLevelRegistry.register(owner, level, { file: 'src/data/guildDefinitions.ts' })
+  }
+  for (const npc of createOfficialNpcs()) {
+    npcRegistry.register(owner, npc, { file: 'src/data/npcDefinitions.ts' })
   }
   for (const achievement of createOfficialAchievements()) {
     achievementRegistry.register(owner, achievement, { file: 'src/data/achievementDefinitions.ts' })

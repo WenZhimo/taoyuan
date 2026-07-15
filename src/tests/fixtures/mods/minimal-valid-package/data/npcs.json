@@ -1,0 +1,51 @@
+[
+  {
+    "id": "example_mod:test_npc",
+    "name": {
+      "key": "example_mod.npc.test.name",
+      "fallback": "测试村民"
+    },
+    "gender": "female",
+    "role": {
+      "key": "example_mod.npc.test.role",
+      "fallback": "测试员"
+    },
+    "personality": {
+      "key": "example_mod.npc.test.personality",
+      "fallback": "认真"
+    },
+    "lovedItems": ["example_mod:test_item"],
+    "likedItems": ["example_mod:test_item"],
+    "hatedItems": ["example_mod:test_item"],
+    "dialogues": {
+      "stranger": [
+        {
+          "key": "example_mod.npc.test.dialogues.stranger.0",
+          "fallback": "你好。"
+        }
+      ],
+      "acquaintance": [
+        {
+          "key": "example_mod.npc.test.dialogues.acquaintance.0",
+          "fallback": "又见面了。"
+        }
+      ],
+      "friendly": [
+        {
+          "key": "example_mod.npc.test.dialogues.friendly.0",
+          "fallback": "今天也辛苦了。"
+        }
+      ],
+      "bestFriend": [
+        {
+          "key": "example_mod.npc.test.dialogues.bestFriend.0",
+          "fallback": "你是可靠的朋友。"
+        }
+      ]
+    },
+    "birthday": {
+      "season": "spring",
+      "day": 1
+    }
+  }
+]

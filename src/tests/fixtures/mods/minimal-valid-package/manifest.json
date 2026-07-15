@@ -125,6 +125,9 @@
     "taoyuan:guild_level": [
       "data/guild-levels.json"
     ],
+    "taoyuan:npc": [
+      "data/npcs.json"
+    ],
     "taoyuan:achievement": [
       "data/achievements.json"
     ],

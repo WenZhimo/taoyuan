@@ -38,7 +38,7 @@
       <!-- NPC 网格：移动端紧凑，桌面端详细 -->
       <div class="grid grid-cols-4 md:grid-cols-3 gap-1.5 md:gap-2">
         <div
-          v-for="npc in NPCS"
+          v-for="npc in npcs"
           :key="npc.id"
           class="border border-accent/20 rounded-xs p-1.5 md:p-2 transition-colors"
           :class="[npcAvailable(npc.id) ? 'cursor-pointer hover:bg-accent/5' : 'opacity-50', 'text-center md:text-left']"
@@ -583,7 +583,7 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { useHiddenNpcStore } from '@/stores/useHiddenNpcStore'
-  import { NPCS, getNpcById, getItemById, getHeartEventById } from '@/data'
+  import { getNpcs, getNpcById, getItemById, getHeartEventById } from '@/data'
   import { getHiddenNpcById } from '@/data/hiddenNpcs'
   import { ACTION_TIME_COSTS, isNpcAvailable } from '@/data/timeConstants'
   import { TIP_NPC_LABELS } from '@/data/npcTips'
@@ -606,6 +606,7 @@
   const playerStore = usePlayerStore()
   const tutorialStore = useTutorialStore()
   const hiddenNpcStore = useHiddenNpcStore()
+  const npcs = computed(() => getNpcs())
 
   const activeTab = ref<'villager' | 'spirit'>('villager')
   const selectedHiddenNpc = ref<string | null>(null)
@@ -756,7 +757,7 @@
     return groupInventoryItemsByQuality(sorted)
   })
 
-  const oneClickTalkTargets = computed(() => NPCS.filter(npc => npcAvailable(npc.id) && !npcStore.getNpcState(npc.id)?.talkedToday))
+  const oneClickTalkTargets = computed(() => npcs.value.filter(npc => npcAvailable(npc.id) && !npcStore.getNpcState(npc.id)?.talkedToday))
   const oneClickTalkCount = computed(() => oneClickTalkTargets.value.length)
   const QUALITY_SCORE: Record<Quality, number> = {
     normal: 0,
@@ -789,12 +790,12 @@
   }
 
   const oneClickGiftPlans = computed(() =>
-    NPCS.map(npc => {
+    npcs.value.map(npc => {
       const state = npcStore.getNpcState(npc.id)
       if (!state || !npcAvailable(npc.id) || state.giftedToday || state.giftsThisWeek >= 2) return null
       const gift = getBestGiftForNpc(npc)
       return gift ? { npc, gift } : null
-    }).filter((plan): plan is { npc: (typeof NPCS)[number]; gift: NonNullable<ReturnType<typeof getBestGiftForNpc>> } => !!plan)
+    }).filter((plan): plan is { npc: NonNullable<ReturnType<typeof getNpcById>>; gift: NonNullable<ReturnType<typeof getBestGiftForNpc>> } => !!plan)
   )
 
   /** 是否可以赠帕开始约会 */
@@ -1008,7 +1009,7 @@
     const giftMultiplier = cookingGiftBonus * (1 + ringGiftBonus)
 
     let gifted = 0
-    for (const npc of NPCS) {
+    for (const npc of npcs.value) {
       const state = npcStore.getNpcState(npc.id)
       if (!state || !npcAvailable(npc.id) || state.giftedToday || state.giftsThisWeek >= 2) continue
       const gift = getBestGiftForNpc(npc)

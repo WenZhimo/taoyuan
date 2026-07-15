@@ -31,6 +31,7 @@ import type {
   GuildLevelDef,
   MonsterDef,
   MonsterPoolDef,
+  NpcDef,
   PackageManifest,
   PondBreedDef,
   PondableFishDef,
@@ -62,6 +63,7 @@ const REGISTRY_IDS = {
   guildGoal: toOfficialRegistryTypeId('guild_goal'),
   guildDonation: toOfficialRegistryTypeId('guild_donation'),
   guildLevel: toOfficialRegistryTypeId('guild_level'),
+  npc: toOfficialRegistryTypeId('npc'),
   achievement: toOfficialRegistryTypeId('achievement'),
   communityBundle: toOfficialRegistryTypeId('community_bundle'),
   secretNote: toOfficialRegistryTypeId('secret_note'),
@@ -135,6 +137,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const guildGoalRegistry = registrySet.get<GuildGoalDef>(REGISTRY_IDS.guildGoal)
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(REGISTRY_IDS.guildDonation)
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(REGISTRY_IDS.guildLevel)
+  const npcRegistry = registrySet.get<NpcDef>(REGISTRY_IDS.npc)
   const achievementRegistry = registrySet.get<AchievementDef>(REGISTRY_IDS.achievement)
   const communityBundleRegistry = registrySet.get<CommunityBundleDef>(REGISTRY_IDS.communityBundle)
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
@@ -457,6 +460,26 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
           fieldPath: '/expRequired'
         })
       )
+    }
+  }
+
+  for (const record of npcRegistry.entries()) {
+    const giftGroups = [
+      { items: record.entry.lovedItems, fieldPath: '/lovedItems' },
+      { items: record.entry.likedItems, fieldPath: '/likedItems' },
+      { items: record.entry.hatedItems, fieldPath: '/hatedItems' }
+    ]
+    for (const group of giftGroups) {
+      group.items.forEach((itemId, index) => {
+        if (!itemRegistry.has(contentId(itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(itemId),
+            fieldPath: `${group.fieldPath}/${index}`
+          })
+        }
+      })
     }
   }
 

@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 71,
-    "approximateLineCount": 31350,
+    "fileCount": 72,
+    "approximateLineCount": 31358,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 562,
-    "reviewedArtifactCount": 99
+    "symbolCount": 564,
+    "reviewedArtifactCount": 103
   },
   "entries": [
     {
@@ -26,7 +26,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 1294,
+      "lines": 1292,
       "symbols": [
         {
           "file": "src/data/achievementDefinitions.ts",
@@ -7161,8 +7161,44 @@
       ]
     },
     {
+      "file": "src/data/npcDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "npc"
+      ],
+      "candidateTargets": [
+        "taoyuan:npc"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 754,
+      "symbols": [
+        {
+          "file": "src/data/npcDefinitions.ts",
+          "exportName": "NPCS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:npc",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/npcs.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/npcRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy village NPC definitions; Phase 6 projects stable NPC IDs, display text, gift preferences, dialogues, birthdays and compatibility event IDs into taoyuan:npc."
+        }
+      ]
+    },
+    {
       "file": "src/data/npcs.ts",
-      "lines": 758,
       "classification": "mixed",
       "domains": [
         "npc",
@@ -7176,33 +7212,53 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 14,
       "symbols": [
         {
           "file": "src/data/npcs.ts",
           "exportName": "NPCS",
-          "syntaxKind": "const",
-          "classification": "content",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:npc",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useNpcStore.ts",
+            "src/data/npcDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/npcRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy NPCS imports stable while runtime list queries resolve taoyuan:npc through compatibility facades."
+        },
+        {
+          "file": "src/data/npcs.ts",
+          "exportName": "getNpcs",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:npc",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/npcRegistryPilot.test.ts",
             "src/views/game/CottageView.vue",
             "src/views/game/NpcView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Legacy NPC list query returns local-ID compatibility objects reconstructed from taoyuan:npc."
         },
         {
           "file": "src/data/npcs.ts",
           "exportName": "getNpcById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:npc",
           "persistentIds": false,
           "consumers": [
             "src/composables/useEndDay.ts",
@@ -7210,6 +7266,7 @@
             "src/data/timeConstants.ts",
             "src/stores/useNpcStore.ts",
             "src/stores/useQuestStore.ts",
+            "src/tests/domain/npcRegistryPilot.test.ts",
             "src/views/GameLayout.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/CottageView.vue",
@@ -7218,8 +7275,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getNpcById() signature is retained and now resolves taoyuan:npc by local or namespaced ID before falling back to the static rollback path."
         }
       ]
     },
@@ -12242,6 +12299,54 @@
       ],
       "status": "verified",
       "rationale": "Checks guild donation item references against taoyuan:item before registry snapshots are accepted."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "NpcDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:npc",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for village NPC definitions, including localized display text, gift preferences, dialogues, birthdays and compatibility event ID lists."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyNpc/createOfficialNpcs",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:npc",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy village NPC into ordered official entries without changing local NPC IDs, names, roles, gift preferences, dialogues, marriage flags, birthdays or event ID strings."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialNpcDef/getOfficialNpcDefs/getOfficialNpcById/getOfficialNpcsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:npc",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry NPC definitions and reconstructs legacy NpcDef objects for Store, calendar and NPC view consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:npc",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:npc",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks NPC loved, liked and hated item references against taoyuan:item while deferring heart-event ID validation to a future heart_event slice."
     },
     {
       "file": "src/domain/mods/schemas.ts",

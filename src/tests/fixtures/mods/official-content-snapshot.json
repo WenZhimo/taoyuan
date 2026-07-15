@@ -65045,6 +65045,3353 @@
       ]
     },
     {
+      "registryId": "taoyuan:npc",
+      "schemaName": "npc.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 5,
+              "season": "winter"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}！今天牛又从栅栏里跑出来了，嘿嘿。",
+                  "key": "taoyuan.npc.a_fu.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "大牛哥说我以后能当牧场主！",
+                  "key": "taoyuan.npc.a_fu.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}对我真好……跟大牛哥一样好。",
+                  "key": "taoyuan.npc.a_fu.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "等我长大了，也要像{title}一样有出息！",
+                  "key": "taoyuan.npc.a_fu.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}家的鸡下蛋了没？我家牛今天产奶了！",
+                  "key": "taoyuan.npc.a_fu.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "我给{title}编了个草帽，不好看但能遮太阳！",
+                  "key": "taoyuan.npc.a_fu.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "嘿嘿，你好！我是阿福！我帮大牛哥看牛的！",
+                  "key": "taoyuan.npc.a_fu.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "牛最可爱了，{title}你说对不对！",
+                  "key": "taoyuan.npc.a_fu.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:jade",
+              "taoyuan:silk"
+            ],
+            "id": "taoyuan:npc/a_fu",
+            "likedItems": [
+              "taoyuan:corn",
+              "taoyuan:hay",
+              "taoyuan:wild_berry",
+              "taoyuan:truffle",
+              "taoyuan:buffalo_milk",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:sweet_potato",
+              "taoyuan:milk",
+              "taoyuan:goat_milk"
+            ],
+            "name": {
+              "fallback": "阿福",
+              "key": "taoyuan.npc.a_fu.name"
+            },
+            "personality": {
+              "fallback": "憨厚乐观",
+              "key": "taoyuan.npc.a_fu.personality"
+            },
+            "role": {
+              "fallback": "放牛娃",
+              "key": "taoyuan.npc.a_fu.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 1,
+              "season": "spring"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}！今天石头又欺负我了！哼！",
+                  "key": "taoyuan.npc.a_hua.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "周先生教我写\"花\"字，可难了。",
+                  "key": "taoyuan.npc.a_hua.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}，我画了一幅画送给你！你看，这是你在种田。",
+                  "key": "taoyuan.npc.a_hua.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "长大以后我也要像{title}一样厉害！",
+                  "key": "taoyuan.npc.a_hua.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，给你看我捡的漂亮石头！",
+                  "key": "taoyuan.npc.a_hua.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "我最喜欢{title}了！比石头好一百倍！",
+                  "key": "taoyuan.npc.a_hua.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "你是谁呀？我叫阿花！爷爷说不能跟陌生人说话……啊我说了！",
+                  "key": "taoyuan.npc.a_hua.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}你种的什么呀？好看不好看？",
+                  "key": "taoyuan.npc.a_hua.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:herb",
+              "taoyuan:ginseng"
+            ],
+            "id": "taoyuan:npc/a_hua",
+            "likedItems": [
+              "taoyuan:peach",
+              "taoyuan:honey",
+              "taoyuan:peanut",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:watermelon",
+              "taoyuan:wild_berry"
+            ],
+            "name": {
+              "fallback": "阿花",
+              "key": "taoyuan.npc.a_hua.name"
+            },
+            "personality": {
+              "fallback": "天真烂漫",
+              "key": "taoyuan.npc.a_hua.personality"
+            },
+            "role": {
+              "fallback": "陈伯的孙女",
+              "key": "taoyuan.npc.a_hua.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 5,
+              "season": "autumn"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "……{player}，这块矿石很漂亮。像你的眼睛。",
+                "key": "taoyuan.npc.a_shi.datingDialogues.0"
+              },
+              {
+                "fallback": "以前觉得矿洞最好，现在……有{title}在的地方更好。",
+                "key": "taoyuan.npc.a_shi.datingDialogues.1"
+              },
+              {
+                "fallback": "我不太会说话……但{player}在身边就够了。",
+                "key": "taoyuan.npc.a_shi.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}也去挖矿？……带上镐。",
+                  "key": "taoyuan.npc.a_shi.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "深层有好东西，也有危险。",
+                  "key": "taoyuan.npc.a_shi.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "……{player}是我第一个朋友。",
+                  "key": "taoyuan.npc.a_shi.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "最深处的宝藏……我只告诉{title}。",
+                  "key": "taoyuan.npc.a_shi.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "这块矿石不错，给{title}。",
+                  "key": "taoyuan.npc.a_shi.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "{player}的镐该升级了，我可以帮你看看。",
+                  "key": "taoyuan.npc.a_shi.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "……嗯。",
+                  "key": "taoyuan.npc.a_shi.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "矿洞……{title}小心点。",
+                  "key": "taoyuan.npc.a_shi.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:chrysanthemum",
+              "taoyuan:wintersweet"
+            ],
+            "heartEventIds": [
+              "a_shi_heart_3",
+              "a_shi_heart_5",
+              "a_shi_heart_8"
+            ],
+            "id": "taoyuan:npc/a_shi",
+            "likedItems": [
+              "taoyuan:gold_ore",
+              "taoyuan:iron_ore",
+              "taoyuan:potato",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:ruby",
+              "taoyuan:jade",
+              "taoyuan:hanhai_turquoise"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "阿石",
+              "key": "taoyuan.npc.a_shi.name"
+            },
+            "personality": {
+              "fallback": "沉默寡言",
+              "key": "taoyuan.npc.a_shi.personality"
+            },
+            "role": {
+              "fallback": "矿工",
+              "key": "taoyuan.npc.a_shi.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "……有你在旁边挖矿，效率好像变高了。",
+                "key": "taoyuan.npc.a_shi.zhijiDialogues.0"
+              },
+              {
+                "fallback": "{player}，这块矿石……只有知己才配拥有。",
+                "key": "taoyuan.npc.a_shi.zhijiDialogues.1"
+              },
+              {
+                "fallback": "不用说话也很自在……这就是知己吧。",
+                "key": "taoyuan.npc.a_shi.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "a_shi_zhiji_7",
+              "a_shi_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 15,
+              "season": "autumn"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "我、我给{player}打了个铁花……不好看的话就扔掉吧……",
+                "key": "taoyuan.npc.a_tie.datingDialogues.0"
+              },
+              {
+                "fallback": "有{title}在旁边看着我打铁，感觉锤子都轻了。",
+                "key": "taoyuan.npc.a_tie.datingDialogues.1"
+              },
+              {
+                "fallback": "{player}……我会努力出师的，然后……照顾你一辈子。",
+                "key": "taoyuan.npc.a_tie.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}的工具有要修的么？我、我可以帮忙。",
+                  "key": "taoyuan.npc.a_tie.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "今天打了一把好刀，孙师父居然夸我了！",
+                  "key": "taoyuan.npc.a_tie.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}……谢谢你一直鼓励我。",
+                  "key": "taoyuan.npc.a_tie.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "等我出师了，第一件作品送给{title}。",
+                  "key": "taoyuan.npc.a_tie.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "我偷偷给{player}的工具加了料，更耐用了。",
+                  "key": "taoyuan.npc.a_tie.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "{title}是唯一不笑话我笨手笨脚的人……",
+                  "key": "taoyuan.npc.a_tie.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "啊，你、你好！我是阿铁……孙师父的学徒。",
+                  "key": "taoyuan.npc.a_tie.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "打铁很累，但很有意思……{title}要看看么？",
+                  "key": "taoyuan.npc.a_tie.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:chrysanthemum",
+              "taoyuan:silk"
+            ],
+            "heartEventIds": [
+              "a_tie_heart_3",
+              "a_tie_heart_5",
+              "a_tie_heart_8"
+            ],
+            "id": "taoyuan:npc/a_tie",
+            "likedItems": [
+              "taoyuan:copper_ore",
+              "taoyuan:potato",
+              "taoyuan:corn",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:gold_ore"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "阿铁",
+              "key": "taoyuan.npc.a_tie.name"
+            },
+            "personality": {
+              "fallback": "憨厚老实",
+              "key": "taoyuan.npc.a_tie.personality"
+            },
+            "role": {
+              "fallback": "铁匠学徒",
+              "key": "taoyuan.npc.a_tie.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "有、有{player}在，我打铁更有劲了！知己就是这样吧！",
+                "key": "taoyuan.npc.a_tie.zhijiDialogues.0"
+              },
+              {
+                "fallback": "我给你打了个新工具，比、比给别人的都结实！",
+                "key": "taoyuan.npc.a_tie.zhijiDialogues.1"
+              },
+              {
+                "fallback": "{title}是我最好的兄弟！……啊不，是知己！",
+                "key": "taoyuan.npc.a_tie.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "a_tie_zhiji_7",
+              "a_tie_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 8,
+              "season": "spring"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "哈哈，{title}又来了！今天想买点什么？",
+                  "key": "taoyuan.npc.chen_bo.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "最近进了些好货，你来看看。",
+                  "key": "taoyuan.npc.chen_bo.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}，你就像我自己的孩子一样。",
+                  "key": "taoyuan.npc.chen_bo.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "这铺子，将来说不定就交给你了……开个玩笑。",
+                  "key": "taoyuan.npc.chen_bo.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}跟你祖父年轻时一个样，能吃苦。",
+                  "key": "taoyuan.npc.chen_bo.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "有些好东西，我只留给{title}你。",
+                  "key": "taoyuan.npc.chen_bo.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "客官，初来乍到吧？老朽陈伯，万物铺就是我开的。",
+                  "key": "taoyuan.npc.chen_bo.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}，有什么需要的尽管来，童叟无欺。",
+                  "key": "taoyuan.npc.chen_bo.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:copper_ore",
+              "taoyuan:quartz"
+            ],
+            "id": "taoyuan:npc/chen_bo",
+            "likedItems": [
+              "taoyuan:cabbage",
+              "taoyuan:rice",
+              "taoyuan:potato",
+              "taoyuan:goat_milk",
+              "taoyuan:truffle",
+              "taoyuan:rabbit_foot",
+              "taoyuan:hanhai_spice",
+              "taoyuan:ginseng_tea",
+              "taoyuan:cheese"
+            ],
+            "lovedItems": [
+              "taoyuan:tea",
+              "taoyuan:osmanthus",
+              "taoyuan:ginseng"
+            ],
+            "name": {
+              "fallback": "陈伯",
+              "key": "taoyuan.npc.chen_bo.name"
+            },
+            "personality": {
+              "fallback": "热心豪爽",
+              "key": "taoyuan.npc.chen_bo.personality"
+            },
+            "role": {
+              "fallback": "万物铺老板",
+              "key": "taoyuan.npc.chen_bo.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 3,
+              "season": "spring"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "这盏茶，是我为{player}特别调配的，尝尝看。",
+                "key": "taoyuan.npc.chun_lan.datingDialogues.0"
+              },
+              {
+                "fallback": "和{title}品茶的午后，是我最珍贵的时光。",
+                "key": "taoyuan.npc.chun_lan.datingDialogues.1"
+              },
+              {
+                "fallback": "{player}，以后的每一天，都愿与你共饮一壶清茶。",
+                "key": "taoyuan.npc.chun_lan.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "今日泡的是明前龙井，{title}尝尝？",
+                  "key": "taoyuan.npc.chun_lan.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "采茶要赶在清晨露珠未干时，那时的叶子最嫩。",
+                  "key": "taoyuan.npc.chun_lan.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "和{title}品茶的时光，是我一天中最期待的事。",
+                  "key": "taoyuan.npc.chun_lan.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "这盏茶，只为{player}而泡。",
+                  "key": "taoyuan.npc.chun_lan.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}的口味我记住了，特意留了你喜欢的茶。",
+                  "key": "taoyuan.npc.chun_lan.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "我家有几亩茶园，改天带{title}去看看。",
+                  "key": "taoyuan.npc.chun_lan.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "请进，喝杯茶吧。我是春兰，这茶庄是祖上传下来的。",
+                  "key": "taoyuan.npc.chun_lan.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}若喜欢喝茶，以后常来坐坐。",
+                  "key": "taoyuan.npc.chun_lan.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:copper_ore"
+            ],
+            "heartEventIds": [
+              "chun_lan_heart_3",
+              "chun_lan_heart_5",
+              "chun_lan_heart_8"
+            ],
+            "id": "taoyuan:npc/chun_lan",
+            "likedItems": [
+              "taoyuan:honey",
+              "taoyuan:lotus_seed",
+              "taoyuan:peach",
+              "taoyuan:rabbit_foot",
+              "taoyuan:hanhai_silk",
+              "taoyuan:chrysanthemum_honey",
+              "taoyuan:mayonnaise"
+            ],
+            "lovedItems": [
+              "taoyuan:tea",
+              "taoyuan:osmanthus",
+              "taoyuan:chrysanthemum"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "春兰",
+              "key": "taoyuan.npc.chun_lan.name"
+            },
+            "personality": {
+              "fallback": "温婉端庄",
+              "key": "taoyuan.npc.chun_lan.personality"
+            },
+            "role": {
+              "fallback": "茶庄女主人",
+              "key": "taoyuan.npc.chun_lan.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "这盏茶，只为知己而沏。{player}请慢用。",
+                "key": "taoyuan.npc.chun_lan.zhijiDialogues.0"
+              },
+              {
+                "fallback": "茶庄的事，以前只有我一个人扛。有{title}在，轻松了许多。",
+                "key": "taoyuan.npc.chun_lan.zhijiDialogues.1"
+              },
+              {
+                "fallback": "红颜知己共品茗，人生至乐莫过于此。",
+                "key": "taoyuan.npc.chun_lan.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "chun_lan_zhiji_7",
+              "chun_lan_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 3,
+              "season": "winter"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "{player}！今天小牛犊出生了！我第一个想告诉你！",
+                "key": "taoyuan.npc.da_niu.datingDialogues.0"
+              },
+              {
+                "fallback": "嘿嘿，和{title}在一起比和牛在一起还开心！",
+                "key": "taoyuan.npc.da_niu.datingDialogues.1"
+              },
+              {
+                "fallback": "以后咱们的牧场一定是全村最大的！{player}你信不信？",
+                "key": "taoyuan.npc.da_niu.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "我家那头老黄牛今天心情特别好！",
+                  "key": "taoyuan.npc.da_niu.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "{title}，你摸摸这只小羊，软不软？",
+                  "key": "taoyuan.npc.da_niu.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}是我见过最会照顾动物的人！",
+                  "key": "taoyuan.npc.da_niu.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}，将来咱们合开一个大牧场怎么样？",
+                  "key": "taoyuan.npc.da_niu.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}的鸡养得真不错，有我当年的风范！",
+                  "key": "taoyuan.npc.da_niu.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "有空来我家，我给{title}看看新生的小牛犊！",
+                  "key": "taoyuan.npc.da_niu.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "嘿！你好你好！我是大牛！我最喜欢牛了！",
+                  "key": "taoyuan.npc.da_niu.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}养动物了么？我可以教你！",
+                  "key": "taoyuan.npc.da_niu.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:ruby",
+              "taoyuan:moonstone"
+            ],
+            "heartEventIds": [
+              "da_niu_heart_3",
+              "da_niu_heart_5",
+              "da_niu_heart_8"
+            ],
+            "id": "taoyuan:npc/da_niu",
+            "likedItems": [
+              "taoyuan:egg",
+              "taoyuan:corn",
+              "taoyuan:sweet_potato",
+              "taoyuan:truffle",
+              "taoyuan:donkey_milk",
+              "taoyuan:rabbit_foot",
+              "taoyuan:cheese",
+              "taoyuan:dried_mushroom"
+            ],
+            "lovedItems": [
+              "taoyuan:milk",
+              "taoyuan:hay",
+              "taoyuan:goat_milk",
+              "taoyuan:buffalo_milk",
+              "taoyuan:yak_milk"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "大牛",
+              "key": "taoyuan.npc.da_niu.name"
+            },
+            "personality": {
+              "fallback": "憨直热情",
+              "key": "taoyuan.npc.da_niu.personality"
+            },
+            "role": {
+              "fallback": "牧场小伙",
+              "key": "taoyuan.npc.da_niu.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "{player}！你是我最铁的兄弟！比福宝还铁！",
+                "key": "taoyuan.npc.da_niu.zhijiDialogues.0"
+              },
+              {
+                "fallback": "有你陪我看牛、淋雨、赶羊……比什么都开心！",
+                "key": "taoyuan.npc.da_niu.zhijiDialogues.1"
+              },
+              {
+                "fallback": "咱俩以后合开牧场吧！知己搭伙，天下无敌！",
+                "key": "taoyuan.npc.da_niu.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "da_niu_zhiji_7",
+              "da_niu_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 22,
+              "season": "spring"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "今日写了一首词，是关于{player}的……要听吗？",
+                "key": "taoyuan.npc.dan_qing.datingDialogues.0"
+              },
+              {
+                "fallback": "遇见{title}之前，我以为此生只与书卷为伴。",
+                "key": "taoyuan.npc.dan_qing.datingDialogues.1"
+              },
+              {
+                "fallback": "{player}，\"执子之手，与子偕老\"，愿与你共赴白头。",
+                "key": "taoyuan.npc.dan_qing.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "今日读了一篇好文章，与{title}分享。",
+                  "key": "taoyuan.npc.dan_qing.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "\"山不在高，有仙则名\"——桃源乡便是如此。",
+                  "key": "taoyuan.npc.dan_qing.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "若非遇见{player}，我早已离开此地了。",
+                  "key": "taoyuan.npc.dan_qing.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "笔墨纸砚，不如{title}一笑。",
+                  "key": "taoyuan.npc.dan_qing.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，改日我为你写一幅字吧。",
+                  "key": "taoyuan.npc.dan_qing.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "有{title}这样的知己，此生无憾。",
+                  "key": "taoyuan.npc.dan_qing.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "在下丹青，游学至此，被这桃源胜景留住了脚步。",
+                  "key": "taoyuan.npc.dan_qing.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}也是喜欢读书之人么？",
+                  "key": "taoyuan.npc.dan_qing.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:copper_ore",
+              "taoyuan:firewood"
+            ],
+            "heartEventIds": [
+              "dan_qing_heart_3",
+              "dan_qing_heart_5",
+              "dan_qing_heart_8"
+            ],
+            "id": "taoyuan:npc/dan_qing",
+            "likedItems": [
+              "taoyuan:chrysanthemum",
+              "taoyuan:osmanthus",
+              "taoyuan:pine_cone",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:tea",
+              "taoyuan:bamboo"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "丹青",
+              "key": "taoyuan.npc.dan_qing.name"
+            },
+            "personality": {
+              "fallback": "儒雅温文",
+              "key": "taoyuan.npc.dan_qing.personality"
+            },
+            "role": {
+              "fallback": "书生",
+              "key": "taoyuan.npc.dan_qing.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "高山流水，觅得知音。{player}，你便是我的子期。",
+                "key": "taoyuan.npc.dan_qing.zhijiDialogues.0"
+              },
+              {
+                "fallback": "今日又写了一篇新文，第一个想给{title}看。",
+                "key": "taoyuan.npc.dan_qing.zhijiDialogues.1"
+              },
+              {
+                "fallback": "有{player}这般知己，纵使布衣一生，又有何憾？",
+                "key": "taoyuan.npc.dan_qing.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "dan_qing_zhiji_7",
+              "dan_qing_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 15,
+              "season": "spring"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}的老位子给你留着呢！",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "村里的八卦——不是，消息，都在茶楼里传。",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "论起{player}的为人，全村没一个不竖大拇指的。",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}的茶钱？免了免了！老朋友还收什么钱。",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}啊，你那些农场趣事我都听说了，哈哈哈！",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "好茶配好友，{title}你就是我的好友！",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "哎哟哟，贵客临门！小店何掌柜，给您沏壶好茶！",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}头一回来吧？坐坐坐！",
+                  "key": "taoyuan.npc.he_zhanggui.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:stone"
+            ],
+            "id": "taoyuan:npc/he_zhanggui",
+            "likedItems": [
+              "taoyuan:osmanthus",
+              "taoyuan:lotus_seed",
+              "taoyuan:peanut",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:tea",
+              "taoyuan:honey"
+            ],
+            "name": {
+              "fallback": "何掌柜",
+              "key": "taoyuan.npc.he_zhanggui.name"
+            },
+            "personality": {
+              "fallback": "圆滑健谈",
+              "key": "taoyuan.npc.he_zhanggui.personality"
+            },
+            "role": {
+              "fallback": "茶楼掌柜",
+              "key": "taoyuan.npc.he_zhanggui.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 10,
+              "season": "autumn"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "{player}！来，陪我喝一杯！今天的酒特别甜。",
+                "key": "taoyuan.npc.hong_dou.datingDialogues.0"
+              },
+              {
+                "fallback": "嘿，{title}，你是唯一能让我脸红的人。",
+                "key": "taoyuan.npc.hong_dou.datingDialogues.1"
+              },
+              {
+                "fallback": "以后酒庄的酒，全给{player}留着！谁也别想抢！",
+                "key": "taoyuan.npc.hong_dou.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "今年的桃花酿不错，{title}来碗？",
+                  "key": "taoyuan.npc.hong_dou.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "酿酒的秘诀就是——用心！和大量的耐心。",
+                  "key": "taoyuan.npc.hong_dou.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "全村就{title}你配得上喝我的珍藏。",
+                  "key": "taoyuan.npc.hong_dou.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{player}在，酒才香。",
+                  "key": "taoyuan.npc.hong_dou.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}算我的好朋友，这坛子酒送你了！",
+                  "key": "taoyuan.npc.hong_dou.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "下回咱们划拳喝酒，谁输谁请客！",
+                  "key": "taoyuan.npc.hong_dou.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "哟，来一壶？我是红豆，这酒庄的当家人！",
+                  "key": "taoyuan.npc.hong_dou.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "不喝酒也行，进来坐坐，{title}别客气。",
+                  "key": "taoyuan.npc.hong_dou.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:tea",
+              "taoyuan:herb"
+            ],
+            "heartEventIds": [
+              "hong_dou_heart_3",
+              "hong_dou_heart_5",
+              "hong_dou_heart_8"
+            ],
+            "id": "taoyuan:npc/hong_dou",
+            "likedItems": [
+              "taoyuan:watermelon",
+              "taoyuan:peanut",
+              "taoyuan:corn",
+              "taoyuan:rabbit_foot",
+              "taoyuan:corn_wine",
+              "taoyuan:cactus_wine"
+            ],
+            "lovedItems": [
+              "taoyuan:watermelon_wine",
+              "taoyuan:peach_wine",
+              "taoyuan:jujube_wine"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "红豆",
+              "key": "taoyuan.npc.hong_dou.name"
+            },
+            "personality": {
+              "fallback": "豪爽大方",
+              "key": "taoyuan.npc.hong_dou.personality"
+            },
+            "role": {
+              "fallback": "酒庄女",
+              "key": "taoyuan.npc.hong_dou.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "{player}！来！知己之间喝酒不用客气！干了！",
+                "key": "taoyuan.npc.hong_dou.zhijiDialogues.0"
+              },
+              {
+                "fallback": "全天下能跟我拼酒的只有{title}！这就是知己！",
+                "key": "taoyuan.npc.hong_dou.zhijiDialogues.1"
+              },
+              {
+                "fallback": "有你这个知己，酒再烈也是甜的。",
+                "key": "taoyuan.npc.hong_dou.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "hong_dou_zhiji_7",
+              "hong_dou_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 8,
+              "season": "winter"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "一个人撑这间绣庄不容易，但总算过来了。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "{title}今日好闲呢。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}让我明白，一个人也可以活得很好。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "有{title}在，慧娘不觉得孤单了。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}是个有担当的人，让人放心。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "这条绣帕送给{title}，是我自己绣的。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "你好，我是慧娘。这间绣庄是我丈夫留下的。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}若需要绣品，可以来看看。",
+                  "key": "taoyuan.npc.hui_niang.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:copper_ore"
+            ],
+            "id": "taoyuan:npc/hui_niang",
+            "likedItems": [
+              "taoyuan:wool",
+              "taoyuan:tea",
+              "taoyuan:osmanthus",
+              "taoyuan:rabbit_fur",
+              "taoyuan:peacock_feather",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:silk",
+              "taoyuan:chrysanthemum",
+              "taoyuan:alpaca_wool"
+            ],
+            "name": {
+              "fallback": "慧娘",
+              "key": "taoyuan.npc.hui_niang.name"
+            },
+            "personality": {
+              "fallback": "坚韧温和",
+              "key": "taoyuan.npc.hui_niang.personality"
+            },
+            "role": {
+              "fallback": "绣庄老板",
+              "key": "taoyuan.npc.hui_niang.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 8,
+              "season": "autumn"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}！来来来，今天试试新酿的桃花酒！",
+                  "key": "taoyuan.npc.lao_lu.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "红豆那丫头酿酒天赋比我都高……嘿。",
+                  "key": "taoyuan.npc.lao_lu.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "能跟{player}对饮，是老陆这辈子的幸事。",
+                  "key": "taoyuan.npc.lao_lu.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}，来，干了这杯！",
+                  "key": "taoyuan.npc.lao_lu.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}啊，你这人实在，老陆就喜欢跟实在人喝酒。",
+                  "key": "taoyuan.npc.lao_lu.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "这坛三年陈的好酒，给{title}留着呢。",
+                  "key": "taoyuan.npc.lao_lu.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "来来来！进来喝一杯！我是老陆！",
+                  "key": "taoyuan.npc.lao_lu.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "人生在世，不喝酒多无趣啊！{title}你说是不是？",
+                  "key": "taoyuan.npc.lao_lu.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:tea",
+              "taoyuan:herb"
+            ],
+            "id": "taoyuan:npc/lao_lu",
+            "likedItems": [
+              "taoyuan:jujube_wine",
+              "taoyuan:corn_wine",
+              "taoyuan:peanut",
+              "taoyuan:rabbit_foot",
+              "taoyuan:date_wine",
+              "taoyuan:osmanthus_wine"
+            ],
+            "lovedItems": [
+              "taoyuan:watermelon_wine",
+              "taoyuan:peach_wine"
+            ],
+            "name": {
+              "fallback": "老陆",
+              "key": "taoyuan.npc.lao_lu.name"
+            },
+            "personality": {
+              "fallback": "嗜酒好客",
+              "key": "taoyuan.npc.lao_lu.personality"
+            },
+            "role": {
+              "fallback": "酒窖老板",
+              "key": "taoyuan.npc.lao_lu.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 10,
+              "season": "summer"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "夜深了，{title}早点回去。",
+                  "key": "taoyuan.npc.lao_song.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "月亮好亮……",
+                  "key": "taoyuan.npc.lao_song.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "守了二十年的夜，{player}是少数愿意跟我说话的人。",
+                  "key": "taoyuan.npc.lao_song.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "有{title}在，老宋心里踏实。",
+                  "key": "taoyuan.npc.lao_song.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}是个勤快人，每天起得比鸡早。",
+                  "key": "taoyuan.npc.lao_song.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "这壶热茶留给{title}了，夜里暖暖。",
+                  "key": "taoyuan.npc.lao_song.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "……嗯。老宋。守夜的。",
+                  "key": "taoyuan.npc.lao_song.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "夜里有什么动静，{title}别慌。",
+                  "key": "taoyuan.npc.lao_song.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:watermelon",
+              "taoyuan:peach"
+            ],
+            "id": "taoyuan:npc/lao_song",
+            "likedItems": [
+              "taoyuan:wood",
+              "taoyuan:pine_resin",
+              "taoyuan:herb",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:tea",
+              "taoyuan:firewood"
+            ],
+            "name": {
+              "fallback": "老宋",
+              "key": "taoyuan.npc.lao_song.name"
+            },
+            "personality": {
+              "fallback": "沉稳寡言",
+              "key": "taoyuan.npc.lao_song.personality"
+            },
+            "role": {
+              "fallback": "守夜人",
+              "key": "taoyuan.npc.lao_song.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 22,
+              "season": "summer"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "鱼竿是手的延伸，心静了鱼自然来。",
+                  "key": "taoyuan.npc.li_yu.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "{title}今日运气如何？",
+                  "key": "taoyuan.npc.li_yu.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "一竿一线一壶酒，有{player}作伴，不枉此生。",
+                  "key": "taoyuan.npc.li_yu.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "老夫的毕生所学，都交给{title}了。",
+                  "key": "taoyuan.npc.li_yu.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}的钓术进步了，有点老夫当年的意思。",
+                  "key": "taoyuan.npc.li_yu.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "这个钓法叫\"落叶钩\"，传给{title}了。",
+                  "key": "taoyuan.npc.li_yu.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "嗬，又来了个钓鱼的。老朽李渔翁，在这溪边坐了二十年了。",
+                  "key": "taoyuan.npc.li_yu.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "钓鱼么？急不得。",
+                  "key": "taoyuan.npc.li_yu.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:gold_ore",
+              "taoyuan:ruby"
+            ],
+            "id": "taoyuan:npc/li_yu",
+            "likedItems": [
+              "taoyuan:crucian",
+              "taoyuan:bass",
+              "taoyuan:tea",
+              "taoyuan:rabbit_foot",
+              "taoyuan:smoked_eel",
+              "taoyuan:smoked_sturgeon",
+              "taoyuan:smoked_mandarin_fish"
+            ],
+            "lovedItems": [
+              "taoyuan:koi",
+              "taoyuan:sturgeon"
+            ],
+            "name": {
+              "fallback": "李渔翁",
+              "key": "taoyuan.npc.li_yu.name"
+            },
+            "personality": {
+              "fallback": "淡泊悠闲",
+              "key": "taoyuan.npc.li_yu.personality"
+            },
+            "role": {
+              "fallback": "老渔翁",
+              "key": "taoyuan.npc.li_yu.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 22,
+              "season": "autumn"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "这草药是好东西，可以入药也可以泡茶。",
+                  "key": "taoyuan.npc.lin_lao.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "{title}的气色比刚来时好多了。",
+                  "key": "taoyuan.npc.lin_lao.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "这部《本草拾遗》，送给{title}了。好好研读。",
+                  "key": "taoyuan.npc.lin_lao.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "桃源乡的未来，就拜托{player}了。",
+                  "key": "taoyuan.npc.lin_lao.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "老夫有一剂药膳方子，可以增强体力。",
+                  "key": "taoyuan.npc.lin_lao.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "{player}的祖父……是老夫的故交。",
+                  "key": "taoyuan.npc.lin_lao.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "年轻人，初来此地，水土可还习惯？",
+                  "key": "taoyuan.npc.lin_lao.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "老夫行医数十载，{title}有什么不舒服的尽管说。",
+                  "key": "taoyuan.npc.lin_lao.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:ruby",
+              "taoyuan:gold_ore"
+            ],
+            "id": "taoyuan:npc/lin_lao",
+            "likedItems": [
+              "taoyuan:winter_bamboo_shoot",
+              "taoyuan:bamboo",
+              "taoyuan:yak_milk",
+              "taoyuan:camel_milk",
+              "taoyuan:rabbit_foot",
+              "taoyuan:hanhai_spice",
+              "taoyuan:herbal_paste",
+              "taoyuan:ginseng_extract",
+              "taoyuan:antler_powder"
+            ],
+            "lovedItems": [
+              "taoyuan:herb",
+              "taoyuan:tea",
+              "taoyuan:antler_velvet"
+            ],
+            "name": {
+              "fallback": "林老",
+              "key": "taoyuan.npc.lin_lao.name"
+            },
+            "personality": {
+              "fallback": "慈祥博学",
+              "key": "taoyuan.npc.lin_lao.personality"
+            },
+            "role": {
+              "fallback": "老中医",
+              "key": "taoyuan.npc.lin_lao.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 5,
+              "season": "summer"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}最近干得不错，村民们都说你勤快。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "柳娘跟我提过你几次……嗯。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}是桃源乡之福。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "老夫年事已高，这村子的未来，{title}要多担待了。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，你为村子做的事，老夫都看在眼里。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "当年你祖父也是这般有魄力。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "你就是接手那片田庄的年轻人？我是柳村长。希望你能不辱祖辈留下的基业。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "桃源乡的规矩，不可不守。",
+                  "key": "taoyuan.npc.liu_cunzhang.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:pickled_cabbage",
+              "taoyuan:firewood"
+            ],
+            "id": "taoyuan:npc/liu_cunzhang",
+            "likedItems": [
+              "taoyuan:herb",
+              "taoyuan:osmanthus",
+              "taoyuan:bamboo",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:tea",
+              "taoyuan:ginseng"
+            ],
+            "name": {
+              "fallback": "柳村长",
+              "key": "taoyuan.npc.liu_cunzhang.name"
+            },
+            "personality": {
+              "fallback": "威严公正",
+              "key": "taoyuan.npc.liu_cunzhang.personality"
+            },
+            "role": {
+              "fallback": "村长",
+              "key": "taoyuan.npc.liu_cunzhang.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 14,
+              "season": "summer"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "今天想和{player}一起去溪边散步呢。",
+                "key": "taoyuan.npc.liu_niang.datingDialogues.0"
+              },
+              {
+                "fallback": "{title}，我给你绣了个香囊，随身带着吧。",
+                "key": "taoyuan.npc.liu_niang.datingDialogues.1"
+              },
+              {
+                "fallback": "能和{player}在一起的每一天，都像诗里写的那样美好。",
+                "key": "taoyuan.npc.liu_niang.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "今天天气不错，{title}也出来走走？",
+                  "key": "taoyuan.npc.liu_niang.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "我在读一本古诗集，要不要一起看看？",
+                  "key": "taoyuan.npc.liu_niang.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "和{title}聊天总是很开心……",
+                  "key": "taoyuan.npc.liu_niang.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "这朵花送给你，是我在山上找到的。",
+                  "key": "taoyuan.npc.liu_niang.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "有{title}在，村子热闹了不少呢。",
+                  "key": "taoyuan.npc.liu_niang.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "我做了些桂花糕，{player}尝一块吧。",
+                  "key": "taoyuan.npc.liu_niang.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "你好，你是新来的田庄主人吧？我是柳娘。",
+                  "key": "taoyuan.npc.liu_niang.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "桃源乡很美的，{title}你会喜欢这里。",
+                  "key": "taoyuan.npc.liu_niang.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:firewood"
+            ],
+            "heartEventIds": [
+              "liu_niang_heart_3",
+              "liu_niang_heart_5",
+              "liu_niang_heart_8"
+            ],
+            "id": "taoyuan:npc/liu_niang",
+            "likedItems": [
+              "taoyuan:tea",
+              "taoyuan:wintersweet",
+              "taoyuan:rabbit_fur",
+              "taoyuan:rabbit_foot",
+              "taoyuan:hanhai_silk",
+              "taoyuan:osmanthus_honey",
+              "taoyuan:osmanthus_tea"
+            ],
+            "lovedItems": [
+              "taoyuan:chrysanthemum",
+              "taoyuan:osmanthus",
+              "taoyuan:peacock_feather"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "柳娘",
+              "key": "taoyuan.npc.liu_niang.name"
+            },
+            "personality": {
+              "fallback": "温柔聪慧",
+              "key": "taoyuan.npc.liu_niang.personality"
+            },
+            "role": {
+              "fallback": "村长的女儿",
+              "key": "taoyuan.npc.liu_niang.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "和{player}一起读诗的午后，是我最珍贵的时光。",
+                "key": "taoyuan.npc.liu_niang.zhijiDialogues.0"
+              },
+              {
+                "fallback": "有些话只想说给知己听……{title}，谢谢你一直在。",
+                "key": "taoyuan.npc.liu_niang.zhijiDialogues.1"
+              },
+              {
+                "fallback": "红颜知己，一世难求。遇见{player}是我的福气。",
+                "key": "taoyuan.npc.liu_niang.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "liu_niang_zhiji_7",
+              "liu_niang_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 20,
+              "season": "winter"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}来啦！今天给你看点好东西——独家的！",
+                  "key": "taoyuan.npc.ma_liu.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "做生意讲的是诚信……嘿嘿，当然还有利润。",
+                  "key": "taoyuan.npc.ma_liu.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}是我最信得过的人，这些好货你先挑。",
+                  "key": "taoyuan.npc.ma_liu.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "别看我油嘴滑舌的，{title}面前我说的都是真心话。",
+                  "key": "taoyuan.npc.ma_liu.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，老熟客了，给你打个八折！",
+                  "key": "taoyuan.npc.ma_liu.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "我走遍天下，就{title}这村子最让人舒坦。",
+                  "key": "taoyuan.npc.ma_liu.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "哎哟{title}！我是马六，走南闯北的行商！稀罕玩意儿多了去了！",
+                  "key": "taoyuan.npc.ma_liu.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "来来来看看，保证外面买不到！",
+                  "key": "taoyuan.npc.ma_liu.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:stone",
+              "taoyuan:wood"
+            ],
+            "id": "taoyuan:npc/ma_liu",
+            "likedItems": [
+              "taoyuan:gold_ore",
+              "taoyuan:honey",
+              "taoyuan:peach",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:jade",
+              "taoyuan:prismatic_shard"
+            ],
+            "name": {
+              "fallback": "马六",
+              "key": "taoyuan.npc.ma_liu.name"
+            },
+            "personality": {
+              "fallback": "油嘴滑舌",
+              "key": "taoyuan.npc.ma_liu.personality"
+            },
+            "role": {
+              "fallback": "货郎",
+              "key": "taoyuan.npc.ma_liu.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 12,
+              "season": "spring"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "……{player}，这首曲子只弹给你听。",
+                "key": "taoyuan.npc.mo_bai.datingDialogues.0"
+              },
+              {
+                "fallback": "以前总觉得音乐是孤独的……遇见{title}才明白，也可以是温暖的。",
+                "key": "taoyuan.npc.mo_bai.datingDialogues.1"
+              },
+              {
+                "fallback": "为{player}谱一曲，名字就叫——《归人》。",
+                "key": "taoyuan.npc.mo_bai.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}也喜欢听曲子？改天弹一首给你。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "这首曲子叫《秋水》，是为桃源乡写的。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "这首曲子没有名字……因为它是为{player}而作的。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}是我的知音。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}来了，正好，新写了一首曲子，你听听。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "有{title}听我弹琴……心情好了很多。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "……你好。我在练琴，请不要太大声。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "我叫墨白，流浪至此的乐师。",
+                  "key": "taoyuan.npc.mo_bai.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:pickled_cabbage"
+            ],
+            "heartEventIds": [
+              "mo_bai_heart_3",
+              "mo_bai_heart_5",
+              "mo_bai_heart_8"
+            ],
+            "id": "taoyuan:npc/mo_bai",
+            "likedItems": [
+              "taoyuan:tea",
+              "taoyuan:chrysanthemum",
+              "taoyuan:pine_cone",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:bamboo",
+              "taoyuan:moonstone"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "墨白",
+              "key": "taoyuan.npc.mo_bai.name"
+            },
+            "personality": {
+              "fallback": "文静忧郁",
+              "key": "taoyuan.npc.mo_bai.personality"
+            },
+            "role": {
+              "fallback": "乐师",
+              "key": "taoyuan.npc.mo_bai.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "知音难觅……{player}是唯一能听懂我琴声的人。",
+                "key": "taoyuan.npc.mo_bai.zhijiDialogues.0"
+              },
+              {
+                "fallback": "为你谱的曲子越来越多了……知己的力量真奇妙。",
+                "key": "taoyuan.npc.mo_bai.zhijiDialogues.1"
+              },
+              {
+                "fallback": "有{title}在的日子，琴声都变得温暖了。",
+                "key": "taoyuan.npc.mo_bai.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "mo_bai_zhiji_7",
+              "mo_bai_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 25,
+              "season": "autumn"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "今天的豆腐脑特别嫩，{title}来一碗？",
+                  "key": "taoyuan.npc.pang_shen.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "做豆腐最重要的是水要好，我们村的泉水一流！",
+                  "key": "taoyuan.npc.pang_shen.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}什么时候请婶子吃喜酒啊？",
+                  "key": "taoyuan.npc.pang_shen.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}算是婶子的半个孩子了！",
+                  "key": "taoyuan.npc.pang_shen.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，给你留了块老豆腐，拿去炖汤！",
+                  "key": "taoyuan.npc.pang_shen.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "你是个实在人，不像马六那个滑头。",
+                  "key": "taoyuan.npc.pang_shen.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "来买豆腐的吧？新鲜的！我是胖婶！",
+                  "key": "taoyuan.npc.pang_shen.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}别看我胖，干活麻利着呢！",
+                  "key": "taoyuan.npc.pang_shen.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:ruby",
+              "taoyuan:jade"
+            ],
+            "id": "taoyuan:npc/pang_shen",
+            "likedItems": [
+              "taoyuan:rice",
+              "taoyuan:peanut",
+              "taoyuan:cabbage",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:broad_bean",
+              "taoyuan:sesame"
+            ],
+            "name": {
+              "fallback": "胖婶",
+              "key": "taoyuan.npc.pang_shen.name"
+            },
+            "personality": {
+              "fallback": "泼辣爽快",
+              "key": "taoyuan.npc.pang_shen.personality"
+            },
+            "role": {
+              "fallback": "豆腐坊老板",
+              "key": "taoyuan.npc.pang_shen.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 12,
+              "season": "winter"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}好……今天采了些新鲜的草药。",
+                  "key": "taoyuan.npc.qian_niang.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "林老教了我好多方子，我在努力记呢……",
+                  "key": "taoyuan.npc.qian_niang.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "和{player}在一起……我好像变勇敢了一点。",
+                  "key": "taoyuan.npc.qian_niang.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}的体力补剂，我一定用心做。",
+                  "key": "taoyuan.npc.qian_niang.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，这药丸是我练习做的，你、你试试？",
+                  "key": "taoyuan.npc.qian_niang.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "有{title}来聊天，我就不那么紧张了。",
+                  "key": "taoyuan.npc.qian_niang.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "啊……你好……我、我是钱娘，林老的学徒。",
+                  "key": "taoyuan.npc.qian_niang.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "需要草药的话……可以来找我……",
+                  "key": "taoyuan.npc.qian_niang.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:gold_ore"
+            ],
+            "id": "taoyuan:npc/qian_niang",
+            "likedItems": [
+              "taoyuan:tea",
+              "taoyuan:chrysanthemum",
+              "taoyuan:winter_bamboo_shoot",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:herb",
+              "taoyuan:ginseng"
+            ],
+            "name": {
+              "fallback": "钱娘",
+              "key": "taoyuan.npc.qian_niang.name"
+            },
+            "personality": {
+              "fallback": "害羞温顺",
+              "key": "taoyuan.npc.qian_niang.personality"
+            },
+            "role": {
+              "fallback": "药铺学徒",
+              "key": "taoyuan.npc.qian_niang.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 12,
+              "season": "autumn"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}也种果树了？有不懂的来问我。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "今年的桃子特别甜，给你留了几个。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}让我想起了我年轻时的干劲。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "我那果园，{title}随时可以来摘果子。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}种地的手艺越来越好了。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "这几棵果苗是我培育的，{title}拿去种。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "你好，我姓秦，大伙儿叫我秦大叔。我在村东有片果园。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "果树这东西，种下去就得等。{title}急不得。",
+                  "key": "taoyuan.npc.qin_dashu.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:jade",
+              "taoyuan:moonstone"
+            ],
+            "id": "taoyuan:npc/qin_dashu",
+            "likedItems": [
+              "taoyuan:persimmon",
+              "taoyuan:sweet_potato",
+              "taoyuan:corn",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:peach",
+              "taoyuan:jujube"
+            ],
+            "name": {
+              "fallback": "秦大叔",
+              "key": "taoyuan.npc.qin_dashu.name"
+            },
+            "personality": {
+              "fallback": "朴实勤劳",
+              "key": "taoyuan.npc.qin_dashu.personality"
+            },
+            "role": {
+              "fallback": "果园主人",
+              "key": "taoyuan.npc.qin_dashu.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 20,
+              "season": "winter"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "{player}！今天的夕阳好美，我们一起看嘛！",
+                "key": "taoyuan.npc.qiu_yue.datingDialogues.0"
+              },
+              {
+                "fallback": "嘿嘿，{title}是我的了，别人不许抢。",
+                "key": "taoyuan.npc.qiu_yue.datingDialogues.1"
+              },
+              {
+                "fallback": "以后每天都一起钓鱼好不好？就我们两个！",
+                "key": "taoyuan.npc.qiu_yue.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "今天溪水特别清，肯定能钓到大鱼！",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "{title}钓鱼的样子越来越有模有样了嘛。",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "以后一起去钓鱼好不好？每天都去！",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}是我见过最厉害的钓手！嘿嘿。",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "这是我的私房钓点，只告诉{title}哦。",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "我教{player}做红烧鲤鱼吧，超好吃的！",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "哎呀，新面孔！{title}你好，我是秋月，最会钓鱼的那个！",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "想学钓鱼就来找我呀！",
+                  "key": "taoyuan.npc.qiu_yue.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:copper_ore",
+              "taoyuan:iron_ore"
+            ],
+            "heartEventIds": [
+              "qiu_yue_heart_3",
+              "qiu_yue_heart_5",
+              "qiu_yue_heart_8"
+            ],
+            "id": "taoyuan:npc/qiu_yue",
+            "likedItems": [
+              "taoyuan:crucian",
+              "taoyuan:carp",
+              "taoyuan:grass_carp",
+              "taoyuan:bass",
+              "taoyuan:rabbit_foot",
+              "taoyuan:smoked_carp",
+              "taoyuan:smoked_bass"
+            ],
+            "lovedItems": [
+              "taoyuan:koi",
+              "taoyuan:giant_salamander"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "秋月",
+              "key": "taoyuan.npc.qiu_yue.name"
+            },
+            "personality": {
+              "fallback": "活泼开朗",
+              "key": "taoyuan.npc.qiu_yue.personality"
+            },
+            "role": {
+              "fallback": "渔家女",
+              "key": "taoyuan.npc.qiu_yue.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "{player}！今天一起去钓鱼吧！只有知己才能去我的秘密钓点！",
+                "key": "taoyuan.npc.qiu_yue.zhijiDialogues.0"
+              },
+              {
+                "fallback": "嘿嘿，有什么心事都可以跟我说！我们可是知己！",
+                "key": "taoyuan.npc.qiu_yue.zhijiDialogues.1"
+              },
+              {
+                "fallback": "以后不管去哪儿，都带上{title}！",
+                "key": "taoyuan.npc.qiu_yue.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "qiu_yue_zhiji_7",
+              "qiu_yue_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 25,
+              "season": "summer"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}，要不要比赛跑步？",
+                  "key": "taoyuan.npc.shi_tou.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "我今天往周先生墨汁里加了水，他没发现！嘿嘿！",
+                  "key": "taoyuan.npc.shi_tou.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "其实……{player}，我爸妈在外面做工，很久没回来了。",
+                  "key": "taoyuan.npc.shi_tou.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}以后还会在村里吧？别走好不好？",
+                  "key": "taoyuan.npc.shi_tou.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，教我钓鱼嘛！秋月姐姐老说我太吵！",
+                  "key": "taoyuan.npc.shi_tou.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "偷偷告诉{title}一个秘密——村后面的山洞里有蝙蝠！",
+                  "key": "taoyuan.npc.shi_tou.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "嘿嘿嘿！你就是那个新来的农夫？看起来不怎么厉害嘛！",
+                  "key": "taoyuan.npc.shi_tou.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "我叫石头！全村跑得最快！",
+                  "key": "taoyuan.npc.shi_tou.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:tea",
+              "taoyuan:herb"
+            ],
+            "id": "taoyuan:npc/shi_tou",
+            "likedItems": [
+              "taoyuan:wild_berry",
+              "taoyuan:corn",
+              "taoyuan:peanut",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:sweet_potato",
+              "taoyuan:watermelon"
+            ],
+            "name": {
+              "fallback": "石头",
+              "key": "taoyuan.npc.shi_tou.name"
+            },
+            "personality": {
+              "fallback": "调皮捣蛋",
+              "key": "taoyuan.npc.shi_tou.personality"
+            },
+            "role": {
+              "fallback": "村里顽童",
+              "key": "taoyuan.npc.shi_tou.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 3,
+              "season": "summer"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "我在给{player}做一件衣裳，每一针都是心意。",
+                "key": "taoyuan.npc.su_su.datingDialogues.0"
+              },
+              {
+                "fallback": "{title}穿上我做的衣服时，是我最幸福的时刻。",
+                "key": "taoyuan.npc.su_su.datingDialogues.1"
+              },
+              {
+                "fallback": "以后只给{player}一个人做衣裳……好不好？",
+                "key": "taoyuan.npc.su_su.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}的衣裳破了个口子，让我帮你补补。",
+                  "key": "taoyuan.npc.su_su.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "这匹布的花色很特别，适合做春衫。",
+                  "key": "taoyuan.npc.su_su.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}穿我做的衣服，是我最开心的事。",
+                  "key": "taoyuan.npc.su_su.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "以后我只给{title}一个人做衣裳。",
+                  "key": "taoyuan.npc.su_su.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "我给{player}做了件背心，试试合不合身？",
+                  "key": "taoyuan.npc.su_su.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "一针一线，都是心意……",
+                  "key": "taoyuan.npc.su_su.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "欢迎来到素裁坊，我是素素。",
+                  "key": "taoyuan.npc.su_su.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "需要什么衣裳，{title}尽管说。",
+                  "key": "taoyuan.npc.su_su.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:stone"
+            ],
+            "heartEventIds": [
+              "su_su_heart_3",
+              "su_su_heart_5",
+              "su_su_heart_8"
+            ],
+            "id": "taoyuan:npc/su_su",
+            "likedItems": [
+              "taoyuan:wool",
+              "taoyuan:chrysanthemum",
+              "taoyuan:osmanthus",
+              "taoyuan:rabbit_fur",
+              "taoyuan:rabbit_foot",
+              "taoyuan:dried_peach",
+              "taoyuan:dried_lychee"
+            ],
+            "lovedItems": [
+              "taoyuan:silk",
+              "taoyuan:wintersweet",
+              "taoyuan:alpaca_wool",
+              "taoyuan:peacock_feather"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "素素",
+              "key": "taoyuan.npc.su_su.name"
+            },
+            "personality": {
+              "fallback": "娴静手巧",
+              "key": "taoyuan.npc.su_su.personality"
+            },
+            "role": {
+              "fallback": "裁缝",
+              "key": "taoyuan.npc.su_su.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "给{player}做的衣裳，每一针都格外用心……因为你是我的知己。",
+                "key": "taoyuan.npc.su_su.zhijiDialogues.0"
+              },
+              {
+                "fallback": "有心事的时候，想到{title}就安心了。",
+                "key": "taoyuan.npc.su_su.zhijiDialogues.1"
+              },
+              {
+                "fallback": "知己之间不需要太多言语……但我还是想多和{player}说说话。",
+                "key": "taoyuan.npc.su_su.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "su_su_zhiji_7",
+              "su_su_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 15,
+              "season": "winter"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "好钢用在刀刃上，{title}的工具该升级了。",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "听那锤声——叮叮当当，比唱歌好听！",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "全村最好的铁器，都在{player}手里。",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}什么时候想打一件神兵利器，跟老孙说！",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，这把刀我打了三天三夜，你试试。",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "有{title}这样的好主顾，我打铁都更有劲了！",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "打铁的活找我就对了！我是孙铁匠！",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "阿铁是我徒弟，手艺还嫩着呢。{title}的工具我亲自来。",
+                  "key": "taoyuan.npc.sun_tiejiang.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:chrysanthemum",
+              "taoyuan:silk"
+            ],
+            "id": "taoyuan:npc/sun_tiejiang",
+            "likedItems": [
+              "taoyuan:iron_ore",
+              "taoyuan:crystal_ore",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:gold_ore",
+              "taoyuan:iridium_ore",
+              "taoyuan:copper_ore"
+            ],
+            "name": {
+              "fallback": "孙铁匠",
+              "key": "taoyuan.npc.sun_tiejiang.name"
+            },
+            "personality": {
+              "fallback": "粗犷豪迈",
+              "key": "taoyuan.npc.sun_tiejiang.personality"
+            },
+            "role": {
+              "fallback": "铁匠",
+              "key": "taoyuan.npc.sun_tiejiang.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 18,
+              "season": "summer"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}今天吃了没？没吃我给你热碗粥。",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "做菜的秘诀就是——盐要少放，爱要多放。",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}就跟我自己孩子似的，看着你忙里忙外，婶子心疼。",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "啥时候成家啊？婶子给你操办酒席！",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}越来越壮实了，看来没少吃婶子做的饭！",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "这是婶子的拿手菜，{title}尝尝。",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "哎哟，新来的吧？瘦得跟竹竿似的，来来来，婶子给你盛碗饭！",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "我是王大婶，村里红白喜事的大厨！",
+                  "key": "taoyuan.npc.wang_dashen.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:quartz",
+              "taoyuan:obsidian"
+            ],
+            "id": "taoyuan:npc/wang_dashen",
+            "likedItems": [
+              "taoyuan:cabbage",
+              "taoyuan:radish",
+              "taoyuan:egg",
+              "taoyuan:rabbit_foot",
+              "taoyuan:rice_vinegar",
+              "taoyuan:pickled_cabbage",
+              "taoyuan:pumpkin_preserve"
+            ],
+            "lovedItems": [
+              "taoyuan:rice",
+              "taoyuan:sesame_oil"
+            ],
+            "name": {
+              "fallback": "王大婶",
+              "key": "taoyuan.npc.wang_dashen.name"
+            },
+            "personality": {
+              "fallback": "热心善良",
+              "key": "taoyuan.npc.wang_dashen.personality"
+            },
+            "role": {
+              "fallback": "村里的厨娘",
+              "key": "taoyuan.npc.wang_dashen.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 25,
+              "season": "spring"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}，今天的白菜新鲜着呢，买点？",
+                  "key": "taoyuan.npc.wu_shen.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "陈伯心太软，老是赊账，我可不惯着。",
+                  "key": "taoyuan.npc.wu_shen.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}是我见过最会持家的年轻人。",
+                  "key": "taoyuan.npc.wu_shen.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "有事儿找吴婶，{title}开口我准帮。",
+                  "key": "taoyuan.npc.wu_shen.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}的生意不错啊！偷偷告诉你，下批货我给你留点好的。",
+                  "key": "taoyuan.npc.wu_shen.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "做人啊，精打细算才能过好日子。",
+                  "key": "taoyuan.npc.wu_shen.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "新来的？万物铺的事找陈伯，零碎活儿找我就行。",
+                  "key": "taoyuan.npc.wu_shen.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "我是吴婶，在铺子里帮工的。",
+                  "key": "taoyuan.npc.wu_shen.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:wild_mushroom",
+              "taoyuan:pine_cone"
+            ],
+            "id": "taoyuan:npc/wu_shen",
+            "likedItems": [
+              "taoyuan:egg",
+              "taoyuan:rice",
+              "taoyuan:peanut",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:honey",
+              "taoyuan:sesame_oil"
+            ],
+            "name": {
+              "fallback": "吴婶",
+              "key": "taoyuan.npc.wu_shen.name"
+            },
+            "personality": {
+              "fallback": "精明世故",
+              "key": "taoyuan.npc.wu_shen.personality"
+            },
+            "role": {
+              "fallback": "杂货帮工",
+              "key": "taoyuan.npc.wu_shen.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 18,
+              "season": "spring"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "我最近在练做柜子，{title}要不要来一个？",
+                  "key": "taoyuan.npc.xiao_man.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "师父说我手艺还不行，哼！",
+                  "key": "taoyuan.npc.xiao_man.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "以后我要盖全村最大的房子！{title}帮我设计？",
+                  "key": "taoyuan.npc.xiao_man.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{player}是我最好的朋友！……别告诉别人啊。",
+                  "key": "taoyuan.npc.xiao_man.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "我帮{title}修工具吧！保证好使！",
+                  "key": "taoyuan.npc.xiao_man.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "嘿嘿，偷偷给{player}打个折。",
+                  "key": "taoyuan.npc.xiao_man.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "哇，你就是那个新来的！我是小满！",
+                  "key": "taoyuan.npc.xiao_man.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}的田庄我去偷看过了，好破啊——啊不是，很有潜力！",
+                  "key": "taoyuan.npc.xiao_man.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:herb",
+              "taoyuan:tea"
+            ],
+            "id": "taoyuan:npc/xiao_man",
+            "likedItems": [
+              "taoyuan:wood",
+              "taoyuan:bamboo",
+              "taoyuan:radish",
+              "taoyuan:rabbit_foot",
+              "taoyuan:tea_oil",
+              "taoyuan:buffalo_cheese",
+              "taoyuan:yak_cheese"
+            ],
+            "lovedItems": [
+              "taoyuan:watermelon",
+              "taoyuan:sweet_potato"
+            ],
+            "name": {
+              "fallback": "小满",
+              "key": "taoyuan.npc.xiao_man.name"
+            },
+            "personality": {
+              "fallback": "调皮好奇",
+              "key": "taoyuan.npc.xiao_man.personality"
+            },
+            "role": {
+              "fallback": "木匠学徒",
+              "key": "taoyuan.npc.xiao_man.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 10,
+              "season": "winter"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "……{player}，你别动，让我画下你现在的样子。",
+                "key": "taoyuan.npc.xue_qin.datingDialogues.0"
+              },
+              {
+                "fallback": "以前只在画里找美，现在……{title}比画更美。",
+                "key": "taoyuan.npc.xue_qin.datingDialogues.1"
+              },
+              {
+                "fallback": "这幅画的名字叫《归处》。因为有你，我有了归处。",
+                "key": "taoyuan.npc.xue_qin.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}对画有兴趣？你眼光倒还行。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "这幅山水画，灵感来自村后的瀑布。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "以前觉得世间无人懂我的画……直到遇见{player}。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "这幅画是为{title}画的，收好。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，你的田庄在夕阳下很美，我画了一幅。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "本来不喜欢人多的地方……但{title}来了还好。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "……你挡住我的光了。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "不买画的话，请不要碰那些颜料。",
+                  "key": "taoyuan.npc.xue_qin.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:pickled_cabbage",
+              "taoyuan:dried_radish"
+            ],
+            "heartEventIds": [
+              "xue_qin_heart_3",
+              "xue_qin_heart_5",
+              "xue_qin_heart_8"
+            ],
+            "id": "taoyuan:npc/xue_qin",
+            "likedItems": [
+              "taoyuan:chrysanthemum",
+              "taoyuan:wintersweet",
+              "taoyuan:bamboo",
+              "taoyuan:rabbit_foot",
+              "taoyuan:hanhai_turquoise",
+              "taoyuan:snow_lotus_honey",
+              "taoyuan:goat_cheese"
+            ],
+            "lovedItems": [
+              "taoyuan:snow_lotus",
+              "taoyuan:moonstone"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "雪芹",
+              "key": "taoyuan.npc.xue_qin.name"
+            },
+            "personality": {
+              "fallback": "孤傲清高",
+              "key": "taoyuan.npc.xue_qin.personality"
+            },
+            "role": {
+              "fallback": "画师",
+              "key": "taoyuan.npc.xue_qin.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "……你是唯一能看我画画不让我烦躁的人。知己就是如此吧。",
+                "key": "taoyuan.npc.xue_qin.zhijiDialogues.0"
+              },
+              {
+                "fallback": "这幅画的主题是「知音」……灵感来自{player}。",
+                "key": "taoyuan.npc.xue_qin.zhijiDialogues.1"
+              },
+              {
+                "fallback": "以前觉得世间无人懂我。现在不这么想了。",
+                "key": "taoyuan.npc.xue_qin.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "xue_qin_zhiji_7",
+              "xue_qin_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 8,
+              "season": "summer"
+            },
+            "datingDialogues": [
+              {
+                "fallback": "……{player}，今天的月色不错。陪我坐一会儿。",
+                "key": "taoyuan.npc.yun_fei.datingDialogues.0"
+              },
+              {
+                "fallback": "以前我只信自己。现在……也信{title}了。",
+                "key": "taoyuan.npc.yun_fei.datingDialogues.1"
+              },
+              {
+                "fallback": "这座山，以后和{player}一起守。",
+                "key": "taoyuan.npc.yun_fei.datingDialogues.2"
+              }
+            ],
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "……{title}怎么又来了。算了，坐吧。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "这是山里的蘑菇，比你们种的好吃。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "我这辈子不信任何人……除了{player}。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "{title}，跟我一起守这片山林吧。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}，你是少数不让我烦的人。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "以后进山叫上{title}，路我熟。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "别靠太近，我不喜欢跟人打交道。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "在山里待惯了，村子太吵。",
+                  "key": "taoyuan.npc.yun_fei.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:gold_ore",
+              "taoyuan:jade"
+            ],
+            "heartEventIds": [
+              "yun_fei_heart_3",
+              "yun_fei_heart_5",
+              "yun_fei_heart_8"
+            ],
+            "id": "taoyuan:npc/yun_fei",
+            "likedItems": [
+              "taoyuan:pine_cone",
+              "taoyuan:herb",
+              "taoyuan:wild_berry",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:wild_mushroom",
+              "taoyuan:ginseng"
+            ],
+            "marriageable": true,
+            "name": {
+              "fallback": "云飞",
+              "key": "taoyuan.npc.yun_fei.name"
+            },
+            "personality": {
+              "fallback": "桀骜不羁",
+              "key": "taoyuan.npc.yun_fei.personality"
+            },
+            "role": {
+              "fallback": "猎人",
+              "key": "taoyuan.npc.yun_fei.role"
+            },
+            "zhijiDialogues": [
+              {
+                "fallback": "……以前不信任何人。但你不同，{player}。",
+                "key": "taoyuan.npc.yun_fei.zhijiDialogues.0"
+              },
+              {
+                "fallback": "进山的路，只带你一个人走过。这就够了。",
+                "key": "taoyuan.npc.yun_fei.zhijiDialogues.1"
+              },
+              {
+                "fallback": "知己……比朋友重，不输兄弟。",
+                "key": "taoyuan.npc.yun_fei.zhijiDialogues.2"
+              }
+            ],
+            "zhijiHeartEventIds": [
+              "yun_fei_zhiji_7",
+              "yun_fei_zhiji_9"
+            ]
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 7,
+              "season": "spring"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "{title}来啦？喝口茶。婆婆给你讲讲以前的事。",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "我年轻的时候啊，这村子可热闹了……",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "有{player}在，婆婆觉得安心。",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "老婆子活了这么大岁数，{title}是最让我欣慰的后辈。",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}真是个好孩子。婆婆织了条围巾给你。",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "你祖父以前常来找婆婆聊天，你跟他一样和善。",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "哎呀呀，年轻人来啦？快坐快坐。老婆子我姓张，织了一辈子布。",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "你穿的这衣裳不行，回头婆婆给你织一件。",
+                  "key": "taoyuan.npc.zhang_popo.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "female",
+            "hatedItems": [
+              "taoyuan:gold_ore",
+              "taoyuan:ruby"
+            ],
+            "id": "taoyuan:npc/zhang_popo",
+            "likedItems": [
+              "taoyuan:tea",
+              "taoyuan:pumpkin",
+              "taoyuan:sweet_potato",
+              "taoyuan:rabbit_foot",
+              "taoyuan:pickled_ginger",
+              "taoyuan:dried_radish",
+              "taoyuan:sesame_paste"
+            ],
+            "lovedItems": [
+              "taoyuan:wool",
+              "taoyuan:silk"
+            ],
+            "name": {
+              "fallback": "张婆婆",
+              "key": "taoyuan.npc.zhang_popo.name"
+            },
+            "personality": {
+              "fallback": "慈祥唠叨",
+              "key": "taoyuan.npc.zhang_popo.personality"
+            },
+            "role": {
+              "fallback": "织布老人",
+              "key": "taoyuan.npc.zhang_popo.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 1,
+              "season": "autumn"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "你的农舍结构不错，前人手艺。{title}好好维护。",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "木头这东西，跟人一样，要顺着它的纹理来。",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}，你让我想起了我年轻的时候。",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "这把刨子跟了我三十年，送给{title}了。",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}不错，做事踏实，不像小满那个猴子。",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "有需要修缮的，来找{title}……不，来找我。",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "嗯？找我有事？我是赵木匠。手艺的事，直说。",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "小满那小子又偷懒了吧……",
+                  "key": "taoyuan.npc.zhao_mujiang.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:watermelon",
+              "taoyuan:peanut"
+            ],
+            "id": "taoyuan:npc/zhao_mujiang",
+            "likedItems": [
+              "taoyuan:pine_resin",
+              "taoyuan:camphor_oil",
+              "taoyuan:rabbit_foot"
+            ],
+            "lovedItems": [
+              "taoyuan:wood",
+              "taoyuan:bamboo"
+            ],
+            "name": {
+              "fallback": "赵木匠",
+              "key": "taoyuan.npc.zhao_mujiang.name"
+            },
+            "personality": {
+              "fallback": "严厉认真",
+              "key": "taoyuan.npc.zhao_mujiang.personality"
+            },
+            "role": {
+              "fallback": "木匠师傅",
+              "key": "taoyuan.npc.zhao_mujiang.role"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/npcDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "birthday": {
+              "day": 18,
+              "season": "autumn"
+            },
+            "dialogues": {
+              "acquaintance": [
+                {
+                  "fallback": "子曰：温故而知新。{title}最近可有读书？",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.acquaintance.0"
+                },
+                {
+                  "fallback": "今日教阿花和石头写字，那两个顽童……唉。",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.acquaintance.1"
+                }
+              ],
+              "bestFriend": [
+                {
+                  "fallback": "{player}乃吾之良友也！",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.bestFriend.0"
+                },
+                {
+                  "fallback": "这支毛笔是先师遗物，赠与{title}，望善用之。",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.bestFriend.1"
+                }
+              ],
+              "friendly": [
+                {
+                  "fallback": "{player}虽是农人，却有读书人的气度。",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.friendly.0"
+                },
+                {
+                  "fallback": "我新得了一本古籍，{title}有兴趣一起研读么？",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.friendly.1"
+                }
+              ],
+              "stranger": [
+                {
+                  "fallback": "\"有朋自远方来，不亦乐乎\"。在下周秀才，此地的私塾先生。",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.stranger.0"
+                },
+                {
+                  "fallback": "{title}可曾读过《论语》？",
+                  "key": "taoyuan.npc.zhou_xiucai.dialogues.stranger.1"
+                }
+              ]
+            },
+            "gender": "male",
+            "hatedItems": [
+              "taoyuan:pickled_cabbage",
+              "taoyuan:corn_wine"
+            ],
+            "id": "taoyuan:npc/zhou_xiucai",
+            "likedItems": [
+              "taoyuan:chrysanthemum",
+              "taoyuan:osmanthus",
+              "taoyuan:rabbit_foot",
+              "taoyuan:chrysanthemum_tea",
+              "taoyuan:green_tea_drink",
+              "taoyuan:truffle_oil"
+            ],
+            "lovedItems": [
+              "taoyuan:bamboo",
+              "taoyuan:tea"
+            ],
+            "name": {
+              "fallback": "周秀才",
+              "key": "taoyuan.npc.zhou_xiucai.name"
+            },
+            "personality": {
+              "fallback": "迂腐可爱",
+              "key": "taoyuan.npc.zhou_xiucai.personality"
+            },
+            "role": {
+              "fallback": "私塾先生",
+              "key": "taoyuan.npc.zhou_xiucai.role"
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:pond_breed",
       "schemaName": "pond-breed.schema.json",
       "entries": [
@@ -89523,5 +92870,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:1a0748bd9e2c9defc10948f15d651050715bfde4aa5416d1abd58ea9fe76d348"
+  "snapshotHash": "sha256:e4a81644b243c35cbb9828e0e393fa19dc0999fc4a0d03b53e32f0412d80fad3"
 }

@@ -8,6 +8,7 @@ import type {
   FruitTreeDef as LegacyFruitTreeDef,
   HatDef as LegacyHatDef,
   MonsterDef as LegacyMonsterDef,
+  NpcDef as LegacyNpcDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
   ProcessingRecipeDef as LegacyProcessingRecipeDef,
   RingDef as LegacyRingDef,
@@ -93,6 +94,7 @@ import type {
   GuildLevelDef as GuildLevelContentDef,
   MonsterDef,
   MonsterPoolDef,
+  NpcDef as NpcContentDef,
   PondBreedDef,
   PondableFishDef,
   ProcessingMachineDef as ProcessingMachineContentDef,
@@ -154,6 +156,9 @@ const toGuildLevelQueryContentId = (level: number | string) => {
   const rawId = typeof level === 'number' ? `guild_level/${level}` : level
   return toQueryContentId(rawId.includes(':') || rawId.includes('/') ? rawId : `guild_level/${rawId}`)
 }
+
+const toNpcQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `npc/${id}`)
 
 const toAchievementQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `achievement/${id}`)
@@ -688,6 +693,14 @@ export const getOfficialGuildLevelDef = (level: number | string): Readonly<Guild
 export const getOfficialGuildLevelDefs = (): readonly Readonly<GuildLevelContentDef>[] =>
   getOfficialRegistrySet().get<GuildLevelContentDef>(toOfficialRegistryTypeId('guild_level')).values()
 
+export const getOfficialNpcDef = (id: string): Readonly<NpcContentDef> | undefined => {
+  const contentId = toNpcQueryContentId(id)
+  return contentId ? getOfficialRegistrySet().get<NpcContentDef>(toOfficialRegistryTypeId('npc')).get(contentId) : undefined
+}
+
+export const getOfficialNpcDefs = (): readonly Readonly<NpcContentDef>[] =>
+  getOfficialRegistrySet().get<NpcContentDef>(toOfficialRegistryTypeId('npc')).values()
+
 export const getOfficialAchievementDef = (id: string): Readonly<AchievementContentDef> | undefined => {
   const contentId = toAchievementQueryContentId(id)
   return contentId
@@ -936,6 +949,46 @@ export const getOfficialGuildLevelByLevel = (level: number): LegacyGuildLevelDef
 
 export const getOfficialGuildLevelsAsLegacy = (): readonly LegacyGuildLevelDef[] =>
   getOfficialGuildLevelDefs().map(toLegacyGuildLevelDef)
+
+const getLocalNpcId = (contentId: string): string => {
+  const localId = getLocalContentId(contentId)
+  return localId.startsWith('npc/') ? localId.slice('npc/'.length) : localId
+}
+
+const toLegacyNpcDialogues = (
+  dialogues: Readonly<NpcContentDef['dialogues']>
+): LegacyNpcDef['dialogues'] => ({
+  stranger: dialogues.stranger.map(line => line.fallback),
+  acquaintance: dialogues.acquaintance.map(line => line.fallback),
+  friendly: dialogues.friendly.map(line => line.fallback),
+  bestFriend: dialogues.bestFriend.map(line => line.fallback)
+})
+
+const toLegacyNpcDef = (npc: Readonly<NpcContentDef>): LegacyNpcDef => ({
+  id: getLocalNpcId(npc.id),
+  name: npc.name.fallback,
+  gender: npc.gender,
+  role: npc.role.fallback,
+  personality: npc.personality.fallback,
+  lovedItems: npc.lovedItems.map(getLocalContentId),
+  likedItems: npc.likedItems.map(getLocalContentId),
+  hatedItems: npc.hatedItems.map(getLocalContentId),
+  dialogues: toLegacyNpcDialogues(npc.dialogues),
+  ...(npc.marriageable !== undefined ? { marriageable: npc.marriageable } : {}),
+  ...(npc.heartEventIds ? { heartEventIds: [...npc.heartEventIds] } : {}),
+  ...(npc.datingDialogues ? { datingDialogues: npc.datingDialogues.map(line => line.fallback) } : {}),
+  ...(npc.zhijiDialogues ? { zhijiDialogues: npc.zhijiDialogues.map(line => line.fallback) } : {}),
+  ...(npc.zhijiHeartEventIds ? { zhijiHeartEventIds: [...npc.zhijiHeartEventIds] } : {}),
+  ...(npc.birthday ? { birthday: { ...npc.birthday } } : {})
+})
+
+export const getOfficialNpcById = (id: string): LegacyNpcDef | undefined => {
+  const npc = getOfficialNpcDef(id)
+  return npc ? toLegacyNpcDef(npc) : undefined
+}
+
+export const getOfficialNpcsAsLegacy = (): readonly LegacyNpcDef[] =>
+  getOfficialNpcDefs().map(toLegacyNpcDef)
 
 const toLegacyAchievementReward = (
   reward: Readonly<AchievementContentDef['reward']>

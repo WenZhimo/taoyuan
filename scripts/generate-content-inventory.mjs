@@ -325,6 +325,24 @@ fileDefaults.set('src/data/achievements.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/npcDefinitions.ts', {
+  file: 'src/data/npcDefinitions.ts',
+  classification: 'content',
+  domains: ['npc'],
+  candidateTargets: ['taoyuan:npc'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/npcs.ts', {
+  file: 'src/data/npcs.ts',
+  classification: 'mixed',
+  domains: ['npc', 'lookup'],
+  candidateTargets: ['taoyuan:npc', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/secretNotes.ts', {
   file: 'src/data/secretNotes.ts',
   classification: 'content',
@@ -1253,6 +1271,36 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getBundleById() signature is retained and now resolves taoyuan:community_bundle by local or namespaced ID before falling back to the static rollback path.'
+  },
+  'src/data/npcDefinitions.ts:NPCS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy village NPC definitions; Phase 6 projects stable NPC IDs, display text, gift preferences, dialogues, birthdays and compatibility event IDs into taoyuan:npc.'
+  },
+  'src/data/npcs.ts:NPCS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy NPCS imports stable while runtime list queries resolve taoyuan:npc through compatibility facades.'
+  },
+  'src/data/npcs.ts:getNpcs': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy NPC list query returns local-ID compatibility objects reconstructed from taoyuan:npc.'
+  },
+  'src/data/npcs.ts:getNpcById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getNpcById() signature is retained and now resolves taoyuan:npc by local or namespaced ID before falling back to the static rollback path.'
   },
   'src/data/secretNotes.ts:SECRET_NOTES': {
     classification: 'content',
@@ -3446,6 +3494,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Checks guild donation item references against taoyuan:item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'NpcDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for village NPC definitions, including localized display text, gift preferences, dialogues, birthdays and compatibility event ID lists.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyNpc/createOfficialNpcs',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy village NPC into ordered official entries without changing local NPC IDs, names, roles, gift preferences, dialogues, marriage flags, birthdays or event ID strings.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialNpcDef/getOfficialNpcDefs/getOfficialNpcById/getOfficialNpcsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry NPC definitions and reconstructs legacy NpcDef objects for Store, calendar and NPC view consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:npc',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:npc',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks NPC loved, liked and hated item references against taoyuan:item while deferring heart-event ID validation to a future heart_event slice.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

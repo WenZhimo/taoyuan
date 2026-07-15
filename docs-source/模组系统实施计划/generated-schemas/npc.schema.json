@@ -1,0 +1,308 @@
+{
+  "$id": "taoyuan.registry.NpcDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "gender",
+    "role",
+    "personality",
+    "lovedItems",
+    "likedItems",
+    "hatedItems",
+    "dialogues"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "gender": {
+      "anyOf": [
+        {
+          "const": "male",
+          "type": "string"
+        },
+        {
+          "const": "female",
+          "type": "string"
+        }
+      ]
+    },
+    "role": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "personality": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "lovedItems": {
+      "type": "array",
+      "items": {
+        "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+        "type": "string"
+      }
+    },
+    "likedItems": {
+      "type": "array",
+      "items": {
+        "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+        "type": "string"
+      }
+    },
+    "hatedItems": {
+      "type": "array",
+      "items": {
+        "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+        "type": "string"
+      }
+    },
+    "dialogues": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "stranger",
+        "acquaintance",
+        "friendly",
+        "bestFriend"
+      ],
+      "properties": {
+        "stranger": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          }
+        },
+        "acquaintance": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          }
+        },
+        "friendly": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          }
+        },
+        "bestFriend": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "marriageable": {
+      "type": "boolean"
+    },
+    "heartEventIds": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "datingDialogues": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "fallback"
+        ],
+        "properties": {
+          "key": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "fallback": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    },
+    "zhijiDialogues": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "fallback"
+        ],
+        "properties": {
+          "key": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "fallback": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      }
+    },
+    "zhijiHeartEventIds": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "birthday": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "season",
+        "day"
+      ],
+      "properties": {
+        "season": {
+          "anyOf": [
+            {
+              "const": "spring",
+              "type": "string"
+            },
+            {
+              "const": "summer",
+              "type": "string"
+            },
+            {
+              "const": "autumn",
+              "type": "string"
+            },
+            {
+              "const": "winter",
+              "type": "string"
+            }
+          ]
+        },
+        "day": {
+          "minimum": 1,
+          "maximum": 28,
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

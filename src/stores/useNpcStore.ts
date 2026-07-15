@@ -12,7 +12,7 @@ import type {
   FarmHelperTask,
   HiredHelper
 } from '@/types'
-import { NPCS, getNpcById, getHeartEventsForNpc, RECIPES } from '@/data'
+import { getNpcs, getNpcById, getHeartEventsForNpc, RECIPES } from '@/data'
 import { WEATHER_TIPS, getFortuneTip, getLivingTip, getRecipeTipMessage, NO_RECIPE_TIP, TIP_NPC_IDS } from '@/data/npcTips'
 import { getItemById } from '@/data/items'
 import { isMomoFumo } from '@/data/specialItems'
@@ -37,7 +37,7 @@ const FRIENDSHIP_GAIN_MULTIPLIER = 3
 
 export const useNpcStore = defineStore('npc', () => {
   const npcStates = ref<NpcState[]>(
-    NPCS.map(npc => ({
+    getNpcs().map(npc => ({
       npcId: npc.id,
       friendship: 0,
       talkedToday: false,
@@ -285,7 +285,7 @@ export const useNpcStore = defineStore('npc', () => {
   /** 获取今天过生日的NPC (null if none) */
   const getTodayBirthdayNpc = (): string | null => {
     const gameStore = useGameStore()
-    for (const npc of NPCS) {
+    for (const npc of getNpcs()) {
       if (npc.birthday && npc.birthday.season === gameStore.season && npc.birthday.day === gameStore.day) {
         return npc.id
       }
@@ -1038,7 +1038,7 @@ export const useNpcStore = defineStore('npc', () => {
     }))
     // 合并：保留已保存的状态，为新增NPC补充默认状态
     const savedIds = new Set(savedStates.map(s => s.npcId))
-    const newNpcStates: NpcState[] = NPCS.filter(npc => !savedIds.has(npc.id)).map(npc => ({
+    const newNpcStates: NpcState[] = getNpcs().filter(npc => !savedIds.has(npc.id)).map(npc => ({
       npcId: npc.id,
       friendship: 0,
       talkedToday: false,
