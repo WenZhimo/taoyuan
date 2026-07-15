@@ -4,6 +4,7 @@ import type {
   EnchantmentDef as LegacyEnchantmentDef,
   FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
+  HatDef as LegacyHatDef,
   MonsterDef as LegacyMonsterDef,
   RingDef as LegacyRingDef,
   ToolTier,
@@ -291,6 +292,23 @@ const toLegacyRingDef = (equipment: Readonly<EquipmentContentDef>): LegacyRingDe
   sellPrice: equipment.sellPrice
 })
 
+const toLegacyHatDef = (equipment: Readonly<EquipmentContentDef>): LegacyHatDef => ({
+  id: getLocalContentId(equipment.id),
+  name: equipment.name.fallback,
+  description: equipment.description.fallback,
+  effects: equipment.effects.map(effect => ({ ...effect })),
+  shopPrice: equipment.shopPrice ?? null,
+  recipe: equipment.recipe
+    ? equipment.recipe.map(material => ({
+        itemId: getLocalContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: equipment.recipeMoney,
+  obtainSource: equipment.obtainSource.fallback,
+  sellPrice: equipment.sellPrice
+})
+
 export const getOfficialRingDefs = (): readonly Readonly<EquipmentContentDef>[] =>
   getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'ring')
 
@@ -300,6 +318,17 @@ export const getOfficialRingsAsLegacy = (): readonly LegacyRingDef[] =>
 export const getOfficialRingById = (id: string): LegacyRingDef | undefined => {
   const equipment = getOfficialEquipmentDef(id)
   return equipment?.kind === 'ring' ? toLegacyRingDef(equipment) : undefined
+}
+
+export const getOfficialHatDefs = (): readonly Readonly<EquipmentContentDef>[] =>
+  getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'hat')
+
+export const getOfficialHatsAsLegacy = (): readonly LegacyHatDef[] =>
+  getOfficialHatDefs().map(toLegacyHatDef)
+
+export const getOfficialHatById = (id: string): LegacyHatDef | undefined => {
+  const equipment = getOfficialEquipmentDef(id)
+  return equipment?.kind === 'hat' ? toLegacyHatDef(equipment) : undefined
 }
 
 export const getOfficialEquipmentSetDef = (id: string): Readonly<EquipmentSetContentDef> | undefined => {

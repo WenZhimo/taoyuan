@@ -6,8 +6,17 @@ import {
   getRingById
 } from '@/data/rings'
 import {
+  CRAFTABLE_HATS,
+  HATS as LEGACY_HATS,
+  SHOP_HATS,
+  getHatById
+} from '@/data/hats'
+import {
   getOfficialEquipmentDef,
   getOfficialEquipmentDefs,
+  getOfficialHatById,
+  getOfficialHatDefs,
+  getOfficialHatsAsLegacy,
   getOfficialRingById,
   getOfficialRingDefs,
   getOfficialRingsAsLegacy
@@ -18,7 +27,7 @@ import { validateUnknown } from '@/domain/mods/schemaValidation'
 import { EquipmentDefSchema, type EquipmentDef as EquipmentContentDef } from '@/domain/mods/schemas'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import { OFFICIAL_PACKAGE_ID, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
-import type { RingDef as LegacyRingDef } from '@/types'
+import type { HatDef as LegacyHatDef, RingDef as LegacyRingDef } from '@/types'
 import validEquipment from '../fixtures/mods/minimal-valid-package/data/equipment.json'
 
 const localId = (id: string): string => id.slice(id.indexOf(':') + 1)
@@ -40,10 +49,34 @@ const expectedRingContentDef = (ring: LegacyRingDef): EquipmentContentDef => ({
   sellPrice: ring.sellPrice
 })
 
+const expectedHatContentDef = (hat: LegacyHatDef): EquipmentContentDef => ({
+  id: toOfficialContentId(hat.id),
+  kind: 'hat',
+  name: { key: `taoyuan.equipment.hat.${hat.id}.name`, fallback: hat.name },
+  description: { key: `taoyuan.equipment.hat.${hat.id}.description`, fallback: hat.description },
+  effects: hat.effects.map(effect => ({ ...effect })),
+  shopPrice: hat.shopPrice,
+  recipe: hat.recipe
+    ? hat.recipe.map(material => ({
+        itemId: toOfficialContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: hat.recipeMoney,
+  obtainSource: { key: `taoyuan.equipment.hat.${hat.id}.obtainSource`, fallback: hat.obtainSource },
+  sellPrice: hat.sellPrice
+})
+
 const normalizeLegacyRing = (ring: LegacyRingDef): LegacyRingDef => ({
   ...ring,
   effects: ring.effects.map(effect => ({ ...effect })),
   recipe: ring.recipe ? ring.recipe.map(material => ({ ...material })) : null
+})
+
+const normalizeLegacyHat = (hat: LegacyHatDef): LegacyHatDef => ({
+  ...hat,
+  effects: hat.effects.map(effect => ({ ...effect })),
+  recipe: hat.recipe ? hat.recipe.map(material => ({ ...material })) : null
 })
 
 const normalizeContentRing = (ring: Readonly<EquipmentContentDef>): LegacyRingDef => ({
@@ -62,6 +95,23 @@ const normalizeContentRing = (ring: Readonly<EquipmentContentDef>): LegacyRingDe
   sellPrice: ring.sellPrice
 })
 
+const normalizeContentHat = (hat: Readonly<EquipmentContentDef>): LegacyHatDef => ({
+  id: localId(hat.id),
+  name: hat.name.fallback,
+  description: hat.description.fallback,
+  effects: hat.effects.map(effect => ({ ...effect })),
+  shopPrice: hat.shopPrice ?? null,
+  recipe: hat.recipe
+    ? hat.recipe.map(material => ({
+        itemId: localId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: hat.recipeMoney,
+  obtainSource: hat.obtainSource.fallback,
+  sellPrice: hat.sellPrice
+})
+
 describe('equipment registry pilot', () => {
   it('validates external equipment JSON before registration', () => {
     const externalEquipment: unknown = validEquipment
@@ -75,12 +125,13 @@ describe('equipment registry pilot', () => {
   it('rejects invalid equipment shapes and numeric bounds', () => {
     const base = validEquipment[0]!
     const invalidEquipment: unknown = [
-      { ...base, kind: 'hat' },
+      { ...base, kind: 'shoe' },
       { ...base, id: 'not namespaced' },
       { ...base, effects: [{ type: 'unknown_effect', value: 1 }] },
       { ...base, recipe: [{ itemId: 'example_mod:test_item', quantity: 0 }] },
       { ...base, recipeMoney: -1 },
       { ...base, sellPrice: -1 },
+      { ...base, shopPrice: -1 },
       { ...base, extra: true }
     ]
     const result = validateUnknown(Type.Array(EquipmentDefSchema), invalidEquipment, {
@@ -96,13 +147,14 @@ describe('equipment registry pilot', () => {
         '/3/recipe/0/quantity',
         '/4/recipeMoney',
         '/5/sellPrice',
-        '/6/extra'
+        '/6/shopPrice',
+        '/7/extra'
       ]))
     }
   })
 
   it('registers all legacy rings in order with equivalent fields', () => {
-    expect(getOfficialEquipmentDefs()).toHaveLength(LEGACY_RINGS.length)
+    expect(getOfficialEquipmentDefs()).toHaveLength(LEGACY_RINGS.length + LEGACY_HATS.length)
     expect(getOfficialRingDefs().map(ring => ring.id)).toEqual(
       LEGACY_RINGS.map(ring => toOfficialContentId(ring.id))
     )
@@ -125,19 +177,51 @@ describe('equipment registry pilot', () => {
     }
   })
 
+  it('registers all legacy hats in order with equivalent fields', () => {
+    expect(getOfficialHatDefs().map(hat => hat.id)).toEqual(
+      LEGACY_HATS.map(hat => toOfficialContentId(hat.id))
+    )
+    expect(getOfficialHatDefs().map(normalizeContentHat)).toEqual(
+      LEGACY_HATS.map(normalizeLegacyHat)
+    )
+    expect(getOfficialHatsAsLegacy().map(normalizeLegacyHat)).toEqual(
+      LEGACY_HATS.map(normalizeLegacyHat)
+    )
+    expect(SHOP_HATS.map(hat => hat.id)).toEqual(
+      LEGACY_HATS.filter(hat => hat.shopPrice !== null).map(hat => hat.id)
+    )
+    expect(CRAFTABLE_HATS.map(hat => hat.id)).toEqual(
+      LEGACY_HATS.filter(hat => hat.recipe !== null).map(hat => hat.id)
+    )
+
+    for (const hat of LEGACY_HATS) {
+      expect(getOfficialEquipmentDef(hat.id)).toEqual(expectedHatContentDef(hat))
+      expect(getOfficialEquipmentDef(toOfficialContentId(hat.id))).toBe(getOfficialEquipmentDef(hat.id))
+      expect(getOfficialHatById(hat.id)).toEqual(normalizeLegacyHat(hat))
+      expect(getOfficialHatById(toOfficialContentId(hat.id))).toEqual(normalizeLegacyHat(hat))
+      expect(getHatById(hat.id)).toEqual(normalizeLegacyHat(hat))
+    }
+  })
+
   it('supports missing IDs, duplicate ID rejection and read-only registry entries', () => {
     const jadeRing = getOfficialEquipmentDef('jade_guard_ring')
+    const strawHat = getOfficialEquipmentDef('straw_hat')
     const registrySet = buildOfficialRegistrySetFromStaticData()
     const registry = registrySet.get<EquipmentContentDef>(toOfficialRegistryTypeId('equipment'))
 
     expect(getOfficialEquipmentDef('missing_equipment')).toBeUndefined()
     expect(getOfficialRingById('missing_ring')).toBeUndefined()
+    expect(getOfficialHatById('missing_hat')).toBeUndefined()
     expect(getRingById('missing_ring')).toBeUndefined()
+    expect(getHatById('missing_hat')).toBeUndefined()
     expect(Object.isFrozen(jadeRing)).toBe(true)
     expect(Object.isFrozen(jadeRing?.effects)).toBe(true)
     expect(Object.isFrozen(jadeRing?.effects[0])).toBe(true)
     expect(Object.isFrozen(jadeRing?.recipe)).toBe(true)
     expect(Object.isFrozen(jadeRing?.recipe?.[0])).toBe(true)
+    expect(Object.isFrozen(strawHat)).toBe(true)
+    expect(Object.isFrozen(strawHat?.effects)).toBe(true)
+    expect(Object.isFrozen(strawHat?.effects[0])).toBe(true)
     expect(() => registry.register(OFFICIAL_PACKAGE_ID, expectedRingContentDef(LEGACY_RINGS[0]!)))
       .toThrow(RegistryError)
   })

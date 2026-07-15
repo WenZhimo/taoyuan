@@ -6,7 +6,7 @@ import { PROCESSING_MACHINES, SPRINKLERS, FERTILIZERS, BAITS, TACKLES, BOMBS } f
 import { FRUIT_TREE_DEFINITIONS as FRUIT_TREE_DEFS } from './treeDefinitions'
 import { WEAPONS, getWeaponSellPrice } from './weapons'
 import { RINGS } from './ringDefinitions'
-import { HATS } from './hats'
+import { HATS } from './hatDefinitions'
 import { SHOES } from './shoes'
 import { MOMO_FUMO_ITEM_ID } from './specialItems'
 import { getOfficialItemDef } from '@/domain/mods/contentAccess'

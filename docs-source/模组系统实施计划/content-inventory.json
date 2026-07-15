@@ -3,11 +3,11 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 61,
-    "approximateLineCount": 31171,
+    "fileCount": 62,
+    "approximateLineCount": 31188,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 507,
+    "symbolCount": 514,
     "reviewedArtifactCount": 73
   },
   "entries": [
@@ -4578,51 +4578,59 @@
       ]
     },
     {
-      "file": "src/data/hats.ts",
-      "lines": 509,
+      "file": "src/data/hatDefinitions.ts",
       "classification": "mixed",
       "domains": [
+        "equipment",
         "hat",
         "equipment_drop"
       ],
       "candidateTargets": [
         "taoyuan:equipment",
-        "taoyuan:drop_table"
+        "taoyuan:drop_table",
+        "compatibility_adapter"
       ],
       "phases": [
         4,
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 509,
       "symbols": [
         {
-          "file": "src/data/hats.ts",
+          "file": "src/data/hatDefinitions.ts",
           "exportName": "HATS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:equipment",
           "persistentIds": true,
           "consumers": [
-            "src/data/items.ts"
+            "src/data/hats.ts",
+            "src/data/items.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy hat definitions; Phase 6 projects every hat into taoyuan:equipment without changing IDs, effects, shop prices, recipes, obtain sources or sell prices."
         },
         {
-          "file": "src/data/hats.ts",
+          "file": "src/data/hatDefinitions.ts",
           "exportName": "getHatById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/components/game/mining/MineEquipmentPresetDetailDialog.vue",
+            "src/data/hats.ts",
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -4633,18 +4641,20 @@
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Leaf fallback lookup retained for rollback; public src/data/hats.ts getHatById() now resolves taoyuan:equipment first."
         },
         {
-          "file": "src/data/hats.ts",
+          "file": "src/data/hatDefinitions.ts",
           "exportName": "SHOP_HATS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:equipment",
           "persistentIds": true,
           "consumers": [
+            "src/data/hats.ts",
             "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/views/game/ShopView.vue"
           ],
@@ -4654,16 +4664,18 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
-          "rationale": "Phase 3 shop offer pilot verifies the SHOP_HATS purchase projection through taoyuan:shop_offer; full hat equipment content remains available through legacy data until equipment migration."
+          "rationale": "Derived shop hat list remains equivalent to legacy HATS.filter(shopPrice !== null); Phase 6 verifies it alongside taoyuan:equipment hat definitions."
         },
         {
-          "file": "src/data/hats.ts",
+          "file": "src/data/hatDefinitions.ts",
           "exportName": "CRAFTABLE_HATS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:equipment",
           "persistentIds": true,
           "consumers": [
+            "src/data/hats.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
             "src/views/game/ShopView.vue"
           ],
           "migrationPhase": [
@@ -4671,17 +4683,18 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Derived craftable hat list remains equivalent to legacy HATS.filter(recipe !== null); Phase 6 verifies it alongside taoyuan:equipment hat definitions."
         },
         {
-          "file": "src/data/hats.ts",
+          "file": "src/data/hatDefinitions.ts",
           "exportName": "MONSTER_DROP_HATS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/data/hats.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
@@ -4693,16 +4706,17 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
-          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_HATS through named taoyuan:drop_table entries without changing hat drop settlement."
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_HATS through named taoyuan:drop_table entries; hatDefinitions now owns the static source after the Phase 6 equipment slice."
         },
         {
-          "file": "src/data/hats.ts",
+          "file": "src/data/hatDefinitions.ts",
           "exportName": "BOSS_DROP_HATS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "engine/domain/mining-boss-reward",
           "persistentIds": true,
           "consumers": [
+            "src/data/hats.ts",
             "src/stores/useMiningStore.ts",
             "src/views/game/GuildView.vue"
           ],
@@ -4712,16 +4726,17 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "rationale": "BOSS first-kill hat reward mapping remains in the existing mining reward path; the Phase 6 hat slice does not migrate boss reward settlement."
         },
         {
-          "file": "src/data/hats.ts",
+          "file": "src/data/hatDefinitions.ts",
           "exportName": "TREASURE_DROP_HATS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/data/hats.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
@@ -4732,7 +4747,170 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_HATS through named taoyuan:drop_table entries; hatDefinitions now owns the static source after the Phase 6 equipment slice."
+        }
+      ]
+    },
+    {
+      "file": "src/data/hats.ts",
+      "classification": "mixed",
+      "domains": [
+        "equipment",
+        "hat",
+        "lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:equipment",
+        "compatibility_adapter"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 18,
+      "symbols": [
+        {
+          "file": "src/data/hats.ts",
+          "exportName": "HATS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:equipment",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hatDefinitions.ts",
+            "src/data/items.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy imports stable while static source moved to hatDefinitions for registry adapter isolation."
+        },
+        {
+          "file": "src/data/hats.ts",
+          "exportName": "SHOP_HATS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:equipment",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hatDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/views/game/ShopView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export preserves the legacy shop hat list while the official equipment registry becomes the runtime query source."
+        },
+        {
+          "file": "src/data/hats.ts",
+          "exportName": "CRAFTABLE_HATS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:equipment",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hatDefinitions.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/views/game/ShopView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export preserves the legacy craftable hat list while the official equipment registry becomes the runtime query source."
+        },
+        {
+          "file": "src/data/hats.ts",
+          "exportName": "MONSTER_DROP_HATS",
+          "syntaxKind": "re-export",
+          "classification": "derived",
+          "targetRegistry": "taoyuan:drop_table",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hatDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts",
+            "src/views/game/GuildView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_HATS through named taoyuan:drop_table entries without changing hat drop settlement."
+        },
+        {
+          "file": "src/data/hats.ts",
+          "exportName": "BOSS_DROP_HATS",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/hatDefinitions.ts",
+            "src/stores/useMiningStore.ts",
+            "src/views/game/GuildView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/hats.ts",
+          "exportName": "TREASURE_DROP_HATS",
+          "syntaxKind": "re-export",
+          "classification": "derived",
+          "targetRegistry": "taoyuan:drop_table",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hatDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
           "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_HATS through named taoyuan:drop_table entries while treasure settlement remains framework-owned."
+        },
+        {
+          "file": "src/data/hats.ts",
+          "exportName": "getHatById",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:equipment",
+          "persistentIds": false,
+          "consumers": [
+            "src/components/game/mining/MineEquipmentPresetDetailDialog.vue",
+            "src/data/hatDefinitions.ts",
+            "src/stores/useInventoryStore.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/views/game/AchievementView.vue",
+            "src/views/game/CharInfoView.vue",
+            "src/views/game/GuildView.vue",
+            "src/views/game/InventoryView.vue",
+            "src/views/game/MiningView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy getHatById() signature is retained and now resolves taoyuan:equipment before returning the same local-ID HatDef shape."
         }
       ]
     },
@@ -5464,7 +5642,7 @@
     },
     {
       "file": "src/data/items.ts",
-      "lines": 2014,
+      "lines": 2013,
       "classification": "mixed",
       "domains": [
         "item",
@@ -10392,11 +10570,11 @@
         6
       ],
       "status": "verified",
-      "rationale": "TypeBox source of truth for ring equipment definitions in the first taoyuan:equipment slice; generated equipment.schema.json rejects invalid kind, effects, recipe materials and numeric bounds."
+      "rationale": "TypeBox source of truth for ring and hat equipment definitions in taoyuan:equipment; generated equipment.schema.json rejects invalid kind, effects, shop prices, recipe materials and numeric bounds."
     },
     {
       "file": "src/domain/mods/staticAdapters.ts",
-      "exportName": "adaptLegacyRingEquipment/createOfficialEquipment",
+      "exportName": "adaptLegacyRingEquipment/adaptLegacyHatEquipment/createOfficialEquipment",
       "classification": "adapter",
       "targetRegistry": "taoyuan:equipment",
       "persistentIds": true,
@@ -10404,11 +10582,11 @@
         6
       ],
       "status": "verified",
-      "rationale": "Projects every legacy ring definition into ordered official equipment entries without changing local IDs, effects, recipes, obtain-source text or sell prices."
+      "rationale": "Projects every legacy ring and hat definition into ordered official equipment entries without changing local IDs, effects, shop prices, recipes, obtain-source text or sell prices."
     },
     {
       "file": "src/domain/mods/contentAccess.ts",
-      "exportName": "getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialRingsAsLegacy",
+      "exportName": "getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialHatById/getOfficialRingsAsLegacy/getOfficialHatsAsLegacy",
       "classification": "adapter",
       "targetRegistry": "taoyuan:equipment",
       "persistentIds": false,
@@ -10416,7 +10594,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Returns frozen registry equipment definitions and reconstructs legacy RingDef objects for getRingById() compatibility."
+      "rationale": "Returns frozen registry equipment definitions and reconstructs legacy RingDef and HatDef objects for getRingById() and getHatById() compatibility."
     },
     {
       "file": "src/domain/mods/semanticValidation.ts",
@@ -10428,7 +10606,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Checks equipment item IDs and ring recipe material references against taoyuan:item before registry snapshots are accepted."
+      "rationale": "Checks equipment item IDs plus ring and hat recipe material references against taoyuan:item before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

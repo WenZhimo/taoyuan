@@ -15177,7 +15177,48 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "深渊龙王的角制成的战冠，蕴含毁灭之力。",
+              "key": "taoyuan.equipment.hat.abyss_dragon_horns.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 8
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.1
+              },
+              {
+                "type": "vampiric",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:abyss_dragon_horns",
+            "kind": "hat",
+            "name": {
+              "fallback": "龙王角冠",
+              "key": "taoyuan.equipment.hat.abyss_dragon_horns.name"
+            },
+            "obtainSource": {
+              "fallback": "120层BOSS首杀",
+              "key": "taoyuan.equipment.hat.abyss_dragon_horns.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 5000,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15213,7 +15254,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15249,7 +15290,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15298,7 +15339,81 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "竹编斗笠，遮阳挡雨，减少体力消耗。",
+              "key": "taoyuan.equipment.hat.bamboo_hat.description"
+            },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:bamboo_hat",
+            "kind": "hat",
+            "name": {
+              "fallback": "竹笠",
+              "key": "taoyuan.equipment.hat.bamboo_hat.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.hat.bamboo_hat.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 120,
+            "shopPrice": 300
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "水晶之王碎裂后留下的王冠，蕴含纯净的晶能。",
+              "key": "taoyuan.equipment.hat.crystal_king_crown.description"
+            },
+            "effects": [
+              {
+                "type": "exp_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "luck",
+                "value": 0.06
+              },
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:crystal_king_crown",
+            "kind": "hat",
+            "name": {
+              "fallback": "晶王冠",
+              "key": "taoyuan.equipment.hat.crystal_king_crown.name"
+            },
+            "obtainSource": {
+              "fallback": "80层BOSS首杀",
+              "key": "taoyuan.equipment.hat.crystal_king_crown.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15334,7 +15449,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15370,7 +15485,57 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "以龙玉镶嵌的战盔，攻守兼备。",
+              "key": "taoyuan.equipment.hat.dragon_helm.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 5
+              },
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.05
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:dragon_helm",
+            "kind": "hat",
+            "name": {
+              "fallback": "龙角盔",
+              "key": "taoyuan.equipment.hat.dragon_helm.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.dragon_helm.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 8000,
+            "sellPrice": 4000,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15411,7 +15576,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15452,7 +15617,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15497,7 +15662,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15538,7 +15703,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15583,7 +15748,44 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "宽檐遮阳帽，钓鱼时更加专注。",
+              "key": "taoyuan.equipment.hat.fisher_hat.description"
+            },
+            "effects": [
+              {
+                "type": "fishing_stamina",
+                "value": 0.1
+              },
+              {
+                "type": "fishing_calm",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:fisher_hat",
+            "kind": "hat",
+            "name": {
+              "fallback": "渔夫帽",
+              "key": "taoyuan.equipment.hat.fisher_hat.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.hat.fisher_hat.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 320,
+            "shopPrice": 800
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15628,7 +15830,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15669,7 +15871,44 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冰蝠身上剥下的毛皮缝制，散发着寒气。",
+              "key": "taoyuan.equipment.hat.frost_hood.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.05
+              },
+              {
+                "type": "stamina_reduction",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:frost_hood",
+            "kind": "hat",
+            "name": {
+              "fallback": "霜寒兜帽",
+              "key": "taoyuan.equipment.hat.frost_hood.name"
+            },
+            "obtainSource": {
+              "fallback": "冰霜层怪物掉落",
+              "key": "taoyuan.equipment.hat.frost_hood.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 150,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15701,7 +15940,164 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冰霜女王的冠冕，蕴含寒冰之力，钓鱼格外专注。",
+              "key": "taoyuan.equipment.hat.frost_queen_tiara.description"
+            },
+            "effects": [
+              {
+                "type": "fishing_calm",
+                "value": 0.08
+              },
+              {
+                "type": "fishing_stamina",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:frost_queen_tiara",
+            "kind": "hat",
+            "name": {
+              "fallback": "冰后冠冕",
+              "key": "taoyuan.equipment.hat.frost_queen_tiara.name"
+            },
+            "obtainSource": {
+              "fallback": "40层BOSS首杀",
+              "key": "taoyuan.equipment.hat.frost_queen_tiara.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "柔软的兽皮帽，矿洞中格外实用。",
+              "key": "taoyuan.equipment.hat.fur_cap.description"
+            },
+            "effects": [
+              {
+                "type": "mining_stamina",
+                "value": 0.08
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:fur_cap",
+            "kind": "hat",
+            "name": {
+              "fallback": "皮毛帽",
+              "key": "taoyuan.equipment.hat.fur_cap.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.hat.fur_cap.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 240,
+            "shopPrice": 600
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "金光闪耀的冠冕，财运亨通。",
+              "key": "taoyuan.equipment.hat.golden_crown.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.1
+              },
+              {
+                "type": "sell_price_bonus",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:golden_crown",
+            "kind": "hat",
+            "name": {
+              "fallback": "金冠",
+              "key": "taoyuan.equipment.hat.golden_crown.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.golden_crown.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 3000,
+            "sellPrice": 1500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "泥石魔的核心碎片镶嵌其上，坚硬异常。",
+              "key": "taoyuan.equipment.hat.golem_stone_cap.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.06
+              },
+              {
+                "type": "mining_stamina",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:golem_stone_cap",
+            "kind": "hat",
+            "name": {
+              "fallback": "石魔帽",
+              "key": "taoyuan.equipment.hat.golem_stone_cap.name"
+            },
+            "obtainSource": {
+              "fallback": "20层BOSS首杀",
+              "key": "taoyuan.equipment.hat.golem_stone_cap.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 300,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15746,7 +16142,44 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冒险家公会精英成员的战斗头盔，坚固而威严。",
+              "key": "taoyuan.equipment.hat.guild_war_helm.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 3
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 15
+              }
+            ],
+            "id": "taoyuan:guild_war_helm",
+            "kind": "hat",
+            "name": {
+              "fallback": "公会战盔",
+              "key": "taoyuan.equipment.hat.guild_war_helm.name"
+            },
+            "obtainSource": {
+              "fallback": "公会商店",
+              "key": "taoyuan.equipment.hat.guild_war_helm.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 800,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15782,7 +16215,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15831,7 +16264,95 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "采药人常戴的宽帽，农耕时减少体力且提高作物品质。",
+              "key": "taoyuan.equipment.hat.herbalist_hat.description"
+            },
+            "effects": [
+              {
+                "type": "farming_stamina",
+                "value": 0.06
+              },
+              {
+                "type": "crop_quality_bonus",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:herbalist_hat",
+            "kind": "hat",
+            "name": {
+              "fallback": "药师帽",
+              "key": "taoyuan.equipment.hat.herbalist_hat.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.herbalist_hat.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:herb",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 800,
+            "sellPrice": 400,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "坚固的铁制头盔，提升防御与生命上限。",
+              "key": "taoyuan.equipment.hat.iron_helm.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.1
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 15
+              }
+            ],
+            "id": "taoyuan:iron_helm",
+            "kind": "hat",
+            "name": {
+              "fallback": "铁盔",
+              "key": "taoyuan.equipment.hat.iron_helm.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.iron_helm.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "recipeMoney": 1000,
+            "sellPrice": 500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15872,7 +16393,53 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "翡翠打磨的发簪，田间劳作更加轻松。",
+              "key": "taoyuan.equipment.hat.jade_hairpin.description"
+            },
+            "effects": [
+              {
+                "type": "crop_quality_bonus",
+                "value": 0.06
+              },
+              {
+                "type": "farming_stamina",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:jade_hairpin",
+            "kind": "hat",
+            "name": {
+              "fallback": "翡翠簪",
+              "key": "taoyuan.equipment.hat.jade_hairpin.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.jade_hairpin.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 600,
+            "sellPrice": 300,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15913,7 +16480,44 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "火蝠翼膜缝制的耐热兜帽，蕴含灼热之力。",
+              "key": "taoyuan.equipment.hat.lava_helm.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 3
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.04
+              }
+            ],
+            "id": "taoyuan:lava_helm",
+            "kind": "hat",
+            "name": {
+              "fallback": "熔岩兜帽",
+              "key": "taoyuan.equipment.hat.lava_helm.name"
+            },
+            "obtainSource": {
+              "fallback": "熔岩层怪物掉落",
+              "key": "taoyuan.equipment.hat.lava_helm.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 350,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15949,7 +16553,123 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "以莲叶编成的清凉帽子，减少全局体力消耗。",
+              "key": "taoyuan.equipment.hat.lotus_hat.description"
+            },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:lotus_hat",
+            "kind": "hat",
+            "name": {
+              "fallback": "莲花帽",
+              "key": "taoyuan.equipment.hat.lotus_hat.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.hat.lotus_hat.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 200,
+            "shopPrice": 500
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "宝箱中发现的古怪小帽，似乎能带来好运。",
+              "key": "taoyuan.equipment.hat.lucky_cap.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.04
+              },
+              {
+                "type": "sell_price_bonus",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:lucky_cap",
+            "kind": "hat",
+            "name": {
+              "fallback": "幸运小帽",
+              "key": "taoyuan.equipment.hat.lucky_cap.name"
+            },
+            "obtainSource": {
+              "fallback": "矿洞宝箱",
+              "key": "taoyuan.equipment.hat.lucky_cap.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 250,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "绸面圆帽，商人们的标志，提升售价并降低购物开支。",
+              "key": "taoyuan.equipment.hat.merchant_hat.description"
+            },
+            "effects": [
+              {
+                "type": "sell_price_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "shop_discount",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:merchant_hat",
+            "kind": "hat",
+            "name": {
+              "fallback": "商人帽",
+              "key": "taoyuan.equipment.hat.merchant_hat.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.merchant_hat.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 2500,
+            "sellPrice": 1200,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -15994,7 +16714,40 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "带有灯座的皮帽，矿洞探索体力大幅降低。",
+              "key": "taoyuan.equipment.hat.miner_helmet.description"
+            },
+            "effects": [
+              {
+                "type": "mining_stamina",
+                "value": 0.12
+              }
+            ],
+            "id": "taoyuan:miner_helmet",
+            "kind": "hat",
+            "name": {
+              "fallback": "矿工帽",
+              "key": "taoyuan.equipment.hat.miner_helmet.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.hat.miner_helmet.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 320,
+            "shopPrice": 800
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16043,7 +16796,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16084,7 +16837,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16116,7 +16869,99 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "黑曜石铸成的重盔，防御力极强。",
+              "key": "taoyuan.equipment.hat.obsidian_helm.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.12
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 20
+              }
+            ],
+            "id": "taoyuan:obsidian_helm",
+            "kind": "hat",
+            "name": {
+              "fallback": "黑曜盔",
+              "key": "taoyuan.equipment.hat.obsidian_helm.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.obsidian_helm.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:obsidian",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 3
+              }
+            ],
+            "recipeMoney": 3000,
+            "sellPrice": 1500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "龙玉镶嵌的华美凤冠，带来好运与悟性。",
+              "key": "taoyuan.equipment.hat.phoenix_crown.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.08
+              },
+              {
+                "type": "exp_bonus",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:phoenix_crown",
+            "kind": "hat",
+            "name": {
+              "fallback": "凤冠",
+              "key": "taoyuan.equipment.hat.phoenix_crown.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.phoenix_crown.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 6000,
+            "sellPrice": 3000,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16165,7 +17010,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16206,7 +17051,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16247,7 +17092,82 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "儒雅的文士方巾，增加经验获取。",
+              "key": "taoyuan.equipment.hat.scholar_hat.description"
+            },
+            "effects": [
+              {
+                "type": "exp_bonus",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:scholar_hat",
+            "kind": "hat",
+            "name": {
+              "fallback": "文士帽",
+              "key": "taoyuan.equipment.hat.scholar_hat.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.scholar_hat.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 1500,
+            "sellPrice": 600,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暗影潜伏者遗留的面具，戴上后能感知怪物的弱点。",
+              "key": "taoyuan.equipment.hat.shadow_mask.description"
+            },
+            "effects": [
+              {
+                "type": "monster_drop_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "vampiric",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:shadow_mask",
+            "kind": "hat",
+            "name": {
+              "fallback": "暗影面具",
+              "key": "taoyuan.equipment.hat.shadow_mask.name"
+            },
+            "obtainSource": {
+              "fallback": "暗影层怪物掉落",
+              "key": "taoyuan.equipment.hat.shadow_mask.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1000,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16288,7 +17208,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16324,7 +17244,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16356,7 +17276,44 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "华美的丝绸头巾，提升售价并增加送礼好感。",
+              "key": "taoyuan.equipment.hat.silk_turban.description"
+            },
+            "effects": [
+              {
+                "type": "sell_price_bonus",
+                "value": 0.05
+              },
+              {
+                "type": "gift_friendship",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:silk_turban",
+            "kind": "hat",
+            "name": {
+              "fallback": "丝绸头巾",
+              "key": "taoyuan.equipment.hat.silk_turban.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.hat.silk_turban.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 400,
+            "shopPrice": 1000
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16401,7 +17358,40 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "轻便的草编帽子，农作时减少体力消耗。",
+              "key": "taoyuan.equipment.hat.straw_hat.description"
+            },
+            "effects": [
+              {
+                "type": "farming_stamina",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:straw_hat",
+            "kind": "hat",
+            "name": {
+              "fallback": "草帽",
+              "key": "taoyuan.equipment.hat.straw_hat.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.hat.straw_hat.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 80,
+            "shopPrice": 200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16446,7 +17436,94 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "虎皮与熊皮合制的披风，攻守兼备，气势慑人。",
+              "key": "taoyuan.equipment.hat.tiger_pelt_cape.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 5
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:tiger_pelt_cape",
+            "kind": "hat",
+            "name": {
+              "fallback": "虎皮披风",
+              "key": "taoyuan.equipment.hat.tiger_pelt_cape.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.tiger_pelt_cape.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:tiger_pelt",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:bear_pelt",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 2000,
+            "sellPrice": 900,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "西域丝绸织就的华美长袍，穿着时神清气爽。",
+              "key": "taoyuan.equipment.hat.trade_silk_robe.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 3
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 20
+              }
+            ],
+            "id": "taoyuan:trade_silk_robe",
+            "kind": "hat",
+            "name": {
+              "fallback": "丝绸长袍",
+              "key": "taoyuan.equipment.hat.trade_silk_robe.name"
+            },
+            "obtainSource": {
+              "fallback": "通商积分兑换",
+              "key": "taoyuan.equipment.hat.trade_silk_robe.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 750,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16482,7 +17559,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16527,7 +17604,44 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "宝箱中发现的奇特帽子，似乎能吸引更多宝物。",
+              "key": "taoyuan.equipment.hat.treasure_cap.description"
+            },
+            "effects": [
+              {
+                "type": "treasure_find",
+                "value": 0.05
+              },
+              {
+                "type": "ore_bonus",
+                "value": 1
+              }
+            ],
+            "id": "taoyuan:treasure_cap",
+            "kind": "hat",
+            "name": {
+              "fallback": "淘金帽",
+              "key": "taoyuan.equipment.hat.treasure_cap.name"
+            },
+            "obtainSource": {
+              "fallback": "矿洞宝箱",
+              "key": "taoyuan.equipment.hat.treasure_cap.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 400,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16572,7 +17686,48 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "深渊巨蟒的鳞片锻成，蕴含着深渊的力量。",
+              "key": "taoyuan.equipment.hat.void_visor.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 4
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.06
+              },
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:void_visor",
+            "kind": "hat",
+            "name": {
+              "fallback": "虚空面甲",
+              "key": "taoyuan.equipment.hat.void_visor.name"
+            },
+            "obtainSource": {
+              "fallback": "深渊层怪物掉落",
+              "key": "taoyuan.equipment.hat.void_visor.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1800,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16617,7 +17772,7 @@
         {
           "owner": "taoyuan-core",
           "source": {
-            "file": "src/data/rings.ts",
+            "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
           "entry": {
@@ -16657,6 +17812,52 @@
             ],
             "recipeMoney": 500,
             "sellPrice": 300
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hatDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "以竹林灰狼的毛皮缝制的兜帽，保暖且防护力强。",
+              "key": "taoyuan.equipment.hat.wolf_pelt_hood.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 10
+              }
+            ],
+            "id": "taoyuan:wolf_pelt_hood",
+            "kind": "hat",
+            "name": {
+              "fallback": "狼皮兜帽",
+              "key": "taoyuan.equipment.hat.wolf_pelt_hood.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.hat.wolf_pelt_hood.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:wolf_pelt",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 800,
+            "sellPrice": 400,
+            "shopPrice": null
           }
         }
       ]
@@ -74955,5 +76156,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:df0d45d8c310f7649c24829cafd8480d670bb8911730c6d3ed579205a4a0ce47"
+  "snapshotHash": "sha256:3926a81a6aaec5a0b39501e2f5b283c5660b1b1cc3baa7e363f4b7e7ec0d294a"
 }

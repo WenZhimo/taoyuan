@@ -19,8 +19,16 @@
       "type": "string"
     },
     "kind": {
-      "const": "ring",
-      "type": "string"
+      "anyOf": [
+        {
+          "const": "ring",
+          "type": "string"
+        },
+        {
+          "const": "hat",
+          "type": "string"
+        }
+      ]
     },
     "name": {
       "additionalProperties": false,
@@ -169,6 +177,17 @@
           }
         }
       }
+    },
+    "shopPrice": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ]
     },
     "recipe": {
       "anyOf": [

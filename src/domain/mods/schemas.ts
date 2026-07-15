@@ -743,10 +743,14 @@ export const EquipmentRecipeIngredientSchema = Type.Object(
 export const EquipmentDefSchema = Type.Object(
   {
     id: ContentIdSchema,
-    kind: Type.Literal('ring'),
+    kind: Type.Union([
+      Type.Literal('ring'),
+      Type.Literal('hat')
+    ]),
     name: LocalizedTextRefSchema,
     description: LocalizedTextRefSchema,
     effects: Type.Array(EquipmentEffectSchema),
+    shopPrice: Type.Optional(Type.Union([Type.Integer({ minimum: 0 }), Type.Null()])),
     recipe: Type.Union([Type.Array(EquipmentRecipeIngredientSchema), Type.Null()]),
     recipeMoney: Type.Integer({ minimum: 0 }),
     obtainSource: LocalizedTextRefSchema,
