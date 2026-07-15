@@ -4,7 +4,7 @@ import { FISH } from './fishDefinitions'
 import { RECIPES } from './recipes'
 import { PROCESSING_MACHINES, SPRINKLERS, FERTILIZERS, BAITS, TACKLES, BOMBS } from './processing'
 import { FRUIT_TREE_DEFINITIONS as FRUIT_TREE_DEFS } from './treeDefinitions'
-import { WEAPONS, getWeaponSellPrice } from './weapons'
+import { WEAPONS, getBaseWeaponSellPrice } from './weaponDefinitions'
 import { RINGS } from './ringDefinitions'
 import { HATS } from './hatDefinitions'
 import { SHOES } from './shoeDefinitions'
@@ -1167,7 +1167,7 @@ const WEAPON_ITEMS: ItemDef[] = Object.values(WEAPONS)
     name: weapon.name,
     category: 'weapon' as const,
     description: weapon.description,
-    sellPrice: getWeaponSellPrice(weapon.id, null),
+    sellPrice: getBaseWeaponSellPrice(weapon),
     edible: false
   }))
 

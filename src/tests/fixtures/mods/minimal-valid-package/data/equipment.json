@@ -85,5 +85,29 @@
       "fallback": "测试夹具"
     },
     "sellPrice": 10
+  },
+  {
+    "id": "example_mod:test_weapon",
+    "kind": "weapon",
+    "name": {
+      "key": "example_mod.equipment.test_weapon.name",
+      "fallback": "测试武器"
+    },
+    "description": {
+      "key": "example_mod.equipment.test_weapon.description",
+      "fallback": "用于校验契约的测试武器"
+    },
+    "weaponType": "sword",
+    "attack": 1,
+    "critRate": 0.05,
+    "shopPrice": 100,
+    "shopMaterials": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      }
+    ],
+    "fixedEnchantment": "example_mod:test_enchantment",
+    "sellPrice": 50
   }
 ]

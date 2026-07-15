@@ -10,6 +10,7 @@ import type {
   ShoeDef as LegacyShoeDef,
   ToolTier,
   ToolType,
+  WeaponDef as LegacyWeaponDef,
   WalletItemDef as LegacyWalletItemDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
@@ -82,6 +83,8 @@ import type {
   ToolUpgradeDef as ToolUpgradeContentDef,
   TreeDef,
   WalletItemDef as WalletItemContentDef,
+  WeaponEquipmentDef,
+  WearableEquipmentDef,
   WildTreeContentDef
 } from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
@@ -277,7 +280,7 @@ export const getOfficialEquipmentDef = (id: string): Readonly<EquipmentContentDe
 export const getOfficialEquipmentDefs = (): readonly Readonly<EquipmentContentDef>[] =>
   getOfficialRegistrySet().get<EquipmentContentDef>(toOfficialRegistryTypeId('equipment')).values()
 
-const toLegacyRingDef = (equipment: Readonly<EquipmentContentDef>): LegacyRingDef => ({
+const toLegacyRingDef = (equipment: Readonly<WearableEquipmentDef>): LegacyRingDef => ({
   id: getLocalContentId(equipment.id),
   name: equipment.name.fallback,
   description: equipment.description.fallback,
@@ -293,24 +296,7 @@ const toLegacyRingDef = (equipment: Readonly<EquipmentContentDef>): LegacyRingDe
   sellPrice: equipment.sellPrice
 })
 
-const toLegacyHatDef = (equipment: Readonly<EquipmentContentDef>): LegacyHatDef => ({
-  id: getLocalContentId(equipment.id),
-  name: equipment.name.fallback,
-  description: equipment.description.fallback,
-  effects: equipment.effects.map(effect => ({ ...effect })),
-  shopPrice: equipment.shopPrice ?? null,
-  recipe: equipment.recipe
-    ? equipment.recipe.map(material => ({
-        itemId: getLocalContentId(material.itemId),
-        quantity: material.quantity
-      }))
-    : null,
-  recipeMoney: equipment.recipeMoney,
-  obtainSource: equipment.obtainSource.fallback,
-  sellPrice: equipment.sellPrice
-})
-
-const toLegacyShoeDef = (equipment: Readonly<EquipmentContentDef>): LegacyShoeDef => ({
+const toLegacyHatDef = (equipment: Readonly<WearableEquipmentDef>): LegacyHatDef => ({
   id: getLocalContentId(equipment.id),
   name: equipment.name.fallback,
   description: equipment.description.fallback,
@@ -327,8 +313,25 @@ const toLegacyShoeDef = (equipment: Readonly<EquipmentContentDef>): LegacyShoeDe
   sellPrice: equipment.sellPrice
 })
 
-export const getOfficialRingDefs = (): readonly Readonly<EquipmentContentDef>[] =>
-  getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'ring')
+const toLegacyShoeDef = (equipment: Readonly<WearableEquipmentDef>): LegacyShoeDef => ({
+  id: getLocalContentId(equipment.id),
+  name: equipment.name.fallback,
+  description: equipment.description.fallback,
+  effects: equipment.effects.map(effect => ({ ...effect })),
+  shopPrice: equipment.shopPrice ?? null,
+  recipe: equipment.recipe
+    ? equipment.recipe.map(material => ({
+        itemId: getLocalContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: equipment.recipeMoney,
+  obtainSource: equipment.obtainSource.fallback,
+  sellPrice: equipment.sellPrice
+})
+
+export const getOfficialRingDefs = (): readonly Readonly<WearableEquipmentDef>[] =>
+  getOfficialEquipmentDefs().filter((equipment): equipment is Readonly<WearableEquipmentDef> => equipment.kind === 'ring')
 
 export const getOfficialRingsAsLegacy = (): readonly LegacyRingDef[] =>
   getOfficialRingDefs().map(toLegacyRingDef)
@@ -338,8 +341,8 @@ export const getOfficialRingById = (id: string): LegacyRingDef | undefined => {
   return equipment?.kind === 'ring' ? toLegacyRingDef(equipment) : undefined
 }
 
-export const getOfficialHatDefs = (): readonly Readonly<EquipmentContentDef>[] =>
-  getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'hat')
+export const getOfficialHatDefs = (): readonly Readonly<WearableEquipmentDef>[] =>
+  getOfficialEquipmentDefs().filter((equipment): equipment is Readonly<WearableEquipmentDef> => equipment.kind === 'hat')
 
 export const getOfficialHatsAsLegacy = (): readonly LegacyHatDef[] =>
   getOfficialHatDefs().map(toLegacyHatDef)
@@ -349,8 +352,8 @@ export const getOfficialHatById = (id: string): LegacyHatDef | undefined => {
   return equipment?.kind === 'hat' ? toLegacyHatDef(equipment) : undefined
 }
 
-export const getOfficialShoeDefs = (): readonly Readonly<EquipmentContentDef>[] =>
-  getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'shoe')
+export const getOfficialShoeDefs = (): readonly Readonly<WearableEquipmentDef>[] =>
+  getOfficialEquipmentDefs().filter((equipment): equipment is Readonly<WearableEquipmentDef> => equipment.kind === 'shoe')
 
 export const getOfficialShoesAsLegacy = (): readonly LegacyShoeDef[] =>
   getOfficialShoeDefs().map(toLegacyShoeDef)
@@ -358,6 +361,32 @@ export const getOfficialShoesAsLegacy = (): readonly LegacyShoeDef[] =>
 export const getOfficialShoeById = (id: string): LegacyShoeDef | undefined => {
   const equipment = getOfficialEquipmentDef(id)
   return equipment?.kind === 'shoe' ? toLegacyShoeDef(equipment) : undefined
+}
+
+const toLegacyWeaponDef = (equipment: Readonly<WeaponEquipmentDef>): LegacyWeaponDef => ({
+  id: getLocalContentId(equipment.id),
+  name: equipment.name.fallback,
+  type: equipment.weaponType,
+  attack: equipment.attack,
+  critRate: equipment.critRate,
+  description: equipment.description.fallback,
+  shopPrice: equipment.shopPrice,
+  shopMaterials: equipment.shopMaterials.map(material => ({
+    itemId: getLocalContentId(material.itemId),
+    quantity: material.quantity
+  })),
+  fixedEnchantment: equipment.fixedEnchantment ? getLocalContentId(equipment.fixedEnchantment) : null
+})
+
+export const getOfficialWeaponDefs = (): readonly Readonly<WeaponEquipmentDef>[] =>
+  getOfficialEquipmentDefs().filter((equipment): equipment is Readonly<WeaponEquipmentDef> => equipment.kind === 'weapon')
+
+export const getOfficialWeaponsAsLegacy = (): readonly LegacyWeaponDef[] =>
+  getOfficialWeaponDefs().map(toLegacyWeaponDef)
+
+export const getOfficialWeaponById = (id: string): LegacyWeaponDef | undefined => {
+  const equipment = getOfficialEquipmentDef(id)
+  return equipment?.kind === 'weapon' ? toLegacyWeaponDef(equipment) : undefined
 }
 
 export const getOfficialEquipmentSetDef = (id: string): Readonly<EquipmentSetContentDef> | undefined => {

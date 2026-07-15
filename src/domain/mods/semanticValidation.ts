@@ -15,6 +15,7 @@ import type {
   BuildingUpgradeDef,
   CropDef,
   DropTableDef,
+  EnchantmentDef,
   EquipmentDef,
   EquipmentSetDef,
   FishDef,
@@ -45,6 +46,7 @@ const REGISTRY_IDS = {
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
+  enchantment: toOfficialRegistryTypeId('enchantment'),
   equipment: toOfficialRegistryTypeId('equipment'),
   equipmentSet: toOfficialRegistryTypeId('equipment_set'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
@@ -93,6 +95,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
+  const enchantmentRegistry = registrySet.get<EnchantmentDef>(REGISTRY_IDS.enchantment)
   const equipmentRegistry = registrySet.get<EquipmentDef>(REGISTRY_IDS.equipment)
   const equipmentSetRegistry = registrySet.get<EquipmentSetDef>(REGISTRY_IDS.equipmentSet)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
@@ -350,16 +353,37 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/id'
       })
     }
-    record.entry.recipe?.forEach((material, index) => {
-      if (!itemRegistry.has(contentId(material.itemId))) {
+    if (record.entry.kind === 'weapon') {
+      record.entry.shopMaterials.forEach((material, index) => {
+        if (!itemRegistry.has(contentId(material.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(material.itemId),
+            fieldPath: `/shopMaterials/${index}/itemId`
+          })
+        }
+      })
+      if (record.entry.fixedEnchantment && !enchantmentRegistry.has(contentId(record.entry.fixedEnchantment))) {
         pushMissingReference(diagnostics, {
           packageId: record.owner,
-          registryId: REGISTRY_IDS.item,
-          contentId: contentId(material.itemId),
-          fieldPath: `/recipe/${index}/itemId`
+          registryId: REGISTRY_IDS.enchantment,
+          contentId: contentId(record.entry.fixedEnchantment),
+          fieldPath: '/fixedEnchantment'
         })
       }
-    })
+    } else {
+      record.entry.recipe?.forEach((material, index) => {
+        if (!itemRegistry.has(contentId(material.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(material.itemId),
+            fieldPath: `/recipe/${index}/itemId`
+          })
+        }
+      })
+    }
   }
 
   for (const record of equipmentSetRegistry.entries()) {

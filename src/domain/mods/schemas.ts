@@ -740,7 +740,13 @@ export const EquipmentRecipeIngredientSchema = Type.Object(
   { additionalProperties: false }
 )
 
-export const EquipmentDefSchema = Type.Object(
+export const EquipmentWeaponTypeSchema = Type.Union([
+  Type.Literal('sword'),
+  Type.Literal('dagger'),
+  Type.Literal('club')
+])
+
+export const WearableEquipmentDefSchema = Type.Object(
   {
     id: ContentIdSchema,
     kind: Type.Union([
@@ -757,7 +763,32 @@ export const EquipmentDefSchema = Type.Object(
     obtainSource: LocalizedTextRefSchema,
     sellPrice: Type.Integer({ minimum: 0 })
   },
-  { $id: 'taoyuan.registry.EquipmentDef', additionalProperties: false }
+  { additionalProperties: false }
+)
+
+export const WeaponEquipmentDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    kind: Type.Literal('weapon'),
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    weaponType: EquipmentWeaponTypeSchema,
+    attack: Type.Integer({ minimum: 0 }),
+    critRate: Type.Number({ minimum: 0 }),
+    shopPrice: Type.Union([Type.Integer({ minimum: 0 }), Type.Null()]),
+    shopMaterials: Type.Array(EquipmentRecipeIngredientSchema),
+    fixedEnchantment: Type.Union([ContentIdSchema, Type.Null()]),
+    sellPrice: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const EquipmentDefSchema = Type.Union(
+  [
+    WearableEquipmentDefSchema,
+    WeaponEquipmentDefSchema
+  ],
+  { $id: 'taoyuan.registry.EquipmentDef' }
 )
 
 export const EquipmentSetPiecesSchema = Type.Object(
@@ -1057,7 +1088,10 @@ export type MonsterPoolEntry = Static<typeof MonsterPoolEntrySchema>
 export type MonsterPoolDef = Static<typeof MonsterPoolDefSchema>
 export type EquipmentEffect = Static<typeof EquipmentEffectSchema>
 export type EquipmentRecipeIngredient = Static<typeof EquipmentRecipeIngredientSchema>
+export type EquipmentWeaponType = Static<typeof EquipmentWeaponTypeSchema>
 export type EquipmentDef = Static<typeof EquipmentDefSchema>
+export type WearableEquipmentDef = Extract<EquipmentDef, { kind: 'ring' | 'hat' | 'shoe' }>
+export type WeaponEquipmentDef = Extract<EquipmentDef, { kind: 'weapon' }>
 export type EquipmentSetPieces = Static<typeof EquipmentSetPiecesSchema>
 export type EquipmentSetBonus = Static<typeof EquipmentSetBonusSchema>
 export type EquipmentSetDef = Static<typeof EquipmentSetDefSchema>

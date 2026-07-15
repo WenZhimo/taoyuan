@@ -397,6 +397,24 @@ fileDefaults.set('src/data/shoes.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/enchantmentDefinitions.ts', {
+  file: 'src/data/enchantmentDefinitions.ts',
+  classification: 'mixed',
+  domains: ['enchantment'],
+  candidateTargets: ['taoyuan:enchantment'],
+  phases: [4],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/weaponDefinitions.ts', {
+  file: 'src/data/weaponDefinitions.ts',
+  classification: 'mixed',
+  domains: ['equipment', 'weapon', 'equipment_drop', 'shop_offer'],
+  candidateTargets: ['taoyuan:equipment', 'taoyuan:drop_table', 'taoyuan:shop_offer', 'compatibility_adapter'],
+  phases: [3, 4, 6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forage.ts', {
   file: 'src/data/forage.ts',
   classification: 'mixed',
@@ -595,9 +613,79 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Legacy getShopById() signature is retained; the Phase 3 query facade resolves getOfficialShopById() through taoyuan:shop and returns the same local-ID ShopDef shape.'
   },
-  'src/data/weapons.ts:SHOP_WEAPONS': {
+  'src/data/weaponDefinitions.ts:WEAPONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 3 shop offer pilot verifies the SHOP_WEAPONS purchase projection through taoyuan:shop_offer; weapon definitions and combat behavior remain owned by later equipment/enchantment phases.'
+    rationale: 'Unique registry-free leaf source for legacy weapon definitions; Phase 6 projects every weapon into taoyuan:equipment without changing IDs, type, attack, crit rate, shop prices, materials or fixed enchantments.'
+  },
+  'src/data/weaponDefinitions.ts:SHOP_WEAPONS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 3 shop offer pilot verifies the SHOP_WEAPONS purchase projection through taoyuan:shop_offer; Phase 6 also verifies the same list against taoyuan:equipment weapon definitions.'
+  },
+  'src/data/weaponDefinitions.ts:WEAPON_TYPE_NAMES': {
+    classification: 'ui',
+    targetRegistry: 'ui/equipment-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Weapon type display labels remain UI-facing compatibility text and are not part of the Phase 6 equipment registry payload.'
+  },
+  'src/data/weaponDefinitions.ts:getBaseWeaponSellPrice': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/equipment-pricing',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Keeps the legacy unenchanted weapon sell-price formula centralized for item derivation and registry projection; pricing behavior is verified unchanged by the weapon equipment slice.'
+  },
+  'src/data/weapons.ts:WEAPONS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy weapon imports stable while static source moved to weaponDefinitions for registry adapter isolation.'
+  },
+  'src/data/weapons.ts:SHOP_WEAPONS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves the legacy shop weapon list while the official equipment registry becomes the audited weapon definition source.'
+  },
+  'src/data/weapons.ts:WEAPON_TYPE_NAMES': {
+    classification: 'adapter',
+    targetRegistry: 'ui/equipment-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Original-name re-export preserves weapon type display labels after the static source moved to weaponDefinitions; labels remain UI-facing compatibility text.'
+  },
+  'src/data/weapons.ts:getWeaponById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getWeaponById() signature is retained and now resolves taoyuan:equipment before returning the same local-ID WeaponDef shape.'
+  },
+  'src/data/weapons.ts:getWeaponSellPrice': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/equipment-pricing',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy sell-price helper keeps the same signature, uses the registry-backed getWeaponById() for weapon definitions, and preserves enchantment pricing behavior.'
+  },
+  'src/data/weapons.ts:getWeaponDisplayName': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/equipment-display',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy weapon display-name helper keeps the same signature, uses the registry-backed getWeaponById() for base names, and preserves enchantment summary formatting.'
   },
   'src/data/hats.ts:SHOP_HATS': {
     status: 'verified',
@@ -1758,21 +1846,52 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'baselined',
     rationale: 'Hostile bamboo forest encounters are intentionally left for a later monster/encounter slice; this forage slice does not migrate combat or defeat penalties.'
   },
-  'src/data/weapons.ts:MONSTER_DROP_WEAPONS': {
+  'src/data/weaponDefinitions.ts:MONSTER_DROP_WEAPONS': {
     classification: 'derived',
     targetRegistry: 'taoyuan:drop_table',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_WEAPONS through named taoyuan:drop_table entries without changing weapon drop settlement.'
+    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_WEAPONS through named taoyuan:drop_table entries without changing weapon drop settlement; weaponDefinitions now owns the static source after the Phase 6 weapon slice.'
+  },
+  'src/data/weaponDefinitions.ts:BOSS_DROP_WEAPONS': {
+    classification: 'derived',
+    targetRegistry: 'engine/domain/mining-boss-reward',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'baselined',
+    rationale: 'BOSS first-kill weapon reward mapping remains in the existing mining reward path; the Phase 6 weapon definition slice does not migrate boss reward settlement.'
+  },
+  'src/data/weaponDefinitions.ts:TREASURE_DROP_WEAPONS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_WEAPONS through named taoyuan:drop_table entries while treasure settlement remains framework-owned; weaponDefinitions now owns the static source after the Phase 6 weapon slice.'
+  },
+  'src/data/weapons.ts:MONSTER_DROP_WEAPONS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves monster weapon drop imports while weaponDefinitions remains the unique audited drop-table source.'
+  },
+  'src/data/weapons.ts:BOSS_DROP_WEAPONS': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/mining-boss-reward',
+    persistentIds: true,
+    status: 'baselined',
+    rationale: 'Original-name re-export preserves boss weapon reward imports; boss reward settlement remains outside this equipment definition slice.'
   },
   'src/data/weapons.ts:TREASURE_DROP_WEAPONS': {
-    classification: 'derived',
+    classification: 'adapter',
     targetRegistry: 'taoyuan:drop_table',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_WEAPONS through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
+    rationale: 'Original-name re-export preserves treasure weapon drop imports while weaponDefinitions remains the unique audited drop-table source.'
   },
   'src/data/ringDefinitions.ts:MONSTER_DROP_RINGS': {
     classification: 'derived',
@@ -1854,37 +1973,69 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_HATS through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
   },
-  'src/data/weapons.ts:ENCHANTMENTS': {
+  'src/data/enchantmentDefinitions.ts:ENCHANTMENTS': {
     classification: 'content',
     targetRegistry: 'taoyuan:enchantment',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 4 enchantment registry pilot verifies ENCHANTMENTS through taoyuan:enchantment, including display fields, combat bonuses and special effects while the legacy static export remains available as the rollback path.'
+    rationale: 'Unique registry-free leaf source for legacy enchantment definitions; Phase 4 verifies ENCHANTMENTS through taoyuan:enchantment, including display fields, combat bonuses and special effects.'
+  },
+  'src/data/enchantmentDefinitions.ts:ENCHANTMENT_RARITY': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 enchantment registry pilot folds legacy rarity into official enchantment definitions and verifies existing cost inputs remain equivalent; enchantmentDefinitions now owns the static source.'
+  },
+  'src/data/enchantmentDefinitions.ts:RANDOM_ENCHANT_IDS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 enchantment registry pilot converts legacy random enchantment membership and rarity into deterministic randomWeight fields without changing rollWeightedEnchantment(); enchantmentDefinitions now owns the static source.'
+  },
+  'src/data/enchantmentDefinitions.ts:ENCHANTMENT_EFFECTS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 enchantment registry pilot carries existing standard equipment effect parameters into taoyuan:enchantment while runtime collection still uses the legacy map; enchantmentDefinitions now owns the static source.'
+  },
+  'src/data/weapons.ts:ENCHANTMENTS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:enchantment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves legacy enchantment imports after static enchantment data moved to enchantmentDefinitions.'
   },
   'src/data/weapons.ts:ENCHANTMENT_RARITY': {
-    classification: 'derived',
+    classification: 'adapter',
     targetRegistry: 'taoyuan:enchantment',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 4 enchantment registry pilot folds legacy rarity into official enchantment definitions and verifies existing cost inputs remain equivalent.'
+    rationale: 'Original-name re-export preserves legacy rarity imports after static enchantment data moved to enchantmentDefinitions.'
   },
   'src/data/weapons.ts:RANDOM_ENCHANT_IDS': {
-    classification: 'derived',
+    classification: 'adapter',
     targetRegistry: 'taoyuan:enchantment',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 4 enchantment registry pilot converts legacy random enchantment membership and rarity into deterministic randomWeight fields without changing rollWeightedEnchantment().'
+    rationale: 'Original-name re-export preserves legacy random enchantment membership imports after static enchantment data moved to enchantmentDefinitions.'
   },
   'src/data/weapons.ts:ENCHANTMENT_EFFECTS': {
-    classification: 'derived',
+    classification: 'adapter',
     targetRegistry: 'taoyuan:enchantment',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 4 enchantment registry pilot carries existing standard equipment effect parameters into taoyuan:enchantment while runtime collection still uses the legacy map.'
+    rationale: 'Original-name re-export preserves legacy effect map imports after static enchantment data moved to enchantmentDefinitions.'
   },
   'src/data/mine.ts:MONSTERS': {
     classification: 'adapter',
@@ -2411,27 +2562,27 @@ const reviewedArtifacts = [
     persistentIds: true,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'TypeBox source of truth for ring, hat and shoe equipment definitions in taoyuan:equipment; generated equipment.schema.json rejects invalid kind, effects, shop prices, recipe materials and numeric bounds.'
+    rationale: 'TypeBox source of truth for ring, hat, shoe and weapon equipment definitions in taoyuan:equipment; generated equipment.schema.json rejects invalid kind, effects, shop prices, weapon fields, recipe/material references and numeric bounds.'
   },
   {
     file: 'src/domain/mods/staticAdapters.ts',
-    exportName: 'adaptLegacyRingEquipment/adaptLegacyHatEquipment/adaptLegacyShoeEquipment/createOfficialEquipment',
+    exportName: 'adaptLegacyRingEquipment/adaptLegacyHatEquipment/adaptLegacyShoeEquipment/adaptLegacyWeaponEquipment/createOfficialEquipment',
     classification: 'adapter',
     targetRegistry: 'taoyuan:equipment',
     persistentIds: true,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Projects every legacy ring, hat and shoe definition into ordered official equipment entries without changing local IDs, effects, shop prices, recipes, obtain-source text or sell prices.'
+    rationale: 'Projects every legacy ring, hat, shoe and weapon definition into ordered official equipment entries without changing local IDs, effects, shop prices, recipes, weapon stats, materials, fixed enchantments, obtain-source text or sell prices.'
   },
   {
     file: 'src/domain/mods/contentAccess.ts',
-    exportName: 'getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialHatById/getOfficialShoeById/getOfficialRingsAsLegacy/getOfficialHatsAsLegacy/getOfficialShoesAsLegacy',
+    exportName: 'getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialHatById/getOfficialShoeById/getOfficialWeaponById/getOfficialRingsAsLegacy/getOfficialHatsAsLegacy/getOfficialShoesAsLegacy/getOfficialWeaponsAsLegacy',
     classification: 'adapter',
     targetRegistry: 'taoyuan:equipment',
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Returns frozen registry equipment definitions and reconstructs legacy RingDef, HatDef and ShoeDef objects for getRingById(), getHatById() and getShoeById() compatibility.'
+    rationale: 'Returns frozen registry equipment definitions and reconstructs legacy RingDef, HatDef, ShoeDef and WeaponDef objects for getRingById(), getHatById(), getShoeById() and getWeaponById() compatibility.'
   },
   {
     file: 'src/domain/mods/semanticValidation.ts',
@@ -2441,7 +2592,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Checks equipment item IDs plus ring, hat and shoe recipe material references against taoyuan:item before registry snapshots are accepted.'
+    rationale: 'Checks equipment item IDs, wearable recipe material references, weapon shop material references and weapon fixed enchantment references before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',
