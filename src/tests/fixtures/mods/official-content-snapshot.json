@@ -2,6 +2,3433 @@
   "formatVersion": 1,
   "registries": [
     {
+      "registryId": "taoyuan:achievement",
+      "schemaName": "achievement.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "type": "allBundlesComplete"
+            },
+            "description": {
+              "fallback": "完成所有祠堂任务。",
+              "key": "taoyuan.achievement.all_bundles.description"
+            },
+            "id": "taoyuan:achievement/all_bundles",
+            "name": {
+              "fallback": "乡情圆满",
+              "key": "taoyuan.achievement.all_bundles.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "type": "allSkillsMax"
+            },
+            "description": {
+              "fallback": "所有技能达到10级。",
+              "key": "taoyuan.achievement.all_skills.description"
+            },
+            "id": "taoyuan:achievement/all_skills",
+            "name": {
+              "fallback": "全能大师",
+              "key": "taoyuan.achievement.all_skills.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1,
+              "type": "breedingsDone"
+            },
+            "description": {
+              "fallback": "完成1次育种。",
+              "key": "taoyuan.achievement.breeding_1.description"
+            },
+            "id": "taoyuan:achievement/breeding_1",
+            "name": {
+              "fallback": "初涉育种",
+              "key": "taoyuan.achievement.breeding_1.name"
+            },
+            "reward": {
+              "money": 200
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "breedingsDone"
+            },
+            "description": {
+              "fallback": "累计完成10次育种。",
+              "key": "taoyuan.achievement.breeding_10.description"
+            },
+            "id": "taoyuan:achievement/breeding_10",
+            "name": {
+              "fallback": "育种学徒",
+              "key": "taoyuan.achievement.breeding_10.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 200,
+              "type": "breedingsDone"
+            },
+            "description": {
+              "fallback": "累计完成200次育种。",
+              "key": "taoyuan.achievement.breeding_200.description"
+            },
+            "id": "taoyuan:achievement/breeding_200",
+            "name": {
+              "fallback": "育种大师",
+              "key": "taoyuan.achievement.breeding_200.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "breedingsDone"
+            },
+            "description": {
+              "fallback": "累计完成50次育种。",
+              "key": "taoyuan.achievement.breeding_50.description"
+            },
+            "id": "taoyuan:achievement/breeding_50",
+            "name": {
+              "fallback": "育种专家",
+              "key": "taoyuan.achievement.breeding_50.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "recipesCooked"
+            },
+            "description": {
+              "fallback": "累计烹饪10道菜。",
+              "key": "taoyuan.achievement.chef_10.description"
+            },
+            "id": "taoyuan:achievement/chef_10",
+            "name": {
+              "fallback": "厨艺初成",
+              "key": "taoyuan.achievement.chef_10.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 100,
+              "type": "recipesCooked"
+            },
+            "description": {
+              "fallback": "累计烹饪100道菜。",
+              "key": "taoyuan.achievement.chef_100.description"
+            },
+            "id": "taoyuan:achievement/chef_100",
+            "name": {
+              "fallback": "御厨",
+              "key": "taoyuan.achievement.chef_100.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 25,
+              "type": "recipesCooked"
+            },
+            "description": {
+              "fallback": "累计烹饪25道菜。",
+              "key": "taoyuan.achievement.chef_25.description"
+            },
+            "id": "taoyuan:achievement/chef_25",
+            "name": {
+              "fallback": "灶前好手",
+              "key": "taoyuan.achievement.chef_25.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "recipesCooked"
+            },
+            "description": {
+              "fallback": "累计烹饪5道菜。",
+              "key": "taoyuan.achievement.chef_5.description"
+            },
+            "id": "taoyuan:achievement/chef_5",
+            "name": {
+              "fallback": "初学厨艺",
+              "key": "taoyuan.achievement.chef_5.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "recipesCooked"
+            },
+            "description": {
+              "fallback": "累计烹饪50道菜。",
+              "key": "taoyuan.achievement.chef_50.description"
+            },
+            "id": "taoyuan:achievement/chef_50",
+            "name": {
+              "fallback": "美食大师",
+              "key": "taoyuan.achievement.chef_50.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 75,
+              "type": "recipesCooked"
+            },
+            "description": {
+              "fallback": "累计烹饪75道菜。",
+              "key": "taoyuan.achievement.chef_75.description"
+            },
+            "id": "taoyuan:achievement/chef_75",
+            "name": {
+              "fallback": "食神传人",
+              "key": "taoyuan.achievement.chef_75.name"
+            },
+            "reward": {
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现10种不同物品。",
+              "key": "taoyuan.achievement.collector_10.description"
+            },
+            "id": "taoyuan:achievement/collector_10",
+            "name": {
+              "fallback": "初出茅庐",
+              "key": "taoyuan.achievement.collector_10.name"
+            },
+            "reward": {
+              "money": 200
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 100,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现100种不同物品。",
+              "key": "taoyuan.achievement.collector_100.description"
+            },
+            "id": "taoyuan:achievement/collector_100",
+            "name": {
+              "fallback": "博物全才",
+              "key": "taoyuan.achievement.collector_100.name"
+            },
+            "reward": {
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 120,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现120种不同物品。",
+              "key": "taoyuan.achievement.collector_120.description"
+            },
+            "id": "taoyuan:achievement/collector_120",
+            "name": {
+              "fallback": "天地万物",
+              "key": "taoyuan.achievement.collector_120.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 150,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现150种不同物品。",
+              "key": "taoyuan.achievement.collector_150.description"
+            },
+            "id": "taoyuan:achievement/collector_150",
+            "name": {
+              "fallback": "全知全能",
+              "key": "taoyuan.achievement.collector_150.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 8000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 20,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现20种不同物品。",
+              "key": "taoyuan.achievement.collector_20.description"
+            },
+            "id": "taoyuan:achievement/collector_20",
+            "name": {
+              "fallback": "见多识广",
+              "key": "taoyuan.achievement.collector_20.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 30,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现30种不同物品。",
+              "key": "taoyuan.achievement.collector_30.description"
+            },
+            "id": "taoyuan:achievement/collector_30",
+            "name": {
+              "fallback": "博物学家",
+              "key": "taoyuan.achievement.collector_30.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 45,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现45种不同物品。",
+              "key": "taoyuan.achievement.collector_45.description"
+            },
+            "id": "taoyuan:achievement/collector_45",
+            "name": {
+              "fallback": "物华天宝",
+              "key": "taoyuan.achievement.collector_45.name"
+            },
+            "reward": {
+              "money": 800
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现5种不同物品。",
+              "key": "taoyuan.achievement.collector_5.description"
+            },
+            "id": "taoyuan:achievement/collector_5",
+            "name": {
+              "fallback": "好奇宝宝",
+              "key": "taoyuan.achievement.collector_5.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 60,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现60种不同物品。",
+              "key": "taoyuan.achievement.collector_60.description"
+            },
+            "id": "taoyuan:achievement/collector_60",
+            "name": {
+              "fallback": "万物通鉴",
+              "key": "taoyuan.achievement.collector_60.name"
+            },
+            "reward": {
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 80,
+              "type": "itemCount"
+            },
+            "description": {
+              "fallback": "发现80种不同物品。",
+              "key": "taoyuan.achievement.collector_80.description"
+            },
+            "id": "taoyuan:achievement/collector_80",
+            "name": {
+              "fallback": "百科全书",
+              "key": "taoyuan.achievement.collector_80.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 10,
+              "skillType": "combat",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "战斗技能达到10级。",
+              "key": "taoyuan.achievement.combat_10.description"
+            },
+            "id": "taoyuan:achievement/combat_10",
+            "name": {
+              "fallback": "武林高手",
+              "key": "taoyuan.achievement.combat_10.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 5,
+              "skillType": "combat",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "战斗技能达到5级。",
+              "key": "taoyuan.achievement.combat_5.description"
+            },
+            "id": "taoyuan:achievement/combat_5",
+            "name": {
+              "fallback": "初涉江湖",
+              "key": "taoyuan.achievement.combat_5.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "itemId": "taoyuan:dream_silk",
+              "type": "itemDiscovered"
+            },
+            "description": {
+              "fallback": "获得梦丝。",
+              "key": "taoyuan.achievement.dream_silk_found.description"
+            },
+            "id": "taoyuan:achievement/dream_silk_found",
+            "name": {
+              "fallback": "梦丝如缎",
+              "key": "taoyuan.achievement.dream_silk_found.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "cropHarvest"
+            },
+            "description": {
+              "fallback": "累计收获10次作物。",
+              "key": "taoyuan.achievement.farmer_10.description"
+            },
+            "id": "taoyuan:achievement/farmer_10",
+            "name": {
+              "fallback": "新手耕耘",
+              "key": "taoyuan.achievement.farmer_10.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 100,
+              "type": "cropHarvest"
+            },
+            "description": {
+              "fallback": "累计收获100次作物。",
+              "key": "taoyuan.achievement.farmer_100.description"
+            },
+            "id": "taoyuan:achievement/farmer_100",
+            "name": {
+              "fallback": "精耕细作",
+              "key": "taoyuan.achievement.farmer_100.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1000,
+              "type": "cropHarvest"
+            },
+            "description": {
+              "fallback": "累计收获1000次作物。",
+              "key": "taoyuan.achievement.farmer_1000.description"
+            },
+            "id": "taoyuan:achievement/farmer_1000",
+            "name": {
+              "fallback": "田园传奇",
+              "key": "taoyuan.achievement.farmer_1000.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_ore",
+                  "quantity": 5
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 200,
+              "type": "cropHarvest"
+            },
+            "description": {
+              "fallback": "累计收获200次作物。",
+              "key": "taoyuan.achievement.farmer_200.description"
+            },
+            "id": "taoyuan:achievement/farmer_200",
+            "name": {
+              "fallback": "丰收之王",
+              "key": "taoyuan.achievement.farmer_200.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:compost",
+                  "quantity": 10
+                }
+              ],
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "cropHarvest"
+            },
+            "description": {
+              "fallback": "累计收获50次作物。",
+              "key": "taoyuan.achievement.farmer_50.description"
+            },
+            "id": "taoyuan:achievement/farmer_50",
+            "name": {
+              "fallback": "辛勤农夫",
+              "key": "taoyuan.achievement.farmer_50.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 500,
+              "type": "cropHarvest"
+            },
+            "description": {
+              "fallback": "累计收获500次作物。",
+              "key": "taoyuan.achievement.farmer_500.description"
+            },
+            "id": "taoyuan:achievement/farmer_500",
+            "name": {
+              "fallback": "田园大亨",
+              "key": "taoyuan.achievement.farmer_500.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 5,
+              "skillType": "farming",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "种植技能达到5级。",
+              "key": "taoyuan.achievement.farming_5.description"
+            },
+            "id": "taoyuan:achievement/farming_5",
+            "name": {
+              "fallback": "耕种有道",
+              "key": "taoyuan.achievement.farming_5.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 100,
+              "type": "fishCaught"
+            },
+            "description": {
+              "fallback": "累计钓到100条鱼。",
+              "key": "taoyuan.achievement.fisher_100.description"
+            },
+            "id": "taoyuan:achievement/fisher_100",
+            "name": {
+              "fallback": "渔翁",
+              "key": "taoyuan.achievement.fisher_100.name"
+            },
+            "reward": {
+              "money": 800
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 20,
+              "type": "fishCaught"
+            },
+            "description": {
+              "fallback": "累计钓到20条鱼。",
+              "key": "taoyuan.achievement.fisher_20.description"
+            },
+            "id": "taoyuan:achievement/fisher_20",
+            "name": {
+              "fallback": "垂钓新手",
+              "key": "taoyuan.achievement.fisher_20.name"
+            },
+            "reward": {
+              "money": 200
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 200,
+              "type": "fishCaught"
+            },
+            "description": {
+              "fallback": "累计钓到200条鱼。",
+              "key": "taoyuan.achievement.fisher_200.description"
+            },
+            "id": "taoyuan:achievement/fisher_200",
+            "name": {
+              "fallback": "海龙王",
+              "key": "taoyuan.achievement.fisher_200.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "fishCaught"
+            },
+            "description": {
+              "fallback": "累计钓到5条鱼。",
+              "key": "taoyuan.achievement.fisher_5.description"
+            },
+            "id": "taoyuan:achievement/fisher_5",
+            "name": {
+              "fallback": "河边少年",
+              "key": "taoyuan.achievement.fisher_5.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "fishCaught"
+            },
+            "description": {
+              "fallback": "累计钓到50条鱼。",
+              "key": "taoyuan.achievement.fisher_50.description"
+            },
+            "id": "taoyuan:achievement/fisher_50",
+            "name": {
+              "fallback": "钓翁之意",
+              "key": "taoyuan.achievement.fisher_50.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 500,
+              "type": "fishCaught"
+            },
+            "description": {
+              "fallback": "累计钓到500条鱼。",
+              "key": "taoyuan.achievement.fisher_500.description"
+            },
+            "id": "taoyuan:achievement/fisher_500",
+            "name": {
+              "fallback": "鱼龙百变",
+              "key": "taoyuan.achievement.fisher_500.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 10,
+              "skillType": "fishing",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "钓鱼技能达到10级。",
+              "key": "taoyuan.achievement.fishing_10.description"
+            },
+            "id": "taoyuan:achievement/fishing_10",
+            "name": {
+              "fallback": "钓鱼宗师",
+              "key": "taoyuan.achievement.fishing_10.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 5,
+              "skillType": "fishing",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "钓鱼技能达到5级。",
+              "key": "taoyuan.achievement.fishing_5.description"
+            },
+            "id": "taoyuan:achievement/fishing_5",
+            "name": {
+              "fallback": "钓术入门",
+              "key": "taoyuan.achievement.fishing_5.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 10,
+              "skillType": "foraging",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "采集技能达到10级。",
+              "key": "taoyuan.achievement.foraging_10.description"
+            },
+            "id": "taoyuan:achievement/foraging_10",
+            "name": {
+              "fallback": "采集宗师",
+              "key": "taoyuan.achievement.foraging_10.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 5,
+              "skillType": "foraging",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "采集技能达到5级。",
+              "key": "taoyuan.achievement.foraging_5.description"
+            },
+            "id": "taoyuan:achievement/foraging_5",
+            "name": {
+              "fallback": "山林之子",
+              "key": "taoyuan.achievement.foraging_5.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 6,
+              "type": "npcBestFriend"
+            },
+            "description": {
+              "fallback": "与6位村民成为挚友。",
+              "key": "taoyuan.achievement.friend_all_best.description"
+            },
+            "id": "taoyuan:achievement/friend_all_best",
+            "name": {
+              "fallback": "人间至友",
+              "key": "taoyuan.achievement.friend_all_best.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:jade_ring",
+                  "quantity": 1
+                }
+              ],
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "type": "npcAllFriendly"
+            },
+            "description": {
+              "fallback": "与所有村民成为朋友。",
+              "key": "taoyuan.achievement.friend_all_friendly.description"
+            },
+            "id": "taoyuan:achievement/friend_all_friendly",
+            "name": {
+              "fallback": "桃源之友",
+              "key": "taoyuan.achievement.friend_all_friendly.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:jade_ring",
+                  "quantity": 1
+                }
+              ],
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1,
+              "type": "npcBestFriend"
+            },
+            "description": {
+              "fallback": "与1位村民成为挚友。",
+              "key": "taoyuan.achievement.friend_best.description"
+            },
+            "id": "taoyuan:achievement/friend_best",
+            "name": {
+              "fallback": "知己",
+              "key": "taoyuan.achievement.friend_best.name"
+            },
+            "reward": {
+              "money": 200
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 2,
+              "type": "npcBestFriend"
+            },
+            "description": {
+              "fallback": "与2位村民成为挚友。",
+              "key": "taoyuan.achievement.friend_best_2.description"
+            },
+            "id": "taoyuan:achievement/friend_best_2",
+            "name": {
+              "fallback": "二三知己",
+              "key": "taoyuan.achievement.friend_best_2.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 3,
+              "type": "npcBestFriend"
+            },
+            "description": {
+              "fallback": "与3位村民成为挚友。",
+              "key": "taoyuan.achievement.friend_best_3.description"
+            },
+            "id": "taoyuan:achievement/friend_best_3",
+            "name": {
+              "fallback": "莫逆之交",
+              "key": "taoyuan.achievement.friend_best_3.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 4,
+              "type": "npcBestFriend"
+            },
+            "description": {
+              "fallback": "与4位村民成为挚友。",
+              "key": "taoyuan.achievement.friend_best_4.description"
+            },
+            "id": "taoyuan:achievement/friend_best_4",
+            "name": {
+              "fallback": "四海为友",
+              "key": "taoyuan.achievement.friend_best_4.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "type": "fullShipment"
+            },
+            "description": {
+              "fallback": "出货所有可出货物品。",
+              "key": "taoyuan.achievement.full_shipment.description"
+            },
+            "id": "taoyuan:achievement/full_shipment",
+            "name": {
+              "fallback": "出货全鉴",
+              "key": "taoyuan.achievement.full_shipment.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 21,
+              "type": "guildGoalsCompleted"
+            },
+            "description": {
+              "fallback": "完成全部21个讨伐目标。",
+              "key": "taoyuan.achievement.guild_21.description"
+            },
+            "id": "taoyuan:achievement/guild_21",
+            "name": {
+              "fallback": "屠龙勇士",
+              "key": "taoyuan.achievement.guild_21.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_bar",
+                  "quantity": 5
+                }
+              ],
+              "money": 10000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "guildGoalsCompleted"
+            },
+            "description": {
+              "fallback": "完成5个讨伐目标。",
+              "key": "taoyuan.achievement.guild_5.description"
+            },
+            "id": "taoyuan:achievement/guild_5",
+            "name": {
+              "fallback": "怪物猎人",
+              "key": "taoyuan.achievement.guild_5.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1,
+              "type": "hybridsDiscovered"
+            },
+            "description": {
+              "fallback": "发现1个杂交品种。",
+              "key": "taoyuan.achievement.hybrid_1.description"
+            },
+            "id": "taoyuan:achievement/hybrid_1",
+            "name": {
+              "fallback": "新品诞生",
+              "key": "taoyuan.achievement.hybrid_1.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 100,
+              "type": "hybridsDiscovered"
+            },
+            "description": {
+              "fallback": "发现100个杂交品种。",
+              "key": "taoyuan.achievement.hybrid_100.description"
+            },
+            "id": "taoyuan:achievement/hybrid_100",
+            "name": {
+              "fallback": "万种图录",
+              "key": "taoyuan.achievement.hybrid_100.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 10000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 20,
+              "type": "hybridsDiscovered"
+            },
+            "description": {
+              "fallback": "发现20个杂交品种。",
+              "key": "taoyuan.achievement.hybrid_20.description"
+            },
+            "id": "taoyuan:achievement/hybrid_20",
+            "name": {
+              "fallback": "杂交图鉴",
+              "key": "taoyuan.achievement.hybrid_20.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "hybridsDiscovered"
+            },
+            "description": {
+              "fallback": "发现5个杂交品种。",
+              "key": "taoyuan.achievement.hybrid_5.description"
+            },
+            "id": "taoyuan:achievement/hybrid_5",
+            "name": {
+              "fallback": "品种收集者",
+              "key": "taoyuan.achievement.hybrid_5.name"
+            },
+            "reward": {
+              "money": 800
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "hybridsDiscovered"
+            },
+            "description": {
+              "fallback": "发现50个杂交品种。",
+              "key": "taoyuan.achievement.hybrid_50.description"
+            },
+            "id": "taoyuan:achievement/hybrid_50",
+            "name": {
+              "fallback": "品种宗师",
+              "key": "taoyuan.achievement.hybrid_50.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1,
+              "type": "hybridsShipped"
+            },
+            "description": {
+              "fallback": "出货1种杂交作物。",
+              "key": "taoyuan.achievement.hybrid_ship_1.description"
+            },
+            "id": "taoyuan:achievement/hybrid_ship_1",
+            "name": {
+              "fallback": "杂交初售",
+              "key": "taoyuan.achievement.hybrid_ship_1.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 15,
+              "type": "hybridsShipped"
+            },
+            "description": {
+              "fallback": "出货15种杂交作物。",
+              "key": "taoyuan.achievement.hybrid_ship_15.description"
+            },
+            "id": "taoyuan:achievement/hybrid_ship_15",
+            "name": {
+              "fallback": "杂交商人",
+              "key": "taoyuan.achievement.hybrid_ship_15.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 30,
+              "type": "hybridsShipped"
+            },
+            "description": {
+              "fallback": "出货30种杂交作物。",
+              "key": "taoyuan.achievement.hybrid_ship_30.description"
+            },
+            "id": "taoyuan:achievement/hybrid_ship_30",
+            "name": {
+              "fallback": "良种流通",
+              "key": "taoyuan.achievement.hybrid_ship_30.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "hybridsShipped"
+            },
+            "description": {
+              "fallback": "出货5种杂交作物。",
+              "key": "taoyuan.achievement.hybrid_ship_5.description"
+            },
+            "id": "taoyuan:achievement/hybrid_ship_5",
+            "name": {
+              "fallback": "良种外销",
+              "key": "taoyuan.achievement.hybrid_ship_5.name"
+            },
+            "reward": {
+              "money": 800
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "hybridsShipped"
+            },
+            "description": {
+              "fallback": "出货50种杂交作物。",
+              "key": "taoyuan.achievement.hybrid_ship_50.description"
+            },
+            "id": "taoyuan:achievement/hybrid_ship_50",
+            "name": {
+              "fallback": "杂交出货全鉴",
+              "key": "taoyuan.achievement.hybrid_ship_50.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 10000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "type": "married"
+            },
+            "description": {
+              "fallback": "与心仪之人结为夫妇。",
+              "key": "taoyuan.achievement.married.description"
+            },
+            "id": "taoyuan:achievement/married",
+            "name": {
+              "fallback": "百年好合",
+              "key": "taoyuan.achievement.married.name"
+            },
+            "reward": {
+              "money": 1314
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 100,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞第100层。",
+              "key": "taoyuan.achievement.miner_100.description"
+            },
+            "id": "taoyuan:achievement/miner_100",
+            "name": {
+              "fallback": "百层勇者",
+              "key": "taoyuan.achievement.miner_100.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:shadow_ore",
+                  "quantity": 5
+                }
+              ],
+              "money": 4000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 120,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞最底层。",
+              "key": "taoyuan.achievement.miner_120.description"
+            },
+            "id": "taoyuan:achievement/miner_120",
+            "name": {
+              "fallback": "深渊行者",
+              "key": "taoyuan.achievement.miner_120.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:void_ore",
+                  "quantity": 10
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 15,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞第15层。",
+              "key": "taoyuan.achievement.miner_15.description"
+            },
+            "id": "taoyuan:achievement/miner_15",
+            "name": {
+              "fallback": "矿洞探索者",
+              "key": "taoyuan.achievement.miner_15.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 30,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞第30层。",
+              "key": "taoyuan.achievement.miner_30.description"
+            },
+            "id": "taoyuan:achievement/miner_30",
+            "name": {
+              "fallback": "深渊矿工",
+              "key": "taoyuan.achievement.miner_30.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:gold_ore",
+                  "quantity": 10
+                }
+              ],
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 45,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞第45层。",
+              "key": "taoyuan.achievement.miner_45.description"
+            },
+            "id": "taoyuan:achievement/miner_45",
+            "name": {
+              "fallback": "冰霜矿脉",
+              "key": "taoyuan.achievement.miner_45.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iron_ore",
+                  "quantity": 15
+                }
+              ],
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 5,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞第5层。",
+              "key": "taoyuan.achievement.miner_5.description"
+            },
+            "id": "taoyuan:achievement/miner_5",
+            "name": {
+              "fallback": "初入矿洞",
+              "key": "taoyuan.achievement.miner_5.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 60,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞第60层。",
+              "key": "taoyuan.achievement.miner_60.description"
+            },
+            "id": "taoyuan:achievement/miner_60",
+            "name": {
+              "fallback": "熔岩征服者",
+              "key": "taoyuan.achievement.miner_60.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:gold_ore",
+                  "quantity": 20
+                }
+              ],
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 90,
+              "type": "mineFloor"
+            },
+            "description": {
+              "fallback": "到达矿洞第90层。",
+              "key": "taoyuan.achievement.miner_90.description"
+            },
+            "id": "taoyuan:achievement/miner_90",
+            "name": {
+              "fallback": "水晶洞穴",
+              "key": "taoyuan.achievement.miner_90.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:crystal_ore",
+                  "quantity": 10
+                }
+              ],
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 10,
+              "skillType": "mining",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "采矿技能达到10级。",
+              "key": "taoyuan.achievement.mining_10.description"
+            },
+            "id": "taoyuan:achievement/mining_10",
+            "name": {
+              "fallback": "采矿宗师",
+              "key": "taoyuan.achievement.mining_10.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 5,
+              "skillType": "mining",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "采矿技能达到5级。",
+              "key": "taoyuan.achievement.mining_5.description"
+            },
+            "id": "taoyuan:achievement/mining_5",
+            "name": {
+              "fallback": "矿脉感应",
+              "key": "taoyuan.achievement.mining_5.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "itemId": "taoyuan:moon_herb",
+              "type": "itemDiscovered"
+            },
+            "description": {
+              "fallback": "获得月草。",
+              "key": "taoyuan.achievement.moon_herb_found.description"
+            },
+            "id": "taoyuan:achievement/moon_herb_found",
+            "name": {
+              "fallback": "月华初采",
+              "key": "taoyuan.achievement.moon_herb_found.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 20,
+              "type": "museumDonations"
+            },
+            "description": {
+              "fallback": "向博物馆捐赠20件物品。",
+              "key": "taoyuan.achievement.museum_20.description"
+            },
+            "id": "taoyuan:achievement/museum_20",
+            "name": {
+              "fallback": "收藏爱好者",
+              "key": "taoyuan.achievement.museum_20.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 36,
+              "type": "museumDonations"
+            },
+            "description": {
+              "fallback": "向博物馆捐赠36件物品。",
+              "key": "taoyuan.achievement.museum_36.description"
+            },
+            "id": "taoyuan:achievement/museum_36",
+            "name": {
+              "fallback": "博物馆之星",
+              "key": "taoyuan.achievement.museum_36.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 40,
+              "type": "museumDonations"
+            },
+            "description": {
+              "fallback": "完成博物馆全部40件收藏（含仙灵物品）。",
+              "key": "taoyuan.achievement.museum_40.description"
+            },
+            "id": "taoyuan:achievement/museum_40",
+            "name": {
+              "fallback": "灵物全鉴",
+              "key": "taoyuan.achievement.museum_40.name"
+            },
+            "reward": {
+              "money": 8000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "type": "hasChild"
+            },
+            "description": {
+              "fallback": "迎来第一个孩子。",
+              "key": "taoyuan.achievement.parent.description"
+            },
+            "id": "taoyuan:achievement/parent",
+            "name": {
+              "fallback": "天伦之乐",
+              "key": "taoyuan.achievement.parent.name"
+            },
+            "reward": {
+              "money": 520
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "questsCompleted"
+            },
+            "description": {
+              "fallback": "累计完成10个委托任务。",
+              "key": "taoyuan.achievement.quest_10.description"
+            },
+            "id": "taoyuan:achievement/quest_10",
+            "name": {
+              "fallback": "乡里热心人",
+              "key": "taoyuan.achievement.quest_10.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 100,
+              "type": "questsCompleted"
+            },
+            "description": {
+              "fallback": "累计完成100个委托任务。",
+              "key": "taoyuan.achievement.quest_100.description"
+            },
+            "id": "taoyuan:achievement/quest_100",
+            "name": {
+              "fallback": "万事通达",
+              "key": "taoyuan.achievement.quest_100.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:dragon_jade",
+                  "quantity": 1
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 20,
+              "type": "questsCompleted"
+            },
+            "description": {
+              "fallback": "累计完成20个委托任务。",
+              "key": "taoyuan.achievement.quest_20.description"
+            },
+            "id": "taoyuan:achievement/quest_20",
+            "name": {
+              "fallback": "信使达人",
+              "key": "taoyuan.achievement.quest_20.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 40,
+              "type": "questsCompleted"
+            },
+            "description": {
+              "fallback": "累计完成40个委托任务。",
+              "key": "taoyuan.achievement.quest_40.description"
+            },
+            "id": "taoyuan:achievement/quest_40",
+            "name": {
+              "fallback": "有求必应",
+              "key": "taoyuan.achievement.quest_40.name"
+            },
+            "reward": {
+              "money": 2500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "questsCompleted"
+            },
+            "description": {
+              "fallback": "累计完成5个委托任务。",
+              "key": "taoyuan.achievement.quest_5.description"
+            },
+            "id": "taoyuan:achievement/quest_5",
+            "name": {
+              "fallback": "助人为乐",
+              "key": "taoyuan.achievement.quest_5.name"
+            },
+            "reward": {
+              "money": 200
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 60,
+              "type": "questsCompleted"
+            },
+            "description": {
+              "fallback": "累计完成60个委托任务。",
+              "key": "taoyuan.achievement.quest_60.description"
+            },
+            "id": "taoyuan:achievement/quest_60",
+            "name": {
+              "fallback": "使命必达",
+              "key": "taoyuan.achievement.quest_60.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 80,
+              "type": "questsCompleted"
+            },
+            "description": {
+              "fallback": "累计完成80个委托任务。",
+              "key": "taoyuan.achievement.quest_80.description"
+            },
+            "id": "taoyuan:achievement/quest_80",
+            "name": {
+              "fallback": "百事通",
+              "key": "taoyuan.achievement.quest_80.name"
+            },
+            "reward": {
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1,
+              "type": "animalCount"
+            },
+            "description": {
+              "fallback": "拥有1只牲畜。",
+              "key": "taoyuan.achievement.rancher_1.description"
+            },
+            "id": "taoyuan:achievement/rancher_1",
+            "name": {
+              "fallback": "初养牲畜",
+              "key": "taoyuan.achievement.rancher_1.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "animalCount"
+            },
+            "description": {
+              "fallback": "拥有10只牲畜。",
+              "key": "taoyuan.achievement.rancher_10.description"
+            },
+            "id": "taoyuan:achievement/rancher_10",
+            "name": {
+              "fallback": "畜牧达人",
+              "key": "taoyuan.achievement.rancher_10.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 15,
+              "type": "animalCount"
+            },
+            "description": {
+              "fallback": "拥有15只牲畜。",
+              "key": "taoyuan.achievement.rancher_15.description"
+            },
+            "id": "taoyuan:achievement/rancher_15",
+            "name": {
+              "fallback": "牧场主",
+              "key": "taoyuan.achievement.rancher_15.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 20,
+              "type": "animalCount"
+            },
+            "description": {
+              "fallback": "拥有20只牲畜。",
+              "key": "taoyuan.achievement.rancher_20.description"
+            },
+            "id": "taoyuan:achievement/rancher_20",
+            "name": {
+              "fallback": "牧场传奇",
+              "key": "taoyuan.achievement.rancher_20.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_ore",
+                  "quantity": 3
+                }
+              ],
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 3,
+              "type": "animalCount"
+            },
+            "description": {
+              "fallback": "拥有3只牲畜。",
+              "key": "taoyuan.achievement.rancher_3.description"
+            },
+            "id": "taoyuan:achievement/rancher_3",
+            "name": {
+              "fallback": "小型牧场",
+              "key": "taoyuan.achievement.rancher_3.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "animalCount"
+            },
+            "description": {
+              "fallback": "拥有5只牲畜。",
+              "key": "taoyuan.achievement.rancher_5.description"
+            },
+            "id": "taoyuan:achievement/rancher_5",
+            "name": {
+              "fallback": "畜牧新手",
+              "key": "taoyuan.achievement.rancher_5.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 1000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得1000文。",
+              "key": "taoyuan.achievement.rich_1000.description"
+            },
+            "id": "taoyuan:achievement/rich_1000",
+            "name": {
+              "fallback": "初有积蓄",
+              "key": "taoyuan.achievement.rich_1000.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 10000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得10000文。",
+              "key": "taoyuan.achievement.rich_10000.description"
+            },
+            "id": "taoyuan:achievement/rich_10000",
+            "name": {
+              "fallback": "锦衣玉食",
+              "key": "taoyuan.achievement.rich_10000.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 100000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得100000文。",
+              "key": "taoyuan.achievement.rich_100000.description"
+            },
+            "id": "taoyuan:achievement/rich_100000",
+            "name": {
+              "fallback": "家财万贯",
+              "key": "taoyuan.achievement.rich_100000.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 1000000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得1000000文。",
+              "key": "taoyuan.achievement.rich_1000000.description"
+            },
+            "id": "taoyuan:achievement/rich_1000000",
+            "name": {
+              "fallback": "金山银海",
+              "key": "taoyuan.achievement.rich_1000000.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 3
+                }
+              ],
+              "money": 30000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 20000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得20000文。",
+              "key": "taoyuan.achievement.rich_20000.description"
+            },
+            "id": "taoyuan:achievement/rich_20000",
+            "name": {
+              "fallback": "桃源首富",
+              "key": "taoyuan.achievement.rich_20000.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 200000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得200000文。",
+              "key": "taoyuan.achievement.rich_200000.description"
+            },
+            "id": "taoyuan:achievement/rich_200000",
+            "name": {
+              "fallback": "陶朱之富",
+              "key": "taoyuan.achievement.rich_200000.name"
+            },
+            "reward": {
+              "money": 10000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 5000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得5000文。",
+              "key": "taoyuan.achievement.rich_5000.description"
+            },
+            "id": "taoyuan:achievement/rich_5000",
+            "name": {
+              "fallback": "小康之家",
+              "key": "taoyuan.achievement.rich_5000.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 50000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得50000文。",
+              "key": "taoyuan.achievement.rich_50000.description"
+            },
+            "id": "taoyuan:achievement/rich_50000",
+            "name": {
+              "fallback": "富甲一方",
+              "key": "taoyuan.achievement.rich_50000.name"
+            },
+            "reward": {
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "amount": 500000,
+              "type": "moneyEarned"
+            },
+            "description": {
+              "fallback": "累计获得500000文。",
+              "key": "taoyuan.achievement.rich_500000.description"
+            },
+            "id": "taoyuan:achievement/rich_500000",
+            "name": {
+              "fallback": "富可敌国",
+              "key": "taoyuan.achievement.rich_500000.name"
+            },
+            "reward": {
+              "money": 15000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "shippedCount"
+            },
+            "description": {
+              "fallback": "出货10种不同物品。",
+              "key": "taoyuan.achievement.shipper_10.description"
+            },
+            "id": "taoyuan:achievement/shipper_10",
+            "name": {
+              "fallback": "初入商途",
+              "key": "taoyuan.achievement.shipper_10.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 20,
+              "type": "shippedCount"
+            },
+            "description": {
+              "fallback": "出货20种不同物品。",
+              "key": "taoyuan.achievement.shipper_20.description"
+            },
+            "id": "taoyuan:achievement/shipper_20",
+            "name": {
+              "fallback": "商路通达",
+              "key": "taoyuan.achievement.shipper_20.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 30,
+              "type": "shippedCount"
+            },
+            "description": {
+              "fallback": "出货30种不同物品。",
+              "key": "taoyuan.achievement.shipper_30.description"
+            },
+            "id": "taoyuan:achievement/shipper_30",
+            "name": {
+              "fallback": "物流达人",
+              "key": "taoyuan.achievement.shipper_30.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 5,
+              "type": "shippedCount"
+            },
+            "description": {
+              "fallback": "出货5种不同物品。",
+              "key": "taoyuan.achievement.shipper_5.description"
+            },
+            "id": "taoyuan:achievement/shipper_5",
+            "name": {
+              "fallback": "初尝贸易",
+              "key": "taoyuan.achievement.shipper_5.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "shippedCount"
+            },
+            "description": {
+              "fallback": "出货50种不同物品。",
+              "key": "taoyuan.achievement.shipper_50.description"
+            },
+            "id": "taoyuan:achievement/shipper_50",
+            "name": {
+              "fallback": "贸易大亨",
+              "key": "taoyuan.achievement.shipper_50.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": 10,
+              "skillType": "farming",
+              "type": "skillLevel"
+            },
+            "description": {
+              "fallback": "种植技能达到10级。",
+              "key": "taoyuan.achievement.skill_master.description"
+            },
+            "id": "taoyuan:achievement/skill_master",
+            "name": {
+              "fallback": "技艺精通",
+              "key": "taoyuan.achievement.skill_master.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 10,
+              "type": "skullCavernFloor"
+            },
+            "description": {
+              "fallback": "骷髅矿穴到达第10层。",
+              "key": "taoyuan.achievement.skull_10.description"
+            },
+            "id": "taoyuan:achievement/skull_10",
+            "name": {
+              "fallback": "骷髅初探",
+              "key": "taoyuan.achievement.skull_10.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 100,
+              "type": "skullCavernFloor"
+            },
+            "description": {
+              "fallback": "骷髅矿穴到达第100层。",
+              "key": "taoyuan.achievement.skull_100.description"
+            },
+            "id": "taoyuan:achievement/skull_100",
+            "name": {
+              "fallback": "深渊勇者",
+              "key": "taoyuan.achievement.skull_100.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 10000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 150,
+              "type": "skullCavernFloor"
+            },
+            "description": {
+              "fallback": "骷髅矿穴到达第150层。",
+              "key": "taoyuan.achievement.skull_150.description"
+            },
+            "id": "taoyuan:achievement/skull_150",
+            "name": {
+              "fallback": "无尽深渊",
+              "key": "taoyuan.achievement.skull_150.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 2
+                }
+              ],
+              "money": 20000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 25,
+              "type": "skullCavernFloor"
+            },
+            "description": {
+              "fallback": "骷髅矿穴到达第25层。",
+              "key": "taoyuan.achievement.skull_25.description"
+            },
+            "id": "taoyuan:achievement/skull_25",
+            "name": {
+              "fallback": "骷髅探险家",
+              "key": "taoyuan.achievement.skull_25.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_ore",
+                  "quantity": 5
+                }
+              ],
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 50,
+              "type": "skullCavernFloor"
+            },
+            "description": {
+              "fallback": "骷髅矿穴到达第50层。",
+              "key": "taoyuan.achievement.skull_50.description"
+            },
+            "id": "taoyuan:achievement/skull_50",
+            "name": {
+              "fallback": "深渊跋涉",
+              "key": "taoyuan.achievement.skull_50.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_ore",
+                  "quantity": 10
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "floor": 75,
+              "type": "skullCavernFloor"
+            },
+            "description": {
+              "fallback": "骷髅矿穴到达第75层。",
+              "key": "taoyuan.achievement.skull_75.description"
+            },
+            "id": "taoyuan:achievement/skull_75",
+            "name": {
+              "fallback": "冥界行者",
+              "key": "taoyuan.achievement.skull_75.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:dragon_jade",
+                  "quantity": 1
+                }
+              ],
+              "money": 8000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 10,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀10只怪物。",
+              "key": "taoyuan.achievement.slayer_10.description"
+            },
+            "id": "taoyuan:achievement/slayer_10",
+            "name": {
+              "fallback": "初试身手",
+              "key": "taoyuan.achievement.slayer_10.name"
+            },
+            "reward": {
+              "money": 100
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 100,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀100只怪物。",
+              "key": "taoyuan.achievement.slayer_100.description"
+            },
+            "id": "taoyuan:achievement/slayer_100",
+            "name": {
+              "fallback": "除暴安良",
+              "key": "taoyuan.achievement.slayer_100.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1000,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀1000只怪物。",
+              "key": "taoyuan.achievement.slayer_1000.description"
+            },
+            "id": "taoyuan:achievement/slayer_1000",
+            "name": {
+              "fallback": "万魔之敌",
+              "key": "taoyuan.achievement.slayer_1000.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 200,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀200只怪物。",
+              "key": "taoyuan.achievement.slayer_200.description"
+            },
+            "id": "taoyuan:achievement/slayer_200",
+            "name": {
+              "fallback": "降妖能手",
+              "key": "taoyuan.achievement.slayer_200.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 2000,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀2000只怪物。",
+              "key": "taoyuan.achievement.slayer_2000.description"
+            },
+            "id": "taoyuan:achievement/slayer_2000",
+            "name": {
+              "fallback": "旷世魔猎",
+              "key": "taoyuan.achievement.slayer_2000.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:dragon_jade",
+                  "quantity": 2
+                }
+              ],
+              "money": 10000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 300,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀300只怪物。",
+              "key": "taoyuan.achievement.slayer_300.description"
+            },
+            "id": "taoyuan:achievement/slayer_300",
+            "name": {
+              "fallback": "妖魔克星",
+              "key": "taoyuan.achievement.slayer_300.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 50,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀50只怪物。",
+              "key": "taoyuan.achievement.slayer_50.description"
+            },
+            "id": "taoyuan:achievement/slayer_50",
+            "name": {
+              "fallback": "除魔新手",
+              "key": "taoyuan.achievement.slayer_50.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 500,
+              "type": "monstersKilled"
+            },
+            "description": {
+              "fallback": "累计击杀500只怪物。",
+              "key": "taoyuan.achievement.slayer_500.description"
+            },
+            "id": "taoyuan:achievement/slayer_500",
+            "name": {
+              "fallback": "斩妖除魔",
+              "key": "taoyuan.achievement.slayer_500.name"
+            },
+            "reward": {
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": "friendly",
+              "type": "npcFriendship"
+            },
+            "description": {
+              "fallback": "与所有村民成为\"熟识\"。",
+              "key": "taoyuan.achievement.social_all_friendly.description"
+            },
+            "id": "taoyuan:achievement/social_all_friendly",
+            "name": {
+              "fallback": "广结善缘",
+              "key": "taoyuan.achievement.social_all_friendly.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "level": "acquaintance",
+              "type": "npcFriendship"
+            },
+            "description": {
+              "fallback": "与所有村民成为\"相识\"。",
+              "key": "taoyuan.achievement.social_friend.description"
+            },
+            "id": "taoyuan:achievement/social_friend",
+            "name": {
+              "fallback": "好人缘",
+              "key": "taoyuan.achievement.social_friend.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 6,
+              "type": "hiddenNpcRevealed"
+            },
+            "description": {
+              "fallback": "发现全部6位仙灵。",
+              "key": "taoyuan.achievement.spirit_all.description"
+            },
+            "id": "taoyuan:achievement/spirit_all",
+            "name": {
+              "fallback": "万灵归心",
+              "key": "taoyuan.achievement.spirit_all.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "type": "hiddenNpcBonded"
+            },
+            "description": {
+              "fallback": "与一位仙灵结缘。",
+              "key": "taoyuan.achievement.spirit_bonded.description"
+            },
+            "id": "taoyuan:achievement/spirit_bonded",
+            "name": {
+              "fallback": "仙缘天定",
+              "key": "taoyuan.achievement.spirit_bonded.name"
+            },
+            "reward": {
+              "money": 1314
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 1,
+              "type": "hiddenNpcRevealed"
+            },
+            "description": {
+              "fallback": "发现第1位仙灵。",
+              "key": "taoyuan.achievement.spirit_first.description"
+            },
+            "id": "taoyuan:achievement/spirit_first",
+            "name": {
+              "fallback": "灵觉初开",
+              "key": "taoyuan.achievement.spirit_first.name"
+            },
+            "reward": {
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "itemId": "taoyuan:spirit_peach",
+              "type": "itemDiscovered"
+            },
+            "description": {
+              "fallback": "获得灵桃。",
+              "key": "taoyuan.achievement.spirit_peach_found.description"
+            },
+            "id": "taoyuan:achievement/spirit_peach_found",
+            "name": {
+              "fallback": "灵桃仙味",
+              "key": "taoyuan.achievement.spirit_peach_found.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "count": 3,
+              "type": "hiddenNpcRevealed"
+            },
+            "description": {
+              "fallback": "发现3位仙灵。",
+              "key": "taoyuan.achievement.spirit_three.description"
+            },
+            "id": "taoyuan:achievement/spirit_three",
+            "name": {
+              "fallback": "通灵之人",
+              "key": "taoyuan.achievement.spirit_three.name"
+            },
+            "reward": {
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "tier": 10,
+              "type": "hybridTier"
+            },
+            "description": {
+              "fallback": "培育出十代杂交品种。",
+              "key": "taoyuan.achievement.tier_10.description"
+            },
+            "id": "taoyuan:achievement/tier_10",
+            "name": {
+              "fallback": "登峰造极",
+              "key": "taoyuan.achievement.tier_10.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 2
+                }
+              ],
+              "money": 15000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "tier": 3,
+              "type": "hybridTier"
+            },
+            "description": {
+              "fallback": "培育出三代杂交品种。",
+              "key": "taoyuan.achievement.tier_3.description"
+            },
+            "id": "taoyuan:achievement/tier_3",
+            "name": {
+              "fallback": "三代突破",
+              "key": "taoyuan.achievement.tier_3.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "tier": 5,
+              "type": "hybridTier"
+            },
+            "description": {
+              "fallback": "培育出五代杂交品种。",
+              "key": "taoyuan.achievement.tier_5.description"
+            },
+            "id": "taoyuan:achievement/tier_5",
+            "name": {
+              "fallback": "五代传承",
+              "key": "taoyuan.achievement.tier_5.name"
+            },
+            "reward": {
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "condition": {
+              "tier": 7,
+              "type": "hybridTier"
+            },
+            "description": {
+              "fallback": "培育出七代杂交品种。",
+              "key": "taoyuan.achievement.tier_7.description"
+            },
+            "id": "taoyuan:achievement/tier_7",
+            "name": {
+              "fallback": "七代神品",
+              "key": "taoyuan.achievement.tier_7.name"
+            },
+            "reward": {
+              "money": 5000
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:animal",
       "schemaName": "animal.schema.json",
       "entries": [
@@ -1252,6 +4679,1194 @@
             "name": {
               "fallback": "酒窖",
               "key": "taoyuan.building_upgrade.farmhouse.3.name"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "registryId": "taoyuan:community_bundle",
+      "schemaName": "community-bundle.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "牧场动物们的馈赠。",
+              "key": "taoyuan.community_bundle.animal_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/animal_bundle",
+            "name": {
+              "fallback": "牧场之礼",
+              "key": "taoyuan.community_bundle.animal_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:egg",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:milk",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:duck_egg",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:wool",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.animal_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "各种加工品合集。",
+              "key": "taoyuan.community_bundle.artisan_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/artisan_bundle",
+            "name": {
+              "fallback": "匠心之礼",
+              "key": "taoyuan.community_bundle.artisan_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:watermelon_wine",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:pickled_cabbage",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:honey",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:sesame_oil",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:peach_wine",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "2000文",
+                "key": "taoyuan.community_bundle.artisan_bundle.reward.description"
+              },
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "秋季物产合集。",
+              "key": "taoyuan.community_bundle.autumn_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/autumn_bundle",
+            "name": {
+              "fallback": "金秋之礼",
+              "key": "taoyuan.community_bundle.autumn_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:pumpkin",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:osmanthus",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jujube",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:persimmon",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "800文 + 雪莲种子×1",
+                "key": "taoyuan.community_bundle.autumn_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:seed_snow_lotus",
+                  "quantity": 1
+                }
+              ],
+              "money": 800
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "金属锭与基础材料。",
+              "key": "taoyuan.community_bundle.bar_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/bar_bundle",
+            "name": {
+              "fallback": "百工之礼",
+              "key": "taoyuan.community_bundle.bar_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:charcoal",
+                "quantity": 5
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "2000文 + 铱锭×1",
+                "key": "taoyuan.community_bundle.bar_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_bar",
+                  "quantity": 1
+                }
+              ],
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "各种风味的奶酪。",
+              "key": "taoyuan.community_bundle.cheese_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/cheese_bundle",
+            "name": {
+              "fallback": "芝士之礼",
+              "key": "taoyuan.community_bundle.cheese_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:cheese",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:goat_cheese",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:buffalo_cheese",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:yak_cheese",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.cheese_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "收集各种珍禽的蛋。",
+              "key": "taoyuan.community_bundle.egg_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/egg_bundle",
+            "name": {
+              "fallback": "百蛋之礼",
+              "key": "taoyuan.community_bundle.egg_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:egg",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:duck_egg",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:goose_egg",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:quail_egg",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:silkie_egg",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1200文",
+                "key": "taoyuan.community_bundle.egg_bundle.reward.description"
+              },
+              "money": 1200
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "各地水域的鱼获合集。",
+              "key": "taoyuan.community_bundle.fish_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/fish_bundle",
+            "name": {
+              "fallback": "渔获之礼",
+              "key": "taoyuan.community_bundle.fish_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:crucian",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:carp",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:bass",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:catfish",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1000文",
+                "key": "taoyuan.community_bundle.fish_bundle.reward.description"
+              },
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "与所有村民建立友善关系。",
+              "key": "taoyuan.community_bundle.friendship_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/friendship_bundle",
+            "name": {
+              "fallback": "乡情之礼",
+              "key": "taoyuan.community_bundle.friendship_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:wintersweet",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:chrysanthemum",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:osmanthus",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.friendship_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "光彩夺目的宝石收藏。",
+              "key": "taoyuan.community_bundle.gem_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/gem_bundle",
+            "name": {
+              "fallback": "珍宝之礼",
+              "key": "taoyuan.community_bundle.gem_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:ruby",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:obsidian",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "3000文 + 龙玉×1",
+                "key": "taoyuan.community_bundle.gem_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:dragon_jade",
+                  "quantity": 1
+                }
+              ],
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "百花酿成的甜蜜。",
+              "key": "taoyuan.community_bundle.honey_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/honey_bundle",
+            "name": {
+              "fallback": "蜂蜜之礼",
+              "key": "taoyuan.community_bundle.honey_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:honey",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:chrysanthemum_honey",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:osmanthus_honey",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:rapeseed_honey",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1800文",
+                "key": "taoyuan.community_bundle.honey_bundle.reward.description"
+              },
+              "money": 1800
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "秋季杂交作物的丰收之味。",
+              "key": "taoyuan.community_bundle.hybrid_autumn_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/hybrid_autumn_bundle",
+            "name": {
+              "fallback": "秋韵杂交",
+              "key": "taoyuan.community_bundle.hybrid_autumn_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:amber_yam",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:twin_blossom",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:golden_persimmon",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:autumn_gem",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.hybrid_autumn_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "二代杂交品种的珍稀收藏。",
+              "key": "taoyuan.community_bundle.hybrid_elite_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/hybrid_elite_bundle",
+            "name": {
+              "fallback": "二代珍品",
+              "key": "taoyuan.community_bundle.hybrid_elite_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:melon_tea_fruit",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:dragon_fire",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:celestial_rice",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:ice_lotus",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:golden_dragon",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "5000文 + 铱矿×5",
+                "key": "taoyuan.community_bundle.hybrid_elite_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_ore",
+                  "quantity": 5
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "高阶杂交品种的传世之作。",
+              "key": "taoyuan.community_bundle.hybrid_legendary_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/hybrid_legendary_bundle",
+            "name": {
+              "fallback": "传奇良种",
+              "key": "taoyuan.community_bundle.hybrid_legendary_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:dragon_pearl",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:immortal_flower",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:jade_golden_melon",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:moonlight_frost",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "8000文 + 棱彩碎片×1",
+                "key": "taoyuan.community_bundle.hybrid_legendary_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 8000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "春季杂交作物的初步收获。",
+              "key": "taoyuan.community_bundle.hybrid_spring_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/hybrid_spring_bundle",
+            "name": {
+              "fallback": "春华杂交",
+              "key": "taoyuan.community_bundle.hybrid_spring_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:emerald_radish",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jade_shoot",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:peach_blossom_tea",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:twin_bean",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.hybrid_spring_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "夏季杂交作物的丰硕之果。",
+              "key": "taoyuan.community_bundle.hybrid_summer_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/hybrid_summer_bundle",
+            "name": {
+              "fallback": "夏实杂交",
+              "key": "taoyuan.community_bundle.hybrid_summer_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:purple_melon",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:golden_rice",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:double_lotus",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:fire_sesame",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.hybrid_summer_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冬季杂交作物的严寒之珍。",
+              "key": "taoyuan.community_bundle.hybrid_winter_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/hybrid_winter_bundle",
+            "name": {
+              "fallback": "冬藏杂交",
+              "key": "taoyuan.community_bundle.hybrid_winter_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:jade_white",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:garlic_cabbage",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:evergreen_herb",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:allium_king",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.hybrid_winter_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "各种新鲜的乳制品。",
+              "key": "taoyuan.community_bundle.milk_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/milk_bundle",
+            "name": {
+              "fallback": "乳品之礼",
+              "key": "taoyuan.community_bundle.milk_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:milk",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:goat_milk",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:buffalo_milk",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:yak_milk",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.milk_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "矿洞中采集的各类矿石。",
+              "key": "taoyuan.community_bundle.ore_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/ore_bundle",
+            "name": {
+              "fallback": "矿石之礼",
+              "key": "taoyuan.community_bundle.ore_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 3
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1000文",
+                "key": "taoyuan.community_bundle.ore_bundle.reward.description"
+              },
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "各种腌制风味小食。",
+              "key": "taoyuan.community_bundle.pickle_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/pickle_bundle",
+            "name": {
+              "fallback": "腌制之礼",
+              "key": "taoyuan.community_bundle.pickle_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:pickled_cabbage",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:pickled_chili",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:pickled_ginger",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:dried_radish",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1000文",
+                "key": "taoyuan.community_bundle.pickle_bundle.reward.description"
+              },
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "难得一见的珍稀鱼类。",
+              "key": "taoyuan.community_bundle.rare_fish_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/rare_fish_bundle",
+            "name": {
+              "fallback": "珍鲜之礼",
+              "key": "taoyuan.community_bundle.rare_fish_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:sturgeon",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:mandarin_fish",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:koi",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:eel",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "2500文 + 铱矿×3",
+                "key": "taoyuan.community_bundle.rare_fish_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_ore",
+                  "quantity": 3
+                }
+              ],
+              "money": 2500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "烟熏风味的鱼鲜。",
+              "key": "taoyuan.community_bundle.smoked_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/smoked_bundle",
+            "name": {
+              "fallback": "熏制之礼",
+              "key": "taoyuan.community_bundle.smoked_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:smoked_crucian",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:smoked_carp",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:smoked_bass",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:smoked_eel",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:smoked_sturgeon",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "2000文",
+                "key": "taoyuan.community_bundle.smoked_bundle.reward.description"
+              },
+              "money": 2000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "春季物产合集。",
+              "key": "taoyuan.community_bundle.spring_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/spring_bundle",
+            "name": {
+              "fallback": "春耕之礼",
+              "key": "taoyuan.community_bundle.spring_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:cabbage",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:radish",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:bamboo_shoot",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:tea",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "500文 + 桃种子×3",
+                "key": "taoyuan.community_bundle.spring_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:seed_peach",
+                  "quantity": 3
+                }
+              ],
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "夏季物产合集。",
+              "key": "taoyuan.community_bundle.summer_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/summer_bundle",
+            "name": {
+              "fallback": "盛夏之礼",
+              "key": "taoyuan.community_bundle.summer_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:watermelon",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:rice",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:lotus_root",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:chili",
+                "quantity": 3
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "800文 + 莲子种子×2",
+                "key": "taoyuan.community_bundle.summer_bundle.reward.description"
+              },
+              "items": [
+                {
+                  "itemId": "taoyuan:seed_lotus_seed",
+                  "quantity": 2
+                }
+              ],
+              "money": 800
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "品味四季的香茗。",
+              "key": "taoyuan.community_bundle.tea_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/tea_bundle",
+            "name": {
+              "fallback": "茶道之礼",
+              "key": "taoyuan.community_bundle.tea_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:green_tea_drink",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:chrysanthemum_tea",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:osmanthus_tea",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:ginseng_tea",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1500文",
+                "key": "taoyuan.community_bundle.tea_bundle.reward.description"
+              },
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "精心酿造的美酒。",
+              "key": "taoyuan.community_bundle.wine_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/wine_bundle",
+            "name": {
+              "fallback": "佳酿之礼",
+              "key": "taoyuan.community_bundle.wine_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:watermelon_wine",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:peach_wine",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:jujube_wine",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:osmanthus_wine",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:corn_wine",
+                "quantity": 1
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "2500文",
+                "key": "taoyuan.community_bundle.wine_bundle.reward.description"
+              },
+              "money": 2500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/achievementDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冬季物产合集。",
+              "key": "taoyuan.community_bundle.winter_bundle.description"
+            },
+            "id": "taoyuan:community_bundle/winter_bundle",
+            "name": {
+              "fallback": "严冬之礼",
+              "key": "taoyuan.community_bundle.winter_bundle.name"
+            },
+            "requiredItems": [
+              {
+                "itemId": "taoyuan:winter_bamboo_shoot",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:winter_wheat",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:garlic",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:ginger",
+                "quantity": 2
+              }
+            ],
+            "reward": {
+              "description": {
+                "fallback": "1000文",
+                "key": "taoyuan.community_bundle.winter_bundle.reward.description"
+              },
+              "money": 1000
             }
           }
         }
@@ -84908,5 +89523,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:3d82f4b53d22003106d7196ef050c716c890b374b90c8866502bcc6748db40f8"
+  "snapshotHash": "sha256:1a0748bd9e2c9defc10948f15d651050715bfde4aa5416d1abd58ea9fe76d348"
 }

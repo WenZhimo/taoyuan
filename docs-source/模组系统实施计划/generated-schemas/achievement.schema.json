@@ -1,0 +1,603 @@
+{
+  "$id": "taoyuan.registry.AchievementDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "condition",
+    "reward"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "condition": {
+      "anyOf": [
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "itemCount",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "cropHarvest",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "fishCaught",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "amount"
+          ],
+          "properties": {
+            "type": {
+              "const": "moneyEarned",
+              "type": "string"
+            },
+            "amount": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "floor"
+          ],
+          "properties": {
+            "type": {
+              "const": "mineFloor",
+              "type": "string"
+            },
+            "floor": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "floor"
+          ],
+          "properties": {
+            "type": {
+              "const": "skullCavernFloor",
+              "type": "string"
+            },
+            "floor": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "recipesCooked",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "level"
+          ],
+          "properties": {
+            "type": {
+              "const": "npcFriendship",
+              "type": "string"
+            },
+            "level": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "skillType",
+            "level"
+          ],
+          "properties": {
+            "type": {
+              "const": "skillLevel",
+              "type": "string"
+            },
+            "skillType": {
+              "anyOf": [
+                {
+                  "const": "farming",
+                  "type": "string"
+                },
+                {
+                  "const": "foraging",
+                  "type": "string"
+                },
+                {
+                  "const": "fishing",
+                  "type": "string"
+                },
+                {
+                  "const": "mining",
+                  "type": "string"
+                },
+                {
+                  "const": "combat",
+                  "type": "string"
+                }
+              ]
+            },
+            "level": {
+              "minimum": 0,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "questsCompleted",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "npcBestFriend",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "npcAllFriendly",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "married",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "hasChild",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "monstersKilled",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "shippedCount",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "fullShipment",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "animalCount",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "allSkillsMax",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "allBundlesComplete",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "hybridsDiscovered",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "breedingsDone",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "tier"
+          ],
+          "properties": {
+            "type": {
+              "const": "hybridTier",
+              "type": "string"
+            },
+            "tier": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "hybridsShipped",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "museumDonations",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "guildGoalsCompleted",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "count"
+          ],
+          "properties": {
+            "type": {
+              "const": "hiddenNpcRevealed",
+              "type": "string"
+            },
+            "count": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "hiddenNpcBonded",
+              "type": "string"
+            }
+          }
+        },
+        {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "type",
+            "itemId"
+          ],
+          "properties": {
+            "type": {
+              "const": "itemDiscovered",
+              "type": "string"
+            },
+            "itemId": {
+              "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+              "type": "string"
+            }
+          }
+        }
+      ]
+    },
+    "reward": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "money": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "items": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

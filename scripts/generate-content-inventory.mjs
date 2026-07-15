@@ -307,6 +307,24 @@ fileDefaults.set('src/data/guild.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/achievementDefinitions.ts', {
+  file: 'src/data/achievementDefinitions.ts',
+  classification: 'content',
+  domains: ['achievement', 'community_bundle'],
+  candidateTargets: ['taoyuan:achievement', 'taoyuan:community_bundle'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/achievements.ts', {
+  file: 'src/data/achievements.ts',
+  classification: 'mixed',
+  domains: ['achievement', 'community_bundle', 'lookup'],
+  candidateTargets: ['taoyuan:achievement', 'taoyuan:community_bundle', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/secretNotes.ts', {
   file: 'src/data/secretNotes.ts',
   classification: 'content',
@@ -1175,6 +1193,66 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy guild level lookup is retained and now resolves taoyuan:guild_level before returning an equivalent threshold object.'
+  },
+  'src/data/achievementDefinitions.ts:ACHIEVEMENTS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy achievement definitions; Phase 6 projects stable progress IDs, names, descriptions, conditions and rewards into taoyuan:achievement.'
+  },
+  'src/data/achievementDefinitions.ts:COMMUNITY_BUNDLES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy community bundle definitions; Phase 6 projects stable bundle IDs, required items and rewards into taoyuan:community_bundle.'
+  },
+  'src/data/achievements.ts:ACHIEVEMENTS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy ACHIEVEMENTS imports stable while runtime lists resolve taoyuan:achievement through compatibility facades.'
+  },
+  'src/data/achievements.ts:COMMUNITY_BUNDLES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy COMMUNITY_BUNDLES imports stable while runtime bundle lists resolve taoyuan:community_bundle through compatibility facades.'
+  },
+  'src/data/achievements.ts:getAchievements': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy achievement list query returns local-ID compatibility objects reconstructed from taoyuan:achievement.'
+  },
+  'src/data/achievements.ts:getAchievementById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getAchievementById() signature is retained and now resolves taoyuan:achievement by local or namespaced ID before falling back to the static rollback path.'
+  },
+  'src/data/achievements.ts:getCommunityBundles': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy community bundle list query returns local-ID compatibility objects reconstructed from taoyuan:community_bundle.'
+  },
+  'src/data/achievements.ts:getBundleById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getBundleById() signature is retained and now resolves taoyuan:community_bundle by local or namespaced ID before falling back to the static rollback path.'
   },
   'src/data/secretNotes.ts:SECRET_NOTES': {
     classification: 'content',
@@ -3368,6 +3446,86 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Checks guild donation item references against taoyuan:item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'AchievementDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for achievement definitions, including stable achievement IDs, localized text, condition variants and reward items.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'CommunityBundleDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for community bundle definitions, including required item lists, localized text and reward descriptions.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyAchievement/createOfficialAchievements',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy achievement into ordered official entries without changing local progress IDs, displayed text, condition thresholds or rewards.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyCommunityBundle/createOfficialCommunityBundles',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy community bundle into ordered official entries without changing bundle IDs, required items, reward text or rewards.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialAchievementDef/getOfficialAchievementDefs/getOfficialAchievementById/getOfficialAchievementsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry achievement definitions and reconstructs legacy AchievementDef objects for Store and AchievementView consumers.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialCommunityBundleDef/getOfficialCommunityBundleDefs/getOfficialCommunityBundleById/getOfficialCommunityBundlesAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry community bundle definitions and reconstructs legacy CommunityBundleDef objects for bundle submission flows.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:achievement',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:achievement',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks itemDiscovered condition item references and achievement reward item references against taoyuan:item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:community_bundle',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:community_bundle',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks community bundle required item and reward item references against taoyuan:item before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

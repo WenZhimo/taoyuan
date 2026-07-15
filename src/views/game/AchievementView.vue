@@ -140,10 +140,10 @@
 
     <!-- 成就列表 -->
     <template v-if="tab === 'achievements'">
-      <p class="text-xs text-muted mb-2">已完成 {{ achievementStore.completedAchievements.length }}/{{ ACHIEVEMENTS.length }}</p>
+      <p class="text-xs text-muted mb-2">已完成 {{ achievementStore.completedAchievements.length }}/{{ achievements.length }}</p>
       <div class="grid grid-cols-3 md:grid-cols-5 gap-1 max-h-72 overflow-y-auto">
         <div
-          v-for="a in ACHIEVEMENTS"
+          v-for="a in achievements"
           :key="a.id"
           class="border rounded-xs p-1.5 text-xs text-center transition-colors truncate mr-1"
           :class="isCompleted(a.id) ? 'border-accent/20 cursor-pointer hover:bg-accent/5 text-success' : 'border-accent/10 text-muted/30'"
@@ -216,7 +216,7 @@
     <template v-if="tab === 'bundles'">
       <div class="flex flex-col space-y-1.5 max-h-72 overflow-y-auto">
         <div
-          v-for="bundle in COMMUNITY_BUNDLES"
+          v-for="bundle in communityBundles"
           :key="bundle.id"
           class="border rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5 mr-1"
           :class="achievementStore.isBundleComplete(bundle.id) ? 'border-success/30' : 'border-accent/20'"
@@ -499,7 +499,7 @@
   import { useSecretNoteStore } from '@/stores/useSecretNoteStore'
   import { useShopStore } from '@/stores/useShopStore'
   import { useSkillStore } from '@/stores/useSkillStore'
-  import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievements'
+  import { getAchievements, getBundleById, getCommunityBundles } from '@/data/achievements'
   import { ITEMS, getItemById } from '@/data/items'
   import { HYBRID_DEFS } from '@/data/breeding'
   import { WEAPONS, ENCHANTMENTS, WEAPON_TYPE_NAMES } from '@/data/weapons'
@@ -525,6 +525,8 @@
   type Tab = 'collection' | 'achievements' | 'bundles' | 'shipping' | 'notes'
   const tab = ref<Tab>('collection')
 
+  const achievements = computed(() => getAchievements())
+  const communityBundles = computed(() => getCommunityBundles())
   const allItems = ITEMS
 
   // === 图鉴分类筛选 ===
@@ -804,7 +806,7 @@
   }
 
   /** 计算成就进度百分比（用于进度条） */
-  const getProgressPercent = (a: (typeof ACHIEVEMENTS)[number]): number => {
+  const getProgressPercent = (a: AchievementDef): number => {
     if (isCompleted(a.id)) return 100
     const c = a.condition
     const s = achievementStore.stats
@@ -911,7 +913,7 @@
         return npcStore.children.length > 0 ? 100 : 0
       case 'allBundlesComplete':
         current = achievementStore.completedBundles.length
-        target = COMMUNITY_BUNDLES.length
+        target = communityBundles.value.length
         break
       case 'museumDonations':
         current = museumStore.donatedCount
@@ -927,7 +929,7 @@
     return target > 0 ? Math.min(Math.round((current / target) * 100), 100) : 0
   }
 
-  const getProgressText = (a: (typeof ACHIEVEMENTS)[number]): string => {
+  const getProgressText = (a: AchievementDef): string => {
     const c = a.condition
     const s = achievementStore.stats
     switch (c.type) {
@@ -995,7 +997,7 @@
       case 'hasChild':
         return npcStore.children.length > 0 ? '已完成' : '未完成'
       case 'allBundlesComplete':
-        return `${achievementStore.completedBundles.length}/${COMMUNITY_BUNDLES.length}`
+        return `${achievementStore.completedBundles.length}/${communityBundles.value.length}`
       case 'museumDonations':
         return `${museumStore.donatedCount}/${c.count}`
       case 'guildGoalsCompleted':
@@ -1006,7 +1008,7 @@
   }
 
   const handleSubmit = (bundleId: string, itemId: string) => {
-    const bundle = COMMUNITY_BUNDLES.find(b => b.id === bundleId)
+    const bundle = getBundleById(bundleId)
     const req = bundle?.requiredItems.find(r => r.itemId === itemId)
     if (!req) return
 

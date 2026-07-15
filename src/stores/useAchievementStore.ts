@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { AchievementDef, AchievementCondition } from '@/types'
-import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievements'
+import { getAchievements, getBundleById, getCommunityBundles } from '@/data/achievements'
 import { ITEMS } from '@/data/items'
 import { HYBRID_DEFS } from '@/data/breeding'
 import { usePlayerStore } from './usePlayerStore'
@@ -21,6 +21,8 @@ export const useAchievementStore = defineStore('achievement', () => {
   const inventoryStore = useInventoryStore()
   const skillStore = useSkillStore()
   const npcStore = useNpcStore()
+  const achievementDefs = getAchievements()
+  const communityBundles = getCommunityBundles()
 
   /** 已发现的物品ID集合 */
   const discoveredItems = ref<string[]>([])
@@ -196,7 +198,7 @@ export const useAchievementStore = defineStore('achievement', () => {
       case 'allSkillsMax':
         return skillStore.skills.every(s => s.level === 10)
       case 'allBundlesComplete':
-        return completedBundles.value.length >= COMMUNITY_BUNDLES.length
+        return completedBundles.value.length >= communityBundles.length
       case 'hybridsDiscovered':
         return stats.value.totalHybridsDiscovered >= c.count
       case 'breedingsDone':
@@ -233,7 +235,7 @@ export const useAchievementStore = defineStore('achievement', () => {
   const checkAchievements = (): AchievementDef[] => {
     const newlyCompleted: AchievementDef[] = []
 
-    for (const achievement of ACHIEVEMENTS) {
+    for (const achievement of achievementDefs) {
       if (completedAchievements.value.includes(achievement.id)) continue
 
       if (isConditionMet(achievement.condition)) {
@@ -258,7 +260,7 @@ export const useAchievementStore = defineStore('achievement', () => {
 
   const submitToBundle = (bundleId: string, itemId: string, quantity: number): boolean => {
     if (completedBundles.value.includes(bundleId)) return false
-    const bundle = COMMUNITY_BUNDLES.find(b => b.id === bundleId)
+    const bundle = getBundleById(bundleId)
     if (!bundle) return false
 
     const req = bundle.requiredItems.find(r => r.itemId === itemId)
@@ -308,11 +310,11 @@ export const useAchievementStore = defineStore('achievement', () => {
     const shopStore = useShopStore()
 
     // 成就 25%
-    const achievementRate = completedAchievements.value.length / ACHIEVEMENTS.length
+    const achievementRate = completedAchievements.value.length / achievementDefs.length
     // 出货 20%
     const shippingRate = shippableItemCount > 0 ? shopStore.shippedItems.length / shippableItemCount : 0
     // 祠堂任务 15%
-    const bundleRate = COMMUNITY_BUNDLES.length > 0 ? completedBundles.value.length / COMMUNITY_BUNDLES.length : 0
+    const bundleRate = communityBundles.length > 0 ? completedBundles.value.length / communityBundles.length : 0
     // 图鉴 15%
     const collectionRate = ITEMS.length > 0 ? discoveredItems.value.length / ITEMS.length : 0
     // 技能 15%

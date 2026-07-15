@@ -1165,6 +1165,97 @@ export const RecipeDefSchema = Type.Object(
   { $id: 'taoyuan.registry.RecipeDef', additionalProperties: false }
 )
 
+export const AchievementRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const AchievementRewardSchema = Type.Object(
+  {
+    money: Type.Optional(Type.Integer({ minimum: 0 })),
+    items: Type.Optional(Type.Array(AchievementRewardItemSchema, { minItems: 1 }))
+  },
+  { additionalProperties: false }
+)
+
+export const AchievementConditionSchema = Type.Union([
+  Type.Object({ type: Type.Literal('itemCount'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('cropHarvest'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('fishCaught'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('moneyEarned'), amount: Type.Integer({ minimum: 0 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('mineFloor'), floor: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('skullCavernFloor'), floor: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('recipesCooked'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('npcFriendship'), level: Type.String({ minLength: 1 }) }, { additionalProperties: false }),
+  Type.Object({
+    type: Type.Literal('skillLevel'),
+    skillType: SkillTypeSchema,
+    level: Type.Integer({ minimum: 0 })
+  }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('questsCompleted'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('npcBestFriend'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('npcAllFriendly') }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('married') }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('hasChild') }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('monstersKilled'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('shippedCount'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('fullShipment') }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('animalCount'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('allSkillsMax') }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('allBundlesComplete') }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('hybridsDiscovered'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('breedingsDone'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('hybridTier'), tier: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('hybridsShipped'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('museumDonations'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('guildGoalsCompleted'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('hiddenNpcRevealed'), count: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('hiddenNpcBonded') }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('itemDiscovered'), itemId: ContentIdSchema }, { additionalProperties: false })
+])
+
+export const AchievementDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    condition: AchievementConditionSchema,
+    reward: AchievementRewardSchema
+  },
+  { $id: 'taoyuan.registry.AchievementDef', additionalProperties: false }
+)
+
+export const CommunityBundleRequiredItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const CommunityBundleRewardSchema = Type.Object(
+  {
+    money: Type.Optional(Type.Integer({ minimum: 0 })),
+    items: Type.Optional(Type.Array(AchievementRewardItemSchema, { minItems: 1 })),
+    description: LocalizedTextRefSchema
+  },
+  { additionalProperties: false }
+)
+
+export const CommunityBundleDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    requiredItems: Type.Array(CommunityBundleRequiredItemSchema, { minItems: 1 }),
+    reward: CommunityBundleRewardSchema
+  },
+  { $id: 'taoyuan.registry.CommunityBundleDef', additionalProperties: false }
+)
+
 export const ShopDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -1243,6 +1334,8 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:equipment_set': EquipmentSetDefSchema,
   'taoyuan:drop_table': DropTableDefSchema,
   'taoyuan:recipe': RecipeDefSchema,
+  'taoyuan:achievement': AchievementDefSchema,
+  'taoyuan:community_bundle': CommunityBundleDefSchema,
   'taoyuan:shop': ShopDefSchema,
   'taoyuan:shop_offer': ShopOfferDefSchema
 } as const satisfies Record<string, TSchema>
@@ -1286,6 +1379,8 @@ export const PUBLIC_JSON_SCHEMAS = {
   'equipment-set.schema.json': EquipmentSetDefSchema,
   'drop-table.schema.json': DropTableDefSchema,
   'recipe.schema.json': RecipeDefSchema,
+  'achievement.schema.json': AchievementDefSchema,
+  'community-bundle.schema.json': CommunityBundleDefSchema,
   'shop.schema.json': ShopDefSchema,
   'shop-offer.schema.json': ShopOfferDefSchema
 } as const satisfies Record<string, TSchema>
@@ -1376,6 +1471,13 @@ export type EquipmentSetDef = Static<typeof EquipmentSetDefSchema>
 export type EnchantmentDef = Static<typeof EnchantmentDefSchema>
 export type RecipeIngredient = Static<typeof RecipeIngredientSchema>
 export type RecipeDef = Static<typeof RecipeDefSchema>
+export type AchievementRewardItem = Static<typeof AchievementRewardItemSchema>
+export type AchievementReward = Static<typeof AchievementRewardSchema>
+export type AchievementCondition = Static<typeof AchievementConditionSchema>
+export type AchievementDef = Static<typeof AchievementDefSchema>
+export type CommunityBundleRequiredItem = Static<typeof CommunityBundleRequiredItemSchema>
+export type CommunityBundleReward = Static<typeof CommunityBundleRewardSchema>
+export type CommunityBundleDef = Static<typeof CommunityBundleDefSchema>
 export type ShopDef = Static<typeof ShopDefSchema>
 export type ShopOfferPurchaseKind = Static<typeof ShopOfferPurchaseKindSchema>
 export type ShopOfferDef = Static<typeof ShopOfferDefSchema>

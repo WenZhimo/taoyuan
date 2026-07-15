@@ -8,11 +8,13 @@ import {
 } from './monsterPoolIds'
 import { getMonsterPoolDefResourceLimitDiagnostics } from './monsterPoolResourceValidation'
 import type {
+  AchievementDef,
   AnimalBuildingDef,
   AnimalDef,
   AnimalFeedDef,
   AnimalIncubationDef,
   BuildingUpgradeDef,
+  CommunityBundleDef,
   CropDef,
   DropTableDef,
   EnchantmentDef,
@@ -60,6 +62,8 @@ const REGISTRY_IDS = {
   guildGoal: toOfficialRegistryTypeId('guild_goal'),
   guildDonation: toOfficialRegistryTypeId('guild_donation'),
   guildLevel: toOfficialRegistryTypeId('guild_level'),
+  achievement: toOfficialRegistryTypeId('achievement'),
+  communityBundle: toOfficialRegistryTypeId('community_bundle'),
   secretNote: toOfficialRegistryTypeId('secret_note'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
   processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
@@ -100,6 +104,19 @@ const pushMissingReference = (
 
 const contentId = (value: string): ContentId => requireContentId(value)
 
+// Legacy achievement displays this stale reward, but inventory addItem() never granted it.
+const legacyOfficialMissingItemReferences = new Set([
+  'taoyuan-core|taoyuan:achievement/farmer_200|/reward/items/0/itemId|taoyuan:compost'
+])
+
+const allowsLegacyMissingItemReference = (
+  owner: PackageId,
+  entryId: string,
+  fieldPath: string,
+  referencedItemId: string
+) =>
+  legacyOfficialMissingItemReferences.has(`${owner}|${entryId}|${fieldPath}|${referencedItemId}`)
+
 export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnostic[] => {
   const diagnostics: ModDiagnostic[] = []
   const tagRegistry = registrySet.get<TagDef>(REGISTRY_IDS.tag)
@@ -118,6 +135,8 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const guildGoalRegistry = registrySet.get<GuildGoalDef>(REGISTRY_IDS.guildGoal)
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(REGISTRY_IDS.guildDonation)
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(REGISTRY_IDS.guildLevel)
+  const achievementRegistry = registrySet.get<AchievementDef>(REGISTRY_IDS.achievement)
+  const communityBundleRegistry = registrySet.get<CommunityBundleDef>(REGISTRY_IDS.communityBundle)
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
@@ -401,12 +420,16 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
       })
     }
     record.entry.reward.items?.forEach((item, index) => {
-      if (!itemRegistry.has(contentId(item.itemId))) {
+      const fieldPath = `/reward/items/${index}/itemId`
+      if (
+        !itemRegistry.has(contentId(item.itemId)) &&
+        !allowsLegacyMissingItemReference(record.owner, record.entry.id, fieldPath, item.itemId)
+      ) {
         pushMissingReference(diagnostics, {
           packageId: record.owner,
           registryId: REGISTRY_IDS.item,
           contentId: contentId(item.itemId),
-          fieldPath: `/reward/items/${index}/itemId`
+          fieldPath
         })
       }
     })
@@ -435,6 +458,54 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         })
       )
     }
+  }
+
+  for (const record of achievementRegistry.entries()) {
+    if (record.entry.condition.type === 'itemDiscovered' && !itemRegistry.has(contentId(record.entry.condition.itemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.condition.itemId),
+        fieldPath: '/condition/itemId'
+      })
+    }
+    record.entry.reward.items?.forEach((item, index) => {
+      const fieldPath = `/reward/items/${index}/itemId`
+      if (
+        !itemRegistry.has(contentId(item.itemId)) &&
+        !allowsLegacyMissingItemReference(record.owner, record.entry.id, fieldPath, item.itemId)
+      ) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(item.itemId),
+          fieldPath
+        })
+      }
+    })
+  }
+
+  for (const record of communityBundleRegistry.entries()) {
+    record.entry.requiredItems.forEach((item, index) => {
+      if (!itemRegistry.has(contentId(item.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(item.itemId),
+          fieldPath: `/requiredItems/${index}/itemId`
+        })
+      }
+    })
+    record.entry.reward.items?.forEach((item, index) => {
+      if (!itemRegistry.has(contentId(item.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(item.itemId),
+          fieldPath: `/reward/items/${index}/itemId`
+        })
+      }
+    })
   }
 
   for (const record of secretNoteRegistry.entries()) {

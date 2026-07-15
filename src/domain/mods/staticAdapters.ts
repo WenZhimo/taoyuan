@@ -19,6 +19,7 @@ import {
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/monsters'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
+import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
 import { SHOPS, type ShopDef as LegacyShopDef } from '@/data/shops'
 import {
@@ -67,7 +68,9 @@ import {
 } from '@/data/buildingUpgradeDefinitions'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processingCraftDefinitions'
 import type {
+  AchievementDef as LegacyAchievementDef,
   AnimalDef as LegacyAnimalDef,
+  CommunityBundleDef as LegacyCommunityBundleDef,
   HatDef as LegacyHatDef,
   RecipeDef as LegacyRecipeDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
@@ -98,10 +101,12 @@ import {
 import { RegistrySet, type RegistryDefinition, type RegistryEntry } from './registry'
 import type {
   AnimalBuildingDef,
+  AchievementDef,
   AnimalDef,
   AnimalFeedDef,
   AnimalIncubationDef,
   BuildingUpgradeDef,
+  CommunityBundleDef,
   DropTableDef,
   EnchantmentDef,
   EquipmentDef,
@@ -313,6 +318,16 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('recipe'),
     description: '配方定义',
     schemaName: 'recipe.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('achievement'),
+    description: '成就定义',
+    schemaName: 'achievement.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('community_bundle'),
+    description: '祠堂任务定义',
+    schemaName: 'community-bundle.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('shop'),
@@ -810,6 +825,51 @@ export const adaptLegacyGuildLevel = (level: (typeof GUILD_LEVELS)[number]): Gui
 })
 
 export const createOfficialGuildLevels = (): GuildLevelDef[] => GUILD_LEVELS.map(adaptLegacyGuildLevel)
+
+const adaptAchievementRewardItems = (
+  items: NonNullable<LegacyAchievementDef['reward']['items']> | NonNullable<LegacyCommunityBundleDef['reward']['items']>
+) =>
+  items.map(item => ({
+    itemId: toOfficialContentId(item.itemId),
+    quantity: item.quantity
+  }))
+
+export const adaptLegacyAchievement = (achievement: LegacyAchievementDef): AchievementDef => ({
+  id: toOfficialContentId(`achievement/${achievement.id}`),
+  name: text(`taoyuan.achievement.${achievement.id}.name`, achievement.name),
+  description: text(`taoyuan.achievement.${achievement.id}.description`, achievement.description),
+  condition: achievement.condition.type === 'itemDiscovered'
+    ? {
+        type: 'itemDiscovered',
+        itemId: toOfficialContentId(achievement.condition.itemId)
+      }
+    : { ...achievement.condition },
+  reward: {
+    ...(achievement.reward.money !== undefined ? { money: achievement.reward.money } : {}),
+    ...(achievement.reward.items ? { items: adaptAchievementRewardItems(achievement.reward.items) } : {})
+  }
+})
+
+export const createOfficialAchievements = (): AchievementDef[] =>
+  ACHIEVEMENTS.map(adaptLegacyAchievement)
+
+export const adaptLegacyCommunityBundle = (bundle: LegacyCommunityBundleDef): CommunityBundleDef => ({
+  id: toOfficialContentId(`community_bundle/${bundle.id}`),
+  name: text(`taoyuan.community_bundle.${bundle.id}.name`, bundle.name),
+  description: text(`taoyuan.community_bundle.${bundle.id}.description`, bundle.description),
+  requiredItems: bundle.requiredItems.map(item => ({
+    itemId: toOfficialContentId(item.itemId),
+    quantity: item.quantity
+  })),
+  reward: {
+    ...(bundle.reward.money !== undefined ? { money: bundle.reward.money } : {}),
+    ...(bundle.reward.items ? { items: adaptAchievementRewardItems(bundle.reward.items) } : {}),
+    description: text(`taoyuan.community_bundle.${bundle.id}.reward.description`, bundle.reward.description)
+  }
+})
+
+export const createOfficialCommunityBundles = (): CommunityBundleDef[] =>
+  COMMUNITY_BUNDLES.map(adaptLegacyCommunityBundle)
 
 export const adaptLegacySecretNote = (note: (typeof SECRET_NOTES)[number]): SecretNoteDef => ({
   id: toOfficialContentId(`secret_note/${note.id}`),
@@ -1383,6 +1443,8 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const equipmentSetRegistry = registrySet.get<EquipmentSetDef>(toOfficialRegistryTypeId('equipment_set'))
   const dropTableRegistry = registrySet.get<DropTableDef>(toOfficialRegistryTypeId('drop_table'))
   const recipeRegistry = registrySet.get<RecipeDef>(toOfficialRegistryTypeId('recipe'))
+  const achievementRegistry = registrySet.get<AchievementDef>(toOfficialRegistryTypeId('achievement'))
+  const communityBundleRegistry = registrySet.get<CommunityBundleDef>(toOfficialRegistryTypeId('community_bundle'))
   const shopRegistry = registrySet.get<ShopDef>(toOfficialRegistryTypeId('shop'))
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer'))
 
@@ -1416,6 +1478,12 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const level of createOfficialGuildLevels()) {
     guildLevelRegistry.register(owner, level, { file: 'src/data/guildDefinitions.ts' })
+  }
+  for (const achievement of createOfficialAchievements()) {
+    achievementRegistry.register(owner, achievement, { file: 'src/data/achievementDefinitions.ts' })
+  }
+  for (const bundle of createOfficialCommunityBundles()) {
+    communityBundleRegistry.register(owner, bundle, { file: 'src/data/achievementDefinitions.ts' })
   }
   for (const note of createOfficialSecretNotes()) {
     secretNoteRegistry.register(owner, note, { file: 'src/data/secretNotes.ts' })

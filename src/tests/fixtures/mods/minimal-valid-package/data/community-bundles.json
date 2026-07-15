@@ -1,0 +1,32 @@
+[
+  {
+    "id": "example_mod:community_bundle/test",
+    "name": {
+      "key": "example_mod.community_bundle.test.name",
+      "fallback": "测试祠堂任务"
+    },
+    "description": {
+      "key": "example_mod.community_bundle.test.description",
+      "fallback": "提交测试物品。"
+    },
+    "requiredItems": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      }
+    ],
+    "reward": {
+      "money": 10,
+      "items": [
+        {
+          "itemId": "example_mod:test_item",
+          "quantity": 1
+        }
+      ],
+      "description": {
+        "key": "example_mod.community_bundle.test.reward.description",
+        "fallback": "10文 + 测试物品×1"
+      }
+    }
+  }
+]

@@ -124,6 +124,12 @@
     ],
     "taoyuan:guild_level": [
       "data/guild-levels.json"
+    ],
+    "taoyuan:achievement": [
+      "data/achievements.json"
+    ],
+    "taoyuan:community_bundle": [
+      "data/community-bundles.json"
     ]
   },
   "attributions": "attributions.json",

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "example_mod:achievement/test",
+    "name": {
+      "key": "example_mod.achievement.test.name",
+      "fallback": "测试成就"
+    },
+    "description": {
+      "key": "example_mod.achievement.test.description",
+      "fallback": "发现测试物品。"
+    },
+    "condition": {
+      "type": "itemDiscovered",
+      "itemId": "example_mod:test_item"
+    },
+    "reward": {
+      "money": 10,
+      "items": [
+        {
+          "itemId": "example_mod:test_item",
+          "quantity": 1
+        }
+      ]
+    }
+  }
+]

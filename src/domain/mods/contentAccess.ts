@@ -1,6 +1,8 @@
 import type {
+  AchievementDef as LegacyAchievementDef,
   AnimalBuildingDef as LegacyAnimalBuildingDef,
   AnimalDef as LegacyAnimalDef,
+  CommunityBundleDef as LegacyCommunityBundleDef,
   EnchantmentDef as LegacyEnchantmentDef,
   FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
@@ -61,6 +63,7 @@ import { resolveMonsterPoolEntries } from './monsterPoolResolution'
 import type { RegistrySet } from './registry'
 import type {
   AnimalBuildingType,
+  AchievementDef as AchievementContentDef,
   AnimalBuildingDef as AnimalBuildingContentDef,
   AnimalDef as AnimalContentDef,
   AnimalFeedDef as AnimalFeedContentDef,
@@ -68,6 +71,7 @@ import type {
   BuildingUpgradeDef as BuildingUpgradeContentDef,
   CaveUpgradeContentDef,
   CellarUpgradeContentDef,
+  CommunityBundleDef as CommunityBundleContentDef,
   CropDef,
   DropTableDef,
   EnchantmentDef,
@@ -150,6 +154,12 @@ const toGuildLevelQueryContentId = (level: number | string) => {
   const rawId = typeof level === 'number' ? `guild_level/${level}` : level
   return toQueryContentId(rawId.includes(':') || rawId.includes('/') ? rawId : `guild_level/${rawId}`)
 }
+
+const toAchievementQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `achievement/${id}`)
+
+const toCommunityBundleQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `community_bundle/${id}`)
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
   const contentId = toQueryContentId(id)
@@ -678,6 +688,26 @@ export const getOfficialGuildLevelDef = (level: number | string): Readonly<Guild
 export const getOfficialGuildLevelDefs = (): readonly Readonly<GuildLevelContentDef>[] =>
   getOfficialRegistrySet().get<GuildLevelContentDef>(toOfficialRegistryTypeId('guild_level')).values()
 
+export const getOfficialAchievementDef = (id: string): Readonly<AchievementContentDef> | undefined => {
+  const contentId = toAchievementQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<AchievementContentDef>(toOfficialRegistryTypeId('achievement')).get(contentId)
+    : undefined
+}
+
+export const getOfficialAchievementDefs = (): readonly Readonly<AchievementContentDef>[] =>
+  getOfficialRegistrySet().get<AchievementContentDef>(toOfficialRegistryTypeId('achievement')).values()
+
+export const getOfficialCommunityBundleDef = (id: string): Readonly<CommunityBundleContentDef> | undefined => {
+  const contentId = toCommunityBundleQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<CommunityBundleContentDef>(toOfficialRegistryTypeId('community_bundle')).get(contentId)
+    : undefined
+}
+
+export const getOfficialCommunityBundleDefs = (): readonly Readonly<CommunityBundleContentDef>[] =>
+  getOfficialRegistrySet().get<CommunityBundleContentDef>(toOfficialRegistryTypeId('community_bundle')).values()
+
 export const getOfficialSecretNoteDef = (id: number | string): Readonly<SecretNoteContentDef> | undefined => {
   const contentId = toSecretNoteQueryContentId(id)
   return contentId
@@ -906,6 +936,79 @@ export const getOfficialGuildLevelByLevel = (level: number): LegacyGuildLevelDef
 
 export const getOfficialGuildLevelsAsLegacy = (): readonly LegacyGuildLevelDef[] =>
   getOfficialGuildLevelDefs().map(toLegacyGuildLevelDef)
+
+const toLegacyAchievementReward = (
+  reward: Readonly<AchievementContentDef['reward']>
+): LegacyAchievementDef['reward'] => ({
+  ...(reward.money !== undefined ? { money: reward.money } : {}),
+  ...(reward.items
+    ? {
+        items: reward.items.map(item => ({
+          itemId: getLocalContentId(item.itemId),
+          quantity: item.quantity
+        }))
+      }
+    : {})
+})
+
+const toLegacyAchievementCondition = (
+  condition: Readonly<AchievementContentDef['condition']>
+): LegacyAchievementDef['condition'] =>
+  condition.type === 'itemDiscovered'
+    ? { type: 'itemDiscovered', itemId: getLocalContentId(condition.itemId) }
+    : { ...condition } as LegacyAchievementDef['condition']
+
+const toLegacyAchievementDef = (achievement: Readonly<AchievementContentDef>): LegacyAchievementDef => ({
+  id: getLocalContentId(achievement.id).replace(/^achievement\//, ''),
+  name: achievement.name.fallback,
+  description: achievement.description.fallback,
+  condition: toLegacyAchievementCondition(achievement.condition),
+  reward: toLegacyAchievementReward(achievement.reward)
+})
+
+export const getOfficialAchievementById = (id: string): LegacyAchievementDef | undefined => {
+  const achievement = getOfficialAchievementDef(id)
+  return achievement ? toLegacyAchievementDef(achievement) : undefined
+}
+
+export const getOfficialAchievementsAsLegacy = (): readonly LegacyAchievementDef[] =>
+  getOfficialAchievementDefs().map(toLegacyAchievementDef)
+
+const toLegacyCommunityBundleReward = (
+  reward: Readonly<CommunityBundleContentDef['reward']>
+): LegacyCommunityBundleDef['reward'] => ({
+  ...(reward.money !== undefined ? { money: reward.money } : {}),
+  ...(reward.items
+    ? {
+        items: reward.items.map(item => ({
+          itemId: getLocalContentId(item.itemId),
+          quantity: item.quantity
+        }))
+      }
+    : {}),
+  description: reward.description.fallback
+})
+
+const toLegacyCommunityBundleDef = (
+  bundle: Readonly<CommunityBundleContentDef>
+): LegacyCommunityBundleDef => ({
+  id: getLocalContentId(bundle.id).replace(/^community_bundle\//, ''),
+  name: bundle.name.fallback,
+  description: bundle.description.fallback,
+  requiredItems: bundle.requiredItems.map(item => ({
+    itemId: getLocalContentId(item.itemId),
+    quantity: item.quantity
+  })),
+  reward: toLegacyCommunityBundleReward(bundle.reward)
+})
+
+export const getOfficialCommunityBundleById = (id: string): LegacyCommunityBundleDef | undefined => {
+  const bundle = getOfficialCommunityBundleDef(id)
+  return bundle ? toLegacyCommunityBundleDef(bundle) : undefined
+}
+
+export const getOfficialCommunityBundlesAsLegacy = (): readonly LegacyCommunityBundleDef[] =>
+  getOfficialCommunityBundleDefs().map(toLegacyCommunityBundleDef)
 
 const toLegacySecretNoteReward = (
   reward: Readonly<NonNullable<SecretNoteContentDef['reward']>>
