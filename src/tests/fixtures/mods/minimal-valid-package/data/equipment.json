@@ -54,5 +54,36 @@
       "fallback": "测试夹具"
     },
     "sellPrice": 20
+  },
+  {
+    "id": "example_mod:test_shoe",
+    "kind": "shoe",
+    "name": {
+      "key": "example_mod.equipment.test_shoe.name",
+      "fallback": "测试鞋子"
+    },
+    "description": {
+      "key": "example_mod.equipment.test_shoe.description",
+      "fallback": "用于校验契约的测试鞋子"
+    },
+    "effects": [
+      {
+        "type": "travel_speed",
+        "value": 0.1
+      }
+    ],
+    "shopPrice": null,
+    "recipe": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 2
+      }
+    ],
+    "recipeMoney": 20,
+    "obtainSource": {
+      "key": "example_mod.equipment.test_shoe.obtainSource",
+      "fallback": "测试夹具"
+    },
+    "sellPrice": 10
   }
 ]

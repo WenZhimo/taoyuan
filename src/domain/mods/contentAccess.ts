@@ -7,6 +7,7 @@ import type {
   HatDef as LegacyHatDef,
   MonsterDef as LegacyMonsterDef,
   RingDef as LegacyRingDef,
+  ShoeDef as LegacyShoeDef,
   ToolTier,
   ToolType,
   WalletItemDef as LegacyWalletItemDef,
@@ -309,6 +310,23 @@ const toLegacyHatDef = (equipment: Readonly<EquipmentContentDef>): LegacyHatDef 
   sellPrice: equipment.sellPrice
 })
 
+const toLegacyShoeDef = (equipment: Readonly<EquipmentContentDef>): LegacyShoeDef => ({
+  id: getLocalContentId(equipment.id),
+  name: equipment.name.fallback,
+  description: equipment.description.fallback,
+  effects: equipment.effects.map(effect => ({ ...effect })),
+  shopPrice: equipment.shopPrice ?? null,
+  recipe: equipment.recipe
+    ? equipment.recipe.map(material => ({
+        itemId: getLocalContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: equipment.recipeMoney,
+  obtainSource: equipment.obtainSource.fallback,
+  sellPrice: equipment.sellPrice
+})
+
 export const getOfficialRingDefs = (): readonly Readonly<EquipmentContentDef>[] =>
   getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'ring')
 
@@ -329,6 +347,17 @@ export const getOfficialHatsAsLegacy = (): readonly LegacyHatDef[] =>
 export const getOfficialHatById = (id: string): LegacyHatDef | undefined => {
   const equipment = getOfficialEquipmentDef(id)
   return equipment?.kind === 'hat' ? toLegacyHatDef(equipment) : undefined
+}
+
+export const getOfficialShoeDefs = (): readonly Readonly<EquipmentContentDef>[] =>
+  getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'shoe')
+
+export const getOfficialShoesAsLegacy = (): readonly LegacyShoeDef[] =>
+  getOfficialShoeDefs().map(toLegacyShoeDef)
+
+export const getOfficialShoeById = (id: string): LegacyShoeDef | undefined => {
+  const equipment = getOfficialEquipmentDef(id)
+  return equipment?.kind === 'shoe' ? toLegacyShoeDef(equipment) : undefined
 }
 
 export const getOfficialEquipmentSetDef = (id: string): Readonly<EquipmentSetContentDef> | undefined => {

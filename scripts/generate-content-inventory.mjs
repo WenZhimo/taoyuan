@@ -379,6 +379,24 @@ fileDefaults.set('src/data/hats.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/shoeDefinitions.ts', {
+  file: 'src/data/shoeDefinitions.ts',
+  classification: 'mixed',
+  domains: ['equipment', 'shoe', 'equipment_drop'],
+  candidateTargets: ['taoyuan:equipment', 'taoyuan:drop_table', 'compatibility_adapter'],
+  phases: [4, 6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/shoes.ts', {
+  file: 'src/data/shoes.ts',
+  classification: 'mixed',
+  domains: ['equipment', 'shoe', 'lookup'],
+  candidateTargets: ['taoyuan:equipment', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forage.ts', {
   file: 'src/data/forage.ts',
   classification: 'mixed',
@@ -985,6 +1003,114 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getHatById() signature is retained and now resolves taoyuan:equipment before returning the same local-ID HatDef shape.'
+  },
+  'src/data/shoeDefinitions.ts:SHOES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy shoe definitions; Phase 6 projects every shoe into taoyuan:equipment without changing IDs, effects, shop prices, recipes, obtain sources or sell prices.'
+  },
+  'src/data/shoeDefinitions.ts:getShoeById': {
+    classification: 'adapter',
+    targetRegistry: 'compatibility_adapter',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Leaf fallback lookup retained for rollback; public src/data/shoes.ts getShoeById() now resolves taoyuan:equipment first.'
+  },
+  'src/data/shoeDefinitions.ts:SHOP_SHOES': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Derived shop shoe list remains equivalent to legacy SHOES.filter(shopPrice !== null); Phase 6 verifies it alongside taoyuan:equipment shoe definitions.'
+  },
+  'src/data/shoeDefinitions.ts:CRAFTABLE_SHOES': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Derived craftable shoe list remains equivalent to legacy SHOES.filter(recipe !== null); Phase 6 verifies it alongside taoyuan:equipment shoe definitions.'
+  },
+  'src/data/shoeDefinitions.ts:MONSTER_DROP_SHOES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Named equipment drop-table slice already verifies monster shoe drop pools through taoyuan:drop_table; this file remains the isolated leaf source.'
+  },
+  'src/data/shoeDefinitions.ts:BOSS_DROP_SHOES': {
+    classification: 'content',
+    targetRegistry: 'engine/domain/mining-boss-reward',
+    persistentIds: true,
+    status: 'baselined',
+    rationale: 'Main-mine first-kill boss shoe reward mapping remains in the mining boss reward path; this equipment definition slice does not migrate boss settlement.'
+  },
+  'src/data/shoeDefinitions.ts:TREASURE_DROP_SHOES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Named equipment drop-table slice already verifies treasure shoe drop pools through taoyuan:drop_table; this file remains the isolated leaf source.'
+  },
+  'src/data/shoes.ts:SHOES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy imports stable while static source moved to shoeDefinitions for registry adapter isolation.'
+  },
+  'src/data/shoes.ts:SHOP_SHOES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves the legacy shop shoe list while the official equipment registry becomes the runtime query source.'
+  },
+  'src/data/shoes.ts:CRAFTABLE_SHOES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves the legacy craftable shoe list while the official equipment registry becomes the runtime query source.'
+  },
+  'src/data/shoes.ts:MONSTER_DROP_SHOES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves monster shoe drop imports while the drop-table registry remains the audited named-table source.'
+  },
+  'src/data/shoes.ts:BOSS_DROP_SHOES': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/mining-boss-reward',
+    persistentIds: true,
+    status: 'baselined',
+    rationale: 'Original-name re-export preserves boss shoe reward imports; boss reward settlement remains outside this equipment definition slice.'
+  },
+  'src/data/shoes.ts:TREASURE_DROP_SHOES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves treasure shoe drop imports while the drop-table registry remains the audited named-table source.'
+  },
+  'src/data/shoes.ts:getShoeById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getShoeById() signature is retained and now resolves taoyuan:equipment before returning the same local-ID ShoeDef shape.'
   },
   'src/data/animals.ts:ANIMAL_DEFS': {
     classification: 'adapter',
@@ -1728,22 +1854,6 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_HATS through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
   },
-  'src/data/shoes.ts:MONSTER_DROP_SHOES': {
-    classification: 'derived',
-    targetRegistry: 'taoyuan:drop_table',
-    persistentIds: true,
-    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
-    status: 'verified',
-    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_SHOES through named taoyuan:drop_table entries without changing shoe drop settlement.'
-  },
-  'src/data/shoes.ts:TREASURE_DROP_SHOES': {
-    classification: 'derived',
-    targetRegistry: 'taoyuan:drop_table',
-    persistentIds: true,
-    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
-    status: 'verified',
-    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_SHOES through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
-  },
   'src/data/weapons.ts:ENCHANTMENTS': {
     classification: 'content',
     targetRegistry: 'taoyuan:enchantment',
@@ -2301,27 +2411,27 @@ const reviewedArtifacts = [
     persistentIds: true,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'TypeBox source of truth for ring and hat equipment definitions in taoyuan:equipment; generated equipment.schema.json rejects invalid kind, effects, shop prices, recipe materials and numeric bounds.'
+    rationale: 'TypeBox source of truth for ring, hat and shoe equipment definitions in taoyuan:equipment; generated equipment.schema.json rejects invalid kind, effects, shop prices, recipe materials and numeric bounds.'
   },
   {
     file: 'src/domain/mods/staticAdapters.ts',
-    exportName: 'adaptLegacyRingEquipment/adaptLegacyHatEquipment/createOfficialEquipment',
+    exportName: 'adaptLegacyRingEquipment/adaptLegacyHatEquipment/adaptLegacyShoeEquipment/createOfficialEquipment',
     classification: 'adapter',
     targetRegistry: 'taoyuan:equipment',
     persistentIds: true,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Projects every legacy ring and hat definition into ordered official equipment entries without changing local IDs, effects, shop prices, recipes, obtain-source text or sell prices.'
+    rationale: 'Projects every legacy ring, hat and shoe definition into ordered official equipment entries without changing local IDs, effects, shop prices, recipes, obtain-source text or sell prices.'
   },
   {
     file: 'src/domain/mods/contentAccess.ts',
-    exportName: 'getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialHatById/getOfficialRingsAsLegacy/getOfficialHatsAsLegacy',
+    exportName: 'getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialHatById/getOfficialShoeById/getOfficialRingsAsLegacy/getOfficialHatsAsLegacy/getOfficialShoesAsLegacy',
     classification: 'adapter',
     targetRegistry: 'taoyuan:equipment',
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Returns frozen registry equipment definitions and reconstructs legacy RingDef and HatDef objects for getRingById() and getHatById() compatibility.'
+    rationale: 'Returns frozen registry equipment definitions and reconstructs legacy RingDef, HatDef and ShoeDef objects for getRingById(), getHatById() and getShoeById() compatibility.'
   },
   {
     file: 'src/domain/mods/semanticValidation.ts',
@@ -2331,7 +2441,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Checks equipment item IDs plus ring and hat recipe material references against taoyuan:item before registry snapshots are accepted.'
+    rationale: 'Checks equipment item IDs plus ring, hat and shoe recipe material references against taoyuan:item before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

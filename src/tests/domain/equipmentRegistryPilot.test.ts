@@ -12,11 +12,20 @@ import {
   getHatById
 } from '@/data/hats'
 import {
+  CRAFTABLE_SHOES,
+  SHOES as LEGACY_SHOES,
+  SHOP_SHOES,
+  getShoeById
+} from '@/data/shoes'
+import {
   getOfficialEquipmentDef,
   getOfficialEquipmentDefs,
   getOfficialHatById,
   getOfficialHatDefs,
   getOfficialHatsAsLegacy,
+  getOfficialShoeById,
+  getOfficialShoeDefs,
+  getOfficialShoesAsLegacy,
   getOfficialRingById,
   getOfficialRingDefs,
   getOfficialRingsAsLegacy
@@ -27,7 +36,7 @@ import { validateUnknown } from '@/domain/mods/schemaValidation'
 import { EquipmentDefSchema, type EquipmentDef as EquipmentContentDef } from '@/domain/mods/schemas'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import { OFFICIAL_PACKAGE_ID, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
-import type { HatDef as LegacyHatDef, RingDef as LegacyRingDef } from '@/types'
+import type { HatDef as LegacyHatDef, RingDef as LegacyRingDef, ShoeDef as LegacyShoeDef } from '@/types'
 import validEquipment from '../fixtures/mods/minimal-valid-package/data/equipment.json'
 
 const localId = (id: string): string => id.slice(id.indexOf(':') + 1)
@@ -67,6 +76,24 @@ const expectedHatContentDef = (hat: LegacyHatDef): EquipmentContentDef => ({
   sellPrice: hat.sellPrice
 })
 
+const expectedShoeContentDef = (shoe: LegacyShoeDef): EquipmentContentDef => ({
+  id: toOfficialContentId(shoe.id),
+  kind: 'shoe',
+  name: { key: `taoyuan.equipment.shoe.${shoe.id}.name`, fallback: shoe.name },
+  description: { key: `taoyuan.equipment.shoe.${shoe.id}.description`, fallback: shoe.description },
+  effects: shoe.effects.map(effect => ({ ...effect })),
+  shopPrice: shoe.shopPrice,
+  recipe: shoe.recipe
+    ? shoe.recipe.map(material => ({
+        itemId: toOfficialContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: shoe.recipeMoney,
+  obtainSource: { key: `taoyuan.equipment.shoe.${shoe.id}.obtainSource`, fallback: shoe.obtainSource },
+  sellPrice: shoe.sellPrice
+})
+
 const normalizeLegacyRing = (ring: LegacyRingDef): LegacyRingDef => ({
   ...ring,
   effects: ring.effects.map(effect => ({ ...effect })),
@@ -77,6 +104,12 @@ const normalizeLegacyHat = (hat: LegacyHatDef): LegacyHatDef => ({
   ...hat,
   effects: hat.effects.map(effect => ({ ...effect })),
   recipe: hat.recipe ? hat.recipe.map(material => ({ ...material })) : null
+})
+
+const normalizeLegacyShoe = (shoe: LegacyShoeDef): LegacyShoeDef => ({
+  ...shoe,
+  effects: shoe.effects.map(effect => ({ ...effect })),
+  recipe: shoe.recipe ? shoe.recipe.map(material => ({ ...material })) : null
 })
 
 const normalizeContentRing = (ring: Readonly<EquipmentContentDef>): LegacyRingDef => ({
@@ -112,6 +145,23 @@ const normalizeContentHat = (hat: Readonly<EquipmentContentDef>): LegacyHatDef =
   sellPrice: hat.sellPrice
 })
 
+const normalizeContentShoe = (shoe: Readonly<EquipmentContentDef>): LegacyShoeDef => ({
+  id: localId(shoe.id),
+  name: shoe.name.fallback,
+  description: shoe.description.fallback,
+  effects: shoe.effects.map(effect => ({ ...effect })),
+  shopPrice: shoe.shopPrice ?? null,
+  recipe: shoe.recipe
+    ? shoe.recipe.map(material => ({
+        itemId: localId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: shoe.recipeMoney,
+  obtainSource: shoe.obtainSource.fallback,
+  sellPrice: shoe.sellPrice
+})
+
 describe('equipment registry pilot', () => {
   it('validates external equipment JSON before registration', () => {
     const externalEquipment: unknown = validEquipment
@@ -125,7 +175,7 @@ describe('equipment registry pilot', () => {
   it('rejects invalid equipment shapes and numeric bounds', () => {
     const base = validEquipment[0]!
     const invalidEquipment: unknown = [
-      { ...base, kind: 'shoe' },
+      { ...base, kind: 'weapon' },
       { ...base, id: 'not namespaced' },
       { ...base, effects: [{ type: 'unknown_effect', value: 1 }] },
       { ...base, recipe: [{ itemId: 'example_mod:test_item', quantity: 0 }] },
@@ -154,7 +204,7 @@ describe('equipment registry pilot', () => {
   })
 
   it('registers all legacy rings in order with equivalent fields', () => {
-    expect(getOfficialEquipmentDefs()).toHaveLength(LEGACY_RINGS.length + LEGACY_HATS.length)
+    expect(getOfficialEquipmentDefs()).toHaveLength(LEGACY_RINGS.length + LEGACY_HATS.length + LEGACY_SHOES.length)
     expect(getOfficialRingDefs().map(ring => ring.id)).toEqual(
       LEGACY_RINGS.map(ring => toOfficialContentId(ring.id))
     )
@@ -203,17 +253,46 @@ describe('equipment registry pilot', () => {
     }
   })
 
+  it('registers all legacy shoes in order with equivalent fields', () => {
+    expect(getOfficialShoeDefs().map(shoe => shoe.id)).toEqual(
+      LEGACY_SHOES.map(shoe => toOfficialContentId(shoe.id))
+    )
+    expect(getOfficialShoeDefs().map(normalizeContentShoe)).toEqual(
+      LEGACY_SHOES.map(normalizeLegacyShoe)
+    )
+    expect(getOfficialShoesAsLegacy().map(normalizeLegacyShoe)).toEqual(
+      LEGACY_SHOES.map(normalizeLegacyShoe)
+    )
+    expect(SHOP_SHOES.map(shoe => shoe.id)).toEqual(
+      LEGACY_SHOES.filter(shoe => shoe.shopPrice !== null).map(shoe => shoe.id)
+    )
+    expect(CRAFTABLE_SHOES.map(shoe => shoe.id)).toEqual(
+      LEGACY_SHOES.filter(shoe => shoe.recipe !== null).map(shoe => shoe.id)
+    )
+
+    for (const shoe of LEGACY_SHOES) {
+      expect(getOfficialEquipmentDef(shoe.id)).toEqual(expectedShoeContentDef(shoe))
+      expect(getOfficialEquipmentDef(toOfficialContentId(shoe.id))).toBe(getOfficialEquipmentDef(shoe.id))
+      expect(getOfficialShoeById(shoe.id)).toEqual(normalizeLegacyShoe(shoe))
+      expect(getOfficialShoeById(toOfficialContentId(shoe.id))).toEqual(normalizeLegacyShoe(shoe))
+      expect(getShoeById(shoe.id)).toEqual(normalizeLegacyShoe(shoe))
+    }
+  })
+
   it('supports missing IDs, duplicate ID rejection and read-only registry entries', () => {
     const jadeRing = getOfficialEquipmentDef('jade_guard_ring')
     const strawHat = getOfficialEquipmentDef('straw_hat')
+    const strawSandals = getOfficialEquipmentDef('straw_sandals')
     const registrySet = buildOfficialRegistrySetFromStaticData()
     const registry = registrySet.get<EquipmentContentDef>(toOfficialRegistryTypeId('equipment'))
 
     expect(getOfficialEquipmentDef('missing_equipment')).toBeUndefined()
     expect(getOfficialRingById('missing_ring')).toBeUndefined()
     expect(getOfficialHatById('missing_hat')).toBeUndefined()
+    expect(getOfficialShoeById('missing_shoe')).toBeUndefined()
     expect(getRingById('missing_ring')).toBeUndefined()
     expect(getHatById('missing_hat')).toBeUndefined()
+    expect(getShoeById('missing_shoe')).toBeUndefined()
     expect(Object.isFrozen(jadeRing)).toBe(true)
     expect(Object.isFrozen(jadeRing?.effects)).toBe(true)
     expect(Object.isFrozen(jadeRing?.effects[0])).toBe(true)
@@ -222,6 +301,9 @@ describe('equipment registry pilot', () => {
     expect(Object.isFrozen(strawHat)).toBe(true)
     expect(Object.isFrozen(strawHat?.effects)).toBe(true)
     expect(Object.isFrozen(strawHat?.effects[0])).toBe(true)
+    expect(Object.isFrozen(strawSandals)).toBe(true)
+    expect(Object.isFrozen(strawSandals?.effects)).toBe(true)
+    expect(Object.isFrozen(strawSandals?.effects[0])).toBe(true)
     expect(() => registry.register(OFFICIAL_PACKAGE_ID, expectedRingContentDef(LEGACY_RINGS[0]!)))
       .toThrow(RegistryError)
   })

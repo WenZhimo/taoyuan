@@ -27,6 +27,10 @@
         {
           "const": "hat",
           "type": "string"
+        },
+        {
+          "const": "shoe",
+          "type": "string"
         }
       ]
     },

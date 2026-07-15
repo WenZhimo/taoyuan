@@ -745,7 +745,8 @@ export const EquipmentDefSchema = Type.Object(
     id: ContentIdSchema,
     kind: Type.Union([
       Type.Literal('ring'),
-      Type.Literal('hat')
+      Type.Literal('hat'),
+      Type.Literal('shoe')
     ]),
     name: LocalizedTextRefSchema,
     description: LocalizedTextRefSchema,

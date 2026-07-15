@@ -15254,6 +15254,47 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "深渊龙王鳞片锻成的至高战靴，行如疾风攻守兼备。",
+              "key": "taoyuan.equipment.shoe.abyss_dragon_treads.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.25
+              },
+              {
+                "type": "attack_bonus",
+                "value": 5
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:abyss_dragon_treads",
+            "kind": "shoe",
+            "name": {
+              "fallback": "龙王战靴",
+              "key": "taoyuan.equipment.shoe.abyss_dragon_treads.name"
+            },
+            "obtainSource": {
+              "fallback": "120层BOSS首杀",
+              "key": "taoyuan.equipment.shoe.abyss_dragon_treads.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 5000,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -15372,6 +15413,122 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "厚实的熊皮缝制的战靴，坚韧无比，穿着者更加强壮。",
+              "key": "taoyuan.equipment.shoe.bear_pelt_boots.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.1
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 15
+              }
+            ],
+            "id": "taoyuan:bear_pelt_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "熊皮靴",
+              "key": "taoyuan.equipment.shoe.bear_pelt_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.bear_pelt_boots.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:bear_pelt",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 1200,
+            "sellPrice": 600,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "舒适的布鞋，农作时更加轻松。",
+              "key": "taoyuan.equipment.shoe.cloth_shoes.description"
+            },
+            "effects": [
+              {
+                "type": "farming_stamina",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:cloth_shoes",
+            "kind": "shoe",
+            "name": {
+              "fallback": "布鞋",
+              "key": "taoyuan.equipment.shoe.cloth_shoes.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.shoe.cloth_shoes.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 120,
+            "shopPrice": 300
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "柔软保暖的棉鞋，减少日常体力消耗。",
+              "key": "taoyuan.equipment.shoe.cotton_shoes.description"
+            },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.04
+              },
+              {
+                "type": "farming_stamina",
+                "value": 0.04
+              }
+            ],
+            "id": "taoyuan:cotton_shoes",
+            "kind": "shoe",
+            "name": {
+              "fallback": "棉鞋",
+              "key": "taoyuan.equipment.shoe.cotton_shoes.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.shoe.cotton_shoes.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 160,
+            "shopPrice": 400
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -15485,6 +15642,43 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "水晶层怪物碎片凝成的矿靴，采矿效率提升。",
+              "key": "taoyuan.equipment.shoe.crystal_treads.description"
+            },
+            "effects": [
+              {
+                "type": "ore_bonus",
+                "value": 1
+              },
+              {
+                "type": "mining_stamina",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:crystal_treads",
+            "kind": "shoe",
+            "name": {
+              "fallback": "晶矿踏靴",
+              "key": "taoyuan.equipment.shoe.crystal_treads.name"
+            },
+            "obtainSource": {
+              "fallback": "水晶层怪物掉落",
+              "key": "taoyuan.equipment.shoe.crystal_treads.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 800,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -15571,6 +15765,56 @@
             ],
             "recipeMoney": 5000,
             "sellPrice": 2500
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "龙鳞制成的战靴，攻守兼备行如风。",
+              "key": "taoyuan.equipment.shoe.dragon_scale_boots.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.1
+              },
+              {
+                "type": "attack_bonus",
+                "value": 3
+              },
+              {
+                "type": "travel_speed",
+                "value": 0.2
+              }
+            ],
+            "id": "taoyuan:dragon_scale_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "龙鳞靴",
+              "key": "taoyuan.equipment.shoe.dragon_scale_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.dragon_scale_boots.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 8000,
+            "sellPrice": 4000,
+            "shopPrice": null
           }
         },
         {
@@ -15785,6 +16029,43 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "防水长靴，钓鱼时更加从容。",
+              "key": "taoyuan.equipment.shoe.fishing_waders.description"
+            },
+            "effects": [
+              {
+                "type": "fishing_stamina",
+                "value": 0.1
+              },
+              {
+                "type": "fishing_calm",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:fishing_waders",
+            "kind": "shoe",
+            "name": {
+              "fallback": "钓鱼靴",
+              "key": "taoyuan.equipment.shoe.fishing_waders.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.shoe.fishing_waders.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 280,
+            "shopPrice": 700
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -15825,6 +16106,43 @@
             ],
             "recipeMoney": 4000,
             "sellPrice": 2200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "宝箱中发现的柔软拖鞋，似乎能招来好运。",
+              "key": "taoyuan.equipment.shoe.fortune_slippers.description"
+            },
+            "effects": [
+              {
+                "type": "sell_price_bonus",
+                "value": 0.04
+              },
+              {
+                "type": "luck",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:fortune_slippers",
+            "kind": "shoe",
+            "name": {
+              "fallback": "福运鞋",
+              "key": "taoyuan.equipment.shoe.fortune_slippers.name"
+            },
+            "obtainSource": {
+              "fallback": "矿洞宝箱",
+              "key": "taoyuan.equipment.shoe.fortune_slippers.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 300,
+            "shopPrice": null
           }
         },
         {
@@ -15940,6 +16258,43 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冰霜女王的遗物，穿上后脚步轻盈如冰上起舞。",
+              "key": "taoyuan.equipment.shoe.frost_queen_slippers.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.12
+              },
+              {
+                "type": "fishing_calm",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:frost_queen_slippers",
+            "kind": "shoe",
+            "name": {
+              "fallback": "冰后舞靴",
+              "key": "taoyuan.equipment.shoe.frost_queen_slippers.name"
+            },
+            "obtainSource": {
+              "fallback": "40层BOSS首杀",
+              "key": "taoyuan.equipment.shoe.frost_queen_slippers.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -15971,6 +16326,43 @@
             "recipe": null,
             "recipeMoney": 0,
             "sellPrice": 500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "寒冰层怪物留下的冻结护胫，穿上后脚步稳健。",
+              "key": "taoyuan.equipment.shoe.frost_treads.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.08
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:frost_treads",
+            "kind": "shoe",
+            "name": {
+              "fallback": "霜行靴",
+              "key": "taoyuan.equipment.shoe.frost_treads.name"
+            },
+            "obtainSource": {
+              "fallback": "冰霜层怪物掉落",
+              "key": "taoyuan.equipment.shoe.frost_treads.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 150,
             "shopPrice": null
           }
         },
@@ -16009,6 +16401,52 @@
             "recipeMoney": 0,
             "sellPrice": 240,
             "shopPrice": 600
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "轻盈如风的皮靴，大幅缩短旅途时间。",
+              "key": "taoyuan.equipment.shoe.gale_boots.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.25
+              },
+              {
+                "type": "stamina_reduction",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:gale_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "疾风靴",
+              "key": "taoyuan.equipment.shoe.gale_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.gale_boots.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:rabbit_foot",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 2000,
+            "sellPrice": 1000,
+            "shopPrice": null
           }
         },
         {
@@ -16137,6 +16575,47 @@
             ],
             "recipeMoney": 1200,
             "sellPrice": 750
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冒险家公会精英成员的战斗靴，轻便且坚韧。",
+              "key": "taoyuan.equipment.shoe.guild_war_boots.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 2
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.05
+              },
+              {
+                "type": "travel_speed",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:guild_war_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "公会战靴",
+              "key": "taoyuan.equipment.shoe.guild_war_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "公会商店",
+              "key": "taoyuan.equipment.shoe.guild_war_boots.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 800,
+            "shopPrice": null
           }
         },
         {
@@ -16310,6 +16789,48 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "厚重的铁甲护胫，防御力出众。",
+              "key": "taoyuan.equipment.shoe.iron_greaves.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.12
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 10
+              }
+            ],
+            "id": "taoyuan:iron_greaves",
+            "kind": "shoe",
+            "name": {
+              "fallback": "铁甲靴",
+              "key": "taoyuan.equipment.shoe.iron_greaves.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.iron_greaves.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 8
+              }
+            ],
+            "recipeMoney": 1500,
+            "sellPrice": 750,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -16439,6 +16960,43 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "翡翠镶底的绣花鞋，提升售价并增加送礼好感。",
+              "key": "taoyuan.equipment.shoe.jade_slippers.description"
+            },
+            "effects": [
+              {
+                "type": "sell_price_bonus",
+                "value": 0.04
+              },
+              {
+                "type": "gift_friendship",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:jade_slippers",
+            "kind": "shoe",
+            "name": {
+              "fallback": "玉底鞋",
+              "key": "taoyuan.equipment.shoe.jade_slippers.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.shoe.jade_slippers.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 480,
+            "shopPrice": 1200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -16517,6 +17075,43 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "熔岩领主的余热凝结而成，坚固且灼热。",
+              "key": "taoyuan.equipment.shoe.lava_lord_greaves.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.1
+              },
+              {
+                "type": "attack_bonus",
+                "value": 2
+              }
+            ],
+            "id": "taoyuan:lava_lord_greaves",
+            "kind": "shoe",
+            "name": {
+              "fallback": "熔岩铠靴",
+              "key": "taoyuan.equipment.shoe.lava_lord_greaves.name"
+            },
+            "obtainSource": {
+              "fallback": "60层BOSS首杀",
+              "key": "taoyuan.equipment.shoe.lava_lord_greaves.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 800,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -16548,6 +17143,39 @@
             "recipe": null,
             "recipeMoney": 0,
             "sellPrice": 1200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "结实的皮革长靴，走路更快。",
+              "key": "taoyuan.equipment.shoe.leather_boots.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.15
+              }
+            ],
+            "id": "taoyuan:leather_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "皮靴",
+              "key": "taoyuan.equipment.shoe.leather_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.shoe.leather_boots.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 320,
+            "shopPrice": 800
           }
         },
         {
@@ -16586,6 +17214,43 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "宝箱中发现的古怪长靴，带来好运与额外战利品。",
+              "key": "taoyuan.equipment.shoe.lucky_boots.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.05
+              },
+              {
+                "type": "monster_drop_bonus",
+                "value": 0.04
+              }
+            ],
+            "id": "taoyuan:lucky_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "幸运长靴",
+              "key": "taoyuan.equipment.shoe.lucky_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "矿洞宝箱",
+              "key": "taoyuan.equipment.shoe.lucky_boots.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 450,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -16617,6 +17282,52 @@
             "recipe": null,
             "recipeMoney": 0,
             "sellPrice": 250,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "行商常穿的皮靴，行路快且购物有折扣。",
+              "key": "taoyuan.equipment.shoe.merchant_boots.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.18
+              },
+              {
+                "type": "shop_discount",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:merchant_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "商旅靴",
+              "key": "taoyuan.equipment.shoe.merchant_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.merchant_boots.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 2500,
+            "sellPrice": 1200,
             "shopPrice": null
           }
         },
@@ -16714,6 +17425,43 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "厚底铁头靴，矿洞探索更加安全。",
+              "key": "taoyuan.equipment.shoe.miner_boots.description"
+            },
+            "effects": [
+              {
+                "type": "mining_stamina",
+                "value": 0.1
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:miner_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "矿工靴",
+              "key": "taoyuan.equipment.shoe.miner_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.shoe.miner_boots.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 400,
+            "shopPrice": 1000
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -16796,6 +17544,52 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "月光石嵌入的灵巧之靴，行路如飞。",
+              "key": "taoyuan.equipment.shoe.moon_step_boots.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.3
+              },
+              {
+                "type": "luck",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:moon_step_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "月步靴",
+              "key": "taoyuan.equipment.shoe.moon_step_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.moon_step_boots.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 4000,
+            "sellPrice": 2000,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -16869,6 +17663,52 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "黑曜石锻造的重甲靴，防御力极强。",
+              "key": "taoyuan.equipment.shoe.obsidian_greaves.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.15
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 15
+              }
+            ],
+            "id": "taoyuan:obsidian_greaves",
+            "kind": "shoe",
+            "name": {
+              "fallback": "黑曜甲靴",
+              "key": "taoyuan.equipment.shoe.obsidian_greaves.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.obsidian_greaves.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:obsidian",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "recipeMoney": 3000,
+            "sellPrice": 1500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -16909,6 +17749,52 @@
             ],
             "recipeMoney": 3000,
             "sellPrice": 1500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "龙玉与金铸成的华美靴子，带来好运与悟性。",
+              "key": "taoyuan.equipment.shoe.phoenix_boots.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.06
+              },
+              {
+                "type": "exp_bonus",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:phoenix_boots",
+            "kind": "shoe",
+            "name": {
+              "fallback": "凤鸣靴",
+              "key": "taoyuan.equipment.shoe.phoenix_boots.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.phoenix_boots.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 5000,
+            "sellPrice": 2500,
             "shopPrice": null
           }
         },
@@ -17244,6 +18130,84 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暗影君主的遗物，暗能缠绕脚踝，步履生风。",
+              "key": "taoyuan.equipment.shoe.shadow_sovereign_treads.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.22
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "vampiric",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:shadow_sovereign_treads",
+            "kind": "shoe",
+            "name": {
+              "fallback": "暗王之靴",
+              "key": "taoyuan.equipment.shoe.shadow_sovereign_treads.name"
+            },
+            "obtainSource": {
+              "fallback": "100层BOSS首杀",
+              "key": "taoyuan.equipment.shoe.shadow_sovereign_treads.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1500,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暗影层怪物的暗能凝聚而成，移动迅捷无声。",
+              "key": "taoyuan.equipment.shoe.shadow_striders.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.18
+              },
+              {
+                "type": "monster_drop_bonus",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:shadow_striders",
+            "kind": "shoe",
+            "name": {
+              "fallback": "暗影行者",
+              "key": "taoyuan.equipment.shoe.shadow_striders.name"
+            },
+            "obtainSource": {
+              "fallback": "暗影层怪物掉落",
+              "key": "taoyuan.equipment.shoe.shadow_striders.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1000,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/ringDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -17271,6 +18235,52 @@
             "recipe": null,
             "recipeMoney": 0,
             "sellPrice": 80
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "精致的丝绸绣花鞋，踏青采药脚步轻盈。",
+              "key": "taoyuan.equipment.shoe.silk_slippers.description"
+            },
+            "effects": [
+              {
+                "type": "farming_stamina",
+                "value": 0.08
+              },
+              {
+                "type": "crop_quality_bonus",
+                "value": 0.04
+              }
+            ],
+            "id": "taoyuan:silk_slippers",
+            "kind": "shoe",
+            "name": {
+              "fallback": "丝绸绣鞋",
+              "key": "taoyuan.equipment.shoe.silk_slippers.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.silk_slippers.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:silk_cloth",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:herb",
+                "quantity": 5
+              }
+            ],
+            "recipeMoney": 800,
+            "sellPrice": 400,
+            "shopPrice": null
           }
         },
         {
@@ -17381,6 +18391,39 @@
             "obtainSource": {
               "fallback": "绸缎庄",
               "key": "taoyuan.equipment.hat.straw_hat.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 80,
+            "shopPrice": 200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "朴素的草编鞋，减少体力消耗。",
+              "key": "taoyuan.equipment.shoe.straw_sandals.description"
+            },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:straw_sandals",
+            "kind": "shoe",
+            "name": {
+              "fallback": "草鞋",
+              "key": "taoyuan.equipment.shoe.straw_sandals.name"
+            },
+            "obtainSource": {
+              "fallback": "绸缎庄",
+              "key": "taoyuan.equipment.shoe.straw_sandals.obtainSource"
             },
             "recipe": null,
             "recipeMoney": 0,
@@ -17686,6 +18729,47 @@
         {
           "owner": "taoyuan-core",
           "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "深渊骨龙的骨骼锻成，蕴含毁灭之力。",
+              "key": "taoyuan.equipment.shoe.void_treads.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 3
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "travel_speed",
+                "value": 0.15
+              }
+            ],
+            "id": "taoyuan:void_treads",
+            "kind": "shoe",
+            "name": {
+              "fallback": "虚空战靴",
+              "key": "taoyuan.equipment.shoe.void_treads.name"
+            },
+            "obtainSource": {
+              "fallback": "深渊层怪物掉落",
+              "key": "taoyuan.equipment.shoe.void_treads.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1800,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
             "file": "src/data/hatDefinitions.ts",
             "packageId": "taoyuan-core"
           },
@@ -17767,6 +18851,52 @@
             ],
             "recipeMoney": 6000,
             "sellPrice": 3000
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/shoeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "月光石赋予的轻盈之力，旅行速度大幅提升。",
+              "key": "taoyuan.equipment.shoe.wind_walker.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.22
+              },
+              {
+                "type": "stamina_reduction",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:wind_walker",
+            "kind": "shoe",
+            "name": {
+              "fallback": "风行靴",
+              "key": "taoyuan.equipment.shoe.wind_walker.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.shoe.wind_walker.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 2500,
+            "sellPrice": 1200,
+            "shopPrice": null
           }
         },
         {
@@ -76156,5 +77286,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:3926a81a6aaec5a0b39501e2f5b283c5660b1b1cc3baa7e363f4b7e7ec0d294a"
+  "snapshotHash": "sha256:7429f24621a94a44f570877c4f6ee8719743098c623cc0d9adc3f8f09ad4c4cb"
 }

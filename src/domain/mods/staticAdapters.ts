@@ -23,7 +23,7 @@ import {
 } from '@/data/treeDefinitions'
 import { MONSTER_DROP_RINGS, RINGS, TREASURE_DROP_RINGS } from '@/data/ringDefinitions'
 import { HATS, MONSTER_DROP_HATS, SHOP_HATS, TREASURE_DROP_HATS } from '@/data/hatDefinitions'
-import { MONSTER_DROP_SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoes'
+import { MONSTER_DROP_SHOES, SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoeDefinitions'
 import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
 import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
@@ -61,7 +61,8 @@ import type {
   AnimalDef as LegacyAnimalDef,
   HatDef as LegacyHatDef,
   RecipeDef as LegacyRecipeDef,
-  RingDef as LegacyRingDef
+  RingDef as LegacyRingDef,
+  ShoeDef as LegacyShoeDef
 } from '@/types'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
 import type { FruitTreeDef as LegacyFruitTreeDef, WildTreeDef as LegacyWildTreeDef } from '@/types'
@@ -480,10 +481,29 @@ export const adaptLegacyHatEquipment = (hat: LegacyHatDef): EquipmentDef => ({
   sellPrice: hat.sellPrice
 })
 
+export const adaptLegacyShoeEquipment = (shoe: LegacyShoeDef): EquipmentDef => ({
+  id: toOfficialContentId(shoe.id),
+  kind: 'shoe',
+  name: text(`taoyuan.equipment.shoe.${shoe.id}.name`, shoe.name),
+  description: text(`taoyuan.equipment.shoe.${shoe.id}.description`, shoe.description),
+  effects: shoe.effects.map(effect => ({ ...effect })),
+  shopPrice: shoe.shopPrice,
+  recipe: shoe.recipe
+    ? shoe.recipe.map(material => ({
+        itemId: toOfficialContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: shoe.recipeMoney,
+  obtainSource: text(`taoyuan.equipment.shoe.${shoe.id}.obtainSource`, shoe.obtainSource),
+  sellPrice: shoe.sellPrice
+})
+
 export const createOfficialEquipment = (): EquipmentDef[] =>
   [
     ...RINGS.map(adaptLegacyRingEquipment),
-    ...HATS.map(adaptLegacyHatEquipment)
+    ...HATS.map(adaptLegacyHatEquipment),
+    ...SHOES.map(adaptLegacyShoeEquipment)
   ]
 
 export const adaptLegacyEquipmentSet = (set: LegacyEquipmentSetDef): EquipmentSetDef => ({
@@ -1152,7 +1172,11 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const equipment of createOfficialEquipment()) {
     equipmentRegistry.register(owner, equipment, {
-      file: equipment.kind === 'hat' ? 'src/data/hatDefinitions.ts' : 'src/data/ringDefinitions.ts'
+      file: equipment.kind === 'hat'
+        ? 'src/data/hatDefinitions.ts'
+        : equipment.kind === 'shoe'
+          ? 'src/data/shoeDefinitions.ts'
+          : 'src/data/ringDefinitions.ts'
     })
   }
   for (const set of createOfficialEquipmentSets()) {
