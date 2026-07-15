@@ -1,0 +1,57 @@
+[
+  {
+    "id": "example_mod:building_upgrade/farmhouse/1",
+    "kind": "farmhouse",
+    "level": 1,
+    "name": {
+      "key": "example_mod.building_upgrade.farmhouse.1.name",
+      "fallback": "Test Farmhouse"
+    },
+    "description": {
+      "key": "example_mod.building_upgrade.farmhouse.1.description",
+      "fallback": "A test farmhouse upgrade."
+    },
+    "cost": 100,
+    "materialCost": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 2
+      }
+    ],
+    "benefit": "test_bonus"
+  },
+  {
+    "id": "example_mod:building_upgrade/cave/1",
+    "kind": "cave",
+    "level": 1,
+    "name": {
+      "key": "example_mod.building_upgrade.cave.1.name",
+      "fallback": "Test Cave"
+    },
+    "mushroomChance": 0.6,
+    "fruitBatChance": 0.5,
+    "doubleChance": 0,
+    "cost": 0,
+    "materialCost": [],
+    "mushroomPool": [
+      {
+        "itemId": "example_mod:test_item",
+        "weight": 1
+      }
+    ],
+    "fruitPool": ["example_mod:test_item"]
+  },
+  {
+    "id": "example_mod:building_upgrade/cellar/1",
+    "kind": "cellar",
+    "level": 1,
+    "name": {
+      "key": "example_mod.building_upgrade.cellar.1.name",
+      "fallback": "Test Cellar"
+    },
+    "valuePerCycle": 100,
+    "maxSlots": 6,
+    "cost": 0,
+    "materialCost": []
+  }
+]

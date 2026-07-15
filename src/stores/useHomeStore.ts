@@ -2,13 +2,14 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { FarmhouseLevel, CaveChoice, Quality } from '@/types'
 import {
-  FARMHOUSE_UPGRADES,
   GREENHOUSE_UNLOCK_COST,
   GREENHOUSE_MATERIAL_COST,
   CELLAR_VALUE_CYCLE_DAYS,
-  CELLAR_UPGRADES,
-  CAVE_UPGRADES,
   getCaveUpgrade,
+  getCaveUpgrades,
+  getCellarUpgrade,
+  getCellarUpgrades,
+  getFarmhouseUpgrade,
   getCaveQuality
 } from '@/data/buildings'
 import { usePlayerStore } from './usePlayerStore'
@@ -54,24 +55,25 @@ export const useHomeStore = defineStore('home', () => {
 
   const nextUpgrade = computed(() => {
     const nextLevel = (farmhouseLevel.value + 1) as FarmhouseLevel
-    return FARMHOUSE_UPGRADES.find(u => u.level === nextLevel) ?? null
+    return getFarmhouseUpgrade(nextLevel) ?? null
   })
 
   const hasCellar = computed(() => farmhouseLevel.value >= 3)
 
   const cellarMaxSlots = computed(() => {
-    if (cellarLevel.value >= CELLAR_UPGRADES[CELLAR_UPGRADES.length - 1]!.level) return Number.POSITIVE_INFINITY
-    const def = CELLAR_UPGRADES.find(u => u.level === cellarLevel.value)
+    const cellarUpgrades = getCellarUpgrades()
+    if (cellarLevel.value >= cellarUpgrades[cellarUpgrades.length - 1]!.level) return Number.POSITIVE_INFINITY
+    const def = getCellarUpgrade(cellarLevel.value)
     return def?.maxSlots ?? 6
   })
 
   const cellarValuePerCycle = computed(() => {
-    const def = CELLAR_UPGRADES.find(u => u.level === cellarLevel.value)
+    const def = getCellarUpgrade(cellarLevel.value)
     return def?.valuePerCycle ?? 100
   })
 
   const nextCellarUpgrade = computed(() => {
-    return CELLAR_UPGRADES.find(u => u.level === cellarLevel.value + 1) ?? null
+    return getCellarUpgrade(cellarLevel.value + 1) ?? null
   })
 
   const caveName = computed(() => {
@@ -82,7 +84,7 @@ export const useHomeStore = defineStore('home', () => {
   const caveQuality = computed(() => getCaveQuality(caveDaysActive.value))
 
   const nextCaveUpgrade = computed(() => {
-    return CAVE_UPGRADES.find(u => u.level === caveLevel.value + 1) ?? null
+    return getCaveUpgrades().find(u => u.level === caveLevel.value + 1) ?? null
   })
 
   /** 升级农舍 */

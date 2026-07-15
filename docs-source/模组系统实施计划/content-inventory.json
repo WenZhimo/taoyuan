@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 55,
-    "approximateLineCount": 31060,
+    "fileCount": 56,
+    "approximateLineCount": 31098,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 476,
-    "reviewedArtifactCount": 51
+    "symbolCount": 487,
+    "reviewedArtifactCount": 55
   },
   "entries": [
     {
@@ -1376,56 +1376,162 @@
     },
     {
       "file": "src/data/buildings.ts",
-      "lines": 237,
       "classification": "mixed",
       "domains": [
         "building_upgrade",
-        "facility_rules"
+        "facilities",
+        "greenhouse",
+        "warehouse",
+        "cave_quality"
       ],
       "candidateTargets": [
         "taoyuan:building_upgrade",
-        "engine/domain/facilities"
+        "engine/domain/facilities",
+        "compatibility_adapter"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 105,
       "symbols": [
         {
           "file": "src/data/buildings.ts",
-          "exportName": "FarmhouseUpgradeDef",
-          "syntaxKind": "interface",
+          "exportName": "CAVE_UPGRADES",
+          "syntaxKind": "re-export",
           "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
-        },
-        {
-          "file": "src/data/buildings.ts",
-          "exportName": "FARMHOUSE_UPGRADES",
-          "syntaxKind": "const",
-          "classification": "content",
           "targetRegistry": "taoyuan:building_upgrade",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useHomeStore.ts"
+            "src/data/buildingUpgradeDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 keeps CAVE_UPGRADES as an original-name re-export from buildingUpgradeDefinitions while cave runtime lookups resolve taoyuan:building_upgrade."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "CELLAR_UPGRADES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/buildingUpgradeDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps CELLAR_UPGRADES as an original-name re-export from buildingUpgradeDefinitions while cellar runtime lookups resolve taoyuan:building_upgrade."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "FARMHOUSE_UPGRADES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/buildingUpgradeDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps FARMHOUSE_UPGRADES as an original-name re-export from buildingUpgradeDefinitions while HomeStore reads registry-backed compatibility facades."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "BuildingUpgradeMaterial",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildingUpgradeDefinitions.ts",
+            "src/domain/mods/schemas.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Type-only re-export for the legacy building upgrade material compatibility shape."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "CaveUpgradeDef",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildingUpgradeDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Type-only re-export for the legacy cave upgrade compatibility shape."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "CellarUpgradeDef",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildingUpgradeDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Type-only re-export for the legacy cellar upgrade compatibility shape."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "FarmhouseUpgradeDef",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildingUpgradeDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Type-only re-export for the legacy farmhouse upgrade compatibility shape."
         },
         {
           "file": "src/data/buildings.ts",
           "exportName": "CAVE_UNLOCK_EARNINGS",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/composables/useEndDay.ts"
@@ -1469,6 +1575,7 @@
           "exportName": "CAVE_QUALITY_THRESHOLDS",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
@@ -1476,58 +1583,48 @@
           ],
           "status": "baselined",
           "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/buildings.ts",
-          "exportName": "CaveUpgradeDef",
-          "syntaxKind": "interface",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
-        },
-        {
-          "file": "src/data/buildings.ts",
-          "exportName": "CAVE_UPGRADES",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:building_upgrade",
-          "persistentIds": true,
-          "consumers": [
-            "src/stores/useHomeStore.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
         },
         {
           "file": "src/data/buildings.ts",
           "exportName": "getCaveUpgrade",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
           "persistentIds": false,
           "consumers": [
             "src/stores/useHomeStore.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts",
             "src/views/game/HomeView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getCaveUpgrade() signature is retained and now resolves taoyuan:building_upgrade before returning equivalent cave chances, pools and costs."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "getCaveUpgrades",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useHomeStore.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy cave upgrade list query returns local-ID compatibility objects reconstructed from taoyuan:building_upgrade."
         },
         {
           "file": "src/data/buildings.ts",
           "exportName": "getCaveQuality",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useHomeStore.ts"
@@ -1543,6 +1640,7 @@
           "exportName": "WAREHOUSE_UNLOCK_MATERIALS",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/views/game/HomeView.vue"
@@ -1609,6 +1707,7 @@
           "exportName": "GreenhouseUpgradeDef",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/components/game/farm/GreenhouseUpgradeDialog.vue",
@@ -1629,6 +1728,7 @@
           "exportName": "GREENHOUSE_UPGRADES",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/views/game/FarmView.vue"
@@ -1657,59 +1757,218 @@
         },
         {
           "file": "src/data/buildings.ts",
-          "exportName": "CellarUpgradeDef",
-          "syntaxKind": "interface",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
-        },
-        {
-          "file": "src/data/buildings.ts",
-          "exportName": "CELLAR_UPGRADES",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:building_upgrade",
-          "persistentIds": true,
-          "consumers": [
-            "src/stores/useHomeStore.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/buildings.ts",
           "exportName": "getCellarUpgrade",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/stores/useHomeStore.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getCellarUpgrade() signature is retained and now resolves taoyuan:building_upgrade before returning equivalent value and capacity fields."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "getCellarUpgrades",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useHomeStore.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy cellar upgrade list query returns local-ID compatibility objects reconstructed from taoyuan:building_upgrade."
         },
         {
           "file": "src/data/buildings.ts",
           "exportName": "getFarmhouseUpgrade",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/stores/useHomeStore.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getFarmhouseUpgrade() signature is retained and now resolves taoyuan:building_upgrade before returning an equivalent local-ID object."
+        },
+        {
+          "file": "src/data/buildings.ts",
+          "exportName": "getFarmhouseUpgrades",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy farmhouse upgrade list query returns local-ID compatibility objects reconstructed from taoyuan:building_upgrade."
+        }
+      ]
+    },
+    {
+      "file": "src/data/buildingUpgradeDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "building_upgrade"
+      ],
+      "candidateTargets": [
+        "taoyuan:building_upgrade"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 170,
+      "symbols": [
+        {
+          "file": "src/data/buildingUpgradeDefinitions.ts",
+          "exportName": "BuildingUpgradeMaterial",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildings.ts",
+            "src/domain/mods/schemas.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy building upgrade material compatibility shape; the public contract is BuildingUpgradeDefSchema."
+        },
+        {
+          "file": "src/data/buildingUpgradeDefinitions.ts",
+          "exportName": "FarmhouseUpgradeDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildings.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy farmhouse upgrade compatibility shape reconstructed from taoyuan:building_upgrade."
+        },
+        {
+          "file": "src/data/buildingUpgradeDefinitions.ts",
+          "exportName": "FARMHOUSE_UPGRADES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/buildings.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy farmhouse upgrade names, descriptions, costs, materials and benefits."
+        },
+        {
+          "file": "src/data/buildingUpgradeDefinitions.ts",
+          "exportName": "CaveUpgradeDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildings.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy cave upgrade compatibility shape reconstructed from taoyuan:building_upgrade."
+        },
+        {
+          "file": "src/data/buildingUpgradeDefinitions.ts",
+          "exportName": "CAVE_UPGRADES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/buildings.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy cave upgrade chances, pools, costs, materials and names."
+        },
+        {
+          "file": "src/data/buildingUpgradeDefinitions.ts",
+          "exportName": "CellarUpgradeDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/buildings.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy cellar upgrade compatibility shape reconstructed from taoyuan:building_upgrade."
+        },
+        {
+          "file": "src/data/buildingUpgradeDefinitions.ts",
+          "exportName": "CELLAR_UPGRADES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:building_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/buildings.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/buildingUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy cellar value increments, slot counts, costs and materials."
         }
       ]
     },
@@ -9692,6 +9951,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies the local-ID compatibility lookup used by fish pond construction, upgrade and capacity facades."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "BuildingUpgradeDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:building_upgrade",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for farmhouse, cave and cellar upgrade definitions, including materials, cave pools and cellar capacity fields."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyFarmhouseUpgrade/adaptLegacyCaveUpgrade/adaptLegacyCellarUpgrade/createOfficialBuildingUpgrades",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:building_upgrade",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects legacy farmhouse, cave and cellar upgrade definitions into official registry entries without changing order, IDs, costs, materials, pools or runtime values."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialBuildingUpgradeDefs/getOfficialFarmhouseUpgrade/getOfficialCaveUpgrade/getOfficialCellarUpgrade",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:building_upgrade",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry building upgrade definitions and reconstructs legacy farmhouse, cave and cellar compatibility objects for HomeStore and UI consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:building_upgrade",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:building_upgrade",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks building upgrade material references plus cave mushroom and fruit pool item references before registry snapshots are accepted."
     }
   ]
 }

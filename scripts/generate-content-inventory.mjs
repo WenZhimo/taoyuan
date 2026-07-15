@@ -180,6 +180,24 @@ fileDefaults.set('src/data/fishPondFacilityDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/buildingUpgradeDefinitions.ts', {
+  file: 'src/data/buildingUpgradeDefinitions.ts',
+  classification: 'content',
+  domains: ['building_upgrade'],
+  candidateTargets: ['taoyuan:building_upgrade'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/buildings.ts', {
+  file: 'src/data/buildings.ts',
+  classification: 'mixed',
+  domains: ['building_upgrade', 'facilities', 'greenhouse', 'warehouse', 'cave_quality'],
+  candidateTargets: ['taoyuan:building_upgrade', 'engine/domain/facilities', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/fishPond.ts', {
   file: 'src/data/fishPond.ts',
   classification: 'mixed',
@@ -933,6 +951,152 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Runtime capacity lookup applies the registry-backed unlimitedAtLevel rule while preserving level 3 as infinite capacity.'
+  },
+  'src/data/buildingUpgradeDefinitions.ts:BuildingUpgradeMaterial': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy building upgrade material compatibility shape; the public contract is BuildingUpgradeDefSchema.'
+  },
+  'src/data/buildingUpgradeDefinitions.ts:FarmhouseUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy farmhouse upgrade compatibility shape reconstructed from taoyuan:building_upgrade.'
+  },
+  'src/data/buildingUpgradeDefinitions.ts:CaveUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy cave upgrade compatibility shape reconstructed from taoyuan:building_upgrade.'
+  },
+  'src/data/buildingUpgradeDefinitions.ts:CellarUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy cellar upgrade compatibility shape reconstructed from taoyuan:building_upgrade.'
+  },
+  'src/data/buildingUpgradeDefinitions.ts:FARMHOUSE_UPGRADES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy farmhouse upgrade names, descriptions, costs, materials and benefits.'
+  },
+  'src/data/buildingUpgradeDefinitions.ts:CAVE_UPGRADES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy cave upgrade chances, pools, costs, materials and names.'
+  },
+  'src/data/buildingUpgradeDefinitions.ts:CELLAR_UPGRADES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy cellar value increments, slot counts, costs and materials.'
+  },
+  'src/data/buildings.ts:FARMHOUSE_UPGRADES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps FARMHOUSE_UPGRADES as an original-name re-export from buildingUpgradeDefinitions while HomeStore reads registry-backed compatibility facades.'
+  },
+  'src/data/buildings.ts:CAVE_UPGRADES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps CAVE_UPGRADES as an original-name re-export from buildingUpgradeDefinitions while cave runtime lookups resolve taoyuan:building_upgrade.'
+  },
+  'src/data/buildings.ts:CELLAR_UPGRADES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps CELLAR_UPGRADES as an original-name re-export from buildingUpgradeDefinitions while cellar runtime lookups resolve taoyuan:building_upgrade.'
+  },
+  'src/data/buildings.ts:BuildingUpgradeMaterial': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy building upgrade material compatibility shape.'
+  },
+  'src/data/buildings.ts:FarmhouseUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy farmhouse upgrade compatibility shape.'
+  },
+  'src/data/buildings.ts:CaveUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy cave upgrade compatibility shape.'
+  },
+  'src/data/buildings.ts:CellarUpgradeDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy cellar upgrade compatibility shape.'
+  },
+  'src/data/buildings.ts:getFarmhouseUpgrade': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getFarmhouseUpgrade() signature is retained and now resolves taoyuan:building_upgrade before returning an equivalent local-ID object.'
+  },
+  'src/data/buildings.ts:getFarmhouseUpgrades': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy farmhouse upgrade list query returns local-ID compatibility objects reconstructed from taoyuan:building_upgrade.'
+  },
+  'src/data/buildings.ts:getCaveUpgrade': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getCaveUpgrade() signature is retained and now resolves taoyuan:building_upgrade before returning equivalent cave chances, pools and costs.'
+  },
+  'src/data/buildings.ts:getCaveUpgrades': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy cave upgrade list query returns local-ID compatibility objects reconstructed from taoyuan:building_upgrade.'
+  },
+  'src/data/buildings.ts:getCellarUpgrade': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getCellarUpgrade() signature is retained and now resolves taoyuan:building_upgrade before returning equivalent value and capacity fields.'
+  },
+  'src/data/buildings.ts:getCellarUpgrades': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy cellar upgrade list query returns local-ID compatibility objects reconstructed from taoyuan:building_upgrade.'
   },
   'src/data/pondBreedDefinitions.ts:POND_BREEDS': {
     classification: 'content',
@@ -1746,6 +1910,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies the local-ID compatibility lookup used by fish pond construction, upgrade and capacity facades.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'BuildingUpgradeDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for farmhouse, cave and cellar upgrade definitions, including materials, cave pools and cellar capacity fields.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyFarmhouseUpgrade/adaptLegacyCaveUpgrade/adaptLegacyCellarUpgrade/createOfficialBuildingUpgrades',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects legacy farmhouse, cave and cellar upgrade definitions into official registry entries without changing order, IDs, costs, materials, pools or runtime values.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialBuildingUpgradeDefs/getOfficialFarmhouseUpgrade/getOfficialCaveUpgrade/getOfficialCellarUpgrade',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry building upgrade definitions and reconstructs legacy farmhouse, cave and cellar compatibility objects for HomeStore and UI consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:building_upgrade',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:building_upgrade',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks building upgrade material references plus cave mushroom and fruit pool item references before registry snapshots are accepted.'
   }
 ]
 

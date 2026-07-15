@@ -21,6 +21,11 @@ import type {
   FishPondFacilityCost as LegacyFishPondFacilityCost,
   FishPondFacilityDef as LegacyFishPondFacilityDef
 } from '@/data/fishPondFacilityDefinitions'
+import type {
+  CaveUpgradeDef as LegacyCaveUpgradeDef,
+  CellarUpgradeDef as LegacyCellarUpgradeDef,
+  FarmhouseUpgradeDef as LegacyFarmhouseUpgradeDef
+} from '@/data/buildingUpgradeDefinitions'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import {
@@ -40,11 +45,15 @@ import type {
   AnimalDef as AnimalContentDef,
   AnimalFeedDef as AnimalFeedContentDef,
   AnimalIncubationDef as AnimalIncubationContentDef,
+  BuildingUpgradeDef as BuildingUpgradeContentDef,
+  CaveUpgradeContentDef,
+  CellarUpgradeContentDef,
   CropDef,
   DropTableDef,
   EnchantmentDef,
   FishDef as FishContentDef,
   FishPondFacilityDef as FishPondFacilityContentDef,
+  FarmhouseUpgradeContentDef,
   FishWeather,
   ForageDef,
   FruitTreeContentDef,
@@ -649,6 +658,101 @@ export const getOfficialFishPondFacilityById = (
 
 export const getOfficialFishPondFacilitiesAsLegacy = (): readonly LegacyFishPondFacilityDef[] =>
   getOfficialFishPondFacilityDefs().map(toLegacyFishPondFacilityDef)
+
+export const getOfficialBuildingUpgradeDefs = (): readonly Readonly<BuildingUpgradeContentDef>[] =>
+  getOfficialRegistrySet().get<BuildingUpgradeContentDef>(toOfficialRegistryTypeId('building_upgrade')).values()
+
+export const getOfficialFarmhouseUpgradeDef = (
+  level: number
+): Readonly<FarmhouseUpgradeContentDef> | undefined =>
+  getOfficialBuildingUpgradeDefs().find(
+    (upgrade): upgrade is Readonly<FarmhouseUpgradeContentDef> =>
+      upgrade.kind === 'farmhouse' && upgrade.level === level
+  )
+
+export const getOfficialCaveUpgradeDef = (level: number): Readonly<CaveUpgradeContentDef> | undefined =>
+  getOfficialBuildingUpgradeDefs().find(
+    (upgrade): upgrade is Readonly<CaveUpgradeContentDef> =>
+      upgrade.kind === 'cave' && upgrade.level === level
+  )
+
+export const getOfficialCellarUpgradeDef = (level: number): Readonly<CellarUpgradeContentDef> | undefined =>
+  getOfficialBuildingUpgradeDefs().find(
+    (upgrade): upgrade is Readonly<CellarUpgradeContentDef> =>
+      upgrade.kind === 'cellar' && upgrade.level === level
+  )
+
+const toLegacyBuildingUpgradeMaterial = (
+  material: Readonly<BuildingUpgradeContentDef['materialCost'][number]>
+) => ({
+  itemId: getLocalContentId(material.itemId),
+  quantity: material.quantity
+})
+
+const toLegacyFarmhouseUpgrade = (
+  upgrade: Readonly<FarmhouseUpgradeContentDef>
+): LegacyFarmhouseUpgradeDef => ({
+  level: upgrade.level,
+  name: upgrade.name.fallback,
+  description: upgrade.description.fallback,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(toLegacyBuildingUpgradeMaterial),
+  benefit: upgrade.benefit
+})
+
+const toLegacyCaveUpgrade = (upgrade: Readonly<CaveUpgradeContentDef>): LegacyCaveUpgradeDef => ({
+  level: upgrade.level,
+  name: upgrade.name.fallback,
+  mushroomChance: upgrade.mushroomChance,
+  fruitBatChance: upgrade.fruitBatChance,
+  doubleChance: upgrade.doubleChance,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(toLegacyBuildingUpgradeMaterial),
+  mushroomPool: upgrade.mushroomPool.map(entry => ({
+    itemId: getLocalContentId(entry.itemId),
+    weight: entry.weight
+  })),
+  fruitPool: upgrade.fruitPool.map(getLocalContentId)
+})
+
+const toLegacyCellarUpgrade = (upgrade: Readonly<CellarUpgradeContentDef>): LegacyCellarUpgradeDef => ({
+  level: upgrade.level,
+  name: upgrade.name.fallback,
+  valuePerCycle: upgrade.valuePerCycle,
+  maxSlots: upgrade.maxSlots,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(toLegacyBuildingUpgradeMaterial)
+})
+
+export const getOfficialFarmhouseUpgrade = (level: number): LegacyFarmhouseUpgradeDef | undefined => {
+  const upgrade = getOfficialFarmhouseUpgradeDef(level)
+  return upgrade ? toLegacyFarmhouseUpgrade(upgrade) : undefined
+}
+
+export const getOfficialFarmhouseUpgrades = (): readonly LegacyFarmhouseUpgradeDef[] =>
+  getOfficialBuildingUpgradeDefs()
+    .filter((upgrade): upgrade is Readonly<FarmhouseUpgradeContentDef> => upgrade.kind === 'farmhouse')
+    .map(toLegacyFarmhouseUpgrade)
+
+export const getOfficialCaveUpgrade = (level: number): LegacyCaveUpgradeDef | undefined => {
+  const upgrade = getOfficialCaveUpgradeDef(level)
+  return upgrade ? toLegacyCaveUpgrade(upgrade) : undefined
+}
+
+export const getOfficialCaveUpgrades = (): readonly LegacyCaveUpgradeDef[] =>
+  getOfficialBuildingUpgradeDefs()
+    .filter((upgrade): upgrade is Readonly<CaveUpgradeContentDef> => upgrade.kind === 'cave')
+    .map(toLegacyCaveUpgrade)
+
+export const getOfficialCellarUpgrade = (level: number): LegacyCellarUpgradeDef | undefined => {
+  const upgrade = getOfficialCellarUpgradeDef(level)
+  return upgrade ? toLegacyCellarUpgrade(upgrade) : undefined
+}
+
+export const getOfficialCellarUpgrades = (): readonly LegacyCellarUpgradeDef[] =>
+  getOfficialBuildingUpgradeDefs()
+    .filter((upgrade): upgrade is Readonly<CellarUpgradeContentDef> => upgrade.kind === 'cellar')
+    .map(toLegacyCellarUpgrade)
 
 const toLegacyForageItemDef = (forage: Readonly<ForageDef>): LegacyForageItemDef => ({
   itemId: getLocalContentId(forage.itemId),

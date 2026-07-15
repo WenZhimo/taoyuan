@@ -889,6 +889,375 @@
       ]
     },
     {
+      "registryId": "taoyuan:building_upgrade",
+      "schemaName": "building-upgrade.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 0,
+            "doubleChance": 0,
+            "fruitBatChance": 0.5,
+            "fruitPool": [
+              "taoyuan:tree_peach",
+              "taoyuan:lychee",
+              "taoyuan:mandarin",
+              "taoyuan:plum_blossom"
+            ],
+            "id": "taoyuan:building_upgrade/cave/1",
+            "kind": "cave",
+            "level": 1,
+            "materialCost": [],
+            "mushroomChance": 0.6,
+            "mushroomPool": [
+              {
+                "itemId": "taoyuan:wild_mushroom",
+                "weight": 1
+              }
+            ],
+            "name": {
+              "fallback": "山洞",
+              "key": "taoyuan.building_upgrade.cave.1.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 15000,
+            "doubleChance": 0,
+            "fruitBatChance": 0.6,
+            "fruitPool": [
+              "taoyuan:tree_peach",
+              "taoyuan:lychee",
+              "taoyuan:mandarin",
+              "taoyuan:plum_blossom",
+              "taoyuan:apricot",
+              "taoyuan:pomegranate"
+            ],
+            "id": "taoyuan:building_upgrade/cave/2",
+            "kind": "cave",
+            "level": 2,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 100
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "mushroomChance": 0.7,
+            "mushroomPool": [
+              {
+                "itemId": "taoyuan:wild_mushroom",
+                "weight": 70
+              },
+              {
+                "itemId": "taoyuan:herb",
+                "weight": 30
+              }
+            ],
+            "name": {
+              "fallback": "山洞·贰",
+              "key": "taoyuan.building_upgrade.cave.2.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 40000,
+            "doubleChance": 0.25,
+            "fruitBatChance": 0.7,
+            "fruitPool": [
+              "taoyuan:tree_peach",
+              "taoyuan:lychee",
+              "taoyuan:mandarin",
+              "taoyuan:plum_blossom",
+              "taoyuan:apricot",
+              "taoyuan:pomegranate",
+              "taoyuan:persimmon",
+              "taoyuan:hawthorn"
+            ],
+            "id": "taoyuan:building_upgrade/cave/3",
+            "kind": "cave",
+            "level": 3,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 200
+              },
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 10
+              }
+            ],
+            "mushroomChance": 0.8,
+            "mushroomPool": [
+              {
+                "itemId": "taoyuan:wild_mushroom",
+                "weight": 50
+              },
+              {
+                "itemId": "taoyuan:herb",
+                "weight": 35
+              },
+              {
+                "itemId": "taoyuan:ginseng",
+                "weight": 15
+              }
+            ],
+            "name": {
+              "fallback": "山洞·叁",
+              "key": "taoyuan.building_upgrade.cave.3.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 0,
+            "id": "taoyuan:building_upgrade/cellar/1",
+            "kind": "cellar",
+            "level": 1,
+            "materialCost": [],
+            "maxSlots": 6,
+            "name": {
+              "fallback": "酒窖",
+              "key": "taoyuan.building_upgrade.cellar.1.name"
+            },
+            "valuePerCycle": 100
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 30000,
+            "id": "taoyuan:building_upgrade/cellar/2",
+            "kind": "cellar",
+            "level": 2,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 200
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 10
+              }
+            ],
+            "maxSlots": 9,
+            "name": {
+              "fallback": "酒窖·贰",
+              "key": "taoyuan.building_upgrade.cellar.2.name"
+            },
+            "valuePerCycle": 125
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 60000,
+            "id": "taoyuan:building_upgrade/cellar/3",
+            "kind": "cellar",
+            "level": 3,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 300
+              },
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 10
+              }
+            ],
+            "maxSlots": 12,
+            "name": {
+              "fallback": "酒窖·叁",
+              "key": "taoyuan.building_upgrade.cellar.3.name"
+            },
+            "valuePerCycle": 150
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 100000,
+            "id": "taoyuan:building_upgrade/cellar/4",
+            "kind": "cellar",
+            "level": 4,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 400
+              },
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 20
+              }
+            ],
+            "maxSlots": 15,
+            "name": {
+              "fallback": "酒窖·肆",
+              "key": "taoyuan.building_upgrade.cellar.4.name"
+            },
+            "valuePerCycle": 175
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 150000,
+            "id": "taoyuan:building_upgrade/cellar/5",
+            "kind": "cellar",
+            "level": 5,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 500
+              },
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 5
+              }
+            ],
+            "maxSlots": 18,
+            "name": {
+              "fallback": "酒窖·伍",
+              "key": "taoyuan.building_upgrade.cellar.5.name"
+            },
+            "valuePerCycle": 200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "benefit": "kitchen_bonus",
+            "cost": 10000,
+            "description": {
+              "fallback": "升级厨房，烹饪体力恢复+20%。",
+              "key": "taoyuan.building_upgrade.farmhouse.1.description"
+            },
+            "id": "taoyuan:building_upgrade/farmhouse/1",
+            "kind": "farmhouse",
+            "level": 1,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 200
+              }
+            ],
+            "name": {
+              "fallback": "砖房",
+              "key": "taoyuan.building_upgrade.farmhouse.1.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "benefit": "stamina_bonus",
+            "cost": 65000,
+            "description": {
+              "fallback": "宽敞的院落，每晚额外恢复10%体力。",
+              "key": "taoyuan.building_upgrade.farmhouse.2.description"
+            },
+            "id": "taoyuan:building_upgrade/farmhouse/2",
+            "kind": "farmhouse",
+            "level": 2,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 100
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 50
+              }
+            ],
+            "name": {
+              "fallback": "宅院",
+              "key": "taoyuan.building_upgrade.farmhouse.2.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/buildingUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "benefit": "cellar",
+            "cost": 100000,
+            "description": {
+              "fallback": "地下酒窖，可陈酿美酒提升品质。",
+              "key": "taoyuan.building_upgrade.farmhouse.3.description"
+            },
+            "id": "taoyuan:building_upgrade/farmhouse/3",
+            "kind": "farmhouse",
+            "level": 3,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 100
+              },
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 30
+              }
+            ],
+            "name": {
+              "fallback": "酒窖",
+              "key": "taoyuan.building_upgrade.farmhouse.3.name"
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:crop",
       "schemaName": "crop.schema.json",
       "entries": [
@@ -71610,5 +71979,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:2764f262675cd32f39c79bb54ae6e3d70ccf0d9fc6ceb75a7ca263bee45912fc"
+  "snapshotHash": "sha256:b8bb81fc5bf00d6863d91a6c49393604be2fbee671e24f30345a0b4e1feb70e1"
 }

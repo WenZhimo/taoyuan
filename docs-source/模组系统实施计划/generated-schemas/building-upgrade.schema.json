@@ -1,0 +1,341 @@
+{
+  "$id": "taoyuan.registry.BuildingUpgradeDef",
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "level",
+        "name",
+        "description",
+        "cost",
+        "materialCost",
+        "benefit"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "farmhouse",
+          "type": "string"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "const": 1,
+              "type": "number"
+            },
+            {
+              "const": 2,
+              "type": "number"
+            },
+            {
+              "const": 3,
+              "type": "number"
+            }
+          ]
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "description": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "cost": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "materialCost": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "benefit": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "level",
+        "name",
+        "mushroomChance",
+        "fruitBatChance",
+        "doubleChance",
+        "cost",
+        "materialCost",
+        "mushroomPool",
+        "fruitPool"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "cave",
+          "type": "string"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "const": 1,
+              "type": "number"
+            },
+            {
+              "const": 2,
+              "type": "number"
+            },
+            {
+              "const": 3,
+              "type": "number"
+            }
+          ]
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "mushroomChance": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "number"
+        },
+        "fruitBatChance": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "number"
+        },
+        "doubleChance": {
+          "minimum": 0,
+          "maximum": 1,
+          "type": "number"
+        },
+        "cost": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "materialCost": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "mushroomPool": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "weight"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "weight": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "fruitPool": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "level",
+        "name",
+        "valuePerCycle",
+        "maxSlots",
+        "cost",
+        "materialCost"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "cellar",
+          "type": "string"
+        },
+        "level": {
+          "anyOf": [
+            {
+              "const": 1,
+              "type": "number"
+            },
+            {
+              "const": 2,
+              "type": "number"
+            },
+            {
+              "const": 3,
+              "type": "number"
+            },
+            {
+              "const": 4,
+              "type": "number"
+            },
+            {
+              "const": 5,
+              "type": "number"
+            }
+          ]
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "valuePerCycle": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "maxSlots": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "cost": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "materialCost": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

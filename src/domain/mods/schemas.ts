@@ -374,6 +374,96 @@ export const FishPondFacilityDefSchema = Type.Object(
   { $id: 'taoyuan.registry.FishPondFacilityDef', additionalProperties: false }
 )
 
+export const BuildingUpgradeMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const FarmhouseUpgradeLevelSchema = Type.Union([
+  Type.Literal(1),
+  Type.Literal(2),
+  Type.Literal(3)
+])
+
+export const CaveUpgradeLevelSchema = Type.Union([
+  Type.Literal(1),
+  Type.Literal(2),
+  Type.Literal(3)
+])
+
+export const CellarUpgradeLevelSchema = Type.Union([
+  Type.Literal(1),
+  Type.Literal(2),
+  Type.Literal(3),
+  Type.Literal(4),
+  Type.Literal(5)
+])
+
+export const FarmhouseUpgradeDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    kind: Type.Literal('farmhouse'),
+    level: FarmhouseUpgradeLevelSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    cost: Type.Integer({ minimum: 0 }),
+    materialCost: Type.Array(BuildingUpgradeMaterialSchema),
+    benefit: Type.String({ minLength: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const CaveMushroomPoolEntrySchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    weight: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const CaveUpgradeDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    kind: Type.Literal('cave'),
+    level: CaveUpgradeLevelSchema,
+    name: LocalizedTextRefSchema,
+    mushroomChance: Type.Number({ minimum: 0, maximum: 1 }),
+    fruitBatChance: Type.Number({ minimum: 0, maximum: 1 }),
+    doubleChance: Type.Number({ minimum: 0, maximum: 1 }),
+    cost: Type.Integer({ minimum: 0 }),
+    materialCost: Type.Array(BuildingUpgradeMaterialSchema),
+    mushroomPool: Type.Array(CaveMushroomPoolEntrySchema, { minItems: 1 }),
+    fruitPool: Type.Array(ContentIdSchema, { minItems: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const CellarUpgradeDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    kind: Type.Literal('cellar'),
+    level: CellarUpgradeLevelSchema,
+    name: LocalizedTextRefSchema,
+    valuePerCycle: Type.Integer({ minimum: 0 }),
+    maxSlots: Type.Integer({ minimum: 1 }),
+    cost: Type.Integer({ minimum: 0 }),
+    materialCost: Type.Array(BuildingUpgradeMaterialSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const BuildingUpgradeDefSchema = Type.Union(
+  [
+    FarmhouseUpgradeDefSchema,
+    CaveUpgradeDefSchema,
+    CellarUpgradeDefSchema
+  ],
+  { $id: 'taoyuan.registry.BuildingUpgradeDef' }
+)
+
 export const CropDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -720,6 +810,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
   'taoyuan:fish_pond_facility': FishPondFacilityDefSchema,
+  'taoyuan:building_upgrade': BuildingUpgradeDefSchema,
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
@@ -747,6 +838,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
   'fish-pond-facility.schema.json': FishPondFacilityDefSchema,
+  'building-upgrade.schema.json': BuildingUpgradeDefSchema,
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
@@ -785,6 +877,11 @@ export type FishPondFacilityCost = Static<typeof FishPondFacilityCostSchema>
 export type FishPondFacilityCapacity = Static<typeof FishPondFacilityCapacitySchema>
 export type FishPondFacilityUpgrade = Static<typeof FishPondFacilityUpgradeSchema>
 export type FishPondFacilityDef = Static<typeof FishPondFacilityDefSchema>
+export type BuildingUpgradeMaterial = Static<typeof BuildingUpgradeMaterialSchema>
+export type BuildingUpgradeDef = Static<typeof BuildingUpgradeDefSchema>
+export type FarmhouseUpgradeContentDef = Extract<BuildingUpgradeDef, { kind: 'farmhouse' }>
+export type CaveUpgradeContentDef = Extract<BuildingUpgradeDef, { kind: 'cave' }>
+export type CellarUpgradeContentDef = Extract<BuildingUpgradeDef, { kind: 'cellar' }>
 export type CropDef = Static<typeof CropDefSchema>
 export type TreeDef = Static<typeof TreeDefSchema>
 export type FruitTreeContentDef = Extract<TreeDef, { kind: 'fruit' }>

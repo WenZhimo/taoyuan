@@ -12,6 +12,7 @@ import type {
   AnimalDef,
   AnimalFeedDef,
   AnimalIncubationDef,
+  BuildingUpgradeDef,
   CropDef,
   DropTableDef,
   FishDef,
@@ -43,6 +44,7 @@ const REGISTRY_IDS = {
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
   fishPondFacility: toOfficialRegistryTypeId('fish_pond_facility'),
+  buildingUpgrade: toOfficialRegistryTypeId('building_upgrade'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
@@ -87,6 +89,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(REGISTRY_IDS.fishPondFacility)
+  const buildingUpgradeRegistry = registrySet.get<BuildingUpgradeDef>(REGISTRY_IDS.buildingUpgrade)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
@@ -358,6 +361,41 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         registryId: REGISTRY_IDS.pondBreed,
         contentId: contentId(record.entry.parentBreedB),
         fieldPath: '/parentBreedB'
+      })
+    }
+  }
+
+  for (const record of buildingUpgradeRegistry.entries()) {
+    record.entry.materialCost.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/materialCost/${index}/itemId`
+        })
+      }
+    })
+    if (record.entry.kind === 'cave') {
+      record.entry.mushroomPool.forEach((entry, index) => {
+        if (!itemRegistry.has(contentId(entry.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(entry.itemId),
+            fieldPath: `/mushroomPool/${index}/itemId`
+          })
+        }
+      })
+      record.entry.fruitPool.forEach((itemId, index) => {
+        if (!itemRegistry.has(contentId(itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(itemId),
+            fieldPath: `/fruitPool/${index}`
+          })
+        }
       })
     }
   }

@@ -38,6 +38,14 @@ import {
   FISH_POND_FACILITY,
   type FishPondFacilityDef as LegacyFishPondFacilityDef
 } from '@/data/fishPondFacilityDefinitions'
+import {
+  CAVE_UPGRADES,
+  CELLAR_UPGRADES,
+  FARMHOUSE_UPGRADES,
+  type CaveUpgradeDef as LegacyCaveUpgradeDef,
+  type CellarUpgradeDef as LegacyCellarUpgradeDef,
+  type FarmhouseUpgradeDef as LegacyFarmhouseUpgradeDef
+} from '@/data/buildingUpgradeDefinitions'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
 import type { AnimalDef as LegacyAnimalDef, RecipeDef as LegacyRecipeDef } from '@/types'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
@@ -65,6 +73,7 @@ import type {
   AnimalDef,
   AnimalFeedDef,
   AnimalIncubationDef,
+  BuildingUpgradeDef,
   DropTableDef,
   EnchantmentDef,
   FishDef,
@@ -156,6 +165,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('fish_pond_facility'),
     description: '鱼塘建造、升级和容量定义',
     schemaName: 'fish-pond-facility.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('building_upgrade'),
+    description: '农舍、山洞和酒窖升级定义',
+    schemaName: 'building-upgrade.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('monster'),
@@ -584,6 +598,58 @@ export const createOfficialFishPondFacilities = (): FishPondFacilityDef[] => [
   adaptLegacyFishPondFacility(FISH_POND_FACILITY)
 ]
 
+const adaptBuildingUpgradeMaterial = (
+  material: LegacyFarmhouseUpgradeDef['materialCost'][number]
+): BuildingUpgradeDef['materialCost'][number] => ({
+  itemId: toOfficialContentId(material.itemId),
+  quantity: material.quantity
+})
+
+export const adaptLegacyFarmhouseUpgrade = (upgrade: LegacyFarmhouseUpgradeDef): BuildingUpgradeDef => ({
+  id: toOfficialContentId(`building_upgrade/farmhouse/${upgrade.level}`),
+  kind: 'farmhouse',
+  level: upgrade.level as 1 | 2 | 3,
+  name: text(`taoyuan.building_upgrade.farmhouse.${upgrade.level}.name`, upgrade.name),
+  description: text(`taoyuan.building_upgrade.farmhouse.${upgrade.level}.description`, upgrade.description),
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(adaptBuildingUpgradeMaterial),
+  benefit: upgrade.benefit
+})
+
+export const adaptLegacyCaveUpgrade = (upgrade: LegacyCaveUpgradeDef): BuildingUpgradeDef => ({
+  id: toOfficialContentId(`building_upgrade/cave/${upgrade.level}`),
+  kind: 'cave',
+  level: upgrade.level as 1 | 2 | 3,
+  name: text(`taoyuan.building_upgrade.cave.${upgrade.level}.name`, upgrade.name),
+  mushroomChance: upgrade.mushroomChance,
+  fruitBatChance: upgrade.fruitBatChance,
+  doubleChance: upgrade.doubleChance,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(adaptBuildingUpgradeMaterial),
+  mushroomPool: upgrade.mushroomPool.map(entry => ({
+    itemId: toOfficialContentId(entry.itemId),
+    weight: entry.weight
+  })),
+  fruitPool: upgrade.fruitPool.map(toOfficialContentId)
+})
+
+export const adaptLegacyCellarUpgrade = (upgrade: LegacyCellarUpgradeDef): BuildingUpgradeDef => ({
+  id: toOfficialContentId(`building_upgrade/cellar/${upgrade.level}`),
+  kind: 'cellar',
+  level: upgrade.level as 1 | 2 | 3 | 4 | 5,
+  name: text(`taoyuan.building_upgrade.cellar.${upgrade.level}.name`, upgrade.name),
+  valuePerCycle: upgrade.valuePerCycle,
+  maxSlots: upgrade.maxSlots,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(adaptBuildingUpgradeMaterial)
+})
+
+export const createOfficialBuildingUpgrades = (): BuildingUpgradeDef[] => [
+  ...FARMHOUSE_UPGRADES.map(adaptLegacyFarmhouseUpgrade),
+  ...CAVE_UPGRADES.map(adaptLegacyCaveUpgrade),
+  ...CELLAR_UPGRADES.map(adaptLegacyCellarUpgrade)
+]
+
 export const adaptLegacyShop = (shop: LegacyShopDef): ShopDef => ({
   id: toOfficialContentId(shop.id),
   name: text(`taoyuan.shop.${shop.id}.name`, shop.name),
@@ -879,6 +945,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
   const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
   const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(toOfficialRegistryTypeId('fish_pond_facility'))
+  const buildingUpgradeRegistry = registrySet.get<BuildingUpgradeDef>(toOfficialRegistryTypeId('building_upgrade'))
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
@@ -911,6 +978,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const facility of createOfficialFishPondFacilities()) {
     fishPondFacilityRegistry.register(owner, facility, { file: 'src/data/fishPondFacilityDefinitions.ts' })
+  }
+  for (const upgrade of createOfficialBuildingUpgrades()) {
+    buildingUpgradeRegistry.register(owner, upgrade, { file: 'src/data/buildingUpgradeDefinitions.ts' })
   }
   for (const recipe of RECIPES.map(adaptLegacyRecipe)) recipeRegistry.register(owner, recipe, { file: 'src/data/recipes.ts' })
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
