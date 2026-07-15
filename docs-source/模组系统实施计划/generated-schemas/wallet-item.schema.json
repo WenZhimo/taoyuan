@@ -1,0 +1,118 @@
+{
+  "$id": "taoyuan.registry.WalletItemDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "effect",
+    "unlockCondition"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "effect": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "type",
+        "value"
+      ],
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "const": "shopDiscount",
+              "type": "string"
+            },
+            {
+              "const": "forageQuality",
+              "type": "string"
+            },
+            {
+              "const": "miningStamina",
+              "type": "string"
+            },
+            {
+              "const": "fishingCalm",
+              "type": "string"
+            },
+            {
+              "const": "cookingRestore",
+              "type": "string"
+            },
+            {
+              "const": "cropGrowth",
+              "type": "string"
+            },
+            {
+              "const": "tradeBonus",
+              "type": "string"
+            }
+          ]
+        },
+        "value": {
+          "type": "number"
+        }
+      }
+    },
+    "unlockCondition": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

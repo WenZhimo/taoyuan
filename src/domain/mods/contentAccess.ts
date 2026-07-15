@@ -5,6 +5,7 @@ import type {
   FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
   MonsterDef as LegacyMonsterDef,
+  WalletItemDef as LegacyWalletItemDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
@@ -68,6 +69,7 @@ import type {
   ShopOfferDef,
   TagDef,
   TreeDef,
+  WalletItemDef as WalletItemContentDef,
   WildTreeContentDef
 } from './schemas'
 import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
@@ -390,6 +392,16 @@ export const getOfficialAnimalFeedDef = (id: string): Readonly<AnimalFeedContent
 export const getOfficialAnimalFeedDefs = (): readonly Readonly<AnimalFeedContentDef>[] =>
   getOfficialRegistrySet().get<AnimalFeedContentDef>(toOfficialRegistryTypeId('animal_feed')).values()
 
+export const getOfficialWalletItemDef = (id: string): Readonly<WalletItemContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<WalletItemContentDef>(toOfficialRegistryTypeId('wallet_item')).get(contentId)
+    : undefined
+}
+
+export const getOfficialWalletItemDefs = (): readonly Readonly<WalletItemContentDef>[] =>
+  getOfficialRegistrySet().get<WalletItemContentDef>(toOfficialRegistryTypeId('wallet_item')).values()
+
 export const getOfficialAnimalBuildingDef = (id: string): Readonly<AnimalBuildingContentDef> | undefined => {
   const contentId = toQueryContentId(id.includes('/') ? id : `animal_building/${id}`)
   return contentId
@@ -448,6 +460,22 @@ export const getOfficialAnimalFeedById = (id: string): LegacyAnimalFeedDef | und
 
 export const getOfficialAnimalFeedDefsAsLegacy = (): readonly LegacyAnimalFeedDef[] =>
   getOfficialAnimalFeedDefs().map(toLegacyAnimalFeedDef)
+
+const toLegacyWalletItemDef = (item: Readonly<WalletItemContentDef>): LegacyWalletItemDef => ({
+  id: getLocalContentId(item.id),
+  name: item.name.fallback,
+  description: item.description.fallback,
+  effect: { ...item.effect },
+  unlockCondition: item.unlockCondition.fallback
+})
+
+export const getOfficialWalletItemById = (id: string): LegacyWalletItemDef | undefined => {
+  const item = getOfficialWalletItemDef(id)
+  return item ? toLegacyWalletItemDef(item) : undefined
+}
+
+export const getOfficialWalletItemsAsLegacy = (): readonly LegacyWalletItemDef[] =>
+  getOfficialWalletItemDefs().map(toLegacyWalletItemDef)
 
 const toLegacyAnimalBuildingMaterial = (material: Readonly<AnimalBuildingContentDef['materialCost'][number]>) => ({
   itemId: getLocalContentId(material.itemId),

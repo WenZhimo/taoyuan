@@ -340,7 +340,7 @@
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
   import type { EquipmentEffectType } from '@/types'
-  import { WALLET_ITEMS } from '@/data/wallet'
+  import { getWalletItems } from '@/data/wallet'
   import { navigateToPanel } from '@/composables/useNavigation'
   import type { SkillType, SkillPerk5, SkillPerk10, ChildStage, OwnedWeapon } from '@/types'
   import { addLog } from '@/composables/useGameLog'
@@ -616,7 +616,7 @@
   }
 
   // === 被动 ===
-  const unlockedWalletItems = computed(() => WALLET_ITEMS.filter(w => walletStore.has(w.id)))
+  const unlockedWalletItems = computed(() => getWalletItems().filter(w => walletStore.has(w.id)))
 
   // === 家庭 ===
   const spouseInfo = computed(() => {

@@ -71977,7 +71977,195 @@
           }
         }
       ]
+    },
+    {
+      "registryId": "taoyuan:wallet_item",
+      "schemaName": "wallet-item.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/walletDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "钓鱼小游戏中鱼移动速度降低10%。",
+              "key": "taoyuan.wallet_item.anglers_token.description"
+            },
+            "effect": {
+              "type": "fishingCalm",
+              "value": 0.1
+            },
+            "id": "taoyuan:anglers_token",
+            "name": {
+              "fallback": "钓翁令牌",
+              "key": "taoyuan.wallet_item.anglers_token.name"
+            },
+            "unlockCondition": {
+              "fallback": "钓到30种不同的鱼",
+              "key": "taoyuan.wallet_item.anglers_token.unlockCondition"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/walletDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "烹饪食物恢复量+25%。",
+              "key": "taoyuan.wallet_item.chefs_hat.description"
+            },
+            "effect": {
+              "type": "cookingRestore",
+              "value": 0.25
+            },
+            "id": "taoyuan:chefs_hat",
+            "name": {
+              "fallback": "厨师帽",
+              "key": "taoyuan.wallet_item.chefs_hat.name"
+            },
+            "unlockCondition": {
+              "fallback": "烹饪10道不同的食谱",
+              "key": "taoyuan.wallet_item.chefs_hat.unlockCondition"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/walletDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "作物生长速度+10%。",
+              "key": "taoyuan.wallet_item.earth_totem.description"
+            },
+            "effect": {
+              "type": "cropGrowth",
+              "value": 0.1
+            },
+            "id": "taoyuan:earth_totem",
+            "name": {
+              "fallback": "土地图腾",
+              "key": "taoyuan.wallet_item.earth_totem.name"
+            },
+            "unlockCondition": {
+              "fallback": "收获100次作物",
+              "key": "taoyuan.wallet_item.earth_totem.unlockCondition"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/walletDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "采集物品质提升1档。",
+              "key": "taoyuan.wallet_item.herb_guide.description"
+            },
+            "effect": {
+              "type": "forageQuality",
+              "value": 1
+            },
+            "id": "taoyuan:herb_guide",
+            "name": {
+              "fallback": "神农本草",
+              "key": "taoyuan.wallet_item.herb_guide.name"
+            },
+            "unlockCondition": {
+              "fallback": "采集等级达到8",
+              "key": "taoyuan.wallet_item.herb_guide.unlockCondition"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/walletDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "商店购物价格降低10%。",
+              "key": "taoyuan.wallet_item.merchant_seal.description"
+            },
+            "effect": {
+              "type": "shopDiscount",
+              "value": 0.1
+            },
+            "id": "taoyuan:merchant_seal",
+            "name": {
+              "fallback": "商人印章",
+              "key": "taoyuan.wallet_item.merchant_seal.name"
+            },
+            "unlockCondition": {
+              "fallback": "累计赚取10000文",
+              "key": "taoyuan.wallet_item.merchant_seal.unlockCondition"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/walletDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "挖矿体力消耗降低15%。",
+              "key": "taoyuan.wallet_item.miners_charm.description"
+            },
+            "effect": {
+              "type": "miningStamina",
+              "value": 0.15
+            },
+            "id": "taoyuan:miners_charm",
+            "name": {
+              "fallback": "矿工护符",
+              "key": "taoyuan.wallet_item.miners_charm.name"
+            },
+            "unlockCondition": {
+              "fallback": "矿洞到达50层",
+              "key": "taoyuan.wallet_item.miners_charm.unlockCondition"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/walletDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "通商积分获取+20%。",
+              "key": "taoyuan.wallet_item.trade_prosperity_seal.description"
+            },
+            "effect": {
+              "type": "tradeBonus",
+              "value": 0.2
+            },
+            "id": "taoyuan:trade_prosperity_seal",
+            "name": {
+              "fallback": "通商金印",
+              "key": "taoyuan.wallet_item.trade_prosperity_seal.name"
+            },
+            "unlockCondition": {
+              "fallback": "通商积分兑换获得",
+              "key": "taoyuan.wallet_item.trade_prosperity_seal.unlockCondition"
+            }
+          }
+        }
+      ]
     }
   ],
-  "snapshotHash": "sha256:b8bb81fc5bf00d6863d91a6c49393604be2fbee671e24f30345a0b4e1feb70e1"
+  "snapshotHash": "sha256:b5114c58b3156d0311879aced1c491ae8350b5aedff77712ad08733b40c8306c"
 }

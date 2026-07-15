@@ -236,6 +236,35 @@ export const AnimalFeedDefSchema = Type.Object(
   { $id: 'taoyuan.registry.AnimalFeedDef', additionalProperties: false }
 )
 
+export const WalletItemEffectTypeSchema = Type.Union([
+  Type.Literal('shopDiscount'),
+  Type.Literal('forageQuality'),
+  Type.Literal('miningStamina'),
+  Type.Literal('fishingCalm'),
+  Type.Literal('cookingRestore'),
+  Type.Literal('cropGrowth'),
+  Type.Literal('tradeBonus')
+])
+
+export const WalletItemEffectSchema = Type.Object(
+  {
+    type: WalletItemEffectTypeSchema,
+    value: Type.Number()
+  },
+  { additionalProperties: false }
+)
+
+export const WalletItemDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    effect: WalletItemEffectSchema,
+    unlockCondition: LocalizedTextRefSchema
+  },
+  { $id: 'taoyuan.registry.WalletItemDef', additionalProperties: false }
+)
+
 export const AnimalBuildingMaterialSchema = Type.Object(
   {
     itemId: ContentIdSchema,
@@ -805,6 +834,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:forage': ForageDefSchema,
   'taoyuan:animal': AnimalDefSchema,
   'taoyuan:animal_feed': AnimalFeedDefSchema,
+  'taoyuan:wallet_item': WalletItemDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
@@ -833,6 +863,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'forage.schema.json': ForageDefSchema,
   'animal.schema.json': AnimalDefSchema,
   'animal-feed.schema.json': AnimalFeedDefSchema,
+  'wallet-item.schema.json': WalletItemDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
@@ -864,6 +895,9 @@ export type Weekday = Static<typeof WeekdaySchema>
 export type AnimalBuildingType = Static<typeof AnimalBuildingTypeSchema>
 export type AnimalDef = Static<typeof AnimalDefSchema>
 export type AnimalFeedDef = Static<typeof AnimalFeedDefSchema>
+export type WalletItemEffectType = Static<typeof WalletItemEffectTypeSchema>
+export type WalletItemEffect = Static<typeof WalletItemEffectSchema>
+export type WalletItemDef = Static<typeof WalletItemDefSchema>
 export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>
 export type AnimalBuildingMaterial = Static<typeof AnimalBuildingMaterialSchema>
 export type AnimalBuildingUpgrade = Static<typeof AnimalBuildingUpgradeSchema>

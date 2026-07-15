@@ -6,13 +6,13 @@
         <Wallet :size="14" />
         <span>钱袋</span>
       </div>
-      <span class="text-xs text-muted">{{ unlockedCount }}/{{ WALLET_ITEMS.length }}</span>
+      <span class="text-xs text-muted">{{ unlockedCount }}/{{ walletItems.length }}</span>
     </div>
     <p class="text-xs text-muted mb-3">永久被动加成，满足条件后自动解锁。</p>
 
     <div class="flex flex-col space-y-1.5">
       <div
-        v-for="item in WALLET_ITEMS"
+        v-for="item in walletItems"
         :key="item.id"
         class="border rounded-xs px-3 py-1.5 cursor-pointer hover:bg-accent/5"
         :class="walletStore.has(item.id) ? 'border-accent/20' : 'border-accent/10 opacity-50'"
@@ -70,12 +70,13 @@
   import { ref, computed } from 'vue'
   import { Wallet, CircleCheck, Lock, X } from 'lucide-vue-next'
   import { useWalletStore } from '@/stores/useWalletStore'
-  import { WALLET_ITEMS } from '@/data/wallet'
+  import { getWalletItems } from '@/data/wallet'
   import type { WalletItemDef } from '@/types'
 
   const walletStore = useWalletStore()
 
+  const walletItems = computed(() => getWalletItems())
   const selectedItem = ref<WalletItemDef | null>(null)
 
-  const unlockedCount = computed(() => WALLET_ITEMS.filter(i => walletStore.has(i.id)).length)
+  const unlockedCount = computed(() => walletItems.value.filter(i => walletStore.has(i.id)).length)
 </script>

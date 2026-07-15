@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 56,
-    "approximateLineCount": 31098,
+    "fileCount": 57,
+    "approximateLineCount": 31106,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 487,
-    "reviewedArtifactCount": 55
+    "symbolCount": 489,
+    "reviewedArtifactCount": 58
   },
   "entries": [
     {
@@ -1393,7 +1393,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 105,
+      "lines": 104,
       "symbols": [
         {
           "file": "src/data/buildings.ts",
@@ -8708,7 +8708,6 @@
     },
     {
       "file": "src/data/wallet.ts",
-      "lines": 59,
       "classification": "mixed",
       "domains": [
         "wallet_item",
@@ -8722,39 +8721,98 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 13,
       "symbols": [
         {
           "file": "src/data/wallet.ts",
           "exportName": "WALLET_ITEMS",
-          "syntaxKind": "const",
-          "classification": "content",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:wallet_item",
           "persistentIds": true,
           "consumers": [
+            "src/data/walletDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/walletRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps WALLET_ITEMS as an original-name re-export from walletDefinitions while wallet runtime lookups resolve taoyuan:wallet_item."
+        },
+        {
+          "file": "src/data/wallet.ts",
+          "exportName": "getWalletItems",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:wallet_item",
+          "persistentIds": false,
+          "consumers": [
             "src/stores/useWalletStore.ts",
+            "src/tests/domain/walletRegistryPilot.test.ts",
             "src/views/game/CharInfoView.vue",
             "src/views/game/WalletView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Legacy wallet item list query returns local-ID compatibility objects reconstructed from taoyuan:wallet_item."
         },
         {
           "file": "src/data/wallet.ts",
           "exportName": "getWalletItemById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:wallet_item",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/stores/useWalletStore.ts",
+            "src/tests/domain/walletRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getWalletItemById() signature is retained and now resolves taoyuan:wallet_item before returning an equivalent local-ID object."
+        }
+      ]
+    },
+    {
+      "file": "src/data/walletDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "wallet_item"
+      ],
+      "candidateTargets": [
+        "taoyuan:wallet_item"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 55,
+      "symbols": [
+        {
+          "file": "src/data/walletDefinitions.ts",
+          "exportName": "WALLET_ITEMS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:wallet_item",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/wallet.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/walletRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy wallet item definitions; Phase 6 projects IDs, display names, effects and unlock condition text into taoyuan:wallet_item."
         }
       ]
     },
@@ -9999,6 +10057,42 @@
       ],
       "status": "verified",
       "rationale": "Checks building upgrade material references plus cave mushroom and fruit pool item references before registry snapshots are accepted."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "WalletItemDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:wallet_item",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for wallet item definitions, including display text, passive effect descriptor and unlock condition text."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyWalletItem/createOfficialWalletItems",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:wallet_item",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects legacy wallet item definitions into official registry entries without changing IDs, names, descriptions, effects or unlock condition text."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialWalletItemDef/getOfficialWalletItemById/getOfficialWalletItemsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:wallet_item",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry wallet item definitions and reconstructs legacy WalletItemDef compatibility objects for Store and UI consumers."
     }
   ]
 }

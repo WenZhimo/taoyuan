@@ -1,0 +1,21 @@
+[
+  {
+    "id": "example_mod:test_wallet_item",
+    "name": {
+      "key": "example_mod.wallet_item.test.name",
+      "fallback": "测试钱袋物品"
+    },
+    "description": {
+      "key": "example_mod.wallet_item.test.description",
+      "fallback": "用于验证钱袋物品契约"
+    },
+    "effect": {
+      "type": "shopDiscount",
+      "value": 0.05
+    },
+    "unlockCondition": {
+      "key": "example_mod.wallet_item.test.unlock",
+      "fallback": "测试条件"
+    }
+  }
+]

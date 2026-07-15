@@ -252,6 +252,24 @@ fileDefaults.set('src/data/animalFeedDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/walletDefinitions.ts', {
+  file: 'src/data/walletDefinitions.ts',
+  classification: 'content',
+  domains: ['wallet_item'],
+  candidateTargets: ['taoyuan:wallet_item'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/wallet.ts', {
+  file: 'src/data/wallet.ts',
+  classification: 'mixed',
+  domains: ['wallet_item', 'lookup'],
+  candidateTargets: ['taoyuan:wallet_item', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/animalBuildingDefinitions.ts', {
   file: 'src/data/animalBuildingDefinitions.ts',
   classification: 'mixed',
@@ -518,6 +536,36 @@ const symbolReviewOverrides = new Map(Object.entries({
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
     rationale: 'Unique registry-free leaf source for all legacy animal feed definitions; Phase 6 projects IDs, display names, prices and descriptions into taoyuan:animal_feed.'
+  },
+  'src/data/walletDefinitions.ts:WALLET_ITEMS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:wallet_item',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all legacy wallet item definitions; Phase 6 projects IDs, display names, effects and unlock condition text into taoyuan:wallet_item.'
+  },
+  'src/data/wallet.ts:WALLET_ITEMS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:wallet_item',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps WALLET_ITEMS as an original-name re-export from walletDefinitions while wallet runtime lookups resolve taoyuan:wallet_item.'
+  },
+  'src/data/wallet.ts:getWalletItems': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:wallet_item',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy wallet item list query returns local-ID compatibility objects reconstructed from taoyuan:wallet_item.'
+  },
+  'src/data/wallet.ts:getWalletItemById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:wallet_item',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getWalletItemById() signature is retained and now resolves taoyuan:wallet_item before returning an equivalent local-ID object.'
   },
   'src/data/animalBuildingDefinitions.ts:AnimalBuildingUpgradeDef': {
     classification: 'adapter',
@@ -1950,6 +1998,36 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Checks building upgrade material references plus cave mushroom and fruit pool item references before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'WalletItemDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:wallet_item',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for wallet item definitions, including display text, passive effect descriptor and unlock condition text.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyWalletItem/createOfficialWalletItems',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:wallet_item',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects legacy wallet item definitions into official registry entries without changing IDs, names, descriptions, effects or unlock condition text.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialWalletItemDef/getOfficialWalletItemById/getOfficialWalletItemsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:wallet_item',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry wallet item definitions and reconstructs legacy WalletItemDef compatibility objects for Store and UI consumers.'
   }
 ]
 

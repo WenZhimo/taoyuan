@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { WALLET_ITEMS } from '@/data/wallet'
+import { getWalletItemById, getWalletItems } from '@/data/wallet'
 import { getOfficialFishDefsAsLegacy } from '@/domain/mods/contentAccess'
 import { useAchievementStore } from './useAchievementStore'
 import { useSkillStore } from './useSkillStore'
@@ -11,7 +11,7 @@ export const useWalletStore = defineStore('wallet', () => {
   const unlockedItems = ref<string[]>([])
 
   /** 已解锁的钱袋物品定义 */
-  const unlockedDefs = computed(() => WALLET_ITEMS.filter(w => unlockedItems.value.includes(w.id)))
+  const unlockedDefs = computed(() => getWalletItems().filter(w => unlockedItems.value.includes(w.id)))
 
   /** 检查是否已拥有某物品 */
   const has = (id: string): boolean => {
@@ -21,7 +21,7 @@ export const useWalletStore = defineStore('wallet', () => {
   /** 手动解锁 */
   const unlock = (id: string): boolean => {
     if (has(id)) return false
-    if (!WALLET_ITEMS.find(w => w.id === id)) return false
+    if (!getWalletItemById(id)) return false
     unlockedItems.value.push(id)
     return true
   }
