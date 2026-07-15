@@ -1,0 +1,72 @@
+{
+  "$id": "taoyuan.registry.MuseumMilestoneDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "count",
+    "name",
+    "reward"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "count": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "reward": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "money": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "items": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

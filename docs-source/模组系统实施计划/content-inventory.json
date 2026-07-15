@@ -3,11 +3,11 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 68,
-    "approximateLineCount": 31263,
+    "fileCount": 69,
+    "approximateLineCount": 31288,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 540,
+    "symbolCount": 547,
     "reviewedArtifactCount": 80
   },
   "entries": [
@@ -6582,8 +6582,174 @@
     },
     {
       "file": "src/data/museum.ts",
-      "lines": 82,
       "classification": "mixed",
+      "domains": [
+        "museum_item",
+        "museum_category",
+        "museum_milestone",
+        "lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:museum_item",
+        "taoyuan:museum_category",
+        "taoyuan:museum_milestone",
+        "compatibility_adapter"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 28,
+      "symbols": [
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "MUSEUM_CATEGORIES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_category",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/museumDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy museum category imports stable while runtime category lists resolve taoyuan:museum_category."
+        },
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "MUSEUM_ITEMS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_item",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/museumDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy museum item imports stable while Store and UI consumers use registry-backed list/query facades."
+        },
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "MUSEUM_MILESTONES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_milestone",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/museumDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy museum milestone imports stable while milestone reward lookup resolves taoyuan:museum_milestone."
+        },
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "getMuseumItems",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_item",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useMuseumStore.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts",
+            "src/views/game/MuseumView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy museum item list query returns local-ID compatibility objects reconstructed from taoyuan:museum_item."
+        },
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "getMuseumCategories",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_category",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/museumRegistryPilot.test.ts",
+            "src/views/game/MuseumView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy museum category list query returns category keys and labels reconstructed from taoyuan:museum_category."
+        },
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "getMuseumMilestones",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_milestone",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useMuseumStore.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts",
+            "src/views/game/MuseumView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy museum milestone list query returns local reward objects reconstructed from taoyuan:museum_milestone."
+        },
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "getMuseumItemById",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_item",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useMuseumStore.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy getMuseumItemById() signature is retained and now resolves taoyuan:museum_item before returning an equivalent local-ID object."
+        },
+        {
+          "file": "src/data/museum.ts",
+          "exportName": "getMuseumMilestoneByCount",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:museum_milestone",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useMuseumStore.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy museum milestone count lookup is retained and now resolves taoyuan:museum_milestone before returning an equivalent reward object."
+        }
+      ]
+    },
+    {
+      "file": "src/data/museumDefinitions.ts",
+      "classification": "content",
       "domains": [
         "museum_item",
         "museum_category",
@@ -6598,72 +6764,64 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 79,
       "symbols": [
         {
-          "file": "src/data/museum.ts",
+          "file": "src/data/museumDefinitions.ts",
           "exportName": "MUSEUM_ITEMS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:museum_item",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useMuseumStore.ts",
-            "src/views/game/MuseumView.vue"
+            "src/data/museum.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy museum donation items; Phase 6 projects item IDs, names, categories and source hints into taoyuan:museum_item."
         },
         {
-          "file": "src/data/museum.ts",
+          "file": "src/data/museumDefinitions.ts",
           "exportName": "MUSEUM_CATEGORIES",
           "syntaxKind": "const",
           "classification": "content",
-          "targetRegistry": "taoyuan:museum_item",
+          "targetRegistry": "taoyuan:museum_category",
           "persistentIds": true,
           "consumers": [
-            "src/views/game/MuseumView.vue"
+            "src/data/museum.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy museum categories; Phase 6 projects keys and labels into taoyuan:museum_category."
         },
         {
-          "file": "src/data/museum.ts",
+          "file": "src/data/museumDefinitions.ts",
           "exportName": "MUSEUM_MILESTONES",
           "syntaxKind": "const",
           "classification": "content",
-          "targetRegistry": "taoyuan:museum_item",
+          "targetRegistry": "taoyuan:museum_milestone",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useMuseumStore.ts",
-            "src/views/game/MuseumView.vue"
+            "src/data/museum.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/museumRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/museum.ts",
-          "exportName": "getMuseumItemById",
-          "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [],
-          "migrationPhase": [
-            6
-          ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy museum milestone rewards; Phase 6 projects counts, names, money and item rewards into taoyuan:museum_milestone."
         }
       ]
     },

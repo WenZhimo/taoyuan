@@ -265,6 +265,61 @@ export const WalletItemDefSchema = Type.Object(
   { $id: 'taoyuan.registry.WalletItemDef', additionalProperties: false }
 )
 
+export const MuseumCategoryKeySchema = Type.Union([
+  Type.Literal('ore'),
+  Type.Literal('gem'),
+  Type.Literal('bar'),
+  Type.Literal('fossil'),
+  Type.Literal('artifact'),
+  Type.Literal('spirit')
+])
+
+export const MuseumCategoryDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    key: MuseumCategoryKeySchema,
+    label: LocalizedTextRefSchema
+  },
+  { $id: 'taoyuan.registry.MuseumCategoryDef', additionalProperties: false }
+)
+
+export const MuseumItemDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    itemId: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    category: MuseumCategoryKeySchema,
+    sourceHint: LocalizedTextRefSchema
+  },
+  { $id: 'taoyuan.registry.MuseumItemDef', additionalProperties: false }
+)
+
+export const MuseumMilestoneRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const MuseumMilestoneRewardSchema = Type.Object(
+  {
+    money: Type.Optional(Type.Integer({ minimum: 0 })),
+    items: Type.Optional(Type.Array(MuseumMilestoneRewardItemSchema, { minItems: 1 }))
+  },
+  { additionalProperties: false }
+)
+
+export const MuseumMilestoneDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    count: Type.Integer({ minimum: 1 }),
+    name: LocalizedTextRefSchema,
+    reward: MuseumMilestoneRewardSchema
+  },
+  { $id: 'taoyuan.registry.MuseumMilestoneDef', additionalProperties: false }
+)
+
 export const SecretNoteTypeSchema = Type.Union([
   Type.Literal('tip'),
   Type.Literal('treasure'),
@@ -1105,6 +1160,9 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:animal': AnimalDefSchema,
   'taoyuan:animal_feed': AnimalFeedDefSchema,
   'taoyuan:wallet_item': WalletItemDefSchema,
+  'taoyuan:museum_category': MuseumCategoryDefSchema,
+  'taoyuan:museum_item': MuseumItemDefSchema,
+  'taoyuan:museum_milestone': MuseumMilestoneDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
@@ -1142,6 +1200,9 @@ export const PUBLIC_JSON_SCHEMAS = {
   'animal.schema.json': AnimalDefSchema,
   'animal-feed.schema.json': AnimalFeedDefSchema,
   'wallet-item.schema.json': WalletItemDefSchema,
+  'museum-category.schema.json': MuseumCategoryDefSchema,
+  'museum-item.schema.json': MuseumItemDefSchema,
+  'museum-milestone.schema.json': MuseumMilestoneDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
@@ -1184,6 +1245,12 @@ export type AnimalFeedDef = Static<typeof AnimalFeedDefSchema>
 export type WalletItemEffectType = Static<typeof WalletItemEffectTypeSchema>
 export type WalletItemEffect = Static<typeof WalletItemEffectSchema>
 export type WalletItemDef = Static<typeof WalletItemDefSchema>
+export type MuseumCategoryKey = Static<typeof MuseumCategoryKeySchema>
+export type MuseumCategoryDef = Static<typeof MuseumCategoryDefSchema>
+export type MuseumItemDef = Static<typeof MuseumItemDefSchema>
+export type MuseumMilestoneRewardItem = Static<typeof MuseumMilestoneRewardItemSchema>
+export type MuseumMilestoneReward = Static<typeof MuseumMilestoneRewardSchema>
+export type MuseumMilestoneDef = Static<typeof MuseumMilestoneDefSchema>
 export type SecretNoteType = Static<typeof SecretNoteTypeSchema>
 export type SecretNoteRewardItem = Static<typeof SecretNoteRewardItemSchema>
 export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>

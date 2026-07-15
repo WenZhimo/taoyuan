@@ -271,6 +271,24 @@ fileDefaults.set('src/data/wallet.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/museumDefinitions.ts', {
+  file: 'src/data/museumDefinitions.ts',
+  classification: 'content',
+  domains: ['museum_item', 'museum_category', 'museum_milestone'],
+  candidateTargets: ['taoyuan:museum_item', 'taoyuan:museum_category', 'taoyuan:museum_milestone'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/museum.ts', {
+  file: 'src/data/museum.ts',
+  classification: 'mixed',
+  domains: ['museum_item', 'museum_category', 'museum_milestone', 'lookup'],
+  candidateTargets: ['taoyuan:museum_item', 'taoyuan:museum_category', 'taoyuan:museum_milestone', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/secretNotes.ts', {
   file: 'src/data/secretNotes.ts',
   classification: 'content',
@@ -936,6 +954,89 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getWalletItemById() signature is retained and now resolves taoyuan:wallet_item before returning an equivalent local-ID object.'
+  },
+  'src/data/museumDefinitions.ts:MUSEUM_CATEGORIES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:museum_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy museum categories; Phase 6 projects keys and labels into taoyuan:museum_category.'
+  },
+  'src/data/museumDefinitions.ts:MUSEUM_ITEMS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:museum_item',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all legacy museum donation items; Phase 6 projects item IDs, names, categories and source hints into taoyuan:museum_item.'
+  },
+  'src/data/museumDefinitions.ts:MUSEUM_MILESTONES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:museum_milestone',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy museum milestone rewards; Phase 6 projects counts, names, money and item rewards into taoyuan:museum_milestone.'
+  },
+  'src/data/museum.ts:MUSEUM_CATEGORIES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy museum category imports stable while runtime category lists resolve taoyuan:museum_category.'
+  },
+  'src/data/museum.ts:MUSEUM_ITEMS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_item',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy museum item imports stable while Store and UI consumers use registry-backed list/query facades.'
+  },
+  'src/data/museum.ts:MUSEUM_MILESTONES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_milestone',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy museum milestone imports stable while milestone reward lookup resolves taoyuan:museum_milestone.'
+  },
+  'src/data/museum.ts:getMuseumItems': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_item',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy museum item list query returns local-ID compatibility objects reconstructed from taoyuan:museum_item.'
+  },
+  'src/data/museum.ts:getMuseumCategories': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_category',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy museum category list query returns category keys and labels reconstructed from taoyuan:museum_category.'
+  },
+  'src/data/museum.ts:getMuseumMilestones': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_milestone',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy museum milestone list query returns local reward objects reconstructed from taoyuan:museum_milestone.'
+  },
+  'src/data/museum.ts:getMuseumItemById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_item',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getMuseumItemById() signature is retained and now resolves taoyuan:museum_item before returning an equivalent local-ID object.'
+  },
+  'src/data/museum.ts:getMuseumMilestoneByCount': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:museum_milestone',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy museum milestone count lookup is retained and now resolves taoyuan:museum_milestone before returning an equivalent reward object.'
   },
   'src/data/secretNotes.ts:SECRET_NOTES': {
     classification: 'content',

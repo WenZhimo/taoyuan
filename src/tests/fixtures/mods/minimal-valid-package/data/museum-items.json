@@ -1,0 +1,15 @@
+[
+  {
+    "id": "example_mod:museum_item/test_copper_ore",
+    "itemId": "taoyuan:copper_ore",
+    "name": {
+      "key": "example_mod.museum_item.test_copper_ore.name",
+      "fallback": "测试铜矿"
+    },
+    "category": "ore",
+    "sourceHint": {
+      "key": "example_mod.museum_item.test_copper_ore.source_hint",
+      "fallback": "测试来源"
+    }
+  }
+]

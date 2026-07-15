@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { MUSEUM_ITEMS, MUSEUM_MILESTONES } from '@/data/museum'
+import { getMuseumItemById, getMuseumItems, getMuseumMilestoneByCount, getMuseumMilestones } from '@/data/museum'
 import { useInventoryStore } from './useInventoryStore'
 import { usePlayerStore } from './usePlayerStore'
 
@@ -15,7 +15,7 @@ export const useMuseumStore = defineStore('museum', () => {
   const donatedCount = computed(() => donatedItems.value.length)
 
   /** 总物品数 */
-  const totalCount = computed(() => MUSEUM_ITEMS.length)
+  const totalCount = computed(() => getMuseumItems().length)
 
   /** 是否已捐赠 */
   const isDonated = (itemId: string): boolean => {
@@ -25,7 +25,7 @@ export const useMuseumStore = defineStore('museum', () => {
   /** 是否可捐赠（背包中有且未捐赠过） */
   const canDonate = (itemId: string): boolean => {
     if (isDonated(itemId)) return false
-    if (!MUSEUM_ITEMS.find(m => m.id === itemId)) return false
+    if (!getMuseumItemById(itemId)) return false
     const inventoryStore = useInventoryStore()
     return inventoryStore.hasItem(itemId)
   }
@@ -35,7 +35,7 @@ export const useMuseumStore = defineStore('museum', () => {
     const inventoryStore = useInventoryStore()
     return inventoryStore.items
       .filter(inv => {
-        const museumItem = MUSEUM_ITEMS.find(m => m.id === inv.itemId)
+        const museumItem = getMuseumItemById(inv.itemId)
         return museumItem && !isDonated(inv.itemId)
       })
       .map(inv => inv.itemId)
@@ -53,12 +53,12 @@ export const useMuseumStore = defineStore('museum', () => {
 
   /** 可领取的里程碑 */
   const claimableMilestones = computed(() => {
-    return MUSEUM_MILESTONES.filter(m => donatedCount.value >= m.count && !claimedMilestones.value.includes(m.count))
+    return getMuseumMilestones().filter(m => donatedCount.value >= m.count && !claimedMilestones.value.includes(m.count))
   })
 
   /** 领取里程碑奖励 */
   const claimMilestone = (count: number): boolean => {
-    const milestone = MUSEUM_MILESTONES.find(m => m.count === count)
+    const milestone = getMuseumMilestoneByCount(count)
     if (!milestone) return false
     if (donatedCount.value < count) return false
     if (claimedMilestones.value.includes(count)) return false

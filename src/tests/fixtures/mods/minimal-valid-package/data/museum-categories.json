@@ -1,0 +1,10 @@
+[
+  {
+    "id": "example_mod:museum_category/ore",
+    "key": "ore",
+    "label": {
+      "key": "example_mod.museum_category.ore.label",
+      "fallback": "矿石"
+    }
+  }
+]

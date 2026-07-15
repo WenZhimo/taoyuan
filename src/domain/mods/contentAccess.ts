@@ -14,6 +14,9 @@ import type {
   ToolType,
   WeaponDef as LegacyWeaponDef,
   WalletItemDef as LegacyWalletItemDef,
+  MuseumCategory as LegacyMuseumCategory,
+  MuseumItemDef as LegacyMuseumItemDef,
+  MuseumMilestone as LegacyMuseumMilestone,
   SecretNoteDef as LegacySecretNoteDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
@@ -75,6 +78,9 @@ import type {
   ForageDef,
   FruitTreeContentDef,
   ItemDef,
+  MuseumCategoryDef as MuseumCategoryContentDef,
+  MuseumItemDef as MuseumItemContentDef,
+  MuseumMilestoneDef as MuseumMilestoneContentDef,
   MonsterDef,
   MonsterPoolDef,
   PondBreedDef,
@@ -594,6 +600,37 @@ export const getOfficialWalletItemDef = (id: string): Readonly<WalletItemContent
 export const getOfficialWalletItemDefs = (): readonly Readonly<WalletItemContentDef>[] =>
   getOfficialRegistrySet().get<WalletItemContentDef>(toOfficialRegistryTypeId('wallet_item')).values()
 
+export const getOfficialMuseumCategoryDef = (id: string): Readonly<MuseumCategoryContentDef> | undefined => {
+  const contentId = toQueryContentId(id.includes('/') ? id : `museum_category/${id}`)
+  return contentId
+    ? getOfficialRegistrySet().get<MuseumCategoryContentDef>(toOfficialRegistryTypeId('museum_category')).get(contentId)
+    : undefined
+}
+
+export const getOfficialMuseumCategoryDefs = (): readonly Readonly<MuseumCategoryContentDef>[] =>
+  getOfficialRegistrySet().get<MuseumCategoryContentDef>(toOfficialRegistryTypeId('museum_category')).values()
+
+export const getOfficialMuseumItemDef = (id: string): Readonly<MuseumItemContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<MuseumItemContentDef>(toOfficialRegistryTypeId('museum_item')).get(contentId)
+    : undefined
+}
+
+export const getOfficialMuseumItemDefs = (): readonly Readonly<MuseumItemContentDef>[] =>
+  getOfficialRegistrySet().get<MuseumItemContentDef>(toOfficialRegistryTypeId('museum_item')).values()
+
+export const getOfficialMuseumMilestoneDef = (id: number | string): Readonly<MuseumMilestoneContentDef> | undefined => {
+  const rawId = typeof id === 'number' ? `museum_milestone/${id}` : id
+  const contentId = toQueryContentId(rawId.includes(':') || rawId.includes('/') ? rawId : `museum_milestone/${rawId}`)
+  return contentId
+    ? getOfficialRegistrySet().get<MuseumMilestoneContentDef>(toOfficialRegistryTypeId('museum_milestone')).get(contentId)
+    : undefined
+}
+
+export const getOfficialMuseumMilestoneDefs = (): readonly Readonly<MuseumMilestoneContentDef>[] =>
+  getOfficialRegistrySet().get<MuseumMilestoneContentDef>(toOfficialRegistryTypeId('museum_milestone')).values()
+
 export const getOfficialSecretNoteDef = (id: number | string): Readonly<SecretNoteContentDef> | undefined => {
   const contentId = toSecretNoteQueryContentId(id)
   return contentId
@@ -708,6 +745,57 @@ export const getOfficialWalletItemById = (id: string): LegacyWalletItemDef | und
 
 export const getOfficialWalletItemsAsLegacy = (): readonly LegacyWalletItemDef[] =>
   getOfficialWalletItemDefs().map(toLegacyWalletItemDef)
+
+const toLegacyMuseumCategory = (category: Readonly<MuseumCategoryContentDef>) => ({
+  key: category.key as LegacyMuseumCategory,
+  label: category.label.fallback
+})
+
+export const getOfficialMuseumCategoriesAsLegacy = () =>
+  getOfficialMuseumCategoryDefs().map(toLegacyMuseumCategory)
+
+const toLegacyMuseumItemDef = (item: Readonly<MuseumItemContentDef>): LegacyMuseumItemDef => ({
+  id: getLocalContentId(item.itemId),
+  name: item.name.fallback,
+  category: item.category as LegacyMuseumItemDef['category'],
+  sourceHint: item.sourceHint.fallback
+})
+
+export const getOfficialMuseumItemById = (id: string): LegacyMuseumItemDef | undefined => {
+  const item = getOfficialMuseumItemDef(id)
+  return item ? toLegacyMuseumItemDef(item) : undefined
+}
+
+export const getOfficialMuseumItemsAsLegacy = (): readonly LegacyMuseumItemDef[] =>
+  getOfficialMuseumItemDefs().map(toLegacyMuseumItemDef)
+
+const toLegacyMuseumMilestoneReward = (
+  reward: Readonly<MuseumMilestoneContentDef['reward']>
+): LegacyMuseumMilestone['reward'] => ({
+  ...(reward.money !== undefined ? { money: reward.money } : {}),
+  ...(reward.items
+    ? {
+        items: reward.items.map(item => ({
+          itemId: getLocalContentId(item.itemId),
+          quantity: item.quantity
+        }))
+      }
+    : {})
+})
+
+const toLegacyMuseumMilestone = (milestone: Readonly<MuseumMilestoneContentDef>): LegacyMuseumMilestone => ({
+  count: milestone.count,
+  name: milestone.name.fallback,
+  reward: toLegacyMuseumMilestoneReward(milestone.reward)
+})
+
+export const getOfficialMuseumMilestoneByCount = (count: number): LegacyMuseumMilestone | undefined => {
+  const milestone = getOfficialMuseumMilestoneDef(count)
+  return milestone ? toLegacyMuseumMilestone(milestone) : undefined
+}
+
+export const getOfficialMuseumMilestonesAsLegacy = (): readonly LegacyMuseumMilestone[] =>
+  getOfficialMuseumMilestoneDefs().map(toLegacyMuseumMilestone)
 
 const toLegacySecretNoteReward = (
   reward: Readonly<NonNullable<SecretNoteContentDef['reward']>>

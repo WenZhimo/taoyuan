@@ -1,0 +1,87 @@
+{
+  "$id": "taoyuan.registry.MuseumItemDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "itemId",
+    "name",
+    "category",
+    "sourceHint"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "itemId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "category": {
+      "anyOf": [
+        {
+          "const": "ore",
+          "type": "string"
+        },
+        {
+          "const": "gem",
+          "type": "string"
+        },
+        {
+          "const": "bar",
+          "type": "string"
+        },
+        {
+          "const": "fossil",
+          "type": "string"
+        },
+        {
+          "const": "artifact",
+          "type": "string"
+        },
+        {
+          "const": "spirit",
+          "type": "string"
+        }
+      ]
+    },
+    "sourceHint": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

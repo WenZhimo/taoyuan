@@ -58508,6 +58508,1082 @@
       ]
     },
     {
+      "registryId": "taoyuan:museum_category",
+      "schemaName": "museum-category.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:museum_category/artifact",
+            "key": "artifact",
+            "label": {
+              "fallback": "古物",
+              "key": "taoyuan.museum_category.artifact.label"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:museum_category/bar",
+            "key": "bar",
+            "label": {
+              "fallback": "金属锭",
+              "key": "taoyuan.museum_category.bar.label"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:museum_category/fossil",
+            "key": "fossil",
+            "label": {
+              "fallback": "化石",
+              "key": "taoyuan.museum_category.fossil.label"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:museum_category/gem",
+            "key": "gem",
+            "label": {
+              "fallback": "宝石",
+              "key": "taoyuan.museum_category.gem.label"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:museum_category/ore",
+            "key": "ore",
+            "label": {
+              "fallback": "矿石",
+              "key": "taoyuan.museum_category.ore.label"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:museum_category/spirit",
+            "key": "spirit",
+            "label": {
+              "fallback": "仙灵",
+              "key": "taoyuan.museum_category.spirit.label"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "registryId": "taoyuan:museum_item",
+      "schemaName": "museum-item.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:amber",
+            "itemId": "taoyuan:amber",
+            "name": {
+              "fallback": "琥珀",
+              "key": "taoyuan.museum_item.amber.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞暗河层掉落",
+              "key": "taoyuan.museum_item.amber.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:ammonite_fossil",
+            "itemId": "taoyuan:ammonite_fossil",
+            "name": {
+              "fallback": "菊石化石",
+              "key": "taoyuan.museum_item.ammonite_fossil.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞熔岩/水晶层宝箱",
+              "key": "taoyuan.museum_item.ammonite_fossil.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:ancient_coin",
+            "itemId": "taoyuan:ancient_coin",
+            "name": {
+              "fallback": "远古铜钱",
+              "key": "taoyuan.museum_item.ancient_coin.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞暗河层掉落",
+              "key": "taoyuan.museum_item.ancient_coin.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:ancient_pottery",
+            "itemId": "taoyuan:ancient_pottery",
+            "name": {
+              "fallback": "古陶片",
+              "key": "taoyuan.museum_item.ancient_pottery.name"
+            },
+            "sourceHint": {
+              "fallback": "竹林稀有采集",
+              "key": "taoyuan.museum_item.ancient_pottery.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:ancient_seed",
+            "itemId": "taoyuan:ancient_seed",
+            "name": {
+              "fallback": "远古种子",
+              "key": "taoyuan.museum_item.ancient_seed.name"
+            },
+            "sourceHint": {
+              "fallback": "深层宝箱极稀有",
+              "key": "taoyuan.museum_item.ancient_seed.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:bamboo_scroll",
+            "itemId": "taoyuan:bamboo_scroll",
+            "name": {
+              "fallback": "竹简",
+              "key": "taoyuan.museum_item.bamboo_scroll.name"
+            },
+            "sourceHint": {
+              "fallback": "竹林稀有采集",
+              "key": "taoyuan.museum_item.bamboo_scroll.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:bone_fragment",
+            "itemId": "taoyuan:bone_fragment",
+            "name": {
+              "fallback": "骨骸碎片",
+              "key": "taoyuan.museum_item.bone_fragment.name"
+            },
+            "sourceHint": {
+              "fallback": "深层怪物稀有掉落",
+              "key": "taoyuan.museum_item.bone_fragment.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:bronze_mirror",
+            "itemId": "taoyuan:bronze_mirror",
+            "name": {
+              "fallback": "铜镜",
+              "key": "taoyuan.museum_item.bronze_mirror.name"
+            },
+            "sourceHint": {
+              "fallback": "熔岩层宝箱",
+              "key": "taoyuan.museum_item.bronze_mirror.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "bar",
+            "id": "taoyuan:copper_bar",
+            "itemId": "taoyuan:copper_bar",
+            "name": {
+              "fallback": "铜锭",
+              "key": "taoyuan.museum_item.copper_bar.name"
+            },
+            "sourceHint": {
+              "fallback": "熔炉冶炼铜矿",
+              "key": "taoyuan.museum_item.copper_bar.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "ore",
+            "id": "taoyuan:copper_ore",
+            "itemId": "taoyuan:copper_ore",
+            "name": {
+              "fallback": "铜矿",
+              "key": "taoyuan.museum_item.copper_ore.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞浅层采集",
+              "key": "taoyuan.museum_item.copper_ore.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "ore",
+            "id": "taoyuan:crystal_ore",
+            "itemId": "taoyuan:crystal_ore",
+            "name": {
+              "fallback": "水晶矿",
+              "key": "taoyuan.museum_item.crystal_ore.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞水晶层采集",
+              "key": "taoyuan.museum_item.crystal_ore.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "gem",
+            "id": "taoyuan:dragon_jade",
+            "itemId": "taoyuan:dragon_jade",
+            "name": {
+              "fallback": "龙玉",
+              "key": "taoyuan.museum_item.dragon_jade.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞深渊层",
+              "key": "taoyuan.museum_item.dragon_jade.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:dragon_tooth",
+            "itemId": "taoyuan:dragon_tooth",
+            "name": {
+              "fallback": "龙牙化石",
+              "key": "taoyuan.museum_item.dragon_tooth.name"
+            },
+            "sourceHint": {
+              "fallback": "深渊层宝箱或骨龙掉落",
+              "key": "taoyuan.museum_item.dragon_tooth.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "spirit",
+            "id": "taoyuan:dream_silk",
+            "itemId": "taoyuan:dream_silk",
+            "name": {
+              "fallback": "梦丝",
+              "key": "taoyuan.museum_item.dream_silk.name"
+            },
+            "sourceHint": {
+              "fallback": "归女赐福后织布机概率产出",
+              "key": "taoyuan.museum_item.dream_silk.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:fern_fossil",
+            "itemId": "taoyuan:fern_fossil",
+            "name": {
+              "fallback": "蕨叶化石",
+              "key": "taoyuan.museum_item.fern_fossil.name"
+            },
+            "sourceHint": {
+              "fallback": "竹林稀有采集",
+              "key": "taoyuan.museum_item.fern_fossil.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "spirit",
+            "id": "taoyuan:fox_bead",
+            "itemId": "taoyuan:fox_bead",
+            "name": {
+              "fallback": "狐珠",
+              "key": "taoyuan.museum_item.fox_bead.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞深处（与狐仙有关的线索）",
+              "key": "taoyuan.museum_item.fox_bead.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "bar",
+            "id": "taoyuan:gold_bar",
+            "itemId": "taoyuan:gold_bar",
+            "name": {
+              "fallback": "金锭",
+              "key": "taoyuan.museum_item.gold_bar.name"
+            },
+            "sourceHint": {
+              "fallback": "熔炉冶炼金矿",
+              "key": "taoyuan.museum_item.gold_bar.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "ore",
+            "id": "taoyuan:gold_ore",
+            "itemId": "taoyuan:gold_ore",
+            "name": {
+              "fallback": "金矿",
+              "key": "taoyuan.museum_item.gold_ore.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞熔岩层采集",
+              "key": "taoyuan.museum_item.gold_ore.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "bar",
+            "id": "taoyuan:iridium_bar",
+            "itemId": "taoyuan:iridium_bar",
+            "name": {
+              "fallback": "铱锭",
+              "key": "taoyuan.museum_item.iridium_bar.name"
+            },
+            "sourceHint": {
+              "fallback": "熔炉冶炼铱矿",
+              "key": "taoyuan.museum_item.iridium_bar.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "ore",
+            "id": "taoyuan:iridium_ore",
+            "itemId": "taoyuan:iridium_ore",
+            "name": {
+              "fallback": "铱矿",
+              "key": "taoyuan.museum_item.iridium_ore.name"
+            },
+            "sourceHint": {
+              "fallback": "骷髅矿穴采集",
+              "key": "taoyuan.museum_item.iridium_ore.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "bar",
+            "id": "taoyuan:iron_bar",
+            "itemId": "taoyuan:iron_bar",
+            "name": {
+              "fallback": "铁锭",
+              "key": "taoyuan.museum_item.iron_bar.name"
+            },
+            "sourceHint": {
+              "fallback": "熔炉冶炼铁矿",
+              "key": "taoyuan.museum_item.iron_bar.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "ore",
+            "id": "taoyuan:iron_ore",
+            "itemId": "taoyuan:iron_ore",
+            "name": {
+              "fallback": "铁矿",
+              "key": "taoyuan.museum_item.iron_ore.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞冰霜层采集",
+              "key": "taoyuan.museum_item.iron_ore.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "gem",
+            "id": "taoyuan:jade",
+            "itemId": "taoyuan:jade",
+            "name": {
+              "fallback": "翡翠",
+              "key": "taoyuan.museum_item.jade.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞冰霜层以下",
+              "key": "taoyuan.museum_item.jade.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:jade_disc",
+            "itemId": "taoyuan:jade_disc",
+            "name": {
+              "fallback": "玉璧残片",
+              "key": "taoyuan.museum_item.jade_disc.name"
+            },
+            "sourceHint": {
+              "fallback": "水晶层宝箱",
+              "key": "taoyuan.museum_item.jade_disc.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:jade_pendant",
+            "itemId": "taoyuan:jade_pendant",
+            "name": {
+              "fallback": "玉佩",
+              "key": "taoyuan.museum_item.jade_pendant.name"
+            },
+            "sourceHint": {
+              "fallback": "水晶层掉落",
+              "key": "taoyuan.museum_item.jade_pendant.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "spirit",
+            "id": "taoyuan:moon_herb",
+            "itemId": "taoyuan:moon_herb",
+            "name": {
+              "fallback": "月草",
+              "key": "taoyuan.museum_item.moon_herb.name"
+            },
+            "sourceHint": {
+              "fallback": "月兔赐福后采集概率获得",
+              "key": "taoyuan.museum_item.moon_herb.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "gem",
+            "id": "taoyuan:moonstone",
+            "itemId": "taoyuan:moonstone",
+            "name": {
+              "fallback": "月光石",
+              "key": "taoyuan.museum_item.moonstone.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞水晶层",
+              "key": "taoyuan.museum_item.moonstone.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "gem",
+            "id": "taoyuan:obsidian",
+            "itemId": "taoyuan:obsidian",
+            "name": {
+              "fallback": "黑曜石",
+              "key": "taoyuan.museum_item.obsidian.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞暗影层",
+              "key": "taoyuan.museum_item.obsidian.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:oracle_bone",
+            "itemId": "taoyuan:oracle_bone",
+            "name": {
+              "fallback": "甲骨片",
+              "key": "taoyuan.museum_item.oracle_bone.name"
+            },
+            "sourceHint": {
+              "fallback": "暗影层宝箱",
+              "key": "taoyuan.museum_item.oracle_bone.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:painted_pottery",
+            "itemId": "taoyuan:painted_pottery",
+            "name": {
+              "fallback": "彩陶碎片",
+              "key": "taoyuan.museum_item.painted_pottery.name"
+            },
+            "sourceHint": {
+              "fallback": "熔岩层宝箱",
+              "key": "taoyuan.museum_item.painted_pottery.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:petrified_wood",
+            "itemId": "taoyuan:petrified_wood",
+            "name": {
+              "fallback": "石化木",
+              "key": "taoyuan.museum_item.petrified_wood.name"
+            },
+            "sourceHint": {
+              "fallback": "竹林稀有采集",
+              "key": "taoyuan.museum_item.petrified_wood.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "gem",
+            "id": "taoyuan:prismatic_shard",
+            "itemId": "taoyuan:prismatic_shard",
+            "name": {
+              "fallback": "五彩碎片",
+              "key": "taoyuan.museum_item.prismatic_shard.name"
+            },
+            "sourceHint": {
+              "fallback": "极其稀有，深层宝箱",
+              "key": "taoyuan.museum_item.prismatic_shard.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "gem",
+            "id": "taoyuan:quartz",
+            "itemId": "taoyuan:quartz",
+            "name": {
+              "fallback": "石英",
+              "key": "taoyuan.museum_item.quartz.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞各层采集",
+              "key": "taoyuan.museum_item.quartz.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "gem",
+            "id": "taoyuan:ruby",
+            "itemId": "taoyuan:ruby",
+            "name": {
+              "fallback": "红宝石",
+              "key": "taoyuan.museum_item.ruby.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞熔岩层以下",
+              "key": "taoyuan.museum_item.ruby.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "ore",
+            "id": "taoyuan:shadow_ore",
+            "itemId": "taoyuan:shadow_ore",
+            "name": {
+              "fallback": "暗影矿",
+              "key": "taoyuan.museum_item.shadow_ore.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞暗影层采集",
+              "key": "taoyuan.museum_item.shadow_ore.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:shell_fossil",
+            "itemId": "taoyuan:shell_fossil",
+            "name": {
+              "fallback": "螺壳化石",
+              "key": "taoyuan.museum_item.shell_fossil.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞浅层/冰霜层宝箱",
+              "key": "taoyuan.museum_item.shell_fossil.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "spirit",
+            "id": "taoyuan:spirit_peach",
+            "itemId": "taoyuan:spirit_peach",
+            "name": {
+              "fallback": "灵桃",
+              "key": "taoyuan.museum_item.spirit_peach.name"
+            },
+            "sourceHint": {
+              "fallback": "桃夭赐福的桃树概率产出",
+              "key": "taoyuan.museum_item.spirit_peach.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "artifact",
+            "id": "taoyuan:stone_axe_head",
+            "itemId": "taoyuan:stone_axe_head",
+            "name": {
+              "fallback": "石斧头",
+              "key": "taoyuan.museum_item.stone_axe_head.name"
+            },
+            "sourceHint": {
+              "fallback": "竹林稀有采集",
+              "key": "taoyuan.museum_item.stone_axe_head.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "fossil",
+            "id": "taoyuan:trilobite_fossil",
+            "itemId": "taoyuan:trilobite_fossil",
+            "name": {
+              "fallback": "三叶虫化石",
+              "key": "taoyuan.museum_item.trilobite_fossil.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞浅层/冰霜层宝箱",
+              "key": "taoyuan.museum_item.trilobite_fossil.sourceHint"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "category": "ore",
+            "id": "taoyuan:void_ore",
+            "itemId": "taoyuan:void_ore",
+            "name": {
+              "fallback": "虚空矿",
+              "key": "taoyuan.museum_item.void_ore.name"
+            },
+            "sourceHint": {
+              "fallback": "矿洞深渊层采集",
+              "key": "taoyuan.museum_item.void_ore.sourceHint"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "registryId": "taoyuan:museum_milestone",
+      "schemaName": "museum-milestone.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 10,
+            "id": "taoyuan:museum_milestone/10",
+            "name": {
+              "fallback": "小有收藏",
+              "key": "taoyuan.museum_milestone.10.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:ancient_seed",
+                  "quantity": 1
+                }
+              ],
+              "money": 500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 15,
+            "id": "taoyuan:museum_milestone/15",
+            "name": {
+              "fallback": "矿石鉴赏家",
+              "key": "taoyuan.museum_milestone.15.name"
+            },
+            "reward": {
+              "money": 1000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 20,
+            "id": "taoyuan:museum_milestone/20",
+            "name": {
+              "fallback": "博古通今",
+              "key": "taoyuan.museum_milestone.20.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:prismatic_shard",
+                  "quantity": 1
+                }
+              ],
+              "money": 1500
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 25,
+            "id": "taoyuan:museum_milestone/25",
+            "name": {
+              "fallback": "文物守护者",
+              "key": "taoyuan.museum_milestone.25.name"
+            },
+            "reward": {
+              "money": 3000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 30,
+            "id": "taoyuan:museum_milestone/30",
+            "name": {
+              "fallback": "远古探秘",
+              "key": "taoyuan.museum_milestone.30.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_bar",
+                  "quantity": 3
+                }
+              ],
+              "money": 5000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 36,
+            "id": "taoyuan:museum_milestone/36",
+            "name": {
+              "fallback": "博物馆之星",
+              "key": "taoyuan.museum_milestone.36.name"
+            },
+            "reward": {
+              "money": 10000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 40,
+            "id": "taoyuan:museum_milestone/40",
+            "name": {
+              "fallback": "灵物全鉴",
+              "key": "taoyuan.museum_milestone.40.name"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:moonstone",
+                  "quantity": 3
+                }
+              ],
+              "money": 8000
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/museumDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "count": 5,
+            "id": "taoyuan:museum_milestone/5",
+            "name": {
+              "fallback": "初窥门径",
+              "key": "taoyuan.museum_milestone.5.name"
+            },
+            "reward": {
+              "money": 300
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:pond_breed",
       "schemaName": "pond-breed.schema.json",
       "entries": [
@@ -82986,5 +84062,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:e923ad2386aa950a9b0d552046649cba01d65205efd3bb0580fda37340de9a3b"
+  "snapshotHash": "sha256:e2071c7176d3508ee82a61c33df8027e10f76bc5fe285c7fb2b4c7b875b184fe"
 }

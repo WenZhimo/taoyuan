@@ -31,6 +31,7 @@ import { MONSTER_DROP_SHOES, SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/da
 import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
 import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
+import { MUSEUM_CATEGORIES, MUSEUM_ITEMS, MUSEUM_MILESTONES } from '@/data/museumDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
 import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
@@ -110,6 +111,9 @@ import type {
   FishPondFacilityDef,
   ForageDef,
   ItemDef,
+  MuseumCategoryDef,
+  MuseumItemDef,
+  MuseumMilestoneDef,
   CropDef,
   MonsterDef,
   MonsterPoolDef,
@@ -181,6 +185,21 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('wallet_item'),
     description: '钱袋永久被动物品定义',
     schemaName: 'wallet-item.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('museum_category'),
+    description: '博物馆分类定义',
+    schemaName: 'museum-category.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('museum_item'),
+    description: '博物馆可捐赠物品定义',
+    schemaName: 'museum-item.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('museum_milestone'),
+    description: '博物馆里程碑奖励定义',
+    schemaName: 'museum-milestone.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('secret_note'),
@@ -695,6 +714,45 @@ export const adaptLegacyWalletItem = (item: (typeof WALLET_ITEMS)[number]): Wall
 })
 
 export const createOfficialWalletItems = (): WalletItemDef[] => WALLET_ITEMS.map(adaptLegacyWalletItem)
+
+export const adaptLegacyMuseumCategory = (category: (typeof MUSEUM_CATEGORIES)[number]): MuseumCategoryDef => ({
+  id: toOfficialContentId(`museum_category/${category.key}`),
+  key: category.key,
+  label: text(`taoyuan.museum_category.${category.key}.label`, category.label)
+})
+
+export const createOfficialMuseumCategories = (): MuseumCategoryDef[] =>
+  MUSEUM_CATEGORIES.map(adaptLegacyMuseumCategory)
+
+export const adaptLegacyMuseumItem = (item: (typeof MUSEUM_ITEMS)[number]): MuseumItemDef => ({
+  id: toOfficialContentId(item.id),
+  itemId: toOfficialContentId(item.id),
+  name: text(`taoyuan.museum_item.${item.id}.name`, item.name),
+  category: item.category,
+  sourceHint: text(`taoyuan.museum_item.${item.id}.sourceHint`, item.sourceHint)
+})
+
+export const createOfficialMuseumItems = (): MuseumItemDef[] => MUSEUM_ITEMS.map(adaptLegacyMuseumItem)
+
+export const adaptLegacyMuseumMilestone = (milestone: (typeof MUSEUM_MILESTONES)[number]): MuseumMilestoneDef => ({
+  id: toOfficialContentId(`museum_milestone/${milestone.count}`),
+  count: milestone.count,
+  name: text(`taoyuan.museum_milestone.${milestone.count}.name`, milestone.name),
+  reward: {
+    ...(milestone.reward.money !== undefined ? { money: milestone.reward.money } : {}),
+    ...(milestone.reward.items
+      ? {
+          items: milestone.reward.items.map(item => ({
+            itemId: toOfficialContentId(item.itemId),
+            quantity: item.quantity
+          }))
+        }
+      : {})
+  }
+})
+
+export const createOfficialMuseumMilestones = (): MuseumMilestoneDef[] =>
+  MUSEUM_MILESTONES.map(adaptLegacyMuseumMilestone)
 
 export const adaptLegacySecretNote = (note: (typeof SECRET_NOTES)[number]): SecretNoteDef => ({
   id: toOfficialContentId(`secret_note/${note.id}`),
@@ -1243,6 +1301,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const animalRegistry = registrySet.get<AnimalDef>(toOfficialRegistryTypeId('animal'))
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(toOfficialRegistryTypeId('animal_feed'))
   const walletItemRegistry = registrySet.get<WalletItemDef>(toOfficialRegistryTypeId('wallet_item'))
+  const museumCategoryRegistry = registrySet.get<MuseumCategoryDef>(toOfficialRegistryTypeId('museum_category'))
+  const museumItemRegistry = registrySet.get<MuseumItemDef>(toOfficialRegistryTypeId('museum_item'))
+  const museumMilestoneRegistry = registrySet.get<MuseumMilestoneDef>(toOfficialRegistryTypeId('museum_milestone'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
@@ -1277,6 +1338,15 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const item of createOfficialWalletItems()) {
     walletItemRegistry.register(owner, item, { file: 'src/data/walletDefinitions.ts' })
+  }
+  for (const category of createOfficialMuseumCategories()) {
+    museumCategoryRegistry.register(owner, category, { file: 'src/data/museumDefinitions.ts' })
+  }
+  for (const item of createOfficialMuseumItems()) {
+    museumItemRegistry.register(owner, item, { file: 'src/data/museumDefinitions.ts' })
+  }
+  for (const milestone of createOfficialMuseumMilestones()) {
+    museumMilestoneRegistry.register(owner, milestone, { file: 'src/data/museumDefinitions.ts' })
   }
   for (const note of createOfficialSecretNotes()) {
     secretNoteRegistry.register(owner, note, { file: 'src/data/secretNotes.ts' })

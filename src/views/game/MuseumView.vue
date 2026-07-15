@@ -22,7 +22,7 @@
       <!-- 分类标签 -->
       <div class="grid grid-cols-3 md:grid-cols-6 gap-1 mb-3">
         <Button
-          v-for="cat in MUSEUM_CATEGORIES"
+          v-for="cat in museumCategories"
           :key="cat.key"
           class="justify-center whitespace-nowrap"
           :class="{ '!bg-accent !text-bg': activeCategory === cat.key }"
@@ -63,7 +63,7 @@
         <p class="text-xs text-muted mb-2">里程碑奖励</p>
         <div class="flex flex-col space-y-1 max-h-52 overflow-y-auto">
           <div
-            v-for="ms in MUSEUM_MILESTONES"
+            v-for="ms in museumMilestones"
             :key="ms.count"
             class="flex items-center space-x-2 text-xs border border-accent/10 rounded-xs px-2 py-1 mr-1"
           >
@@ -107,7 +107,7 @@
           </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-muted">已领取里程碑</span>
-            <span class="text-xs">{{ museumStore.claimedMilestones.length }}/{{ MUSEUM_MILESTONES.length }}</span>
+            <span class="text-xs">{{ museumStore.claimedMilestones.length }}/{{ museumMilestones.length }}</span>
           </div>
         </div>
       </div>
@@ -182,31 +182,34 @@
   import { Landmark, Send, X, CircleCheck, Circle, Package, Lock } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import { useMuseumStore } from '@/stores/useMuseumStore'
-  import { MUSEUM_ITEMS, MUSEUM_CATEGORIES, MUSEUM_MILESTONES } from '@/data/museum'
+  import { getMuseumCategories, getMuseumItems, getMuseumMilestones } from '@/data/museum'
   import type { MuseumItemDef, MuseumCategory } from '@/types'
   import { getItemById } from '@/data/items'
 
   const museumStore = useMuseumStore()
+  const museumItems = getMuseumItems()
+  const museumCategories = getMuseumCategories()
+  const museumMilestones = getMuseumMilestones()
 
   const activeCategory = ref<MuseumCategory>('ore')
   const selectedItem = ref<MuseumItemDef | null>(null)
 
-  const filteredItems = computed(() => MUSEUM_ITEMS.filter(i => i.category === activeCategory.value))
+  const filteredItems = computed(() => museumItems.filter(i => i.category === activeCategory.value))
 
   const getCategoryCount = (cat: MuseumCategory): number => {
-    return MUSEUM_ITEMS.filter(i => i.category === cat && museumStore.isDonated(i.id)).length
+    return museumItems.filter(i => i.category === cat && museumStore.isDonated(i.id)).length
   }
 
   const getCategoryTotal = (cat: MuseumCategory): number => {
-    return MUSEUM_ITEMS.filter(i => i.category === cat).length
+    return museumItems.filter(i => i.category === cat).length
   }
 
   const getCategoryLabel = (cat: MuseumCategory): string => {
-    return MUSEUM_CATEGORIES.find(c => c.key === cat)?.label ?? cat
+    return museumCategories.find(c => c.key === cat)?.label ?? cat
   }
 
   const getItemName = (id: string): string => {
-    return getItemById(id)?.name ?? MUSEUM_ITEMS.find(i => i.id === id)?.name ?? id
+    return getItemById(id)?.name ?? museumItems.find(i => i.id === id)?.name ?? id
   }
 
   const handleDonate = (itemId: string) => {

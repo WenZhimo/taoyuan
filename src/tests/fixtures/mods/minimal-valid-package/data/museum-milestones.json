@@ -1,0 +1,19 @@
+[
+  {
+    "id": "example_mod:museum_milestone/1",
+    "count": 1,
+    "name": {
+      "key": "example_mod.museum_milestone.1.name",
+      "fallback": "测试收藏"
+    },
+    "reward": {
+      "money": 1,
+      "items": [
+        {
+          "itemId": "taoyuan:copper_ore",
+          "quantity": 1
+        }
+      ]
+    }
+  }
+]
