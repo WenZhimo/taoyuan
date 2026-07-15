@@ -270,6 +270,24 @@ fileDefaults.set('src/data/wallet.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/farmMapDefinitions.ts', {
+  file: 'src/data/farmMapDefinitions.ts',
+  classification: 'content',
+  domains: ['farm_map'],
+  candidateTargets: ['taoyuan:farm_map'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/farmMaps.ts', {
+  file: 'src/data/farmMaps.ts',
+  classification: 'mixed',
+  domains: ['farm_map', 'lookup'],
+  candidateTargets: ['taoyuan:farm_map', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/animalBuildingDefinitions.ts', {
   file: 'src/data/animalBuildingDefinitions.ts',
   classification: 'mixed',
@@ -566,6 +584,50 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getWalletItemById() signature is retained and now resolves taoyuan:wallet_item before returning an equivalent local-ID object.'
+  },
+  'src/data/farmMapDefinitions.ts:FarmMapDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy farm map compatibility shape; the public contract is FarmMapDefSchema.'
+  },
+  'src/data/farmMapDefinitions.ts:FARM_MAP_DEFS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all six legacy farm map definitions; Phase 6 projects type, name, description and bonus display text into taoyuan:farm_map.'
+  },
+  'src/data/farmMaps.ts:FarmMapDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy FarmMapDef type remains re-exported from the compatibility module while the public contract is FarmMapDefSchema.'
+  },
+  'src/data/farmMaps.ts:FARM_MAP_DEFS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps FARM_MAP_DEFS as an original-name re-export from farmMapDefinitions while MainMenu reads taoyuan:farm_map through the compatibility facade.'
+  },
+  'src/data/farmMaps.ts:getFarmMapDefs': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Farm map list query returns local-ID compatibility objects reconstructed from taoyuan:farm_map for the new-game selection UI.'
+  },
+  'src/data/farmMaps.ts:getFarmMapByType': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Farm map type lookup resolves taoyuan:farm_map before returning an equivalent local-ID FarmMapDef object.'
   },
   'src/data/animalBuildingDefinitions.ts:AnimalBuildingUpgradeDef': {
     classification: 'adapter',
@@ -2028,6 +2090,36 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Returns frozen registry wallet item definitions and reconstructs legacy WalletItemDef compatibility objects for Store and UI consumers.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'FarmMapDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for opening farm map definitions, including map type, display name, description and bonus text.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyFarmMap/createOfficialFarmMaps',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects legacy farm map definitions into official registry entries without changing type IDs, names, descriptions, bonus text or order.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialFarmMapDef/getOfficialFarmMapByType/getOfficialFarmMapsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:farm_map',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry farm map definitions and reconstructs legacy FarmMapDef compatibility objects for the MainMenu new-game flow.'
   }
 ]
 

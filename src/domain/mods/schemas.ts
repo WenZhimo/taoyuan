@@ -265,6 +265,26 @@ export const WalletItemDefSchema = Type.Object(
   { $id: 'taoyuan.registry.WalletItemDef', additionalProperties: false }
 )
 
+export const FarmMapTypeSchema = Type.Union([
+  Type.Literal('standard'),
+  Type.Literal('riverland'),
+  Type.Literal('forest'),
+  Type.Literal('hilltop'),
+  Type.Literal('wilderness'),
+  Type.Literal('meadowlands')
+])
+
+export const FarmMapDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    type: FarmMapTypeSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    bonus: LocalizedTextRefSchema
+  },
+  { $id: 'taoyuan.registry.FarmMapDef', additionalProperties: false }
+)
+
 export const AnimalBuildingMaterialSchema = Type.Object(
   {
     itemId: ContentIdSchema,
@@ -835,6 +855,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:animal': AnimalDefSchema,
   'taoyuan:animal_feed': AnimalFeedDefSchema,
   'taoyuan:wallet_item': WalletItemDefSchema,
+  'taoyuan:farm_map': FarmMapDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
@@ -864,6 +885,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'animal.schema.json': AnimalDefSchema,
   'animal-feed.schema.json': AnimalFeedDefSchema,
   'wallet-item.schema.json': WalletItemDefSchema,
+  'farm-map.schema.json': FarmMapDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
@@ -898,6 +920,8 @@ export type AnimalFeedDef = Static<typeof AnimalFeedDefSchema>
 export type WalletItemEffectType = Static<typeof WalletItemEffectTypeSchema>
 export type WalletItemEffect = Static<typeof WalletItemEffectSchema>
 export type WalletItemDef = Static<typeof WalletItemDefSchema>
+export type FarmMapType = Static<typeof FarmMapTypeSchema>
+export type FarmMapDef = Static<typeof FarmMapDefSchema>
 export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>
 export type AnimalBuildingMaterial = Static<typeof AnimalBuildingMaterialSchema>
 export type AnimalBuildingUpgrade = Static<typeof AnimalBuildingUpgradeSchema>

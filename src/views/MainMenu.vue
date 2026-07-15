@@ -216,7 +216,7 @@
           <div class="flex-1 overflow-y-auto min-h-0">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
               <button
-                v-for="farm in FARM_MAP_DEFS"
+                v-for="farm in farmMapDefs"
                 :key="farm.type"
                 class="border border-accent/20 rounded-xs p-3 text-left transition-all cursor-pointer hover:border-accent/50"
                 @click="handleSelectFarm(farm.type)"
@@ -370,7 +370,7 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useQuestStore } from '@/stores/useQuestStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
-  import { FARM_MAP_DEFS } from '@/data/farmMaps'
+  import { getFarmMapDefs } from '@/data/farmMaps'
   import _pkg from '../../package.json'
   import { useAudio } from '@/composables/useAudio'
   import { showFloat, addLog } from '@/composables/useGameLog'
@@ -406,7 +406,8 @@
 
   const deleteTargetSlot = ref<number | null>(null)
 
-  const selectedFarmDef = computed(() => FARM_MAP_DEFS.find(f => f.type === selectedMap.value))
+  const farmMapDefs = computed(() => getFarmMapDefs())
+  const selectedFarmDef = computed(() => farmMapDefs.value.find(f => f.type === selectedMap.value))
 
   const handleSelectFarm = (type: FarmMapType) => {
     selectedMap.value = type

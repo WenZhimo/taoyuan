@@ -8,6 +8,7 @@ import type {
   WalletItemDef as LegacyWalletItemDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
+import type { FarmMapDef as LegacyFarmMapDef } from '@/data/farmMapDefinitions'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
 import type { AnimalBuildingUpgradeDef as LegacyAnimalBuildingUpgradeDef } from '@/data/animalBuildingDefinitions'
@@ -52,6 +53,7 @@ import type {
   CropDef,
   DropTableDef,
   EnchantmentDef,
+  FarmMapDef as FarmMapContentDef,
   FishDef as FishContentDef,
   FishPondFacilityDef as FishPondFacilityContentDef,
   FarmhouseUpgradeContentDef,
@@ -402,6 +404,16 @@ export const getOfficialWalletItemDef = (id: string): Readonly<WalletItemContent
 export const getOfficialWalletItemDefs = (): readonly Readonly<WalletItemContentDef>[] =>
   getOfficialRegistrySet().get<WalletItemContentDef>(toOfficialRegistryTypeId('wallet_item')).values()
 
+export const getOfficialFarmMapDef = (id: string): Readonly<FarmMapContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<FarmMapContentDef>(toOfficialRegistryTypeId('farm_map')).get(contentId)
+    : undefined
+}
+
+export const getOfficialFarmMapDefs = (): readonly Readonly<FarmMapContentDef>[] =>
+  getOfficialRegistrySet().get<FarmMapContentDef>(toOfficialRegistryTypeId('farm_map')).values()
+
 export const getOfficialAnimalBuildingDef = (id: string): Readonly<AnimalBuildingContentDef> | undefined => {
   const contentId = toQueryContentId(id.includes('/') ? id : `animal_building/${id}`)
   return contentId
@@ -476,6 +488,21 @@ export const getOfficialWalletItemById = (id: string): LegacyWalletItemDef | und
 
 export const getOfficialWalletItemsAsLegacy = (): readonly LegacyWalletItemDef[] =>
   getOfficialWalletItemDefs().map(toLegacyWalletItemDef)
+
+const toLegacyFarmMapDef = (map: Readonly<FarmMapContentDef>): LegacyFarmMapDef => ({
+  type: map.type as LegacyFarmMapDef['type'],
+  name: map.name.fallback,
+  description: map.description.fallback,
+  bonus: map.bonus.fallback
+})
+
+export const getOfficialFarmMapByType = (type: string): LegacyFarmMapDef | undefined => {
+  const map = getOfficialFarmMapDef(type)
+  return map ? toLegacyFarmMapDef(map) : undefined
+}
+
+export const getOfficialFarmMapsAsLegacy = (): readonly LegacyFarmMapDef[] =>
+  getOfficialFarmMapDefs().map(toLegacyFarmMapDef)
 
 const toLegacyAnimalBuildingMaterial = (material: Readonly<AnimalBuildingContentDef['materialCost'][number]>) => ({
   itemId: getLocalContentId(material.itemId),

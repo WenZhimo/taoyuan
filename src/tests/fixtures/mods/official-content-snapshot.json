@@ -15171,6 +15171,150 @@
       ]
     },
     {
+      "registryId": "taoyuan:farm_map",
+      "schemaName": "farm-map.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/farmMapDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "bonus": {
+              "fallback": "采集经验+25%，20%双倍采集，每日林中拾遗",
+              "key": "taoyuan.farm_map.forest.bonus"
+            },
+            "description": {
+              "fallback": "林间空地，采集物种类繁多。",
+              "key": "taoyuan.farm_map.forest.description"
+            },
+            "id": "taoyuan:forest",
+            "name": {
+              "fallback": "竹林田庄",
+              "key": "taoyuan.farm_map.forest.name"
+            },
+            "type": "forest"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/farmMapDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "bonus": {
+              "fallback": "挖矿经验+25%，矿石+1，农场地表矿脉",
+              "key": "taoyuan.farm_map.hilltop.bonus"
+            },
+            "description": {
+              "fallback": "山腰的梯田，蕴含矿脉。",
+              "key": "taoyuan.farm_map.hilltop.description"
+            },
+            "id": "taoyuan:hilltop",
+            "name": {
+              "fallback": "山丘田庄",
+              "key": "taoyuan.farm_map.hilltop.name"
+            },
+            "type": "hilltop"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/farmMapDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "bonus": {
+              "fallback": "开局鸡舍+2鸡，友好度+50%，动物不生病，额外产出",
+              "key": "taoyuan.farm_map.meadowlands.bonus"
+            },
+            "description": {
+              "fallback": "开阔牧场，适合饲养牲畜。",
+              "key": "taoyuan.farm_map.meadowlands.description"
+            },
+            "id": "taoyuan:meadowlands",
+            "name": {
+              "fallback": "草甸田庄",
+              "key": "taoyuan.farm_map.meadowlands.name"
+            },
+            "type": "meadowlands"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/farmMapDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "bonus": {
+              "fallback": "钓鱼经验+25%，鱼售价+10%，每日溪流鱼获，雨天鱼品质提升",
+              "key": "taoyuan.farm_map.riverland.bonus"
+            },
+            "description": {
+              "fallback": "小河环绕的田地，水产丰富。",
+              "key": "taoyuan.farm_map.riverland.description"
+            },
+            "id": "taoyuan:riverland",
+            "name": {
+              "fallback": "溪流田庄",
+              "key": "taoyuan.farm_map.riverland.name"
+            },
+            "type": "riverland"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/farmMapDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "bonus": {
+              "fallback": "初始6×6，可扩至10×10，换季自动施肥（随种植等级升级），15%额外收获",
+              "key": "taoyuan.farm_map.standard.bonus"
+            },
+            "description": {
+              "fallback": "广阔的平原，最适合大规模种植。",
+              "key": "taoyuan.farm_map.standard.description"
+            },
+            "id": "taoyuan:standard",
+            "name": {
+              "fallback": "桃源田庄",
+              "key": "taoyuan.farm_map.standard.name"
+            },
+            "type": "standard"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/farmMapDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "bonus": {
+              "fallback": "战斗经验+50%，每日获矿石，夜间野兽遭遇",
+              "key": "taoyuan.farm_map.wilderness.bonus"
+            },
+            "description": {
+              "fallback": "偏远荒地，夜间有野兽出没。",
+              "key": "taoyuan.farm_map.wilderness.description"
+            },
+            "id": "taoyuan:wilderness",
+            "name": {
+              "fallback": "荒野田庄",
+              "key": "taoyuan.farm_map.wilderness.name"
+            },
+            "type": "wilderness"
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:fish",
       "schemaName": "fish.schema.json",
       "entries": [
@@ -72167,5 +72311,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:b5114c58b3156d0311879aced1c491ae8350b5aedff77712ad08733b40c8306c"
+  "snapshotHash": "sha256:5998b2ee637ee8e6555122c68bbec3a2babb343b03d0af431744d62eb06a0867"
 }

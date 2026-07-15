@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 57,
-    "approximateLineCount": 31106,
+    "fileCount": 58,
+    "approximateLineCount": 31121,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 489,
-    "reviewedArtifactCount": 58
+    "symbolCount": 493,
+    "reviewedArtifactCount": 61
   },
   "entries": [
     {
@@ -2375,8 +2375,7 @@
       ]
     },
     {
-      "file": "src/data/farmMaps.ts",
-      "lines": 33,
+      "file": "src/data/farmMapDefinitions.ts",
       "classification": "content",
       "domains": [
         "farm_map"
@@ -2388,36 +2387,137 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 33,
       "symbols": [
         {
-          "file": "src/data/farmMaps.ts",
+          "file": "src/data/farmMapDefinitions.ts",
           "exportName": "FarmMapDef",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:farm_map",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/data/farmMaps.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/farmMapRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "TypeScript-only legacy farm map compatibility shape; the public contract is FarmMapDefSchema."
         },
         {
-          "file": "src/data/farmMaps.ts",
+          "file": "src/data/farmMapDefinitions.ts",
           "exportName": "FARM_MAP_DEFS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:farm_map",
           "persistentIds": true,
           "consumers": [
-            "src/views/MainMenu.vue"
+            "src/data/farmMaps.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/farmMapRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all six legacy farm map definitions; Phase 6 projects type, name, description and bonus display text into taoyuan:farm_map."
+        }
+      ]
+    },
+    {
+      "file": "src/data/farmMaps.ts",
+      "classification": "mixed",
+      "domains": [
+        "farm_map",
+        "lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:farm_map",
+        "compatibility_adapter"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 15,
+      "symbols": [
+        {
+          "file": "src/data/farmMaps.ts",
+          "exportName": "FarmMapDef",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:farm_map",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/farmMapDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/farmMapRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy FarmMapDef type remains re-exported from the compatibility module while the public contract is FarmMapDefSchema."
+        },
+        {
+          "file": "src/data/farmMaps.ts",
+          "exportName": "FARM_MAP_DEFS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:farm_map",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/farmMapDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/farmMapRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 6 keeps FARM_MAP_DEFS as an original-name re-export from farmMapDefinitions while MainMenu reads taoyuan:farm_map through the compatibility facade."
+        },
+        {
+          "file": "src/data/farmMaps.ts",
+          "exportName": "getFarmMapDefs",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:farm_map",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/farmMapRegistryPilot.test.ts",
+            "src/views/MainMenu.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Farm map list query returns local-ID compatibility objects reconstructed from taoyuan:farm_map for the new-game selection UI."
+        },
+        {
+          "file": "src/data/farmMaps.ts",
+          "exportName": "getFarmMapByType",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:farm_map",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/farmMapRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Farm map type lookup resolves taoyuan:farm_map before returning an equivalent local-ID FarmMapDef object."
         }
       ]
     },
@@ -10093,6 +10193,42 @@
       ],
       "status": "verified",
       "rationale": "Returns frozen registry wallet item definitions and reconstructs legacy WalletItemDef compatibility objects for Store and UI consumers."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "FarmMapDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:farm_map",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for opening farm map definitions, including map type, display name, description and bonus text."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyFarmMap/createOfficialFarmMaps",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:farm_map",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects legacy farm map definitions into official registry entries without changing type IDs, names, descriptions, bonus text or order."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialFarmMapDef/getOfficialFarmMapByType/getOfficialFarmMapsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:farm_map",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry farm map definitions and reconstructs legacy FarmMapDef compatibility objects for the MainMenu new-game flow."
     }
   ]
 }

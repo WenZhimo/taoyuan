@@ -1,0 +1,18 @@
+[
+  {
+    "id": "example_mod:test_farm_map",
+    "type": "standard",
+    "name": {
+      "key": "example_mod.farm_map.test.name",
+      "fallback": "测试田庄"
+    },
+    "description": {
+      "key": "example_mod.farm_map.test.description",
+      "fallback": "用于验证农场地图契约"
+    },
+    "bonus": {
+      "key": "example_mod.farm_map.test.bonus",
+      "fallback": "测试加成"
+    }
+  }
+]

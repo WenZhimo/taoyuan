@@ -27,6 +27,7 @@ import { MONSTER_DROP_SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoe
 import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
 import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
+import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
 import {
   ANIMAL_BUILDINGS,
   BUILDING_UPGRADES,
@@ -77,6 +78,7 @@ import type {
   BuildingUpgradeDef,
   DropTableDef,
   EnchantmentDef,
+  FarmMapDef,
   FishDef,
   FishPondFacilityDef,
   ForageDef,
@@ -147,6 +149,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('wallet_item'),
     description: '钱袋永久被动物品定义',
     schemaName: 'wallet-item.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('farm_map'),
+    description: '开局田庄地图定义',
+    schemaName: 'farm-map.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('animal_building'),
@@ -523,6 +530,16 @@ export const adaptLegacyWalletItem = (item: (typeof WALLET_ITEMS)[number]): Wall
 })
 
 export const createOfficialWalletItems = (): WalletItemDef[] => WALLET_ITEMS.map(adaptLegacyWalletItem)
+
+export const adaptLegacyFarmMap = (map: (typeof FARM_MAP_DEFS)[number]): FarmMapDef => ({
+  id: toOfficialContentId(map.type),
+  type: map.type,
+  name: text(`taoyuan.farm_map.${map.type}.name`, map.name),
+  description: text(`taoyuan.farm_map.${map.type}.description`, map.description),
+  bonus: text(`taoyuan.farm_map.${map.type}.bonus`, map.bonus)
+})
+
+export const createOfficialFarmMaps = (): FarmMapDef[] => FARM_MAP_DEFS.map(adaptLegacyFarmMap)
 
 const getAnimalBuildingUpgrades = (type: LegacyAnimalBuildingUpgradeDef['type']): LegacyAnimalBuildingUpgradeDef[] =>
   BUILDING_UPGRADES.filter(upgrade => upgrade.type === type)
@@ -958,6 +975,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const animalRegistry = registrySet.get<AnimalDef>(toOfficialRegistryTypeId('animal'))
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(toOfficialRegistryTypeId('animal_feed'))
   const walletItemRegistry = registrySet.get<WalletItemDef>(toOfficialRegistryTypeId('wallet_item'))
+  const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
@@ -984,6 +1002,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const item of createOfficialWalletItems()) {
     walletItemRegistry.register(owner, item, { file: 'src/data/walletDefinitions.ts' })
+  }
+  for (const map of createOfficialFarmMaps()) {
+    farmMapRegistry.register(owner, map, { file: 'src/data/farmMapDefinitions.ts' })
   }
   for (const building of createOfficialAnimalBuildings()) {
     animalBuildingRegistry.register(owner, building, { file: 'src/data/animalBuildingDefinitions.ts' })
