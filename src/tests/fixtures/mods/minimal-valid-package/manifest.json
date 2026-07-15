@@ -43,7 +43,8 @@
     "taoyuan:enchantment": ["data/enchantments.json"],
     "taoyuan:drop_table": ["data/drop-tables.json"],
     "taoyuan:recipe": ["data/recipes.json"],
-    "taoyuan:shop_offer": ["data/shop-offers.json"]
+    "taoyuan:shop_offer": ["data/shop-offers.json"],
+    "taoyuan:tool_upgrade": ["data/tool-upgrades.json"]
   },
   "attributions": "attributions.json",
   "assets": "assets"

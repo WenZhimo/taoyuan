@@ -71848,6 +71848,456 @@
       ]
     },
     {
+      "registryId": "taoyuan:tool_upgrade",
+      "schemaName": "tool-upgrade.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "basic",
+            "id": "taoyuan:tool_upgrade/axe/basic_to_iron",
+            "materials": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 2000,
+            "toTier": "iron",
+            "toolType": "axe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "iron",
+            "id": "taoyuan:tool_upgrade/axe/iron_to_steel",
+            "materials": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 5000,
+            "toTier": "steel",
+            "toolType": "axe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "steel",
+            "id": "taoyuan:tool_upgrade/axe/steel_to_iridium",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 10000,
+            "toTier": "iridium",
+            "toolType": "axe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "basic",
+            "id": "taoyuan:tool_upgrade/fishing_rod/basic_to_iron",
+            "materials": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 5
+              }
+            ],
+            "money": 2000,
+            "toTier": "iron",
+            "toolType": "fishingRod"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "iron",
+            "id": "taoyuan:tool_upgrade/fishing_rod/iron_to_steel",
+            "materials": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 5
+              }
+            ],
+            "money": 5000,
+            "toTier": "steel",
+            "toolType": "fishingRod"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "steel",
+            "id": "taoyuan:tool_upgrade/fishing_rod/steel_to_iridium",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 10
+              }
+            ],
+            "money": 10000,
+            "toTier": "iridium",
+            "toolType": "fishingRod"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "basic",
+            "id": "taoyuan:tool_upgrade/hoe/basic_to_iron",
+            "materials": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 2000,
+            "toTier": "iron",
+            "toolType": "hoe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "iron",
+            "id": "taoyuan:tool_upgrade/hoe/iron_to_steel",
+            "materials": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 5000,
+            "toTier": "steel",
+            "toolType": "hoe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "steel",
+            "id": "taoyuan:tool_upgrade/hoe/steel_to_iridium",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 10000,
+            "toTier": "iridium",
+            "toolType": "hoe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "basic",
+            "id": "taoyuan:tool_upgrade/pan/basic_to_iron",
+            "materials": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 2
+              }
+            ],
+            "money": 2000,
+            "toTier": "iron",
+            "toolType": "pan"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "iron",
+            "id": "taoyuan:tool_upgrade/pan/iron_to_steel",
+            "materials": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 3
+              }
+            ],
+            "money": 5000,
+            "toTier": "steel",
+            "toolType": "pan"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "steel",
+            "id": "taoyuan:tool_upgrade/pan/steel_to_iridium",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 5
+              }
+            ],
+            "money": 10000,
+            "toTier": "iridium",
+            "toolType": "pan"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "basic",
+            "id": "taoyuan:tool_upgrade/pickaxe/basic_to_iron",
+            "materials": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 2000,
+            "toTier": "iron",
+            "toolType": "pickaxe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "iron",
+            "id": "taoyuan:tool_upgrade/pickaxe/iron_to_steel",
+            "materials": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 5000,
+            "toTier": "steel",
+            "toolType": "pickaxe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "steel",
+            "id": "taoyuan:tool_upgrade/pickaxe/steel_to_iridium",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 10000,
+            "toTier": "iridium",
+            "toolType": "pickaxe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "basic",
+            "id": "taoyuan:tool_upgrade/scythe/basic_to_iron",
+            "materials": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 2000,
+            "toTier": "iron",
+            "toolType": "scythe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "iron",
+            "id": "taoyuan:tool_upgrade/scythe/iron_to_steel",
+            "materials": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 5000,
+            "toTier": "steel",
+            "toolType": "scythe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "steel",
+            "id": "taoyuan:tool_upgrade/scythe/steel_to_iridium",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 10000,
+            "toTier": "iridium",
+            "toolType": "scythe"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "basic",
+            "id": "taoyuan:tool_upgrade/watering_can/basic_to_iron",
+            "materials": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 3
+              }
+            ],
+            "money": 1200,
+            "toTier": "iron",
+            "toolType": "wateringCan"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "iron",
+            "id": "taoyuan:tool_upgrade/watering_can/iron_to_steel",
+            "materials": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 5000,
+            "toTier": "steel",
+            "toolType": "wateringCan"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/toolUpgradeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "fromTier": "steel",
+            "id": "taoyuan:tool_upgrade/watering_can/steel_to_iridium",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              }
+            ],
+            "money": 10000,
+            "toTier": "iridium",
+            "toolType": "wateringCan"
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:tree",
       "schemaName": "tree.schema.json",
       "entries": [
@@ -72311,5 +72761,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:5998b2ee637ee8e6555122c68bbec3a2babb343b03d0af431744d62eb06a0867"
+  "snapshotHash": "sha256:ba7b8feccc27932f3ce831c6a7d144d82086e6e575e06efd41e875563a3dd20b"
 }

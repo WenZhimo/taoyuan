@@ -329,6 +329,43 @@ export const AnimalIncubationDefSchema = Type.Object(
   { $id: 'taoyuan.registry.AnimalIncubationDef', additionalProperties: false }
 )
 
+export const ToolTypeSchema = Type.Union([
+  Type.Literal('wateringCan'),
+  Type.Literal('hoe'),
+  Type.Literal('pickaxe'),
+  Type.Literal('fishingRod'),
+  Type.Literal('scythe'),
+  Type.Literal('axe'),
+  Type.Literal('pan')
+])
+
+export const ToolTierSchema = Type.Union([
+  Type.Literal('basic'),
+  Type.Literal('iron'),
+  Type.Literal('steel'),
+  Type.Literal('iridium')
+])
+
+export const ToolUpgradeMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const ToolUpgradeDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    toolType: ToolTypeSchema,
+    fromTier: ToolTierSchema,
+    toTier: ToolTierSchema,
+    money: Type.Integer({ minimum: 0 }),
+    materials: Type.Array(ToolUpgradeMaterialSchema)
+  },
+  { $id: 'taoyuan.registry.ToolUpgradeDef', additionalProperties: false }
+)
+
 export const PondFishGeneticsSchema = Type.Object(
   {
     weight: Type.Integer({ minimum: 0, maximum: 100 }),
@@ -858,6 +895,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:farm_map': FarmMapDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
+  'taoyuan:tool_upgrade': ToolUpgradeDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
   'taoyuan:fish_pond_facility': FishPondFacilityDefSchema,
@@ -888,6 +926,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'farm-map.schema.json': FarmMapDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
+  'tool-upgrade.schema.json': ToolUpgradeDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
   'fish-pond-facility.schema.json': FishPondFacilityDefSchema,
@@ -926,6 +965,10 @@ export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>
 export type AnimalBuildingMaterial = Static<typeof AnimalBuildingMaterialSchema>
 export type AnimalBuildingUpgrade = Static<typeof AnimalBuildingUpgradeSchema>
 export type AnimalIncubationDef = Static<typeof AnimalIncubationDefSchema>
+export type ToolTypeDef = Static<typeof ToolTypeSchema>
+export type ToolTierDef = Static<typeof ToolTierSchema>
+export type ToolUpgradeMaterial = Static<typeof ToolUpgradeMaterialSchema>
+export type ToolUpgradeDef = Static<typeof ToolUpgradeDefSchema>
 export type PondFishGenetics = Static<typeof PondFishGeneticsSchema>
 export type PondableFishDef = Static<typeof PondableFishDefSchema>
 export type PondBreedDef = Static<typeof PondBreedDefSchema>

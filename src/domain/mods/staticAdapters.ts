@@ -34,6 +34,10 @@ import {
   type AnimalBuildingUpgradeDef as LegacyAnimalBuildingUpgradeDef
 } from '@/data/animalBuildingDefinitions'
 import { ANIMAL_INCUBATIONS } from '@/data/animalIncubationDefinitions'
+import {
+  TOOL_UPGRADE_COSTS,
+  type ToolUpgradeCost as LegacyToolUpgradeCost
+} from '@/data/toolUpgradeDefinitions'
 import { PONDABLE_FISH } from '@/data/fishPondDefinitions'
 import { POND_BREEDS } from '@/data/pondBreedDefinitions'
 import {
@@ -93,6 +97,7 @@ import type {
   ShopDef,
   ShopOfferDef,
   TagDef,
+  ToolUpgradeDef,
   TreeDef,
   WalletItemDef
 } from './schemas'
@@ -164,6 +169,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('animal_incubation'),
     description: '动物孵化映射定义',
     schemaName: 'animal-incubation.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('tool_upgrade'),
+    description: '工具升级费用定义',
+    schemaName: 'tool-upgrade.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('pondable_fish'),
@@ -581,6 +591,29 @@ export const adaptLegacyAnimalIncubation = (incubation: (typeof ANIMAL_INCUBATIO
 export const createOfficialAnimalIncubations = (): AnimalIncubationDef[] =>
   ANIMAL_INCUBATIONS.map(adaptLegacyAnimalIncubation)
 
+const toolUpgradeIdSegment = (toolType: keyof typeof TOOL_UPGRADE_COSTS): string =>
+  toolType.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+
+export const adaptLegacyToolUpgrade = (
+  toolType: keyof typeof TOOL_UPGRADE_COSTS,
+  cost: LegacyToolUpgradeCost
+): ToolUpgradeDef => ({
+  id: toOfficialContentId(`tool_upgrade/${toolUpgradeIdSegment(toolType)}/${cost.fromTier}_to_${cost.toTier}`),
+  toolType,
+  fromTier: cost.fromTier,
+  toTier: cost.toTier,
+  money: cost.money,
+  materials: cost.materials.map(material => ({
+    itemId: toOfficialContentId(material.itemId),
+    quantity: material.quantity
+  }))
+})
+
+export const createOfficialToolUpgrades = (): ToolUpgradeDef[] =>
+  Object.entries(TOOL_UPGRADE_COSTS).flatMap(([toolType, costs]) =>
+    costs.map(cost => adaptLegacyToolUpgrade(toolType as keyof typeof TOOL_UPGRADE_COSTS, cost))
+  )
+
 export const adaptLegacyPondableFish = (fish: LegacyPondableFishDef): PondableFishDef => ({
   id: toOfficialContentId(fish.fishId),
   fishItemId: toOfficialContentId(fish.fishId),
@@ -978,6 +1011,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
+  const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(toOfficialRegistryTypeId('tool_upgrade'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
   const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
   const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(toOfficialRegistryTypeId('fish_pond_facility'))
@@ -1011,6 +1045,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const incubation of createOfficialAnimalIncubations()) {
     animalIncubationRegistry.register(owner, incubation, { file: 'src/data/animalIncubationDefinitions.ts' })
+  }
+  for (const upgrade of createOfficialToolUpgrades()) {
+    toolUpgradeRegistry.register(owner, upgrade, { file: 'src/data/toolUpgradeDefinitions.ts' })
   }
   for (const fish of createOfficialPondableFish()) {
     pondableFishRegistry.register(owner, fish, { file: 'src/data/fishPondDefinitions.ts' })

@@ -1,0 +1,117 @@
+{
+  "$id": "taoyuan.registry.ToolUpgradeDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "toolType",
+    "fromTier",
+    "toTier",
+    "money",
+    "materials"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "toolType": {
+      "anyOf": [
+        {
+          "const": "wateringCan",
+          "type": "string"
+        },
+        {
+          "const": "hoe",
+          "type": "string"
+        },
+        {
+          "const": "pickaxe",
+          "type": "string"
+        },
+        {
+          "const": "fishingRod",
+          "type": "string"
+        },
+        {
+          "const": "scythe",
+          "type": "string"
+        },
+        {
+          "const": "axe",
+          "type": "string"
+        },
+        {
+          "const": "pan",
+          "type": "string"
+        }
+      ]
+    },
+    "fromTier": {
+      "anyOf": [
+        {
+          "const": "basic",
+          "type": "string"
+        },
+        {
+          "const": "iron",
+          "type": "string"
+        },
+        {
+          "const": "steel",
+          "type": "string"
+        },
+        {
+          "const": "iridium",
+          "type": "string"
+        }
+      ]
+    },
+    "toTier": {
+      "anyOf": [
+        {
+          "const": "basic",
+          "type": "string"
+        },
+        {
+          "const": "iron",
+          "type": "string"
+        },
+        {
+          "const": "steel",
+          "type": "string"
+        },
+        {
+          "const": "iridium",
+          "type": "string"
+        }
+      ]
+    },
+    "money": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "materials": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "itemId",
+          "quantity"
+        ],
+        "properties": {
+          "itemId": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

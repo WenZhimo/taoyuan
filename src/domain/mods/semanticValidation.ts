@@ -26,6 +26,7 @@ import type {
   RecipeDef,
   ShopOfferDef,
   TagDef,
+  ToolUpgradeDef,
   TreeDef
 } from './schemas'
 import type { RegistrySet } from './registry'
@@ -41,6 +42,7 @@ const REGISTRY_IDS = {
   animalFeed: toOfficialRegistryTypeId('animal_feed'),
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
+  toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
   fishPondFacility: toOfficialRegistryTypeId('fish_pond_facility'),
@@ -86,6 +88,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(REGISTRY_IDS.animalFeed)
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
+  const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(REGISTRY_IDS.fishPondFacility)
@@ -317,6 +320,19 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/building'
       })
     }
+  }
+
+  for (const record of toolUpgradeRegistry.entries()) {
+    record.entry.materials.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/materials/${index}/itemId`
+        })
+      }
+    })
   }
 
   for (const record of pondableFishRegistry.entries()) {

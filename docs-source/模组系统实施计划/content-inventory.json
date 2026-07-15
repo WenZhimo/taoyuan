@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 58,
-    "approximateLineCount": 31121,
+    "fileCount": 59,
+    "approximateLineCount": 31126,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 493,
-    "reviewedArtifactCount": 61
+    "symbolCount": 497,
+    "reviewedArtifactCount": 65
   },
   "entries": [
     {
@@ -8499,6 +8499,103 @@
       ]
     },
     {
+      "file": "src/data/toolUpgradeDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "tool_upgrade",
+        "tool_labels"
+      ],
+      "candidateTargets": [
+        "taoyuan:tool_upgrade",
+        "ui/tool-labels"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 104,
+      "symbols": [
+        {
+          "file": "src/data/toolUpgradeDefinitions.ts",
+          "exportName": "ToolUpgradeCost",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:tool_upgrade",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/upgrades.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy tool upgrade cost compatibility shape; the public contract is ToolUpgradeDefSchema."
+        },
+        {
+          "file": "src/data/toolUpgradeDefinitions.ts",
+          "exportName": "TOOL_UPGRADE_COSTS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:tool_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/upgrades.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy tool upgrade money and material costs; Phase 6 projects every tool/tier cost into taoyuan:tool_upgrade."
+        },
+        {
+          "file": "src/data/toolUpgradeDefinitions.ts",
+          "exportName": "TOOL_NAMES",
+          "syntaxKind": "const",
+          "classification": "ui",
+          "targetRegistry": "ui/tool-labels",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/data/upgrades.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts",
+            "src/views/game/CharInfoView.vue",
+            "src/views/game/ToolUpgradeView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Player-visible tool display labels remain framework/UI labels and are covered by the tool upgrade registry equivalence test."
+        },
+        {
+          "file": "src/data/toolUpgradeDefinitions.ts",
+          "exportName": "TIER_NAMES",
+          "syntaxKind": "const",
+          "classification": "ui",
+          "targetRegistry": "ui/tool-labels",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/data/upgrades.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts",
+            "src/views/game/CharInfoView.vue",
+            "src/views/game/ToolUpgradeView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Player-visible tool tier labels remain framework/UI labels and are covered by the tool upgrade registry equivalence test."
+        }
+      ]
+    },
+    {
       "file": "src/data/travelingMerchant.ts",
       "lines": 99,
       "classification": "mixed",
@@ -8706,103 +8803,117 @@
     },
     {
       "file": "src/data/upgrades.ts",
-      "lines": 115,
       "classification": "mixed",
       "domains": [
         "tool_upgrade",
-        "localized_label",
+        "tool_labels",
         "lookup"
       ],
       "candidateTargets": [
         "taoyuan:tool_upgrade",
-        "locales",
+        "ui/tool-labels",
         "compatibility_adapter"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 16,
       "symbols": [
         {
           "file": "src/data/upgrades.ts",
           "exportName": "ToolUpgradeCost",
-          "syntaxKind": "interface",
+          "syntaxKind": "re-export",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:tool_upgrade",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/data/toolUpgradeDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "Type-only re-export for the legacy tool upgrade cost compatibility shape."
+        },
+        {
+          "file": "src/data/upgrades.ts",
+          "exportName": "TOOL_NAMES",
+          "syntaxKind": "re-export",
+          "classification": "ui",
+          "targetRegistry": "ui/tool-labels",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/data/toolUpgradeDefinitions.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts",
+            "src/views/game/CharInfoView.vue",
+            "src/views/game/ToolUpgradeView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Phase 6 keeps TOOL_NAMES as an original-name re-export from toolUpgradeDefinitions for existing UI consumers."
+        },
+        {
+          "file": "src/data/upgrades.ts",
+          "exportName": "TIER_NAMES",
+          "syntaxKind": "re-export",
+          "classification": "ui",
+          "targetRegistry": "ui/tool-labels",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/data/toolUpgradeDefinitions.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts",
+            "src/views/game/CharInfoView.vue",
+            "src/views/game/ToolUpgradeView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Phase 6 keeps TIER_NAMES as an original-name re-export from toolUpgradeDefinitions for existing UI consumers."
         },
         {
           "file": "src/data/upgrades.ts",
           "exportName": "TOOL_UPGRADE_COSTS",
-          "syntaxKind": "const",
-          "classification": "content",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:tool_upgrade",
           "persistentIds": true,
-          "consumers": [],
+          "consumers": [
+            "src/data/toolUpgradeDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 keeps TOOL_UPGRADE_COSTS as an original-name re-export from toolUpgradeDefinitions while runtime upgrade cost lookup resolves taoyuan:tool_upgrade."
         },
         {
           "file": "src/data/upgrades.ts",
           "exportName": "getUpgradeCost",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:tool_upgrade",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/toolUpgradeRegistryPilot.test.ts",
             "src/views/game/ToolUpgradeView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/upgrades.ts",
-          "exportName": "TOOL_NAMES",
-          "syntaxKind": "const",
-          "classification": "ui",
-          "targetRegistry": "locales",
-          "persistentIds": false,
-          "consumers": [
-            "src/composables/useEndDay.ts",
-            "src/views/game/CharInfoView.vue",
-            "src/views/game/ToolUpgradeView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "status": "framework-retained",
-          "rationale": "Presentation label, color, theme, or display helper retained outside content registries."
-        },
-        {
-          "file": "src/data/upgrades.ts",
-          "exportName": "TIER_NAMES",
-          "syntaxKind": "const",
-          "classification": "ui",
-          "targetRegistry": "locales",
-          "persistentIds": false,
-          "consumers": [
-            "src/composables/useEndDay.ts",
-            "src/views/game/CharInfoView.vue",
-            "src/views/game/ToolUpgradeView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "status": "framework-retained",
-          "rationale": "Presentation label, color, theme, or display helper retained outside content registries."
+          "status": "verified",
+          "rationale": "Legacy getUpgradeCost() signature is retained and now resolves taoyuan:tool_upgrade before returning an equivalent local-ID ToolUpgradeCost object."
         }
       ]
     },
@@ -9965,6 +10076,54 @@
       ],
       "status": "verified",
       "rationale": "Supplies local egg item ID compatibility lookups and map shape for coop and barn incubation UI and Store flows."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "ToolUpgradeDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:tool_upgrade",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for tool upgrade cost definitions; generated tool-upgrade.schema.json rejects invalid tool types, tiers, money and material shapes."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyToolUpgrade/createOfficialToolUpgrades",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tool_upgrade",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy tool upgrade cost into ordered official entries without changing tool type fields, tier transitions, money costs or material requirements."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialToolUpgradeDef/getOfficialToolUpgradeDefs/getOfficialToolUpgradeCost/getOfficialToolUpgradeCosts",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tool_upgrade",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry tool upgrade definitions by local or namespaced ID and reconstructs legacy ToolUpgradeCost objects for getUpgradeCost()."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:tool_upgrade",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tool_upgrade",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks every tool upgrade material item reference against taoyuan:item and reports REG-REFERENCE-001 before the registry snapshot is accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

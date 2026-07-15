@@ -1,0 +1,15 @@
+[
+  {
+    "id": "example_mod:tool_upgrade/hoe/basic_to_iron",
+    "toolType": "hoe",
+    "fromTier": "basic",
+    "toTier": "iron",
+    "money": 1,
+    "materials": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      }
+    ]
+  }
+]

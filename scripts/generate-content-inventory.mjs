@@ -306,6 +306,24 @@ fileDefaults.set('src/data/animalIncubationDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/toolUpgradeDefinitions.ts', {
+  file: 'src/data/toolUpgradeDefinitions.ts',
+  classification: 'mixed',
+  domains: ['tool_upgrade', 'tool_labels'],
+  candidateTargets: ['taoyuan:tool_upgrade', 'ui/tool-labels'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/upgrades.ts', {
+  file: 'src/data/upgrades.ts',
+  classification: 'mixed',
+  domains: ['tool_upgrade', 'tool_labels', 'lookup'],
+  candidateTargets: ['taoyuan:tool_upgrade', 'ui/tool-labels', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/forage.ts', {
   file: 'src/data/forage.ts',
   classification: 'mixed',
@@ -681,6 +699,71 @@ const symbolReviewOverrides = new Map(Object.entries({
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
     rationale: 'Legacy map shape generated from ANIMAL_INCUBATIONS for static rollback and old API equivalence checks.'
+  },
+  'src/data/toolUpgradeDefinitions.ts:ToolUpgradeCost': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy tool upgrade cost compatibility shape; the public contract is ToolUpgradeDefSchema.'
+  },
+  'src/data/toolUpgradeDefinitions.ts:TOOL_UPGRADE_COSTS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy tool upgrade money and material costs; Phase 6 projects every tool/tier cost into taoyuan:tool_upgrade.'
+  },
+  'src/data/toolUpgradeDefinitions.ts:TOOL_NAMES': {
+    classification: 'ui',
+    targetRegistry: 'ui/tool-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Player-visible tool display labels remain framework/UI labels and are covered by the tool upgrade registry equivalence test.'
+  },
+  'src/data/toolUpgradeDefinitions.ts:TIER_NAMES': {
+    classification: 'ui',
+    targetRegistry: 'ui/tool-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Player-visible tool tier labels remain framework/UI labels and are covered by the tool upgrade registry equivalence test.'
+  },
+  'src/data/upgrades.ts:ToolUpgradeCost': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy tool upgrade cost compatibility shape.'
+  },
+  'src/data/upgrades.ts:TOOL_UPGRADE_COSTS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps TOOL_UPGRADE_COSTS as an original-name re-export from toolUpgradeDefinitions while runtime upgrade cost lookup resolves taoyuan:tool_upgrade.'
+  },
+  'src/data/upgrades.ts:TOOL_NAMES': {
+    classification: 'ui',
+    targetRegistry: 'ui/tool-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Phase 6 keeps TOOL_NAMES as an original-name re-export from toolUpgradeDefinitions for existing UI consumers.'
+  },
+  'src/data/upgrades.ts:TIER_NAMES': {
+    classification: 'ui',
+    targetRegistry: 'ui/tool-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Phase 6 keeps TIER_NAMES as an original-name re-export from toolUpgradeDefinitions for existing UI consumers.'
+  },
+  'src/data/upgrades.ts:getUpgradeCost': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getUpgradeCost() signature is retained and now resolves taoyuan:tool_upgrade before returning an equivalent local-ID ToolUpgradeCost object.'
   },
   'src/data/animals.ts:ANIMAL_DEFS': {
     classification: 'adapter',
@@ -1900,6 +1983,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies local egg item ID compatibility lookups and map shape for coop and barn incubation UI and Store flows.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'ToolUpgradeDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for tool upgrade cost definitions; generated tool-upgrade.schema.json rejects invalid tool types, tiers, money and material shapes.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyToolUpgrade/createOfficialToolUpgrades',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy tool upgrade cost into ordered official entries without changing tool type fields, tier transitions, money costs or material requirements.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialToolUpgradeDef/getOfficialToolUpgradeDefs/getOfficialToolUpgradeCost/getOfficialToolUpgradeCosts',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry tool upgrade definitions by local or namespaced ID and reconstructs legacy ToolUpgradeCost objects for getUpgradeCost().'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:tool_upgrade',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tool_upgrade',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks every tool upgrade material item reference against taoyuan:item and reports REG-REFERENCE-001 before the registry snapshot is accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

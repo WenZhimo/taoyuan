@@ -5,6 +5,8 @@ import type {
   FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
   MonsterDef as LegacyMonsterDef,
+  ToolTier,
+  ToolType,
   WalletItemDef as LegacyWalletItemDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
@@ -16,6 +18,7 @@ import type {
   AnimalIncubationDef as LegacyAnimalIncubationDef,
   AnimalIncubationMapping as LegacyAnimalIncubationMapping
 } from '@/data/animalIncubationDefinitions'
+import type { ToolUpgradeCost as LegacyToolUpgradeCost } from '@/data/toolUpgradeDefinitions'
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
@@ -70,6 +73,7 @@ import type {
   ShopDef,
   ShopOfferDef,
   TagDef,
+  ToolUpgradeDef as ToolUpgradeContentDef,
   TreeDef,
   WalletItemDef as WalletItemContentDef,
   WildTreeContentDef
@@ -434,6 +438,16 @@ export const getOfficialAnimalIncubationDef = (id: string): Readonly<AnimalIncub
 export const getOfficialAnimalIncubationDefs = (): readonly Readonly<AnimalIncubationContentDef>[] =>
   getOfficialRegistrySet().get<AnimalIncubationContentDef>(toOfficialRegistryTypeId('animal_incubation')).values()
 
+export const getOfficialToolUpgradeDef = (id: string): Readonly<ToolUpgradeContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<ToolUpgradeContentDef>(toOfficialRegistryTypeId('tool_upgrade')).get(contentId)
+    : undefined
+}
+
+export const getOfficialToolUpgradeDefs = (): readonly Readonly<ToolUpgradeContentDef>[] =>
+  getOfficialRegistrySet().get<ToolUpgradeContentDef>(toOfficialRegistryTypeId('tool_upgrade')).values()
+
 const toLegacyAnimalDef = (animal: Readonly<AnimalContentDef>): LegacyAnimalDef => ({
   type: getLocalContentId(animal.id) as LegacyAnimalDef['type'],
   name: animal.name.fallback,
@@ -579,6 +593,42 @@ export const getOfficialAnimalIncubationMap = (): Record<string, LegacyAnimalInc
       toLegacyAnimalIncubationMapping(incubation)
     ])
   )
+
+const toLegacyToolUpgradeCost = (upgrade: Readonly<ToolUpgradeContentDef>): LegacyToolUpgradeCost => ({
+  fromTier: upgrade.fromTier,
+  toTier: upgrade.toTier,
+  money: upgrade.money,
+  materials: upgrade.materials.map(material => ({
+    itemId: getLocalContentId(material.itemId),
+    quantity: material.quantity
+  }))
+})
+
+export const getOfficialToolUpgradeCost = (
+  type: ToolType,
+  currentTier: ToolTier
+): LegacyToolUpgradeCost | undefined => {
+  const upgrade = getOfficialToolUpgradeDefs().find(candidate =>
+    candidate.toolType === type && candidate.fromTier === currentTier
+  )
+  return upgrade ? toLegacyToolUpgradeCost(upgrade) : undefined
+}
+
+export const getOfficialToolUpgradeCosts = (): Record<ToolType, LegacyToolUpgradeCost[]> => {
+  const costs: Record<ToolType, LegacyToolUpgradeCost[]> = {
+    wateringCan: [],
+    hoe: [],
+    pickaxe: [],
+    scythe: [],
+    axe: [],
+    fishingRod: [],
+    pan: []
+  }
+  for (const upgrade of getOfficialToolUpgradeDefs()) {
+    costs[upgrade.toolType].push(toLegacyToolUpgradeCost(upgrade))
+  }
+  return costs
+}
 
 export const getOfficialPondableFishDef = (id: string): Readonly<PondableFishDef> | undefined => {
   const contentId = toQueryContentId(id)
