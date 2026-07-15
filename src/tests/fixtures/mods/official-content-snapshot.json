@@ -66045,6 +66045,673 @@
       ]
     },
     {
+      "registryId": "taoyuan:processing_machine",
+      "schemaName": "processing-machine.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 40
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 10
+              }
+            ],
+            "craftMoney": 250,
+            "description": {
+              "fallback": "每4天自动产出蜂蜜。",
+              "key": "taoyuan.processing_machine.bee_house.description"
+            },
+            "id": "taoyuan:bee_house",
+            "name": {
+              "fallback": "蜂箱",
+              "key": "taoyuan.processing_machine.bee_house.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 20
+              },
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 10
+              }
+            ],
+            "craftMoney": 150,
+            "description": {
+              "fallback": "将木材烧制成木炭。",
+              "key": "taoyuan.processing_machine.charcoal_kiln.description"
+            },
+            "id": "taoyuan:charcoal_kiln",
+            "name": {
+              "fallback": "炭窑",
+              "key": "taoyuan.processing_machine.charcoal_kiln.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 3
+              }
+            ],
+            "craftMoney": 400,
+            "description": {
+              "fallback": "将牛奶制成美味的奶酪。",
+              "key": "taoyuan.processing_machine.cheese_press.description"
+            },
+            "id": "taoyuan:cheese_press",
+            "name": {
+              "fallback": "乳酪机",
+              "key": "taoyuan.processing_machine.cheese_press.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 2
+              }
+            ],
+            "craftMoney": 500,
+            "description": {
+              "fallback": "投入宝石后缓慢复制，获得双倍产出。",
+              "key": "taoyuan.processing_machine.crystal_duplicator.description"
+            },
+            "id": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "结晶复制机",
+              "key": "taoyuan.processing_machine.crystal_duplicator.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 10
+              }
+            ],
+            "craftMoney": 200,
+            "description": {
+              "fallback": "将蘑菇或水果脱水保存，增值出售。",
+              "key": "taoyuan.processing_machine.dehydrator.description"
+            },
+            "id": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "脱水机",
+              "key": "taoyuan.processing_machine.dehydrator.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "autoCollect": true,
+            "craftCost": [
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 2
+              }
+            ],
+            "craftMoney": 500,
+            "description": {
+              "fallback": "将矿石冶炼成金属锭。完成后自动收取。",
+              "key": "taoyuan.processing_machine.furnace.description"
+            },
+            "id": "taoyuan:furnace",
+            "name": {
+              "fallback": "熔炉",
+              "key": "taoyuan.processing_machine.furnace.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 400,
+            "description": {
+              "fallback": "将草药研磨成药膏和精华。",
+              "key": "taoyuan.processing_machine.herb_grinder.description"
+            },
+            "id": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "药碾",
+              "key": "taoyuan.processing_machine.herb_grinder.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 5
+              }
+            ],
+            "craftMoney": 200,
+            "description": {
+              "fallback": "将树脂和花卉制成香料。",
+              "key": "taoyuan.processing_machine.incense_maker.description"
+            },
+            "id": "taoyuan:incense_maker",
+            "name": {
+              "fallback": "制香坊",
+              "key": "taoyuan.processing_machine.incense_maker.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 20
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 10
+              }
+            ],
+            "craftMoney": 300,
+            "description": {
+              "fallback": "将毛线和丝织成布匹。",
+              "key": "taoyuan.processing_machine.loom.description"
+            },
+            "id": "taoyuan:loom",
+            "name": {
+              "fallback": "织布机",
+              "key": "taoyuan.processing_machine.loom.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 200,
+            "description": {
+              "fallback": "将鸡蛋或鸭蛋制成蛋黄酱。",
+              "key": "taoyuan.processing_machine.mayo_maker.description"
+            },
+            "id": "taoyuan:mayo_maker",
+            "name": {
+              "fallback": "蛋黄酱机",
+              "key": "taoyuan.processing_machine.mayo_maker.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 25
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 350,
+            "description": {
+              "fallback": "将谷物磨成面粉。",
+              "key": "taoyuan.processing_machine.mill.description"
+            },
+            "id": "taoyuan:mill",
+            "name": {
+              "fallback": "石磨",
+              "key": "taoyuan.processing_machine.mill.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 350,
+            "description": {
+              "fallback": "将芝麻或种子榨成食用油。",
+              "key": "taoyuan.processing_machine.oil_press.description"
+            },
+            "id": "taoyuan:oil_press",
+            "name": {
+              "fallback": "油坊",
+              "key": "taoyuan.processing_machine.oil_press.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 25
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 5
+              }
+            ],
+            "craftMoney": 150,
+            "description": {
+              "fallback": "将垃圾回收转化为有用材料。",
+              "key": "taoyuan.processing_machine.recycler.description"
+            },
+            "id": "taoyuan:recycler",
+            "name": {
+              "fallback": "回收机",
+              "key": "taoyuan.processing_machine.recycler.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 20
+              },
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 8
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 200,
+            "description": {
+              "fallback": "将作物腌制成酱菜蜜饯，稳定增值。",
+              "key": "taoyuan.processing_machine.sauce_jar.description"
+            },
+            "id": "taoyuan:sauce_jar",
+            "name": {
+              "fallback": "酱缸",
+              "key": "taoyuan.processing_machine.sauce_jar.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 20
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 2
+              }
+            ],
+            "craftMoney": 500,
+            "description": {
+              "fallback": "将成熟作物转化为种子。",
+              "key": "taoyuan.processing_machine.seed_maker.description"
+            },
+            "id": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "种子制造机",
+              "key": "taoyuan.processing_machine.seed_maker.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 20
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 5
+              }
+            ],
+            "craftMoney": 300,
+            "description": {
+              "fallback": "将鱼烟熏处理，售价翻倍。",
+              "key": "taoyuan.processing_machine.smoker.description"
+            },
+            "id": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏机",
+              "key": "taoyuan.processing_machine.smoker.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 5
+              }
+            ],
+            "craftMoney": 250,
+            "description": {
+              "fallback": "将茶叶和花卉泡制成饮品。",
+              "key": "taoyuan.processing_machine.tea_maker.description"
+            },
+            "id": "taoyuan:tea_maker",
+            "name": {
+              "fallback": "制茶机",
+              "key": "taoyuan.processing_machine.tea_maker.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 20
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 300,
+            "description": {
+              "fallback": "将豆类磨制成豆腐和酱料。",
+              "key": "taoyuan.processing_machine.tofu_press.description"
+            },
+            "id": "taoyuan:tofu_press",
+            "name": {
+              "fallback": "豆腐坊",
+              "key": "taoyuan.processing_machine.tofu_press.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 30
+              },
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 3
+              }
+            ],
+            "craftMoney": 300,
+            "description": {
+              "fallback": "将水果/作物酿成美酒，售价翻三倍。",
+              "key": "taoyuan.processing_machine.wine_workshop.description"
+            },
+            "id": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "酒坊",
+              "key": "taoyuan.processing_machine.wine_workshop.name"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingMachineDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:herb",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 5
+              }
+            ],
+            "craftMoney": 200,
+            "description": {
+              "fallback": "每2天自动产出鱼饵。",
+              "key": "taoyuan.processing_machine.worm_bin.description"
+            },
+            "id": "taoyuan:worm_bin",
+            "name": {
+              "fallback": "蚯蚓箱",
+              "key": "taoyuan.processing_machine.worm_bin.name"
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:recipe",
       "schemaName": "recipe.schema.json",
       "entries": [
@@ -78173,5 +78840,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:7e279df193ce200526fff1ad7a61bf3f9eab6da662aa8ac78f210510a4d1091f"
+  "snapshotHash": "sha256:c13de2a657bb34aad9ff1d86f9c6b59a72b7598c7fdb9a2a05f941e2a9b877fe"
 }

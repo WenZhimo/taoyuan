@@ -325,6 +325,33 @@ fileDefaults.set('src/data/upgrades.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/processingMachineDefinitions.ts', {
+  file: 'src/data/processingMachineDefinitions.ts',
+  classification: 'content',
+  domains: ['processing_machine'],
+  candidateTargets: ['taoyuan:processing_machine'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/processingCraftDefinitions.ts', {
+  file: 'src/data/processingCraftDefinitions.ts',
+  classification: 'mixed',
+  domains: ['sprinkler', 'fertilizer', 'bait', 'tackle', 'bomb'],
+  candidateTargets: ['taoyuan:sprinkler', 'taoyuan:fertilizer', 'taoyuan:bait', 'taoyuan:tackle', 'taoyuan:bomb', 'taoyuan:shop_offer'],
+  phases: [3, 6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/processing.ts', {
+  file: 'src/data/processing.ts',
+  classification: 'mixed',
+  domains: ['processing_recipe', 'processing_machine', 'processing_craft', 'lookup'],
+  candidateTargets: ['taoyuan:processing_recipe', 'taoyuan:processing_machine', 'compatibility_adapter', 'engine/domain/processing'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/equipmentSetDefinitions.ts', {
   file: 'src/data/equipmentSetDefinitions.ts',
   classification: 'content',
@@ -695,17 +722,115 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Phase 3 shop offer pilot verifies the SHOP_SHOES purchase projection through taoyuan:shop_offer; full shoe equipment content remains available through legacy data until equipment migration.'
   },
-  'src/data/processing.ts:FERTILIZERS': {
+  'src/data/processingMachineDefinitions.ts:PROCESSING_MACHINES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:processing_machine',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 3 shop offer pilot verifies fertilizer shopPrice/name/description projection through taoyuan:shop_offer; processing and fertilizer behavior remain in later production migration scope.'
+    rationale: 'Unique registry-free leaf source for all legacy processing machine craft definitions; Phase 6 projects every machine into taoyuan:processing_machine and verifies IDs, order, names, descriptions, materials, money and autoCollect behavior.'
+  },
+  'src/data/processingCraftDefinitions.ts:SPRINKLERS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:sprinkler',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'baselined',
+    rationale: 'Leaf source extracted only to keep generated item derivation free of registry cycles; sprinkler registry migration remains a later production/facility slice.'
+  },
+  'src/data/processingCraftDefinitions.ts:FERTILIZERS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:fertilizer',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Leaf source extracted from processing.ts; Phase 3 shop offer pilot verifies fertilizer shopPrice/name/description projection through taoyuan:shop_offer while fertilizer behavior remains framework-owned.'
+  },
+  'src/data/processingCraftDefinitions.ts:BAITS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:bait',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Leaf source extracted from processing.ts; Phase 3 shop offer pilot verifies bait shopPrice/name/description projection through taoyuan:shop_offer while fishing behavior remains framework-owned.'
+  },
+  'src/data/processingCraftDefinitions.ts:TACKLES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:tackle',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Leaf source extracted from processing.ts; Phase 3 shop offer pilot verifies tackle shopPrice/name/description projection through taoyuan:shop_offer while tackle durability and fishing behavior remain framework-owned.'
+  },
+  'src/data/processingCraftDefinitions.ts:BOMBS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:bomb',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'baselined',
+    rationale: 'Leaf source extracted only to keep generated item derivation free of registry cycles; bomb registry migration remains a later production/combat slice.'
+  },
+  'src/data/processing.ts:PROCESSING_MACHINES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:processing_machine',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy processing machine imports stable while the unique leaf source moved to processingMachineDefinitions and runtime lookups resolve taoyuan:processing_machine first.'
+  },
+  'src/data/processing.ts:getMachineById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:processing_machine',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getMachineById() signature is retained and now resolves taoyuan:processing_machine before returning the same local-ID ProcessingMachineDef shape.'
+  },
+  'src/data/processing.ts:getProcessingMachines': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:processing_machine',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Processing machine list query returns local-ID compatibility objects reconstructed from taoyuan:processing_machine in legacy order.'
+  },
+  'src/data/processing.ts:SPRINKLERS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:sprinkler',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'baselined',
+    rationale: 'Original-name re-export preserves legacy sprinkler imports after the leaf extraction; sprinkler registry migration remains out of this processing machine slice.'
+  },
+  'src/data/processing.ts:FERTILIZERS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:fertilizer',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves legacy fertilizer imports after the leaf extraction; Phase 3 shop offer verification remains unchanged.'
   },
   'src/data/processing.ts:BAITS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:bait',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 3 shop offer pilot verifies bait shopPrice/name/description projection through taoyuan:shop_offer; fishing behavior remains framework-owned.'
+    rationale: 'Original-name re-export preserves legacy bait imports after the leaf extraction; Phase 3 shop offer verification remains unchanged.'
   },
   'src/data/processing.ts:TACKLES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tackle',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Phase 3 shop offer pilot verifies tackle shopPrice/name/description projection through taoyuan:shop_offer; tackle durability and fishing behavior remain framework-owned.'
+    rationale: 'Original-name re-export preserves legacy tackle imports after the leaf extraction; Phase 3 shop offer verification remains unchanged.'
+  },
+  'src/data/processing.ts:BOMBS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:bomb',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'baselined',
+    rationale: 'Original-name re-export preserves legacy bomb imports after the leaf extraction; bomb registry migration remains out of this processing machine slice.'
   },
   'src/data/animalDefinitions.ts:ANIMAL_DEFS': {
     classification: 'content',

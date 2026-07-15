@@ -2,7 +2,6 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { MachineType, ProcessingJob, ProcessingSlot, Quality } from '@/types'
 import {
-  PROCESSING_MACHINES,
   SPRINKLERS,
   FERTILIZERS,
   BAITS,
@@ -10,6 +9,7 @@ import {
   TAPPER,
   CRAB_POT_CRAFT,
   BOMBS,
+  getMachineById,
   getRecipesForMachine,
   getProcessingRecipeById
 } from '@/data/processing'
@@ -96,7 +96,7 @@ export const useProcessingStore = defineStore('processing', () => {
   /** 制造并放置一台加工机器 */
   const craftMachine = (machineType: MachineType): boolean => {
     if (machines.value.length >= maxMachines.value) return false
-    const def = PROCESSING_MACHINES.find(m => m.id === machineType)
+    const def = getMachineById(machineType)
     if (!def) return false
     if (!consumeCraftMaterials(def.craftCost, def.craftMoney)) return false
     machines.value.push({
@@ -379,7 +379,7 @@ export const useProcessingStore = defineStore('processing', () => {
     }
 
     // 退还机器制作材料
-    const machineDef = PROCESSING_MACHINES.find(m => m.id === slot.machineType)
+    const machineDef = getMachineById(slot.machineType)
     if (machineDef) {
       for (const mat of machineDef.craftCost) {
         inventoryStore.addItem(mat.itemId, mat.quantity)
@@ -448,7 +448,7 @@ export const useProcessingStore = defineStore('processing', () => {
             inventoryStore.addItem('dream_silk', 1)
             collected.push('梦丝')
           }
-          const machineDef = PROCESSING_MACHINES.find(m => m.id === slot.machineType)
+          const machineDef = getMachineById(slot.machineType)
           if (recipe.inputItemId === null || machineDef?.autoCollect) {
             // 自动收取：无需原料的机器（蜂箱/蚯蚓箱）或标记了 autoCollect 的机器（熔炉）
             const outputQuality = slot.inputQuality ?? 'normal'

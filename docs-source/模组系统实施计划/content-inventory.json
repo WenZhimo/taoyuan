@@ -3,11 +3,11 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 65,
-    "approximateLineCount": 31238,
+    "fileCount": 67,
+    "approximateLineCount": 31253,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 532,
+    "symbolCount": 539,
     "reviewedArtifactCount": 73
   },
   "entries": [
@@ -5737,7 +5737,7 @@
     },
     {
       "file": "src/data/items.ts",
-      "lines": 2013,
+      "lines": 2014,
       "classification": "mixed",
       "domains": [
         "item",
@@ -7100,40 +7100,60 @@
     },
     {
       "file": "src/data/processing.ts",
-      "lines": 2123,
       "classification": "mixed",
       "domains": [
-        "processing_machine",
         "processing_recipe",
-        "sprinkler",
-        "fertilizer",
-        "bait",
-        "tackle"
+        "processing_machine",
+        "processing_craft",
+        "lookup"
       ],
       "candidateTargets": [
-        "taoyuan:processing_machine",
         "taoyuan:processing_recipe",
-        "taoyuan:sprinkler",
-        "taoyuan:fertilizer",
-        "taoyuan:bait",
-        "taoyuan:tackle"
+        "taoyuan:processing_machine",
+        "compatibility_adapter",
+        "engine/domain/processing"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 1599,
       "symbols": [
         {
           "file": "src/data/processing.ts",
-          "exportName": "PROCESSING_MACHINES",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:processing_machine",
+          "exportName": "BAITS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:bait",
           "persistentIds": true,
           "consumers": [
             "src/data/items.ts",
+            "src/data/processingCraftDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
             "src/stores/useProcessingStore.ts",
-            "src/tests/data/gameDataValidation.test.ts",
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export preserves legacy bait imports after the leaf extraction; Phase 3 shop offer verification remains unchanged."
+        },
+        {
+          "file": "src/data/processing.ts",
+          "exportName": "BOMBS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:bomb",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processingCraftDefinitions.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/views/game/MiningView.vue",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
@@ -7141,14 +7161,103 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "rationale": "Original-name re-export preserves legacy bomb imports after the leaf extraction; bomb registry migration remains out of this processing machine slice."
+        },
+        {
+          "file": "src/data/processing.ts",
+          "exportName": "FERTILIZERS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:fertilizer",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processingCraftDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/views/game/FarmView.vue",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export preserves legacy fertilizer imports after the leaf extraction; Phase 3 shop offer verification remains unchanged."
+        },
+        {
+          "file": "src/data/processing.ts",
+          "exportName": "SPRINKLERS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:sprinkler",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processingCraftDefinitions.ts",
+            "src/stores/useFarmStore.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "baselined",
+          "rationale": "Original-name re-export preserves legacy sprinkler imports after the leaf extraction; sprinkler registry migration remains out of this processing machine slice."
+        },
+        {
+          "file": "src/data/processing.ts",
+          "exportName": "TACKLES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:tackle",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processingCraftDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export preserves legacy tackle imports after the leaf extraction; Phase 3 shop offer verification remains unchanged."
+        },
+        {
+          "file": "src/data/processing.ts",
+          "exportName": "PROCESSING_MACHINES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:processing_machine",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processingMachineDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/processingMachineRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy processing machine imports stable while the unique leaf source moved to processingMachineDefinitions and runtime lookups resolve taoyuan:processing_machine first."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "PROCESSING_RECIPES",
           "syntaxKind": "const",
           "classification": "content",
-          "targetRegistry": "taoyuan:processing_machine",
+          "targetRegistry": "taoyuan:processing_recipe",
           "persistentIds": true,
           "consumers": [
             "src/tests/data/gameDataValidation.test.ts"
@@ -7162,109 +7271,45 @@
         },
         {
           "file": "src/data/processing.ts",
-          "exportName": "SPRINKLERS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:processing_machine",
-          "persistentIds": true,
-          "consumers": [
-            "src/data/items.ts",
-            "src/stores/useFarmStore.ts",
-            "src/stores/useProcessingStore.ts",
-            "src/views/game/ProcessingView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/processing.ts",
-          "exportName": "FERTILIZERS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:processing_machine",
-          "persistentIds": true,
-          "consumers": [
-            "src/data/items.ts",
-            "src/domain/mods/staticAdapters.ts",
-            "src/stores/useProcessingStore.ts",
-            "src/stores/useShopStore.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/FarmView.vue",
-            "src/views/game/ProcessingView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "verified",
-          "rationale": "Phase 3 shop offer pilot verifies fertilizer shopPrice/name/description projection through taoyuan:shop_offer; processing and fertilizer behavior remain in later production migration scope."
-        },
-        {
-          "file": "src/data/processing.ts",
-          "exportName": "BAITS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:processing_machine",
-          "persistentIds": true,
-          "consumers": [
-            "src/data/items.ts",
-            "src/domain/mods/staticAdapters.ts",
-            "src/stores/useProcessingStore.ts",
-            "src/stores/useShopStore.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ProcessingView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "verified",
-          "rationale": "Phase 3 shop offer pilot verifies bait shopPrice/name/description projection through taoyuan:shop_offer; fishing behavior remains framework-owned."
-        },
-        {
-          "file": "src/data/processing.ts",
-          "exportName": "TACKLES",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:processing_machine",
-          "persistentIds": true,
-          "consumers": [
-            "src/data/items.ts",
-            "src/domain/mods/staticAdapters.ts",
-            "src/stores/useProcessingStore.ts",
-            "src/stores/useShopStore.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ProcessingView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "verified",
-          "rationale": "Phase 3 shop offer pilot verifies tackle shopPrice/name/description projection through taoyuan:shop_offer; tackle durability and fishing behavior remain framework-owned."
-        },
-        {
-          "file": "src/data/processing.ts",
           "exportName": "getMachineById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:processing_machine",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/stores/useProcessingStore.ts",
+            "src/tests/domain/processingMachineRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getMachineById() signature is retained and now resolves taoyuan:processing_machine before returning the same local-ID ProcessingMachineDef shape."
+        },
+        {
+          "file": "src/data/processing.ts",
+          "exportName": "getProcessingMachines",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:processing_machine",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/processingMachineRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Processing machine list query returns local-ID compatibility objects reconstructed from taoyuan:processing_machine in legacy order."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "getProcessingRecipeById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useProcessingStore.ts",
@@ -7281,6 +7326,7 @@
           "exportName": "getRecipesForMachine",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useProcessingStore.ts"
@@ -7296,6 +7342,7 @@
           "exportName": "getSprinklerById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
@@ -7309,6 +7356,7 @@
           "exportName": "getFertilizerById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/composables/farm/useFarmPlotActions.ts",
@@ -7332,6 +7380,7 @@
           "exportName": "getBaitById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishingStore.ts",
@@ -7348,6 +7397,7 @@
           "exportName": "getTackleById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishingStore.ts",
@@ -7364,6 +7414,7 @@
           "exportName": "TAPPER",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useProcessingStore.ts",
@@ -7380,6 +7431,7 @@
           "exportName": "CRAB_POT_CRAFT",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useProcessingStore.ts",
@@ -7396,6 +7448,7 @@
           "exportName": "LIGHTNING_ROD",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/views/game/ProcessingView.vue"
@@ -7411,6 +7464,7 @@
           "exportName": "SCARECROW",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/views/game/ProcessingView.vue"
@@ -7426,6 +7480,7 @@
           "exportName": "AUTO_PETTER",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/views/game/ProcessingView.vue"
@@ -7438,29 +7493,10 @@
         },
         {
           "file": "src/data/processing.ts",
-          "exportName": "BOMBS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:processing_machine",
-          "persistentIds": true,
-          "consumers": [
-            "src/data/items.ts",
-            "src/stores/useProcessingStore.ts",
-            "src/views/game/MiningView.vue",
-            "src/views/game/ProcessingView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/processing.ts",
           "exportName": "getBombById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/stores/useMiningStore.ts"
@@ -7470,6 +7506,188 @@
           ],
           "status": "baselined",
           "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+        }
+      ]
+    },
+    {
+      "file": "src/data/processingCraftDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "sprinkler",
+        "fertilizer",
+        "bait",
+        "tackle",
+        "bomb"
+      ],
+      "candidateTargets": [
+        "taoyuan:sprinkler",
+        "taoyuan:fertilizer",
+        "taoyuan:bait",
+        "taoyuan:tackle",
+        "taoyuan:bomb",
+        "taoyuan:shop_offer"
+      ],
+      "phases": [
+        3,
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 312,
+      "symbols": [
+        {
+          "file": "src/data/processingCraftDefinitions.ts",
+          "exportName": "SPRINKLERS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:sprinkler",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processing.ts",
+            "src/stores/useFarmStore.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            3,
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "baselined",
+          "rationale": "Leaf source extracted only to keep generated item derivation free of registry cycles; sprinkler registry migration remains a later production/facility slice."
+        },
+        {
+          "file": "src/data/processingCraftDefinitions.ts",
+          "exportName": "FERTILIZERS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:fertilizer",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processing.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/views/game/FarmView.vue",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            3,
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Leaf source extracted from processing.ts; Phase 3 shop offer pilot verifies fertilizer shopPrice/name/description projection through taoyuan:shop_offer while fertilizer behavior remains framework-owned."
+        },
+        {
+          "file": "src/data/processingCraftDefinitions.ts",
+          "exportName": "BAITS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:bait",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processing.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            3,
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Leaf source extracted from processing.ts; Phase 3 shop offer pilot verifies bait shopPrice/name/description projection through taoyuan:shop_offer while fishing behavior remains framework-owned."
+        },
+        {
+          "file": "src/data/processingCraftDefinitions.ts",
+          "exportName": "TACKLES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:tackle",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processing.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            3,
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Leaf source extracted from processing.ts; Phase 3 shop offer pilot verifies tackle shopPrice/name/description projection through taoyuan:shop_offer while tackle durability and fishing behavior remain framework-owned."
+        },
+        {
+          "file": "src/data/processingCraftDefinitions.ts",
+          "exportName": "BOMBS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:bomb",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processing.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/views/game/MiningView.vue",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            3,
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "baselined",
+          "rationale": "Leaf source extracted only to keep generated item derivation free of registry cycles; bomb registry migration remains a later production/combat slice."
+        }
+      ]
+    },
+    {
+      "file": "src/data/processingMachineDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "processing_machine"
+      ],
+      "candidateTargets": [
+        "taoyuan:processing_machine"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 227,
+      "symbols": [
+        {
+          "file": "src/data/processingMachineDefinitions.ts",
+          "exportName": "PROCESSING_MACHINES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:processing_machine",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/processing.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/processingMachineRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy processing machine craft definitions; Phase 6 projects every machine into taoyuan:processing_machine and verifies IDs, order, names, descriptions, materials, money and autoCollect behavior."
         }
       ]
     },
@@ -9917,7 +10135,7 @@
     },
     {
       "file": "src/data/weapons.ts",
-      "lines": 141,
+      "lines": 140,
       "classification": "mixed",
       "domains": [
         "weapon",

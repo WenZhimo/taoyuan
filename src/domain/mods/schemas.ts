@@ -329,6 +329,26 @@ export const AnimalIncubationDefSchema = Type.Object(
   { $id: 'taoyuan.registry.AnimalIncubationDef', additionalProperties: false }
 )
 
+export const ProcessingMachineMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const ProcessingMachineDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    craftCost: Type.Array(ProcessingMachineMaterialSchema),
+    craftMoney: Type.Integer({ minimum: 0 }),
+    autoCollect: Type.Optional(Type.Boolean())
+  },
+  { $id: 'taoyuan.registry.ProcessingMachineDef', additionalProperties: false }
+)
+
 export const ToolTypeSchema = Type.Union([
   Type.Literal('wateringCan'),
   Type.Literal('hoe'),
@@ -984,6 +1004,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:farm_map': FarmMapDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
+  'taoyuan:processing_machine': ProcessingMachineDefSchema,
   'taoyuan:tool_upgrade': ToolUpgradeDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
@@ -1017,6 +1038,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'farm-map.schema.json': FarmMapDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
+  'processing-machine.schema.json': ProcessingMachineDefSchema,
   'tool-upgrade.schema.json': ToolUpgradeDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
@@ -1058,6 +1080,8 @@ export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>
 export type AnimalBuildingMaterial = Static<typeof AnimalBuildingMaterialSchema>
 export type AnimalBuildingUpgrade = Static<typeof AnimalBuildingUpgradeSchema>
 export type AnimalIncubationDef = Static<typeof AnimalIncubationDefSchema>
+export type ProcessingMachineMaterial = Static<typeof ProcessingMachineMaterialSchema>
+export type ProcessingMachineDef = Static<typeof ProcessingMachineDefSchema>
 export type ToolTypeDef = Static<typeof ToolTypeSchema>
 export type ToolTierDef = Static<typeof ToolTierSchema>
 export type ToolUpgradeMaterial = Static<typeof ToolUpgradeMaterialSchema>

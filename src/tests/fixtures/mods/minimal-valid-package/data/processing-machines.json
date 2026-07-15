@@ -1,0 +1,21 @@
+[
+  {
+    "id": "example_mod:processing_machine/test_machine",
+    "name": {
+      "key": "example_mod.processing_machine.test_machine.name",
+      "fallback": "Test Machine"
+    },
+    "description": {
+      "key": "example_mod.processing_machine.test_machine.description",
+      "fallback": "A small test processing machine."
+    },
+    "craftCost": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 2
+      }
+    ],
+    "craftMoney": 100,
+    "autoCollect": true
+  }
+]

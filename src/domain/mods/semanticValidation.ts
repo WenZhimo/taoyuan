@@ -26,6 +26,7 @@ import type {
   PackageManifest,
   PondBreedDef,
   PondableFishDef,
+  ProcessingMachineDef,
   RecipeDef,
   ShopOfferDef,
   TagDef,
@@ -45,6 +46,7 @@ const REGISTRY_IDS = {
   animalFeed: toOfficialRegistryTypeId('animal_feed'),
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
+  processingMachine: toOfficialRegistryTypeId('processing_machine'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
   enchantment: toOfficialRegistryTypeId('enchantment'),
   equipment: toOfficialRegistryTypeId('equipment'),
@@ -94,6 +96,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(REGISTRY_IDS.animalFeed)
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
+  const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(REGISTRY_IDS.enchantment)
   const equipmentRegistry = registrySet.get<EquipmentDef>(REGISTRY_IDS.equipment)
@@ -329,6 +332,19 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/building'
       })
     }
+  }
+
+  for (const record of processingMachineRegistry.entries()) {
+    record.entry.craftCost.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/craftCost/${index}/itemId`
+        })
+      }
+    })
   }
 
   for (const record of toolUpgradeRegistry.entries()) {

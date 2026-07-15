@@ -465,7 +465,6 @@
   import { useWarehouseStore } from '@/stores/useWarehouseStore'
   import { getCombinedItemCount, hasCombinedItem, removeCombinedItem } from '@/composables/useCombinedInventory'
   import {
-    PROCESSING_MACHINES,
     SPRINKLERS,
     FERTILIZERS,
     BAITS,
@@ -476,7 +475,9 @@
     SCARECROW,
     AUTO_PETTER,
     BOMBS,
-    getProcessingRecipeById
+    getProcessingRecipeById,
+    getProcessingMachines,
+    getMachineById
   } from '@/data/processing'
   import { getItemById, CHEST_DEFS, CHEST_TIER_ORDER } from '@/data/items'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
@@ -597,8 +598,8 @@
 
   const machineGroups = computed((): MachineGroup[] => {
     const groupMap = new Map<MachineType, MachineGroup>()
-    // 按 PROCESSING_MACHINES 定义顺序作为排序基准
-    const typeOrder = new Map(PROCESSING_MACHINES.map((m, i) => [m.id as MachineType, i]))
+    // 按加工机器定义顺序作为排序基准
+    const typeOrder = new Map(getProcessingMachines().map((m, i) => [m.id as MachineType, i]))
     for (let i = 0; i < processingStore.machines.length; i++) {
       const slot = processingStore.machines[i]!
       let group = groupMap.get(slot.machineType)
@@ -718,7 +719,7 @@
   const craftCategories = computed((): { label: string; items: CraftableItem[] }[] => [
     {
       label: '加工机器',
-      items: PROCESSING_MACHINES.map(m => ({
+      items: getProcessingMachines().map(m => ({
         id: m.id as string,
         name: m.name,
         description: m.description,
@@ -933,7 +934,7 @@
   // === 工具函数 ===
 
   const getMachineName = (type: MachineType): string => {
-    return PROCESSING_MACHINES.find(m => m.id === type)?.name ?? type
+    return getMachineById(type)?.name ?? type
   }
 
   const getItemName = (id: string): string => {

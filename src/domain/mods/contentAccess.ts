@@ -6,6 +6,7 @@ import type {
   FruitTreeDef as LegacyFruitTreeDef,
   HatDef as LegacyHatDef,
   MonsterDef as LegacyMonsterDef,
+  ProcessingMachineDef as LegacyProcessingMachineDef,
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
   ToolTier,
@@ -75,6 +76,7 @@ import type {
   MonsterPoolDef,
   PondBreedDef,
   PondableFishDef,
+  ProcessingMachineDef as ProcessingMachineContentDef,
   RecipeDef,
   Season,
   ShopDef,
@@ -763,6 +765,38 @@ export const getOfficialAnimalIncubationMap = (): Record<string, LegacyAnimalInc
       toLegacyAnimalIncubationMapping(incubation)
     ])
   )
+
+export const getOfficialProcessingMachineDef = (id: string): Readonly<ProcessingMachineContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<ProcessingMachineContentDef>(toOfficialRegistryTypeId('processing_machine')).get(contentId)
+    : undefined
+}
+
+export const getOfficialProcessingMachineDefs = (): readonly Readonly<ProcessingMachineContentDef>[] =>
+  getOfficialRegistrySet().get<ProcessingMachineContentDef>(toOfficialRegistryTypeId('processing_machine')).values()
+
+const toLegacyProcessingMachineDef = (
+  machine: Readonly<ProcessingMachineContentDef>
+): LegacyProcessingMachineDef => ({
+  id: getLocalContentId(machine.id) as LegacyProcessingMachineDef['id'],
+  name: machine.name.fallback,
+  description: machine.description.fallback,
+  craftCost: machine.craftCost.map(material => ({
+    itemId: getLocalContentId(material.itemId),
+    quantity: material.quantity
+  })),
+  craftMoney: machine.craftMoney,
+  ...(machine.autoCollect === undefined ? {} : { autoCollect: machine.autoCollect })
+})
+
+export const getOfficialProcessingMachineById = (id: string): LegacyProcessingMachineDef | undefined => {
+  const machine = getOfficialProcessingMachineDef(id)
+  return machine ? toLegacyProcessingMachineDef(machine) : undefined
+}
+
+export const getOfficialProcessingMachinesAsLegacy = (): readonly LegacyProcessingMachineDef[] =>
+  getOfficialProcessingMachineDefs().map(toLegacyProcessingMachineDef)
 
 const toLegacyToolUpgradeCost = (upgrade: Readonly<ToolUpgradeContentDef>): LegacyToolUpgradeCost => ({
   fromTier: upgrade.fromTier,
