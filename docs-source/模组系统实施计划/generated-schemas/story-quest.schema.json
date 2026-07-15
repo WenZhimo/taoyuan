@@ -1,0 +1,892 @@
+{
+  "$id": "taoyuan.registry.StoryQuestDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "chapter",
+    "order",
+    "title",
+    "description",
+    "npcId",
+    "objectives",
+    "moneyReward"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "chapter": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "order": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "title": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "npcId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "objectives": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "earnMoney",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "reachMineFloor",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "reachSkullFloor",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "allSkillsLevel",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "harvestCrops",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "catchFish",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "cookRecipes",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "killMonsters",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "discoverItems",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "completeBundles",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "completeQuests",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "shipItems",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "ownAnimals",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "target"
+            ],
+            "properties": {
+              "type": {
+                "const": "skillLevel",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "skillType": {
+                "anyOf": [
+                  {
+                    "const": "farming",
+                    "type": "string"
+                  },
+                  {
+                    "const": "foraging",
+                    "type": "string"
+                  },
+                  {
+                    "const": "fishing",
+                    "type": "string"
+                  },
+                  {
+                    "const": "mining",
+                    "type": "string"
+                  },
+                  {
+                    "const": "combat",
+                    "type": "string"
+                  }
+                ]
+              },
+              "target": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "npcId",
+              "friendshipLevel"
+            ],
+            "properties": {
+              "type": {
+                "const": "npcFriendship",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "npcId": {
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                    "type": "string"
+                  },
+                  {
+                    "const": "_any",
+                    "type": "string"
+                  }
+                ]
+              },
+              "friendshipLevel": {
+                "anyOf": [
+                  {
+                    "const": "stranger",
+                    "type": "string"
+                  },
+                  {
+                    "const": "acquaintance",
+                    "type": "string"
+                  },
+                  {
+                    "const": "friendly",
+                    "type": "string"
+                  },
+                  {
+                    "const": "bestFriend",
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "friendshipLevel"
+            ],
+            "properties": {
+              "type": {
+                "const": "npcAllFriendly",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "friendshipLevel": {
+                "anyOf": [
+                  {
+                    "const": "stranger",
+                    "type": "string"
+                  },
+                  {
+                    "const": "acquaintance",
+                    "type": "string"
+                  },
+                  {
+                    "const": "friendly",
+                    "type": "string"
+                  },
+                  {
+                    "const": "bestFriend",
+                    "type": "string"
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label",
+              "itemId",
+              "itemQuantity"
+            ],
+            "properties": {
+              "type": {
+                "const": "deliverItem",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "itemQuantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label"
+            ],
+            "properties": {
+              "type": {
+                "const": "married",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "type",
+              "label"
+            ],
+            "properties": {
+              "type": {
+                "const": "hasChild",
+                "type": "string"
+              },
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "moneyReward": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "friendshipReward": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "npcId",
+          "amount"
+        ],
+        "properties": {
+          "npcId": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          },
+          "amount": {
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "itemReward": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "itemId",
+          "quantity"
+        ],
+        "properties": {
+          "itemId": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

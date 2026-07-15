@@ -22,6 +22,7 @@ import type {
   MuseumMilestone as LegacyMuseumMilestone,
   GuildDonationDef as LegacyGuildDonationDef,
   GuildLevelDef as LegacyGuildLevelDef,
+  MainQuestDef as LegacyMainQuestDef,
   MonsterGoalDef as LegacyGuildGoalDef,
   SecretNoteDef as LegacySecretNoteDef,
   WildTreeDef as LegacyWildTreeDef
@@ -104,6 +105,7 @@ import type {
   SecretNoteDef as SecretNoteContentDef,
   ShopDef,
   ShopOfferDef,
+  StoryQuestDef as StoryQuestContentDef,
   TagDef,
   ToolUpgradeDef as ToolUpgradeContentDef,
   TutorialDef as TutorialContentDef,
@@ -159,6 +161,9 @@ const toGuildLevelQueryContentId = (level: number | string) => {
 
 const toNpcQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `npc/${id}`)
+
+const toStoryQuestQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `story_quest/${id}`)
 
 const toAchievementQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `achievement/${id}`)
@@ -701,6 +706,16 @@ export const getOfficialNpcDef = (id: string): Readonly<NpcContentDef> | undefin
 export const getOfficialNpcDefs = (): readonly Readonly<NpcContentDef>[] =>
   getOfficialRegistrySet().get<NpcContentDef>(toOfficialRegistryTypeId('npc')).values()
 
+export const getOfficialStoryQuestDef = (id: string): Readonly<StoryQuestContentDef> | undefined => {
+  const contentId = toStoryQuestQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<StoryQuestContentDef>(toOfficialRegistryTypeId('story_quest')).get(contentId)
+    : undefined
+}
+
+export const getOfficialStoryQuestDefs = (): readonly Readonly<StoryQuestContentDef>[] =>
+  getOfficialRegistrySet().get<StoryQuestContentDef>(toOfficialRegistryTypeId('story_quest')).values()
+
 export const getOfficialAchievementDef = (id: string): Readonly<AchievementContentDef> | undefined => {
   const contentId = toAchievementQueryContentId(id)
   return contentId
@@ -989,6 +1004,118 @@ export const getOfficialNpcById = (id: string): LegacyNpcDef | undefined => {
 
 export const getOfficialNpcsAsLegacy = (): readonly LegacyNpcDef[] =>
   getOfficialNpcDefs().map(toLegacyNpcDef)
+
+const getLocalStoryQuestId = (contentId: string): string => {
+  const localId = getLocalContentId(contentId)
+  return localId.startsWith('story_quest/') ? localId.slice('story_quest/'.length) : localId
+}
+
+const toLegacyStoryQuestObjective = (
+  objective: Readonly<StoryQuestContentDef['objectives'][number]>
+): LegacyMainQuestDef['objectives'][number] => {
+  const label = objective.label.fallback
+  switch (objective.type) {
+    case 'skillLevel':
+      return {
+        type: 'skillLevel',
+        label,
+        ...(objective.skillType ? { skillType: objective.skillType } : {}),
+        target: objective.target
+      }
+    case 'npcFriendship':
+      return {
+        type: 'npcFriendship',
+        label,
+        npcId: objective.npcId === '_any' ? '_any' : getLocalNpcId(objective.npcId),
+        friendshipLevel: objective.friendshipLevel
+      }
+    case 'npcAllFriendly':
+      return {
+        type: 'npcAllFriendly',
+        label,
+        friendshipLevel: objective.friendshipLevel
+      }
+    case 'deliverItem':
+      return {
+        type: 'deliverItem',
+        label,
+        itemId: getLocalContentId(objective.itemId),
+        itemQuantity: objective.itemQuantity
+      }
+    case 'married':
+      return { type: 'married', label }
+    case 'hasChild':
+      return { type: 'hasChild', label }
+    default:
+      return {
+        type: objective.type,
+        label,
+        target: objective.target
+      } as LegacyMainQuestDef['objectives'][number]
+  }
+}
+
+const toLegacyStoryQuestDef = (quest: Readonly<StoryQuestContentDef>): LegacyMainQuestDef => ({
+  id: getLocalStoryQuestId(quest.id),
+  chapter: quest.chapter,
+  order: quest.order,
+  title: quest.title.fallback,
+  description: quest.description.fallback,
+  npcId: getLocalNpcId(quest.npcId),
+  objectives: quest.objectives.map(toLegacyStoryQuestObjective),
+  moneyReward: quest.moneyReward,
+  ...(quest.friendshipReward
+    ? {
+        friendshipReward: quest.friendshipReward.map(reward => ({
+          npcId: getLocalNpcId(reward.npcId),
+          amount: reward.amount
+        }))
+      }
+    : {}),
+  ...(quest.itemReward
+    ? {
+        itemReward: quest.itemReward.map(reward => ({
+          itemId: getLocalContentId(reward.itemId),
+          quantity: reward.quantity
+        }))
+      }
+    : {})
+})
+
+export const getOfficialStoryQuestById = (id: string): LegacyMainQuestDef | undefined => {
+  const quest = getOfficialStoryQuestDef(id)
+  return quest ? toLegacyStoryQuestDef(quest) : undefined
+}
+
+export const getOfficialStoryQuestsAsLegacy = (): readonly LegacyMainQuestDef[] =>
+  getOfficialStoryQuestDefs().map(toLegacyStoryQuestDef)
+
+export const getOfficialStoryQuestByOrder = (
+  chapter: number,
+  order: number
+): LegacyMainQuestDef | undefined => {
+  const quest = getOfficialStoryQuestDefs().find(candidate => candidate.chapter === chapter && candidate.order === order)
+  return quest ? toLegacyStoryQuestDef(quest) : undefined
+}
+
+export const getOfficialNextStoryQuest = (currentId: string): LegacyMainQuestDef | undefined => {
+  const contentId = toStoryQuestQueryContentId(currentId)
+  if (!contentId) return undefined
+  const quests = getOfficialStoryQuestDefs()
+  const index = quests.findIndex(candidate => candidate.id === contentId)
+  const nextQuest = index >= 0 ? quests[index + 1] : undefined
+  return nextQuest ? toLegacyStoryQuestDef(nextQuest) : undefined
+}
+
+export const getOfficialChapterStoryQuests = (chapter: number): readonly LegacyMainQuestDef[] =>
+  getOfficialStoryQuestDefs()
+    .filter(quest => quest.chapter === chapter)
+    .map(toLegacyStoryQuestDef)
+
+export const getOfficialFirstStoryQuest = (): LegacyMainQuestDef | undefined => {
+  const firstQuest = getOfficialStoryQuestDefs()[0]
+  return firstQuest ? toLegacyStoryQuestDef(firstQuest) : undefined
+}
 
 const toLegacyAchievementReward = (
   reward: Readonly<AchievementContentDef['reward']>

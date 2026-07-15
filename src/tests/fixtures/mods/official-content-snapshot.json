@@ -91566,6 +91566,1999 @@
       ]
     },
     {
+      "registryId": "taoyuan:story_quest",
+      "schemaName": "story-quest.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "柳村长说，想在桃源乡立足，先从种地开始吧。试着收获5次作物。",
+              "key": "taoyuan.story_quest.main_1_1.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_1",
+            "moneyReward": 300,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计收获5次作物",
+                  "key": "taoyuan.story_quest.main_1_1.objectives.0.label"
+                },
+                "target": 5,
+                "type": "harvestCrops"
+              }
+            ],
+            "order": 1,
+            "title": {
+              "fallback": "新的开始",
+              "key": "taoyuan.story_quest.main_1_1.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "要在桃源乡真正站稳脚跟，农耕技能必须过硬。把农耕练到3级吧。",
+              "key": "taoyuan.story_quest.main_1_10.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_10",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:quality_fertilizer",
+                "quantity": 5
+              }
+            ],
+            "moneyReward": 1000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "农耕技能达到3级",
+                  "key": "taoyuan.story_quest.main_1_10.objectives.0.label"
+                },
+                "skillType": "farming",
+                "target": 3,
+                "type": "skillLevel"
+              }
+            ],
+            "order": 10,
+            "title": {
+              "fallback": "扎根桃源",
+              "key": "taoyuan.story_quest.main_1_10.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "陈伯是村里万物铺的老板，多和他打打交道吧。",
+              "key": "taoyuan.story_quest.main_1_2.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/chen_bo"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_2",
+            "moneyReward": 200,
+            "npcId": "taoyuan:npc/chen_bo",
+            "objectives": [
+              {
+                "friendshipLevel": "acquaintance",
+                "label": {
+                  "fallback": "与陈伯成为相识",
+                  "key": "taoyuan.story_quest.main_1_2.objectives.0.label"
+                },
+                "npcId": "taoyuan:npc/chen_bo",
+                "type": "npcFriendship"
+              }
+            ],
+            "order": 2,
+            "title": {
+              "fallback": "远亲不如近邻",
+              "key": "taoyuan.story_quest.main_1_2.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "秋月是村里最会钓鱼的姑娘，她邀你去溪边试试身手。",
+              "key": "taoyuan.story_quest.main_1_3.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/qiu_yue"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_3",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:standard_bait",
+                "quantity": 10
+              }
+            ],
+            "moneyReward": 300,
+            "npcId": "taoyuan:npc/qiu_yue",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计钓到5条鱼",
+                  "key": "taoyuan.story_quest.main_1_3.objectives.0.label"
+                },
+                "target": 5,
+                "type": "catchFish"
+              }
+            ],
+            "order": 3,
+            "title": {
+              "fallback": "溪边垂钓",
+              "key": "taoyuan.story_quest.main_1_3.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "阿石说矿洞里有好东西，但也有危险。先探到第5层试试。",
+              "key": "taoyuan.story_quest.main_1_4.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/a_shi"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_4",
+            "moneyReward": 500,
+            "npcId": "taoyuan:npc/a_shi",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "矿洞到达第5层",
+                  "key": "taoyuan.story_quest.main_1_4.objectives.0.label"
+                },
+                "target": 5,
+                "type": "reachMineFloor"
+              }
+            ],
+            "order": 4,
+            "title": {
+              "fallback": "初探矿洞",
+              "key": "taoyuan.story_quest.main_1_4.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "王大婶说，种地辛苦，学做几道菜犒劳自己吧。",
+              "key": "taoyuan.story_quest.main_1_5.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/wang_dashen"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_5",
+            "moneyReward": 300,
+            "npcId": "taoyuan:npc/wang_dashen",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计烹饪3道菜",
+                  "key": "taoyuan.story_quest.main_1_5.objectives.0.label"
+                },
+                "target": 3,
+                "type": "cookRecipes"
+              }
+            ],
+            "order": 5,
+            "title": {
+              "fallback": "乡间美味",
+              "key": "taoyuan.story_quest.main_1_5.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "柳村长希望你多认识村里的人，同时也帮乡亲们办办事。",
+              "key": "taoyuan.story_quest.main_1_6.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_6",
+            "moneyReward": 500,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计完成3个委托",
+                  "key": "taoyuan.story_quest.main_1_6.objectives.0.label"
+                },
+                "target": 3,
+                "type": "completeQuests"
+              }
+            ],
+            "order": 6,
+            "title": {
+              "fallback": "广结善缘",
+              "key": "taoyuan.story_quest.main_1_6.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "小满说他师父赵木匠急需一批木材，帮忙送去30个木材吧。",
+              "key": "taoyuan.story_quest.main_1_7.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/xiao_man"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_7",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:basic_fertilizer",
+                "quantity": 5
+              }
+            ],
+            "moneyReward": 500,
+            "npcId": "taoyuan:npc/xiao_man",
+            "objectives": [
+              {
+                "itemId": "taoyuan:wood",
+                "itemQuantity": 30,
+                "label": {
+                  "fallback": "交付木材×30",
+                  "key": "taoyuan.story_quest.main_1_7.objectives.0.label"
+                },
+                "type": "deliverItem"
+              }
+            ],
+            "order": 7,
+            "title": {
+              "fallback": "木匠的考验",
+              "key": "taoyuan.story_quest.main_1_7.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "林老要配一副药方，需要一些草药，帮他收集10个草药吧。",
+              "key": "taoyuan.story_quest.main_1_8.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/lin_lao"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_8",
+            "moneyReward": 500,
+            "npcId": "taoyuan:npc/lin_lao",
+            "objectives": [
+              {
+                "itemId": "taoyuan:herb",
+                "itemQuantity": 10,
+                "label": {
+                  "fallback": "交付草药×10",
+                  "key": "taoyuan.story_quest.main_1_8.objectives.0.label"
+                },
+                "type": "deliverItem"
+              }
+            ],
+            "order": 8,
+            "title": {
+              "fallback": "林老的嘱托",
+              "key": "taoyuan.story_quest.main_1_8.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 1,
+            "description": {
+              "fallback": "柳村长对你的表现很满意。继续努力，让积蓄再多一些吧。",
+              "key": "taoyuan.story_quest.main_1_9.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_1_9",
+            "moneyReward": 800,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计获得5000文",
+                  "key": "taoyuan.story_quest.main_1_9.objectives.0.label"
+                },
+                "target": 5000,
+                "type": "earnMoney"
+              }
+            ],
+            "order": 9,
+            "title": {
+              "fallback": "初露锋芒",
+              "key": "taoyuan.story_quest.main_1_9.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "柳娘说你的农场越来越像样了，继续加油收获更多作物吧。",
+              "key": "taoyuan.story_quest.main_2_1.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/liu_niang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_1",
+            "moneyReward": 800,
+            "npcId": "taoyuan:npc/liu_niang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计收获50次作物",
+                  "key": "taoyuan.story_quest.main_2_1.objectives.0.label"
+                },
+                "target": 50,
+                "type": "harvestCrops"
+              }
+            ],
+            "order": 1,
+            "title": {
+              "fallback": "丰收之路",
+              "key": "taoyuan.story_quest.main_2_1.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "你在桃源乡已经小有名气了。继续积累财富，证明自己的实力。",
+              "key": "taoyuan.story_quest.main_2_10.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_10",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:seed_peach",
+                "quantity": 3
+              }
+            ],
+            "moneyReward": 1500,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计获得15000文",
+                  "key": "taoyuan.story_quest.main_2_10.objectives.0.label"
+                },
+                "target": 15000,
+                "type": "earnMoney"
+              }
+            ],
+            "order": 10,
+            "title": {
+              "fallback": "小有名气",
+              "key": "taoyuan.story_quest.main_2_10.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "阿石说矿洞20层以下有铁矿脉，深入探索一下吧。",
+              "key": "taoyuan.story_quest.main_2_2.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/a_shi"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_2",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 10
+              }
+            ],
+            "moneyReward": 1000,
+            "npcId": "taoyuan:npc/a_shi",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "矿洞到达第20层",
+                  "key": "taoyuan.story_quest.main_2_2.objectives.0.label"
+                },
+                "target": 20,
+                "type": "reachMineFloor"
+              }
+            ],
+            "order": 2,
+            "title": {
+              "fallback": "矿洞深处",
+              "key": "taoyuan.story_quest.main_2_2.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "李渔翁说，钓鱼讲究心境。多钓几条鱼，领悟其中奥妙。",
+              "key": "taoyuan.story_quest.main_2_3.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/li_yu"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_3",
+            "moneyReward": 800,
+            "npcId": "taoyuan:npc/li_yu",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计钓到30条鱼",
+                  "key": "taoyuan.story_quest.main_2_3.objectives.0.label"
+                },
+                "target": 30,
+                "type": "catchFish"
+              }
+            ],
+            "order": 3,
+            "title": {
+              "fallback": "渔翁之道",
+              "key": "taoyuan.story_quest.main_2_3.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "柳村长说村里祠堂有一块任务板，去图鉴中的「祠堂」看看，完成一个任务为村子做点贡献。",
+              "key": "taoyuan.story_quest.main_2_4.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_4",
+            "moneyReward": 1000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "完成1个祠堂任务",
+                  "key": "taoyuan.story_quest.main_2_4.objectives.0.label"
+                },
+                "target": 1,
+                "type": "completeBundles"
+              }
+            ],
+            "order": 4,
+            "title": {
+              "fallback": "乡情初绽",
+              "key": "taoyuan.story_quest.main_2_4.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "孙铁匠需要一批铁矿来打造农具，送去15个铁矿表达心意。",
+              "key": "taoyuan.story_quest.main_2_5.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/sun_tiejiang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_5",
+            "moneyReward": 1000,
+            "npcId": "taoyuan:npc/sun_tiejiang",
+            "objectives": [
+              {
+                "friendshipLevel": "acquaintance",
+                "label": {
+                  "fallback": "与孙铁匠成为相识",
+                  "key": "taoyuan.story_quest.main_2_5.objectives.0.label"
+                },
+                "npcId": "taoyuan:npc/sun_tiejiang",
+                "type": "npcFriendship"
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "itemQuantity": 15,
+                "label": {
+                  "fallback": "交付铁矿×15",
+                  "key": "taoyuan.story_quest.main_2_5.objectives.1.label"
+                },
+                "type": "deliverItem"
+              }
+            ],
+            "order": 5,
+            "title": {
+              "fallback": "铁匠的友谊",
+              "key": "taoyuan.story_quest.main_2_5.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "大牛说养动物是件快乐的事，试着养3只牲畜吧。",
+              "key": "taoyuan.story_quest.main_2_6.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/da_niu"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_6",
+            "moneyReward": 1000,
+            "npcId": "taoyuan:npc/da_niu",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "拥有3只牲畜",
+                  "key": "taoyuan.story_quest.main_2_6.objectives.0.label"
+                },
+                "target": 3,
+                "type": "ownAnimals"
+              }
+            ],
+            "order": 6,
+            "title": {
+              "fallback": "牧场之梦",
+              "key": "taoyuan.story_quest.main_2_6.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "王大婶对你的厨艺赞不绝口，再多学几道菜吧。",
+              "key": "taoyuan.story_quest.main_2_7.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/wang_dashen"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_7",
+            "moneyReward": 800,
+            "npcId": "taoyuan:npc/wang_dashen",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计烹饪15道菜",
+                  "key": "taoyuan.story_quest.main_2_7.objectives.0.label"
+                },
+                "target": 15,
+                "type": "cookRecipes"
+              }
+            ],
+            "order": 7,
+            "title": {
+              "fallback": "厨艺精进",
+              "key": "taoyuan.story_quest.main_2_7.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "柳村长说你帮了不少乡亲的忙，继续做下去吧。",
+              "key": "taoyuan.story_quest.main_2_8.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_8",
+            "moneyReward": 1000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计完成10个委托",
+                  "key": "taoyuan.story_quest.main_2_8.objectives.0.label"
+                },
+                "target": 10,
+                "type": "completeQuests"
+              }
+            ],
+            "order": 8,
+            "title": {
+              "fallback": "村里的委托",
+              "key": "taoyuan.story_quest.main_2_8.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 2,
+            "description": {
+              "fallback": "陈伯说桃源乡物产丰富，多发现一些不同的物品吧。",
+              "key": "taoyuan.story_quest.main_2_9.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/chen_bo"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_2_9",
+            "moneyReward": 1200,
+            "npcId": "taoyuan:npc/chen_bo",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "发现30种不同物品",
+                  "key": "taoyuan.story_quest.main_2_9.objectives.0.label"
+                },
+                "target": 30,
+                "type": "discoverItems"
+              }
+            ],
+            "order": 9,
+            "title": {
+              "fallback": "四季物产",
+              "key": "taoyuan.story_quest.main_2_9.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "阿石说矿洞40层以下有金矿脉，但怪物也更凶猛了。",
+              "key": "taoyuan.story_quest.main_3_1.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/a_shi"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_1",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 10
+              }
+            ],
+            "moneyReward": 1500,
+            "npcId": "taoyuan:npc/a_shi",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "矿洞到达第40层",
+                  "key": "taoyuan.story_quest.main_3_1.objectives.0.label"
+                },
+                "target": 40,
+                "type": "reachMineFloor"
+              }
+            ],
+            "order": 1,
+            "title": {
+              "fallback": "深渊挑战",
+              "key": "taoyuan.story_quest.main_3_1.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "你的名声已经传到了邻村。继续积累财富，成为桃源乡的骄傲。",
+              "key": "taoyuan.story_quest.main_3_10.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_10",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 2
+              }
+            ],
+            "moneyReward": 2500,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计获得40000文",
+                  "key": "taoyuan.story_quest.main_3_10.objectives.0.label"
+                },
+                "target": 40000,
+                "type": "earnMoney"
+              }
+            ],
+            "order": 10,
+            "title": {
+              "fallback": "声名远播",
+              "key": "taoyuan.story_quest.main_3_10.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "柳村长说你已经成了村里的大忙人，继续帮助乡亲们吧。",
+              "key": "taoyuan.story_quest.main_3_2.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_2",
+            "moneyReward": 1500,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计完成25个委托",
+                  "key": "taoyuan.story_quest.main_3_2.objectives.0.label"
+                },
+                "target": 25,
+                "type": "completeQuests"
+              }
+            ],
+            "order": 2,
+            "title": {
+              "fallback": "百事通",
+              "key": "taoyuan.story_quest.main_3_2.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "周秀才对你的见识很感兴趣，希望你能发现更多桃源乡的物产。",
+              "key": "taoyuan.story_quest.main_3_3.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/zhou_xiucai"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_3",
+            "moneyReward": 1500,
+            "npcId": "taoyuan:npc/zhou_xiucai",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "发现50种不同物品",
+                  "key": "taoyuan.story_quest.main_3_3.objectives.0.label"
+                },
+                "target": 50,
+                "type": "discoverItems"
+              }
+            ],
+            "order": 3,
+            "title": {
+              "fallback": "万物通鉴",
+              "key": "taoyuan.story_quest.main_3_3.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "胖婶说你的厨艺越来越好了，再接再厉！",
+              "key": "taoyuan.story_quest.main_3_4.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/pang_shen"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_4",
+            "moneyReward": 1200,
+            "npcId": "taoyuan:npc/pang_shen",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计烹饪30道菜",
+                  "key": "taoyuan.story_quest.main_3_4.objectives.0.label"
+                },
+                "target": 30,
+                "type": "cookRecipes"
+              }
+            ],
+            "order": 4,
+            "title": {
+              "fallback": "美食家",
+              "key": "taoyuan.story_quest.main_3_4.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "柳村长希望你能和村里所有人都混个脸熟。",
+              "key": "taoyuan.story_quest.main_3_5.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_5",
+            "moneyReward": 2000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "friendshipLevel": "acquaintance",
+                "label": {
+                  "fallback": "与所有村民成为相识",
+                  "key": "taoyuan.story_quest.main_3_5.objectives.0.label"
+                },
+                "type": "npcAllFriendly"
+              }
+            ],
+            "order": 5,
+            "title": {
+              "fallback": "人缘好",
+              "key": "taoyuan.story_quest.main_3_5.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "大牛对你的牧场很感兴趣，把牲畜养到8只吧。",
+              "key": "taoyuan.story_quest.main_3_6.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/da_niu"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_6",
+            "moneyReward": 1500,
+            "npcId": "taoyuan:npc/da_niu",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "拥有8只牲畜",
+                  "key": "taoyuan.story_quest.main_3_6.objectives.0.label"
+                },
+                "target": 8,
+                "type": "ownAnimals"
+              }
+            ],
+            "order": 6,
+            "title": {
+              "fallback": "牧场扩张",
+              "key": "taoyuan.story_quest.main_3_6.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "秋月说你的钓术已经相当不错了，继续精进！",
+              "key": "taoyuan.story_quest.main_3_7.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/qiu_yue"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_7",
+            "moneyReward": 1500,
+            "npcId": "taoyuan:npc/qiu_yue",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计钓到80条鱼",
+                  "key": "taoyuan.story_quest.main_3_7.objectives.0.label"
+                },
+                "target": 80,
+                "type": "catchFish"
+              }
+            ],
+            "order": 7,
+            "title": {
+              "fallback": "渔王初成",
+              "key": "taoyuan.story_quest.main_3_7.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "何掌柜说你的出货种类越来越多，继续拓展销路。",
+              "key": "taoyuan.story_quest.main_3_8.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/he_zhanggui"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_8",
+            "moneyReward": 2000,
+            "npcId": "taoyuan:npc/he_zhanggui",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "出货15种不同物品",
+                  "key": "taoyuan.story_quest.main_3_8.objectives.0.label"
+                },
+                "target": 15,
+                "type": "shipItems"
+              }
+            ],
+            "order": 8,
+            "title": {
+              "fallback": "出货达人",
+              "key": "taoyuan.story_quest.main_3_8.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 3,
+            "description": {
+              "fallback": "林老说人要有一技之长，把任意一项技能练到7级。",
+              "key": "taoyuan.story_quest.main_3_9.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/lin_lao"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_3_9",
+            "moneyReward": 2000,
+            "npcId": "taoyuan:npc/lin_lao",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "任意技能达到7级",
+                  "key": "taoyuan.story_quest.main_3_9.objectives.0.label"
+                },
+                "target": 7,
+                "type": "skillLevel"
+              }
+            ],
+            "order": 9,
+            "title": {
+              "fallback": "技艺精通",
+              "key": "taoyuan.story_quest.main_3_9.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "阿石说矿洞最深处隐藏着强大的boss，到达第80层吧。",
+              "key": "taoyuan.story_quest.main_4_1.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/a_shi"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_1",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 15
+              }
+            ],
+            "moneyReward": 3000,
+            "npcId": "taoyuan:npc/a_shi",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "矿洞到达第80层",
+                  "key": "taoyuan.story_quest.main_4_1.objectives.0.label"
+                },
+                "target": 80,
+                "type": "reachMineFloor"
+              }
+            ],
+            "order": 1,
+            "title": {
+              "fallback": "深渊征服者",
+              "key": "taoyuan.story_quest.main_4_1.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "你的财富已经名闻乡里。柳村长说你是桃源乡的骄傲。",
+              "key": "taoyuan.story_quest.main_4_10.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_10",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:prismatic_shard",
+                "quantity": 1
+              }
+            ],
+            "moneyReward": 5000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计获得100000文",
+                  "key": "taoyuan.story_quest.main_4_10.objectives.0.label"
+                },
+                "target": 100000,
+                "type": "earnMoney"
+              }
+            ],
+            "order": 10,
+            "title": {
+              "fallback": "富甲一方",
+              "key": "taoyuan.story_quest.main_4_10.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "云飞说山里的怪物越来越多了，需要有人出手清理。",
+              "key": "taoyuan.story_quest.main_4_2.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/yun_fei"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_2",
+            "moneyReward": 2500,
+            "npcId": "taoyuan:npc/yun_fei",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计击杀150只怪物",
+                  "key": "taoyuan.story_quest.main_4_2.objectives.0.label"
+                },
+                "target": 150,
+                "type": "killMonsters"
+              }
+            ],
+            "order": 2,
+            "title": {
+              "fallback": "降妖除魔",
+              "key": "taoyuan.story_quest.main_4_2.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "柳村长希望你能为村子完成更多祠堂任务。前往图鉴中的「祠堂」查看并提交所需物品。",
+              "key": "taoyuan.story_quest.main_4_3.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_3",
+            "moneyReward": 3000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "完成4个祠堂任务",
+                  "key": "taoyuan.story_quest.main_4_3.objectives.0.label"
+                },
+                "target": 4,
+                "type": "completeBundles"
+              }
+            ],
+            "order": 3,
+            "title": {
+              "fallback": "乡情圆满",
+              "key": "taoyuan.story_quest.main_4_3.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "柳村长笑着说，是时候成个家了吧？",
+              "key": "taoyuan.story_quest.main_4_4.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_4",
+            "moneyReward": 2000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "与心仪之人结婚",
+                  "key": "taoyuan.story_quest.main_4_4.objectives.0.label"
+                },
+                "type": "married"
+              }
+            ],
+            "order": 4,
+            "title": {
+              "fallback": "百年好合",
+              "key": "taoyuan.story_quest.main_4_4.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "王大婶说你的厨艺已经超过她了，继续挑战更多菜品。",
+              "key": "taoyuan.story_quest.main_4_5.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/wang_dashen"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_5",
+            "moneyReward": 2500,
+            "npcId": "taoyuan:npc/wang_dashen",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计烹饪50道菜",
+                  "key": "taoyuan.story_quest.main_4_5.objectives.0.label"
+                },
+                "target": 50,
+                "type": "cookRecipes"
+              }
+            ],
+            "order": 5,
+            "title": {
+              "fallback": "大厨之路",
+              "key": "taoyuan.story_quest.main_4_5.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "周秀才说你的见识已经超越了大部分人，继续探索。",
+              "key": "taoyuan.story_quest.main_4_6.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/zhou_xiucai"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_6",
+            "moneyReward": 3000,
+            "npcId": "taoyuan:npc/zhou_xiucai",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "发现80种不同物品",
+                  "key": "taoyuan.story_quest.main_4_6.objectives.0.label"
+                },
+                "target": 80,
+                "type": "discoverItems"
+              }
+            ],
+            "order": 6,
+            "title": {
+              "fallback": "博物全才",
+              "key": "taoyuan.story_quest.main_4_6.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "何掌柜惊叹于你的出货规模，继续扩大出货种类。",
+              "key": "taoyuan.story_quest.main_4_7.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/he_zhanggui"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_7",
+            "moneyReward": 3000,
+            "npcId": "taoyuan:npc/he_zhanggui",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "出货30种不同物品",
+                  "key": "taoyuan.story_quest.main_4_7.objectives.0.label"
+                },
+                "target": 30,
+                "type": "shipItems"
+              }
+            ],
+            "order": 7,
+            "title": {
+              "fallback": "物流大亨",
+              "key": "taoyuan.story_quest.main_4_7.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "人生得一知己足矣。和一位村民成为挚友吧。",
+              "key": "taoyuan.story_quest.main_4_8.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/lin_lao"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_8",
+            "moneyReward": 2500,
+            "npcId": "taoyuan:npc/lin_lao",
+            "objectives": [
+              {
+                "friendshipLevel": "bestFriend",
+                "label": {
+                  "fallback": "与任意村民成为挚友",
+                  "key": "taoyuan.story_quest.main_4_8.objectives.0.label"
+                },
+                "npcId": "_any",
+                "type": "npcFriendship"
+              }
+            ],
+            "order": 8,
+            "title": {
+              "fallback": "知己之交",
+              "key": "taoyuan.story_quest.main_4_8.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 4,
+            "description": {
+              "fallback": "柳娘说你的农场是桃源乡产量最高的，继续保持。",
+              "key": "taoyuan.story_quest.main_4_9.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 20,
+                "npcId": "taoyuan:npc/liu_niang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_4_9",
+            "moneyReward": 3000,
+            "npcId": "taoyuan:npc/liu_niang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计收获300次作物",
+                  "key": "taoyuan.story_quest.main_4_9.objectives.0.label"
+                },
+                "target": 300,
+                "type": "harvestCrops"
+              }
+            ],
+            "order": 9,
+            "title": {
+              "fallback": "丰收大亨",
+              "key": "taoyuan.story_quest.main_4_9.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "阿石说矿洞最底层沉睡着古老的秘密，到达第120层揭开谜底。",
+              "key": "taoyuan.story_quest.main_5_1.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/a_shi"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_1",
+            "moneyReward": 5000,
+            "npcId": "taoyuan:npc/a_shi",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "矿洞到达第120层",
+                  "key": "taoyuan.story_quest.main_5_1.objectives.0.label"
+                },
+                "target": 120,
+                "type": "reachMineFloor"
+              }
+            ],
+            "order": 1,
+            "title": {
+              "fallback": "矿洞之底",
+              "key": "taoyuan.story_quest.main_5_1.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "你已经成为桃源乡真正的主人。所有技能满级，财富冠绝乡里。这是最终的挑战。",
+              "key": "taoyuan.story_quest.main_5_10.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 50,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_10",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:prismatic_shard",
+                "quantity": 1
+              }
+            ],
+            "moneyReward": 10000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计获得300000文",
+                  "key": "taoyuan.story_quest.main_5_10.objectives.0.label"
+                },
+                "target": 300000,
+                "type": "earnMoney"
+              },
+              {
+                "label": {
+                  "fallback": "所有技能达到10级",
+                  "key": "taoyuan.story_quest.main_5_10.objectives.1.label"
+                },
+                "target": 10,
+                "type": "allSkillsLevel"
+              }
+            ],
+            "order": 10,
+            "title": {
+              "fallback": "桃源之主",
+              "key": "taoyuan.story_quest.main_5_10.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "阿石说矿洞尽头通往骷髅矿穴，那里有更珍贵的矿石。",
+              "key": "taoyuan.story_quest.main_5_2.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/a_shi"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_2",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:iridium_ore",
+                "quantity": 5
+              }
+            ],
+            "moneyReward": 5000,
+            "npcId": "taoyuan:npc/a_shi",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "骷髅矿穴到达第50层",
+                  "key": "taoyuan.story_quest.main_5_2.objectives.0.label"
+                },
+                "target": 50,
+                "type": "reachSkullFloor"
+              }
+            ],
+            "order": 2,
+            "title": {
+              "fallback": "骷髅深渊",
+              "key": "taoyuan.story_quest.main_5_2.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "云飞说你已经是桃源乡最强的战士了，但怪物还在不断出现。",
+              "key": "taoyuan.story_quest.main_5_3.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/yun_fei"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_3",
+            "moneyReward": 5000,
+            "npcId": "taoyuan:npc/yun_fei",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计击杀500只怪物",
+                  "key": "taoyuan.story_quest.main_5_3.objectives.0.label"
+                },
+                "target": 500,
+                "type": "killMonsters"
+              }
+            ],
+            "order": 3,
+            "title": {
+              "fallback": "万魔之敌",
+              "key": "taoyuan.story_quest.main_5_3.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "林老说真正的大师是样样精通。把所有技能都提升到8级。",
+              "key": "taoyuan.story_quest.main_5_4.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/lin_lao"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_4",
+            "moneyReward": 5000,
+            "npcId": "taoyuan:npc/lin_lao",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "所有技能达到8级",
+                  "key": "taoyuan.story_quest.main_5_4.objectives.0.label"
+                },
+                "target": 8,
+                "type": "allSkillsLevel"
+              }
+            ],
+            "order": 4,
+            "title": {
+              "fallback": "全能大师",
+              "key": "taoyuan.story_quest.main_5_4.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "王大婶说你的厨艺已臻化境，向着百菜目标前进！",
+              "key": "taoyuan.story_quest.main_5_5.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/wang_dashen"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_5",
+            "moneyReward": 3000,
+            "npcId": "taoyuan:npc/wang_dashen",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "累计烹饪80道菜",
+                  "key": "taoyuan.story_quest.main_5_5.objectives.0.label"
+                },
+                "target": 80,
+                "type": "cookRecipes"
+              }
+            ],
+            "order": 5,
+            "title": {
+              "fallback": "御厨",
+              "key": "taoyuan.story_quest.main_5_5.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "柳村长笑着说，成家之后也该添个孩子了。",
+              "key": "taoyuan.story_quest.main_5_6.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_6",
+            "moneyReward": 3000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "迎来第一个孩子",
+                  "key": "taoyuan.story_quest.main_5_6.objectives.0.label"
+                },
+                "type": "hasChild"
+              }
+            ],
+            "order": 6,
+            "title": {
+              "fallback": "天伦之乐",
+              "key": "taoyuan.story_quest.main_5_6.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "柳村长希望你能和村里每一个人都成为朋友。",
+              "key": "taoyuan.story_quest.main_5_7.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_7",
+            "moneyReward": 5000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "friendshipLevel": "friendly",
+                "label": {
+                  "fallback": "与所有村民成为相知",
+                  "key": "taoyuan.story_quest.main_5_7.objectives.0.label"
+                },
+                "type": "npcAllFriendly"
+              }
+            ],
+            "order": 7,
+            "title": {
+              "fallback": "桃源之友",
+              "key": "taoyuan.story_quest.main_5_7.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "何掌柜希望你能把桃源乡所有物产都出货一遍。",
+              "key": "taoyuan.story_quest.main_5_8.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/he_zhanggui"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_8",
+            "moneyReward": 5000,
+            "npcId": "taoyuan:npc/he_zhanggui",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "出货50种不同物品",
+                  "key": "taoyuan.story_quest.main_5_8.objectives.0.label"
+                },
+                "target": 50,
+                "type": "shipItems"
+              }
+            ],
+            "order": 8,
+            "title": {
+              "fallback": "出货全鉴",
+              "key": "taoyuan.story_quest.main_5_8.title"
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/storyQuestDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "chapter": 5,
+            "description": {
+              "fallback": "柳村长说祠堂任务板上的所有任务都靠你了。前往图鉴中的「祠堂」完成剩余任务。",
+              "key": "taoyuan.story_quest.main_5_9.description"
+            },
+            "friendshipReward": [
+              {
+                "amount": 30,
+                "npcId": "taoyuan:npc/liu_cunzhang"
+              }
+            ],
+            "id": "taoyuan:story_quest/main_5_9",
+            "moneyReward": 8000,
+            "npcId": "taoyuan:npc/liu_cunzhang",
+            "objectives": [
+              {
+                "label": {
+                  "fallback": "完成全部6个祠堂任务",
+                  "key": "taoyuan.story_quest.main_5_9.objectives.0.label"
+                },
+                "target": 6,
+                "type": "completeBundles"
+              }
+            ],
+            "order": 9,
+            "title": {
+              "fallback": "祠堂圆满",
+              "key": "taoyuan.story_quest.main_5_9.title"
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:tag",
       "schemaName": "tag.schema.json",
       "entries": [
@@ -92870,5 +94863,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:e4a81644b243c35cbb9828e0e393fa19dc0999fc4a0d03b53e32f0412d80fad3"
+  "snapshotHash": "sha256:302b6e50d22fbca78ed423e7675ba0642446926ff7e8d8e30b61bee244828f4f"
 }

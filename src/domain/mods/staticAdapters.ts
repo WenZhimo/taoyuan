@@ -34,6 +34,7 @@ import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
 import { MUSEUM_CATEGORIES, MUSEUM_ITEMS, MUSEUM_MILESTONES } from '@/data/museumDefinitions'
 import { NPCS } from '@/data/npcDefinitions'
+import { STORY_QUESTS } from '@/data/storyQuestDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
 import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
@@ -73,6 +74,7 @@ import type {
   AnimalDef as LegacyAnimalDef,
   CommunityBundleDef as LegacyCommunityBundleDef,
   HatDef as LegacyHatDef,
+  MainQuestDef as LegacyMainQuestDef,
   NpcDef as LegacyNpcDef,
   RecipeDef as LegacyRecipeDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
@@ -134,9 +136,11 @@ import type {
   ProcessingRecipeDef,
   RecipeDef,
   RecipeIngredient,
+  NpcFriendshipLevel,
   SecretNoteDef,
   ShopDef,
   ShopOfferDef,
+  StoryQuestDef,
   TagDef,
   ToolUpgradeDef,
   TutorialDef,
@@ -231,6 +235,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('npc'),
     description: '村民 NPC 定义',
     schemaName: 'npc.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('story_quest'),
+    description: 'Story quest definitions',
+    schemaName: 'story-quest.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('secret_note'),
@@ -872,6 +881,96 @@ export const adaptLegacyNpc = (npc: LegacyNpcDef): NpcDef => ({
 
 export const createOfficialNpcs = (): NpcDef[] => NPCS.map(adaptLegacyNpc)
 
+const questObjectiveLabel = (
+  questId: string,
+  index: number,
+  label: string
+) => text(`taoyuan.story_quest.${questId}.objectives.${index}.label`, label)
+
+const adaptLegacyStoryQuestObjective = (
+  questId: string,
+  objective: LegacyMainQuestDef['objectives'][number],
+  index: number
+): StoryQuestDef['objectives'][number] => {
+  const label = questObjectiveLabel(questId, index, objective.label)
+  switch (objective.type) {
+    case 'skillLevel':
+      return {
+        type: 'skillLevel',
+        label,
+        ...(objective.skillType
+          ? {
+              skillType: objective.skillType as Extract<
+                StoryQuestDef['objectives'][number],
+                { type: 'skillLevel' }
+              >['skillType']
+            }
+          : {}),
+        target: objective.target ?? 0
+      }
+    case 'npcFriendship':
+      return {
+        type: 'npcFriendship',
+        label,
+        npcId: objective.npcId === '_any' ? '_any' : toOfficialContentId(`npc/${objective.npcId ?? ''}`),
+        friendshipLevel: (objective.friendshipLevel ?? 'acquaintance') as NpcFriendshipLevel
+      }
+    case 'npcAllFriendly':
+      return {
+        type: 'npcAllFriendly',
+        label,
+        friendshipLevel: (objective.friendshipLevel ?? 'friendly') as NpcFriendshipLevel
+      }
+    case 'deliverItem':
+      return {
+        type: 'deliverItem',
+        label,
+        itemId: toOfficialContentId(objective.itemId ?? ''),
+        itemQuantity: objective.itemQuantity ?? 1
+      }
+    case 'married':
+      return { type: 'married', label }
+    case 'hasChild':
+      return { type: 'hasChild', label }
+    default:
+      return {
+        type: objective.type,
+        label,
+        target: objective.target ?? 0
+      } as StoryQuestDef['objectives'][number]
+  }
+}
+
+export const adaptLegacyStoryQuest = (quest: LegacyMainQuestDef): StoryQuestDef => ({
+  id: toOfficialContentId(`story_quest/${quest.id}`),
+  chapter: quest.chapter,
+  order: quest.order,
+  title: text(`taoyuan.story_quest.${quest.id}.title`, quest.title),
+  description: text(`taoyuan.story_quest.${quest.id}.description`, quest.description),
+  npcId: toOfficialContentId(`npc/${quest.npcId}`),
+  objectives: quest.objectives.map((objective, index) => adaptLegacyStoryQuestObjective(quest.id, objective, index)),
+  moneyReward: quest.moneyReward,
+  ...(quest.friendshipReward
+    ? {
+        friendshipReward: quest.friendshipReward.map(reward => ({
+          npcId: toOfficialContentId(`npc/${reward.npcId}`),
+          amount: reward.amount
+        }))
+      }
+    : {}),
+  ...(quest.itemReward
+    ? {
+        itemReward: quest.itemReward.map(reward => ({
+          itemId: toOfficialContentId(reward.itemId),
+          quantity: reward.quantity
+        }))
+      }
+    : {})
+})
+
+export const createOfficialStoryQuests = (): StoryQuestDef[] =>
+  STORY_QUESTS.map(adaptLegacyStoryQuest)
+
 const adaptAchievementRewardItems = (
   items: NonNullable<LegacyAchievementDef['reward']['items']> | NonNullable<LegacyCommunityBundleDef['reward']['items']>
 ) =>
@@ -1471,6 +1570,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(toOfficialRegistryTypeId('guild_donation'))
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(toOfficialRegistryTypeId('guild_level'))
   const npcRegistry = registrySet.get<NpcDef>(toOfficialRegistryTypeId('npc'))
+  const storyQuestRegistry = registrySet.get<StoryQuestDef>(toOfficialRegistryTypeId('story_quest'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
@@ -1528,6 +1628,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const npc of createOfficialNpcs()) {
     npcRegistry.register(owner, npc, { file: 'src/data/npcDefinitions.ts' })
+  }
+  for (const quest of createOfficialStoryQuests()) {
+    storyQuestRegistry.register(owner, quest, { file: 'src/data/storyQuestDefinitions.ts' })
   }
   for (const achievement of createOfficialAchievements()) {
     achievementRegistry.register(owner, achievement, { file: 'src/data/achievementDefinitions.ts' })

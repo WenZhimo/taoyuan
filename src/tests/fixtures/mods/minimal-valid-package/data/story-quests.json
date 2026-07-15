@@ -1,0 +1,40 @@
+[
+  {
+    "id": "example_mod:story_quest/intro",
+    "chapter": 1,
+    "order": 1,
+    "title": {
+      "key": "example_mod.story_quest.intro.title",
+      "fallback": "测试主线"
+    },
+    "description": {
+      "key": "example_mod.story_quest.intro.description",
+      "fallback": "用于验证主线任务契约"
+    },
+    "npcId": "example_mod:test_npc",
+    "objectives": [
+      {
+        "type": "deliverItem",
+        "label": {
+          "key": "example_mod.story_quest.intro.objectives.0.label",
+          "fallback": "交付测试物品×1"
+        },
+        "itemId": "example_mod:test_item",
+        "itemQuantity": 1
+      }
+    ],
+    "moneyReward": 1,
+    "friendshipReward": [
+      {
+        "npcId": "example_mod:test_npc",
+        "amount": 1
+      }
+    ],
+    "itemReward": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      }
+    ]
+  }
+]

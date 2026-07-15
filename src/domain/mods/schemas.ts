@@ -1216,6 +1216,112 @@ export const RecipeDefSchema = Type.Object(
   { $id: 'taoyuan.registry.RecipeDef', additionalProperties: false }
 )
 
+const StoryQuestTargetObjectiveSchema = <T extends string>(type: T) => Type.Object(
+  {
+    type: Type.Literal(type),
+    label: LocalizedTextRefSchema,
+    target: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const StoryQuestObjectiveSchema = Type.Union([
+  StoryQuestTargetObjectiveSchema('earnMoney'),
+  StoryQuestTargetObjectiveSchema('reachMineFloor'),
+  StoryQuestTargetObjectiveSchema('reachSkullFloor'),
+  StoryQuestTargetObjectiveSchema('allSkillsLevel'),
+  StoryQuestTargetObjectiveSchema('harvestCrops'),
+  StoryQuestTargetObjectiveSchema('catchFish'),
+  StoryQuestTargetObjectiveSchema('cookRecipes'),
+  StoryQuestTargetObjectiveSchema('killMonsters'),
+  StoryQuestTargetObjectiveSchema('discoverItems'),
+  StoryQuestTargetObjectiveSchema('completeBundles'),
+  StoryQuestTargetObjectiveSchema('completeQuests'),
+  StoryQuestTargetObjectiveSchema('shipItems'),
+  StoryQuestTargetObjectiveSchema('ownAnimals'),
+  Type.Object(
+    {
+      type: Type.Literal('skillLevel'),
+      label: LocalizedTextRefSchema,
+      skillType: Type.Optional(SkillTypeSchema),
+      target: Type.Integer({ minimum: 0 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('npcFriendship'),
+      label: LocalizedTextRefSchema,
+      npcId: Type.Union([ContentIdSchema, Type.Literal('_any')]),
+      friendshipLevel: NpcFriendshipLevelSchema
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('npcAllFriendly'),
+      label: LocalizedTextRefSchema,
+      friendshipLevel: NpcFriendshipLevelSchema
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('deliverItem'),
+      label: LocalizedTextRefSchema,
+      itemId: ContentIdSchema,
+      itemQuantity: Type.Integer({ minimum: 1 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('married'),
+      label: LocalizedTextRefSchema
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('hasChild'),
+      label: LocalizedTextRefSchema
+    },
+    { additionalProperties: false }
+  )
+])
+
+export const StoryQuestRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const StoryQuestFriendshipRewardSchema = Type.Object(
+  {
+    npcId: ContentIdSchema,
+    amount: Type.Integer()
+  },
+  { additionalProperties: false }
+)
+
+export const StoryQuestDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    chapter: Type.Integer({ minimum: 1 }),
+    order: Type.Integer({ minimum: 1 }),
+    title: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    npcId: ContentIdSchema,
+    objectives: Type.Array(StoryQuestObjectiveSchema, { minItems: 1 }),
+    moneyReward: Type.Integer({ minimum: 0 }),
+    friendshipReward: Type.Optional(Type.Array(StoryQuestFriendshipRewardSchema, { minItems: 1 })),
+    itemReward: Type.Optional(Type.Array(StoryQuestRewardItemSchema, { minItems: 1 }))
+  },
+  { $id: 'taoyuan.registry.StoryQuestDef', additionalProperties: false }
+)
+
 export const AchievementRewardItemSchema = Type.Object(
   {
     itemId: ContentIdSchema,
@@ -1367,6 +1473,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:guild_donation': GuildDonationDefSchema,
   'taoyuan:guild_level': GuildLevelDefSchema,
   'taoyuan:npc': NpcDefSchema,
+  'taoyuan:story_quest': StoryQuestDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
@@ -1413,6 +1520,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'guild-donation.schema.json': GuildDonationDefSchema,
   'guild-level.schema.json': GuildLevelDefSchema,
   'npc.schema.json': NpcDefSchema,
+  'story-quest.schema.json': StoryQuestDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
@@ -1474,6 +1582,10 @@ export type NpcFriendshipLevel = Static<typeof NpcFriendshipLevelSchema>
 export type NpcDialogues = Static<typeof NpcDialoguesSchema>
 export type NpcBirthday = Static<typeof NpcBirthdaySchema>
 export type NpcDef = Static<typeof NpcDefSchema>
+export type StoryQuestObjective = Static<typeof StoryQuestObjectiveSchema>
+export type StoryQuestRewardItem = Static<typeof StoryQuestRewardItemSchema>
+export type StoryQuestFriendshipReward = Static<typeof StoryQuestFriendshipRewardSchema>
+export type StoryQuestDef = Static<typeof StoryQuestDefSchema>
 export type SecretNoteType = Static<typeof SecretNoteTypeSchema>
 export type SecretNoteRewardItem = Static<typeof SecretNoteRewardItemSchema>
 export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>

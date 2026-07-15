@@ -2,7 +2,7 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { QuestInstance, Season, MainQuestState, MainQuestObjective } from '@/types'
 import { generateQuest, generateSpecialOrder as _generateSpecialOrder } from '@/data/quests'
-import { getStoryQuestById, getNextStoryQuest, getFirstStoryQuest, STORY_QUESTS } from '@/data/storyQuests'
+import { getStoryQuestById, getNextStoryQuest, getFirstStoryQuest, getStoryQuestCount } from '@/data/storyQuests'
 import { getNpcById } from '@/data/npcs'
 import { useInventoryStore } from './useInventoryStore'
 import { usePlayerStore } from './usePlayerStore'
@@ -267,7 +267,7 @@ export const useQuestStore = defineStore('quest', () => {
   /** 初始化主线任务：如果没有当前任务，设置下一个可接取的 */
   const initMainQuest = () => {
     if (mainQuest.value) return // 已有当前任务
-    if (completedMainQuests.value.length >= STORY_QUESTS.length) return // 全部完成
+    if (completedMainQuests.value.length >= getStoryQuestCount()) return // 全部完成
 
     // 找到下一个未完成的主线任务
     const nextQuest =
@@ -392,7 +392,7 @@ export const useQuestStore = defineStore('quest', () => {
       message += ` 额外获得物品奖励。`
     }
     if (!mainQuest.value) {
-      if (completedMainQuests.value.length >= STORY_QUESTS.length) {
+      if (completedMainQuests.value.length >= getStoryQuestCount()) {
         message += ` 恭喜！你已完成桃源乡全部主线任务！`
       }
     }

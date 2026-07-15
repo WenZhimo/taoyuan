@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 72,
-    "approximateLineCount": 31358,
+    "fileCount": 73,
+    "approximateLineCount": 31377,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 564,
-    "reviewedArtifactCount": 103
+    "symbolCount": 568,
+    "reviewedArtifactCount": 107
   },
   "entries": [
     {
@@ -7173,7 +7173,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 754,
+      "lines": 753,
       "symbols": [
         {
           "file": "src/data/npcDefinitions.ts",
@@ -9273,133 +9273,227 @@
       ]
     },
     {
-      "file": "src/data/storyQuests.ts",
-      "lines": 628,
-      "classification": "mixed",
+      "file": "src/data/storyQuestDefinitions.ts",
+      "classification": "content",
       "domains": [
-        "story_quest",
-        "chapter",
-        "quest_lookup"
+        "story_quest"
       ],
       "candidateTargets": [
-        "taoyuan:story_quest",
-        "taoyuan:story_chapter",
-        "compatibility_adapter"
+        "taoyuan:story_quest"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 601,
       "symbols": [
         {
-          "file": "src/data/storyQuests.ts",
+          "file": "src/data/storyQuestDefinitions.ts",
           "exportName": "CHAPTER_TITLES",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/story-quest-chapter-labels",
           "persistentIds": false,
           "consumers": [
+            "src/data/storyQuests.ts",
             "src/views/game/QuestView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Chapter title labels remain UI text adjacent to the legacy story quest leaf source; quest identity and objectives are handled by taoyuan:story_quest."
         },
         {
-          "file": "src/data/storyQuests.ts",
+          "file": "src/data/storyQuestDefinitions.ts",
           "exportName": "STORY_QUESTS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:story_quest",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useQuestStore.ts"
+            "src/data/storyQuests.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy main story quest definitions; Phase 6 projects stable quest IDs, ordering, objectives and rewards into taoyuan:story_quest."
+        }
+      ]
+    },
+    {
+      "file": "src/data/storyQuests.ts",
+      "classification": "mixed",
+      "domains": [
+        "story_quest",
+        "lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:story_quest",
+        "compatibility_adapter"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 47,
+      "symbols": [
+        {
+          "file": "src/data/storyQuests.ts",
+          "exportName": "CHAPTER_TITLES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "ui/story-quest-chapter-labels",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/storyQuestDefinitions.ts",
+            "src/views/game/QuestView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Original-name re-export keeps chapter labels available without making them part of the story quest registry contract."
+        },
+        {
+          "file": "src/data/storyQuests.ts",
+          "exportName": "STORY_QUESTS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:story_quest",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/storyQuestDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy STORY_QUESTS imports stable while runtime query facades resolve taoyuan:story_quest."
+        },
+        {
+          "file": "src/data/storyQuests.ts",
+          "exportName": "getStoryQuests",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:story_quest",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy story quest list query returns local-ID compatibility objects reconstructed from taoyuan:story_quest."
+        },
+        {
+          "file": "src/data/storyQuests.ts",
+          "exportName": "getStoryQuestCount",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:story_quest",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useQuestStore.ts",
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy count helper now counts the registry-backed compatibility list while preserving all-complete quest store behavior."
         },
         {
           "file": "src/data/storyQuests.ts",
           "exportName": "getStoryQuestById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:story_quest",
           "persistentIds": false,
           "consumers": [
             "src/stores/useQuestStore.ts",
+            "src/tests/domain/storyQuestRegistryPilot.test.ts",
             "src/views/game/QuestView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getStoryQuestById() signature is retained and now resolves taoyuan:story_quest by local or namespaced ID before falling back to the static rollback path."
         },
         {
           "file": "src/data/storyQuests.ts",
           "exportName": "getStoryQuestByOrder",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:story_quest",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy chapter/order lookup is retained and now resolves taoyuan:story_quest before returning an equivalent main quest object."
         },
         {
           "file": "src/data/storyQuests.ts",
           "exportName": "getNextStoryQuest",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:story_quest",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useQuestStore.ts"
+            "src/stores/useQuestStore.ts",
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy next-quest lookup is retained and now follows the ordered taoyuan:story_quest registry projection."
         },
         {
           "file": "src/data/storyQuests.ts",
           "exportName": "getChapterQuests",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:story_quest",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy chapter list query is retained and now filters taoyuan:story_quest compatibility objects by chapter."
         },
         {
           "file": "src/data/storyQuests.ts",
           "exportName": "getFirstStoryQuest",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:story_quest",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useQuestStore.ts"
+            "src/stores/useQuestStore.ts",
+            "src/tests/domain/storyQuestRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy first-quest helper is retained and now resolves the first taoyuan:story_quest compatibility object before falling back to the static rollback path."
         }
       ]
     },
@@ -12347,6 +12441,54 @@
       ],
       "status": "verified",
       "rationale": "Checks NPC loved, liked and hated item references against taoyuan:item while deferring heart-event ID validation to a future heart_event slice."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "StoryQuestDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:story_quest",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for story quest definitions, including stable chapter/order, localized objective text, objective variants and rewards."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyStoryQuest/createOfficialStoryQuests",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:story_quest",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy main story quest into ordered official entries without changing quest IDs, chapter/order, owner NPC, objective semantics or rewards."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialStoryQuestDef/getOfficialStoryQuestDefs/getOfficialStoryQuestById/getOfficialStoryQuestsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:story_quest",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry story quest definitions and reconstructs legacy MainQuestDef objects for quest store and quest view consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:story_quest",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:story_quest",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks story quest owner NPC, deliver-item objectives, NPC friendship objectives and reward references before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

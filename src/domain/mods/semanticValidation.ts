@@ -40,6 +40,7 @@ import type {
   RecipeDef,
   SecretNoteDef,
   ShopOfferDef,
+  StoryQuestDef,
   TagDef,
   ToolUpgradeDef,
   TreeDef
@@ -64,6 +65,7 @@ const REGISTRY_IDS = {
   guildDonation: toOfficialRegistryTypeId('guild_donation'),
   guildLevel: toOfficialRegistryTypeId('guild_level'),
   npc: toOfficialRegistryTypeId('npc'),
+  storyQuest: toOfficialRegistryTypeId('story_quest'),
   achievement: toOfficialRegistryTypeId('achievement'),
   communityBundle: toOfficialRegistryTypeId('community_bundle'),
   secretNote: toOfficialRegistryTypeId('secret_note'),
@@ -138,6 +140,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(REGISTRY_IDS.guildDonation)
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(REGISTRY_IDS.guildLevel)
   const npcRegistry = registrySet.get<NpcDef>(REGISTRY_IDS.npc)
+  const storyQuestRegistry = registrySet.get<StoryQuestDef>(REGISTRY_IDS.storyQuest)
   const achievementRegistry = registrySet.get<AchievementDef>(REGISTRY_IDS.achievement)
   const communityBundleRegistry = registrySet.get<CommunityBundleDef>(REGISTRY_IDS.communityBundle)
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
@@ -481,6 +484,59 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         }
       })
     }
+  }
+
+  for (const record of storyQuestRegistry.entries()) {
+    if (!npcRegistry.has(contentId(record.entry.npcId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.npc,
+        contentId: contentId(record.entry.npcId),
+        fieldPath: '/npcId'
+      })
+    }
+    record.entry.objectives.forEach((objective, index) => {
+      if (objective.type === 'deliverItem' && !itemRegistry.has(contentId(objective.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(objective.itemId),
+          fieldPath: `/objectives/${index}/itemId`
+        })
+      }
+      if (
+        objective.type === 'npcFriendship' &&
+        objective.npcId !== '_any' &&
+        !npcRegistry.has(contentId(objective.npcId))
+      ) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.npc,
+          contentId: contentId(objective.npcId),
+          fieldPath: `/objectives/${index}/npcId`
+        })
+      }
+    })
+    record.entry.friendshipReward?.forEach((reward, index) => {
+      if (!npcRegistry.has(contentId(reward.npcId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.npc,
+          contentId: contentId(reward.npcId),
+          fieldPath: `/friendshipReward/${index}/npcId`
+        })
+      }
+    })
+    record.entry.itemReward?.forEach((reward, index) => {
+      if (!itemRegistry.has(contentId(reward.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(reward.itemId),
+          fieldPath: `/itemReward/${index}/itemId`
+        })
+      }
+    })
   }
 
   for (const record of achievementRegistry.entries()) {
