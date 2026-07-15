@@ -43,6 +43,7 @@ import {
   type ToolUpgradeCost as LegacyToolUpgradeCost
 } from '@/data/toolUpgradeDefinitions'
 import { PROCESSING_MACHINES } from '@/data/processingMachineDefinitions'
+import { PROCESSING_RECIPES } from '@/data/processingRecipeDefinitions'
 import {
   EQUIPMENT_SET_DEFINITIONS,
   type EquipmentSetDef as LegacyEquipmentSetDef
@@ -67,6 +68,7 @@ import type {
   HatDef as LegacyHatDef,
   RecipeDef as LegacyRecipeDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
+  ProcessingRecipeDef as LegacyProcessingRecipeDef,
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
   WeaponDef as LegacyWeaponDef
@@ -112,6 +114,7 @@ import type {
   PondBreedDef,
   PondableFishDef,
   ProcessingMachineDef,
+  ProcessingRecipeDef,
   RecipeDef,
   RecipeIngredient,
   ShopDef,
@@ -194,6 +197,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('processing_machine'),
     description: '加工机器制造定义',
     schemaName: 'processing-machine.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('processing_recipe'),
+    description: '加工配方定义',
+    schemaName: 'processing-recipe.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('tool_upgrade'),
@@ -739,6 +747,35 @@ export const adaptLegacyProcessingMachine = (machine: LegacyProcessingMachineDef
 export const createOfficialProcessingMachines = (): ProcessingMachineDef[] =>
   PROCESSING_MACHINES.map(adaptLegacyProcessingMachine)
 
+const adaptLegacyProcessingRecipeBase = (recipe: LegacyProcessingRecipeDef) => ({
+  id: toOfficialContentId(recipe.id),
+  machineId: toOfficialContentId(recipe.machineType),
+  name: text(`taoyuan.processing_recipe.${recipe.id}.name`, recipe.name),
+  outputItemId: toOfficialContentId(recipe.outputItemId),
+  outputQuantity: recipe.outputQuantity,
+  processingDays: recipe.processingDays,
+  description: text(`taoyuan.processing_recipe.${recipe.id}.description`, recipe.description)
+})
+
+export const adaptLegacyProcessingRecipe = (recipe: LegacyProcessingRecipeDef): ProcessingRecipeDef => {
+  const base = adaptLegacyProcessingRecipeBase(recipe)
+  if (recipe.inputItemId === null) {
+    return {
+      ...base,
+      inputItemId: null,
+      inputQuantity: 0
+    }
+  }
+  return {
+    ...base,
+    inputItemId: toOfficialContentId(recipe.inputItemId),
+    inputQuantity: recipe.inputQuantity
+  }
+}
+
+export const createOfficialProcessingRecipes = (): ProcessingRecipeDef[] =>
+  PROCESSING_RECIPES.map(adaptLegacyProcessingRecipe)
+
 const toolUpgradeIdSegment = (toolType: keyof typeof TOOL_UPGRADE_COSTS): string =>
   toolType.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
 
@@ -1160,6 +1197,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(toOfficialRegistryTypeId('processing_machine'))
+  const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(toOfficialRegistryTypeId('processing_recipe'))
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(toOfficialRegistryTypeId('tool_upgrade'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
   const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
@@ -1199,6 +1237,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const machine of createOfficialProcessingMachines()) {
     processingMachineRegistry.register(owner, machine, { file: 'src/data/processingMachineDefinitions.ts' })
+  }
+  for (const recipe of createOfficialProcessingRecipes()) {
+    processingRecipeRegistry.register(owner, recipe, { file: 'src/data/processingRecipeDefinitions.ts' })
   }
   for (const upgrade of createOfficialToolUpgrades()) {
     toolUpgradeRegistry.register(owner, upgrade, { file: 'src/data/toolUpgradeDefinitions.ts' })

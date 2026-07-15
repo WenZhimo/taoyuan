@@ -27,6 +27,7 @@ import type {
   PondBreedDef,
   PondableFishDef,
   ProcessingMachineDef,
+  ProcessingRecipeDef,
   RecipeDef,
   ShopOfferDef,
   TagDef,
@@ -47,6 +48,7 @@ const REGISTRY_IDS = {
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
+  processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
   enchantment: toOfficialRegistryTypeId('enchantment'),
   equipment: toOfficialRegistryTypeId('equipment'),
@@ -97,6 +99,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
+  const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(REGISTRY_IDS.enchantment)
   const equipmentRegistry = registrySet.get<EquipmentDef>(REGISTRY_IDS.equipment)
@@ -345,6 +348,33 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         })
       }
     })
+  }
+
+  for (const record of processingRecipeRegistry.entries()) {
+    if (!processingMachineRegistry.has(contentId(record.entry.machineId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.processingMachine,
+        contentId: contentId(record.entry.machineId),
+        fieldPath: '/machineId'
+      })
+    }
+    if (record.entry.inputItemId !== null && !itemRegistry.has(contentId(record.entry.inputItemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.inputItemId),
+        fieldPath: '/inputItemId'
+      })
+    }
+    if (!itemRegistry.has(contentId(record.entry.outputItemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.outputItemId),
+        fieldPath: '/outputItemId'
+      })
+    }
   }
 
   for (const record of toolUpgradeRegistry.entries()) {

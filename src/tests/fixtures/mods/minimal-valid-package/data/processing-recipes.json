@@ -1,0 +1,36 @@
+[
+  {
+    "id": "example_mod:processing_recipe/test_item",
+    "machineId": "example_mod:processing_machine/test_machine",
+    "name": {
+      "key": "example_mod.processing_recipe.test_item.name",
+      "fallback": "Test Processing Recipe"
+    },
+    "inputItemId": "example_mod:test_item",
+    "inputQuantity": 1,
+    "outputItemId": "example_mod:test_item",
+    "outputQuantity": 2,
+    "processingDays": 1,
+    "description": {
+      "key": "example_mod.processing_recipe.test_item.description",
+      "fallback": "Turns one test item into two test items."
+    }
+  },
+  {
+    "id": "example_mod:processing_recipe/no_input",
+    "machineId": "example_mod:processing_machine/test_machine",
+    "name": {
+      "key": "example_mod.processing_recipe.no_input.name",
+      "fallback": "No Input Recipe"
+    },
+    "inputItemId": null,
+    "inputQuantity": 0,
+    "outputItemId": "example_mod:test_item",
+    "outputQuantity": 1,
+    "processingDays": 2,
+    "description": {
+      "key": "example_mod.processing_recipe.no_input.description",
+      "fallback": "Produces an item without consuming input."
+    }
+  }
+]

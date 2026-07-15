@@ -3,11 +3,11 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 67,
-    "approximateLineCount": 31253,
+    "fileCount": 68,
+    "approximateLineCount": 31263,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 539,
+    "symbolCount": 540,
     "reviewedArtifactCount": 73
   },
   "entries": [
@@ -7117,7 +7117,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 1599,
+      "lines": 115,
       "symbols": [
         {
           "file": "src/data/processing.ts",
@@ -7255,19 +7255,22 @@
         {
           "file": "src/data/processing.ts",
           "exportName": "PROCESSING_RECIPES",
-          "syntaxKind": "const",
-          "classification": "content",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:processing_recipe",
           "persistentIds": true,
           "consumers": [
-            "src/tests/data/gameDataValidation.test.ts"
+            "src/data/processingRecipeDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/processingRecipeRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy processing recipe imports stable while the unique leaf source moved to processingRecipeDefinitions and runtime lookups resolve taoyuan:processing_recipe first."
         },
         {
           "file": "src/data/processing.ts",
@@ -7309,33 +7312,35 @@
           "exportName": "getProcessingRecipeById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:processing_recipe",
           "persistentIds": false,
           "consumers": [
             "src/stores/useProcessingStore.ts",
+            "src/tests/domain/processingRecipeRegistryPilot.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getProcessingRecipeById() signature is retained and now resolves taoyuan:processing_recipe before returning the same local-ID ProcessingRecipeDef shape."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "getRecipesForMachine",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:processing_recipe",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useProcessingStore.ts"
+            "src/stores/useProcessingStore.ts",
+            "src/tests/domain/processingRecipeRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getRecipesForMachine() signature is retained and now filters local-ID compatibility objects reconstructed from taoyuan:processing_recipe."
         },
         {
           "file": "src/data/processing.ts",
@@ -7688,6 +7693,43 @@
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
           "rationale": "Unique registry-free leaf source for all legacy processing machine craft definitions; Phase 6 projects every machine into taoyuan:processing_machine and verifies IDs, order, names, descriptions, materials, money and autoCollect behavior."
+        }
+      ]
+    },
+    {
+      "file": "src/data/processingRecipeDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "processing_recipe"
+      ],
+      "candidateTargets": [
+        "taoyuan:processing_recipe"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 1494,
+      "symbols": [
+        {
+          "file": "src/data/processingRecipeDefinitions.ts",
+          "exportName": "PROCESSING_RECIPES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:processing_recipe",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/processing.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/processingRecipeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy processing recipes; Phase 6 projects every recipe into taoyuan:processing_recipe and verifies IDs, order, machine references, input/output items, quantities, processing days and runtime behavior."
         }
       ]
     },

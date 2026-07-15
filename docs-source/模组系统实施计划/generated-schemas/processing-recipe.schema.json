@@ -1,0 +1,167 @@
+{
+  "$id": "taoyuan.registry.ProcessingRecipeDef",
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "machineId",
+        "name",
+        "outputItemId",
+        "outputQuantity",
+        "processingDays",
+        "description",
+        "inputItemId",
+        "inputQuantity"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "machineId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "outputItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "outputQuantity": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "processingDays": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "description": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "inputItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "inputQuantity": {
+          "minimum": 1,
+          "type": "integer"
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "machineId",
+        "name",
+        "outputItemId",
+        "outputQuantity",
+        "processingDays",
+        "description",
+        "inputItemId",
+        "inputQuantity"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "machineId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "outputItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "outputQuantity": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "processingDays": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "description": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "inputItemId": {
+          "type": "null"
+        },
+        "inputQuantity": {
+          "const": 0,
+          "type": "number"
+        }
+      }
+    }
+  ],
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

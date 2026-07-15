@@ -38,6 +38,7 @@
     "taoyuan:animal_building": ["data/animal-buildings.json"],
     "taoyuan:animal_incubation": ["data/animal-incubations.json"],
     "taoyuan:processing_machine": ["data/processing-machines.json"],
+    "taoyuan:processing_recipe": ["data/processing-recipes.json"],
     "taoyuan:tree": ["data/trees.json"],
     "taoyuan:monster": ["data/monsters.json"],
     "taoyuan:monster_pool": ["data/monster-pools.json"],

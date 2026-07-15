@@ -66712,6 +66712,3204 @@
       ]
     },
     {
+      "registryId": "taoyuan:processing_recipe",
+      "schemaName": "processing-recipe.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将仙人掌酿成西域特色佳酿。",
+              "key": "taoyuan.processing_recipe.brew_cactus_wine.description"
+            },
+            "id": "taoyuan:brew_cactus_wine",
+            "inputItemId": "taoyuan:hanhai_cactus",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "仙人掌酒",
+              "key": "taoyuan.processing_recipe.brew_cactus_wine.name"
+            },
+            "outputItemId": "taoyuan:cactus_wine",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "清热明目的菊花茶。",
+              "key": "taoyuan.processing_recipe.brew_chrysanthemum.description"
+            },
+            "id": "taoyuan:brew_chrysanthemum",
+            "inputItemId": "taoyuan:chrysanthemum",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:tea_maker",
+            "name": {
+              "fallback": "菊花茶",
+              "key": "taoyuan.processing_recipe.brew_chrysanthemum.name"
+            },
+            "outputItemId": "taoyuan:chrysanthemum_tea",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将椰枣酿成甘醇滋补的枣酿。",
+              "key": "taoyuan.processing_recipe.brew_date_wine.description"
+            },
+            "id": "taoyuan:brew_date_wine",
+            "inputItemId": "taoyuan:hanhai_date",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "椰枣酒",
+              "key": "taoyuan.processing_recipe.brew_date_wine.name"
+            },
+            "outputItemId": "taoyuan:date_wine",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "滋补强身的人参茶。",
+              "key": "taoyuan.processing_recipe.brew_ginseng.description"
+            },
+            "id": "taoyuan:brew_ginseng",
+            "inputItemId": "taoyuan:ginseng",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:tea_maker",
+            "name": {
+              "fallback": "人参茶",
+              "key": "taoyuan.processing_recipe.brew_ginseng.name"
+            },
+            "outputItemId": "taoyuan:ginseng_tea",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用茶叶泡制的清香绿茶。",
+              "key": "taoyuan.processing_recipe.brew_green_tea.description"
+            },
+            "id": "taoyuan:brew_green_tea",
+            "inputItemId": "taoyuan:tea",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:tea_maker",
+            "name": {
+              "fallback": "绿茶",
+              "key": "taoyuan.processing_recipe.brew_green_tea.name"
+            },
+            "outputItemId": "taoyuan:green_tea_drink",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "馥郁芬芳的桂花茶。",
+              "key": "taoyuan.processing_recipe.brew_osmanthus.description"
+            },
+            "id": "taoyuan:brew_osmanthus",
+            "inputItemId": "taoyuan:osmanthus",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:tea_maker",
+            "name": {
+              "fallback": "桂花茶",
+              "key": "taoyuan.processing_recipe.brew_osmanthus.name"
+            },
+            "outputItemId": "taoyuan:osmanthus_tea",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将西域香料冲泡成异域风味的香茶。",
+              "key": "taoyuan.processing_recipe.brew_spice_tea.description"
+            },
+            "id": "taoyuan:brew_spice_tea",
+            "inputItemId": "taoyuan:hanhai_spice",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:tea_maker",
+            "name": {
+              "fallback": "香料茶",
+              "key": "taoyuan.processing_recipe.brew_spice_tea.name"
+            },
+            "outputItemId": "taoyuan:spice_tea",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将竹子烧制成木炭。",
+              "key": "taoyuan.processing_recipe.burn_bamboo.description"
+            },
+            "id": "taoyuan:burn_bamboo",
+            "inputItemId": "taoyuan:bamboo",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:charcoal_kiln",
+            "name": {
+              "fallback": "木炭（竹子）",
+              "key": "taoyuan.processing_recipe.burn_bamboo.name"
+            },
+            "outputItemId": "taoyuan:charcoal",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将木材烧制成木炭。",
+              "key": "taoyuan.processing_recipe.burn_wood.description"
+            },
+            "id": "taoyuan:burn_wood",
+            "inputItemId": "taoyuan:wood",
+            "inputQuantity": 10,
+            "machineId": "taoyuan:charcoal_kiln",
+            "name": {
+              "fallback": "木炭（木材）",
+              "key": "taoyuan.processing_recipe.burn_wood.name"
+            },
+            "outputItemId": "taoyuan:charcoal",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用水牛奶制成的浓郁奶酪。",
+              "key": "taoyuan.processing_recipe.cheese_buffalo.description"
+            },
+            "id": "taoyuan:cheese_buffalo",
+            "inputItemId": "taoyuan:buffalo_milk",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:cheese_press",
+            "name": {
+              "fallback": "水牛奶酪",
+              "key": "taoyuan.processing_recipe.cheese_buffalo.name"
+            },
+            "outputItemId": "taoyuan:buffalo_cheese",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用山羊奶制成的风味奶酪。",
+              "key": "taoyuan.processing_recipe.cheese_goat.description"
+            },
+            "id": "taoyuan:cheese_goat",
+            "inputItemId": "taoyuan:goat_milk",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:cheese_press",
+            "name": {
+              "fallback": "山羊奶酪",
+              "key": "taoyuan.processing_recipe.cheese_goat.name"
+            },
+            "outputItemId": "taoyuan:goat_cheese",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用牛奶制成的醇厚奶酪。",
+              "key": "taoyuan.processing_recipe.cheese_milk.description"
+            },
+            "id": "taoyuan:cheese_milk",
+            "inputItemId": "taoyuan:milk",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:cheese_press",
+            "name": {
+              "fallback": "奶酪",
+              "key": "taoyuan.processing_recipe.cheese_milk.name"
+            },
+            "outputItemId": "taoyuan:cheese",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用牦牛奶制成的高原奶酪。",
+              "key": "taoyuan.processing_recipe.cheese_yak.description"
+            },
+            "id": "taoyuan:cheese_yak",
+            "inputItemId": "taoyuan:yak_milk",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:cheese_press",
+            "name": {
+              "fallback": "牦牛奶酪",
+              "key": "taoyuan.processing_recipe.cheese_yak.name"
+            },
+            "outputItemId": "taoyuan:yak_cheese",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将绿松石打磨成精致的首饰。",
+              "key": "taoyuan.processing_recipe.crystal_turquoise.description"
+            },
+            "id": "taoyuan:crystal_turquoise",
+            "inputItemId": "taoyuan:hanhai_turquoise",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "绿松石饰品",
+              "key": "taoyuan.processing_recipe.crystal_turquoise.name"
+            },
+            "outputItemId": "taoyuan:turquoise_accessory",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将杏子脱水制成杏脯。",
+              "key": "taoyuan.processing_recipe.dry_apricot.description"
+            },
+            "id": "taoyuan:dry_apricot",
+            "inputItemId": "taoyuan:apricot",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "杏脯",
+              "key": "taoyuan.processing_recipe.dry_apricot.name"
+            },
+            "outputItemId": "taoyuan:dried_apricot",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将山楂脱水制成山楂片。",
+              "key": "taoyuan.processing_recipe.dry_hawthorn.description"
+            },
+            "id": "taoyuan:dry_hawthorn",
+            "inputItemId": "taoyuan:hawthorn",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "山楂片",
+              "key": "taoyuan.processing_recipe.dry_hawthorn.name"
+            },
+            "outputItemId": "taoyuan:dried_hawthorn",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将荔枝脱水制成荔枝干。",
+              "key": "taoyuan.processing_recipe.dry_lychee.description"
+            },
+            "id": "taoyuan:dry_lychee",
+            "inputItemId": "taoyuan:lychee",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "荔枝干",
+              "key": "taoyuan.processing_recipe.dry_lychee.name"
+            },
+            "outputItemId": "taoyuan:dried_lychee",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将野蘑菇脱水制成干蘑菇。",
+              "key": "taoyuan.processing_recipe.dry_mushroom.description"
+            },
+            "id": "taoyuan:dry_mushroom",
+            "inputItemId": "taoyuan:wild_mushroom",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "干蘑菇",
+              "key": "taoyuan.processing_recipe.dry_mushroom.name"
+            },
+            "outputItemId": "taoyuan:dried_mushroom",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鲜桃脱水制成桃干。",
+              "key": "taoyuan.processing_recipe.dry_peach.description"
+            },
+            "id": "taoyuan:dry_peach",
+            "inputItemId": "taoyuan:tree_peach",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "桃干",
+              "key": "taoyuan.processing_recipe.dry_peach.name"
+            },
+            "outputItemId": "taoyuan:dried_peach",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将柿子脱水制成柿饼。",
+              "key": "taoyuan.processing_recipe.dry_persimmon.description"
+            },
+            "id": "taoyuan:dry_persimmon",
+            "inputItemId": "taoyuan:persimmon",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "柿饼",
+              "key": "taoyuan.processing_recipe.dry_persimmon.name"
+            },
+            "outputItemId": "taoyuan:dried_persimmon_slice",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将野果脱水制成果脯。",
+              "key": "taoyuan.processing_recipe.dry_wild_berry.description"
+            },
+            "id": "taoyuan:dry_wild_berry",
+            "inputItemId": "taoyuan:wild_berry",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:dehydrator",
+            "name": {
+              "fallback": "果脯",
+              "key": "taoyuan.processing_recipe.dry_wild_berry.name"
+            },
+            "outputItemId": "taoyuan:dried_berry",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "缓慢复制一颗龙玉。",
+              "key": "taoyuan.processing_recipe.dup_dragon_jade.description"
+            },
+            "id": "taoyuan:dup_dragon_jade",
+            "inputItemId": "taoyuan:dragon_jade",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "复制龙玉",
+              "key": "taoyuan.processing_recipe.dup_dragon_jade.name"
+            },
+            "outputItemId": "taoyuan:dragon_jade",
+            "outputQuantity": 2,
+            "processingDays": 7
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "缓慢复制一颗翡翠。",
+              "key": "taoyuan.processing_recipe.dup_jade.description"
+            },
+            "id": "taoyuan:dup_jade",
+            "inputItemId": "taoyuan:jade",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "复制翡翠",
+              "key": "taoyuan.processing_recipe.dup_jade.name"
+            },
+            "outputItemId": "taoyuan:jade",
+            "outputQuantity": 2,
+            "processingDays": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "缓慢复制一颗月光石。",
+              "key": "taoyuan.processing_recipe.dup_moonstone.description"
+            },
+            "id": "taoyuan:dup_moonstone",
+            "inputItemId": "taoyuan:moonstone",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "复制月光石",
+              "key": "taoyuan.processing_recipe.dup_moonstone.name"
+            },
+            "outputItemId": "taoyuan:moonstone",
+            "outputQuantity": 2,
+            "processingDays": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "缓慢复制一颗黑曜石。",
+              "key": "taoyuan.processing_recipe.dup_obsidian.description"
+            },
+            "id": "taoyuan:dup_obsidian",
+            "inputItemId": "taoyuan:obsidian",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "复制黑曜石",
+              "key": "taoyuan.processing_recipe.dup_obsidian.name"
+            },
+            "outputItemId": "taoyuan:obsidian",
+            "outputQuantity": 2,
+            "processingDays": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "缓慢复制一颗石英。",
+              "key": "taoyuan.processing_recipe.dup_quartz.description"
+            },
+            "id": "taoyuan:dup_quartz",
+            "inputItemId": "taoyuan:quartz",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "复制石英",
+              "key": "taoyuan.processing_recipe.dup_quartz.name"
+            },
+            "outputItemId": "taoyuan:quartz",
+            "outputQuantity": 2,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "缓慢复制一颗红宝石。",
+              "key": "taoyuan.processing_recipe.dup_ruby.description"
+            },
+            "id": "taoyuan:dup_ruby",
+            "inputItemId": "taoyuan:ruby",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:crystal_duplicator",
+            "name": {
+              "fallback": "复制红宝石",
+              "key": "taoyuan.processing_recipe.dup_ruby.name"
+            },
+            "outputItemId": "taoyuan:ruby",
+            "outputQuantity": 2,
+            "processingDays": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将草药研磨成治疗牲畜的药物。",
+              "key": "taoyuan.processing_recipe.grind_animal_medicine.description"
+            },
+            "id": "taoyuan:grind_animal_medicine",
+            "inputItemId": "taoyuan:herb",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "兽药",
+              "key": "taoyuan.processing_recipe.grind_animal_medicine.name"
+            },
+            "outputItemId": "taoyuan:animal_medicine",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鹿茸研磨成粉。",
+              "key": "taoyuan.processing_recipe.grind_antler.description"
+            },
+            "id": "taoyuan:grind_antler",
+            "inputItemId": "taoyuan:antler_velvet",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "鹿茸粉",
+              "key": "taoyuan.processing_recipe.grind_antler.name"
+            },
+            "outputItemId": "taoyuan:antler_powder",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将熊胆研磨制成苦寒丸药。",
+              "key": "taoyuan.processing_recipe.grind_bear_gall.description"
+            },
+            "id": "taoyuan:grind_bear_gall",
+            "inputItemId": "taoyuan:bear_gall",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "熊胆丸",
+              "key": "taoyuan.processing_recipe.grind_bear_gall.name"
+            },
+            "outputItemId": "taoyuan:bear_gall_pill",
+            "outputQuantity": 2,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将人参浓缩成精华。",
+              "key": "taoyuan.processing_recipe.grind_ginseng.description"
+            },
+            "id": "taoyuan:grind_ginseng",
+            "inputItemId": "taoyuan:ginseng",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "人参精",
+              "key": "taoyuan.processing_recipe.grind_ginseng.name"
+            },
+            "outputItemId": "taoyuan:ginseng_extract",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将草药研磨成药膏。",
+              "key": "taoyuan.processing_recipe.grind_herb.description"
+            },
+            "id": "taoyuan:grind_herb",
+            "inputItemId": "taoyuan:herb",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "草药膏",
+              "key": "taoyuan.processing_recipe.grind_herb.name"
+            },
+            "outputItemId": "taoyuan:herbal_paste",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将虎骨浸泡酿制成药酒。",
+              "key": "taoyuan.processing_recipe.grind_tiger_bone.description"
+            },
+            "id": "taoyuan:grind_tiger_bone",
+            "inputItemId": "taoyuan:tiger_bone",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "虎骨酒",
+              "key": "taoyuan.processing_recipe.grind_tiger_bone.name"
+            },
+            "outputItemId": "taoyuan:tiger_bone_tonic",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将草药研磨成活力饲料。",
+              "key": "taoyuan.processing_recipe.grind_vitality_feed.description"
+            },
+            "id": "taoyuan:grind_vitality_feed",
+            "inputItemId": "taoyuan:herb",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:herb_grinder",
+            "name": {
+              "fallback": "活力饲料",
+              "key": "taoyuan.processing_recipe.grind_vitality_feed.name"
+            },
+            "outputItemId": "taoyuan:vitality_feed",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "金黄甘甜的蜂蜜。",
+              "key": "taoyuan.processing_recipe.honey.description"
+            },
+            "id": "taoyuan:honey",
+            "inputItemId": null,
+            "inputQuantity": 0,
+            "machineId": "taoyuan:bee_house",
+            "name": {
+              "fallback": "蜂蜜",
+              "key": "taoyuan.processing_recipe.honey.name"
+            },
+            "outputItemId": "taoyuan:honey",
+            "outputQuantity": 1,
+            "processingDays": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "带有菊花清香的蜂蜜。",
+              "key": "taoyuan.processing_recipe.honey_chrysanthemum.description"
+            },
+            "id": "taoyuan:honey_chrysanthemum",
+            "inputItemId": "taoyuan:chrysanthemum",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:bee_house",
+            "name": {
+              "fallback": "菊花蜜",
+              "key": "taoyuan.processing_recipe.honey_chrysanthemum.name"
+            },
+            "outputItemId": "taoyuan:chrysanthemum_honey",
+            "outputQuantity": 1,
+            "processingDays": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "馥郁芬芳的桂花蜂蜜。",
+              "key": "taoyuan.processing_recipe.honey_osmanthus.description"
+            },
+            "id": "taoyuan:honey_osmanthus",
+            "inputItemId": "taoyuan:osmanthus",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:bee_house",
+            "name": {
+              "fallback": "桂花蜜",
+              "key": "taoyuan.processing_recipe.honey_osmanthus.name"
+            },
+            "outputItemId": "taoyuan:osmanthus_honey",
+            "outputQuantity": 1,
+            "processingDays": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "清甜的油菜花蜂蜜。",
+              "key": "taoyuan.processing_recipe.honey_rapeseed.description"
+            },
+            "id": "taoyuan:honey_rapeseed",
+            "inputItemId": "taoyuan:rapeseed",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:bee_house",
+            "name": {
+              "fallback": "菜花蜜",
+              "key": "taoyuan.processing_recipe.honey_rapeseed.name"
+            },
+            "outputItemId": "taoyuan:rapeseed_honey",
+            "outputQuantity": 1,
+            "processingDays": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "珍贵的雪莲花蜂蜜。",
+              "key": "taoyuan.processing_recipe.honey_snow_lotus.description"
+            },
+            "id": "taoyuan:honey_snow_lotus",
+            "inputItemId": "taoyuan:snow_lotus",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:bee_house",
+            "name": {
+              "fallback": "雪莲蜜",
+              "key": "taoyuan.processing_recipe.honey_snow_lotus.name"
+            },
+            "outputItemId": "taoyuan:snow_lotus_honey",
+            "outputQuantity": 1,
+            "processingDays": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将樟脑油炼制成樟脑香。",
+              "key": "taoyuan.processing_recipe.incense_camphor.description"
+            },
+            "id": "taoyuan:incense_camphor",
+            "inputItemId": "taoyuan:camphor_oil",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:incense_maker",
+            "name": {
+              "fallback": "樟脑香",
+              "key": "taoyuan.processing_recipe.incense_camphor.name"
+            },
+            "outputItemId": "taoyuan:camphor_incense",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将桂花制成桂花香。",
+              "key": "taoyuan.processing_recipe.incense_osmanthus.description"
+            },
+            "id": "taoyuan:incense_osmanthus",
+            "inputItemId": "taoyuan:osmanthus",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:incense_maker",
+            "name": {
+              "fallback": "桂花香",
+              "key": "taoyuan.processing_recipe.incense_osmanthus.name"
+            },
+            "outputItemId": "taoyuan:osmanthus_incense",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将松脂炼制成松香。",
+              "key": "taoyuan.processing_recipe.incense_pine.description"
+            },
+            "id": "taoyuan:incense_pine",
+            "inputItemId": "taoyuan:pine_resin",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:incense_maker",
+            "name": {
+              "fallback": "松香",
+              "key": "taoyuan.processing_recipe.incense_pine.name"
+            },
+            "outputItemId": "taoyuan:pine_incense",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将仙人掌制成酸甜可口的沙漠果酱。",
+              "key": "taoyuan.processing_recipe.jar_cactus_jam.description"
+            },
+            "id": "taoyuan:jar_cactus_jam",
+            "inputItemId": "taoyuan:hanhai_cactus",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:sauce_jar",
+            "name": {
+              "fallback": "仙人掌果酱",
+              "key": "taoyuan.processing_recipe.jar_cactus_jam.name"
+            },
+            "outputItemId": "taoyuan:cactus_jam",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用鸭蛋制成的高级蛋黄酱。",
+              "key": "taoyuan.processing_recipe.mayo_duck_egg.description"
+            },
+            "id": "taoyuan:mayo_duck_egg",
+            "inputItemId": "taoyuan:duck_egg",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:mayo_maker",
+            "name": {
+              "fallback": "鸭蛋黄酱",
+              "key": "taoyuan.processing_recipe.mayo_duck_egg.name"
+            },
+            "outputItemId": "taoyuan:duck_mayonnaise",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用鸡蛋制成的浓郁蛋黄酱。",
+              "key": "taoyuan.processing_recipe.mayo_egg.description"
+            },
+            "id": "taoyuan:mayo_egg",
+            "inputItemId": "taoyuan:egg",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:mayo_maker",
+            "name": {
+              "fallback": "蛋黄酱",
+              "key": "taoyuan.processing_recipe.mayo_egg.name"
+            },
+            "outputItemId": "taoyuan:mayonnaise",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用鹅蛋制成的浓稠蛋黄酱。",
+              "key": "taoyuan.processing_recipe.mayo_goose_egg.description"
+            },
+            "id": "taoyuan:mayo_goose_egg",
+            "inputItemId": "taoyuan:goose_egg",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:mayo_maker",
+            "name": {
+              "fallback": "鹅蛋黄酱",
+              "key": "taoyuan.processing_recipe.mayo_goose_egg.name"
+            },
+            "outputItemId": "taoyuan:goose_mayonnaise",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用鸵鸟蛋制成的大份蛋黄酱。",
+              "key": "taoyuan.processing_recipe.mayo_ostrich_egg.description"
+            },
+            "id": "taoyuan:mayo_ostrich_egg",
+            "inputItemId": "taoyuan:ostrich_egg",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:mayo_maker",
+            "name": {
+              "fallback": "鸵鸟蛋黄酱",
+              "key": "taoyuan.processing_recipe.mayo_ostrich_egg.name"
+            },
+            "outputItemId": "taoyuan:ostrich_mayonnaise",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用鹌鹑蛋制成的精致蛋黄酱。",
+              "key": "taoyuan.processing_recipe.mayo_quail_egg.description"
+            },
+            "id": "taoyuan:mayo_quail_egg",
+            "inputItemId": "taoyuan:quail_egg",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:mayo_maker",
+            "name": {
+              "fallback": "鹌鹑蛋黄酱",
+              "key": "taoyuan.processing_recipe.mayo_quail_egg.name"
+            },
+            "outputItemId": "taoyuan:quail_mayonnaise",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用乌鸡蛋制成的滋补蛋黄酱。",
+              "key": "taoyuan.processing_recipe.mayo_silkie_egg.description"
+            },
+            "id": "taoyuan:mayo_silkie_egg",
+            "inputItemId": "taoyuan:silkie_egg",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:mayo_maker",
+            "name": {
+              "fallback": "乌鸡蛋黄酱",
+              "key": "taoyuan.processing_recipe.mayo_silkie_egg.name"
+            },
+            "outputItemId": "taoyuan:silkie_mayonnaise",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将玉米磨成玉米粉。",
+              "key": "taoyuan.processing_recipe.mill_corn.description"
+            },
+            "id": "taoyuan:mill_corn",
+            "inputItemId": "taoyuan:corn",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:mill",
+            "name": {
+              "fallback": "玉米粉",
+              "key": "taoyuan.processing_recipe.mill_corn.name"
+            },
+            "outputItemId": "taoyuan:cornmeal",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将稻米配制成滋补饲料。",
+              "key": "taoyuan.processing_recipe.mill_nourishing_feed.description"
+            },
+            "id": "taoyuan:mill_nourishing_feed",
+            "inputItemId": "taoyuan:rice",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:mill",
+            "name": {
+              "fallback": "滋补饲料",
+              "key": "taoyuan.processing_recipe.mill_nourishing_feed.name"
+            },
+            "outputItemId": "taoyuan:nourishing_feed",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将玉米配制成精饲料。",
+              "key": "taoyuan.processing_recipe.mill_premium_feed.description"
+            },
+            "id": "taoyuan:mill_premium_feed",
+            "inputItemId": "taoyuan:corn",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:mill",
+            "name": {
+              "fallback": "精饲料",
+              "key": "taoyuan.processing_recipe.mill_premium_feed.name"
+            },
+            "outputItemId": "taoyuan:premium_feed",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将稻米磨成米粉。",
+              "key": "taoyuan.processing_recipe.mill_rice.description"
+            },
+            "id": "taoyuan:mill_rice",
+            "inputItemId": "taoyuan:rice",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:mill",
+            "name": {
+              "fallback": "米粉",
+              "key": "taoyuan.processing_recipe.mill_rice.name"
+            },
+            "outputItemId": "taoyuan:rice_flour",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将冬小麦磨成面粉。",
+              "key": "taoyuan.processing_recipe.mill_wheat.description"
+            },
+            "id": "taoyuan:mill_wheat",
+            "inputItemId": "taoyuan:winter_wheat",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:mill",
+            "name": {
+              "fallback": "面粉",
+              "key": "taoyuan.processing_recipe.mill_wheat.name"
+            },
+            "outputItemId": "taoyuan:wheat_flour",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "开胃的腌白菜。",
+              "key": "taoyuan.processing_recipe.pickle_cabbage.description"
+            },
+            "id": "taoyuan:pickle_cabbage",
+            "inputItemId": "taoyuan:cabbage",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:sauce_jar",
+            "name": {
+              "fallback": "腌白菜",
+              "key": "taoyuan.processing_recipe.pickle_cabbage.name"
+            },
+            "outputItemId": "taoyuan:pickled_cabbage",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "酸辣开胃的泡椒。",
+              "key": "taoyuan.processing_recipe.pickle_chili.description"
+            },
+            "id": "taoyuan:pickle_chili",
+            "inputItemId": "taoyuan:chili",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:sauce_jar",
+            "name": {
+              "fallback": "泡椒",
+              "key": "taoyuan.processing_recipe.pickle_chili.name"
+            },
+            "outputItemId": "taoyuan:pickled_chili",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "酸甜脆嫩的腌姜。",
+              "key": "taoyuan.processing_recipe.pickle_ginger.description"
+            },
+            "id": "taoyuan:pickle_ginger",
+            "inputItemId": "taoyuan:ginger",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:sauce_jar",
+            "name": {
+              "fallback": "腌姜",
+              "key": "taoyuan.processing_recipe.pickle_ginger.name"
+            },
+            "outputItemId": "taoyuan:pickled_ginger",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "香脆的萝卜干。",
+              "key": "taoyuan.processing_recipe.pickle_radish.description"
+            },
+            "id": "taoyuan:pickle_radish",
+            "inputItemId": "taoyuan:radish",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:sauce_jar",
+            "name": {
+              "fallback": "萝卜干",
+              "key": "taoyuan.processing_recipe.pickle_radish.name"
+            },
+            "outputItemId": "taoyuan:dried_radish",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "浓郁的南瓜酱。",
+              "key": "taoyuan.processing_recipe.preserve_pumpkin.description"
+            },
+            "id": "taoyuan:preserve_pumpkin",
+            "inputItemId": "taoyuan:pumpkin",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:sauce_jar",
+            "name": {
+              "fallback": "南瓜酱",
+              "key": "taoyuan.processing_recipe.preserve_pumpkin.name"
+            },
+            "outputItemId": "taoyuan:pumpkin_preserve",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用花生磨制的香浓豆腐。",
+              "key": "taoyuan.processing_recipe.press_peanut_tofu.description"
+            },
+            "id": "taoyuan:press_peanut_tofu",
+            "inputItemId": "taoyuan:peanut",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:tofu_press",
+            "name": {
+              "fallback": "花生豆腐",
+              "key": "taoyuan.processing_recipe.press_peanut_tofu.name"
+            },
+            "outputItemId": "taoyuan:peanut_tofu",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用芝麻磨制的浓香芝麻酱。",
+              "key": "taoyuan.processing_recipe.press_sesame_paste.description"
+            },
+            "id": "taoyuan:press_sesame_paste",
+            "inputItemId": "taoyuan:sesame",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:tofu_press",
+            "name": {
+              "fallback": "芝麻酱",
+              "key": "taoyuan.processing_recipe.press_sesame_paste.name"
+            },
+            "outputItemId": "taoyuan:sesame_paste",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将西域香料榨成浓郁的异域风味油脂。",
+              "key": "taoyuan.processing_recipe.press_spice_oil.description"
+            },
+            "id": "taoyuan:press_spice_oil",
+            "inputItemId": "taoyuan:hanhai_spice",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:oil_press",
+            "name": {
+              "fallback": "香料油",
+              "key": "taoyuan.processing_recipe.press_spice_oil.name"
+            },
+            "outputItemId": "taoyuan:spice_oil",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "用蚕豆磨制的鲜嫩豆腐。",
+              "key": "taoyuan.processing_recipe.press_tofu.description"
+            },
+            "id": "taoyuan:press_tofu",
+            "inputItemId": "taoyuan:broad_bean",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:tofu_press",
+            "name": {
+              "fallback": "豆腐",
+              "key": "taoyuan.processing_recipe.press_tofu.name"
+            },
+            "outputItemId": "taoyuan:tofu",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从碎碟片中提炼金属。",
+              "key": "taoyuan.processing_recipe.recycle_cd.description"
+            },
+            "id": "taoyuan:recycle_cd",
+            "inputItemId": "taoyuan:broken_cd",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:recycler",
+            "name": {
+              "fallback": "碟片提炼",
+              "key": "taoyuan.processing_recipe.recycle_cd.name"
+            },
+            "outputItemId": "taoyuan:copper_ore",
+            "outputQuantity": 3,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将垃圾回收提炼出铜矿。",
+              "key": "taoyuan.processing_recipe.recycle_copper.description"
+            },
+            "id": "taoyuan:recycle_copper",
+            "inputItemId": "taoyuan:trash",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:recycler",
+            "name": {
+              "fallback": "回收铜矿",
+              "key": "taoyuan.processing_recipe.recycle_copper.name"
+            },
+            "outputItemId": "taoyuan:copper_ore",
+            "outputQuantity": 3,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将浮木处理为可用木材。",
+              "key": "taoyuan.processing_recipe.recycle_driftwood.description"
+            },
+            "id": "taoyuan:recycle_driftwood",
+            "inputItemId": "taoyuan:driftwood",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:recycler",
+            "name": {
+              "fallback": "浮木回收",
+              "key": "taoyuan.processing_recipe.recycle_driftwood.name"
+            },
+            "outputItemId": "taoyuan:wood",
+            "outputQuantity": 10,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将垃圾回收转化为柴火。",
+              "key": "taoyuan.processing_recipe.recycle_firewood.description"
+            },
+            "id": "taoyuan:recycle_firewood",
+            "inputItemId": "taoyuan:trash",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:recycler",
+            "name": {
+              "fallback": "回收柴火",
+              "key": "taoyuan.processing_recipe.recycle_firewood.name"
+            },
+            "outputItemId": "taoyuan:firewood",
+            "outputQuantity": 5,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将垃圾回收提炼出铁矿。",
+              "key": "taoyuan.processing_recipe.recycle_iron.description"
+            },
+            "id": "taoyuan:recycle_iron",
+            "inputItemId": "taoyuan:trash",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:recycler",
+            "name": {
+              "fallback": "回收铁矿",
+              "key": "taoyuan.processing_recipe.recycle_iron.name"
+            },
+            "outputItemId": "taoyuan:iron_ore",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将湿报纸晒干用作燃料。",
+              "key": "taoyuan.processing_recipe.recycle_newspaper.description"
+            },
+            "id": "taoyuan:recycle_newspaper",
+            "inputItemId": "taoyuan:soggy_newspaper",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:recycler",
+            "name": {
+              "fallback": "报纸回收",
+              "key": "taoyuan.processing_recipe.recycle_newspaper.name"
+            },
+            "outputItemId": "taoyuan:firewood",
+            "outputQuantity": 3,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将垃圾回收提炼出石英。",
+              "key": "taoyuan.processing_recipe.recycle_quartz.description"
+            },
+            "id": "taoyuan:recycle_quartz",
+            "inputItemId": "taoyuan:trash",
+            "inputQuantity": 8,
+            "machineId": "taoyuan:recycler",
+            "name": {
+              "fallback": "回收石英",
+              "key": "taoyuan.processing_recipe.recycle_quartz.name"
+            },
+            "outputItemId": "taoyuan:quartz",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从春笋中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_bamboo_shoot.description"
+            },
+            "id": "taoyuan:seed_from_bamboo_shoot",
+            "inputItemId": "taoyuan:bamboo_shoot",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "春笋种子",
+              "key": "taoyuan.processing_recipe.seed_from_bamboo_shoot.name"
+            },
+            "outputItemId": "taoyuan:seed_bamboo_shoot",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从蚕豆中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_broad_bean.description"
+            },
+            "id": "taoyuan:seed_from_broad_bean",
+            "inputItemId": "taoyuan:broad_bean",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "蚕豆种子",
+              "key": "taoyuan.processing_recipe.seed_from_broad_bean.name"
+            },
+            "outputItemId": "taoyuan:seed_broad_bean",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从青菜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_cabbage.description"
+            },
+            "id": "taoyuan:seed_from_cabbage",
+            "inputItemId": "taoyuan:cabbage",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "青菜种子",
+              "key": "taoyuan.processing_recipe.seed_from_cabbage.name"
+            },
+            "outputItemId": "taoyuan:seed_cabbage",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从辣椒中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_chili.description"
+            },
+            "id": "taoyuan:seed_from_chili",
+            "inputItemId": "taoyuan:chili",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "辣椒种子",
+              "key": "taoyuan.processing_recipe.seed_from_chili.name"
+            },
+            "outputItemId": "taoyuan:seed_chili",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从韭菜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_chives.description"
+            },
+            "id": "taoyuan:seed_from_chives",
+            "inputItemId": "taoyuan:chives",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "韭菜种子",
+              "key": "taoyuan.processing_recipe.seed_from_chives.name"
+            },
+            "outputItemId": "taoyuan:seed_chives",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从菊花中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_chrysanthemum.description"
+            },
+            "id": "taoyuan:seed_from_chrysanthemum",
+            "inputItemId": "taoyuan:chrysanthemum",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "菊花种子",
+              "key": "taoyuan.processing_recipe.seed_from_chrysanthemum.name"
+            },
+            "outputItemId": "taoyuan:seed_chrysanthemum",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从玉米中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_corn.description"
+            },
+            "id": "taoyuan:seed_from_corn",
+            "inputItemId": "taoyuan:corn",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "玉米种子",
+              "key": "taoyuan.processing_recipe.seed_from_corn.name"
+            },
+            "outputItemId": "taoyuan:seed_corn",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从茄子中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_eggplant.description"
+            },
+            "id": "taoyuan:seed_from_eggplant",
+            "inputItemId": "taoyuan:eggplant",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "茄子种子",
+              "key": "taoyuan.processing_recipe.seed_from_eggplant.name"
+            },
+            "outputItemId": "taoyuan:seed_eggplant",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从大蒜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_garlic.description"
+            },
+            "id": "taoyuan:seed_from_garlic",
+            "inputItemId": "taoyuan:garlic",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "大蒜种子",
+              "key": "taoyuan.processing_recipe.seed_from_garlic.name"
+            },
+            "outputItemId": "taoyuan:seed_garlic",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从生姜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_ginger.description"
+            },
+            "id": "taoyuan:seed_from_ginger",
+            "inputItemId": "taoyuan:ginger",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "生姜种子",
+              "key": "taoyuan.processing_recipe.seed_from_ginger.name"
+            },
+            "outputItemId": "taoyuan:seed_ginger",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从豆角中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_green_bean.description"
+            },
+            "id": "taoyuan:seed_from_green_bean",
+            "inputItemId": "taoyuan:green_bean",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "豆角种子",
+              "key": "taoyuan.processing_recipe.seed_from_green_bean.name"
+            },
+            "outputItemId": "taoyuan:seed_green_bean",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从红枣中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_jujube.description"
+            },
+            "id": "taoyuan:seed_from_jujube",
+            "inputItemId": "taoyuan:jujube",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "红枣种子",
+              "key": "taoyuan.processing_recipe.seed_from_jujube.name"
+            },
+            "outputItemId": "taoyuan:seed_jujube",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从丝瓜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_loofah.description"
+            },
+            "id": "taoyuan:seed_from_loofah",
+            "inputItemId": "taoyuan:loofah",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "丝瓜种子",
+              "key": "taoyuan.processing_recipe.seed_from_loofah.name"
+            },
+            "outputItemId": "taoyuan:seed_loofah",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从莲藕中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_lotus_root.description"
+            },
+            "id": "taoyuan:seed_from_lotus_root",
+            "inputItemId": "taoyuan:lotus_root",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "莲藕种子",
+              "key": "taoyuan.processing_recipe.seed_from_lotus_root.name"
+            },
+            "outputItemId": "taoyuan:seed_lotus_root",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从莲子中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_lotus_seed.description"
+            },
+            "id": "taoyuan:seed_from_lotus_seed",
+            "inputItemId": "taoyuan:lotus_seed",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "莲子种子",
+              "key": "taoyuan.processing_recipe.seed_from_lotus_seed.name"
+            },
+            "outputItemId": "taoyuan:seed_lotus_seed",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从芥菜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_mustard_green.description"
+            },
+            "id": "taoyuan:seed_from_mustard_green",
+            "inputItemId": "taoyuan:mustard_green",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "芥菜种子",
+              "key": "taoyuan.processing_recipe.seed_from_mustard_green.name"
+            },
+            "outputItemId": "taoyuan:seed_mustard_green",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从白菜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_napa_cabbage.description"
+            },
+            "id": "taoyuan:seed_from_napa_cabbage",
+            "inputItemId": "taoyuan:napa_cabbage",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "白菜种子",
+              "key": "taoyuan.processing_recipe.seed_from_napa_cabbage.name"
+            },
+            "outputItemId": "taoyuan:seed_napa_cabbage",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从桂花中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_osmanthus.description"
+            },
+            "id": "taoyuan:seed_from_osmanthus",
+            "inputItemId": "taoyuan:osmanthus",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "桂花种子",
+              "key": "taoyuan.processing_recipe.seed_from_osmanthus.name"
+            },
+            "outputItemId": "taoyuan:seed_osmanthus",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从水蜜桃中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_peach.description"
+            },
+            "id": "taoyuan:seed_from_peach",
+            "inputItemId": "taoyuan:peach",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "水蜜桃种子",
+              "key": "taoyuan.processing_recipe.seed_from_peach.name"
+            },
+            "outputItemId": "taoyuan:seed_peach",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从花生中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_peanut.description"
+            },
+            "id": "taoyuan:seed_from_peanut",
+            "inputItemId": "taoyuan:peanut",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "花生种子",
+              "key": "taoyuan.processing_recipe.seed_from_peanut.name"
+            },
+            "outputItemId": "taoyuan:seed_peanut",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从柿子中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_persimmon.description"
+            },
+            "id": "taoyuan:seed_from_persimmon",
+            "inputItemId": "taoyuan:persimmon",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "柿子种子",
+              "key": "taoyuan.processing_recipe.seed_from_persimmon.name"
+            },
+            "outputItemId": "taoyuan:seed_persimmon",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从土豆中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_potato.description"
+            },
+            "id": "taoyuan:seed_from_potato",
+            "inputItemId": "taoyuan:potato",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "土豆种子",
+              "key": "taoyuan.processing_recipe.seed_from_potato.name"
+            },
+            "outputItemId": "taoyuan:seed_potato",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从南瓜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_pumpkin.description"
+            },
+            "id": "taoyuan:seed_from_pumpkin",
+            "inputItemId": "taoyuan:pumpkin",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "南瓜种子",
+              "key": "taoyuan.processing_recipe.seed_from_pumpkin.name"
+            },
+            "outputItemId": "taoyuan:seed_pumpkin",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从萝卜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_radish.description"
+            },
+            "id": "taoyuan:seed_from_radish",
+            "inputItemId": "taoyuan:radish",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "萝卜种子",
+              "key": "taoyuan.processing_recipe.seed_from_radish.name"
+            },
+            "outputItemId": "taoyuan:seed_radish",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从油菜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_rapeseed.description"
+            },
+            "id": "taoyuan:seed_from_rapeseed",
+            "inputItemId": "taoyuan:rapeseed",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "油菜种子",
+              "key": "taoyuan.processing_recipe.seed_from_rapeseed.name"
+            },
+            "outputItemId": "taoyuan:seed_rapeseed",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从稻谷中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_rice.description"
+            },
+            "id": "taoyuan:seed_from_rice",
+            "inputItemId": "taoyuan:rice",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "稻种",
+              "key": "taoyuan.processing_recipe.seed_from_rice.name"
+            },
+            "outputItemId": "taoyuan:seed_rice",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从芝麻中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_sesame.description"
+            },
+            "id": "taoyuan:seed_from_sesame",
+            "inputItemId": "taoyuan:sesame",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "芝麻种子",
+              "key": "taoyuan.processing_recipe.seed_from_sesame.name"
+            },
+            "outputItemId": "taoyuan:seed_sesame",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从雪莲中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_snow_lotus.description"
+            },
+            "id": "taoyuan:seed_from_snow_lotus",
+            "inputItemId": "taoyuan:snow_lotus",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "雪莲种子",
+              "key": "taoyuan.processing_recipe.seed_from_snow_lotus.name"
+            },
+            "outputItemId": "taoyuan:seed_snow_lotus",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从菠菜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_spinach.description"
+            },
+            "id": "taoyuan:seed_from_spinach",
+            "inputItemId": "taoyuan:spinach",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "菠菜种子",
+              "key": "taoyuan.processing_recipe.seed_from_spinach.name"
+            },
+            "outputItemId": "taoyuan:seed_spinach",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从红薯中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_sweet_potato.description"
+            },
+            "id": "taoyuan:seed_from_sweet_potato",
+            "inputItemId": "taoyuan:sweet_potato",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "红薯种子",
+              "key": "taoyuan.processing_recipe.seed_from_sweet_potato.name"
+            },
+            "outputItemId": "taoyuan:seed_sweet_potato",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从茶苗中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_tea.description"
+            },
+            "id": "taoyuan:seed_from_tea",
+            "inputItemId": "taoyuan:tea",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "茶苗种子",
+              "key": "taoyuan.processing_recipe.seed_from_tea.name"
+            },
+            "outputItemId": "taoyuan:seed_tea",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从西瓜中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_watermelon.description"
+            },
+            "id": "taoyuan:seed_from_watermelon",
+            "inputItemId": "taoyuan:watermelon",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "西瓜种子",
+              "key": "taoyuan.processing_recipe.seed_from_watermelon.name"
+            },
+            "outputItemId": "taoyuan:seed_watermelon",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从冬小麦中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_winter_wheat.description"
+            },
+            "id": "taoyuan:seed_from_winter_wheat",
+            "inputItemId": "taoyuan:winter_wheat",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "冬麦种子",
+              "key": "taoyuan.processing_recipe.seed_from_winter_wheat.name"
+            },
+            "outputItemId": "taoyuan:seed_winter_wheat",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "从山药中提取种子。",
+              "key": "taoyuan.processing_recipe.seed_from_yam.description"
+            },
+            "id": "taoyuan:seed_from_yam",
+            "inputItemId": "taoyuan:yam",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:seed_maker",
+            "name": {
+              "fallback": "山药种子",
+              "key": "taoyuan.processing_recipe.seed_from_yam.name"
+            },
+            "outputItemId": "taoyuan:seed_yam",
+            "outputQuantity": 2,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "醇香的小磨麻油。",
+              "key": "taoyuan.processing_recipe.sesame_oil.description"
+            },
+            "id": "taoyuan:sesame_oil",
+            "inputItemId": "taoyuan:sesame",
+            "inputQuantity": 3,
+            "machineId": "taoyuan:oil_press",
+            "name": {
+              "fallback": "芝麻油",
+              "key": "taoyuan.processing_recipe.sesame_oil.name"
+            },
+            "outputItemId": "taoyuan:sesame_oil",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将铜矿冶炼成铜锭。",
+              "key": "taoyuan.processing_recipe.smelt_copper.description"
+            },
+            "id": "taoyuan:smelt_copper",
+            "inputItemId": "taoyuan:copper_ore",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:furnace",
+            "name": {
+              "fallback": "铜锭",
+              "key": "taoyuan.processing_recipe.smelt_copper.name"
+            },
+            "outputItemId": "taoyuan:copper_bar",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将金矿冶炼成金锭。",
+              "key": "taoyuan.processing_recipe.smelt_gold.description"
+            },
+            "id": "taoyuan:smelt_gold",
+            "inputItemId": "taoyuan:gold_ore",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:furnace",
+            "name": {
+              "fallback": "金锭",
+              "key": "taoyuan.processing_recipe.smelt_gold.name"
+            },
+            "outputItemId": "taoyuan:gold_bar",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将铱矿冶炼成铱锭。",
+              "key": "taoyuan.processing_recipe.smelt_iridium.description"
+            },
+            "id": "taoyuan:smelt_iridium",
+            "inputItemId": "taoyuan:iridium_ore",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:furnace",
+            "name": {
+              "fallback": "铱锭",
+              "key": "taoyuan.processing_recipe.smelt_iridium.name"
+            },
+            "outputItemId": "taoyuan:iridium_bar",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将铁矿冶炼成铁锭。",
+              "key": "taoyuan.processing_recipe.smelt_iron.description"
+            },
+            "id": "taoyuan:smelt_iron",
+            "inputItemId": "taoyuan:iron_ore",
+            "inputQuantity": 5,
+            "machineId": "taoyuan:furnace",
+            "name": {
+              "fallback": "铁锭",
+              "key": "taoyuan.processing_recipe.smelt_iron.name"
+            },
+            "outputItemId": "taoyuan:iron_bar",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鲈鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_bass.description"
+            },
+            "id": "taoyuan:smoke_bass",
+            "inputItemId": "taoyuan:bass",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏鲈鱼",
+              "key": "taoyuan.processing_recipe.smoke_bass.name"
+            },
+            "outputItemId": "taoyuan:smoked_bass",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鲤鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_carp.description"
+            },
+            "id": "taoyuan:smoke_carp",
+            "inputItemId": "taoyuan:carp",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏鲤鱼",
+              "key": "taoyuan.processing_recipe.smoke_carp.name"
+            },
+            "outputItemId": "taoyuan:smoked_carp",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鲶鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_catfish.description"
+            },
+            "id": "taoyuan:smoke_catfish",
+            "inputItemId": "taoyuan:catfish",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏鲶鱼",
+              "key": "taoyuan.processing_recipe.smoke_catfish.name"
+            },
+            "outputItemId": "taoyuan:smoked_catfish",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鲫鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_crucian.description"
+            },
+            "id": "taoyuan:smoke_crucian",
+            "inputItemId": "taoyuan:crucian",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏鲫鱼",
+              "key": "taoyuan.processing_recipe.smoke_crucian.name"
+            },
+            "outputItemId": "taoyuan:smoked_crucian",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鳗鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_eel.description"
+            },
+            "id": "taoyuan:smoke_eel",
+            "inputItemId": "taoyuan:eel",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏鳗鱼",
+              "key": "taoyuan.processing_recipe.smoke_eel.name"
+            },
+            "outputItemId": "taoyuan:smoked_eel",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将草鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_grass_carp.description"
+            },
+            "id": "taoyuan:smoke_grass_carp",
+            "inputItemId": "taoyuan:grass_carp",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏草鱼",
+              "key": "taoyuan.processing_recipe.smoke_grass_carp.name"
+            },
+            "outputItemId": "taoyuan:smoked_grass_carp",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将泥鳅烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_loach.description"
+            },
+            "id": "taoyuan:smoke_loach",
+            "inputItemId": "taoyuan:loach",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏泥鳅",
+              "key": "taoyuan.processing_recipe.smoke_loach.name"
+            },
+            "outputItemId": "taoyuan:smoked_loach",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将桂花鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_mandarin_fish.description"
+            },
+            "id": "taoyuan:smoke_mandarin_fish",
+            "inputItemId": "taoyuan:mandarin_fish",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏桂花鱼",
+              "key": "taoyuan.processing_recipe.smoke_mandarin_fish.name"
+            },
+            "outputItemId": "taoyuan:smoked_mandarin_fish",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将鲟鱼烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_sturgeon.description"
+            },
+            "id": "taoyuan:smoke_sturgeon",
+            "inputItemId": "taoyuan:sturgeon",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏鲟鱼",
+              "key": "taoyuan.processing_recipe.smoke_sturgeon.name"
+            },
+            "outputItemId": "taoyuan:smoked_sturgeon",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将黄鳝烟熏处理。",
+              "key": "taoyuan.processing_recipe.smoke_yellow_eel.description"
+            },
+            "id": "taoyuan:smoke_yellow_eel",
+            "inputItemId": "taoyuan:yellow_eel",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:smoker",
+            "name": {
+              "fallback": "烟熏黄鳝",
+              "key": "taoyuan.processing_recipe.smoke_yellow_eel.name"
+            },
+            "outputItemId": "taoyuan:smoked_yellow_eel",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "珍贵的山茶油。",
+              "key": "taoyuan.processing_recipe.tea_oil.description"
+            },
+            "id": "taoyuan:tea_oil",
+            "inputItemId": "taoyuan:tea",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:oil_press",
+            "name": {
+              "fallback": "茶油",
+              "key": "taoyuan.processing_recipe.tea_oil.name"
+            },
+            "outputItemId": "taoyuan:tea_oil",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "珍贵的松露油。",
+              "key": "taoyuan.processing_recipe.truffle_oil.description"
+            },
+            "id": "taoyuan:truffle_oil",
+            "inputItemId": "taoyuan:truffle",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:oil_press",
+            "name": {
+              "fallback": "松露油",
+              "key": "taoyuan.processing_recipe.truffle_oil.name"
+            },
+            "outputItemId": "taoyuan:truffle_oil",
+            "outputQuantity": 1,
+            "processingDays": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "家酿老陈醋。",
+              "key": "taoyuan.processing_recipe.vinegar_rice.description"
+            },
+            "id": "taoyuan:vinegar_rice",
+            "inputItemId": "taoyuan:rice",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "米醋",
+              "key": "taoyuan.processing_recipe.vinegar_rice.name"
+            },
+            "outputItemId": "taoyuan:rice_vinegar",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将羊驼毛织成柔软绒布。",
+              "key": "taoyuan.processing_recipe.weave_alpaca.description"
+            },
+            "id": "taoyuan:weave_alpaca",
+            "inputItemId": "taoyuan:alpaca_wool",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:loom",
+            "name": {
+              "fallback": "羊驼绒",
+              "key": "taoyuan.processing_recipe.weave_alpaca.name"
+            },
+            "outputItemId": "taoyuan:alpaca_cloth",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将丝绸织成上等华丽的锦缎。",
+              "key": "taoyuan.processing_recipe.weave_brocade.description"
+            },
+            "id": "taoyuan:weave_brocade",
+            "inputItemId": "taoyuan:hanhai_silk",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:loom",
+            "name": {
+              "fallback": "锦缎",
+              "key": "taoyuan.processing_recipe.weave_brocade.name"
+            },
+            "outputItemId": "taoyuan:brocade",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将兔毛压制成毛毡。",
+              "key": "taoyuan.processing_recipe.weave_rabbit.description"
+            },
+            "id": "taoyuan:weave_rabbit",
+            "inputItemId": "taoyuan:rabbit_fur",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:loom",
+            "name": {
+              "fallback": "毛毡",
+              "key": "taoyuan.processing_recipe.weave_rabbit.name"
+            },
+            "outputItemId": "taoyuan:felt",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将蚕丝织成华美丝绸。",
+              "key": "taoyuan.processing_recipe.weave_silk.description"
+            },
+            "id": "taoyuan:weave_silk",
+            "inputItemId": "taoyuan:silk",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:loom",
+            "name": {
+              "fallback": "丝绸",
+              "key": "taoyuan.processing_recipe.weave_silk.name"
+            },
+            "outputItemId": "taoyuan:silk_cloth",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "将羊毛纺织成布匹。",
+              "key": "taoyuan.processing_recipe.weave_wool.description"
+            },
+            "id": "taoyuan:weave_wool",
+            "inputItemId": "taoyuan:wool",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:loom",
+            "name": {
+              "fallback": "布匹",
+              "key": "taoyuan.processing_recipe.weave_wool.name"
+            },
+            "outputItemId": "taoyuan:cloth",
+            "outputQuantity": 1,
+            "processingDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "淡雅清香的玉米酒。",
+              "key": "taoyuan.processing_recipe.wine_corn.description"
+            },
+            "id": "taoyuan:wine_corn",
+            "inputItemId": "taoyuan:corn",
+            "inputQuantity": 2,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "玉米酒",
+              "key": "taoyuan.processing_recipe.wine_corn.name"
+            },
+            "outputItemId": "taoyuan:corn_wine",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "醇厚滋补的红枣酒。",
+              "key": "taoyuan.processing_recipe.wine_jujube.description"
+            },
+            "id": "taoyuan:wine_jujube",
+            "inputItemId": "taoyuan:jujube",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "红枣酒",
+              "key": "taoyuan.processing_recipe.wine_jujube.name"
+            },
+            "outputItemId": "taoyuan:jujube_wine",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "馥郁芬芳的桂花酒。",
+              "key": "taoyuan.processing_recipe.wine_osmanthus.description"
+            },
+            "id": "taoyuan:wine_osmanthus",
+            "inputItemId": "taoyuan:osmanthus",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "桂花酿",
+              "key": "taoyuan.processing_recipe.wine_osmanthus.name"
+            },
+            "outputItemId": "taoyuan:osmanthus_wine",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "清甜的桃花酒。",
+              "key": "taoyuan.processing_recipe.wine_peach.description"
+            },
+            "id": "taoyuan:wine_peach",
+            "inputItemId": "taoyuan:peach",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "桃花酒",
+              "key": "taoyuan.processing_recipe.wine_peach.name"
+            },
+            "outputItemId": "taoyuan:peach_wine",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "甘甜的西瓜酿成的佳酿。",
+              "key": "taoyuan.processing_recipe.wine_watermelon.description"
+            },
+            "id": "taoyuan:wine_watermelon",
+            "inputItemId": "taoyuan:watermelon",
+            "inputQuantity": 1,
+            "machineId": "taoyuan:wine_workshop",
+            "name": {
+              "fallback": "西瓜酒",
+              "key": "taoyuan.processing_recipe.wine_watermelon.name"
+            },
+            "outputItemId": "taoyuan:watermelon_wine",
+            "outputQuantity": 1,
+            "processingDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingRecipeDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "蚯蚓箱自动产出鱼饵。",
+              "key": "taoyuan.processing_recipe.worm_bait.description"
+            },
+            "id": "taoyuan:worm_bait",
+            "inputItemId": null,
+            "inputQuantity": 0,
+            "machineId": "taoyuan:worm_bin",
+            "name": {
+              "fallback": "蚯蚓鱼饵",
+              "key": "taoyuan.processing_recipe.worm_bait.name"
+            },
+            "outputItemId": "taoyuan:standard_bait",
+            "outputQuantity": 3,
+            "processingDays": 2
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:recipe",
       "schemaName": "recipe.schema.json",
       "entries": [
@@ -78840,5 +82038,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:c13de2a657bb34aad9ff1d86f9c6b59a72b7598c7fdb9a2a05f941e2a9b877fe"
+  "snapshotHash": "sha256:136ddb1cb96ff307c4c1839d7112d7347081371a16becd45b7f35953af6f0715"
 }

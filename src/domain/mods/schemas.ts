@@ -349,6 +349,42 @@ export const ProcessingMachineDefSchema = Type.Object(
   { $id: 'taoyuan.registry.ProcessingMachineDef', additionalProperties: false }
 )
 
+const ProcessingRecipeCommonFields = {
+  id: ContentIdSchema,
+  machineId: ContentIdSchema,
+  name: LocalizedTextRefSchema,
+  outputItemId: ContentIdSchema,
+  outputQuantity: Type.Integer({ minimum: 1 }),
+  processingDays: Type.Integer({ minimum: 1 }),
+  description: LocalizedTextRefSchema
+}
+
+export const ProcessingRecipeWithInputDefSchema = Type.Object(
+  {
+    ...ProcessingRecipeCommonFields,
+    inputItemId: ContentIdSchema,
+    inputQuantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const ProcessingRecipeWithoutInputDefSchema = Type.Object(
+  {
+    ...ProcessingRecipeCommonFields,
+    inputItemId: Type.Null(),
+    inputQuantity: Type.Literal(0)
+  },
+  { additionalProperties: false }
+)
+
+export const ProcessingRecipeDefSchema = Type.Union(
+  [
+    ProcessingRecipeWithInputDefSchema,
+    ProcessingRecipeWithoutInputDefSchema
+  ],
+  { $id: 'taoyuan.registry.ProcessingRecipeDef' }
+)
+
 export const ToolTypeSchema = Type.Union([
   Type.Literal('wateringCan'),
   Type.Literal('hoe'),
@@ -1005,6 +1041,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
   'taoyuan:processing_machine': ProcessingMachineDefSchema,
+  'taoyuan:processing_recipe': ProcessingRecipeDefSchema,
   'taoyuan:tool_upgrade': ToolUpgradeDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
@@ -1039,6 +1076,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
   'processing-machine.schema.json': ProcessingMachineDefSchema,
+  'processing-recipe.schema.json': ProcessingRecipeDefSchema,
   'tool-upgrade.schema.json': ToolUpgradeDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
@@ -1082,6 +1120,7 @@ export type AnimalBuildingUpgrade = Static<typeof AnimalBuildingUpgradeSchema>
 export type AnimalIncubationDef = Static<typeof AnimalIncubationDefSchema>
 export type ProcessingMachineMaterial = Static<typeof ProcessingMachineMaterialSchema>
 export type ProcessingMachineDef = Static<typeof ProcessingMachineDefSchema>
+export type ProcessingRecipeDef = Static<typeof ProcessingRecipeDefSchema>
 export type ToolTypeDef = Static<typeof ToolTypeSchema>
 export type ToolTierDef = Static<typeof ToolTierSchema>
 export type ToolUpgradeMaterial = Static<typeof ToolUpgradeMaterialSchema>

@@ -7,6 +7,7 @@ import type {
   HatDef as LegacyHatDef,
   MonsterDef as LegacyMonsterDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
+  ProcessingRecipeDef as LegacyProcessingRecipeDef,
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
   ToolTier,
@@ -77,6 +78,7 @@ import type {
   PondBreedDef,
   PondableFishDef,
   ProcessingMachineDef as ProcessingMachineContentDef,
+  ProcessingRecipeDef as ProcessingRecipeContentDef,
   RecipeDef,
   Season,
   ShopDef,
@@ -797,6 +799,48 @@ export const getOfficialProcessingMachineById = (id: string): LegacyProcessingMa
 
 export const getOfficialProcessingMachinesAsLegacy = (): readonly LegacyProcessingMachineDef[] =>
   getOfficialProcessingMachineDefs().map(toLegacyProcessingMachineDef)
+
+export const getOfficialProcessingRecipeDef = (id: string): Readonly<ProcessingRecipeContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<ProcessingRecipeContentDef>(toOfficialRegistryTypeId('processing_recipe')).get(contentId)
+    : undefined
+}
+
+export const getOfficialProcessingRecipeDefs = (): readonly Readonly<ProcessingRecipeContentDef>[] =>
+  getOfficialRegistrySet().get<ProcessingRecipeContentDef>(toOfficialRegistryTypeId('processing_recipe')).values()
+
+const toLegacyProcessingRecipeDef = (
+  recipe: Readonly<ProcessingRecipeContentDef>
+): LegacyProcessingRecipeDef => ({
+  id: getLocalContentId(recipe.id),
+  machineType: getLocalContentId(recipe.machineId) as LegacyProcessingRecipeDef['machineType'],
+  name: recipe.name.fallback,
+  inputItemId: recipe.inputItemId === null ? null : getLocalContentId(recipe.inputItemId),
+  inputQuantity: recipe.inputQuantity,
+  outputItemId: getLocalContentId(recipe.outputItemId),
+  outputQuantity: recipe.outputQuantity,
+  processingDays: recipe.processingDays,
+  description: recipe.description.fallback
+})
+
+export const getOfficialProcessingRecipeById = (id: string): LegacyProcessingRecipeDef | undefined => {
+  const recipe = getOfficialProcessingRecipeDef(id)
+  return recipe ? toLegacyProcessingRecipeDef(recipe) : undefined
+}
+
+export const getOfficialProcessingRecipesAsLegacy = (): readonly LegacyProcessingRecipeDef[] =>
+  getOfficialProcessingRecipeDefs().map(toLegacyProcessingRecipeDef)
+
+export const getOfficialProcessingRecipesForMachine = (
+  machineType: string
+): readonly LegacyProcessingRecipeDef[] => {
+  const machineId = toQueryContentId(machineType)
+  if (!machineId) return []
+  return getOfficialProcessingRecipeDefs()
+    .filter(recipe => recipe.machineId === machineId)
+    .map(toLegacyProcessingRecipeDef)
+}
 
 const toLegacyToolUpgradeCost = (upgrade: Readonly<ToolUpgradeContentDef>): LegacyToolUpgradeCost => ({
   fromTier: upgrade.fromTier,

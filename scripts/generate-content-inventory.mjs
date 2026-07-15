@@ -334,6 +334,15 @@ fileDefaults.set('src/data/processingMachineDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/processingRecipeDefinitions.ts', {
+  file: 'src/data/processingRecipeDefinitions.ts',
+  classification: 'content',
+  domains: ['processing_recipe'],
+  candidateTargets: ['taoyuan:processing_recipe'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/processingCraftDefinitions.ts', {
   file: 'src/data/processingCraftDefinitions.ts',
   classification: 'mixed',
@@ -730,6 +739,14 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Unique registry-free leaf source for all legacy processing machine craft definitions; Phase 6 projects every machine into taoyuan:processing_machine and verifies IDs, order, names, descriptions, materials, money and autoCollect behavior.'
   },
+  'src/data/processingRecipeDefinitions.ts:PROCESSING_RECIPES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:processing_recipe',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all legacy processing recipes; Phase 6 projects every recipe into taoyuan:processing_recipe and verifies IDs, order, machine references, input/output items, quantities, processing days and runtime behavior.'
+  },
   'src/data/processingCraftDefinitions.ts:SPRINKLERS': {
     classification: 'content',
     targetRegistry: 'taoyuan:sprinkler',
@@ -778,6 +795,14 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Original-name re-export keeps legacy processing machine imports stable while the unique leaf source moved to processingMachineDefinitions and runtime lookups resolve taoyuan:processing_machine first.'
   },
+  'src/data/processing.ts:PROCESSING_RECIPES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:processing_recipe',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy processing recipe imports stable while the unique leaf source moved to processingRecipeDefinitions and runtime lookups resolve taoyuan:processing_recipe first.'
+  },
   'src/data/processing.ts:getMachineById': {
     classification: 'adapter',
     targetRegistry: 'taoyuan:processing_machine',
@@ -791,6 +816,20 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Processing machine list query returns local-ID compatibility objects reconstructed from taoyuan:processing_machine in legacy order.'
+  },
+  'src/data/processing.ts:getProcessingRecipeById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:processing_recipe',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getProcessingRecipeById() signature is retained and now resolves taoyuan:processing_recipe before returning the same local-ID ProcessingRecipeDef shape.'
+  },
+  'src/data/processing.ts:getRecipesForMachine': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:processing_recipe',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getRecipesForMachine() signature is retained and now filters local-ID compatibility objects reconstructed from taoyuan:processing_recipe.'
   },
   'src/data/processing.ts:SPRINKLERS': {
     classification: 'adapter',
