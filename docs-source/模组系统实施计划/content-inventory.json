@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 540,
-    "reviewedArtifactCount": 77
+    "reviewedArtifactCount": 80
   },
   "entries": [
     {
@@ -9743,13 +9743,17 @@
           "exportName": "MorningTipDef",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:tutorial",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/domain/mods/contentAccess.ts",
+            "src/tests/domain/tutorialRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "TypeScript-only morning tip compatibility shape; the public contract is TutorialDefSchema."
         },
         {
           "file": "src/data/tutorials.ts",
@@ -9759,14 +9763,15 @@
           "targetRegistry": "taoyuan:tutorial",
           "persistentIds": true,
           "consumers": [
-            "src/composables/useEndDay.ts"
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/tutorialRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 projects every legacy morning tutorial tip into taoyuan:tutorial while preserving IDs, priority order, condition keys and message text."
         }
       ]
     },
@@ -11660,6 +11665,42 @@
       ],
       "status": "verified",
       "rationale": "Checks secret note reward item references before registry snapshots are accepted."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "TutorialDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:tutorial",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for morning tutorial tips, including stable tip IDs, priorities, engine-supported condition keys and localized messages."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyMorningTip/createOfficialTutorials",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tutorial",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects legacy morning tips into official registry entries without changing order, priority, condition keys or displayed messages."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialTutorialDef/getOfficialTutorialById/getOfficialMorningTipsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:tutorial",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry tutorial definitions and reconstructs legacy MorningTipDef objects for end-day tutorial consumers."
     },
     {
       "file": "src/domain/mods/schemas.ts",

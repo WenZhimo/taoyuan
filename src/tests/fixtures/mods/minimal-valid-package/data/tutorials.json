@@ -1,0 +1,12 @@
+[
+  {
+    "id": "example_mod:tutorial/welcome",
+    "tipId": "welcome",
+    "priority": 1,
+    "conditionKey": "earlyFirstDay",
+    "message": {
+      "key": "example_mod.tutorial.welcome.message",
+      "fallback": "用于模组契约测试的教程提示。"
+    }
+  }
+]

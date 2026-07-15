@@ -1,0 +1,122 @@
+{
+  "$id": "taoyuan.registry.TutorialDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "tipId",
+    "priority",
+    "conditionKey",
+    "message"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "tipId": {
+      "minLength": 1,
+      "pattern": "^[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "priority": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "conditionKey": {
+      "anyOf": [
+        {
+          "const": "earlyFirstDay",
+          "type": "string"
+        },
+        {
+          "const": "allWasteland",
+          "type": "string"
+        },
+        {
+          "const": "tilledNoPlanted",
+          "type": "string"
+        },
+        {
+          "const": "plantedUnwatered",
+          "type": "string"
+        },
+        {
+          "const": "hasHarvestable",
+          "type": "string"
+        },
+        {
+          "const": "harvestedNeverSold",
+          "type": "string"
+        },
+        {
+          "const": "earlyGame",
+          "type": "string"
+        },
+        {
+          "const": "staminaWasLow",
+          "type": "string"
+        },
+        {
+          "const": "neverVisitedShop",
+          "type": "string"
+        },
+        {
+          "const": "neverFished",
+          "type": "string"
+        },
+        {
+          "const": "neverMined",
+          "type": "string"
+        },
+        {
+          "const": "neverTalkedNpc",
+          "type": "string"
+        },
+        {
+          "const": "neverCheckedQuests",
+          "type": "string"
+        },
+        {
+          "const": "neverCooked",
+          "type": "string"
+        },
+        {
+          "const": "firstRainyDay",
+          "type": "string"
+        },
+        {
+          "const": "justChangedSeason",
+          "type": "string"
+        },
+        {
+          "const": "hasCropNoSprinkler",
+          "type": "string"
+        },
+        {
+          "const": "neverHadAnimal",
+          "type": "string"
+        }
+      ]
+    },
+    "message": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

@@ -18,6 +18,7 @@ import type {
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
 import type { FarmMapDef as LegacyFarmMapDef } from '@/data/farmMapDefinitions'
+import type { MorningTipDef as LegacyMorningTipDef } from '@/data/tutorials'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
 import type { EquipmentSetDef as LegacyEquipmentSetDef } from '@/data/equipmentSetDefinitions'
@@ -87,6 +88,7 @@ import type {
   ShopOfferDef,
   TagDef,
   ToolUpgradeDef as ToolUpgradeContentDef,
+  TutorialDef as TutorialContentDef,
   TreeDef,
   WalletItemDef as WalletItemContentDef,
   WeaponEquipmentDef,
@@ -122,6 +124,9 @@ const toSecretNoteQueryContentId = (id: number | string) => {
   const rawId = typeof id === 'number' ? `secret_note/${id}` : id
   return toQueryContentId(rawId.includes(':') || rawId.includes('/') ? rawId : `secret_note/${rawId}`)
 }
+
+const toTutorialQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `tutorial/${id}`)
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
   const contentId = toQueryContentId(id)
@@ -599,6 +604,16 @@ export const getOfficialSecretNoteDef = (id: number | string): Readonly<SecretNo
 export const getOfficialSecretNoteDefs = (): readonly Readonly<SecretNoteContentDef>[] =>
   getOfficialRegistrySet().get<SecretNoteContentDef>(toOfficialRegistryTypeId('secret_note')).values()
 
+export const getOfficialTutorialDef = (id: string): Readonly<TutorialContentDef> | undefined => {
+  const contentId = toTutorialQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<TutorialContentDef>(toOfficialRegistryTypeId('tutorial')).get(contentId)
+    : undefined
+}
+
+export const getOfficialTutorialDefs = (): readonly Readonly<TutorialContentDef>[] =>
+  getOfficialRegistrySet().get<TutorialContentDef>(toOfficialRegistryTypeId('tutorial')).values()
+
 export const getOfficialFarmMapDef = (id: string): Readonly<FarmMapContentDef> | undefined => {
   const contentId = toQueryContentId(id)
   return contentId
@@ -724,6 +739,21 @@ export const getOfficialSecretNoteById = (id: number | string): LegacySecretNote
 
 export const getOfficialSecretNotesAsLegacy = (): readonly LegacySecretNoteDef[] =>
   getOfficialSecretNoteDefs().map(toLegacySecretNoteDef)
+
+const toLegacyMorningTipDef = (tip: Readonly<TutorialContentDef>): LegacyMorningTipDef => ({
+  id: tip.tipId,
+  priority: tip.priority,
+  conditionKey: tip.conditionKey,
+  message: tip.message.fallback
+})
+
+export const getOfficialTutorialById = (id: string): LegacyMorningTipDef | undefined => {
+  const tip = getOfficialTutorialDef(id)
+  return tip ? toLegacyMorningTipDef(tip) : undefined
+}
+
+export const getOfficialMorningTipsAsLegacy = (): readonly LegacyMorningTipDef[] =>
+  getOfficialTutorialDefs().map(toLegacyMorningTipDef)
 
 const toLegacyFarmMapDef = (map: Readonly<FarmMapContentDef>): LegacyFarmMapDef => ({
   type: map.type as LegacyFarmMapDef['type'],

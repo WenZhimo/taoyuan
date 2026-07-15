@@ -82486,6 +82486,318 @@
       ]
     },
     {
+      "registryId": "taoyuan:tutorial",
+      "schemaName": "tutorial.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "earlyGame",
+            "id": "taoyuan:tutorial/tip_check_weather",
+            "message": {
+              "fallback": "柳村长说：「每天注意看天气预报，提前安排一天的活计会事半功倍。」",
+              "key": "taoyuan.tutorial.tip_check_weather.message"
+            },
+            "priority": 7,
+            "tipId": "tip_check_weather"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "hasHarvestable",
+            "id": "taoyuan:tutorial/tip_first_harvest",
+            "message": {
+              "fallback": "柳村长说：「作物成熟了！去农场面板收获吧，金色地块就是成熟的作物。」",
+              "key": "taoyuan.tutorial.tip_first_harvest.message"
+            },
+            "priority": 5,
+            "tipId": "tip_first_harvest"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "tilledNoPlanted",
+            "id": "taoyuan:tutorial/tip_first_plant",
+            "message": {
+              "fallback": "柳村长说：「地开垦好了，去农场面板播种吧。「一键种植」可以批量播种。」",
+              "key": "taoyuan.tutorial.tip_first_plant.message"
+            },
+            "priority": 3,
+            "tipId": "tip_first_plant"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "allWasteland",
+            "id": "taoyuan:tutorial/tip_first_till",
+            "message": {
+              "fallback": "柳村长说：「田地要先开垦才能种东西。在农场面板点击「一键操作」→「一键开垦」。」",
+              "key": "taoyuan.tutorial.tip_first_till.message"
+            },
+            "priority": 2,
+            "tipId": "tip_first_till"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "plantedUnwatered",
+            "id": "taoyuan:tutorial/tip_first_water",
+            "message": {
+              "fallback": "柳村长说：「种子种下后记得浇水，不浇水作物不会生长。试试「一键浇水」。」",
+              "key": "taoyuan.tutorial.tip_first_water.message"
+            },
+            "priority": 4,
+            "tipId": "tip_first_water"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "neverCheckedQuests",
+            "id": "taoyuan:tutorial/tip_quest_board",
+            "message": {
+              "fallback": "柳村长说：「告示栏上有乡亲们的委托，帮忙做做能赚点钱和人情。」",
+              "key": "taoyuan.tutorial.tip_quest_board.message"
+            },
+            "priority": 13,
+            "tipId": "tip_quest_board"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "firstRainyDay",
+            "id": "taoyuan:tutorial/tip_rain",
+            "message": {
+              "fallback": "柳村长说：「下雨天作物会自动浇水，省了力气。正好可以去做别的事。」",
+              "key": "taoyuan.tutorial.tip_rain.message"
+            },
+            "priority": 15,
+            "tipId": "tip_rain"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "justChangedSeason",
+            "id": "taoyuan:tutorial/tip_season_change",
+            "message": {
+              "fallback": "柳村长说：「换季了，不同季节能种的作物不一样，去商圈看看新种子吧。」",
+              "key": "taoyuan.tutorial.tip_season_change.message"
+            },
+            "priority": 16,
+            "tipId": "tip_season_change"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "harvestedNeverSold",
+            "id": "taoyuan:tutorial/tip_sell_crops",
+            "message": {
+              "fallback": "柳村长说：「收获的作物放进农场面板底部的出货箱，次日就能换钱了。」",
+              "key": "taoyuan.tutorial.tip_sell_crops.message"
+            },
+            "priority": 6,
+            "tipId": "tip_sell_crops"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "hasCropNoSprinkler",
+            "id": "taoyuan:tutorial/tip_sprinkler",
+            "message": {
+              "fallback": "柳村长说：「种地面积大了浇水很累，加工坊或铁匠铺可以做洒水器自动浇水。」",
+              "key": "taoyuan.tutorial.tip_sprinkler.message"
+            },
+            "priority": 17,
+            "tipId": "tip_sprinkler"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "staminaWasLow",
+            "id": "taoyuan:tutorial/tip_stamina",
+            "message": {
+              "fallback": "柳村长说：「体力不够就早点休息，熬夜会影响次日恢复。吃东西也能补充体力。」",
+              "key": "taoyuan.tutorial.tip_stamina.message"
+            },
+            "priority": 8,
+            "tipId": "tip_stamina"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "neverTalkedNpc",
+            "id": "taoyuan:tutorial/tip_talk_npc",
+            "message": {
+              "fallback": "柳村长说：「乡里乡亲的，多和大家聊聊天，送礼也能增进交情。」",
+              "key": "taoyuan.tutorial.tip_talk_npc.message"
+            },
+            "priority": 12,
+            "tipId": "tip_talk_npc"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "neverHadAnimal",
+            "id": "taoyuan:tutorial/tip_try_animal",
+            "message": {
+              "fallback": "柳村长说：「养些鸡鸭牛羊也不错，先去商铺建个鸡舍或牧场吧。」",
+              "key": "taoyuan.tutorial.tip_try_animal.message"
+            },
+            "priority": 18,
+            "tipId": "tip_try_animal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "neverCooked",
+            "id": "taoyuan:tutorial/tip_try_cooking",
+            "message": {
+              "fallback": "柳村长说：「学了食谱可以做菜，做出来的饭能恢复体力。去灶台试试。」",
+              "key": "taoyuan.tutorial.tip_try_cooking.message"
+            },
+            "priority": 14,
+            "tipId": "tip_try_cooking"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "neverFished",
+            "id": "taoyuan:tutorial/tip_try_fishing",
+            "message": {
+              "fallback": "柳村长说：「村东的清溪鱼虾丰美，带上鱼竿去试试钓鱼吧。」",
+              "key": "taoyuan.tutorial.tip_try_fishing.message"
+            },
+            "priority": 10,
+            "tipId": "tip_try_fishing"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "neverMined",
+            "id": "taoyuan:tutorial/tip_try_mining",
+            "message": {
+              "fallback": "柳村长说：「村北的矿洞里有矿石和宝物，不过也有怪物，小心些。」",
+              "key": "taoyuan.tutorial.tip_try_mining.message"
+            },
+            "priority": 11,
+            "tipId": "tip_try_mining"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "neverVisitedShop",
+            "id": "taoyuan:tutorial/tip_visit_shop",
+            "message": {
+              "fallback": "柳村长说：「商圈有各种种子和道具出售，有空去逛逛吧。」",
+              "key": "taoyuan.tutorial.tip_visit_shop.message"
+            },
+            "priority": 9,
+            "tipId": "tip_visit_shop"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/tutorials.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "conditionKey": "earlyFirstDay",
+            "id": "taoyuan:tutorial/tip_welcome",
+            "message": {
+              "fallback": "柳村长说：「欢迎来到桃源乡！背包里有白菜种子，去农场面板开垦土地、播种吧。」",
+              "key": "taoyuan.tutorial.tip_welcome.message"
+            },
+            "priority": 1,
+            "tipId": "tip_welcome"
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:wallet_item",
       "schemaName": "wallet-item.schema.json",
       "entries": [
@@ -82674,5 +82986,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:91b2aa7a45aa8eb85df95da62f32accf58f98f3da328029c133111eed27b70aa"
+  "snapshotHash": "sha256:e923ad2386aa950a9b0d552046649cba01d65205efd3bb0580fda37340de9a3b"
 }

@@ -301,6 +301,38 @@ export const SecretNoteDefSchema = Type.Object(
   { $id: 'taoyuan.registry.SecretNoteDef', additionalProperties: false }
 )
 
+export const TutorialConditionKeySchema = Type.Union([
+  Type.Literal('earlyFirstDay'),
+  Type.Literal('allWasteland'),
+  Type.Literal('tilledNoPlanted'),
+  Type.Literal('plantedUnwatered'),
+  Type.Literal('hasHarvestable'),
+  Type.Literal('harvestedNeverSold'),
+  Type.Literal('earlyGame'),
+  Type.Literal('staminaWasLow'),
+  Type.Literal('neverVisitedShop'),
+  Type.Literal('neverFished'),
+  Type.Literal('neverMined'),
+  Type.Literal('neverTalkedNpc'),
+  Type.Literal('neverCheckedQuests'),
+  Type.Literal('neverCooked'),
+  Type.Literal('firstRainyDay'),
+  Type.Literal('justChangedSeason'),
+  Type.Literal('hasCropNoSprinkler'),
+  Type.Literal('neverHadAnimal')
+])
+
+export const TutorialDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    tipId: Type.String({ minLength: 1, pattern: '^[a-z0-9_./-]+$' }),
+    priority: Type.Integer({ minimum: 1 }),
+    conditionKey: TutorialConditionKeySchema,
+    message: LocalizedTextRefSchema
+  },
+  { $id: 'taoyuan.registry.TutorialDef', additionalProperties: false }
+)
+
 export const FarmMapTypeSchema = Type.Union([
   Type.Literal('standard'),
   Type.Literal('riverland'),
@@ -1074,6 +1106,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:animal_feed': AnimalFeedDefSchema,
   'taoyuan:wallet_item': WalletItemDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
+  'taoyuan:tutorial': TutorialDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
@@ -1110,6 +1143,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'animal-feed.schema.json': AnimalFeedDefSchema,
   'wallet-item.schema.json': WalletItemDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
+  'tutorial.schema.json': TutorialDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
@@ -1154,6 +1188,8 @@ export type SecretNoteType = Static<typeof SecretNoteTypeSchema>
 export type SecretNoteRewardItem = Static<typeof SecretNoteRewardItemSchema>
 export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>
 export type SecretNoteDef = Static<typeof SecretNoteDefSchema>
+export type TutorialConditionKey = Static<typeof TutorialConditionKeySchema>
+export type TutorialDef = Static<typeof TutorialDefSchema>
 export type FarmMapType = Static<typeof FarmMapTypeSchema>
 export type FarmMapDef = Static<typeof FarmMapDefSchema>
 export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>

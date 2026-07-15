@@ -31,10 +31,9 @@ import { getDailyMarketInfo, MARKET_CATEGORY_NAMES } from '@/data/market'
 import { showEvent, showFestival, triggerWeddingEvent, triggerPetAdoption, showFarmEvent, showDiscoveryScene } from './useDialogs'
 import { sfxSleep, useAudio } from './useAudio'
 import { MORNING_NARRATIONS, NARRATIONS_NO_LOSS, MORNING_CHOICE_EVENTS, MORNING_EASTER_EGGS } from '@/data/farmEvents'
-import { MORNING_TIPS } from '@/data/tutorials'
 import { TAB_TO_LOCATION_GROUP, getLocationGroupName } from '@/data/timeConstants'
 import { getResourceSleepOptionsForLocation } from '@/domain/sleep/sleepOptions'
-import { getOfficialFishDefsAsLegacy } from '@/domain/mods/contentAccess'
+import { getOfficialFishDefsAsLegacy, getOfficialMorningTipsAsLegacy } from '@/domain/mods/contentAccess'
 import { processFishPondEndDay } from '@/domain/endDay/fishPondEndDay'
 import { processCaveEndDay } from '@/domain/endDay/caveEndDay'
 import { processFarmPlotEndDay, processFarmTreeEndDay } from '@/domain/endDay/farmEndDay'
@@ -514,7 +513,7 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     day: gameStore.day,
     season: gameStore.season,
     isRainy: gameStore.isRainy,
-    tips: MORNING_TIPS,
+    tips: getOfficialMorningTipsAsLegacy(),
     getPlots: () => farmStore.plots,
     getSprinklerCount: () => farmStore.sprinklers.length,
     getAnimalCount: () => animalStore.animals.length,

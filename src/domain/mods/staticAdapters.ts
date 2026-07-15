@@ -32,6 +32,7 @@ import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
 import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
+import { MORNING_TIPS } from '@/data/tutorials'
 import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
 import {
   ANIMAL_BUILDINGS,
@@ -123,6 +124,7 @@ import type {
   ShopOfferDef,
   TagDef,
   ToolUpgradeDef,
+  TutorialDef,
   TreeDef,
   WalletItemDef
 } from './schemas'
@@ -184,6 +186,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('secret_note'),
     description: '秘密纸条定义',
     schemaName: 'secret-note.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('tutorial'),
+    description: '晨间教程提示定义',
+    schemaName: 'tutorial.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('farm_map'),
@@ -715,6 +722,16 @@ export const adaptLegacySecretNote = (note: (typeof SECRET_NOTES)[number]): Secr
 
 export const createOfficialSecretNotes = (): SecretNoteDef[] => SECRET_NOTES.map(adaptLegacySecretNote)
 
+export const adaptLegacyMorningTip = (tip: (typeof MORNING_TIPS)[number]): TutorialDef => ({
+  id: toOfficialContentId(`tutorial/${tip.id}`),
+  tipId: tip.id,
+  priority: tip.priority,
+  conditionKey: tip.conditionKey as TutorialDef['conditionKey'],
+  message: text(`taoyuan.tutorial.${tip.id}.message`, tip.message)
+})
+
+export const createOfficialTutorials = (): TutorialDef[] => MORNING_TIPS.map(adaptLegacyMorningTip)
+
 export const adaptLegacyFarmMap = (map: (typeof FARM_MAP_DEFS)[number]): FarmMapDef => ({
   id: toOfficialContentId(map.type),
   type: map.type,
@@ -1227,6 +1244,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(toOfficialRegistryTypeId('animal_feed'))
   const walletItemRegistry = registrySet.get<WalletItemDef>(toOfficialRegistryTypeId('wallet_item'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
+  const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
@@ -1262,6 +1280,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const note of createOfficialSecretNotes()) {
     secretNoteRegistry.register(owner, note, { file: 'src/data/secretNotes.ts' })
+  }
+  for (const tip of createOfficialTutorials()) {
+    tutorialRegistry.register(owner, tip, { file: 'src/data/tutorials.ts' })
   }
   for (const map of createOfficialFarmMaps()) {
     farmMapRegistry.register(owner, map, { file: 'src/data/farmMapDefinitions.ts' })

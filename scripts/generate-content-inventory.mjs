@@ -945,6 +945,21 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Phase 6 projects every legacy secret note into taoyuan:secret_note while preserving numeric note IDs, titles, content, usability and treasure rewards.'
   },
+  'src/data/tutorials.ts:MorningTipDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tutorial',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only morning tip compatibility shape; the public contract is TutorialDefSchema.'
+  },
+  'src/data/tutorials.ts:MORNING_TIPS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:tutorial',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 projects every legacy morning tutorial tip into taoyuan:tutorial while preserving IDs, priority order, condition keys and message text.'
+  },
   'src/data/farmMapDefinitions.ts:FarmMapDef': {
     classification: 'adapter',
     targetRegistry: 'taoyuan:farm_map',
@@ -3044,6 +3059,36 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Checks secret note reward item references before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'TutorialDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:tutorial',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for morning tutorial tips, including stable tip IDs, priorities, engine-supported condition keys and localized messages.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyMorningTip/createOfficialTutorials',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tutorial',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects legacy morning tips into official registry entries without changing order, priority, condition keys or displayed messages.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialTutorialDef/getOfficialTutorialById/getOfficialMorningTipsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:tutorial',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry tutorial definitions and reconstructs legacy MorningTipDef objects for end-day tutorial consumers.'
   },
   {
     file: 'src/domain/mods/schemas.ts',
