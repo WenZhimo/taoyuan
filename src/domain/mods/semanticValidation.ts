@@ -15,6 +15,7 @@ import type {
   BuildingUpgradeDef,
   CropDef,
   DropTableDef,
+  EquipmentSetDef,
   FishDef,
   FishPondFacilityDef,
   ForageDef,
@@ -43,6 +44,7 @@ const REGISTRY_IDS = {
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
+  equipmentSet: toOfficialRegistryTypeId('equipment_set'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
   fishPondFacility: toOfficialRegistryTypeId('fish_pond_facility'),
@@ -89,6 +91,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
+  const equipmentSetRegistry = registrySet.get<EquipmentSetDef>(REGISTRY_IDS.equipmentSet)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(REGISTRY_IDS.fishPondFacility)
@@ -333,6 +336,27 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         })
       }
     })
+  }
+
+  for (const record of equipmentSetRegistry.entries()) {
+    const references = [
+      ...(record.entry.pieces.weapon
+        ? [{ itemId: record.entry.pieces.weapon, fieldPath: '/pieces/weapon' }]
+        : []),
+      { itemId: record.entry.pieces.ring, fieldPath: '/pieces/ring' },
+      { itemId: record.entry.pieces.hat, fieldPath: '/pieces/hat' },
+      { itemId: record.entry.pieces.shoe, fieldPath: '/pieces/shoe' }
+    ]
+    for (const reference of references) {
+      if (!itemRegistry.has(contentId(reference.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(reference.itemId),
+          fieldPath: reference.fieldPath
+        })
+      }
+    }
   }
 
   for (const record of pondableFishRegistry.entries()) {

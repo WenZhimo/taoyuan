@@ -1,0 +1,34 @@
+[
+  {
+    "id": "example_mod:test_equipment_set",
+    "name": {
+      "key": "example_mod.equipment_set.test.name",
+      "fallback": "测试套装"
+    },
+    "description": {
+      "key": "example_mod.equipment_set.test.description",
+      "fallback": "用于校验契约的测试套装"
+    },
+    "pieces": {
+      "weapon": "example_mod:test_weapon",
+      "ring": "example_mod:test_ring",
+      "hat": "example_mod:test_hat",
+      "shoe": "example_mod:test_shoe"
+    },
+    "bonuses": [
+      {
+        "count": 2,
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          }
+        ],
+        "description": {
+          "key": "example_mod.equipment_set.test.bonus.2",
+          "fallback": "攻击力+1"
+        }
+      }
+    ]
+  }
+]

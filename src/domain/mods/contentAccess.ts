@@ -13,6 +13,7 @@ import type {
 import type { FarmMapDef as LegacyFarmMapDef } from '@/data/farmMapDefinitions'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
+import type { EquipmentSetDef as LegacyEquipmentSetDef } from '@/data/equipmentSetDefinitions'
 import type { AnimalBuildingUpgradeDef as LegacyAnimalBuildingUpgradeDef } from '@/data/animalBuildingDefinitions'
 import type {
   AnimalIncubationDef as LegacyAnimalIncubationDef,
@@ -56,6 +57,7 @@ import type {
   CropDef,
   DropTableDef,
   EnchantmentDef,
+  EquipmentSetDef as EquipmentSetContentDef,
   FarmMapDef as FarmMapContentDef,
   FishDef as FishContentDef,
   FishPondFacilityDef as FishPondFacilityContentDef,
@@ -260,6 +262,48 @@ export const getOfficialEquipmentDropTableDef = (
   query: OfficialEquipmentDropTableQuery
 ): Readonly<DropTableDef> | undefined =>
   getOfficialDropTableDef(`drop/equipment/${query.source}/${query.kind}/${query.zone}`)
+
+export const getOfficialEquipmentSetDef = (id: string): Readonly<EquipmentSetContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<EquipmentSetContentDef>(toOfficialRegistryTypeId('equipment_set')).get(contentId)
+    : undefined
+}
+
+export const getOfficialEquipmentSetDefs = (): readonly Readonly<EquipmentSetContentDef>[] =>
+  getOfficialRegistrySet().get<EquipmentSetContentDef>(toOfficialRegistryTypeId('equipment_set')).values()
+
+const toLegacyEquipmentSetDef = (set: Readonly<EquipmentSetContentDef>): LegacyEquipmentSetDef => ({
+  id: getLocalContentId(set.id),
+  name: set.name.fallback,
+  description: set.description.fallback,
+  pieces: {
+    ...(set.pieces.weapon ? { weapon: getLocalContentId(set.pieces.weapon) } : {}),
+    ring: getLocalContentId(set.pieces.ring),
+    hat: getLocalContentId(set.pieces.hat),
+    shoe: getLocalContentId(set.pieces.shoe)
+  },
+  bonuses: set.bonuses.map(bonus => ({
+    count: bonus.count,
+    effects: bonus.effects.map(effect => ({ ...effect })),
+    description: bonus.description.fallback
+  }))
+})
+
+export const getOfficialEquipmentSetsAsLegacy = (): readonly LegacyEquipmentSetDef[] =>
+  getOfficialEquipmentSetDefs().map(toLegacyEquipmentSetDef)
+
+export const getOfficialEquipmentSetByPieceId = (defId: string): LegacyEquipmentSetDef | undefined => {
+  const contentId = toQueryContentId(defId)
+  if (!contentId) return undefined
+  const set = getOfficialEquipmentSetDefs().find(candidate =>
+    candidate.pieces.weapon === contentId ||
+    candidate.pieces.ring === contentId ||
+    candidate.pieces.hat === contentId ||
+    candidate.pieces.shoe === contentId
+  )
+  return set ? toLegacyEquipmentSetDef(set) : undefined
+}
 
 export interface OfficialShopOfferQuery {
   shopId: string

@@ -22,7 +22,7 @@ import {
 import { getRingById } from '@/data/rings'
 import { getHatById } from '@/data/hats'
 import { getShoeById } from '@/data/shoes'
-import { EQUIPMENT_SETS } from '@/data/equipmentSets'
+import { getEquipmentSets } from '@/data/equipmentSets'
 import {
   addItemToStacks,
   calculateAddableItemQuantity,
@@ -694,12 +694,12 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 当前激活的套装奖励效果列表 */
   const activeSetBonuses = computed(() => {
-    return getActiveEquipmentSetBonuses(EQUIPMENT_SETS, getEquippedSetPieces())
+    return getActiveEquipmentSetBonuses(getEquipmentSets(), getEquippedSetPieces())
   })
 
   /** 套装激活状态（供UI显示） */
   const activeSets = computed(() => {
-    return createActiveEquipmentSetSummaries(EQUIPMENT_SETS, getEquippedSetPieces())
+    return createActiveEquipmentSetSummaries(getEquipmentSets(), getEquippedSetPieces())
   })
 
   /** 合成戒指 */

@@ -38,6 +38,10 @@ import {
   TOOL_UPGRADE_COSTS,
   type ToolUpgradeCost as LegacyToolUpgradeCost
 } from '@/data/toolUpgradeDefinitions'
+import {
+  EQUIPMENT_SET_DEFINITIONS,
+  type EquipmentSetDef as LegacyEquipmentSetDef
+} from '@/data/equipmentSetDefinitions'
 import { PONDABLE_FISH } from '@/data/fishPondDefinitions'
 import { POND_BREEDS } from '@/data/pondBreedDefinitions'
 import {
@@ -82,6 +86,7 @@ import type {
   BuildingUpgradeDef,
   DropTableDef,
   EnchantmentDef,
+  EquipmentSetDef,
   FarmMapDef,
   FishDef,
   FishPondFacilityDef,
@@ -209,6 +214,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('enchantment'),
     description: '装备附魔定义',
     schemaName: 'enchantment.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('equipment_set'),
+    description: '装备套装定义',
+    schemaName: 'equipment-set.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('drop_table'),
@@ -423,6 +433,26 @@ export const createOfficialEquipmentDropTables = (): DropTableDef[] => {
 
   return tables
 }
+
+export const adaptLegacyEquipmentSet = (set: LegacyEquipmentSetDef): EquipmentSetDef => ({
+  id: toOfficialContentId(set.id),
+  name: text(`taoyuan.equipment_set.${set.id}.name`, set.name),
+  description: text(`taoyuan.equipment_set.${set.id}.description`, set.description),
+  pieces: {
+    ...(set.pieces.weapon ? { weapon: toOfficialContentId(set.pieces.weapon) } : {}),
+    ring: toOfficialContentId(set.pieces.ring),
+    hat: toOfficialContentId(set.pieces.hat),
+    shoe: toOfficialContentId(set.pieces.shoe)
+  },
+  bonuses: set.bonuses.map(bonus => ({
+    count: bonus.count,
+    effects: bonus.effects.map(effect => ({ ...effect })),
+    description: text(`taoyuan.equipment_set.${set.id}.bonus.${bonus.count}`, bonus.description)
+  }))
+})
+
+export const createOfficialEquipmentSets = (): EquipmentSetDef[] =>
+  EQUIPMENT_SET_DEFINITIONS.map(adaptLegacyEquipmentSet)
 
 export const adaptLegacyMonster = (monster: LegacyMonsterDef): MonsterDef => ({
   id: toOfficialContentId(monster.id),
@@ -1019,6 +1049,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
+  const equipmentSetRegistry = registrySet.get<EquipmentSetDef>(toOfficialRegistryTypeId('equipment_set'))
   const dropTableRegistry = registrySet.get<DropTableDef>(toOfficialRegistryTypeId('drop_table'))
   const recipeRegistry = registrySet.get<RecipeDef>(toOfficialRegistryTypeId('recipe'))
   const shopRegistry = registrySet.get<ShopDef>(toOfficialRegistryTypeId('shop'))
@@ -1065,6 +1096,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {
     enchantmentRegistry.register(owner, adaptLegacyEnchantment(id, enchantment), { file: 'src/data/weapons.ts' })
+  }
+  for (const set of createOfficialEquipmentSets()) {
+    equipmentSetRegistry.register(owner, set, { file: 'src/data/equipmentSetDefinitions.ts' })
   }
 
   const monsters = uniqueMonsters()

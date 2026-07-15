@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+﻿import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
@@ -68,6 +68,7 @@ const contentNames = new Set([
   'TACKLES',
   'TEXAS_TIERS',
   'TOOL_UPGRADE_COSTS',
+  'EQUIPMENT_SET_DEFINITIONS',
   'TRADE_EXCHANGE_ITEMS',
   'TRADE_SHOP_UPGRADES',
   'TRAVELING_MERCHANT_POOL',
@@ -320,6 +321,24 @@ fileDefaults.set('src/data/upgrades.ts', {
   classification: 'mixed',
   domains: ['tool_upgrade', 'tool_labels', 'lookup'],
   candidateTargets: ['taoyuan:tool_upgrade', 'ui/tool-labels', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/equipmentSetDefinitions.ts', {
+  file: 'src/data/equipmentSetDefinitions.ts',
+  classification: 'content',
+  domains: ['equipment_set'],
+  candidateTargets: ['taoyuan:equipment_set'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/equipmentSets.ts', {
+  file: 'src/data/equipmentSets.ts',
+  classification: 'mixed',
+  domains: ['equipment_set', 'lookup'],
+  candidateTargets: ['taoyuan:equipment_set', 'compatibility_adapter'],
   phases: [6],
   status: 'symbol_inventoried'
 })
@@ -764,6 +783,64 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getUpgradeCost() signature is retained and now resolves taoyuan:tool_upgrade before returning an equivalent local-ID ToolUpgradeCost object.'
+  },
+  'src/data/equipmentSetDefinitions.ts:SetBonusLevel': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy equipment set bonus shape retained for old EquipmentSetDef consumers; the public contract is EquipmentSetDefSchema.'
+  },
+  'src/data/equipmentSetDefinitions.ts:EquipmentSetDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy equipment set shape retained for compatibility; the public contract is EquipmentSetDefSchema.'
+  },
+  'src/data/equipmentSetDefinitions.ts:EQUIPMENT_SET_DEFINITIONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy equipment set definitions; Phase 6 projects every set, piece reference, bonus threshold and effect into taoyuan:equipment_set.'
+  },
+  'src/data/equipmentSets.ts:EquipmentSetDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy equipment set compatibility shape.'
+  },
+  'src/data/equipmentSets.ts:SetBonusLevel': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Type-only re-export for the legacy equipment set bonus compatibility shape.'
+  },
+  'src/data/equipmentSets.ts:EQUIPMENT_SETS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 keeps EQUIPMENT_SETS as an original-name re-export from equipmentSetDefinitions while runtime consumers use registry-backed facades.'
+  },
+  'src/data/equipmentSets.ts:getEquipmentSets': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Compatibility list facade returns local-ID equipment set objects reconstructed from taoyuan:equipment_set, with the static array retained as rollback.'
+  },
+  'src/data/equipmentSets.ts:getSetByPieceId': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getSetByPieceId() signature is retained and now resolves taoyuan:equipment_set before returning the same first matching local-ID set shape.'
   },
   'src/data/animals.ts:ANIMAL_DEFS': {
     classification: 'adapter',
@@ -2023,6 +2100,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Checks every tool upgrade material item reference against taoyuan:item and reports REG-REFERENCE-001 before the registry snapshot is accepted.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'EquipmentSetDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for equipment set definitions, including piece references, bonus thresholds and supported equipment effects.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyEquipmentSet/createOfficialEquipmentSets',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy equipment set into ordered official entries without changing set IDs, names, piece references, bonus descriptions or effects.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialEquipmentSetDef/getOfficialEquipmentSetDefs/getOfficialEquipmentSetsAsLegacy/getOfficialEquipmentSetByPieceId',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry equipment set definitions and reconstructs legacy EquipmentSetDef objects for inventory set bonuses and old piece lookup.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:equipment_set',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment_set',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks every equipment set piece reference against taoyuan:item and reports REG-REFERENCE-001 before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

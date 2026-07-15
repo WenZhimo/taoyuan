@@ -1,0 +1,244 @@
+{
+  "$id": "taoyuan.registry.EquipmentSetDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "pieces",
+    "bonuses"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "pieces": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "ring",
+        "hat",
+        "shoe"
+      ],
+      "properties": {
+        "weapon": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "ring": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "hat": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "shoe": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        }
+      }
+    },
+    "bonuses": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "count",
+          "effects",
+          "description"
+        ],
+        "properties": {
+          "count": {
+            "anyOf": [
+              {
+                "const": 2,
+                "type": "number"
+              },
+              {
+                "const": 3,
+                "type": "number"
+              },
+              {
+                "const": 4,
+                "type": "number"
+              }
+            ]
+          },
+          "effects": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type",
+                "value"
+              ],
+              "properties": {
+                "type": {
+                  "anyOf": [
+                    {
+                      "const": "attack_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "crit_rate_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "defense_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "vampiric",
+                      "type": "string"
+                    },
+                    {
+                      "const": "max_hp_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "stamina_reduction",
+                      "type": "string"
+                    },
+                    {
+                      "const": "mining_stamina",
+                      "type": "string"
+                    },
+                    {
+                      "const": "farming_stamina",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fishing_stamina",
+                      "type": "string"
+                    },
+                    {
+                      "const": "crop_quality_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "crop_growth_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fish_quality_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "fishing_calm",
+                      "type": "string"
+                    },
+                    {
+                      "const": "sell_price_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "shop_discount",
+                      "type": "string"
+                    },
+                    {
+                      "const": "gift_friendship",
+                      "type": "string"
+                    },
+                    {
+                      "const": "monster_drop_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "exp_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "treasure_find",
+                      "type": "string"
+                    },
+                    {
+                      "const": "ore_bonus",
+                      "type": "string"
+                    },
+                    {
+                      "const": "luck",
+                      "type": "string"
+                    },
+                    {
+                      "const": "travel_speed",
+                      "type": "string"
+                    },
+                    {
+                      "const": "combat_regen",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "value": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "description": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

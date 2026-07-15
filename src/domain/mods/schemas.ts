@@ -732,6 +732,36 @@ export const EquipmentEffectSchema = Type.Object(
   { additionalProperties: false }
 )
 
+export const EquipmentSetPiecesSchema = Type.Object(
+  {
+    weapon: Type.Optional(ContentIdSchema),
+    ring: ContentIdSchema,
+    hat: ContentIdSchema,
+    shoe: ContentIdSchema
+  },
+  { additionalProperties: false }
+)
+
+export const EquipmentSetBonusSchema = Type.Object(
+  {
+    count: Type.Union([Type.Literal(2), Type.Literal(3), Type.Literal(4)]),
+    effects: Type.Array(EquipmentEffectSchema, { minItems: 1 }),
+    description: LocalizedTextRefSchema
+  },
+  { additionalProperties: false }
+)
+
+export const EquipmentSetDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    pieces: EquipmentSetPiecesSchema,
+    bonuses: Type.Array(EquipmentSetBonusSchema, { minItems: 1 })
+  },
+  { $id: 'taoyuan.registry.EquipmentSetDef', additionalProperties: false }
+)
+
 export const EnchantmentDefSchema = Type.Object(
   {
     id: ContentIdSchema,
@@ -903,6 +933,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:monster': MonsterDefSchema,
   'taoyuan:monster_pool': MonsterPoolDefSchema,
   'taoyuan:enchantment': EnchantmentDefSchema,
+  'taoyuan:equipment_set': EquipmentSetDefSchema,
   'taoyuan:drop_table': DropTableDefSchema,
   'taoyuan:recipe': RecipeDefSchema,
   'taoyuan:shop': ShopDefSchema,
@@ -934,6 +965,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'monster.schema.json': MonsterDefSchema,
   'monster-pool.schema.json': MonsterPoolDefSchema,
   'enchantment.schema.json': EnchantmentDefSchema,
+  'equipment-set.schema.json': EquipmentSetDefSchema,
   'drop-table.schema.json': DropTableDefSchema,
   'recipe.schema.json': RecipeDefSchema,
   'shop.schema.json': ShopDefSchema,
@@ -994,6 +1026,9 @@ export type MonsterDef = Static<typeof MonsterDefSchema>
 export type MonsterPoolEntry = Static<typeof MonsterPoolEntrySchema>
 export type MonsterPoolDef = Static<typeof MonsterPoolDefSchema>
 export type EquipmentEffect = Static<typeof EquipmentEffectSchema>
+export type EquipmentSetPieces = Static<typeof EquipmentSetPiecesSchema>
+export type EquipmentSetBonus = Static<typeof EquipmentSetBonusSchema>
+export type EquipmentSetDef = Static<typeof EquipmentSetDefSchema>
 export type EnchantmentDef = Static<typeof EnchantmentDefSchema>
 export type RecipeIngredient = Static<typeof RecipeIngredientSchema>
 export type RecipeDef = Static<typeof RecipeDefSchema>

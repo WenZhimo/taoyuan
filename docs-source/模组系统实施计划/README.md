@@ -74,14 +74,14 @@
 
 ## 当前执行状态
 
-阶段 0 至阶段 5 已完成当前范围的实现与自动化验收；阶段 6 正在按内容域推进，树木、鱼类、可养殖鱼、鱼塘品种、鱼塘设施、建筑升级、采集物、动物定义、动物饲料、钱袋物品、农场地图、动物建筑、动物孵化映射和工具升级当前切片已完成实现。各阶段切片、验证证据和提交详见 [执行状态](./执行状态.md)：
+阶段 0 至阶段 5 已完成当前范围的实现与自动化验收；阶段 6 正在按内容域推进，树木、鱼类、可养殖鱼、鱼塘品种、鱼塘设施、建筑升级、采集物、动物定义、动物饲料、钱袋物品、农场地图、动物建筑、动物孵化映射、工具升级和装备套装当前切片已完成实现。各阶段切片、验证证据和提交详见 [执行状态](./执行状态.md)：
 
 1. 已固定首批规范编号、错误码、ID 规则、哈希算法和生成式公开 Schema 流程。
 2. 已将 `content-inventory.json` 扩展到 `src/data/` 导出符号级，并建立官方内容快照、哈希黄金向量和旧存档夹具。
 3. 已实现 `ContentId`、`PackageId`、`RegistryTypeId`、通用 `Registry<T>` / `RegistrySet`、冻结生命周期、结构校验和语义校验。
-4. 已建立 24 类内容注册表 Schema、最小合法/非法包夹具、旧静态数组兼容适配器和可序列化注册表快照 codec。
+4. 已建立 25 类内容注册表 Schema、最小合法/非法包夹具、旧静态数组兼容适配器和可序列化注册表快照 codec。
 5. 阶段 2 至阶段 5 已依次完成物品/作物/配方、商店、附魔/掉落表和怪物/怪物池迁移闭环；矿洞运行时已通过注册表解析 15 个官方怪物池。
-6. 阶段 6 首切片建立怪物池资源预算和 `taoyuan:tree`，鱼类切片建立 `taoyuan:fish`，可养殖鱼切片建立 `taoyuan:pondable_fish`，鱼塘品种切片建立 `taoyuan:pond_breed`，鱼塘设施切片建立 `taoyuan:fish_pond_facility`，建筑升级切片建立 `taoyuan:building_upgrade`，采集物切片建立 `taoyuan:forage`，动物定义切片建立 `taoyuan:animal`，动物饲料切片建立 `taoyuan:animal_feed`，钱袋物品切片建立 `taoyuan:wallet_item`，农场地图切片建立 `taoyuan:farm_map`，动物建筑切片建立 `taoyuan:animal_building`，动物孵化映射切片建立 `taoyuan:animal_incubation`，工具升级切片建立 `taoyuan:tool_upgrade`；旧导出和存档结构保持不变。
+6. 阶段 6 首切片建立怪物池资源预算和 `taoyuan:tree`，鱼类切片建立 `taoyuan:fish`，可养殖鱼切片建立 `taoyuan:pondable_fish`，鱼塘品种切片建立 `taoyuan:pond_breed`，鱼塘设施切片建立 `taoyuan:fish_pond_facility`，建筑升级切片建立 `taoyuan:building_upgrade`，采集物切片建立 `taoyuan:forage`，动物定义切片建立 `taoyuan:animal`，动物饲料切片建立 `taoyuan:animal_feed`，钱袋物品切片建立 `taoyuan:wallet_item`，农场地图切片建立 `taoyuan:farm_map`，动物建筑切片建立 `taoyuan:animal_building`，动物孵化映射切片建立 `taoyuan:animal_incubation`，工具升级切片建立 `taoyuan:tool_upgrade`，装备套装切片建立 `taoyuan:equipment_set`；旧导出和存档结构保持不变。
 7. 鱼塘切片当前迁移可养殖鱼物种定义、品种图鉴定义和建造/升级/容量定义，水质、疾病、育苗塘任务、自然繁衍、遗传随机和鱼塘存档结构仍属框架/后续范围；建筑升级切片当前迁移农舍、山洞和酒窖升级定义，温室/仓库解锁、山洞品质阈值、酒窖增值周期和日更算法仍属框架范围；动物切片当前迁移物种定义、饲料定义、畜舍建造/升级定义和孵化映射，饲料效果、放牧、疾病/死亡和每日结算仍属框架/后续范围；尚未进入外载数据包加载器、模组管理界面、安装/卸载事务、存档环境绑定或机制插件。
 
 ## 变更规则
