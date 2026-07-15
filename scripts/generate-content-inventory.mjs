@@ -271,6 +271,15 @@ fileDefaults.set('src/data/wallet.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/secretNotes.ts', {
+  file: 'src/data/secretNotes.ts',
+  classification: 'content',
+  domains: ['secret_note'],
+  candidateTargets: ['taoyuan:secret_note'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/farmMapDefinitions.ts', {
   file: 'src/data/farmMapDefinitions.ts',
   classification: 'content',
@@ -927,6 +936,14 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getWalletItemById() signature is retained and now resolves taoyuan:wallet_item before returning an equivalent local-ID object.'
+  },
+  'src/data/secretNotes.ts:SECRET_NOTES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:secret_note',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 6 projects every legacy secret note into taoyuan:secret_note while preserving numeric note IDs, titles, content, usability and treasure rewards.'
   },
   'src/data/farmMapDefinitions.ts:FarmMapDef': {
     classification: 'adapter',
@@ -2987,6 +3004,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Returns frozen registry wallet item definitions and reconstructs legacy WalletItemDef compatibility objects for Store and UI consumers.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'SecretNoteDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:secret_note',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for secret note definitions, including numeric note IDs, type, localized title/content, usability and optional treasure rewards.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacySecretNote/createOfficialSecretNotes',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:secret_note',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects legacy secret notes into official registry entries without changing order, numeric IDs, titles, content, usability or reward semantics.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialSecretNoteDef/getOfficialSecretNoteById/getOfficialSecretNotesAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:secret_note',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry secret notes and reconstructs legacy numeric-ID SecretNoteDef objects for collection, reward and UI consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:secret_note',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:secret_note',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks secret note reward item references before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

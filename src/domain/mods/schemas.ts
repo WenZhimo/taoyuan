@@ -265,6 +265,42 @@ export const WalletItemDefSchema = Type.Object(
   { $id: 'taoyuan.registry.WalletItemDef', additionalProperties: false }
 )
 
+export const SecretNoteTypeSchema = Type.Union([
+  Type.Literal('tip'),
+  Type.Literal('treasure'),
+  Type.Literal('npc'),
+  Type.Literal('story')
+])
+
+export const SecretNoteRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const SecretNoteRewardSchema = Type.Object(
+  {
+    money: Type.Optional(Type.Integer({ minimum: 0 })),
+    items: Type.Optional(Type.Array(SecretNoteRewardItemSchema, { minItems: 1 }))
+  },
+  { additionalProperties: false }
+)
+
+export const SecretNoteDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    noteId: Type.Integer({ minimum: 1 }),
+    type: SecretNoteTypeSchema,
+    title: LocalizedTextRefSchema,
+    content: LocalizedTextRefSchema,
+    usable: Type.Boolean(),
+    reward: Type.Optional(SecretNoteRewardSchema)
+  },
+  { $id: 'taoyuan.registry.SecretNoteDef', additionalProperties: false }
+)
+
 export const FarmMapTypeSchema = Type.Union([
   Type.Literal('standard'),
   Type.Literal('riverland'),
@@ -1037,6 +1073,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:animal': AnimalDefSchema,
   'taoyuan:animal_feed': AnimalFeedDefSchema,
   'taoyuan:wallet_item': WalletItemDefSchema,
+  'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
@@ -1072,6 +1109,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'animal.schema.json': AnimalDefSchema,
   'animal-feed.schema.json': AnimalFeedDefSchema,
   'wallet-item.schema.json': WalletItemDefSchema,
+  'secret-note.schema.json': SecretNoteDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
@@ -1112,6 +1150,10 @@ export type AnimalFeedDef = Static<typeof AnimalFeedDefSchema>
 export type WalletItemEffectType = Static<typeof WalletItemEffectTypeSchema>
 export type WalletItemEffect = Static<typeof WalletItemEffectSchema>
 export type WalletItemDef = Static<typeof WalletItemDefSchema>
+export type SecretNoteType = Static<typeof SecretNoteTypeSchema>
+export type SecretNoteRewardItem = Static<typeof SecretNoteRewardItemSchema>
+export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>
+export type SecretNoteDef = Static<typeof SecretNoteDefSchema>
 export type FarmMapType = Static<typeof FarmMapTypeSchema>
 export type FarmMapDef = Static<typeof FarmMapDefSchema>
 export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>

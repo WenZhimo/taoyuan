@@ -31,6 +31,7 @@ import { MONSTER_DROP_SHOES, SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/da
 import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
 import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
+import { SECRET_NOTES } from '@/data/secretNotes'
 import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
 import {
   ANIMAL_BUILDINGS,
@@ -117,6 +118,7 @@ import type {
   ProcessingRecipeDef,
   RecipeDef,
   RecipeIngredient,
+  SecretNoteDef,
   ShopDef,
   ShopOfferDef,
   TagDef,
@@ -177,6 +179,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('wallet_item'),
     description: '钱袋永久被动物品定义',
     schemaName: 'wallet-item.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('secret_note'),
+    description: '秘密纸条定义',
+    schemaName: 'secret-note.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('farm_map'),
@@ -681,6 +688,32 @@ export const adaptLegacyWalletItem = (item: (typeof WALLET_ITEMS)[number]): Wall
 })
 
 export const createOfficialWalletItems = (): WalletItemDef[] => WALLET_ITEMS.map(adaptLegacyWalletItem)
+
+export const adaptLegacySecretNote = (note: (typeof SECRET_NOTES)[number]): SecretNoteDef => ({
+  id: toOfficialContentId(`secret_note/${note.id}`),
+  noteId: note.id,
+  type: note.type,
+  title: text(`taoyuan.secret_note.${note.id}.title`, note.title),
+  content: text(`taoyuan.secret_note.${note.id}.content`, note.content),
+  usable: note.usable,
+  ...(note.reward
+    ? {
+        reward: {
+          ...(note.reward.money !== undefined ? { money: note.reward.money } : {}),
+          ...(note.reward.items
+            ? {
+                items: note.reward.items.map(item => ({
+                  itemId: toOfficialContentId(item.itemId),
+                  quantity: item.quantity
+                }))
+              }
+            : {})
+        }
+      }
+    : {})
+})
+
+export const createOfficialSecretNotes = (): SecretNoteDef[] => SECRET_NOTES.map(adaptLegacySecretNote)
 
 export const adaptLegacyFarmMap = (map: (typeof FARM_MAP_DEFS)[number]): FarmMapDef => ({
   id: toOfficialContentId(map.type),
@@ -1193,6 +1226,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const animalRegistry = registrySet.get<AnimalDef>(toOfficialRegistryTypeId('animal'))
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(toOfficialRegistryTypeId('animal_feed'))
   const walletItemRegistry = registrySet.get<WalletItemDef>(toOfficialRegistryTypeId('wallet_item'))
+  const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
@@ -1225,6 +1259,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const item of createOfficialWalletItems()) {
     walletItemRegistry.register(owner, item, { file: 'src/data/walletDefinitions.ts' })
+  }
+  for (const note of createOfficialSecretNotes()) {
+    secretNoteRegistry.register(owner, note, { file: 'src/data/secretNotes.ts' })
   }
   for (const map of createOfficialFarmMaps()) {
     farmMapRegistry.register(owner, map, { file: 'src/data/farmMapDefinitions.ts' })

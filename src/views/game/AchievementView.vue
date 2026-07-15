@@ -381,7 +381,7 @@
         </div>
         <div class="grid grid-cols-3 md:grid-cols-5 gap-1 max-h-72 overflow-y-auto mb-3">
           <div
-            v-for="note in SECRET_NOTES"
+            v-for="note in secretNotes"
             :key="note.id"
             class="border rounded-xs p-1.5 text-center text-xs transition-colors truncate mr-1"
             :class="
@@ -502,11 +502,11 @@
   import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievements'
   import { ITEMS, getItemById } from '@/data/items'
   import { HYBRID_DEFS } from '@/data/breeding'
-  import { SECRET_NOTES } from '@/data/secretNotes'
   import { WEAPONS, ENCHANTMENTS, WEAPON_TYPE_NAMES } from '@/data/weapons'
   import { getRingById } from '@/data/rings'
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
+  import { getOfficialSecretNotesAsLegacy } from '@/domain/mods/contentAccess'
   import { sfxClick } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
   import type { ItemCategory, AchievementDef, CommunityBundleDef, SecretNoteDef } from '@/types'
@@ -641,6 +641,8 @@
     npc: '人物',
     story: '故事'
   }
+
+  const secretNotes = computed(() => getOfficialSecretNotesAsLegacy())
 
   const noteTypeColor = (type: string): string => NOTE_TYPE_COLORS[type] ?? 'text-accent'
 

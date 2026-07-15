@@ -14,6 +14,7 @@ import type {
   ToolType,
   WeaponDef as LegacyWeaponDef,
   WalletItemDef as LegacyWalletItemDef,
+  SecretNoteDef as LegacySecretNoteDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
 import type { FarmMapDef as LegacyFarmMapDef } from '@/data/farmMapDefinitions'
@@ -81,6 +82,7 @@ import type {
   ProcessingRecipeDef as ProcessingRecipeContentDef,
   RecipeDef,
   Season,
+  SecretNoteDef as SecretNoteContentDef,
   ShopDef,
   ShopOfferDef,
   TagDef,
@@ -114,6 +116,11 @@ const toQueryContentId = (id: string) => {
 const getLocalContentId = (id: string): string => {
   const contentId = requireContentId(id)
   return contentId.slice(contentId.indexOf(':') + 1)
+}
+
+const toSecretNoteQueryContentId = (id: number | string) => {
+  const rawId = typeof id === 'number' ? `secret_note/${id}` : id
+  return toQueryContentId(rawId.includes(':') || rawId.includes('/') ? rawId : `secret_note/${rawId}`)
 }
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
@@ -582,6 +589,16 @@ export const getOfficialWalletItemDef = (id: string): Readonly<WalletItemContent
 export const getOfficialWalletItemDefs = (): readonly Readonly<WalletItemContentDef>[] =>
   getOfficialRegistrySet().get<WalletItemContentDef>(toOfficialRegistryTypeId('wallet_item')).values()
 
+export const getOfficialSecretNoteDef = (id: number | string): Readonly<SecretNoteContentDef> | undefined => {
+  const contentId = toSecretNoteQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<SecretNoteContentDef>(toOfficialRegistryTypeId('secret_note')).get(contentId)
+    : undefined
+}
+
+export const getOfficialSecretNoteDefs = (): readonly Readonly<SecretNoteContentDef>[] =>
+  getOfficialRegistrySet().get<SecretNoteContentDef>(toOfficialRegistryTypeId('secret_note')).values()
+
 export const getOfficialFarmMapDef = (id: string): Readonly<FarmMapContentDef> | undefined => {
   const contentId = toQueryContentId(id)
   return contentId
@@ -676,6 +693,37 @@ export const getOfficialWalletItemById = (id: string): LegacyWalletItemDef | und
 
 export const getOfficialWalletItemsAsLegacy = (): readonly LegacyWalletItemDef[] =>
   getOfficialWalletItemDefs().map(toLegacyWalletItemDef)
+
+const toLegacySecretNoteReward = (
+  reward: Readonly<NonNullable<SecretNoteContentDef['reward']>>
+): NonNullable<LegacySecretNoteDef['reward']> => ({
+  ...(reward.money !== undefined ? { money: reward.money } : {}),
+  ...(reward.items
+    ? {
+        items: reward.items.map(item => ({
+          itemId: getLocalContentId(item.itemId),
+          quantity: item.quantity
+        }))
+      }
+    : {})
+})
+
+const toLegacySecretNoteDef = (note: Readonly<SecretNoteContentDef>): LegacySecretNoteDef => ({
+  id: note.noteId,
+  type: note.type,
+  title: note.title.fallback,
+  content: note.content.fallback,
+  usable: note.usable,
+  ...(note.reward ? { reward: toLegacySecretNoteReward(note.reward) } : {})
+})
+
+export const getOfficialSecretNoteById = (id: number | string): LegacySecretNoteDef | undefined => {
+  const note = getOfficialSecretNoteDef(id)
+  return note ? toLegacySecretNoteDef(note) : undefined
+}
+
+export const getOfficialSecretNotesAsLegacy = (): readonly LegacySecretNoteDef[] =>
+  getOfficialSecretNoteDefs().map(toLegacySecretNoteDef)
 
 const toLegacyFarmMapDef = (map: Readonly<FarmMapContentDef>): LegacyFarmMapDef => ({
   type: map.type as LegacyFarmMapDef['type'],

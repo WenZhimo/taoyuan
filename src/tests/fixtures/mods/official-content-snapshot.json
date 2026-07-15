@@ -76489,6 +76489,642 @@
       ]
     },
     {
+      "registryId": "taoyuan:secret_note",
+      "schemaName": "secret-note.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "桃花林深处似乎藏着什么……春季的桃花落下时，偶尔能在地上发现稀有的东西。",
+              "key": "taoyuan.secret_note.1.content"
+            },
+            "id": "taoyuan:secret_note/1",
+            "noteId": 1,
+            "title": {
+              "fallback": "残破的纸条",
+              "key": "taoyuan.secret_note.1.title"
+            },
+            "type": "tip",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "下雨天的时候，山野间会出现一些平时罕见的采集物。雨后的竹林尤其值得一看。",
+              "key": "taoyuan.secret_note.10.content"
+            },
+            "id": "taoyuan:secret_note/10",
+            "noteId": 10,
+            "title": {
+              "fallback": "采集笔记",
+              "key": "taoyuan.secret_note.10.title"
+            },
+            "type": "tip",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "柳娘最喜欢桂花。每年秋天，她都会在桂花树下坐上一整天。",
+              "key": "taoyuan.secret_note.11.content"
+            },
+            "id": "taoyuan:secret_note/11",
+            "noteId": 11,
+            "title": {
+              "fallback": "柳娘的心事",
+              "key": "taoyuan.secret_note.11.title"
+            },
+            "type": "npc",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "矿洞暗河层的尽头，有一个被水冲刷出来的洞穴。里面藏着一块珍贵的月光石。",
+              "key": "taoyuan.secret_note.12.content"
+            },
+            "id": "taoyuan:secret_note/12",
+            "noteId": 12,
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:moonstone",
+                  "quantity": 1
+                }
+              ]
+            },
+            "title": {
+              "fallback": "矿洞暗号",
+              "key": "taoyuan.secret_note.12.title"
+            },
+            "type": "treasure",
+            "usable": true
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "很久以前，桃源乡并非与世隔绝。一条商路穿过西边的荒原，连接着远方的异域。商人们称那片荒原为\"瀚海\"，因为沙石浩瀚如海。",
+              "key": "taoyuan.secret_note.13.content"
+            },
+            "id": "taoyuan:secret_note/13",
+            "noteId": 13,
+            "title": {
+              "fallback": "瀚海商路",
+              "key": "taoyuan.secret_note.13.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "作物的品质受到很多因素影响：土地肥力、浇水频率、季节适宜度……甚至每天的运势都可能有影响。",
+              "key": "taoyuan.secret_note.14.content"
+            },
+            "id": "taoyuan:secret_note/14",
+            "noteId": 14,
+            "title": {
+              "fallback": "种植心得",
+              "key": "taoyuan.secret_note.14.title"
+            },
+            "type": "tip",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "王大婶一直想做出最完美的米饭。她说，好的大米是一切美食的根基。",
+              "key": "taoyuan.secret_note.15.content"
+            },
+            "id": "taoyuan:secret_note/15",
+            "noteId": 15,
+            "title": {
+              "fallback": "厨娘的愿望",
+              "key": "taoyuan.secret_note.15.title"
+            },
+            "type": "npc",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "村口废弃的老井底部，据说藏着建村时埋下的镇村之宝。井虽然干了，宝物应该还在。",
+              "key": "taoyuan.secret_note.16.content"
+            },
+            "id": "taoyuan:secret_note/16",
+            "noteId": 16,
+            "reward": {
+              "money": 1500
+            },
+            "title": {
+              "fallback": "老井传说",
+              "key": "taoyuan.secret_note.16.title"
+            },
+            "type": "treasure",
+            "usable": true
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "冒险家公会最初只是猎人们聚集的小屋。后来矿洞里的怪物越来越多，猎人们组建了公会，专门负责清剿怪物、保护村民。",
+              "key": "taoyuan.secret_note.17.content"
+            },
+            "id": "taoyuan:secret_note/17",
+            "noteId": 17,
+            "title": {
+              "fallback": "公会往事",
+              "key": "taoyuan.secret_note.17.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "闪电天气进入矿洞时，据说矿石的品质会更高。或许是电流激活了什么……",
+              "key": "taoyuan.secret_note.18.content"
+            },
+            "id": "taoyuan:secret_note/18",
+            "noteId": 18,
+            "title": {
+              "fallback": "雷暴矿洞",
+              "key": "taoyuan.secret_note.18.title"
+            },
+            "type": "tip",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "周秀才每天都要喝一壶好茶。他说，茶能涤荡心灵，明目醒神。送他好茶准没错。",
+              "key": "taoyuan.secret_note.19.content"
+            },
+            "id": "taoyuan:secret_note/19",
+            "noteId": 19,
+            "title": {
+              "fallback": "秀才的癖好",
+              "key": "taoyuan.secret_note.19.title"
+            },
+            "type": "npc",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "我把毕生积蓄藏在矿洞第20层的一个隐秘角落……如果你能找到这封信，这些钱就归你了。",
+              "key": "taoyuan.secret_note.2.content"
+            },
+            "id": "taoyuan:secret_note/2",
+            "noteId": 2,
+            "reward": {
+              "money": 500
+            },
+            "title": {
+              "fallback": "矿工的遗书",
+              "key": "taoyuan.secret_note.2.title"
+            },
+            "type": "treasure",
+            "usable": true
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "在桃花林最古老的那棵桃树下，埋着一颗远古种子。据说是建村隐士留下的。",
+              "key": "taoyuan.secret_note.20.content"
+            },
+            "id": "taoyuan:secret_note/20",
+            "noteId": 20,
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:ancient_seed",
+                  "quantity": 1
+                }
+              ]
+            },
+            "title": {
+              "fallback": "桃花林宝藏",
+              "key": "taoyuan.secret_note.20.title"
+            },
+            "type": "treasure",
+            "usable": true
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "博物馆原本是村里的祠堂。后来有学者建议把村民们挖到的化石和古物集中保存，祠堂便改建成了博物馆。据说收集齐所有展品后，会有奇迹发生。",
+              "key": "taoyuan.secret_note.21.content"
+            },
+            "id": "taoyuan:secret_note/21",
+            "noteId": 21,
+            "title": {
+              "fallback": "博物馆秘闻",
+              "key": "taoyuan.secret_note.21.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "冬季万物凋零，但温室里四季如春。如果你有温室，冬天也可以继续种植。",
+              "key": "taoyuan.secret_note.22.content"
+            },
+            "id": "taoyuan:secret_note/22",
+            "noteId": 22,
+            "title": {
+              "fallback": "温室秘诀",
+              "key": "taoyuan.secret_note.22.title"
+            },
+            "type": "tip",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "陈伯最看重养生，他说人参是百草之王。如果你送他人参，他一定会非常高兴。",
+              "key": "taoyuan.secret_note.23.content"
+            },
+            "id": "taoyuan:secret_note/23",
+            "noteId": 23,
+            "title": {
+              "fallback": "陈伯的养生",
+              "key": "taoyuan.secret_note.23.title"
+            },
+            "type": "npc",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "在矿洞深处有一条被封住的支洞，据说是更古老的矿井遗址。里面不仅有金银，还有珍贵的铱矿石。",
+              "key": "taoyuan.secret_note.24.content"
+            },
+            "id": "taoyuan:secret_note/24",
+            "noteId": 24,
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iridium_ore",
+                  "quantity": 1
+                }
+              ],
+              "money": 2000
+            },
+            "title": {
+              "fallback": "废弃矿井",
+              "key": "taoyuan.secret_note.24.title"
+            },
+            "type": "treasure",
+            "usable": true
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "桃源乡的地底深处，据说封印着远古的力量。建村隐士之所以选择此地，并非偶然——他是这股力量的守护者。如今守护者已去，力量渐渐苏醒……这或许就是矿洞中怪物越来越多的原因。",
+              "key": "taoyuan.secret_note.25.content"
+            },
+            "id": "taoyuan:secret_note/25",
+            "noteId": 25,
+            "title": {
+              "fallback": "桃源秘事",
+              "key": "taoyuan.secret_note.25.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "据村中老人说，后山瀑布深处栖息着一条翠色灵龙。每逢春雨之夜，水中便会闪烁鳞光。若能钓到传说中的翠龙鱼，或许就能感应到它的存在。",
+              "key": "taoyuan.secret_note.26.content"
+            },
+            "id": "taoyuan:secret_note/26",
+            "noteId": 26,
+            "title": {
+              "fallback": "鳞光下的低语",
+              "key": "taoyuan.secret_note.26.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "采药时偶然捡到一块玉白色的残片，形状像是某种杵臼的碎块。老人说，满月之夜的竹林深处，偶尔能听到叮叮当当的捣药声。但没人知道是谁在捣药。",
+              "key": "taoyuan.secret_note.27.content"
+            },
+            "id": "taoyuan:secret_note/27",
+            "noteId": 27,
+            "title": {
+              "fallback": "玉杵残片",
+              "key": "taoyuan.secret_note.27.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "有不止一个村民在黄昏时分看到过一道金光掠过。传闻村子附近的山中住着一只修炼千年的狐狸精——亦正亦邪，喜欢出谜题戏弄路人。据说只有足够富有且人缘好的人才能引起它的注意。",
+              "key": "taoyuan.secret_note.28.content"
+            },
+            "id": "taoyuan:secret_note/28",
+            "noteId": 28,
+            "title": {
+              "fallback": "金光掠影",
+              "key": "taoyuan.secret_note.28.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "李渔翁最爱锦鲤。他说锦鲤是河中之王，能钓到锦鲤的人，才是真正的渔夫。",
+              "key": "taoyuan.secret_note.3.content"
+            },
+            "id": "taoyuan:secret_note/3",
+            "noteId": 3,
+            "title": {
+              "fallback": "渔翁的喜好",
+              "key": "taoyuan.secret_note.3.title"
+            },
+            "type": "npc",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "百年前，一位隐士发现了这片与世隔绝的山谷。谷中桃花遍野，溪水潺潺，宛如世外桃源。他便在此建村定居，取名\"桃源乡\"。",
+              "key": "taoyuan.secret_note.4.content"
+            },
+            "id": "taoyuan:secret_note/4",
+            "noteId": 4,
+            "title": {
+              "fallback": "桃源志·上",
+              "key": "taoyuan.secret_note.4.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "在竹林最茂密的地方，有一块苔藓覆盖的石头，翻开它就能找到一块上好的翡翠。",
+              "key": "taoyuan.secret_note.5.content"
+            },
+            "id": "taoyuan:secret_note/5",
+            "noteId": 5,
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:jade",
+                  "quantity": 1
+                }
+              ]
+            },
+            "title": {
+              "fallback": "竹林秘图",
+              "key": "taoyuan.secret_note.5.title"
+            },
+            "type": "treasure",
+            "usable": true
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "满月的夜晚，水中的鱼儿格外活跃。如果你想钓到稀有的鱼，不妨在月圆之夜试试。",
+              "key": "taoyuan.secret_note.6.content"
+            },
+            "id": "taoyuan:secret_note/6",
+            "noteId": 6,
+            "title": {
+              "fallback": "钓鱼心得",
+              "key": "taoyuan.secret_note.6.title"
+            },
+            "type": "tip",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "孙铁匠虽然整天打铁，但他内心其实很喜欢铜矿石。他说铜是最温暖的金属。",
+              "key": "taoyuan.secret_note.7.content"
+            },
+            "id": "taoyuan:secret_note/7",
+            "noteId": 7,
+            "title": {
+              "fallback": "铁匠的秘密",
+              "key": "taoyuan.secret_note.7.title"
+            },
+            "type": "npc",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "隐士去世后，村民们世代守护着这片土地。他们定下规矩：不许砍伐桃花林，不许污染溪水。桃源乡就这样安静地度过了百年时光。",
+              "key": "taoyuan.secret_note.8.content"
+            },
+            "id": "taoyuan:secret_note/8",
+            "noteId": 8,
+            "title": {
+              "fallback": "桃源志·下",
+              "key": "taoyuan.secret_note.8.title"
+            },
+            "type": "story",
+            "usable": false
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/secretNotes.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "content": {
+              "fallback": "在小溪拐弯处的大石头下面，我曾经藏了一笔钱。如果你能找到，就拿去用吧。",
+              "key": "taoyuan.secret_note.9.content"
+            },
+            "id": "taoyuan:secret_note/9",
+            "noteId": 9,
+            "reward": {
+              "money": 800
+            },
+            "title": {
+              "fallback": "河边的秘密",
+              "key": "taoyuan.secret_note.9.title"
+            },
+            "type": "treasure",
+            "usable": true
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:shop",
       "schemaName": "shop.schema.json",
       "entries": [
@@ -82038,5 +82674,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:136ddb1cb96ff307c4c1839d7112d7347081371a16becd45b7f35953af6f0715"
+  "snapshotHash": "sha256:91b2aa7a45aa8eb85df95da62f32accf58f98f3da328029c133111eed27b70aa"
 }

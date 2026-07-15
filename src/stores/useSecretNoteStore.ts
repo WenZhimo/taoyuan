@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { SECRET_NOTES } from '@/data/secretNotes'
+import { getOfficialSecretNoteById, getOfficialSecretNotesAsLegacy } from '@/domain/mods/contentAccess'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { addLog } from '@/composables/useGameLog'
@@ -11,7 +11,7 @@ export const useSecretNoteStore = defineStore('secretNote', () => {
   /** 已使用的笔记ID列表（宝藏类） */
   const usedNotes = ref<number[]>([])
 
-  const totalNotes = computed(() => SECRET_NOTES.length)
+  const totalNotes = computed(() => getOfficialSecretNotesAsLegacy().length)
   const collectedCount = computed(() => collectedNotes.value.length)
 
   /** 是否已收集某笔记 */
@@ -26,13 +26,13 @@ export const useSecretNoteStore = defineStore('secretNote', () => {
 
   /** 是否还有未收集的笔记 */
   const hasUncollectedNotes = computed(() => {
-    return collectedNotes.value.length < SECRET_NOTES.length
+    return collectedNotes.value.length < getOfficialSecretNotesAsLegacy().length
   })
 
   /** 尝试随机收集一张笔记，返回收集到的笔记ID，或null */
   const tryCollectNote = (): number | null => {
     if (!hasUncollectedNotes.value) return null
-    const uncollected = SECRET_NOTES.filter(n => !collectedNotes.value.includes(n.id))
+    const uncollected = getOfficialSecretNotesAsLegacy().filter(n => !collectedNotes.value.includes(n.id))
     if (uncollected.length === 0) return null
     const note = uncollected[Math.floor(Math.random() * uncollected.length)]!
     collectedNotes.value.push(note.id)
@@ -45,7 +45,7 @@ export const useSecretNoteStore = defineStore('secretNote', () => {
     if (!isCollected(noteId)) return { success: false, message: '尚未获得此笔记。' }
     if (isUsed(noteId)) return { success: false, message: '已经使用过此笔记。' }
 
-    const noteDef = SECRET_NOTES.find(n => n.id === noteId)
+    const noteDef = getOfficialSecretNoteById(noteId)
     if (!noteDef || !noteDef.usable) return { success: false, message: '此笔记不可使用。' }
 
     usedNotes.value.push(noteId)

@@ -29,6 +29,7 @@ import type {
   ProcessingMachineDef,
   ProcessingRecipeDef,
   RecipeDef,
+  SecretNoteDef,
   ShopOfferDef,
   TagDef,
   ToolUpgradeDef,
@@ -47,6 +48,7 @@ const REGISTRY_IDS = {
   animalFeed: toOfficialRegistryTypeId('animal_feed'),
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
+  secretNote: toOfficialRegistryTypeId('secret_note'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
   processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
@@ -98,6 +100,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(REGISTRY_IDS.animalFeed)
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
+  const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
@@ -335,6 +338,19 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/building'
       })
     }
+  }
+
+  for (const record of secretNoteRegistry.entries()) {
+    record.entry.reward?.items?.forEach((item, index) => {
+      if (!itemRegistry.has(contentId(item.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(item.itemId),
+          fieldPath: `/reward/items/${index}/itemId`
+        })
+      }
+    })
   }
 
   for (const record of processingMachineRegistry.entries()) {

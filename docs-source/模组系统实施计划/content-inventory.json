@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 540,
-    "reviewedArtifactCount": 73
+    "reviewedArtifactCount": 77
   },
   "entries": [
     {
@@ -8169,7 +8169,6 @@
     },
     {
       "file": "src/data/secretNotes.ts",
-      "lines": 215,
       "classification": "content",
       "domains": [
         "secret_note"
@@ -8181,6 +8180,7 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 215,
       "symbols": [
         {
           "file": "src/data/secretNotes.ts",
@@ -8190,15 +8190,15 @@
           "targetRegistry": "taoyuan:secret_note",
           "persistentIds": true,
           "consumers": [
-            "src/stores/useSecretNoteStore.ts",
-            "src/views/game/AchievementView.vue"
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/secretNoteRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Phase 6 projects every legacy secret note into taoyuan:secret_note while preserving numeric note IDs, titles, content, usability and treasure rewards."
         }
       ]
     },
@@ -11612,6 +11612,54 @@
       ],
       "status": "verified",
       "rationale": "Returns frozen registry wallet item definitions and reconstructs legacy WalletItemDef compatibility objects for Store and UI consumers."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "SecretNoteDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:secret_note",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for secret note definitions, including numeric note IDs, type, localized title/content, usability and optional treasure rewards."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacySecretNote/createOfficialSecretNotes",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:secret_note",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects legacy secret notes into official registry entries without changing order, numeric IDs, titles, content, usability or reward semantics."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialSecretNoteDef/getOfficialSecretNoteById/getOfficialSecretNotesAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:secret_note",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry secret notes and reconstructs legacy numeric-ID SecretNoteDef objects for collection, reward and UI consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:secret_note",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:secret_note",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks secret note reward item references before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

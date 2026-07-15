@@ -34,6 +34,7 @@
     "taoyuan:animal": ["data/animals.json"],
     "taoyuan:animal_feed": ["data/animal-feeds.json"],
     "taoyuan:wallet_item": ["data/wallet-items.json"],
+    "taoyuan:secret_note": ["data/secret-notes.json"],
     "taoyuan:farm_map": ["data/farm-maps.json"],
     "taoyuan:animal_building": ["data/animal-buildings.json"],
     "taoyuan:animal_incubation": ["data/animal-incubations.json"],
