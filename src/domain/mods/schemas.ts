@@ -428,13 +428,42 @@ export const NpcDefSchema = Type.Object(
     hatedItems: Type.Array(ContentIdSchema),
     dialogues: NpcDialoguesSchema,
     marriageable: Type.Optional(Type.Boolean()),
-    heartEventIds: Type.Optional(Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })),
+    heartEventIds: Type.Optional(Type.Array(ContentIdSchema, { minItems: 1 })),
     datingDialogues: Type.Optional(Type.Array(LocalizedTextRefSchema, { minItems: 1 })),
     zhijiDialogues: Type.Optional(Type.Array(LocalizedTextRefSchema, { minItems: 1 })),
-    zhijiHeartEventIds: Type.Optional(Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })),
+    zhijiHeartEventIds: Type.Optional(Type.Array(ContentIdSchema, { minItems: 1 })),
     birthday: Type.Optional(NpcBirthdaySchema)
   },
   { $id: 'taoyuan.registry.NpcDef', additionalProperties: false }
+)
+
+export const HeartEventSceneChoiceSchema = Type.Object(
+  {
+    text: LocalizedTextRefSchema,
+    friendshipChange: Type.Integer(),
+    response: LocalizedTextRefSchema
+  },
+  { additionalProperties: false }
+)
+
+export const HeartEventSceneSchema = Type.Object(
+  {
+    text: LocalizedTextRefSchema,
+    choices: Type.Optional(Type.Array(HeartEventSceneChoiceSchema, { minItems: 1 }))
+  },
+  { additionalProperties: false }
+)
+
+export const HeartEventDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    npcId: ContentIdSchema,
+    requiredFriendship: Type.Integer({ minimum: 0 }),
+    requiresZhiji: Type.Optional(Type.Boolean()),
+    title: LocalizedTextRefSchema,
+    scenes: Type.Array(HeartEventSceneSchema, { minItems: 1 })
+  },
+  { $id: 'taoyuan.registry.HeartEventDef', additionalProperties: false }
 )
 
 export const HiddenNpcDiscoveryPhaseSchema = Type.Union([
@@ -616,7 +645,7 @@ export const HiddenNpcDefSchema = Type.Object(
     bondItemId: ContentIdSchema,
     courtshipThreshold: Type.Integer({ minimum: 0 }),
     bondThreshold: Type.Integer({ minimum: 0 }),
-    heartEventIds: Type.Array(Type.String({ minLength: 1 })),
+    heartEventIds: Type.Array(ContentIdSchema),
     courtshipDialogues: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
     bondBonuses: Type.Array(HiddenNpcBondBonusSchema, { minItems: 1 }),
     abilities: Type.Array(HiddenNpcAbilitySchema, { minItems: 1 }),
@@ -1663,6 +1692,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:guild_donation': GuildDonationDefSchema,
   'taoyuan:guild_level': GuildLevelDefSchema,
   'taoyuan:npc': NpcDefSchema,
+  'taoyuan:heart_event': HeartEventDefSchema,
   'taoyuan:hidden_npc': HiddenNpcDefSchema,
   'taoyuan:story_quest': StoryQuestDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
@@ -1711,6 +1741,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'guild-donation.schema.json': GuildDonationDefSchema,
   'guild-level.schema.json': GuildLevelDefSchema,
   'npc.schema.json': NpcDefSchema,
+  'heart-event.schema.json': HeartEventDefSchema,
   'hidden-npc.schema.json': HiddenNpcDefSchema,
   'story-quest.schema.json': StoryQuestDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
@@ -1774,6 +1805,9 @@ export type NpcFriendshipLevel = Static<typeof NpcFriendshipLevelSchema>
 export type NpcDialogues = Static<typeof NpcDialoguesSchema>
 export type NpcBirthday = Static<typeof NpcBirthdaySchema>
 export type NpcDef = Static<typeof NpcDefSchema>
+export type HeartEventSceneChoice = Static<typeof HeartEventSceneChoiceSchema>
+export type HeartEventScene = Static<typeof HeartEventSceneSchema>
+export type HeartEventDef = Static<typeof HeartEventDefSchema>
 export type HiddenNpcDiscoveryPhase = Static<typeof HiddenNpcDiscoveryPhaseSchema>
 export type HiddenNpcAffinityLevel = Static<typeof HiddenNpcAffinityLevelSchema>
 export type HiddenNpcSceneChoice = Static<typeof HiddenNpcSceneChoiceSchema>

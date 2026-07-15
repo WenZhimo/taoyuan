@@ -128,6 +128,9 @@
     "taoyuan:npc": [
       "data/npcs.json"
     ],
+    "taoyuan:heart_event": [
+      "data/heart-events.json"
+    ],
     "taoyuan:hidden_npc": [
       "data/hidden-npcs.json"
     ],

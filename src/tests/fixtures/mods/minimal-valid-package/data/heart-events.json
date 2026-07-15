@@ -1,0 +1,49 @@
+[
+  {
+    "id": "example_mod:heart_event/test_npc_heart_1",
+    "npcId": "example_mod:test_npc",
+    "requiredFriendship": 1,
+    "title": {
+      "key": "example_mod.heart_event.test_npc_heart_1.title",
+      "fallback": "测试心事件"
+    },
+    "scenes": [
+      {
+        "text": {
+          "key": "example_mod.heart_event.test_npc_heart_1.scenes.0.text",
+          "fallback": "测试村民向你打招呼。"
+        },
+        "choices": [
+          {
+            "text": {
+              "key": "example_mod.heart_event.test_npc_heart_1.scenes.0.choices.0.text",
+              "fallback": "回应问候。"
+            },
+            "friendshipChange": 1,
+            "response": {
+              "key": "example_mod.heart_event.test_npc_heart_1.scenes.0.choices.0.response",
+              "fallback": "测试村民笑了。"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "example_mod:heart_event/test_spirit_heart_1",
+    "npcId": "example_mod:hidden_npc/test_spirit",
+    "requiredFriendship": 1,
+    "title": {
+      "key": "example_mod.heart_event.test_spirit_heart_1.title",
+      "fallback": "测试仙灵心事件"
+    },
+    "scenes": [
+      {
+        "text": {
+          "key": "example_mod.heart_event.test_spirit_heart_1.scenes.0.text",
+          "fallback": "测试仙灵停在你面前。"
+        }
+      }
+    ]
+  }
+]

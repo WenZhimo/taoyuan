@@ -29,6 +29,7 @@ import type {
   GuildDonationDef,
   GuildGoalDef,
   GuildLevelDef,
+  HeartEventDef,
   HiddenNpcDef,
   MonsterDef,
   MonsterPoolDef,
@@ -66,6 +67,7 @@ const REGISTRY_IDS = {
   guildDonation: toOfficialRegistryTypeId('guild_donation'),
   guildLevel: toOfficialRegistryTypeId('guild_level'),
   npc: toOfficialRegistryTypeId('npc'),
+  heartEvent: toOfficialRegistryTypeId('heart_event'),
   hiddenNpc: toOfficialRegistryTypeId('hidden_npc'),
   storyQuest: toOfficialRegistryTypeId('story_quest'),
   achievement: toOfficialRegistryTypeId('achievement'),
@@ -110,6 +112,14 @@ const pushMissingReference = (
 
 const contentId = (value: string): ContentId => requireContentId(value)
 
+const localContentId = (value: string): string => {
+  const id = contentId(value)
+  return id.slice(id.indexOf(':') + 1)
+}
+
+const heartEventContentId = (value: string): ContentId =>
+  contentId(value.includes(':') ? value : value.includes('/') ? `taoyuan:${value}` : `taoyuan:heart_event/${value}`)
+
 // Legacy achievement displays this stale reward, but inventory addItem() never granted it.
 const legacyOfficialMissingItemReferences = new Set([
   'taoyuan-core|taoyuan:achievement/farmer_200|/reward/items/0/itemId|taoyuan:compost'
@@ -142,6 +152,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(REGISTRY_IDS.guildDonation)
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(REGISTRY_IDS.guildLevel)
   const npcRegistry = registrySet.get<NpcDef>(REGISTRY_IDS.npc)
+  const heartEventRegistry = registrySet.get<HeartEventDef>(REGISTRY_IDS.heartEvent)
   const hiddenNpcRegistry = registrySet.get<HiddenNpcDef>(REGISTRY_IDS.hiddenNpc)
   const storyQuestRegistry = registrySet.get<StoryQuestDef>(REGISTRY_IDS.storyQuest)
   const achievementRegistry = registrySet.get<AchievementDef>(REGISTRY_IDS.achievement)
@@ -487,6 +498,49 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         }
       })
     }
+    record.entry.heartEventIds?.forEach((eventId, index) => {
+      const id = heartEventContentId(eventId)
+      if (!heartEventRegistry.has(id)) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.heartEvent,
+          contentId: id,
+          fieldPath: `/heartEventIds/${index}`
+        })
+      }
+    })
+    record.entry.zhijiHeartEventIds?.forEach((eventId, index) => {
+      const id = heartEventContentId(eventId)
+      if (!heartEventRegistry.has(id)) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.heartEvent,
+          contentId: id,
+          fieldPath: `/zhijiHeartEventIds/${index}`
+        })
+      }
+    })
+  }
+
+  for (const record of heartEventRegistry.entries()) {
+    const ownerId = contentId(record.entry.npcId)
+    if (localContentId(record.entry.npcId).startsWith('hidden_npc/')) {
+      if (!hiddenNpcRegistry.has(ownerId)) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.hiddenNpc,
+          contentId: ownerId,
+          fieldPath: '/npcId'
+        })
+      }
+    } else if (!npcRegistry.has(ownerId)) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.npc,
+        contentId: ownerId,
+        fieldPath: '/npcId'
+      })
+    }
   }
 
   for (const record of hiddenNpcRegistry.entries()) {
@@ -569,6 +623,17 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
           })
         }
       })
+    })
+    record.entry.heartEventIds.forEach((eventId, index) => {
+      const id = heartEventContentId(eventId)
+      if (!heartEventRegistry.has(id)) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.heartEvent,
+          contentId: id,
+          fieldPath: `/heartEventIds/${index}`
+        })
+      }
     })
   }
 

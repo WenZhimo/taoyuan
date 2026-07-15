@@ -34,7 +34,9 @@ import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
 import { MUSEUM_CATEGORIES, MUSEUM_ITEMS, MUSEUM_MILESTONES } from '@/data/museumDefinitions'
 import { NPCS } from '@/data/npcDefinitions'
+import { HEART_EVENTS } from '@/data/heartEventDefinitions'
 import { HIDDEN_NPCS } from '@/data/hiddenNpcDefinitions'
+import { HIDDEN_NPC_HEART_EVENTS } from '@/data/hiddenNpcHeartEventDefinitions'
 import { STORY_QUESTS } from '@/data/storyQuestDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
@@ -75,6 +77,7 @@ import type {
   AnimalDef as LegacyAnimalDef,
   CommunityBundleDef as LegacyCommunityBundleDef,
   HatDef as LegacyHatDef,
+  HeartEventDef as LegacyHeartEventDef,
   MainQuestDef as LegacyMainQuestDef,
   NpcDef as LegacyNpcDef,
   RecipeDef as LegacyRecipeDef,
@@ -131,6 +134,7 @@ import type {
   GuildDonationDef,
   GuildGoalDef,
   GuildLevelDef,
+  HeartEventDef,
   HiddenNpcDef,
   CropDef,
   MonsterDef,
@@ -241,6 +245,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('npc'),
     description: '村民 NPC 定义',
     schemaName: 'npc.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('heart_event'),
+    description: 'NPC 和隐藏仙灵好感事件定义',
+    schemaName: 'heart-event.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('hidden_npc'),
@@ -871,6 +880,8 @@ const adaptNpcDialogueList = (
 ) => dialogues?.map((line, index) => text(`taoyuan.npc.${npcId}.${key}.${index}`, line))
 
 const adaptNpcGiftItems = (items: readonly string[]) => items.map(itemId => toOfficialContentId(itemId))
+const adaptLegacyHeartEventIds = (eventIds: readonly string[]) =>
+  eventIds.map(eventId => toOfficialContentId(`heart_event/${eventId}`))
 
 export const adaptLegacyNpc = (npc: LegacyNpcDef): NpcDef => ({
   id: toOfficialContentId(`npc/${npc.id}`),
@@ -883,14 +894,52 @@ export const adaptLegacyNpc = (npc: LegacyNpcDef): NpcDef => ({
   hatedItems: adaptNpcGiftItems(npc.hatedItems),
   dialogues: adaptNpcDialogues(npc.id, npc.dialogues),
   ...(npc.marriageable !== undefined ? { marriageable: npc.marriageable } : {}),
-  ...(npc.heartEventIds ? { heartEventIds: [...npc.heartEventIds] } : {}),
+  ...(npc.heartEventIds ? { heartEventIds: adaptLegacyHeartEventIds(npc.heartEventIds) } : {}),
   ...(npc.datingDialogues ? { datingDialogues: adaptNpcDialogueList(npc.id, 'datingDialogues', npc.datingDialogues) } : {}),
   ...(npc.zhijiDialogues ? { zhijiDialogues: adaptNpcDialogueList(npc.id, 'zhijiDialogues', npc.zhijiDialogues) } : {}),
-  ...(npc.zhijiHeartEventIds ? { zhijiHeartEventIds: [...npc.zhijiHeartEventIds] } : {}),
+  ...(npc.zhijiHeartEventIds ? { zhijiHeartEventIds: adaptLegacyHeartEventIds(npc.zhijiHeartEventIds) } : {}),
   ...(npc.birthday ? { birthday: { ...npc.birthday } } : {})
 })
 
 export const createOfficialNpcs = (): NpcDef[] => NPCS.map(adaptLegacyNpc)
+
+const heartEventText = (eventId: string, key: string, fallback: string) =>
+  text(`taoyuan.heart_event.${eventId}.${key}`, fallback)
+
+const adaptLegacyHeartEventScene = (
+  eventId: string,
+  scene: LegacyHeartEventDef['scenes'][number],
+  index: number
+): HeartEventDef['scenes'][number] => ({
+  text: heartEventText(eventId, `scenes.${index}.text`, scene.text),
+  ...(scene.choices
+    ? {
+        choices: scene.choices.map((choice, choiceIndex) => ({
+          text: heartEventText(eventId, `scenes.${index}.choices.${choiceIndex}.text`, choice.text),
+          friendshipChange: choice.friendshipChange,
+          response: heartEventText(eventId, `scenes.${index}.choices.${choiceIndex}.response`, choice.response)
+        }))
+      }
+    : {})
+})
+
+export const adaptLegacyHeartEvent = (
+  event: LegacyHeartEventDef,
+  ownerType: 'npc' | 'hidden_npc'
+): HeartEventDef => ({
+  id: toOfficialContentId(`heart_event/${event.id}`),
+  npcId: toOfficialContentId(`${ownerType}/${event.npcId}`),
+  requiredFriendship: event.requiredFriendship,
+  ...(event.requiresZhiji !== undefined ? { requiresZhiji: event.requiresZhiji } : {}),
+  title: heartEventText(event.id, 'title', event.title),
+  scenes: event.scenes.map((scene, index) => adaptLegacyHeartEventScene(event.id, scene, index))
+})
+
+export const createOfficialHeartEvents = (): HeartEventDef[] =>
+  HEART_EVENTS.map(event => adaptLegacyHeartEvent(event, 'npc'))
+
+export const createOfficialHiddenNpcHeartEvents = (): HeartEventDef[] =>
+  HIDDEN_NPC_HEART_EVENTS.map(event => adaptLegacyHeartEvent(event, 'hidden_npc'))
 
 const hiddenNpcText = (npcId: string, key: string, fallback: string) =>
   text(`taoyuan.hidden_npc.${npcId}.${key}`, fallback)
@@ -1007,7 +1056,7 @@ export const adaptLegacyHiddenNpc = (npc: LegacyHiddenNpcDef): HiddenNpcDef => (
   bondItemId: toOfficialContentId(npc.bondItemId),
   courtshipThreshold: npc.courtshipThreshold,
   bondThreshold: npc.bondThreshold,
-  heartEventIds: [...npc.heartEventIds],
+  heartEventIds: adaptLegacyHeartEventIds(npc.heartEventIds),
   courtshipDialogues: npc.courtshipDialogues.map((line, index) =>
     hiddenNpcText(npc.id, `courtshipDialogues.${index}`, line)
   ),
@@ -1715,6 +1764,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(toOfficialRegistryTypeId('guild_donation'))
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(toOfficialRegistryTypeId('guild_level'))
   const npcRegistry = registrySet.get<NpcDef>(toOfficialRegistryTypeId('npc'))
+  const heartEventRegistry = registrySet.get<HeartEventDef>(toOfficialRegistryTypeId('heart_event'))
   const hiddenNpcRegistry = registrySet.get<HiddenNpcDef>(toOfficialRegistryTypeId('hidden_npc'))
   const storyQuestRegistry = registrySet.get<StoryQuestDef>(toOfficialRegistryTypeId('story_quest'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
@@ -1775,8 +1825,14 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const npc of createOfficialNpcs()) {
     npcRegistry.register(owner, npc, { file: 'src/data/npcDefinitions.ts' })
   }
+  for (const event of createOfficialHeartEvents()) {
+    heartEventRegistry.register(owner, event, { file: 'src/data/heartEventDefinitions.ts' })
+  }
   for (const npc of createOfficialHiddenNpcs()) {
     hiddenNpcRegistry.register(owner, npc, { file: 'src/data/hiddenNpcDefinitions.ts' })
+  }
+  for (const event of createOfficialHiddenNpcHeartEvents()) {
+    heartEventRegistry.register(owner, event, { file: 'src/data/hiddenNpcHeartEventDefinitions.ts' })
   }
   for (const quest of createOfficialStoryQuests()) {
     storyQuestRegistry.register(owner, quest, { file: 'src/data/storyQuestDefinitions.ts' })

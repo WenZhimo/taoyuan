@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 74,
-    "approximateLineCount": 31390,
+    "fileCount": 76,
+    "approximateLineCount": 31413,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 570,
-    "reviewedArtifactCount": 111
+    "symbolCount": 573,
+    "reviewedArtifactCount": 116
   },
   "entries": [
     {
@@ -5345,82 +5345,150 @@
       ]
     },
     {
-      "file": "src/data/heartEvents.ts",
-      "lines": 1993,
+      "file": "src/data/heartEventDefinitions.ts",
       "classification": "mixed",
       "domains": [
         "heart_event",
-        "wedding_event",
-        "event_condition"
+        "wedding_event"
       ],
       "candidateTargets": [
         "taoyuan:heart_event",
-        "engine/domain/events"
+        "engine/domain/wedding-event"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 1984,
       "symbols": [
         {
-          "file": "src/data/heartEvents.ts",
+          "file": "src/data/heartEventDefinitions.ts",
           "exportName": "HEART_EVENTS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:heart_event",
           "persistentIds": true,
-          "consumers": [],
+          "consumers": [
+            "src/data/heartEvents.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for ordinary NPC heart event scenes; Phase 6 projects local event IDs, owner NPC IDs, thresholds, zhiji flags, titles, scene text and choice friendship changes into taoyuan:heart_event."
         },
         {
-          "file": "src/data/heartEvents.ts",
+          "file": "src/data/heartEventDefinitions.ts",
           "exportName": "WEDDING_EVENT",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/wedding-event",
+          "persistentIds": true,
           "consumers": [
-            "src/composables/useDialogs.ts"
+            "src/composables/useDialogs.ts",
+            "src/data/heartEvents.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "The generic wedding ceremony event keeps npcId blank until runtime replacement, so it remains framework-owned and queryable through the legacy facade rather than becoming a fixed taoyuan:heart_event entry."
+        }
+      ]
+    },
+    {
+      "file": "src/data/heartEvents.ts",
+      "classification": "mixed",
+      "domains": [
+        "heart_event",
+        "wedding_event",
+        "lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:heart_event",
+        "engine/domain/wedding-event",
+        "compatibility_adapter"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 22,
+      "symbols": [
+        {
+          "file": "src/data/heartEvents.ts",
+          "exportName": "HEART_EVENTS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:heart_event",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/heartEventDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy HEART_EVENTS imports stable while ordinary event queries resolve taoyuan:heart_event through compatibility facades."
+        },
+        {
+          "file": "src/data/heartEvents.ts",
+          "exportName": "WEDDING_EVENT",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "engine/domain/wedding-event",
+          "persistentIds": true,
+          "consumers": [
+            "src/composables/useDialogs.ts",
+            "src/data/heartEventDefinitions.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Original-name re-export keeps the generic wedding ceremony event available for useDialogs while it remains outside the fixed heart_event registry."
         },
         {
           "file": "src/data/heartEvents.ts",
           "exportName": "getHeartEventsForNpc",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:heart_event",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useNpcStore.ts"
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy ordinary NPC heart event list query returns local-ID compatibility objects reconstructed from taoyuan:heart_event by owner NPC ID."
         },
         {
           "file": "src/data/heartEvents.ts",
           "exportName": "getHeartEventById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:heart_event",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/heartEventRegistryPilot.test.ts",
             "src/views/game/NpcView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getHeartEventById() resolves ordinary taoyuan:heart_event entries by local or namespaced ID and falls back to the framework-retained wedding event."
         }
       ]
     },
@@ -5450,6 +5518,7 @@
             "src/data/hiddenNpcs.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts",
             "src/tests/domain/hiddenNpcRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -5462,11 +5531,46 @@
       ]
     },
     {
+      "file": "src/data/hiddenNpcHeartEventDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "heart_event"
+      ],
+      "candidateTargets": [
+        "taoyuan:heart_event"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 466,
+      "symbols": [
+        {
+          "file": "src/data/hiddenNpcHeartEventDefinitions.ts",
+          "exportName": "HIDDEN_NPC_HEART_EVENTS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:heart_event",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hiddenNpcHeartEvents.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for hidden NPC heart event scenes; Phase 6 projects local event IDs, hidden owner IDs, affinity thresholds, titles, scene text and choice affinity changes into taoyuan:heart_event."
+        }
+      ]
+    },
+    {
       "file": "src/data/hiddenNpcHeartEvents.ts",
-      "lines": 475,
       "classification": "mixed",
       "domains": [
-        "hidden_npc_heart_event",
+        "heart_event",
         "lookup"
       ],
       "candidateTargets": [
@@ -5477,51 +5581,59 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 19,
       "symbols": [
         {
           "file": "src/data/hiddenNpcHeartEvents.ts",
           "exportName": "HIDDEN_NPC_HEART_EVENTS",
-          "syntaxKind": "const",
-          "classification": "content",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:heart_event",
           "persistentIds": true,
-          "consumers": [],
+          "consumers": [
+            "src/data/hiddenNpcHeartEventDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy hidden NPC heart event imports stable while runtime queries resolve taoyuan:heart_event."
         },
         {
           "file": "src/data/hiddenNpcHeartEvents.ts",
           "exportName": "getHiddenNpcHeartEvents",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:heart_event",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useHiddenNpcStore.ts"
+            "src/stores/useHiddenNpcStore.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy hidden NPC heart event list query returns local-ID compatibility objects reconstructed from taoyuan:heart_event by hidden NPC owner ID."
         },
         {
           "file": "src/data/hiddenNpcHeartEvents.ts",
           "exportName": "getHiddenNpcHeartEventById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:heart_event",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/heartEventRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy hidden NPC event lookup resolves hidden-owner taoyuan:heart_event entries by local or namespaced ID before falling back to the static rollback path."
         }
       ]
     },
@@ -5553,6 +5665,7 @@
             "src/data/hiddenNpcDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts",
             "src/tests/domain/hiddenNpcRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -7243,6 +7356,7 @@
             "src/data/npcs.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts",
             "src/tests/domain/npcRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -7282,6 +7396,7 @@
             "src/data/npcDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/heartEventRegistryPilot.test.ts",
             "src/tests/domain/npcRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -12461,7 +12576,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "TypeBox source of truth for village NPC definitions, including localized display text, gift preferences, dialogues, birthdays and compatibility event ID lists."
+      "rationale": "TypeBox source of truth for village NPC definitions, including localized display text, gift preferences, dialogues, birthdays and heart event ContentId reference lists."
     },
     {
       "file": "src/domain/mods/staticAdapters.ts",
@@ -12473,7 +12588,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Projects every legacy village NPC into ordered official entries without changing local NPC IDs, names, roles, gift preferences, dialogues, marriage flags, birthdays or event ID strings."
+      "rationale": "Projects every legacy village NPC into ordered official entries without changing local NPC IDs, names, roles, gift preferences, dialogues, marriage flags or birthdays; legacy event ID strings are normalized to taoyuan:heart_event references inside the registry."
     },
     {
       "file": "src/domain/mods/contentAccess.ts",
@@ -12497,7 +12612,67 @@
         6
       ],
       "status": "verified",
-      "rationale": "Checks NPC loved, liked and hated item references against taoyuan:item while deferring heart-event ID validation to a future heart_event slice."
+      "rationale": "Checks NPC loved, liked and hated item references against taoyuan:item and validates heartEventIds/zhijiHeartEventIds against taoyuan:heart_event."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "HeartEventDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:heart_event",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for ordinary and hidden NPC heart event definitions, including owner ContentId, threshold, zhiji gate, localized title, scene text and choices."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyHeartEvent/createOfficialHeartEvents/createOfficialHiddenNpcHeartEvents",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:heart_event",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects ordinary and hidden legacy heart events into one ordered heart_event registry while preserving local event IDs, owner IDs, thresholds, zhiji flags, titles, scene text and choice friendship changes."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialHeartEventDef/getOfficialHeartEventDefs/getOfficialHeartEventById/getOfficialHeartEventsForNpc",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:heart_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry heart event definitions and reconstructs ordinary legacy HeartEventDef objects for NPC Store and NPC view consumers."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialHiddenNpcHeartEventById/getOfficialHiddenNpcHeartEvents",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:heart_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Reconstructs hidden NPC legacy HeartEventDef objects from hidden-owner taoyuan:heart_event entries for hidden NPC modal and Store consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:heart_event",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:heart_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks each heart event owner reference against taoyuan:npc or taoyuan:hidden_npc and rejects missing event declarations before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",
@@ -12545,7 +12720,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Checks hidden NPC offering, crafting, discovery item, village NPC, story quest and fish references while deferring heart-event ID validation to the future heart_event slice."
+      "rationale": "Checks hidden NPC offering, crafting, discovery item, village NPC, story quest, fish and heart-event references before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

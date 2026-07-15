@@ -118,7 +118,7 @@
     "bondItemId": "example_mod:test_item",
     "courtshipThreshold": 1,
     "bondThreshold": 2,
-    "heartEventIds": ["test_spirit_heart_1"],
+    "heartEventIds": ["example_mod:heart_event/test_spirit_heart_1"],
     "courtshipDialogues": [
       {
         "key": "example_mod.hidden_npc.test_spirit.courtship.0",

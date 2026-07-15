@@ -22,6 +22,7 @@ import type {
   MuseumMilestone as LegacyMuseumMilestone,
   GuildDonationDef as LegacyGuildDonationDef,
   GuildLevelDef as LegacyGuildLevelDef,
+  HeartEventDef as LegacyHeartEventDef,
   MainQuestDef as LegacyMainQuestDef,
   MonsterGoalDef as LegacyGuildGoalDef,
   SecretNoteDef as LegacySecretNoteDef,
@@ -97,6 +98,7 @@ import type {
   GuildDonationDef as GuildDonationContentDef,
   GuildGoalDef as GuildGoalContentDef,
   GuildLevelDef as GuildLevelContentDef,
+  HeartEventDef as HeartEventContentDef,
   HiddenNpcDef as HiddenNpcContentDef,
   MonsterDef,
   MonsterPoolDef,
@@ -166,6 +168,9 @@ const toGuildLevelQueryContentId = (level: number | string) => {
 
 const toNpcQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `npc/${id}`)
+
+const toHeartEventQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `heart_event/${id}`)
 
 const toHiddenNpcQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `hidden_npc/${id}`)
@@ -714,6 +719,16 @@ export const getOfficialNpcDef = (id: string): Readonly<NpcContentDef> | undefin
 export const getOfficialNpcDefs = (): readonly Readonly<NpcContentDef>[] =>
   getOfficialRegistrySet().get<NpcContentDef>(toOfficialRegistryTypeId('npc')).values()
 
+export const getOfficialHeartEventDef = (id: string): Readonly<HeartEventContentDef> | undefined => {
+  const contentId = toHeartEventQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<HeartEventContentDef>(toOfficialRegistryTypeId('heart_event')).get(contentId)
+    : undefined
+}
+
+export const getOfficialHeartEventDefs = (): readonly Readonly<HeartEventContentDef>[] =>
+  getOfficialRegistrySet().get<HeartEventContentDef>(toOfficialRegistryTypeId('heart_event')).values()
+
 export const getOfficialHiddenNpcDef = (id: string): Readonly<HiddenNpcContentDef> | undefined => {
   const contentId = toHiddenNpcQueryContentId(id)
   return contentId
@@ -1008,10 +1023,10 @@ const toLegacyNpcDef = (npc: Readonly<NpcContentDef>): LegacyNpcDef => ({
   hatedItems: npc.hatedItems.map(getLocalContentId),
   dialogues: toLegacyNpcDialogues(npc.dialogues),
   ...(npc.marriageable !== undefined ? { marriageable: npc.marriageable } : {}),
-  ...(npc.heartEventIds ? { heartEventIds: [...npc.heartEventIds] } : {}),
+  ...(npc.heartEventIds ? { heartEventIds: npc.heartEventIds.map(getLocalHeartEventId) } : {}),
   ...(npc.datingDialogues ? { datingDialogues: npc.datingDialogues.map(line => line.fallback) } : {}),
   ...(npc.zhijiDialogues ? { zhijiDialogues: npc.zhijiDialogues.map(line => line.fallback) } : {}),
-  ...(npc.zhijiHeartEventIds ? { zhijiHeartEventIds: [...npc.zhijiHeartEventIds] } : {}),
+  ...(npc.zhijiHeartEventIds ? { zhijiHeartEventIds: npc.zhijiHeartEventIds.map(getLocalHeartEventId) } : {}),
   ...(npc.birthday ? { birthday: { ...npc.birthday } } : {})
 })
 
@@ -1022,6 +1037,79 @@ export const getOfficialNpcById = (id: string): LegacyNpcDef | undefined => {
 
 export const getOfficialNpcsAsLegacy = (): readonly LegacyNpcDef[] =>
   getOfficialNpcDefs().map(toLegacyNpcDef)
+
+const getLocalHeartEventId = (contentId: string): string => {
+  const localId = getLocalContentId(contentId)
+  return localId.startsWith('heart_event/') ? localId.slice('heart_event/'.length) : localId
+}
+
+const getLocalHeartEventOwnerId = (contentId: string): string => {
+  const localId = getLocalContentId(contentId)
+  if (localId.startsWith('npc/')) return localId.slice('npc/'.length)
+  if (localId.startsWith('hidden_npc/')) return localId.slice('hidden_npc/'.length)
+  return localId
+}
+
+const isHeartEventForOwnerType = (
+  event: Readonly<HeartEventContentDef>,
+  ownerType: 'npc' | 'hidden_npc'
+): boolean =>
+  getLocalContentId(event.npcId).startsWith(`${ownerType}/`)
+
+const toHeartEventOwnerQueryContentId = (
+  id: string,
+  ownerType: 'npc' | 'hidden_npc'
+) => toQueryContentId(id.includes(':') || id.includes('/') ? id : `${ownerType}/${id}`)
+
+const toLegacyHeartEventScene = (
+  scene: Readonly<HeartEventContentDef['scenes'][number]>
+): LegacyHeartEventDef['scenes'][number] => ({
+  text: scene.text.fallback,
+  ...(scene.choices
+    ? {
+        choices: scene.choices.map(choice => ({
+          text: choice.text.fallback,
+          friendshipChange: choice.friendshipChange,
+          response: choice.response.fallback
+        }))
+      }
+    : {})
+})
+
+const toLegacyHeartEventDef = (event: Readonly<HeartEventContentDef>): LegacyHeartEventDef => ({
+  id: getLocalHeartEventId(event.id),
+  npcId: getLocalHeartEventOwnerId(event.npcId),
+  requiredFriendship: event.requiredFriendship,
+  ...(event.requiresZhiji !== undefined ? { requiresZhiji: event.requiresZhiji } : {}),
+  title: event.title.fallback,
+  scenes: event.scenes.map(toLegacyHeartEventScene)
+})
+
+export const getOfficialHeartEventById = (id: string): LegacyHeartEventDef | undefined => {
+  const event = getOfficialHeartEventDef(id)
+  return event && isHeartEventForOwnerType(event, 'npc') ? toLegacyHeartEventDef(event) : undefined
+}
+
+export const getOfficialHeartEventsForNpc = (npcId: string): readonly LegacyHeartEventDef[] => {
+  const contentId = toHeartEventOwnerQueryContentId(npcId, 'npc')
+  if (!contentId) return []
+  return getOfficialHeartEventDefs()
+    .filter(event => event.npcId === contentId)
+    .map(toLegacyHeartEventDef)
+}
+
+export const getOfficialHiddenNpcHeartEventById = (id: string): LegacyHeartEventDef | undefined => {
+  const event = getOfficialHeartEventDef(id)
+  return event && isHeartEventForOwnerType(event, 'hidden_npc') ? toLegacyHeartEventDef(event) : undefined
+}
+
+export const getOfficialHiddenNpcHeartEvents = (npcId: string): readonly LegacyHeartEventDef[] => {
+  const contentId = toHeartEventOwnerQueryContentId(npcId, 'hidden_npc')
+  if (!contentId) return []
+  return getOfficialHeartEventDefs()
+    .filter(event => event.npcId === contentId)
+    .map(toLegacyHeartEventDef)
+}
 
 const getLocalStoryQuestId = (contentId: string): string => {
   const localId = getLocalContentId(contentId)
@@ -1132,7 +1220,7 @@ const toLegacyHiddenNpcDef = (npc: Readonly<HiddenNpcContentDef>): LegacyHiddenN
   bondItemId: getLocalContentId(npc.bondItemId),
   courtshipThreshold: npc.courtshipThreshold,
   bondThreshold: npc.bondThreshold,
-  heartEventIds: [...npc.heartEventIds],
+  heartEventIds: npc.heartEventIds.map(getLocalHeartEventId),
   courtshipDialogues: npc.courtshipDialogues.map(line => line.fallback),
   bondBonuses: npc.bondBonuses.map(bonus => ({ ...bonus })),
   abilities: npc.abilities.map(ability => ({

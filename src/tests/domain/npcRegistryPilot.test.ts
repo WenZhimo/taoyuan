@@ -16,6 +16,7 @@ import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import {
   OFFICIAL_PACKAGE_ID,
   OFFICIAL_REGISTRY_DEFINITIONS,
+  adaptLegacyNpc,
   buildOfficialRegistrySetFromStaticData
 } from '@/domain/mods/staticAdapters'
 import { useInventoryStore } from '@/stores/useInventoryStore'
@@ -27,36 +28,7 @@ const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T
 
 const text = (key: string, fallback: string) => ({ key, fallback })
 
-const expectedDialogues = (npc: LegacyNpcDef): NpcContentDef['dialogues'] => ({
-  stranger: npc.dialogues.stranger.map((line, index) => text(`taoyuan.npc.${npc.id}.dialogues.stranger.${index}`, line)),
-  acquaintance: npc.dialogues.acquaintance.map((line, index) => text(`taoyuan.npc.${npc.id}.dialogues.acquaintance.${index}`, line)),
-  friendly: npc.dialogues.friendly.map((line, index) => text(`taoyuan.npc.${npc.id}.dialogues.friendly.${index}`, line)),
-  bestFriend: npc.dialogues.bestFriend.map((line, index) => text(`taoyuan.npc.${npc.id}.dialogues.bestFriend.${index}`, line))
-})
-
-const expectedDialogueList = (
-  npc: LegacyNpcDef,
-  key: 'datingDialogues' | 'zhijiDialogues',
-  dialogues: readonly string[] | undefined
-) => dialogues?.map((line, index) => text(`taoyuan.npc.${npc.id}.${key}.${index}`, line))
-
-const expectedNpcContentDef = (npc: LegacyNpcDef): NpcContentDef => ({
-  id: toOfficialContentId(`npc/${npc.id}`),
-  name: text(`taoyuan.npc.${npc.id}.name`, npc.name),
-  gender: npc.gender,
-  role: text(`taoyuan.npc.${npc.id}.role`, npc.role),
-  personality: text(`taoyuan.npc.${npc.id}.personality`, npc.personality),
-  lovedItems: npc.lovedItems.map(toOfficialContentId),
-  likedItems: npc.likedItems.map(toOfficialContentId),
-  hatedItems: npc.hatedItems.map(toOfficialContentId),
-  dialogues: expectedDialogues(npc),
-  ...(npc.marriageable !== undefined ? { marriageable: npc.marriageable } : {}),
-  ...(npc.heartEventIds ? { heartEventIds: [...npc.heartEventIds] } : {}),
-  ...(npc.datingDialogues ? { datingDialogues: expectedDialogueList(npc, 'datingDialogues', npc.datingDialogues) } : {}),
-  ...(npc.zhijiDialogues ? { zhijiDialogues: expectedDialogueList(npc, 'zhijiDialogues', npc.zhijiDialogues) } : {}),
-  ...(npc.zhijiHeartEventIds ? { zhijiHeartEventIds: [...npc.zhijiHeartEventIds] } : {}),
-  ...(npc.birthday ? { birthday: { ...npc.birthday } } : {})
-})
+const expectedNpcContentDef = (npc: LegacyNpcDef): NpcContentDef => adaptLegacyNpc(npc)
 
 describe('npc registry pilot', () => {
   beforeEach(() => {

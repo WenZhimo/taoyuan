@@ -1,0 +1,133 @@
+{
+  "$id": "taoyuan.registry.HeartEventDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "npcId",
+    "requiredFriendship",
+    "title",
+    "scenes"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "npcId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "requiredFriendship": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "requiresZhiji": {
+      "type": "boolean"
+    },
+    "title": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "scenes": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "properties": {
+          "text": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          },
+          "choices": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "text",
+                "friendshipChange",
+                "response"
+              ],
+              "properties": {
+                "text": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "fallback"
+                  ],
+                  "properties": {
+                    "key": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "fallback": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  }
+                },
+                "friendshipChange": {
+                  "type": "integer"
+                },
+                "response": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "key",
+                    "fallback"
+                  ],
+                  "properties": {
+                    "key": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "fallback": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

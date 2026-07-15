@@ -212,7 +212,7 @@
       "minItems": 1,
       "type": "array",
       "items": {
-        "minLength": 1,
+        "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
         "type": "string"
       }
     },
@@ -264,7 +264,7 @@
       "minItems": 1,
       "type": "array",
       "items": {
-        "minLength": 1,
+        "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
         "type": "string"
       }
     },
