@@ -1,0 +1,133 @@
+{
+  "$id": "taoyuan.registry.GuildGoalDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "monsterId",
+    "monsterName",
+    "zone",
+    "killTarget",
+    "reward",
+    "description"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "monsterId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "monsterName": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "zone": {
+      "anyOf": [
+        {
+          "const": "shallow",
+          "type": "string"
+        },
+        {
+          "const": "frost",
+          "type": "string"
+        },
+        {
+          "const": "lava",
+          "type": "string"
+        },
+        {
+          "const": "crystal",
+          "type": "string"
+        },
+        {
+          "const": "shadow",
+          "type": "string"
+        },
+        {
+          "const": "abyss",
+          "type": "string"
+        },
+        {
+          "const": "boss",
+          "type": "string"
+        },
+        {
+          "const": "skull",
+          "type": "string"
+        }
+      ]
+    },
+    "killTarget": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "reward": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "money": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "items": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        }
+      }
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

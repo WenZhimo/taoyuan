@@ -1,0 +1,25 @@
+{
+  "$id": "taoyuan.registry.GuildLevelDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "level",
+    "expRequired"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "level": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "expRequired": {
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

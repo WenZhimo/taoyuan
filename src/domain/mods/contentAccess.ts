@@ -17,6 +17,9 @@ import type {
   MuseumCategory as LegacyMuseumCategory,
   MuseumItemDef as LegacyMuseumItemDef,
   MuseumMilestone as LegacyMuseumMilestone,
+  GuildDonationDef as LegacyGuildDonationDef,
+  GuildLevelDef as LegacyGuildLevelDef,
+  MonsterGoalDef as LegacyGuildGoalDef,
   SecretNoteDef as LegacySecretNoteDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
@@ -81,6 +84,9 @@ import type {
   MuseumCategoryDef as MuseumCategoryContentDef,
   MuseumItemDef as MuseumItemContentDef,
   MuseumMilestoneDef as MuseumMilestoneContentDef,
+  GuildDonationDef as GuildDonationContentDef,
+  GuildGoalDef as GuildGoalContentDef,
+  GuildLevelDef as GuildLevelContentDef,
   MonsterDef,
   MonsterPoolDef,
   PondBreedDef,
@@ -133,6 +139,17 @@ const toSecretNoteQueryContentId = (id: number | string) => {
 
 const toTutorialQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `tutorial/${id}`)
+
+const toGuildGoalQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `guild_goal/${id}`)
+
+const toGuildDonationQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `guild_donation/${id}`)
+
+const toGuildLevelQueryContentId = (level: number | string) => {
+  const rawId = typeof level === 'number' ? `guild_level/${level}` : level
+  return toQueryContentId(rawId.includes(':') || rawId.includes('/') ? rawId : `guild_level/${rawId}`)
+}
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
   const contentId = toQueryContentId(id)
@@ -631,6 +648,36 @@ export const getOfficialMuseumMilestoneDef = (id: number | string): Readonly<Mus
 export const getOfficialMuseumMilestoneDefs = (): readonly Readonly<MuseumMilestoneContentDef>[] =>
   getOfficialRegistrySet().get<MuseumMilestoneContentDef>(toOfficialRegistryTypeId('museum_milestone')).values()
 
+export const getOfficialGuildGoalDef = (id: string): Readonly<GuildGoalContentDef> | undefined => {
+  const contentId = toGuildGoalQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<GuildGoalContentDef>(toOfficialRegistryTypeId('guild_goal')).get(contentId)
+    : undefined
+}
+
+export const getOfficialGuildGoalDefs = (): readonly Readonly<GuildGoalContentDef>[] =>
+  getOfficialRegistrySet().get<GuildGoalContentDef>(toOfficialRegistryTypeId('guild_goal')).values()
+
+export const getOfficialGuildDonationDef = (id: string): Readonly<GuildDonationContentDef> | undefined => {
+  const contentId = toGuildDonationQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<GuildDonationContentDef>(toOfficialRegistryTypeId('guild_donation')).get(contentId)
+    : undefined
+}
+
+export const getOfficialGuildDonationDefs = (): readonly Readonly<GuildDonationContentDef>[] =>
+  getOfficialRegistrySet().get<GuildDonationContentDef>(toOfficialRegistryTypeId('guild_donation')).values()
+
+export const getOfficialGuildLevelDef = (level: number | string): Readonly<GuildLevelContentDef> | undefined => {
+  const contentId = toGuildLevelQueryContentId(level)
+  return contentId
+    ? getOfficialRegistrySet().get<GuildLevelContentDef>(toOfficialRegistryTypeId('guild_level')).get(contentId)
+    : undefined
+}
+
+export const getOfficialGuildLevelDefs = (): readonly Readonly<GuildLevelContentDef>[] =>
+  getOfficialRegistrySet().get<GuildLevelContentDef>(toOfficialRegistryTypeId('guild_level')).values()
+
 export const getOfficialSecretNoteDef = (id: number | string): Readonly<SecretNoteContentDef> | undefined => {
   const contentId = toSecretNoteQueryContentId(id)
   return contentId
@@ -796,6 +843,69 @@ export const getOfficialMuseumMilestoneByCount = (count: number): LegacyMuseumMi
 
 export const getOfficialMuseumMilestonesAsLegacy = (): readonly LegacyMuseumMilestone[] =>
   getOfficialMuseumMilestoneDefs().map(toLegacyMuseumMilestone)
+
+const toLegacyGuildGoalReward = (
+  reward: Readonly<GuildGoalContentDef['reward']>
+): LegacyGuildGoalDef['reward'] => ({
+  ...(reward.money !== undefined ? { money: reward.money } : {}),
+  ...(reward.items
+    ? {
+        items: reward.items.map(item => ({
+          itemId: getLocalContentId(item.itemId),
+          quantity: item.quantity
+        }))
+      }
+    : {})
+})
+
+const toLegacyGuildGoalDef = (goal: Readonly<GuildGoalContentDef>): LegacyGuildGoalDef => ({
+  monsterId: getLocalContentId(goal.monsterId),
+  monsterName: goal.monsterName.fallback,
+  zone: goal.zone,
+  killTarget: goal.killTarget,
+  reward: toLegacyGuildGoalReward(goal.reward),
+  description: goal.description.fallback
+})
+
+export const getOfficialGuildGoalByMonsterId = (monsterId: string): LegacyGuildGoalDef | undefined => {
+  const contentId = toQueryContentId(monsterId)
+  const goal = contentId
+    ? getOfficialGuildGoalDefs().find(candidate => candidate.monsterId === contentId)
+    : undefined
+  return goal ? toLegacyGuildGoalDef(goal) : undefined
+}
+
+export const getOfficialGuildGoalsAsLegacy = (): readonly LegacyGuildGoalDef[] =>
+  getOfficialGuildGoalDefs().map(toLegacyGuildGoalDef)
+
+const toLegacyGuildDonationDef = (donation: Readonly<GuildDonationContentDef>): LegacyGuildDonationDef => ({
+  itemId: getLocalContentId(donation.itemId),
+  points: donation.points
+})
+
+export const getOfficialGuildDonationByItemId = (itemId: string): LegacyGuildDonationDef | undefined => {
+  const contentId = toQueryContentId(itemId)
+  const donation = contentId
+    ? getOfficialGuildDonationDefs().find(candidate => candidate.itemId === contentId)
+    : undefined
+  return donation ? toLegacyGuildDonationDef(donation) : undefined
+}
+
+export const getOfficialGuildDonationsAsLegacy = (): readonly LegacyGuildDonationDef[] =>
+  getOfficialGuildDonationDefs().map(toLegacyGuildDonationDef)
+
+const toLegacyGuildLevelDef = (level: Readonly<GuildLevelContentDef>): LegacyGuildLevelDef => ({
+  level: level.level,
+  expRequired: level.expRequired
+})
+
+export const getOfficialGuildLevelByLevel = (level: number): LegacyGuildLevelDef | undefined => {
+  const guildLevel = getOfficialGuildLevelDef(level)
+  return guildLevel ? toLegacyGuildLevelDef(guildLevel) : undefined
+}
+
+export const getOfficialGuildLevelsAsLegacy = (): readonly LegacyGuildLevelDef[] =>
+  getOfficialGuildLevelDefs().map(toLegacyGuildLevelDef)
 
 const toLegacySecretNoteReward = (
   reward: Readonly<NonNullable<SecretNoteContentDef['reward']>>

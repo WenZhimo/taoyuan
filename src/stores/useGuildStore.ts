@@ -1,6 +1,13 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { MONSTER_GOALS, GUILD_SHOP_ITEMS, GUILD_DONATIONS, GUILD_LEVELS, GUILD_BONUS_PER_LEVEL } from '@/data/guild'
+import {
+  GUILD_BONUS_PER_LEVEL,
+  GUILD_SHOP_ITEMS,
+  getGuildDonationByItemId,
+  getGuildLevels,
+  getMonsterGoalByMonsterId,
+  getMonsterGoals
+} from '@/data/guild'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { useGameStore } from './useGameStore'
@@ -67,17 +74,17 @@ export const useGuildStore = defineStore('guild', () => {
 
   /** 已完成的讨伐目标数 */
   const completedGoalCount = computed(() => {
-    return MONSTER_GOALS.filter(g => (monsterKills.value[g.monsterId] ?? 0) >= g.killTarget).length
+    return getMonsterGoals().filter(g => (monsterKills.value[g.monsterId] ?? 0) >= g.killTarget).length
   })
 
   /** 可领取奖励的目标 */
   const claimableGoals = computed(() => {
-    return MONSTER_GOALS.filter(g => (monsterKills.value[g.monsterId] ?? 0) >= g.killTarget && !claimedGoals.value.includes(g.monsterId))
+    return getMonsterGoals().filter(g => (monsterKills.value[g.monsterId] ?? 0) >= g.killTarget && !claimedGoals.value.includes(g.monsterId))
   })
 
   /** 领取讨伐奖励 */
   const claimGoal = (monsterId: string): boolean => {
-    const goal = MONSTER_GOALS.find(g => g.monsterId === monsterId)
+    const goal = getMonsterGoalByMonsterId(monsterId)
     if (!goal) return false
     if ((monsterKills.value[monsterId] ?? 0) < goal.killTarget) return false
     if (claimedGoals.value.includes(monsterId)) return false
@@ -135,8 +142,9 @@ export const useGuildStore = defineStore('guild', () => {
 
   /** 检查升级 */
   const checkLevelUp = () => {
-    while (guildLevel.value < GUILD_LEVELS.length) {
-      const next = GUILD_LEVELS[guildLevel.value]
+    const levels = getGuildLevels()
+    while (guildLevel.value < levels.length) {
+      const next = levels[guildLevel.value]
       if (!next || guildExp.value < next.expRequired) break
       guildLevel.value++
       addLog(`冒险家公会等级提升到 ${guildLevel.value} 级！`)
@@ -145,7 +153,7 @@ export const useGuildStore = defineStore('guild', () => {
 
   /** 捐献物品 */
   const donateItem = (itemId: string, quantity: number): { success: boolean; pointsGained: number } => {
-    const donation = GUILD_DONATIONS.find(d => d.itemId === itemId)
+    const donation = getGuildDonationByItemId(itemId)
     if (!donation) return { success: false, pointsGained: 0 }
     const inventoryStore = useInventoryStore()
     const available = inventoryStore.getItemCount(itemId)
@@ -308,7 +316,7 @@ export const useGuildStore = defineStore('guild', () => {
     if (isOldSave && claimedGoals.value.length > 0) {
       let migratedPoints = 0
       for (const monsterId of claimedGoals.value) {
-        const goal = MONSTER_GOALS.find(g => g.monsterId === monsterId)
+        const goal = getMonsterGoalByMonsterId(monsterId)
         if (goal) {
           migratedPoints += Math.floor((goal.reward.money ?? 0) / 20) + goal.killTarget
         }

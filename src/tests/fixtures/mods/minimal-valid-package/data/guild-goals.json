@@ -1,0 +1,25 @@
+[
+  {
+    "id": "example_mod:guild_goal/test_monster",
+    "monsterId": "example_mod:test_monster",
+    "monsterName": {
+      "key": "example_mod.guild_goal.test_monster.monsterName",
+      "fallback": "测试怪物"
+    },
+    "zone": "shallow",
+    "killTarget": 1,
+    "reward": {
+      "money": 10,
+      "items": [
+        {
+          "itemId": "example_mod:test_item",
+          "quantity": 1
+        }
+      ]
+    },
+    "description": {
+      "key": "example_mod.guild_goal.test_monster.description",
+      "fallback": "测试行会目标"
+    }
+  }
+]

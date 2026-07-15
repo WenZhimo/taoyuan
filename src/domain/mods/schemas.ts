@@ -320,6 +320,64 @@ export const MuseumMilestoneDefSchema = Type.Object(
   { $id: 'taoyuan.registry.MuseumMilestoneDef', additionalProperties: false }
 )
 
+export const GuildGoalZoneSchema = Type.Union([
+  Type.Literal('shallow'),
+  Type.Literal('frost'),
+  Type.Literal('lava'),
+  Type.Literal('crystal'),
+  Type.Literal('shadow'),
+  Type.Literal('abyss'),
+  Type.Literal('boss'),
+  Type.Literal('skull')
+])
+
+export const GuildGoalRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const GuildGoalRewardSchema = Type.Object(
+  {
+    money: Type.Optional(Type.Integer({ minimum: 0 })),
+    items: Type.Optional(Type.Array(GuildGoalRewardItemSchema, { minItems: 1 }))
+  },
+  { additionalProperties: false }
+)
+
+export const GuildGoalDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    monsterId: ContentIdSchema,
+    monsterName: LocalizedTextRefSchema,
+    zone: GuildGoalZoneSchema,
+    killTarget: Type.Integer({ minimum: 1 }),
+    reward: GuildGoalRewardSchema,
+    description: LocalizedTextRefSchema
+  },
+  { $id: 'taoyuan.registry.GuildGoalDef', additionalProperties: false }
+)
+
+export const GuildDonationDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    itemId: ContentIdSchema,
+    points: Type.Integer({ minimum: 1 })
+  },
+  { $id: 'taoyuan.registry.GuildDonationDef', additionalProperties: false }
+)
+
+export const GuildLevelDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    level: Type.Integer({ minimum: 1 }),
+    expRequired: Type.Integer({ minimum: 0 })
+  },
+  { $id: 'taoyuan.registry.GuildLevelDef', additionalProperties: false }
+)
+
 export const SecretNoteTypeSchema = Type.Union([
   Type.Literal('tip'),
   Type.Literal('treasure'),
@@ -1163,6 +1221,9 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:museum_category': MuseumCategoryDefSchema,
   'taoyuan:museum_item': MuseumItemDefSchema,
   'taoyuan:museum_milestone': MuseumMilestoneDefSchema,
+  'taoyuan:guild_goal': GuildGoalDefSchema,
+  'taoyuan:guild_donation': GuildDonationDefSchema,
+  'taoyuan:guild_level': GuildLevelDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
@@ -1203,6 +1264,9 @@ export const PUBLIC_JSON_SCHEMAS = {
   'museum-category.schema.json': MuseumCategoryDefSchema,
   'museum-item.schema.json': MuseumItemDefSchema,
   'museum-milestone.schema.json': MuseumMilestoneDefSchema,
+  'guild-goal.schema.json': GuildGoalDefSchema,
+  'guild-donation.schema.json': GuildDonationDefSchema,
+  'guild-level.schema.json': GuildLevelDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
@@ -1251,6 +1315,12 @@ export type MuseumItemDef = Static<typeof MuseumItemDefSchema>
 export type MuseumMilestoneRewardItem = Static<typeof MuseumMilestoneRewardItemSchema>
 export type MuseumMilestoneReward = Static<typeof MuseumMilestoneRewardSchema>
 export type MuseumMilestoneDef = Static<typeof MuseumMilestoneDefSchema>
+export type GuildGoalZone = Static<typeof GuildGoalZoneSchema>
+export type GuildGoalRewardItem = Static<typeof GuildGoalRewardItemSchema>
+export type GuildGoalReward = Static<typeof GuildGoalRewardSchema>
+export type GuildGoalDef = Static<typeof GuildGoalDefSchema>
+export type GuildDonationDef = Static<typeof GuildDonationDefSchema>
+export type GuildLevelDef = Static<typeof GuildLevelDefSchema>
 export type SecretNoteType = Static<typeof SecretNoteTypeSchema>
 export type SecretNoteRewardItem = Static<typeof SecretNoteRewardItemSchema>
 export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>

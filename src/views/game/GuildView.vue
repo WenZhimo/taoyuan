@@ -507,15 +507,15 @@
         <div class="flex-1 h-1 bg-bg rounded-xs border border-accent/10">
           <div
             class="h-full bg-accent rounded-xs transition-all"
-            :style="{ width: Math.round((guildStore.completedGoalCount / MONSTER_GOALS.length) * 100) + '%' }"
+            :style="{ width: Math.round((guildStore.completedGoalCount / monsterGoals.length) * 100) + '%' }"
           />
         </div>
-        <span class="text-accent whitespace-nowrap">{{ Math.round((guildStore.completedGoalCount / MONSTER_GOALS.length) * 100) }}%</span>
+        <span class="text-accent whitespace-nowrap">{{ Math.round((guildStore.completedGoalCount / monsterGoals.length) * 100) }}%</span>
       </div>
       <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
         <div class="flex items-center justify-between">
           <span class="text-xs text-muted">已完成讨伐</span>
-          <span class="text-xs">{{ guildStore.completedGoalCount }}/{{ MONSTER_GOALS.length }}</span>
+          <span class="text-xs">{{ guildStore.completedGoalCount }}/{{ monsterGoals.length }}</span>
         </div>
         <div class="flex items-center justify-between">
           <span class="text-xs text-muted">已领取奖励</span>
@@ -541,7 +541,7 @@
   import { useGuildStore } from '@/stores/useGuildStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
-  import { MONSTER_GOALS, GUILD_SHOP_ITEMS, GUILD_DONATIONS } from '@/data/guild'
+  import { GUILD_SHOP_ITEMS, getGuildDonations, getMonsterGoals } from '@/data/guild'
   import { MONSTER_DROP_WEAPONS, BOSS_DROP_WEAPONS, getWeaponById } from '@/data/weapons'
   import { MONSTER_DROP_RINGS, BOSS_DROP_RINGS, getRingById } from '@/data/rings'
   import { MONSTER_DROP_HATS, BOSS_DROP_HATS, getHatById } from '@/data/hats'
@@ -569,6 +569,8 @@
   const shopBuyQty = ref(1)
   const selectedGoal = ref<MonsterGoalDef | null>(null)
   const selectedMonster = ref<MonsterDef | null>(null)
+  const monsterGoals = computed(() => getMonsterGoals())
+  const guildDonations = computed(() => getGuildDonations())
 
   const openShopModal = (item: GuildShopItemDef) => {
     shopModalItem.value = item
@@ -686,7 +688,7 @@
 
   /** 可捐献物品列表 */
   const donatableItems = computed(() => {
-    return GUILD_DONATIONS.map(donation => {
+    return guildDonations.value.map(donation => {
       const count = inventoryStore.getItemCount(donation.itemId)
       const def = getItemById(donation.itemId)
       return { itemId: donation.itemId, name: def?.name ?? donation.itemId, count, points: donation.points }
@@ -706,8 +708,8 @@
   ]
 
   const filteredGoals = computed(() => {
-    if (goalZone.value === 'all') return MONSTER_GOALS
-    return MONSTER_GOALS.filter(g => g.zone === goalZone.value)
+    if (goalZone.value === 'all') return monsterGoals.value
+    return monsterGoals.value.filter(g => g.zone === goalZone.value)
   })
 
   const getKillCount = (monsterId: string): number => {

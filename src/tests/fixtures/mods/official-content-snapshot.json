@@ -23043,6 +23043,852 @@
       ]
     },
     {
+      "registryId": "taoyuan:guild_donation",
+      "schemaName": "guild-donation.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/copper_ore",
+            "itemId": "taoyuan:copper_ore",
+            "points": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/crystal_ore",
+            "itemId": "taoyuan:crystal_ore",
+            "points": 12
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/dragon_jade",
+            "itemId": "taoyuan:dragon_jade",
+            "points": 50
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/gold_ore",
+            "itemId": "taoyuan:gold_ore",
+            "points": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/iridium_ore",
+            "itemId": "taoyuan:iridium_ore",
+            "points": 35
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/iron_ore",
+            "itemId": "taoyuan:iron_ore",
+            "points": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/jade",
+            "itemId": "taoyuan:jade",
+            "points": 12
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/moonstone",
+            "itemId": "taoyuan:moonstone",
+            "points": 25
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/obsidian",
+            "itemId": "taoyuan:obsidian",
+            "points": 35
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/prismatic_shard",
+            "itemId": "taoyuan:prismatic_shard",
+            "points": 80
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/quartz",
+            "itemId": "taoyuan:quartz",
+            "points": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/ruby",
+            "itemId": "taoyuan:ruby",
+            "points": 18
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/shadow_ore",
+            "itemId": "taoyuan:shadow_ore",
+            "points": 18
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:guild_donation/void_ore",
+            "itemId": "taoyuan:void_ore",
+            "points": 25
+          }
+        }
+      ]
+    },
+    {
+      "registryId": "taoyuan:guild_goal",
+      "schemaName": "guild-goal.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "三次击败深渊龙王。",
+              "key": "taoyuan.guild_goal.abyss_dragon.description"
+            },
+            "id": "taoyuan:guild_goal/abyss_dragon",
+            "killTarget": 3,
+            "monsterId": "taoyuan:abyss_dragon",
+            "monsterName": {
+              "fallback": "深渊龙王",
+              "key": "taoyuan.guild_goal.abyss_dragon.monsterName"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:dragon_jade",
+                  "quantity": 2
+                }
+              ],
+              "money": 6000
+            },
+            "zone": "boss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "讨伐深渊层的巨蟒。",
+              "key": "taoyuan.guild_goal.abyss_serpent.description"
+            },
+            "id": "taoyuan:guild_goal/abyss_serpent",
+            "killTarget": 100,
+            "monsterId": "taoyuan:abyss_serpent",
+            "monsterName": {
+              "fallback": "深渊巨蟒",
+              "key": "taoyuan.guild_goal.abyss_serpent.monsterName"
+            },
+            "reward": {
+              "money": 3000
+            },
+            "zone": "abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在骷髅矿穴中击败远古木乃伊。",
+              "key": "taoyuan.guild_goal.ancient_mummy.description"
+            },
+            "id": "taoyuan:guild_goal/ancient_mummy",
+            "killTarget": 50,
+            "monsterId": "taoyuan:ancient_mummy",
+            "monsterName": {
+              "fallback": "远古木乃伊",
+              "key": "taoyuan.guild_goal.ancient_mummy.monsterName"
+            },
+            "reward": {
+              "money": 5000
+            },
+            "zone": "skull"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "击败深渊层的骨龙。",
+              "key": "taoyuan.guild_goal.bone_dragon.description"
+            },
+            "id": "taoyuan:guild_goal/bone_dragon",
+            "killTarget": 100,
+            "monsterId": "taoyuan:bone_dragon",
+            "monsterName": {
+              "fallback": "骨龙",
+              "key": "taoyuan.guild_goal.bone_dragon.monsterName"
+            },
+            "reward": {
+              "money": 4000
+            },
+            "zone": "abyss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "粉碎水晶层的魔像。",
+              "key": "taoyuan.guild_goal.crystal_golem.description"
+            },
+            "id": "taoyuan:guild_goal/crystal_golem",
+            "killTarget": 50,
+            "monsterId": "taoyuan:crystal_golem",
+            "monsterName": {
+              "fallback": "水晶魔像",
+              "key": "taoyuan.guild_goal.crystal_golem.monsterName"
+            },
+            "reward": {
+              "money": 1500
+            },
+            "zone": "crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "三次击败水晶之王。",
+              "key": "taoyuan.guild_goal.crystal_king.description"
+            },
+            "id": "taoyuan:guild_goal/crystal_king",
+            "killTarget": 3,
+            "monsterId": "taoyuan:crystal_king",
+            "monsterName": {
+              "fallback": "水晶之王",
+              "key": "taoyuan.guild_goal.crystal_king.monsterName"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:moonstone",
+                  "quantity": 3
+                }
+              ],
+              "money": 2500
+            },
+            "zone": "boss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "击退熔岩层的火蝠。",
+              "key": "taoyuan.guild_goal.fire_bat.description"
+            },
+            "id": "taoyuan:guild_goal/fire_bat",
+            "killTarget": 50,
+            "monsterId": "taoyuan:fire_bat",
+            "monsterName": {
+              "fallback": "火蝠",
+              "key": "taoyuan.guild_goal.fire_bat.monsterName"
+            },
+            "reward": {
+              "money": 800
+            },
+            "zone": "lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "三次击败冰霜女王。",
+              "key": "taoyuan.guild_goal.frost_queen.description"
+            },
+            "id": "taoyuan:guild_goal/frost_queen",
+            "killTarget": 3,
+            "monsterId": "taoyuan:frost_queen",
+            "monsterName": {
+              "fallback": "冰霜女王",
+              "key": "taoyuan.guild_goal.frost_queen.monsterName"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:iron_bar",
+                  "quantity": 10
+                }
+              ],
+              "money": 800
+            },
+            "zone": "boss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "驱散冰霜层的幽灵。",
+              "key": "taoyuan.guild_goal.ghost.description"
+            },
+            "id": "taoyuan:guild_goal/ghost",
+            "killTarget": 25,
+            "monsterId": "taoyuan:ghost",
+            "monsterName": {
+              "fallback": "幽灵",
+              "key": "taoyuan.guild_goal.ghost.monsterName"
+            },
+            "reward": {
+              "money": 500
+            },
+            "zone": "frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "击落冰霜层的冰蝠。",
+              "key": "taoyuan.guild_goal.ice_bat.description"
+            },
+            "id": "taoyuan:guild_goal/ice_bat",
+            "killTarget": 25,
+            "monsterId": "taoyuan:ice_bat",
+            "monsterName": {
+              "fallback": "冰蝠",
+              "key": "taoyuan.guild_goal.ice_bat.monsterName"
+            },
+            "reward": {
+              "money": 500
+            },
+            "zone": "frost"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在骷髅矿穴中讨伐铱金魔像。",
+              "key": "taoyuan.guild_goal.iridium_golem.description"
+            },
+            "id": "taoyuan:guild_goal/iridium_golem",
+            "killTarget": 50,
+            "monsterId": "taoyuan:iridium_golem",
+            "monsterName": {
+              "fallback": "铱金魔像",
+              "key": "taoyuan.guild_goal.iridium_golem.monsterName"
+            },
+            "reward": {
+              "money": 3000
+            },
+            "zone": "skull"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "三次击败熔岩君主。",
+              "key": "taoyuan.guild_goal.lava_lord.description"
+            },
+            "id": "taoyuan:guild_goal/lava_lord",
+            "killTarget": 3,
+            "monsterId": "taoyuan:lava_lord",
+            "monsterName": {
+              "fallback": "熔岩君主",
+              "key": "taoyuan.guild_goal.lava_lord.monsterName"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:gold_bar",
+                  "quantity": 10
+                }
+              ],
+              "money": 1500
+            },
+            "zone": "boss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "三次击败泥岩巨兽。",
+              "key": "taoyuan.guild_goal.mud_golem.description"
+            },
+            "id": "taoyuan:guild_goal/mud_golem",
+            "killTarget": 3,
+            "monsterId": "taoyuan:mud_golem",
+            "monsterName": {
+              "fallback": "泥岩巨兽",
+              "key": "taoyuan.guild_goal.mud_golem.monsterName"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:copper_bar",
+                  "quantity": 10
+                }
+              ],
+              "money": 500
+            },
+            "zone": "boss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "清除浅层的泥虫。",
+              "key": "taoyuan.guild_goal.mud_worm.description"
+            },
+            "id": "taoyuan:guild_goal/mud_worm",
+            "killTarget": 25,
+            "monsterId": "taoyuan:mud_worm",
+            "monsterName": {
+              "fallback": "泥虫",
+              "key": "taoyuan.guild_goal.mud_worm.monsterName"
+            },
+            "reward": {
+              "money": 200
+            },
+            "zone": "shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "消灭水晶层的棱镜蛛。",
+              "key": "taoyuan.guild_goal.prism_spider.description"
+            },
+            "id": "taoyuan:guild_goal/prism_spider",
+            "killTarget": 50,
+            "monsterId": "taoyuan:prism_spider",
+            "monsterName": {
+              "fallback": "棱镜蛛",
+              "key": "taoyuan.guild_goal.prism_spider.monsterName"
+            },
+            "reward": {
+              "money": 1500
+            },
+            "zone": "crystal"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "猎杀暗影层的潜伏者。",
+              "key": "taoyuan.guild_goal.shadow_lurker.description"
+            },
+            "id": "taoyuan:guild_goal/shadow_lurker",
+            "killTarget": 75,
+            "monsterId": "taoyuan:shadow_lurker",
+            "monsterName": {
+              "fallback": "暗影潜伏者",
+              "key": "taoyuan.guild_goal.shadow_lurker.monsterName"
+            },
+            "reward": {
+              "money": 2000
+            },
+            "zone": "shadow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "三次击败暗影君主。",
+              "key": "taoyuan.guild_goal.shadow_sovereign.description"
+            },
+            "id": "taoyuan:guild_goal/shadow_sovereign",
+            "killTarget": 3,
+            "monsterId": "taoyuan:shadow_sovereign",
+            "monsterName": {
+              "fallback": "暗影君主",
+              "key": "taoyuan.guild_goal.shadow_sovereign.monsterName"
+            },
+            "reward": {
+              "items": [
+                {
+                  "itemId": "taoyuan:obsidian",
+                  "quantity": 3
+                }
+              ],
+              "money": 4000
+            },
+            "zone": "boss"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "击败熔岩层的暗影武士。",
+              "key": "taoyuan.guild_goal.shadow_warrior.description"
+            },
+            "id": "taoyuan:guild_goal/shadow_warrior",
+            "killTarget": 50,
+            "monsterId": "taoyuan:shadow_warrior",
+            "monsterName": {
+              "fallback": "暗影武士",
+              "key": "taoyuan.guild_goal.shadow_warrior.monsterName"
+            },
+            "reward": {
+              "money": 1000
+            },
+            "zone": "lava"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "在骷髅矿穴中消灭骷髅飞蛇。",
+              "key": "taoyuan.guild_goal.skull_serpent.description"
+            },
+            "id": "taoyuan:guild_goal/skull_serpent",
+            "killTarget": 50,
+            "monsterId": "taoyuan:skull_serpent",
+            "monsterName": {
+              "fallback": "骷髅飞蛇",
+              "key": "taoyuan.guild_goal.skull_serpent.monsterName"
+            },
+            "reward": {
+              "money": 3000
+            },
+            "zone": "skull"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "消灭浅层的石蟹。",
+              "key": "taoyuan.guild_goal.stone_crab.description"
+            },
+            "id": "taoyuan:guild_goal/stone_crab",
+            "killTarget": 25,
+            "monsterId": "taoyuan:stone_crab",
+            "monsterName": {
+              "fallback": "石蟹",
+              "key": "taoyuan.guild_goal.stone_crab.monsterName"
+            },
+            "reward": {
+              "money": 300
+            },
+            "zone": "shallow"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "净化暗影层的虚空幽魂。",
+              "key": "taoyuan.guild_goal.void_wraith.description"
+            },
+            "id": "taoyuan:guild_goal/void_wraith",
+            "killTarget": 75,
+            "monsterId": "taoyuan:void_wraith",
+            "monsterName": {
+              "fallback": "虚空幽魂",
+              "key": "taoyuan.guild_goal.void_wraith.monsterName"
+            },
+            "reward": {
+              "money": 2500
+            },
+            "zone": "shadow"
+          }
+        }
+      ]
+    },
+    {
+      "registryId": "taoyuan:guild_level",
+      "schemaName": "guild-level.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 100,
+            "id": "taoyuan:guild_level/1",
+            "level": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 7500,
+            "id": "taoyuan:guild_level/10",
+            "level": 10
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 300,
+            "id": "taoyuan:guild_level/2",
+            "level": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 600,
+            "id": "taoyuan:guild_level/3",
+            "level": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 1000,
+            "id": "taoyuan:guild_level/4",
+            "level": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 1500,
+            "id": "taoyuan:guild_level/5",
+            "level": 5
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 2200,
+            "id": "taoyuan:guild_level/6",
+            "level": 6
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 3000,
+            "id": "taoyuan:guild_level/7",
+            "level": 7
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 4000,
+            "id": "taoyuan:guild_level/8",
+            "level": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/guildDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "expRequired": 5500,
+            "id": "taoyuan:guild_level/9",
+            "level": 9
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:item",
       "schemaName": "item.schema.json",
       "entries": [
@@ -84062,5 +84908,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:e2071c7176d3508ee82a61c33df8027e10f76bc5fe285c7fb2b4c7b875b184fe"
+  "snapshotHash": "sha256:3d82f4b53d22003106d7196ef050c716c890b374b90c8866502bcc6748db40f8"
 }

@@ -1,0 +1,25 @@
+{
+  "$id": "taoyuan.registry.GuildDonationDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "itemId",
+    "points"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "itemId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "points": {
+      "minimum": 1,
+      "type": "integer"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

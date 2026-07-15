@@ -24,6 +24,9 @@ import type {
   MuseumCategoryDef,
   MuseumItemDef,
   MuseumMilestoneDef,
+  GuildDonationDef,
+  GuildGoalDef,
+  GuildLevelDef,
   MonsterDef,
   MonsterPoolDef,
   PackageManifest,
@@ -54,6 +57,9 @@ const REGISTRY_IDS = {
   museumCategory: toOfficialRegistryTypeId('museum_category'),
   museumItem: toOfficialRegistryTypeId('museum_item'),
   museumMilestone: toOfficialRegistryTypeId('museum_milestone'),
+  guildGoal: toOfficialRegistryTypeId('guild_goal'),
+  guildDonation: toOfficialRegistryTypeId('guild_donation'),
+  guildLevel: toOfficialRegistryTypeId('guild_level'),
   secretNote: toOfficialRegistryTypeId('secret_note'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
   processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
@@ -109,6 +115,9 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const museumCategoryRegistry = registrySet.get<MuseumCategoryDef>(REGISTRY_IDS.museumCategory)
   const museumItemRegistry = registrySet.get<MuseumItemDef>(REGISTRY_IDS.museumItem)
   const museumMilestoneRegistry = registrySet.get<MuseumMilestoneDef>(REGISTRY_IDS.museumMilestone)
+  const guildGoalRegistry = registrySet.get<GuildGoalDef>(REGISTRY_IDS.guildGoal)
+  const guildDonationRegistry = registrySet.get<GuildDonationDef>(REGISTRY_IDS.guildDonation)
+  const guildLevelRegistry = registrySet.get<GuildLevelDef>(REGISTRY_IDS.guildLevel)
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
@@ -380,6 +389,52 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         })
       }
     })
+  }
+
+  for (const record of guildGoalRegistry.entries()) {
+    if (!monsterRegistry.has(contentId(record.entry.monsterId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.monster,
+        contentId: contentId(record.entry.monsterId),
+        fieldPath: '/monsterId'
+      })
+    }
+    record.entry.reward.items?.forEach((item, index) => {
+      if (!itemRegistry.has(contentId(item.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(item.itemId),
+          fieldPath: `/reward/items/${index}/itemId`
+        })
+      }
+    })
+  }
+
+  for (const record of guildDonationRegistry.entries()) {
+    if (!itemRegistry.has(contentId(record.entry.itemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.itemId),
+        fieldPath: '/itemId'
+      })
+    }
+  }
+
+  for (const record of guildLevelRegistry.entries()) {
+    if (record.entry.expRequired < 0) {
+      diagnostics.push(
+        createDiagnostic('SCHEMA-VALIDATE-001', {
+          stage: 'registry.semantic',
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.guildLevel,
+          contentId: contentId(record.entry.id),
+          fieldPath: '/expRequired'
+        })
+      )
+    }
   }
 
   for (const record of secretNoteRegistry.entries()) {

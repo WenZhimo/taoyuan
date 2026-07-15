@@ -23,37 +23,108 @@
   "issues": "https://example.com/mod/issues",
   "dependencies": [],
   "entrypoints": {
-    "taoyuan:tag": ["data/tags.json"],
-    "taoyuan:item": ["data/items.json"],
-    "taoyuan:fish": ["data/fish.json"],
-    "taoyuan:pondable_fish": ["data/pondable-fish.json"],
-    "taoyuan:pond_breed": ["data/pond-breeds.json"],
-    "taoyuan:fish_pond_facility": ["data/fish-pond-facilities.json"],
-    "taoyuan:building_upgrade": ["data/building-upgrades.json"],
-    "taoyuan:forage": ["data/forage.json"],
-    "taoyuan:animal": ["data/animals.json"],
-    "taoyuan:animal_feed": ["data/animal-feeds.json"],
-    "taoyuan:wallet_item": ["data/wallet-items.json"],
-    "taoyuan:museum_category": ["data/museum-categories.json"],
-    "taoyuan:museum_item": ["data/museum-items.json"],
-    "taoyuan:museum_milestone": ["data/museum-milestones.json"],
-    "taoyuan:secret_note": ["data/secret-notes.json"],
-    "taoyuan:tutorial": ["data/tutorials.json"],
-    "taoyuan:farm_map": ["data/farm-maps.json"],
-    "taoyuan:animal_building": ["data/animal-buildings.json"],
-    "taoyuan:animal_incubation": ["data/animal-incubations.json"],
-    "taoyuan:processing_machine": ["data/processing-machines.json"],
-    "taoyuan:processing_recipe": ["data/processing-recipes.json"],
-    "taoyuan:tree": ["data/trees.json"],
-    "taoyuan:monster": ["data/monsters.json"],
-    "taoyuan:monster_pool": ["data/monster-pools.json"],
-    "taoyuan:enchantment": ["data/enchantments.json"],
-    "taoyuan:equipment": ["data/equipment.json"],
-    "taoyuan:equipment_set": ["data/equipment-sets.json"],
-    "taoyuan:drop_table": ["data/drop-tables.json"],
-    "taoyuan:recipe": ["data/recipes.json"],
-    "taoyuan:shop_offer": ["data/shop-offers.json"],
-    "taoyuan:tool_upgrade": ["data/tool-upgrades.json"]
+    "taoyuan:tag": [
+      "data/tags.json"
+    ],
+    "taoyuan:item": [
+      "data/items.json"
+    ],
+    "taoyuan:fish": [
+      "data/fish.json"
+    ],
+    "taoyuan:pondable_fish": [
+      "data/pondable-fish.json"
+    ],
+    "taoyuan:pond_breed": [
+      "data/pond-breeds.json"
+    ],
+    "taoyuan:fish_pond_facility": [
+      "data/fish-pond-facilities.json"
+    ],
+    "taoyuan:building_upgrade": [
+      "data/building-upgrades.json"
+    ],
+    "taoyuan:forage": [
+      "data/forage.json"
+    ],
+    "taoyuan:animal": [
+      "data/animals.json"
+    ],
+    "taoyuan:animal_feed": [
+      "data/animal-feeds.json"
+    ],
+    "taoyuan:wallet_item": [
+      "data/wallet-items.json"
+    ],
+    "taoyuan:museum_category": [
+      "data/museum-categories.json"
+    ],
+    "taoyuan:museum_item": [
+      "data/museum-items.json"
+    ],
+    "taoyuan:museum_milestone": [
+      "data/museum-milestones.json"
+    ],
+    "taoyuan:secret_note": [
+      "data/secret-notes.json"
+    ],
+    "taoyuan:tutorial": [
+      "data/tutorials.json"
+    ],
+    "taoyuan:farm_map": [
+      "data/farm-maps.json"
+    ],
+    "taoyuan:animal_building": [
+      "data/animal-buildings.json"
+    ],
+    "taoyuan:animal_incubation": [
+      "data/animal-incubations.json"
+    ],
+    "taoyuan:processing_machine": [
+      "data/processing-machines.json"
+    ],
+    "taoyuan:processing_recipe": [
+      "data/processing-recipes.json"
+    ],
+    "taoyuan:tree": [
+      "data/trees.json"
+    ],
+    "taoyuan:monster": [
+      "data/monsters.json"
+    ],
+    "taoyuan:monster_pool": [
+      "data/monster-pools.json"
+    ],
+    "taoyuan:enchantment": [
+      "data/enchantments.json"
+    ],
+    "taoyuan:equipment": [
+      "data/equipment.json"
+    ],
+    "taoyuan:equipment_set": [
+      "data/equipment-sets.json"
+    ],
+    "taoyuan:drop_table": [
+      "data/drop-tables.json"
+    ],
+    "taoyuan:recipe": [
+      "data/recipes.json"
+    ],
+    "taoyuan:shop_offer": [
+      "data/shop-offers.json"
+    ],
+    "taoyuan:tool_upgrade": [
+      "data/tool-upgrades.json"
+    ],
+    "taoyuan:guild_goal": [
+      "data/guild-goals.json"
+    ],
+    "taoyuan:guild_donation": [
+      "data/guild-donations.json"
+    ],
+    "taoyuan:guild_level": [
+      "data/guild-levels.json"
+    ]
   },
   "attributions": "attributions.json",
   "assets": "assets"

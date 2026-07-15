@@ -289,6 +289,24 @@ fileDefaults.set('src/data/museum.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/guildDefinitions.ts', {
+  file: 'src/data/guildDefinitions.ts',
+  classification: 'mixed',
+  domains: ['guild_goal', 'guild_shop', 'guild_donation', 'guild_level', 'guild_bonus'],
+  candidateTargets: ['taoyuan:guild_goal', 'taoyuan:shop_offer', 'taoyuan:guild_donation', 'taoyuan:guild_level', 'engine/domain/guild'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/guild.ts', {
+  file: 'src/data/guild.ts',
+  classification: 'mixed',
+  domains: ['guild_goal', 'guild_shop', 'guild_donation', 'guild_level', 'guild_bonus', 'lookup'],
+  candidateTargets: ['taoyuan:guild_goal', 'taoyuan:shop_offer', 'taoyuan:guild_donation', 'taoyuan:guild_level', 'engine/domain/guild', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/secretNotes.ts', {
   file: 'src/data/secretNotes.ts',
   classification: 'content',
@@ -1037,6 +1055,126 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy museum milestone count lookup is retained and now resolves taoyuan:museum_milestone before returning an equivalent reward object.'
+  },
+  'src/data/guildDefinitions.ts:MONSTER_GOALS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy guild monster goals; Phase 6 projects monster IDs, zones, kill targets, rewards and descriptions into taoyuan:guild_goal.'
+  },
+  'src/data/guildDefinitions.ts:GUILD_DONATIONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy guild donation point values; Phase 6 projects item IDs and contribution points into taoyuan:guild_donation.'
+  },
+  'src/data/guildDefinitions.ts:GUILD_LEVELS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:guild_level',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy guild level experience thresholds; Phase 6 projects levels and required experience into taoyuan:guild_level.'
+  },
+  'src/data/guildDefinitions.ts:GUILD_SHOP_ITEMS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for guild shop offers already projected by the Phase 3 shop_offer adapter; this guild slice does not migrate guild shop behavior again.'
+  },
+  'src/data/guildDefinitions.ts:GUILD_BONUS_PER_LEVEL': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/guild',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Per-level passive bonus rule remains framework-owned and is not content data in the guild definition registry slice.'
+  },
+  'src/data/guild.ts:MONSTER_GOALS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy MONSTER_GOALS imports stable while guild Store and UI use registry-backed query facades.'
+  },
+  'src/data/guild.ts:GUILD_DONATIONS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy GUILD_DONATIONS imports stable while donation lookups resolve taoyuan:guild_donation.'
+  },
+  'src/data/guild.ts:GUILD_LEVELS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_level',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy GUILD_LEVELS imports stable while level thresholds resolve taoyuan:guild_level.'
+  },
+  'src/data/guild.ts:GUILD_SHOP_ITEMS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps guild shop imports stable; shop offers remain owned by the existing taoyuan:shop_offer projection.'
+  },
+  'src/data/guild.ts:GUILD_BONUS_PER_LEVEL': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/guild',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Guild level passive bonus remains a framework rule and is re-exported for compatibility.'
+  },
+  'src/data/guild.ts:getMonsterGoals': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy guild goal list query returns local-ID compatibility objects reconstructed from taoyuan:guild_goal.'
+  },
+  'src/data/guild.ts:getMonsterGoalByMonsterId': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy monster goal lookup is retained and now resolves taoyuan:guild_goal by local or namespaced monster ID before returning an equivalent object.'
+  },
+  'src/data/guild.ts:getGuildDonations': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy donation list query returns local-ID compatibility objects reconstructed from taoyuan:guild_donation.'
+  },
+  'src/data/guild.ts:getGuildDonationByItemId': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy donation item lookup is retained and now resolves taoyuan:guild_donation by local or namespaced item ID before returning an equivalent point value.'
+  },
+  'src/data/guild.ts:getGuildLevels': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_level',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy guild level list query returns compatibility objects reconstructed from taoyuan:guild_level.'
+  },
+  'src/data/guild.ts:getGuildLevelByLevel': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_level',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy guild level lookup is retained and now resolves taoyuan:guild_level before returning an equivalent threshold object.'
   },
   'src/data/secretNotes.ts:SECRET_NOTES': {
     classification: 'content',
@@ -3120,6 +3258,116 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Returns frozen registry wallet item definitions and reconstructs legacy WalletItemDef compatibility objects for Store and UI consumers.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'GuildGoalDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for guild monster goals, including monster references, zones, kill targets, money rewards, item rewards and descriptions.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'GuildDonationDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for guild donation point definitions, including item references and positive point values.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'GuildLevelDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:guild_level',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for guild level experience thresholds; generated guild-level.schema.json rejects invalid levels and negative thresholds.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyGuildGoal/createOfficialGuildGoals',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy monster goal into ordered official entries without changing monster IDs, displayed names, zones, kill targets, rewards or descriptions.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyGuildDonation/createOfficialGuildDonations',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy guild donation definition into ordered official entries without changing item IDs or contribution point values.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyGuildLevel/createOfficialGuildLevels',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_level',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy guild level threshold into ordered official entries without changing level numbers or required experience.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialGuildGoalDef/getOfficialGuildGoalDefs/getOfficialGuildGoalByMonsterId/getOfficialGuildGoalsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry guild goal definitions and reconstructs legacy MonsterGoalDef objects for Store and GuildView consumers.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialGuildDonationDef/getOfficialGuildDonationDefs/getOfficialGuildDonationByItemId/getOfficialGuildDonationsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry guild donation definitions and reconstructs legacy GuildDonationDef objects for donation UI and Store flows.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialGuildLevelDef/getOfficialGuildLevelDefs/getOfficialGuildLevelByLevel/getOfficialGuildLevelsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_level',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry guild level definitions and reconstructs legacy GuildLevelDef objects for level-up threshold checks.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:guild_goal',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_goal',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks guild goal monster references against taoyuan:monster and reward item references against taoyuan:item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:guild_donation',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:guild_donation',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks guild donation item references against taoyuan:item before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

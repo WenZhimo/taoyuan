@@ -18,7 +18,7 @@ import {
 } from '@/data/weaponDefinitions'
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/monsters'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
-import { GUILD_SHOP_ITEMS } from '@/data/guild'
+import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
 import { SHOPS, type ShopDef as LegacyShopDef } from '@/data/shops'
 import {
@@ -114,6 +114,9 @@ import type {
   MuseumCategoryDef,
   MuseumItemDef,
   MuseumMilestoneDef,
+  GuildDonationDef,
+  GuildGoalDef,
+  GuildLevelDef,
   CropDef,
   MonsterDef,
   MonsterPoolDef,
@@ -200,6 +203,21 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('museum_milestone'),
     description: '博物馆里程碑奖励定义',
     schemaName: 'museum-milestone.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('guild_goal'),
+    description: '行会怪物讨伐目标定义',
+    schemaName: 'guild-goal.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('guild_donation'),
+    description: '行会捐献物品定义',
+    schemaName: 'guild-donation.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('guild_level'),
+    description: '行会等级经验定义',
+    schemaName: 'guild-level.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('secret_note'),
@@ -754,6 +772,45 @@ export const adaptLegacyMuseumMilestone = (milestone: (typeof MUSEUM_MILESTONES)
 export const createOfficialMuseumMilestones = (): MuseumMilestoneDef[] =>
   MUSEUM_MILESTONES.map(adaptLegacyMuseumMilestone)
 
+export const adaptLegacyGuildGoal = (goal: (typeof MONSTER_GOALS)[number]): GuildGoalDef => ({
+  id: toOfficialContentId(`guild_goal/${goal.monsterId}`),
+  monsterId: toOfficialContentId(goal.monsterId),
+  monsterName: text(`taoyuan.guild_goal.${goal.monsterId}.monsterName`, goal.monsterName),
+  zone: goal.zone as GuildGoalDef['zone'],
+  killTarget: goal.killTarget,
+  reward: {
+    ...(goal.reward.money !== undefined ? { money: goal.reward.money } : {}),
+    ...(goal.reward.items
+      ? {
+          items: goal.reward.items.map(item => ({
+            itemId: toOfficialContentId(item.itemId),
+            quantity: item.quantity
+          }))
+        }
+      : {})
+  },
+  description: text(`taoyuan.guild_goal.${goal.monsterId}.description`, goal.description)
+})
+
+export const createOfficialGuildGoals = (): GuildGoalDef[] => MONSTER_GOALS.map(adaptLegacyGuildGoal)
+
+export const adaptLegacyGuildDonation = (donation: (typeof GUILD_DONATIONS)[number]): GuildDonationDef => ({
+  id: toOfficialContentId(`guild_donation/${donation.itemId}`),
+  itemId: toOfficialContentId(donation.itemId),
+  points: donation.points
+})
+
+export const createOfficialGuildDonations = (): GuildDonationDef[] =>
+  GUILD_DONATIONS.map(adaptLegacyGuildDonation)
+
+export const adaptLegacyGuildLevel = (level: (typeof GUILD_LEVELS)[number]): GuildLevelDef => ({
+  id: toOfficialContentId(`guild_level/${level.level}`),
+  level: level.level,
+  expRequired: level.expRequired
+})
+
+export const createOfficialGuildLevels = (): GuildLevelDef[] => GUILD_LEVELS.map(adaptLegacyGuildLevel)
+
 export const adaptLegacySecretNote = (note: (typeof SECRET_NOTES)[number]): SecretNoteDef => ({
   id: toOfficialContentId(`secret_note/${note.id}`),
   noteId: note.id,
@@ -1304,6 +1361,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const museumCategoryRegistry = registrySet.get<MuseumCategoryDef>(toOfficialRegistryTypeId('museum_category'))
   const museumItemRegistry = registrySet.get<MuseumItemDef>(toOfficialRegistryTypeId('museum_item'))
   const museumMilestoneRegistry = registrySet.get<MuseumMilestoneDef>(toOfficialRegistryTypeId('museum_milestone'))
+  const guildGoalRegistry = registrySet.get<GuildGoalDef>(toOfficialRegistryTypeId('guild_goal'))
+  const guildDonationRegistry = registrySet.get<GuildDonationDef>(toOfficialRegistryTypeId('guild_donation'))
+  const guildLevelRegistry = registrySet.get<GuildLevelDef>(toOfficialRegistryTypeId('guild_level'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
@@ -1347,6 +1407,15 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const milestone of createOfficialMuseumMilestones()) {
     museumMilestoneRegistry.register(owner, milestone, { file: 'src/data/museumDefinitions.ts' })
+  }
+  for (const goal of createOfficialGuildGoals()) {
+    guildGoalRegistry.register(owner, goal, { file: 'src/data/guildDefinitions.ts' })
+  }
+  for (const donation of createOfficialGuildDonations()) {
+    guildDonationRegistry.register(owner, donation, { file: 'src/data/guildDefinitions.ts' })
+  }
+  for (const level of createOfficialGuildLevels()) {
+    guildLevelRegistry.register(owner, level, { file: 'src/data/guildDefinitions.ts' })
   }
   for (const note of createOfficialSecretNotes()) {
     secretNoteRegistry.register(owner, note, { file: 'src/data/secretNotes.ts' })
