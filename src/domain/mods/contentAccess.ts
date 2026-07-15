@@ -5,6 +5,7 @@ import type {
   FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
   MonsterDef as LegacyMonsterDef,
+  RingDef as LegacyRingDef,
   ToolTier,
   ToolType,
   WalletItemDef as LegacyWalletItemDef,
@@ -57,6 +58,7 @@ import type {
   CropDef,
   DropTableDef,
   EnchantmentDef,
+  EquipmentDef as EquipmentContentDef,
   EquipmentSetDef as EquipmentSetContentDef,
   FarmMapDef as FarmMapContentDef,
   FishDef as FishContentDef,
@@ -262,6 +264,43 @@ export const getOfficialEquipmentDropTableDef = (
   query: OfficialEquipmentDropTableQuery
 ): Readonly<DropTableDef> | undefined =>
   getOfficialDropTableDef(`drop/equipment/${query.source}/${query.kind}/${query.zone}`)
+
+export const getOfficialEquipmentDef = (id: string): Readonly<EquipmentContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<EquipmentContentDef>(toOfficialRegistryTypeId('equipment')).get(contentId)
+    : undefined
+}
+
+export const getOfficialEquipmentDefs = (): readonly Readonly<EquipmentContentDef>[] =>
+  getOfficialRegistrySet().get<EquipmentContentDef>(toOfficialRegistryTypeId('equipment')).values()
+
+const toLegacyRingDef = (equipment: Readonly<EquipmentContentDef>): LegacyRingDef => ({
+  id: getLocalContentId(equipment.id),
+  name: equipment.name.fallback,
+  description: equipment.description.fallback,
+  effects: equipment.effects.map(effect => ({ ...effect })),
+  recipe: equipment.recipe
+    ? equipment.recipe.map(material => ({
+        itemId: getLocalContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: equipment.recipeMoney,
+  obtainSource: equipment.obtainSource.fallback,
+  sellPrice: equipment.sellPrice
+})
+
+export const getOfficialRingDefs = (): readonly Readonly<EquipmentContentDef>[] =>
+  getOfficialEquipmentDefs().filter(equipment => equipment.kind === 'ring')
+
+export const getOfficialRingsAsLegacy = (): readonly LegacyRingDef[] =>
+  getOfficialRingDefs().map(toLegacyRingDef)
+
+export const getOfficialRingById = (id: string): LegacyRingDef | undefined => {
+  const equipment = getOfficialEquipmentDef(id)
+  return equipment?.kind === 'ring' ? toLegacyRingDef(equipment) : undefined
+}
 
 export const getOfficialEquipmentSetDef = (id: string): Readonly<EquipmentSetContentDef> | undefined => {
   const contentId = toQueryContentId(id)

@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 60,
-    "approximateLineCount": 31153,
+    "fileCount": 61,
+    "approximateLineCount": 31171,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 501,
-    "reviewedArtifactCount": 69
+    "symbolCount": 507,
+    "reviewedArtifactCount": 73
   },
   "entries": [
     {
@@ -5464,7 +5464,7 @@
     },
     {
       "file": "src/data/items.ts",
-      "lines": 2013,
+      "lines": 2014,
       "classification": "mixed",
       "domains": [
         "item",
@@ -7341,51 +7341,59 @@
       ]
     },
     {
-      "file": "src/data/rings.ts",
-      "lines": 578,
+      "file": "src/data/ringDefinitions.ts",
       "classification": "mixed",
       "domains": [
+        "equipment",
         "ring",
         "equipment_drop"
       ],
       "candidateTargets": [
         "taoyuan:equipment",
-        "taoyuan:drop_table"
+        "taoyuan:drop_table",
+        "compatibility_adapter"
       ],
       "phases": [
         4,
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 578,
       "symbols": [
         {
-          "file": "src/data/rings.ts",
+          "file": "src/data/ringDefinitions.ts",
           "exportName": "RINGS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:equipment",
           "persistentIds": true,
           "consumers": [
-            "src/data/items.ts"
+            "src/data/items.ts",
+            "src/data/rings.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy ring definitions; Phase 6 projects every ring into taoyuan:equipment without changing IDs, effects, recipes, obtain sources or sell prices."
         },
         {
-          "file": "src/data/rings.ts",
+          "file": "src/data/ringDefinitions.ts",
           "exportName": "getRingById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "compatibility_adapter",
           "persistentIds": false,
           "consumers": [
             "src/components/game/mining/MineEquipmentPresetDetailDialog.vue",
+            "src/data/rings.ts",
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -7396,17 +7404,19 @@
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Leaf fallback lookup retained for rollback; public src/data/rings.ts getRingById() now resolves taoyuan:equipment first."
         },
         {
-          "file": "src/data/rings.ts",
+          "file": "src/data/ringDefinitions.ts",
           "exportName": "CRAFTABLE_RINGS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:equipment",
           "persistentIds": true,
           "consumers": [
+            "src/data/rings.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
             "src/views/game/ShopView.vue"
           ],
           "migrationPhase": [
@@ -7414,17 +7424,18 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Derived craftable ring list remains equivalent to legacy RINGS.filter(recipe !== null); Phase 6 verifies it alongside taoyuan:equipment ring definitions."
         },
         {
-          "file": "src/data/rings.ts",
+          "file": "src/data/ringDefinitions.ts",
           "exportName": "MONSTER_DROP_RINGS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/data/rings.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
@@ -7436,16 +7447,17 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
-          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_RINGS through named taoyuan:drop_table entries without changing ring drop settlement."
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_RINGS through named taoyuan:drop_table entries; ringDefinitions now owns the static source after the Phase 6 equipment slice."
         },
         {
-          "file": "src/data/rings.ts",
+          "file": "src/data/ringDefinitions.ts",
           "exportName": "BOSS_DROP_RINGS",
           "syntaxKind": "const",
           "classification": "derived",
-          "targetRegistry": "taoyuan:equipment",
+          "targetRegistry": "engine/domain/mining-boss-reward",
           "persistentIds": true,
           "consumers": [
+            "src/data/rings.ts",
             "src/stores/useMiningStore.ts",
             "src/views/game/GuildView.vue"
           ],
@@ -7455,16 +7467,17 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "rationale": "BOSS first-kill ring reward mapping remains in the existing mining reward path; the Phase 6 ring slice does not migrate boss reward settlement."
         },
         {
-          "file": "src/data/rings.ts",
+          "file": "src/data/ringDefinitions.ts",
           "exportName": "TREASURE_DROP_RINGS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:drop_table",
           "persistentIds": true,
           "consumers": [
+            "src/data/rings.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
@@ -7475,7 +7488,149 @@
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_RINGS through named taoyuan:drop_table entries; ringDefinitions now owns the static source after the Phase 6 equipment slice."
+        }
+      ]
+    },
+    {
+      "file": "src/data/rings.ts",
+      "classification": "mixed",
+      "domains": [
+        "equipment",
+        "ring",
+        "lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:equipment",
+        "compatibility_adapter"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 17,
+      "symbols": [
+        {
+          "file": "src/data/rings.ts",
+          "exportName": "RINGS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:equipment",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/items.ts",
+            "src/data/ringDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy imports stable while static source moved to ringDefinitions for registry adapter isolation."
+        },
+        {
+          "file": "src/data/rings.ts",
+          "exportName": "CRAFTABLE_RINGS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:equipment",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/ringDefinitions.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/views/game/ShopView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export preserves the legacy craftable ring list while the official equipment registry becomes the runtime query source."
+        },
+        {
+          "file": "src/data/rings.ts",
+          "exportName": "MONSTER_DROP_RINGS",
+          "syntaxKind": "re-export",
+          "classification": "derived",
+          "targetRegistry": "taoyuan:drop_table",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/ringDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts",
+            "src/views/game/GuildView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Phase 4 equipment drop pilot verifies MONSTER_DROP_RINGS through named taoyuan:drop_table entries without changing ring drop settlement."
+        },
+        {
+          "file": "src/data/rings.ts",
+          "exportName": "BOSS_DROP_RINGS",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/ringDefinitions.ts",
+            "src/stores/useMiningStore.ts",
+            "src/views/game/GuildView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/rings.ts",
+          "exportName": "TREASURE_DROP_RINGS",
+          "syntaxKind": "re-export",
+          "classification": "derived",
+          "targetRegistry": "taoyuan:drop_table",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/ringDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentDropRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
           "rationale": "Phase 4 equipment drop pilot verifies TREASURE_DROP_RINGS through named taoyuan:drop_table entries while treasure settlement remains framework-owned."
+        },
+        {
+          "file": "src/data/rings.ts",
+          "exportName": "getRingById",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:equipment",
+          "persistentIds": false,
+          "consumers": [
+            "src/components/game/mining/MineEquipmentPresetDetailDialog.vue",
+            "src/data/ringDefinitions.ts",
+            "src/stores/useInventoryStore.ts",
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/views/game/AchievementView.vue",
+            "src/views/game/CharInfoView.vue",
+            "src/views/game/GuildView.vue",
+            "src/views/game/InventoryView.vue",
+            "src/views/game/MiningView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy getRingById() signature is retained and now resolves taoyuan:equipment before returning the same local-ID RingDef shape."
         }
       ]
     },
@@ -10226,6 +10381,54 @@
       ],
       "status": "verified",
       "rationale": "Checks every tool upgrade material item reference against taoyuan:item and reports REG-REFERENCE-001 before the registry snapshot is accepted."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "EquipmentDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:equipment",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for ring equipment definitions in the first taoyuan:equipment slice; generated equipment.schema.json rejects invalid kind, effects, recipe materials and numeric bounds."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyRingEquipment/createOfficialEquipment",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:equipment",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy ring definition into ordered official equipment entries without changing local IDs, effects, recipes, obtain-source text or sell prices."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialRingsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:equipment",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry equipment definitions and reconstructs legacy RingDef objects for getRingById() compatibility."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:equipment",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:equipment",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks equipment item IDs and ring recipe material references against taoyuan:item before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

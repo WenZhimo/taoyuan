@@ -15,6 +15,7 @@ import type {
   BuildingUpgradeDef,
   CropDef,
   DropTableDef,
+  EquipmentDef,
   EquipmentSetDef,
   FishDef,
   FishPondFacilityDef,
@@ -44,6 +45,7 @@ const REGISTRY_IDS = {
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
+  equipment: toOfficialRegistryTypeId('equipment'),
   equipmentSet: toOfficialRegistryTypeId('equipment_set'),
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
@@ -91,6 +93,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
+  const equipmentRegistry = registrySet.get<EquipmentDef>(REGISTRY_IDS.equipment)
   const equipmentSetRegistry = registrySet.get<EquipmentSetDef>(REGISTRY_IDS.equipmentSet)
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
@@ -333,6 +336,27 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
           registryId: REGISTRY_IDS.item,
           contentId: contentId(material.itemId),
           fieldPath: `/materials/${index}/itemId`
+        })
+      }
+    })
+  }
+
+  for (const record of equipmentRegistry.entries()) {
+    if (!itemRegistry.has(contentId(record.entry.id))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(record.entry.id),
+        fieldPath: '/id'
+      })
+    }
+    record.entry.recipe?.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/recipe/${index}/itemId`
         })
       }
     })

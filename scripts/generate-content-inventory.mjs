@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs'
+import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
@@ -339,6 +339,24 @@ fileDefaults.set('src/data/equipmentSets.ts', {
   classification: 'mixed',
   domains: ['equipment_set', 'lookup'],
   candidateTargets: ['taoyuan:equipment_set', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/ringDefinitions.ts', {
+  file: 'src/data/ringDefinitions.ts',
+  classification: 'mixed',
+  domains: ['equipment', 'ring', 'equipment_drop'],
+  candidateTargets: ['taoyuan:equipment', 'taoyuan:drop_table', 'compatibility_adapter'],
+  phases: [4, 6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/rings.ts', {
+  file: 'src/data/rings.ts',
+  classification: 'mixed',
+  domains: ['equipment', 'ring', 'lookup'],
+  candidateTargets: ['taoyuan:equipment', 'compatibility_adapter'],
   phases: [6],
   status: 'symbol_inventoried'
 })
@@ -841,6 +859,52 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Legacy getSetByPieceId() signature is retained and now resolves taoyuan:equipment_set before returning the same first matching local-ID set shape.'
+  },
+  'src/data/ringDefinitions.ts:RINGS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy ring definitions; Phase 6 projects every ring into taoyuan:equipment without changing IDs, effects, recipes, obtain sources or sell prices.'
+  },
+  'src/data/ringDefinitions.ts:getRingById': {
+    classification: 'adapter',
+    targetRegistry: 'compatibility_adapter',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Leaf fallback lookup retained for rollback; public src/data/rings.ts getRingById() now resolves taoyuan:equipment first.'
+  },
+  'src/data/ringDefinitions.ts:CRAFTABLE_RINGS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Derived craftable ring list remains equivalent to legacy RINGS.filter(recipe !== null); Phase 6 verifies it alongside taoyuan:equipment ring definitions.'
+  },
+  'src/data/rings.ts:RINGS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy imports stable while static source moved to ringDefinitions for registry adapter isolation.'
+  },
+  'src/data/rings.ts:CRAFTABLE_RINGS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export preserves the legacy craftable ring list while the official equipment registry becomes the runtime query source.'
+  },
+  'src/data/rings.ts:getRingById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getRingById() signature is retained and now resolves taoyuan:equipment before returning the same local-ID RingDef shape.'
   },
   'src/data/animals.ts:ANIMAL_DEFS': {
     classification: 'adapter',
@@ -1504,7 +1568,30 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_WEAPONS through named taoyuan:drop_table entries while treasure settlement remains framework-owned.'
   },
-  'src/data/rings.ts:MONSTER_DROP_RINGS': {
+  'src/data/ringDefinitions.ts:MONSTER_DROP_RINGS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies MONSTER_DROP_RINGS through named taoyuan:drop_table entries; ringDefinitions now owns the static source after the Phase 6 equipment slice.'
+  },
+  'src/data/ringDefinitions.ts:BOSS_DROP_RINGS': {
+    classification: 'derived',
+    targetRegistry: 'engine/domain/mining-boss-reward',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'baselined',
+    rationale: 'BOSS first-kill ring reward mapping remains in the existing mining reward path; the Phase 6 ring slice does not migrate boss reward settlement.'
+  },
+  'src/data/ringDefinitions.ts:TREASURE_DROP_RINGS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Phase 4 equipment drop pilot verifies TREASURE_DROP_RINGS through named taoyuan:drop_table entries; ringDefinitions now owns the static source after the Phase 6 equipment slice.'
+  },  'src/data/rings.ts:MONSTER_DROP_RINGS': {
     classification: 'derived',
     targetRegistry: 'taoyuan:drop_table',
     persistentIds: true,
@@ -2100,6 +2187,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Checks every tool upgrade material item reference against taoyuan:item and reports REG-REFERENCE-001 before the registry snapshot is accepted.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'EquipmentDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for ring equipment definitions in the first taoyuan:equipment slice; generated equipment.schema.json rejects invalid kind, effects, recipe materials and numeric bounds.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyRingEquipment/createOfficialEquipment',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy ring definition into ordered official equipment entries without changing local IDs, effects, recipes, obtain-source text or sell prices.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialEquipmentDef/getOfficialEquipmentDefs/getOfficialRingById/getOfficialRingsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry equipment definitions and reconstructs legacy RingDef objects for getRingById() compatibility.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:equipment',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:equipment',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks equipment item IDs and ring recipe material references against taoyuan:item before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

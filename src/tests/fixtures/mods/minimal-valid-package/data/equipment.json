@@ -1,0 +1,32 @@
+[
+  {
+    "id": "example_mod:test_ring",
+    "kind": "ring",
+    "name": {
+      "key": "example_mod.equipment.test_ring.name",
+      "fallback": "测试戒指"
+    },
+    "description": {
+      "key": "example_mod.equipment.test_ring.description",
+      "fallback": "用于校验契约的测试戒指"
+    },
+    "effects": [
+      {
+        "type": "attack_bonus",
+        "value": 1
+      }
+    ],
+    "recipe": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      }
+    ],
+    "recipeMoney": 10,
+    "obtainSource": {
+      "key": "example_mod.equipment.test_ring.obtainSource",
+      "fallback": "测试夹具"
+    },
+    "sellPrice": 5
+  }
+]

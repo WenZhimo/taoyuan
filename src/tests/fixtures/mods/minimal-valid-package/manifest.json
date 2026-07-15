@@ -41,6 +41,7 @@
     "taoyuan:monster": ["data/monsters.json"],
     "taoyuan:monster_pool": ["data/monster-pools.json"],
     "taoyuan:enchantment": ["data/enchantments.json"],
+    "taoyuan:equipment": ["data/equipment.json"],
     "taoyuan:equipment_set": ["data/equipment-sets.json"],
     "taoyuan:drop_table": ["data/drop-tables.json"],
     "taoyuan:recipe": ["data/recipes.json"],

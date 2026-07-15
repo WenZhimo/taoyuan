@@ -21,7 +21,7 @@ import {
   FRUIT_TREE_DEFINITIONS,
   WILD_TREE_DEFINITIONS
 } from '@/data/treeDefinitions'
-import { MONSTER_DROP_RINGS, TREASURE_DROP_RINGS } from '@/data/rings'
+import { MONSTER_DROP_RINGS, RINGS, TREASURE_DROP_RINGS } from '@/data/ringDefinitions'
 import { MONSTER_DROP_HATS, SHOP_HATS, TREASURE_DROP_HATS } from '@/data/hats'
 import { MONSTER_DROP_SHOES, SHOP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoes'
 import { ANIMAL_DEFS, HAY_PRICE } from '@/data/animalDefinitions'
@@ -57,7 +57,7 @@ import {
   type FarmhouseUpgradeDef as LegacyFarmhouseUpgradeDef
 } from '@/data/buildingUpgradeDefinitions'
 import { BAITS, FERTILIZERS, TACKLES } from '@/data/processing'
-import type { AnimalDef as LegacyAnimalDef, RecipeDef as LegacyRecipeDef } from '@/types'
+import type { AnimalDef as LegacyAnimalDef, RecipeDef as LegacyRecipeDef, RingDef as LegacyRingDef } from '@/types'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
 import type { FruitTreeDef as LegacyFruitTreeDef, WildTreeDef as LegacyWildTreeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
@@ -86,6 +86,7 @@ import type {
   BuildingUpgradeDef,
   DropTableDef,
   EnchantmentDef,
+  EquipmentDef,
   EquipmentSetDef,
   FarmMapDef,
   FishDef,
@@ -214,6 +215,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('enchantment'),
     description: '装备附魔定义',
     schemaName: 'enchantment.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('equipment'),
+    description: '单件装备定义',
+    schemaName: 'equipment.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('equipment_set'),
@@ -433,6 +439,26 @@ export const createOfficialEquipmentDropTables = (): DropTableDef[] => {
 
   return tables
 }
+
+export const adaptLegacyRingEquipment = (ring: LegacyRingDef): EquipmentDef => ({
+  id: toOfficialContentId(ring.id),
+  kind: 'ring',
+  name: text(`taoyuan.equipment.ring.${ring.id}.name`, ring.name),
+  description: text(`taoyuan.equipment.ring.${ring.id}.description`, ring.description),
+  effects: ring.effects.map(effect => ({ ...effect })),
+  recipe: ring.recipe
+    ? ring.recipe.map(material => ({
+        itemId: toOfficialContentId(material.itemId),
+        quantity: material.quantity
+      }))
+    : null,
+  recipeMoney: ring.recipeMoney,
+  obtainSource: text(`taoyuan.equipment.ring.${ring.id}.obtainSource`, ring.obtainSource),
+  sellPrice: ring.sellPrice
+})
+
+export const createOfficialEquipment = (): EquipmentDef[] =>
+  RINGS.map(adaptLegacyRingEquipment)
 
 export const adaptLegacyEquipmentSet = (set: LegacyEquipmentSetDef): EquipmentSetDef => ({
   id: toOfficialContentId(set.id),
@@ -1049,6 +1075,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const monsterRegistry = registrySet.get<MonsterDef>(toOfficialRegistryTypeId('monster'))
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool'))
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment'))
+  const equipmentRegistry = registrySet.get<EquipmentDef>(toOfficialRegistryTypeId('equipment'))
   const equipmentSetRegistry = registrySet.get<EquipmentSetDef>(toOfficialRegistryTypeId('equipment_set'))
   const dropTableRegistry = registrySet.get<DropTableDef>(toOfficialRegistryTypeId('drop_table'))
   const recipeRegistry = registrySet.get<RecipeDef>(toOfficialRegistryTypeId('recipe'))
@@ -1096,6 +1123,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   for (const shop of createOfficialShops()) shopRegistry.register(owner, shop, { file: 'src/data/shops.ts' })
   for (const [id, enchantment] of Object.entries(ENCHANTMENTS)) {
     enchantmentRegistry.register(owner, adaptLegacyEnchantment(id, enchantment), { file: 'src/data/weapons.ts' })
+  }
+  for (const equipment of createOfficialEquipment()) {
+    equipmentRegistry.register(owner, equipment, { file: 'src/data/rings.ts' })
   }
   for (const set of createOfficialEquipmentSets()) {
     equipmentSetRegistry.register(owner, set, { file: 'src/data/equipmentSetDefinitions.ts' })

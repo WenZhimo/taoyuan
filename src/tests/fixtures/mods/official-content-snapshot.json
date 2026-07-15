@@ -15171,6 +15171,1497 @@
       ]
     },
     {
+      "registryId": "taoyuan:equipment",
+      "schemaName": "equipment.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "深渊龙王的逆鳞化成的至高指环，攻守兼备。",
+              "key": "taoyuan.equipment.ring.abyss_dragon_ring.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 10
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:abyss_dragon_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "龙王指环",
+              "key": "taoyuan.equipment.ring.abyss_dragon_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "BOSS掉落：深渊龙王（120层）",
+              "key": "taoyuan.equipment.ring.abyss_dragon_ring.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 4000
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "宝箱中沉睡的古老翡翠指环，带来财运。",
+              "key": "taoyuan.equipment.ring.ancient_jade_ring.description"
+            },
+            "effects": [
+              {
+                "type": "sell_price_bonus",
+                "value": 0.06
+              },
+              {
+                "type": "shop_discount",
+                "value": 0.04
+              }
+            ],
+            "id": "taoyuan:ancient_jade_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "古玉指环",
+              "key": "taoyuan.equipment.ring.ancient_jade_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "矿洞宝箱",
+              "key": "taoyuan.equipment.ring.ancient_jade_ring.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 600
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "钓鱼时鱼更温顺，体力消耗降低。",
+              "key": "taoyuan.equipment.ring.anglers_ring.description"
+            },
+            "effects": [
+              {
+                "type": "fishing_calm",
+                "value": 0.08
+              },
+              {
+                "type": "fishing_stamina",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:anglers_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "渔翁碧环",
+              "key": "taoyuan.equipment.ring.anglers_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.anglers_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 400,
+            "sellPrice": 280
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "水晶之王碎裂后留下的印环，蕴含悟道之力。",
+              "key": "taoyuan.equipment.ring.crystal_king_seal.description"
+            },
+            "effects": [
+              {
+                "type": "exp_bonus",
+                "value": 0.12
+              },
+              {
+                "type": "luck",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:crystal_king_seal",
+            "kind": "ring",
+            "name": {
+              "fallback": "晶王之印",
+              "key": "taoyuan.equipment.ring.crystal_king_seal.name"
+            },
+            "obtainSource": {
+              "fallback": "BOSS掉落：水晶之王（80层）",
+              "key": "taoyuan.equipment.ring.crystal_king_seal.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1800
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "水晶层怪物身上凝结的棱晶带，蕴含好运。",
+              "key": "taoyuan.equipment.ring.crystal_prism_band.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.05
+              },
+              {
+                "type": "ore_bonus",
+                "value": 1
+              }
+            ],
+            "id": "taoyuan:crystal_prism_band",
+            "kind": "ring",
+            "name": {
+              "fallback": "棱晶护带",
+              "key": "taoyuan.equipment.ring.crystal_prism_band.name"
+            },
+            "obtainSource": {
+              "fallback": "水晶层怪物掉落",
+              "key": "taoyuan.equipment.ring.crystal_prism_band.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 900
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "龙玉蕴含远古力量，全面提升体力效率。",
+              "key": "taoyuan.equipment.ring.dragon_ring.description"
+            },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.12
+              }
+            ],
+            "id": "taoyuan:dragon_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "龙脉指环",
+              "key": "taoyuan.equipment.ring.dragon_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.dragon_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 5000,
+            "sellPrice": 2500
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "铜环镶嵌石英，增强持久力。",
+              "key": "taoyuan.equipment.ring.endurance_ring.description"
+            },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:endurance_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "持久指环",
+              "key": "taoyuan.equipment.ring.endurance_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.endurance_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 200,
+            "sellPrice": 120
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "获取的所有经验值增加。",
+              "key": "taoyuan.equipment.ring.exp_ring.description"
+            },
+            "effects": [
+              {
+                "type": "exp_bonus",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:exp_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "悟道指环",
+              "key": "taoyuan.equipment.ring.exp_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.exp_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:ruby",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 1200,
+            "sellPrice": 750
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "农耕时消耗的体力减少。",
+              "key": "taoyuan.equipment.ring.farmers_ring.description"
+            },
+            "effects": [
+              {
+                "type": "farming_stamina",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:farmers_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "农人青环",
+              "key": "taoyuan.equipment.ring.farmers_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.farmers_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 250,
+            "sellPrice": 180
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "翡翠蕴含水灵之气，钓到的鱼品质更好。",
+              "key": "taoyuan.equipment.ring.fish_jade_ring.description"
+            },
+            "effects": [
+              {
+                "type": "fish_quality_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "fishing_calm",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:fish_jade_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "渔获碧环",
+              "key": "taoyuan.equipment.ring.fish_jade_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.fish_jade_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 500,
+            "sellPrice": 350
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "龙玉蕴含天地灵气，综合幸运提升。",
+              "key": "taoyuan.equipment.ring.fortune_ring.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:fortune_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "福运指环",
+              "key": "taoyuan.equipment.ring.fortune_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.fortune_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 4000,
+            "sellPrice": 2200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "戴上后送礼更能打动人心。",
+              "key": "taoyuan.equipment.ring.friendship_ring.description"
+            },
+            "effects": [
+              {
+                "type": "gift_friendship",
+                "value": 0.15
+              }
+            ],
+            "id": "taoyuan:friendship_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "善缘指环",
+              "key": "taoyuan.equipment.ring.friendship_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.friendship_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 600,
+            "sellPrice": 350
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冰霜女王遗留的冰环，怪物掉落率提升。",
+              "key": "taoyuan.equipment.ring.frost_queen_circlet.description"
+            },
+            "effects": [
+              {
+                "type": "monster_drop_bonus",
+                "value": 0.15
+              }
+            ],
+            "id": "taoyuan:frost_queen_circlet",
+            "kind": "ring",
+            "name": {
+              "fallback": "冰后指环",
+              "key": "taoyuan.equipment.ring.frost_queen_circlet.name"
+            },
+            "obtainSource": {
+              "fallback": "BOSS掉落：冰霜女王（40层）",
+              "key": "taoyuan.equipment.ring.frost_queen_circlet.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 600
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "月光与草药之力催发生机，作物更快成熟。",
+              "key": "taoyuan.equipment.ring.growth_ring.description"
+            },
+            "effects": [
+              {
+                "type": "crop_growth_bonus",
+                "value": 0.12
+              }
+            ],
+            "id": "taoyuan:growth_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "催生指环",
+              "key": "taoyuan.equipment.ring.growth_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.growth_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:herb",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 1200,
+            "sellPrice": 750
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "冒险家公会精英成员的战斗指环，蕴含公会的力量。",
+              "key": "taoyuan.equipment.ring.guild_war_ring.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 4
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:guild_war_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "公会战戒",
+              "key": "taoyuan.equipment.ring.guild_war_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "公会商店",
+              "key": "taoyuan.equipment.ring.guild_war_ring.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 800
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "月光润泽作物，品质与生长速度提升。",
+              "key": "taoyuan.equipment.ring.harvest_moon_ring.description"
+            },
+            "effects": [
+              {
+                "type": "crop_quality_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "crop_growth_bonus",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:harvest_moon_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "丰月指环",
+              "key": "taoyuan.equipment.ring.harvest_moon_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.harvest_moon_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 1500,
+            "sellPrice": 900
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "翡翠镶嵌的铜环，减少受到的伤害。",
+              "key": "taoyuan.equipment.ring.jade_guard_ring.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:jade_guard_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "翠玉护身环",
+              "key": "taoyuan.equipment.ring.jade_guard_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.jade_guard_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 200,
+            "sellPrice": 150
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "翡翠蕴含灵气，提升暴击率。",
+              "key": "taoyuan.equipment.ring.jade_spirit_ring.description"
+            },
+            "effects": [
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:jade_spirit_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "碧灵指环",
+              "key": "taoyuan.equipment.ring.jade_spirit_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.jade_spirit_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 500,
+            "sellPrice": 300
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "熔岩君主的封印之环，攻击附带灼伤吸血。",
+              "key": "taoyuan.equipment.ring.lava_lord_seal.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 5
+              },
+              {
+                "type": "vampiric",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:lava_lord_seal",
+            "kind": "ring",
+            "name": {
+              "fallback": "熔岩君印",
+              "key": "taoyuan.equipment.ring.lava_lord_seal.name"
+            },
+            "obtainSource": {
+              "fallback": "BOSS掉落：熔岩君主（60层）",
+              "key": "taoyuan.equipment.ring.lava_lord_seal.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 1200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "出售物品价格提升，商店价格降低。",
+              "key": "taoyuan.equipment.ring.merchants_ring.description"
+            },
+            "effects": [
+              {
+                "type": "sell_price_bonus",
+                "value": 0.05
+              },
+              {
+                "type": "shop_discount",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:merchants_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "商贾金环",
+              "key": "taoyuan.equipment.ring.merchants_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.merchants_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:ruby",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 1200,
+            "sellPrice": 700
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "矿洞探索体力大幅降低，额外采集矿石。",
+              "key": "taoyuan.equipment.ring.miners_ring.description"
+            },
+            "effects": [
+              {
+                "type": "mining_stamina",
+                "value": 0.15
+              },
+              {
+                "type": "ore_bonus",
+                "value": 1
+              }
+            ],
+            "id": "taoyuan:miners_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "矿工金环",
+              "key": "taoyuan.equipment.ring.miners_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.miners_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:ruby",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 800,
+            "sellPrice": 500
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "月光石柔和的光芒护佑生命，提升最大生命值。",
+              "key": "taoyuan.equipment.ring.moonlight_ring.description"
+            },
+            "effects": [
+              {
+                "type": "max_hp_bonus",
+                "value": 25
+              }
+            ],
+            "id": "taoyuan:moonlight_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "月华指环",
+              "key": "taoyuan.equipment.ring.moonlight_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.moonlight_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 1500,
+            "sellPrice": 800
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "泥岩巨兽掉落的护身带，体力消耗整体降低。",
+              "key": "taoyuan.equipment.ring.mud_golem_band.description"
+            },
+            "effects": [
+              {
+                "type": "stamina_reduction",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:mud_golem_band",
+            "kind": "ring",
+            "name": {
+              "fallback": "泥岩护带",
+              "key": "taoyuan.equipment.ring.mud_golem_band.name"
+            },
+            "obtainSource": {
+              "fallback": "BOSS掉落：泥岩巨兽（20层）",
+              "key": "taoyuan.equipment.ring.mud_golem_band.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 300
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "五彩碎片铸成的至高指环，万事皆幸。",
+              "key": "taoyuan.equipment.ring.prismatic_ring.description"
+            },
+            "effects": [
+              {
+                "type": "luck",
+                "value": 0.12
+              },
+              {
+                "type": "exp_bonus",
+                "value": 0.08
+              },
+              {
+                "type": "sell_price_bonus",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:prismatic_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "五彩天环",
+              "key": "taoyuan.equipment.ring.prismatic_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成（需五彩碎片）",
+              "key": "taoyuan.equipment.ring.prismatic_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:prismatic_shard",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 10000,
+            "sellPrice": 5000
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "晶莹的石英戒指，提升攻击力。",
+              "key": "taoyuan.equipment.ring.quartz_ring.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 3
+              }
+            ],
+            "id": "taoyuan:quartz_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "石英明环",
+              "key": "taoyuan.equipment.ring.quartz_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.quartz_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 200,
+            "sellPrice": 120
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "红宝石散发灼热之力，大幅提升攻击。",
+              "key": "taoyuan.equipment.ring.ruby_flame_ring.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 6
+              }
+            ],
+            "id": "taoyuan:ruby_flame_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "赤焰指环",
+              "key": "taoyuan.equipment.ring.ruby_flame_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.ruby_flame_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:ruby",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 1000,
+            "sellPrice": 600
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暗影之力吸噬生命，攻击回复生命值。",
+              "key": "taoyuan.equipment.ring.shadow_ring.description"
+            },
+            "effects": [
+              {
+                "type": "vampiric",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:shadow_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "暗影指环",
+              "key": "taoyuan.equipment.ring.shadow_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.shadow_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:obsidian",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 2000,
+            "sellPrice": 1200
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "暗影君主灵魂凝成的指环，暴击致命且吸噬生命。",
+              "key": "taoyuan.equipment.ring.shadow_sovereign_ring.description"
+            },
+            "effects": [
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.1
+              },
+              {
+                "type": "vampiric",
+                "value": 0.06
+              }
+            ],
+            "id": "taoyuan:shadow_sovereign_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "暗影君戒",
+              "key": "taoyuan.equipment.ring.shadow_sovereign_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "BOSS掉落：暗影君主（100层）",
+              "key": "taoyuan.equipment.ring.shadow_sovereign_ring.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 2500
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "浅矿层石蟹壳制成的简陋护环。",
+              "key": "taoyuan.equipment.ring.shallow_guard.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:shallow_guard",
+            "kind": "ring",
+            "name": {
+              "fallback": "浅矿护环",
+              "key": "taoyuan.equipment.ring.shallow_guard.name"
+            },
+            "obtainSource": {
+              "fallback": "浅矿层怪物掉落",
+              "key": "taoyuan.equipment.ring.shallow_guard.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 80
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "黑曜石的坚硬护卫，减伤并增加最大生命值。",
+              "key": "taoyuan.equipment.ring.stalwart_ring.description"
+            },
+            "effects": [
+              {
+                "type": "defense_bonus",
+                "value": 0.12
+              },
+              {
+                "type": "max_hp_bonus",
+                "value": 15
+              }
+            ],
+            "id": "taoyuan:stalwart_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "坚磐指环",
+              "key": "taoyuan.equipment.ring.stalwart_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.stalwart_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:obsidian",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 2500,
+            "sellPrice": 1400
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "猛虎獠牙镶嵌的金戒，散发着野兽的威压。",
+              "key": "taoyuan.equipment.ring.tiger_fang_ring.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 6
+              },
+              {
+                "type": "monster_drop_bonus",
+                "value": 0.15
+              }
+            ],
+            "id": "taoyuan:tiger_fang_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "虎牙戒",
+              "key": "taoyuan.equipment.ring.tiger_fang_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.ring.tiger_fang_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:tiger_fang",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 1500,
+            "sellPrice": 700
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "西域绿松石打磨而成的精致吊坠，蕴含沙漠之力。",
+              "key": "taoyuan.equipment.ring.trade_turquoise_pendant.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 2
+              },
+              {
+                "type": "defense_bonus",
+                "value": 0.03
+              }
+            ],
+            "id": "taoyuan:trade_turquoise_pendant",
+            "kind": "ring",
+            "name": {
+              "fallback": "绿松石吊坠",
+              "key": "taoyuan.equipment.ring.trade_turquoise_pendant.name"
+            },
+            "obtainSource": {
+              "fallback": "通商积分兑换",
+              "key": "taoyuan.equipment.ring.trade_turquoise_pendant.obtainSource"
+            },
+            "recipe": null,
+            "recipeMoney": 0,
+            "sellPrice": 600
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "兔足与金的融合赋予轻盈步伐，赶路更快。",
+              "key": "taoyuan.equipment.ring.travel_ring.description"
+            },
+            "effects": [
+              {
+                "type": "travel_speed",
+                "value": 0.15
+              },
+              {
+                "type": "stamina_reduction",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:travel_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "行路指环",
+              "key": "taoyuan.equipment.ring.travel_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.travel_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:rabbit_foot",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 2000,
+            "sellPrice": 1100
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "矿洞宝箱更常出现，钓鱼宝箱概率提升。",
+              "key": "taoyuan.equipment.ring.treasure_hunter_ring.description"
+            },
+            "effects": [
+              {
+                "type": "treasure_find",
+                "value": 0.1
+              }
+            ],
+            "id": "taoyuan:treasure_hunter_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "寻宝指环",
+              "key": "taoyuan.equipment.ring.treasure_hunter_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.treasure_hunter_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:obsidian",
+                "quantity": 1
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              }
+            ],
+            "recipeMoney": 1800,
+            "sellPrice": 1000
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "铱金与龙玉的完美结合，攻击与暴击大幅提升。",
+              "key": "taoyuan.equipment.ring.warlord_ring.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 8
+              },
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.08
+              }
+            ],
+            "id": "taoyuan:warlord_ring",
+            "kind": "ring",
+            "name": {
+              "fallback": "战神指环",
+              "key": "taoyuan.equipment.ring.warlord_ring.name"
+            },
+            "obtainSource": {
+              "fallback": "合成",
+              "key": "taoyuan.equipment.ring.warlord_ring.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 6000,
+            "sellPrice": 3000
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/rings.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "以狼牙和铜丝编成的护身坠，佩戴者出手更为凌厉。",
+              "key": "taoyuan.equipment.ring.wolf_fang_pendant.description"
+            },
+            "effects": [
+              {
+                "type": "attack_bonus",
+                "value": 4
+              },
+              {
+                "type": "crit_rate_bonus",
+                "value": 0.05
+              }
+            ],
+            "id": "taoyuan:wolf_fang_pendant",
+            "kind": "ring",
+            "name": {
+              "fallback": "狼牙坠",
+              "key": "taoyuan.equipment.ring.wolf_fang_pendant.name"
+            },
+            "obtainSource": {
+              "fallback": "铁匠铺合成",
+              "key": "taoyuan.equipment.ring.wolf_fang_pendant.obtainSource"
+            },
+            "recipe": [
+              {
+                "itemId": "taoyuan:wolf_fang",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 2
+              }
+            ],
+            "recipeMoney": 500,
+            "sellPrice": 300
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:equipment_set",
       "schemaName": "equipment-set.schema.json",
       "entries": [
@@ -73464,5 +74955,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:52c627857b8d211457739e948ce535960b2df3ac7a626de573e9c3a554a84e4c"
+  "snapshotHash": "sha256:df0d45d8c310f7649c24829cafd8480d670bb8911730c6d3ed579205a4a0ce47"
 }
