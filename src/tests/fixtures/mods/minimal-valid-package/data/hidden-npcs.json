@@ -1,0 +1,169 @@
+[
+  {
+    "id": "example_mod:hidden_npc/test_spirit",
+    "name": {
+      "key": "example_mod.hidden_npc.test_spirit.name",
+      "fallback": "测试仙灵"
+    },
+    "trueName": {
+      "key": "example_mod.hidden_npc.test_spirit.trueName",
+      "fallback": "验真"
+    },
+    "gender": "female",
+    "title": {
+      "key": "example_mod.hidden_npc.test_spirit.title",
+      "fallback": "契约仙灵"
+    },
+    "origin": {
+      "key": "example_mod.hidden_npc.test_spirit.origin",
+      "fallback": "用于验证隐藏 NPC 契约的测试仙灵。"
+    },
+    "personality": {
+      "key": "example_mod.hidden_npc.test_spirit.personality",
+      "fallback": "谨慎"
+    },
+    "discoverySteps": [
+      {
+        "id": "test_spirit_rumor",
+        "phase": "rumor",
+        "conditions": [
+          {
+            "type": "season",
+            "season": "spring"
+          },
+          {
+            "type": "item",
+            "itemId": "example_mod:test_item",
+            "quantity": 1
+          },
+          {
+            "type": "npcFriendship",
+            "npcId": "example_mod:test_npc",
+            "minFriendship": 1
+          },
+          {
+            "type": "questComplete",
+            "questId": "example_mod:story_quest/intro"
+          },
+          {
+            "type": "fishCaught",
+            "fishId": "example_mod:test_fish"
+          }
+        ],
+        "scenes": [
+          {
+            "text": {
+              "key": "example_mod.hidden_npc.test_spirit.discovery.rumor.0.text",
+              "fallback": "测试仙灵察觉到了你的到来。"
+            },
+            "choices": [
+              {
+                "text": {
+                  "key": "example_mod.hidden_npc.test_spirit.discovery.rumor.0.choices.0.text",
+                  "fallback": "友好回应。"
+                },
+                "friendshipChange": 1,
+                "response": {
+                  "key": "example_mod.hidden_npc.test_spirit.discovery.rumor.0.choices.0.response",
+                  "fallback": "测试仙灵点了点头。"
+                }
+              }
+            ]
+          }
+        ],
+        "logMessage": {
+          "key": "example_mod.hidden_npc.test_spirit.discovery.rumor.log",
+          "fallback": "测试仙灵留下了一缕气息。"
+        }
+      }
+    ],
+    "resonantOfferings": ["example_mod:test_item"],
+    "pleasedOfferings": ["example_mod:test_item"],
+    "repelledOfferings": ["example_mod:test_item"],
+    "dialogues": {
+      "wary": [
+        {
+          "key": "example_mod.hidden_npc.test_spirit.dialogues.wary.0",
+          "fallback": "你是谁？"
+        }
+      ],
+      "curious": [
+        {
+          "key": "example_mod.hidden_npc.test_spirit.dialogues.curious.0",
+          "fallback": "你又来了。"
+        }
+      ],
+      "trusting": [
+        {
+          "key": "example_mod.hidden_npc.test_spirit.dialogues.trusting.0",
+          "fallback": "我开始相信你了。"
+        }
+      ],
+      "devoted": [
+        {
+          "key": "example_mod.hidden_npc.test_spirit.dialogues.devoted.0",
+          "fallback": "你的心意很清澈。"
+        }
+      ],
+      "eternal": [
+        {
+          "key": "example_mod.hidden_npc.test_spirit.dialogues.eternal.0",
+          "fallback": "此缘不散。"
+        }
+      ]
+    },
+    "interactionType": "meditation",
+    "bondable": true,
+    "courtshipItemId": "example_mod:test_item",
+    "bondItemId": "example_mod:test_item",
+    "courtshipThreshold": 1,
+    "bondThreshold": 2,
+    "heartEventIds": ["test_spirit_heart_1"],
+    "courtshipDialogues": [
+      {
+        "key": "example_mod.hidden_npc.test_spirit.courtship.0",
+        "fallback": "我明白你的意思。"
+      }
+    ],
+    "bondBonuses": [
+      {
+        "type": "stamina_restore",
+        "amount": 1
+      }
+    ],
+    "abilities": [
+      {
+        "id": "test_spirit_1",
+        "affinityRequired": 1,
+        "name": {
+          "key": "example_mod.hidden_npc.test_spirit.abilities.0.name",
+          "fallback": "测试祝福"
+        },
+        "description": {
+          "key": "example_mod.hidden_npc.test_spirit.abilities.0.description",
+          "fallback": "用于验证能力契约。"
+        },
+        "passive": {
+          "type": "luck",
+          "value": 1
+        }
+      }
+    ],
+    "courtshipCraftCost": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      }
+    ],
+    "bondCraftCost": [
+      {
+        "itemId": "example_mod:test_item",
+        "quantity": 1
+      }
+    ],
+    "manifestationDay": {
+      "season": "spring",
+      "day": 1
+    }
+  }
+]

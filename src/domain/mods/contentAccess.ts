@@ -42,6 +42,10 @@ import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
 import type {
+  DiscoveryCondition as LegacyHiddenNpcDiscoveryCondition,
+  HiddenNpcDef as LegacyHiddenNpcDef
+} from '@/types/hiddenNpc'
+import type {
   FishPondFacilityCost as LegacyFishPondFacilityCost,
   FishPondFacilityDef as LegacyFishPondFacilityDef
 } from '@/data/fishPondFacilityDefinitions'
@@ -93,6 +97,7 @@ import type {
   GuildDonationDef as GuildDonationContentDef,
   GuildGoalDef as GuildGoalContentDef,
   GuildLevelDef as GuildLevelContentDef,
+  HiddenNpcDef as HiddenNpcContentDef,
   MonsterDef,
   MonsterPoolDef,
   NpcDef as NpcContentDef,
@@ -161,6 +166,9 @@ const toGuildLevelQueryContentId = (level: number | string) => {
 
 const toNpcQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `npc/${id}`)
+
+const toHiddenNpcQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `hidden_npc/${id}`)
 
 const toStoryQuestQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `story_quest/${id}`)
@@ -706,6 +714,16 @@ export const getOfficialNpcDef = (id: string): Readonly<NpcContentDef> | undefin
 export const getOfficialNpcDefs = (): readonly Readonly<NpcContentDef>[] =>
   getOfficialRegistrySet().get<NpcContentDef>(toOfficialRegistryTypeId('npc')).values()
 
+export const getOfficialHiddenNpcDef = (id: string): Readonly<HiddenNpcContentDef> | undefined => {
+  const contentId = toHiddenNpcQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<HiddenNpcContentDef>(toOfficialRegistryTypeId('hidden_npc')).get(contentId)
+    : undefined
+}
+
+export const getOfficialHiddenNpcDefs = (): readonly Readonly<HiddenNpcContentDef>[] =>
+  getOfficialRegistrySet().get<HiddenNpcContentDef>(toOfficialRegistryTypeId('hidden_npc')).values()
+
 export const getOfficialStoryQuestDef = (id: string): Readonly<StoryQuestContentDef> | undefined => {
   const contentId = toStoryQuestQueryContentId(id)
   return contentId
@@ -1009,6 +1027,133 @@ const getLocalStoryQuestId = (contentId: string): string => {
   const localId = getLocalContentId(contentId)
   return localId.startsWith('story_quest/') ? localId.slice('story_quest/'.length) : localId
 }
+
+const getLocalHiddenNpcId = (contentId: string): string => {
+  const localId = getLocalContentId(contentId)
+  return localId.startsWith('hidden_npc/') ? localId.slice('hidden_npc/'.length) : localId
+}
+
+const toLegacyHiddenNpcScene = (
+  scene: Readonly<HiddenNpcContentDef['discoverySteps'][number]['scenes'][number]>
+): LegacyHiddenNpcDef['discoverySteps'][number]['scenes'][number] => ({
+  text: scene.text.fallback,
+  ...(scene.choices
+    ? {
+        choices: scene.choices.map(choice => ({
+          text: choice.text.fallback,
+          friendshipChange: choice.friendshipChange,
+          response: choice.response.fallback
+        }))
+      }
+    : {})
+})
+
+const toLegacyHiddenNpcDiscoveryCondition = (
+  condition: Readonly<HiddenNpcContentDef['discoverySteps'][number]['conditions'][number]>
+): LegacyHiddenNpcDiscoveryCondition => {
+  switch (condition.type) {
+    case 'season':
+      return { type: 'season', season: condition.season }
+    case 'weather':
+      return { type: 'weather', weather: condition.weather }
+    case 'timeRange':
+      return { type: 'timeRange', minHour: condition.minHour, maxHour: condition.maxHour }
+    case 'location':
+      return { type: 'location', panel: condition.panel }
+    case 'item':
+      return {
+        type: 'item',
+        itemId: getLocalContentId(condition.itemId),
+        ...(condition.quantity !== undefined ? { quantity: condition.quantity } : {})
+      }
+    case 'skill':
+      return { type: 'skill', skillType: condition.skillType, minLevel: condition.minLevel }
+    case 'npcFriendship':
+      return {
+        type: 'npcFriendship',
+        npcId: getLocalNpcId(condition.npcId),
+        minFriendship: condition.minFriendship
+      }
+    case 'questComplete':
+      return { type: 'questComplete', questId: getLocalStoryQuestId(condition.questId) }
+    case 'mineFloor':
+      return { type: 'mineFloor', minFloor: condition.minFloor }
+    case 'fishCaught':
+      return { type: 'fishCaught', fishId: getLocalContentId(condition.fishId) }
+    case 'money':
+      return { type: 'money', minAmount: condition.minAmount }
+    case 'yearMin':
+      return { type: 'yearMin', year: condition.year }
+    case 'day':
+      return { type: 'day', day: condition.day }
+  }
+}
+
+const toLegacyHiddenNpcDialogues = (
+  dialogues: Readonly<HiddenNpcContentDef['dialogues']>
+): LegacyHiddenNpcDef['dialogues'] => ({
+  wary: dialogues.wary.map(line => line.fallback),
+  curious: dialogues.curious.map(line => line.fallback),
+  trusting: dialogues.trusting.map(line => line.fallback),
+  devoted: dialogues.devoted.map(line => line.fallback),
+  eternal: dialogues.eternal.map(line => line.fallback)
+})
+
+const toLegacyHiddenNpcCraftCost = (
+  costs: Readonly<HiddenNpcContentDef['courtshipCraftCost'] | HiddenNpcContentDef['bondCraftCost']>
+): LegacyHiddenNpcDef['courtshipCraftCost'] =>
+  costs.map(cost => ({
+    itemId: getLocalContentId(cost.itemId),
+    quantity: cost.quantity
+  }))
+
+const toLegacyHiddenNpcDef = (npc: Readonly<HiddenNpcContentDef>): LegacyHiddenNpcDef => ({
+  id: getLocalHiddenNpcId(npc.id),
+  name: npc.name.fallback,
+  trueName: npc.trueName.fallback,
+  gender: npc.gender,
+  title: npc.title.fallback,
+  origin: npc.origin.fallback,
+  personality: npc.personality.fallback,
+  discoverySteps: npc.discoverySteps.map(step => ({
+    id: step.id,
+    phase: step.phase,
+    conditions: step.conditions.map(toLegacyHiddenNpcDiscoveryCondition),
+    scenes: step.scenes.map(toLegacyHiddenNpcScene),
+    ...(step.logMessage ? { logMessage: step.logMessage.fallback } : {})
+  })),
+  resonantOfferings: npc.resonantOfferings.map(getLocalContentId),
+  pleasedOfferings: npc.pleasedOfferings.map(getLocalContentId),
+  repelledOfferings: npc.repelledOfferings.map(getLocalContentId),
+  dialogues: toLegacyHiddenNpcDialogues(npc.dialogues),
+  interactionType: npc.interactionType,
+  bondable: npc.bondable,
+  courtshipItemId: getLocalContentId(npc.courtshipItemId),
+  bondItemId: getLocalContentId(npc.bondItemId),
+  courtshipThreshold: npc.courtshipThreshold,
+  bondThreshold: npc.bondThreshold,
+  heartEventIds: [...npc.heartEventIds],
+  courtshipDialogues: npc.courtshipDialogues.map(line => line.fallback),
+  bondBonuses: npc.bondBonuses.map(bonus => ({ ...bonus })),
+  abilities: npc.abilities.map(ability => ({
+    id: ability.id,
+    affinityRequired: ability.affinityRequired,
+    name: ability.name.fallback,
+    description: ability.description.fallback,
+    ...(ability.passive ? { passive: { ...ability.passive } } : {})
+  })),
+  courtshipCraftCost: toLegacyHiddenNpcCraftCost(npc.courtshipCraftCost),
+  bondCraftCost: toLegacyHiddenNpcCraftCost(npc.bondCraftCost),
+  manifestationDay: { ...npc.manifestationDay }
+})
+
+export const getOfficialHiddenNpcById = (id: string): LegacyHiddenNpcDef | undefined => {
+  const npc = getOfficialHiddenNpcDef(id)
+  return npc ? toLegacyHiddenNpcDef(npc) : undefined
+}
+
+export const getOfficialHiddenNpcsAsLegacy = (): readonly LegacyHiddenNpcDef[] =>
+  getOfficialHiddenNpcDefs().map(toLegacyHiddenNpcDef)
 
 const toLegacyStoryQuestObjective = (
   objective: Readonly<StoryQuestContentDef['objectives'][number]>

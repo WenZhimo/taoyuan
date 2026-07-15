@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 73,
-    "approximateLineCount": 31377,
+    "fileCount": 74,
+    "approximateLineCount": 31390,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 568,
-    "reviewedArtifactCount": 107
+    "symbolCount": 570,
+    "reviewedArtifactCount": 111
   },
   "entries": [
     {
@@ -5425,6 +5425,43 @@
       ]
     },
     {
+      "file": "src/data/hiddenNpcDefinitions.ts",
+      "classification": "content",
+      "domains": [
+        "hidden_npc"
+      ],
+      "candidateTargets": [
+        "taoyuan:hidden_npc"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 790,
+      "symbols": [
+        {
+          "file": "src/data/hiddenNpcDefinitions.ts",
+          "exportName": "HIDDEN_NPCS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:hidden_npc",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hiddenNpcs.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/hiddenNpcRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy hidden NPC definitions; Phase 6 projects stable hidden NPC IDs, discovery chains, offerings, bond thresholds, abilities and manifestation days into taoyuan:hidden_npc."
+        }
+      ]
+    },
+    {
       "file": "src/data/hiddenNpcHeartEvents.ts",
       "lines": 475,
       "classification": "mixed",
@@ -5490,59 +5527,79 @@
     },
     {
       "file": "src/data/hiddenNpcs.ts",
-      "lines": 793,
       "classification": "mixed",
       "domains": [
         "hidden_npc",
         "lookup"
       ],
       "candidateTargets": [
-        "taoyuan:npc",
+        "taoyuan:hidden_npc",
         "compatibility_adapter"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 16,
       "symbols": [
         {
           "file": "src/data/hiddenNpcs.ts",
           "exportName": "HIDDEN_NPCS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:npc",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:hidden_npc",
           "persistentIds": true,
           "consumers": [
-            "src/composables/useDialogs.ts",
-            "src/stores/useHiddenNpcStore.ts",
-            "src/tests/data/gameDataValidation.test.ts"
+            "src/data/hiddenNpcDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/hiddenNpcRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy HIDDEN_NPCS imports stable while runtime query facades resolve taoyuan:hidden_npc."
+        },
+        {
+          "file": "src/data/hiddenNpcs.ts",
+          "exportName": "getHiddenNpcs",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:hidden_npc",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useHiddenNpcStore.ts",
+            "src/tests/domain/hiddenNpcRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy hidden NPC list query returns local-ID compatibility objects reconstructed from taoyuan:hidden_npc."
         },
         {
           "file": "src/data/hiddenNpcs.ts",
           "exportName": "getHiddenNpcById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:hidden_npc",
           "persistentIds": false,
           "consumers": [
             "src/components/game/DiscoveryScene.vue",
             "src/components/game/HiddenNpcModal.vue",
+            "src/composables/useDialogs.ts",
             "src/composables/useHiddenNpcActions.ts",
             "src/stores/useHiddenNpcStore.ts",
+            "src/tests/domain/hiddenNpcRegistryPilot.test.ts",
             "src/views/game/NpcView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getHiddenNpcById() signature is retained and now resolves taoyuan:hidden_npc by local or namespaced ID before falling back to the static rollback path."
         }
       ]
     },
@@ -12441,6 +12498,54 @@
       ],
       "status": "verified",
       "rationale": "Checks NPC loved, liked and hated item references against taoyuan:item while deferring heart-event ID validation to a future heart_event slice."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "HiddenNpcDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:hidden_npc",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for hidden NPC definitions, including discovery conditions, scenes, offerings, affinity abilities, bond costs and manifestation days."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyHiddenNpc/createOfficialHiddenNpcs",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:hidden_npc",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy hidden NPC into ordered official entries without changing local hidden NPC IDs, discovery chains, offerings, bond thresholds, ability IDs or reward semantics."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialHiddenNpcDef/getOfficialHiddenNpcDefs/getOfficialHiddenNpcById/getOfficialHiddenNpcsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:hidden_npc",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry hidden NPC definitions and reconstructs legacy HiddenNpcDef objects for hidden NPC Store, dialogs and NPC UI consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:hidden_npc",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:hidden_npc",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks hidden NPC offering, crafting, discovery item, village NPC, story quest and fish references while deferring heart-event ID validation to the future heart_event slice."
     },
     {
       "file": "src/domain/mods/schemas.ts",

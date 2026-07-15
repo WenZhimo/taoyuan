@@ -4,7 +4,7 @@ import type { DiscoveryStep } from '@/types/hiddenNpc'
 import type { SeasonEventDef } from '@/data/events'
 import type { MorningChoiceEvent } from '@/data/farmEvents'
 import { WEDDING_EVENT } from '@/data/heartEvents'
-import { HIDDEN_NPCS } from '@/data/hiddenNpcs'
+import { getHiddenNpcById } from '@/data/hiddenNpcs'
 import { useGameStore } from '@/stores/useGameStore'
 import { useNpcStore } from '@/stores/useNpcStore'
 import { useHiddenNpcStore } from '@/stores/useHiddenNpcStore'
@@ -65,7 +65,7 @@ export const handlePerkSelect = (perk: SkillPerk5 | SkillPerk10) => {
 }
 
 /** 判断是否为隐藏NPC */
-const isHiddenNpcId = (npcId: string): boolean => HIDDEN_NPCS.some(n => n.id === npcId)
+const isHiddenNpcId = (npcId: string): boolean => getHiddenNpcById(npcId) !== undefined
 
 /** 触发心事件（由 NpcView / HiddenNpcModal 调用） */
 export const triggerHeartEvent = (event: HeartEventDef) => {

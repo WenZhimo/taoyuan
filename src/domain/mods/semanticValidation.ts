@@ -29,6 +29,7 @@ import type {
   GuildDonationDef,
   GuildGoalDef,
   GuildLevelDef,
+  HiddenNpcDef,
   MonsterDef,
   MonsterPoolDef,
   NpcDef,
@@ -65,6 +66,7 @@ const REGISTRY_IDS = {
   guildDonation: toOfficialRegistryTypeId('guild_donation'),
   guildLevel: toOfficialRegistryTypeId('guild_level'),
   npc: toOfficialRegistryTypeId('npc'),
+  hiddenNpc: toOfficialRegistryTypeId('hidden_npc'),
   storyQuest: toOfficialRegistryTypeId('story_quest'),
   achievement: toOfficialRegistryTypeId('achievement'),
   communityBundle: toOfficialRegistryTypeId('community_bundle'),
@@ -140,6 +142,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(REGISTRY_IDS.guildDonation)
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(REGISTRY_IDS.guildLevel)
   const npcRegistry = registrySet.get<NpcDef>(REGISTRY_IDS.npc)
+  const hiddenNpcRegistry = registrySet.get<HiddenNpcDef>(REGISTRY_IDS.hiddenNpc)
   const storyQuestRegistry = registrySet.get<StoryQuestDef>(REGISTRY_IDS.storyQuest)
   const achievementRegistry = registrySet.get<AchievementDef>(REGISTRY_IDS.achievement)
   const communityBundleRegistry = registrySet.get<CommunityBundleDef>(REGISTRY_IDS.communityBundle)
@@ -484,6 +487,89 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         }
       })
     }
+  }
+
+  for (const record of hiddenNpcRegistry.entries()) {
+    const itemGroups = [
+      { items: record.entry.resonantOfferings, fieldPath: '/resonantOfferings' },
+      { items: record.entry.pleasedOfferings, fieldPath: '/pleasedOfferings' },
+      { items: record.entry.repelledOfferings, fieldPath: '/repelledOfferings' },
+      { items: [record.entry.courtshipItemId], fieldPath: '/courtshipItemId' },
+      { items: [record.entry.bondItemId], fieldPath: '/bondItemId' }
+    ]
+    for (const group of itemGroups) {
+      group.items.forEach((itemId, index) => {
+        if (!itemRegistry.has(contentId(itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(itemId),
+            fieldPath: group.items.length === 1 && !group.fieldPath.endsWith('Offerings')
+              ? group.fieldPath
+              : `${group.fieldPath}/${index}`
+          })
+        }
+      })
+    }
+
+    record.entry.courtshipCraftCost.forEach((cost, index) => {
+      if (!itemRegistry.has(contentId(cost.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(cost.itemId),
+          fieldPath: `/courtshipCraftCost/${index}/itemId`
+        })
+      }
+    })
+    record.entry.bondCraftCost.forEach((cost, index) => {
+      if (!itemRegistry.has(contentId(cost.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(cost.itemId),
+          fieldPath: `/bondCraftCost/${index}/itemId`
+        })
+      }
+    })
+
+    record.entry.discoverySteps.forEach((step, stepIndex) => {
+      step.conditions.forEach((condition, conditionIndex) => {
+        const fieldBase = `/discoverySteps/${stepIndex}/conditions/${conditionIndex}`
+        if (condition.type === 'item' && !itemRegistry.has(contentId(condition.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(condition.itemId),
+            fieldPath: `${fieldBase}/itemId`
+          })
+        }
+        if (condition.type === 'npcFriendship' && !npcRegistry.has(contentId(condition.npcId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.npc,
+            contentId: contentId(condition.npcId),
+            fieldPath: `${fieldBase}/npcId`
+          })
+        }
+        if (condition.type === 'questComplete' && !storyQuestRegistry.has(contentId(condition.questId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.storyQuest,
+            contentId: contentId(condition.questId),
+            fieldPath: `${fieldBase}/questId`
+          })
+        }
+        if (condition.type === 'fishCaught' && !fishRegistry.has(contentId(condition.fishId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.fish,
+            contentId: contentId(condition.fishId),
+            fieldPath: `${fieldBase}/fishId`
+          })
+        }
+      })
+    })
   }
 
   for (const record of storyQuestRegistry.entries()) {

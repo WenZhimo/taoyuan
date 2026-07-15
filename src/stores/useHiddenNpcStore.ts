@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { HIDDEN_NPCS, getHiddenNpcById } from '@/data/hiddenNpcs'
+import { getHiddenNpcById, getHiddenNpcs } from '@/data/hiddenNpcs'
 import { getHiddenNpcHeartEvents } from '@/data/hiddenNpcHeartEvents'
 import { useGameStore } from './useGameStore'
 import { useSkillStore } from './useSkillStore'
@@ -10,7 +10,7 @@ import { useQuestStore } from './useQuestStore'
 import { useInventoryStore } from './useInventoryStore'
 import { usePlayerStore } from './usePlayerStore'
 import router from '@/router'
-import type { HiddenNpcState, DiscoveryCondition, DiscoveryStep, AffinityLevel, BondBonusType } from '@/types/hiddenNpc'
+import type { HiddenNpcDef, HiddenNpcState, DiscoveryCondition, DiscoveryStep, AffinityLevel, BondBonusType } from '@/types/hiddenNpc'
 import type { Quality, HeartEventDef } from '@/types'
 import { AFFINITY_THRESHOLDS, MAX_AFFINITY, AFFINITY_DECAY_BONDED, AFFINITY_DECAY_COURTING, MAX_OFFERS_PER_WEEK } from '@/types/hiddenNpc'
 import { isMomoFumo } from '@/data/specialItems'
@@ -48,7 +48,7 @@ const defaultState = (npcId: string): HiddenNpcState => ({
 })
 
 export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
-  const hiddenNpcStates = ref<HiddenNpcState[]>(HIDDEN_NPCS.map(n => defaultState(n.id)))
+  const hiddenNpcStates = ref<HiddenNpcState[]>(getHiddenNpcs().map(n => defaultState(n.id)))
 
   // ==================== 基础查询 ====================
 
@@ -64,14 +64,14 @@ export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
   }
 
   const getRevealedNpcs = computed(() =>
-    HIDDEN_NPCS.filter(n => {
+    getHiddenNpcs().filter(n => {
       const s = getHiddenNpcState(n.id)
       return s && s.discoveryPhase === 'revealed'
     })
   )
 
   const getRumorNpcs = computed(() =>
-    HIDDEN_NPCS.filter(n => {
+    getHiddenNpcs().filter(n => {
       const s = getHiddenNpcState(n.id)
       return s && (s.discoveryPhase === 'rumor' || s.discoveryPhase === 'glimpse')
     })
@@ -142,7 +142,7 @@ export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
   const checkDiscoveryConditions = (): { npcId: string; step: DiscoveryStep }[] => {
     const triggered: { npcId: string; step: DiscoveryStep }[] = []
 
-    for (const npc of HIDDEN_NPCS) {
+    for (const npc of getHiddenNpcs()) {
       const state = getHiddenNpcState(npc.id)
       if (!state || state.discoveryPhase === 'revealed') continue
 
@@ -396,7 +396,7 @@ export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
   const checkAbilityUnlocks = (): { id: string; npcId: string; name: string; description: string }[] => {
     const newlyUnlocked: { id: string; npcId: string; name: string; description: string }[] = []
 
-    for (const npc of HIDDEN_NPCS) {
+    for (const npc of getHiddenNpcs()) {
       const state = getHiddenNpcState(npc.id)
       if (!state || state.discoveryPhase !== 'revealed') continue
 
@@ -456,10 +456,10 @@ export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
       npcId: string
       id: string
       name: string
-      passive: NonNullable<(typeof HIDDEN_NPCS)[0]['abilities'][0]['passive']>
+      passive: NonNullable<HiddenNpcDef['abilities'][number]['passive']>
     }[] = []
 
-    for (const npc of HIDDEN_NPCS) {
+    for (const npc of getHiddenNpcs()) {
       const state = getHiddenNpcState(npc.id)
       if (!state || state.discoveryPhase !== 'revealed') continue
 
@@ -577,7 +577,7 @@ export const useHiddenNpcStore = defineStore('hiddenNpc', () => {
     }))
     // 合并：保留已保存的，为新增NPC补充默认状态
     const savedIds = new Set(savedStates.map((s: HiddenNpcState) => s.npcId))
-    const newStates = HIDDEN_NPCS.filter(n => !savedIds.has(n.id)).map(n => defaultState(n.id))
+    const newStates = getHiddenNpcs().filter(n => !savedIds.has(n.id)).map(n => defaultState(n.id))
     hiddenNpcStates.value = [...savedStates, ...newStates]
   }
 

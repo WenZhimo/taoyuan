@@ -163,6 +163,14 @@ export const WeatherSchema = Type.Union([
   Type.Literal('green_rain')
 ])
 
+export const SkillTypeSchema = Type.Union([
+  Type.Literal('farming'),
+  Type.Literal('foraging'),
+  Type.Literal('fishing'),
+  Type.Literal('mining'),
+  Type.Literal('combat')
+])
+
 export const FishWeatherSchema = Type.Union([
   Type.Literal('sunny'),
   Type.Literal('rainy'),
@@ -427,6 +435,196 @@ export const NpcDefSchema = Type.Object(
     birthday: Type.Optional(NpcBirthdaySchema)
   },
   { $id: 'taoyuan.registry.NpcDef', additionalProperties: false }
+)
+
+export const HiddenNpcDiscoveryPhaseSchema = Type.Union([
+  Type.Literal('unknown'),
+  Type.Literal('rumor'),
+  Type.Literal('glimpse'),
+  Type.Literal('encounter'),
+  Type.Literal('revealed')
+])
+
+export const HiddenNpcAffinityLevelSchema = Type.Union([
+  Type.Literal('wary'),
+  Type.Literal('curious'),
+  Type.Literal('trusting'),
+  Type.Literal('devoted'),
+  Type.Literal('eternal')
+])
+
+export const HiddenNpcSceneChoiceSchema = Type.Object(
+  {
+    text: LocalizedTextRefSchema,
+    friendshipChange: Type.Integer(),
+    response: LocalizedTextRefSchema
+  },
+  { additionalProperties: false }
+)
+
+export const HiddenNpcSceneSchema = Type.Object(
+  {
+    text: LocalizedTextRefSchema,
+    choices: Type.Optional(Type.Array(HiddenNpcSceneChoiceSchema, { minItems: 1 }))
+  },
+  { additionalProperties: false }
+)
+
+export const HiddenNpcDiscoveryConditionSchema = Type.Union([
+  Type.Object({ type: Type.Literal('season'), season: SeasonSchema }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('weather'), weather: WeatherSchema }, { additionalProperties: false }),
+  Type.Object(
+    {
+      type: Type.Literal('timeRange'),
+      minHour: Type.Integer({ minimum: 0, maximum: 24 }),
+      maxHour: Type.Integer({ minimum: 0, maximum: 24 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object({ type: Type.Literal('location'), panel: Type.String({ minLength: 1 }) }, { additionalProperties: false }),
+  Type.Object(
+    {
+      type: Type.Literal('item'),
+      itemId: ContentIdSchema,
+      quantity: Type.Optional(Type.Integer({ minimum: 1 }))
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('skill'),
+      skillType: SkillTypeSchema,
+      minLevel: Type.Integer({ minimum: 0 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('npcFriendship'),
+      npcId: ContentIdSchema,
+      minFriendship: Type.Integer({ minimum: 0 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object({ type: Type.Literal('questComplete'), questId: ContentIdSchema }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('mineFloor'), minFloor: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('fishCaught'), fishId: ContentIdSchema }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('money'), minAmount: Type.Integer({ minimum: 0 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('yearMin'), year: Type.Integer({ minimum: 1 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('day'), day: Type.Integer({ minimum: 1, maximum: 28 }) }, { additionalProperties: false })
+])
+
+export const HiddenNpcDiscoveryStepSchema = Type.Object(
+  {
+    id: Type.String({ minLength: 1 }),
+    phase: HiddenNpcDiscoveryPhaseSchema,
+    conditions: Type.Array(HiddenNpcDiscoveryConditionSchema, { minItems: 1 }),
+    scenes: Type.Array(HiddenNpcSceneSchema, { minItems: 1 }),
+    logMessage: Type.Optional(LocalizedTextRefSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const HiddenNpcDialoguesSchema = Type.Object(
+  {
+    wary: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    curious: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    trusting: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    devoted: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    eternal: Type.Array(LocalizedTextRefSchema, { minItems: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const HiddenNpcInteractionTypeSchema = Type.Union([
+  Type.Literal('meditation'),
+  Type.Literal('music'),
+  Type.Literal('ritual'),
+  Type.Literal('dreamwalk'),
+  Type.Literal('cultivation')
+])
+
+export const HiddenNpcPassiveSchema = Type.Object(
+  {
+    type: Type.Union([
+      Type.Literal('quality_boost'),
+      Type.Literal('stamina_save'),
+      Type.Literal('exp_boost'),
+      Type.Literal('sell_bonus'),
+      Type.Literal('luck'),
+      Type.Literal('max_stamina'),
+      Type.Literal('max_hp')
+    ]),
+    value: Type.Number()
+  },
+  { additionalProperties: false }
+)
+
+export const HiddenNpcAbilitySchema = Type.Object(
+  {
+    id: Type.String({ minLength: 1 }),
+    affinityRequired: Type.Integer({ minimum: 0 }),
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    passive: Type.Optional(HiddenNpcPassiveSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const HiddenNpcCraftCostSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const HiddenNpcBondBonusSchema = Type.Union([
+  Type.Object({ type: Type.Literal('weather_control'), chance: Type.Number({ minimum: 0 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('crop_blessing'), chance: Type.Number({ minimum: 0 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('animal_blessing'), chance: Type.Number({ minimum: 0 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('stamina_restore'), amount: Type.Integer({ minimum: 0 }) }, { additionalProperties: false }),
+  Type.Object({ type: Type.Literal('fish_attraction'), chance: Type.Number({ minimum: 0 }) }, { additionalProperties: false }),
+  Type.Object(
+    {
+      type: Type.Literal('spirit_shield'),
+      staminaSave: Type.Integer({ minimum: 0 }),
+      hpBonus: Type.Integer({ minimum: 0 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object({ type: Type.Literal('sell_bonus'), percent: Type.Number() }, { additionalProperties: false })
+])
+
+export const HiddenNpcDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    trueName: LocalizedTextRefSchema,
+    gender: GenderSchema,
+    title: LocalizedTextRefSchema,
+    origin: LocalizedTextRefSchema,
+    personality: LocalizedTextRefSchema,
+    discoverySteps: Type.Array(HiddenNpcDiscoveryStepSchema, { minItems: 1 }),
+    resonantOfferings: Type.Array(ContentIdSchema, { minItems: 1 }),
+    pleasedOfferings: Type.Array(ContentIdSchema, { minItems: 1 }),
+    repelledOfferings: Type.Array(ContentIdSchema, { minItems: 1 }),
+    dialogues: HiddenNpcDialoguesSchema,
+    interactionType: HiddenNpcInteractionTypeSchema,
+    bondable: Type.Boolean(),
+    courtshipItemId: ContentIdSchema,
+    bondItemId: ContentIdSchema,
+    courtshipThreshold: Type.Integer({ minimum: 0 }),
+    bondThreshold: Type.Integer({ minimum: 0 }),
+    heartEventIds: Type.Array(Type.String({ minLength: 1 })),
+    courtshipDialogues: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    bondBonuses: Type.Array(HiddenNpcBondBonusSchema, { minItems: 1 }),
+    abilities: Type.Array(HiddenNpcAbilitySchema, { minItems: 1 }),
+    courtshipCraftCost: Type.Array(HiddenNpcCraftCostSchema, { minItems: 1 }),
+    bondCraftCost: Type.Array(HiddenNpcCraftCostSchema, { minItems: 1 }),
+    manifestationDay: NpcBirthdaySchema
+  },
+  { $id: 'taoyuan.registry.HiddenNpcDef', additionalProperties: false }
 )
 
 export const SecretNoteTypeSchema = Type.Union([
@@ -1185,14 +1383,6 @@ export const RecipeEffectSchema = Type.Object(
   { additionalProperties: false }
 )
 
-export const SkillTypeSchema = Type.Union([
-  Type.Literal('farming'),
-  Type.Literal('foraging'),
-  Type.Literal('fishing'),
-  Type.Literal('mining'),
-  Type.Literal('combat')
-])
-
 export const RecipeRequiredSkillSchema = Type.Object(
   {
     type: SkillTypeSchema,
@@ -1473,6 +1663,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:guild_donation': GuildDonationDefSchema,
   'taoyuan:guild_level': GuildLevelDefSchema,
   'taoyuan:npc': NpcDefSchema,
+  'taoyuan:hidden_npc': HiddenNpcDefSchema,
   'taoyuan:story_quest': StoryQuestDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
@@ -1520,6 +1711,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'guild-donation.schema.json': GuildDonationDefSchema,
   'guild-level.schema.json': GuildLevelDefSchema,
   'npc.schema.json': NpcDefSchema,
+  'hidden-npc.schema.json': HiddenNpcDefSchema,
   'story-quest.schema.json': StoryQuestDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
@@ -1582,6 +1774,19 @@ export type NpcFriendshipLevel = Static<typeof NpcFriendshipLevelSchema>
 export type NpcDialogues = Static<typeof NpcDialoguesSchema>
 export type NpcBirthday = Static<typeof NpcBirthdaySchema>
 export type NpcDef = Static<typeof NpcDefSchema>
+export type HiddenNpcDiscoveryPhase = Static<typeof HiddenNpcDiscoveryPhaseSchema>
+export type HiddenNpcAffinityLevel = Static<typeof HiddenNpcAffinityLevelSchema>
+export type HiddenNpcSceneChoice = Static<typeof HiddenNpcSceneChoiceSchema>
+export type HiddenNpcScene = Static<typeof HiddenNpcSceneSchema>
+export type HiddenNpcDiscoveryCondition = Static<typeof HiddenNpcDiscoveryConditionSchema>
+export type HiddenNpcDiscoveryStep = Static<typeof HiddenNpcDiscoveryStepSchema>
+export type HiddenNpcDialogues = Static<typeof HiddenNpcDialoguesSchema>
+export type HiddenNpcInteractionType = Static<typeof HiddenNpcInteractionTypeSchema>
+export type HiddenNpcPassive = Static<typeof HiddenNpcPassiveSchema>
+export type HiddenNpcAbility = Static<typeof HiddenNpcAbilitySchema>
+export type HiddenNpcCraftCost = Static<typeof HiddenNpcCraftCostSchema>
+export type HiddenNpcBondBonus = Static<typeof HiddenNpcBondBonusSchema>
+export type HiddenNpcDef = Static<typeof HiddenNpcDefSchema>
 export type StoryQuestObjective = Static<typeof StoryQuestObjectiveSchema>
 export type StoryQuestRewardItem = Static<typeof StoryQuestRewardItemSchema>
 export type StoryQuestFriendshipReward = Static<typeof StoryQuestFriendshipRewardSchema>

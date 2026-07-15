@@ -34,6 +34,7 @@ import { FEED_DEFS } from '@/data/animalFeedDefinitions'
 import { WALLET_ITEMS } from '@/data/walletDefinitions'
 import { MUSEUM_CATEGORIES, MUSEUM_ITEMS, MUSEUM_MILESTONES } from '@/data/museumDefinitions'
 import { NPCS } from '@/data/npcDefinitions'
+import { HIDDEN_NPCS } from '@/data/hiddenNpcDefinitions'
 import { STORY_QUESTS } from '@/data/storyQuestDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
@@ -87,6 +88,10 @@ import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPonda
 import type { FruitTreeDef as LegacyFruitTreeDef, WildTreeDef as LegacyWildTreeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { FishDef as LegacyFishDef, MonsterDef as LegacyMonsterDef } from '@/types/skill'
+import type {
+  DiscoveryCondition as LegacyHiddenNpcDiscoveryCondition,
+  HiddenNpcDef as LegacyHiddenNpcDef
+} from '@/types/hiddenNpc'
 import {
   requirePackageId,
   toOfficialContentId,
@@ -126,6 +131,7 @@ import type {
   GuildDonationDef,
   GuildGoalDef,
   GuildLevelDef,
+  HiddenNpcDef,
   CropDef,
   MonsterDef,
   MonsterPoolDef,
@@ -235,6 +241,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('npc'),
     description: '村民 NPC 定义',
     schemaName: 'npc.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('hidden_npc'),
+    description: '隐藏仙灵 NPC 定义',
+    schemaName: 'hidden-npc.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('story_quest'),
@@ -880,6 +891,140 @@ export const adaptLegacyNpc = (npc: LegacyNpcDef): NpcDef => ({
 })
 
 export const createOfficialNpcs = (): NpcDef[] => NPCS.map(adaptLegacyNpc)
+
+const hiddenNpcText = (npcId: string, key: string, fallback: string) =>
+  text(`taoyuan.hidden_npc.${npcId}.${key}`, fallback)
+
+const adaptLegacyHiddenNpcScenes = (
+  npcId: string,
+  scope: string,
+  scenes: LegacyHiddenNpcDef['discoverySteps'][number]['scenes']
+): HiddenNpcDef['discoverySteps'][number]['scenes'] =>
+  scenes.map((scene, index) => ({
+    text: hiddenNpcText(npcId, `${scope}.scenes.${index}.text`, scene.text),
+    ...(scene.choices
+      ? {
+          choices: scene.choices.map((choice, choiceIndex) => ({
+            text: hiddenNpcText(npcId, `${scope}.scenes.${index}.choices.${choiceIndex}.text`, choice.text),
+            friendshipChange: choice.friendshipChange,
+            response: hiddenNpcText(npcId, `${scope}.scenes.${index}.choices.${choiceIndex}.response`, choice.response)
+          }))
+        }
+      : {})
+  }))
+
+const adaptLegacyHiddenNpcDiscoveryCondition = (
+  condition: LegacyHiddenNpcDiscoveryCondition
+): HiddenNpcDef['discoverySteps'][number]['conditions'][number] => {
+  switch (condition.type) {
+    case 'season':
+      return { type: 'season', season: condition.season }
+    case 'weather':
+      return { type: 'weather', weather: condition.weather }
+    case 'timeRange':
+      return { type: 'timeRange', minHour: condition.minHour, maxHour: condition.maxHour }
+    case 'location':
+      return { type: 'location', panel: condition.panel }
+    case 'item':
+      return {
+        type: 'item',
+        itemId: toOfficialContentId(condition.itemId),
+        ...(condition.quantity !== undefined ? { quantity: condition.quantity } : {})
+      }
+    case 'skill':
+      return {
+        type: 'skill',
+        skillType: condition.skillType as Extract<
+          HiddenNpcDef['discoverySteps'][number]['conditions'][number],
+          { type: 'skill' }
+        >['skillType'],
+        minLevel: condition.minLevel
+      }
+    case 'npcFriendship':
+      return {
+        type: 'npcFriendship',
+        npcId: toOfficialContentId(`npc/${condition.npcId}`),
+        minFriendship: condition.minFriendship
+      }
+    case 'questComplete':
+      return { type: 'questComplete', questId: toOfficialContentId(`story_quest/${condition.questId}`) }
+    case 'mineFloor':
+      return { type: 'mineFloor', minFloor: condition.minFloor }
+    case 'fishCaught':
+      return { type: 'fishCaught', fishId: toOfficialContentId(condition.fishId) }
+    case 'money':
+      return { type: 'money', minAmount: condition.minAmount }
+    case 'yearMin':
+      return { type: 'yearMin', year: condition.year }
+    case 'day':
+      return { type: 'day', day: condition.day }
+  }
+}
+
+const adaptLegacyHiddenNpcDialogues = (
+  npcId: string,
+  dialogues: LegacyHiddenNpcDef['dialogues']
+): HiddenNpcDef['dialogues'] => ({
+  wary: dialogues.wary.map((line, index) => hiddenNpcText(npcId, `dialogues.wary.${index}`, line)),
+  curious: dialogues.curious.map((line, index) => hiddenNpcText(npcId, `dialogues.curious.${index}`, line)),
+  trusting: dialogues.trusting.map((line, index) => hiddenNpcText(npcId, `dialogues.trusting.${index}`, line)),
+  devoted: dialogues.devoted.map((line, index) => hiddenNpcText(npcId, `dialogues.devoted.${index}`, line)),
+  eternal: dialogues.eternal.map((line, index) => hiddenNpcText(npcId, `dialogues.eternal.${index}`, line))
+})
+
+const adaptLegacyHiddenNpcItemIds = (itemIds: readonly string[]) => itemIds.map(itemId => toOfficialContentId(itemId))
+
+const adaptLegacyHiddenNpcCraftCost = (
+  costs: LegacyHiddenNpcDef['courtshipCraftCost'] | LegacyHiddenNpcDef['bondCraftCost']
+): HiddenNpcDef['courtshipCraftCost'] =>
+  costs.map(cost => ({
+    itemId: toOfficialContentId(cost.itemId),
+    quantity: cost.quantity
+  }))
+
+export const adaptLegacyHiddenNpc = (npc: LegacyHiddenNpcDef): HiddenNpcDef => ({
+  id: toOfficialContentId(`hidden_npc/${npc.id}`),
+  name: hiddenNpcText(npc.id, 'name', npc.name),
+  trueName: hiddenNpcText(npc.id, 'trueName', npc.trueName),
+  gender: npc.gender,
+  title: hiddenNpcText(npc.id, 'title', npc.title),
+  origin: hiddenNpcText(npc.id, 'origin', npc.origin),
+  personality: hiddenNpcText(npc.id, 'personality', npc.personality),
+  discoverySteps: npc.discoverySteps.map(step => ({
+    id: step.id,
+    phase: step.phase,
+    conditions: step.conditions.map(adaptLegacyHiddenNpcDiscoveryCondition),
+    scenes: adaptLegacyHiddenNpcScenes(npc.id, `discoverySteps.${step.id}`, step.scenes),
+    ...(step.logMessage ? { logMessage: hiddenNpcText(npc.id, `discoverySteps.${step.id}.logMessage`, step.logMessage) } : {})
+  })),
+  resonantOfferings: adaptLegacyHiddenNpcItemIds(npc.resonantOfferings),
+  pleasedOfferings: adaptLegacyHiddenNpcItemIds(npc.pleasedOfferings),
+  repelledOfferings: adaptLegacyHiddenNpcItemIds(npc.repelledOfferings),
+  dialogues: adaptLegacyHiddenNpcDialogues(npc.id, npc.dialogues),
+  interactionType: npc.interactionType,
+  bondable: npc.bondable,
+  courtshipItemId: toOfficialContentId(npc.courtshipItemId),
+  bondItemId: toOfficialContentId(npc.bondItemId),
+  courtshipThreshold: npc.courtshipThreshold,
+  bondThreshold: npc.bondThreshold,
+  heartEventIds: [...npc.heartEventIds],
+  courtshipDialogues: npc.courtshipDialogues.map((line, index) =>
+    hiddenNpcText(npc.id, `courtshipDialogues.${index}`, line)
+  ),
+  bondBonuses: npc.bondBonuses.map(bonus => ({ ...bonus })),
+  abilities: npc.abilities.map((ability, index) => ({
+    id: ability.id,
+    affinityRequired: ability.affinityRequired,
+    name: hiddenNpcText(npc.id, `abilities.${index}.name`, ability.name),
+    description: hiddenNpcText(npc.id, `abilities.${index}.description`, ability.description),
+    ...(ability.passive ? { passive: { ...ability.passive } } : {})
+  })),
+  courtshipCraftCost: adaptLegacyHiddenNpcCraftCost(npc.courtshipCraftCost),
+  bondCraftCost: adaptLegacyHiddenNpcCraftCost(npc.bondCraftCost),
+  manifestationDay: { ...npc.manifestationDay }
+})
+
+export const createOfficialHiddenNpcs = (): HiddenNpcDef[] => HIDDEN_NPCS.map(adaptLegacyHiddenNpc)
 
 const questObjectiveLabel = (
   questId: string,
@@ -1570,6 +1715,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const guildDonationRegistry = registrySet.get<GuildDonationDef>(toOfficialRegistryTypeId('guild_donation'))
   const guildLevelRegistry = registrySet.get<GuildLevelDef>(toOfficialRegistryTypeId('guild_level'))
   const npcRegistry = registrySet.get<NpcDef>(toOfficialRegistryTypeId('npc'))
+  const hiddenNpcRegistry = registrySet.get<HiddenNpcDef>(toOfficialRegistryTypeId('hidden_npc'))
   const storyQuestRegistry = registrySet.get<StoryQuestDef>(toOfficialRegistryTypeId('story_quest'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
@@ -1628,6 +1774,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const npc of createOfficialNpcs()) {
     npcRegistry.register(owner, npc, { file: 'src/data/npcDefinitions.ts' })
+  }
+  for (const npc of createOfficialHiddenNpcs()) {
+    hiddenNpcRegistry.register(owner, npc, { file: 'src/data/hiddenNpcDefinitions.ts' })
   }
   for (const quest of createOfficialStoryQuests()) {
     storyQuestRegistry.register(owner, quest, { file: 'src/data/storyQuestDefinitions.ts' })
