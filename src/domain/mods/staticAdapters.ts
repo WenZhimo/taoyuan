@@ -19,6 +19,7 @@ import {
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/monsters'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhaiShopDefinitions'
 import { TRADE_EXCHANGE_ITEMS } from '@/data/hanhaiDefinitions'
+import { TRADE_SHOP_UPGRADES } from '@/data/hanhaiTradeShopDefinitions'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
@@ -104,6 +105,7 @@ import type {
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
   TradeExchangeItemDef,
+  TradeShopUpgradeDef as LegacyHanhaiTradeShopUpgradeDef,
   WeaponDef as LegacyWeaponDef
 } from '@/types'
 import type { HybridDef as LegacyHybridDef } from '@/types/breeding'
@@ -158,6 +160,7 @@ import type {
   GuildGoalDef,
   GuildLevelDef,
   HanhaiTradeExchangeDef,
+  HanhaiTradeShopUpgradeDef,
   HeartEventDef,
   HiddenNpcDef,
   CropDef,
@@ -433,6 +436,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('hanhai_trade_exchange'),
     description: '瀚海通商积分兑换定义',
     schemaName: 'hanhai-trade-exchange.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'),
+    description: '瀚海通商店铺升级定义',
+    schemaName: 'hanhai-trade-shop-upgrade.schema.json'
   }
 ] as const satisfies readonly RegistryDefinition<RegistryEntry>[]
 
@@ -1959,6 +1967,28 @@ export const adaptHanhaiTradeExchange = (item: TradeExchangeItemDef): HanhaiTrad
 export const createOfficialHanhaiTradeExchangeItems = (): HanhaiTradeExchangeDef[] =>
   TRADE_EXCHANGE_ITEMS.map(adaptHanhaiTradeExchange)
 
+const adaptHanhaiTradeShopMaterial = (
+  material: LegacyHanhaiTradeShopUpgradeDef['materialCost'][number]
+): HanhaiTradeShopUpgradeDef['materialCost'][number] => ({
+  itemId: toOfficialContentId(material.itemId),
+  quantity: material.quantity
+})
+
+export const adaptHanhaiTradeShopUpgrade = (
+  upgrade: LegacyHanhaiTradeShopUpgradeDef
+): HanhaiTradeShopUpgradeDef => ({
+  id: toOfficialContentId(`hanhai_trade_shop_upgrade/${upgrade.level}`),
+  level: upgrade.level,
+  name: text(`taoyuan.hanhai.trade_shop_upgrade.${upgrade.level}.name`, upgrade.name),
+  maxSlots: upgrade.maxSlots,
+  sellDays: upgrade.sellDays,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(adaptHanhaiTradeShopMaterial)
+})
+
+export const createOfficialHanhaiTradeShopUpgrades = (): HanhaiTradeShopUpgradeDef[] =>
+  TRADE_SHOP_UPGRADES.map(adaptHanhaiTradeShopUpgrade)
+
 const uniqueMonsters = (): LegacyMonsterDef[] => {
   const byId = new Map<string, LegacyMonsterDef>()
   for (const monster of [
@@ -2024,6 +2054,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer'))
   const marketCategoryRegistry = registrySet.get<MarketCategoryDef>(toOfficialRegistryTypeId('market_category'))
   const hanhaiTradeExchangeRegistry = registrySet.get<HanhaiTradeExchangeDef>(toOfficialRegistryTypeId('hanhai_trade_exchange'))
+  const hanhaiTradeShopUpgradeRegistry = registrySet.get<HanhaiTradeShopUpgradeDef>(toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'))
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
@@ -2166,6 +2197,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const item of createOfficialHanhaiTradeExchangeItems()) {
     hanhaiTradeExchangeRegistry.register(owner, item, { file: 'src/data/hanhaiDefinitions.ts' })
+  }
+  for (const upgrade of createOfficialHanhaiTradeShopUpgrades()) {
+    hanhaiTradeShopUpgradeRegistry.register(owner, upgrade, { file: 'src/data/hanhaiTradeShopDefinitions.ts' })
   }
 
   return registrySet

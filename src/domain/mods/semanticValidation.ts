@@ -31,6 +31,7 @@ import type {
   GuildGoalDef,
   GuildLevelDef,
   HanhaiTradeExchangeDef,
+  HanhaiTradeShopUpgradeDef,
   HeartEventDef,
   HiddenNpcDef,
   MonsterDef,
@@ -100,7 +101,8 @@ const REGISTRY_IDS = {
   dropTable: toOfficialRegistryTypeId('drop_table'),
   recipe: toOfficialRegistryTypeId('recipe'),
   shopOffer: toOfficialRegistryTypeId('shop_offer'),
-  hanhaiTradeExchange: toOfficialRegistryTypeId('hanhai_trade_exchange')
+  hanhaiTradeExchange: toOfficialRegistryTypeId('hanhai_trade_exchange'),
+  hanhaiTradeShopUpgrade: toOfficialRegistryTypeId('hanhai_trade_shop_upgrade')
 }
 
 const pushMissingReference = (
@@ -192,6 +194,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const recipeRegistry = registrySet.get<RecipeDef>(REGISTRY_IDS.recipe)
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(REGISTRY_IDS.shopOffer)
   const hanhaiTradeExchangeRegistry = registrySet.get<HanhaiTradeExchangeDef>(REGISTRY_IDS.hanhaiTradeExchange)
+  const hanhaiTradeShopUpgradeRegistry = registrySet.get<HanhaiTradeShopUpgradeDef>(REGISTRY_IDS.hanhaiTradeShopUpgrade)
 
   for (const record of recipeRegistry.entries()) {
     record.entry.ingredients.forEach((ingredient, index) => {
@@ -269,6 +272,19 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/itemId'
       })
     }
+  }
+
+  for (const record of hanhaiTradeShopUpgradeRegistry.entries()) {
+    record.entry.materialCost.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/materialCost/${index}/itemId`
+        })
+      }
+    })
   }
 
   for (const record of cropRegistry.entries()) {

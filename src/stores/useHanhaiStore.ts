@@ -23,12 +23,13 @@ import {
   BUCKSHOT_PLAYER_HP,
   BUCKSHOT_DEALER_HP,
   loadShotgun,
-  TRADE_SHOP_UPGRADES,
   calcTradePoints
 } from '@/data/hanhai'
 import { getItemById } from '@/data/items'
 import {
   getOfficialHanhaiFixedShopItems,
+  getOfficialHanhaiTradeShopUpgrade,
+  getOfficialHanhaiTradeShopUpgradesAsLegacy,
   getOfficialHanhaiTradeExchangeItem,
   getOfficialHanhaiWeeklyRotatingItems
 } from '@/domain/mods/contentAccess'
@@ -63,9 +64,11 @@ export const useHanhaiStore = defineStore('hanhai', () => {
   const totalExchangePurchases = ref<Record<string, number>>({})
 
   /** 当前店铺升级配置 */
-  const tradeShopConfig = computed(() => TRADE_SHOP_UPGRADES.find(u => u.level === tradeShopLevel.value) ?? TRADE_SHOP_UPGRADES[0]!)
+  const tradeShopConfig = computed(() =>
+    getOfficialHanhaiTradeShopUpgrade(tradeShopLevel.value) ?? getOfficialHanhaiTradeShopUpgradesAsLegacy()[0]!
+  )
   /** 下一级店铺升级配置 */
-  const nextTradeShopUpgrade = computed(() => TRADE_SHOP_UPGRADES.find(u => u.level === tradeShopLevel.value + 1))
+  const nextTradeShopUpgrade = computed(() => getOfficialHanhaiTradeShopUpgrade(tradeShopLevel.value + 1))
 
   const canBet = computed(() => casinoBetsToday.value < MAX_DAILY_BETS)
   const betsRemaining = computed(() => MAX_DAILY_BETS - casinoBetsToday.value)

@@ -733,6 +733,15 @@ fileDefaults.set('src/data/hanhaiShopDefinitions.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/hanhaiTradeShopDefinitions.ts', {
+  file: 'src/data/hanhaiTradeShopDefinitions.ts',
+  classification: 'mixed',
+  domains: ['hanhai_trade_shop_upgrade'],
+  candidateTargets: ['taoyuan:hanhai_trade_shop_upgrade'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 const dataFiles = fs.readdirSync(dataRoot)
   .filter(file => file.endsWith('.ts'))
   .map(file => path.join(dataRoot, file))
@@ -3548,6 +3557,22 @@ const symbolReviewOverrides = new Map(Object.entries({
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
     rationale: 'Original-name re-export keeps legacy Hanhai imports stable after the trade exchange leaf data moved to hanhaiDefinitions.ts.'
+  },
+  'src/data/hanhaiTradeShopDefinitions.ts:TRADE_SHOP_UPGRADES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_trade_shop_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for the five legacy Hanhai trade shop upgrade definitions; Phase 6 projects levels, names, slot counts, sell days, money costs and materials into taoyuan:hanhai_trade_shop_upgrade.'
+  },
+  'src/data/hanhai.ts:TRADE_SHOP_UPGRADES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_shop_upgrade',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy Hanhai imports stable after trade shop upgrade leaf data moved to hanhaiTradeShopDefinitions.ts.'
   }
 }))
 
@@ -5071,6 +5096,56 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Renders the Hanhai exchange list from the registry-backed compatibility list without changing order, text, limit display or click flow.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'HanhaiTradeShopUpgradeDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_trade_shop_upgrade',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for Hanhai trade shop upgrade definitions, including localized name, level, slot count, sell days, money cost and item material costs.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptHanhaiTradeShopUpgrade/createOfficialHanhaiTradeShopUpgrades',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_shop_upgrade',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy Hanhai trade shop upgrade into official registry entries without changing levels, names, slot counts, sell days, costs or material requirements.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialHanhaiTradeShopUpgradeDef/getOfficialHanhaiTradeShopUpgradeDefs/getOfficialHanhaiTradeShopUpgradesAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_shop_upgrade',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry trade shop upgrade definitions and reconstructs legacy TradeShopUpgradeDef objects for Hanhai Store consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:hanhai_trade_shop_upgrade',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_shop_upgrade',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks Hanhai trade shop upgrade material references against taoyuan:item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/stores/useHanhaiStore.ts',
+    exportName: 'tradeShopConfig/nextTradeShopUpgrade:hanhai_trade_shop_upgrade',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_shop_upgrade',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Uses registry-backed Hanhai trade shop upgrade definitions while preserving tradeShopLevel, slot limits, sell days, money and material deduction, logs and old save fields.'
   }
 ]
 

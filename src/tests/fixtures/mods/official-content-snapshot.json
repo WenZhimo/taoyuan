@@ -39846,6 +39846,143 @@
       ]
     },
     {
+      "registryId": "taoyuan:hanhai_trade_shop_upgrade",
+      "schemaName": "hanhai-trade-shop-upgrade.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTradeShopDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 0,
+            "id": "taoyuan:hanhai_trade_shop_upgrade/1",
+            "level": 1,
+            "materialCost": [],
+            "maxSlots": 2,
+            "name": {
+              "fallback": "小摊",
+              "key": "taoyuan.hanhai.trade_shop_upgrade.1.name"
+            },
+            "sellDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTradeShopDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 20000,
+            "id": "taoyuan:hanhai_trade_shop_upgrade/2",
+            "level": 2,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 150
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 5
+              }
+            ],
+            "maxSlots": 3,
+            "name": {
+              "fallback": "商铺",
+              "key": "taoyuan.hanhai.trade_shop_upgrade.2.name"
+            },
+            "sellDays": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTradeShopDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 50000,
+            "id": "taoyuan:hanhai_trade_shop_upgrade/3",
+            "level": 3,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 250
+              },
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              }
+            ],
+            "maxSlots": 4,
+            "name": {
+              "fallback": "大商铺",
+              "key": "taoyuan.hanhai.trade_shop_upgrade.3.name"
+            },
+            "sellDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTradeShopDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 100000,
+            "id": "taoyuan:hanhai_trade_shop_upgrade/4",
+            "level": 4,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 400
+              },
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 15
+              }
+            ],
+            "maxSlots": 5,
+            "name": {
+              "fallback": "商行",
+              "key": "taoyuan.hanhai.trade_shop_upgrade.4.name"
+            },
+            "sellDays": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTradeShopDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "cost": 200000,
+            "id": "taoyuan:hanhai_trade_shop_upgrade/5",
+            "level": 5,
+            "materialCost": [
+              {
+                "itemId": "taoyuan:wood",
+                "quantity": 500
+              },
+              {
+                "itemId": "taoyuan:iridium_bar",
+                "quantity": 3
+              }
+            ],
+            "maxSlots": 6,
+            "name": {
+              "fallback": "商会",
+              "key": "taoyuan.hanhai.trade_shop_upgrade.5.name"
+            },
+            "sellDays": 1
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:heart_event",
       "schemaName": "heart-event.schema.json",
       "entries": [
@@ -117262,5 +117399,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:58e2c3c17fca5d338b9a69779221c96a4999f23dd41b2bdb3a782759d761dc44"
+  "snapshotHash": "sha256:cf64a7806995f12b9c9d93b1114901a0c6953a1d71247a89a641a70abaf1a0f1"
 }

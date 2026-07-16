@@ -11,12 +11,12 @@ import type {
   TexasTierId,
   TexasTierDef,
   PokerActionType,
-  ShellType,
-  TradeShopUpgradeDef
+  ShellType
 } from '@/types'
 import { getOfficialHanhaiWeeklyRotatingItems } from '@/domain/mods/contentAccess'
 export { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from './hanhaiShopDefinitions'
 export { TRADE_EXCHANGE_ITEMS } from './hanhaiDefinitions'
+export { TRADE_SHOP_UPGRADES } from './hanhaiTradeShopDefinitions'
 
 /** 根据年份+季节+周数生成本周轮换商品（确定性伪随机） */
 export const getWeeklyRotatingItems = (year: number, seasonIndex: number, day: number): HanhaiShopItemDef[] =>
@@ -459,55 +459,6 @@ export const dealerDecide = (shells: ShellType[], currentIndex: number, knowsCur
 }
 
 // === 通商系统 ===
-
-/** 通商店铺升级定义 */
-export const TRADE_SHOP_UPGRADES: TradeShopUpgradeDef[] = [
-  { level: 1, name: '小摊', maxSlots: 2, sellDays: 3, cost: 0, materialCost: [] },
-  {
-    level: 2,
-    name: '商铺',
-    maxSlots: 3,
-    sellDays: 3,
-    cost: 20000,
-    materialCost: [
-      { itemId: 'wood', quantity: 150 },
-      { itemId: 'iron_bar', quantity: 5 }
-    ]
-  },
-  {
-    level: 3,
-    name: '大商铺',
-    maxSlots: 4,
-    sellDays: 2,
-    cost: 50000,
-    materialCost: [
-      { itemId: 'wood', quantity: 250 },
-      { itemId: 'gold_bar', quantity: 5 }
-    ]
-  },
-  {
-    level: 4,
-    name: '商行',
-    maxSlots: 5,
-    sellDays: 2,
-    cost: 100000,
-    materialCost: [
-      { itemId: 'wood', quantity: 400 },
-      { itemId: 'gold_bar', quantity: 15 }
-    ]
-  },
-  {
-    level: 5,
-    name: '商会',
-    maxSlots: 6,
-    sellDays: 1,
-    cost: 200000,
-    materialCost: [
-      { itemId: 'wood', quantity: 500 },
-      { itemId: 'iridium_bar', quantity: 3 }
-    ]
-  }
-]
 
 /** 积分计算：物品售价转通商积分 */
 export const TRADE_QUALITY_MULTIPLIER: Record<string, number> = {

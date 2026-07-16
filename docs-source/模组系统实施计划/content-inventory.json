@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 83,
-    "approximateLineCount": 31543,
+    "fileCount": 84,
+    "approximateLineCount": 31545,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 612,
-    "reviewedArtifactCount": 152
+    "symbolCount": 613,
+    "reviewedArtifactCount": 157
   },
   "entries": [
     {
@@ -4631,7 +4631,7 @@
     },
     {
       "file": "src/data/hanhai.ts",
-      "lines": 524,
+      "lines": 475,
       "classification": "mixed",
       "domains": [
         "hanhai_shop",
@@ -4704,6 +4704,25 @@
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
           "rationale": "Original-name re-export keeps legacy Hanhai imports stable after the trade exchange leaf data moved to hanhaiDefinitions.ts."
+        },
+        {
+          "file": "src/data/hanhai.ts",
+          "exportName": "TRADE_SHOP_UPGRADES",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:hanhai_trade_shop_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hanhaiTradeShopDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/hanhaiTradeShopUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy Hanhai imports stable after trade shop upgrade leaf data moved to hanhaiTradeShopDefinitions.ts."
         },
         {
           "file": "src/data/hanhai.ts",
@@ -5329,23 +5348,6 @@
         },
         {
           "file": "src/data/hanhai.ts",
-          "exportName": "TRADE_SHOP_UPGRADES",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:shop_offer",
-          "persistentIds": true,
-          "consumers": [
-            "src/stores/useHanhaiStore.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/hanhai.ts",
           "exportName": "TRADE_QUALITY_MULTIPLIER",
           "syntaxKind": "const",
           "classification": "algorithm",
@@ -5465,6 +5467,42 @@
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
           "rationale": "Unique leaf source for the Hanhai weekly rotating product pool; Phase 6 projects item IDs, names, descriptions, prices and weekly limits into ordered taoyuan:shop_offer entries while the weekly shuffle remains framework-owned."
+        }
+      ]
+    },
+    {
+      "file": "src/data/hanhaiTradeShopDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "hanhai_trade_shop_upgrade"
+      ],
+      "candidateTargets": [
+        "taoyuan:hanhai_trade_shop_upgrade"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 51,
+      "symbols": [
+        {
+          "file": "src/data/hanhaiTradeShopDefinitions.ts",
+          "exportName": "TRADE_SHOP_UPGRADES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:hanhai_trade_shop_upgrade",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hanhai.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/hanhaiTradeShopUpgradeRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique leaf source for the five legacy Hanhai trade shop upgrade definitions; Phase 6 projects levels, names, slot counts, sell days, money costs and materials into taoyuan:hanhai_trade_shop_upgrade."
         }
       ]
     },
@@ -14327,6 +14365,66 @@
       ],
       "status": "verified",
       "rationale": "Renders the Hanhai exchange list from the registry-backed compatibility list without changing order, text, limit display or click flow."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "HanhaiTradeShopUpgradeDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:hanhai_trade_shop_upgrade",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for Hanhai trade shop upgrade definitions, including localized name, level, slot count, sell days, money cost and item material costs."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptHanhaiTradeShopUpgrade/createOfficialHanhaiTradeShopUpgrades",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:hanhai_trade_shop_upgrade",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy Hanhai trade shop upgrade into official registry entries without changing levels, names, slot counts, sell days, costs or material requirements."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialHanhaiTradeShopUpgradeDef/getOfficialHanhaiTradeShopUpgradeDefs/getOfficialHanhaiTradeShopUpgradesAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:hanhai_trade_shop_upgrade",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen registry trade shop upgrade definitions and reconstructs legacy TradeShopUpgradeDef objects for Hanhai Store consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:hanhai_trade_shop_upgrade",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:hanhai_trade_shop_upgrade",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks Hanhai trade shop upgrade material references against taoyuan:item before registry snapshots are accepted."
+    },
+    {
+      "file": "src/stores/useHanhaiStore.ts",
+      "exportName": "tradeShopConfig/nextTradeShopUpgrade:hanhai_trade_shop_upgrade",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:hanhai_trade_shop_upgrade",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Uses registry-backed Hanhai trade shop upgrade definitions while preserving tradeShopLevel, slot limits, sell days, money and material deduction, logs and old save fields."
     }
   ]
 }

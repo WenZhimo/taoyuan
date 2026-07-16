@@ -1,0 +1,76 @@
+{
+  "$id": "taoyuan.registry.HanhaiTradeShopUpgradeDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "level",
+    "name",
+    "maxSlots",
+    "sellDays",
+    "cost",
+    "materialCost"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "level": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "maxSlots": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "sellDays": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "cost": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "materialCost": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "itemId",
+          "quantity"
+        ],
+        "properties": {
+          "itemId": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

@@ -17,6 +17,7 @@ import type {
   ToolType,
   HanhaiShopItemDef as LegacyHanhaiShopItemDef,
   TradeExchangeItemDef as LegacyTradeExchangeItemDef,
+  TradeShopUpgradeDef as LegacyHanhaiTradeShopUpgradeDef,
   WeaponDef as LegacyWeaponDef,
   WalletItemDef as LegacyWalletItemDef,
   MuseumCategory as LegacyMuseumCategory,
@@ -107,6 +108,7 @@ import type {
   FishWeather,
   ForageDef,
   HanhaiTradeExchangeDef as HanhaiTradeExchangeContentDef,
+  HanhaiTradeShopUpgradeDef as HanhaiTradeShopUpgradeContentDef,
   FruitTreeContentDef,
   ItemDef,
   MarketCategoryDef as MarketCategoryContentDef,
@@ -241,6 +243,20 @@ const toHanhaiTradeExchangeQueryContentId = (id: string) => {
   }
   if (id.startsWith('hanhai_trade_exchange/')) return toQueryContentId(id)
   return toQueryContentId(`hanhai_trade_exchange/${id}`)
+}
+
+const toHanhaiTradeShopUpgradeQueryContentId = (level: number | string) => {
+  const rawId = typeof level === 'number' ? `hanhai_trade_shop_upgrade/${level}` : level
+  if (rawId.includes(':')) {
+    const parsed = toQueryContentId(rawId)
+    if (!parsed) return null
+    const localId = getLocalContentId(parsed)
+    return localId.startsWith('hanhai_trade_shop_upgrade/')
+      ? parsed
+      : toQueryContentId(`hanhai_trade_shop_upgrade/${localId}`)
+  }
+  if (rawId.startsWith('hanhai_trade_shop_upgrade/')) return toQueryContentId(rawId)
+  return toQueryContentId(`hanhai_trade_shop_upgrade/${rawId}`)
 }
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
@@ -737,6 +753,46 @@ export const getOfficialHanhaiTradeExchangeItem = (id: string): LegacyTradeExcha
 
 export const getOfficialHanhaiTradeExchangeItemsAsLegacy = (): readonly LegacyTradeExchangeItemDef[] =>
   getOfficialHanhaiTradeExchangeDefs().map(toLegacyHanhaiTradeExchangeItem)
+
+export const getOfficialHanhaiTradeShopUpgradeDef = (
+  level: number | string
+): Readonly<HanhaiTradeShopUpgradeContentDef> | undefined => {
+  const contentId = toHanhaiTradeShopUpgradeQueryContentId(level)
+  return contentId
+    ? getOfficialRegistrySet()
+        .get<HanhaiTradeShopUpgradeContentDef>(toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'))
+        .get(contentId)
+    : undefined
+}
+
+export const getOfficialHanhaiTradeShopUpgradeDefs = (): readonly Readonly<HanhaiTradeShopUpgradeContentDef>[] =>
+  getOfficialRegistrySet()
+    .get<HanhaiTradeShopUpgradeContentDef>(toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'))
+    .values()
+
+const toLegacyHanhaiTradeShopUpgrade = (
+  upgrade: Readonly<HanhaiTradeShopUpgradeContentDef>
+): LegacyHanhaiTradeShopUpgradeDef => ({
+  level: upgrade.level,
+  name: upgrade.name.fallback,
+  maxSlots: upgrade.maxSlots,
+  sellDays: upgrade.sellDays,
+  cost: upgrade.cost,
+  materialCost: upgrade.materialCost.map(material => ({
+    itemId: getLocalContentId(material.itemId),
+    quantity: material.quantity
+  }))
+})
+
+export const getOfficialHanhaiTradeShopUpgrade = (
+  level: number | string
+): LegacyHanhaiTradeShopUpgradeDef | undefined => {
+  const upgrade = getOfficialHanhaiTradeShopUpgradeDef(level)
+  return upgrade ? toLegacyHanhaiTradeShopUpgrade(upgrade) : undefined
+}
+
+export const getOfficialHanhaiTradeShopUpgradesAsLegacy = (): readonly LegacyHanhaiTradeShopUpgradeDef[] =>
+  getOfficialHanhaiTradeShopUpgradeDefs().map(toLegacyHanhaiTradeShopUpgrade)
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)

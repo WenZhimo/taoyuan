@@ -1,0 +1,14 @@
+[
+  {
+    "id": "example_mod:hanhai_trade_shop_upgrade/test",
+    "level": 1,
+    "name": {
+      "key": "example_mod.hanhai.trade_shop_upgrade.test.name",
+      "fallback": "测试通商铺"
+    },
+    "maxSlots": 1,
+    "sellDays": 1,
+    "cost": 0,
+    "materialCost": []
+  }
+]
