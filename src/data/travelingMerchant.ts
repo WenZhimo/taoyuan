@@ -1,6 +1,7 @@
 import { getWeekday } from './timeConstants'
 import { CROPS } from './crops'
 import { getItemById } from './items'
+import { getOfficialTravelingMerchantPoolAsLegacy } from '@/domain/mods/contentAccess'
 import type { Season } from '@/types'
 
 /** 旅行商人商品定义 */
@@ -61,7 +62,7 @@ export const generateMerchantStock = (year: number, seasonIndex: number, day: nu
   const stock: TravelingMerchantStock[] = []
 
   // 从通用池随机选取 3-4 件
-  const shuffled = [...TRAVELING_MERCHANT_POOL].sort(() => rng() - 0.5)
+  const shuffled = [...getOfficialTravelingMerchantPoolAsLegacy()].sort(() => rng() - 0.5)
   const generalCount = 3 + Math.floor(rng() * 2) // 3 或 4
   for (let i = 0; i < Math.min(generalCount, shuffled.length); i++) {
     const item = shuffled[i]!

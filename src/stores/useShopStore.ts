@@ -7,13 +7,13 @@ import { useSkillStore } from './useSkillStore'
 import { useWalletStore } from './useWalletStore'
 import { getCropsBySeason, getItemById } from '@/data'
 import { BAITS, TACKLES, FERTILIZERS } from '@/data/processing'
-import { isTravelingMerchantDay, generateMerchantStock, TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
+import { isTravelingMerchantDay, generateMerchantStock } from '@/data/travelingMerchant'
 import { getMarketMultiplier } from '@/data/market'
 import type { MarketCategory } from '@/data/market'
 import type { TravelingMerchantStock } from '@/data/travelingMerchant'
 import type { Quality } from '@/types'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
-import { getOfficialShopOfferGroupsForShop } from '@/domain/mods/contentAccess'
+import { getOfficialShopOfferGroupsForShop, getOfficialTravelingMerchantPoolAsLegacy } from '@/domain/mods/contentAccess'
 import type { ShopOfferPurchaseKind } from '@/domain/mods/schemas'
 
 /** 商铺商品项 */
@@ -273,7 +273,7 @@ export const useShopStore = defineStore('shop', () => {
     // 仙缘能力：狐运（hu_xian_3）旅行商人多1件稀有品
     if (useHiddenNpcStore().isAbilityActive('hu_xian_3')) {
       const existingIds = new Set(travelingStock.value.map(s => s.itemId))
-      const available = TRAVELING_MERCHANT_POOL.filter(p => !existingIds.has(p.itemId))
+      const available = getOfficialTravelingMerchantPoolAsLegacy().filter(p => !existingIds.has(p.itemId))
       if (available.length > 0) {
         const pick = available[Math.floor(Math.random() * available.length)]!
         const def = getItemById(pick.itemId)

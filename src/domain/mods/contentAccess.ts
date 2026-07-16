@@ -67,6 +67,7 @@ import type {
 } from '@/data/buildingUpgradeDefinitions'
 import { HYBRID_TIER_COUNTS } from '@/data/breedingDefinitions'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
+import type { TravelingMerchantItem as LegacyTravelingMerchantItem } from '@/data/travelingMerchant'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import {
   MAIN_MINE_BOSS_FLOORS,
@@ -554,6 +555,8 @@ export interface OfficialShopOfferGroup {
   offers: readonly Readonly<ShopOfferDef>[]
 }
 
+const TRAVELING_MERCHANT_SHOP_ID = 'traveling_merchant'
+
 const compareShopOffers = (a: Readonly<ShopOfferDef>, b: Readonly<ShopOfferDef>): number =>
   (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id.localeCompare(b.id)
 
@@ -589,6 +592,16 @@ export const getOfficialShopOfferGroupsForShop = (
     offers: group.offers
   }))
 }
+
+export const getOfficialTravelingMerchantOffers = (): readonly Readonly<ShopOfferDef>[] =>
+  getOfficialShopOffersForShop({ shopId: TRAVELING_MERCHANT_SHOP_ID })
+
+export const getOfficialTravelingMerchantPoolAsLegacy = (): readonly LegacyTravelingMerchantItem[] =>
+  getOfficialTravelingMerchantOffers().map(offer => ({
+    itemId: getLocalContentId(offer.itemId),
+    name: offer.name?.fallback ?? getLocalContentId(offer.itemId),
+    basePrice: offer.price
+  }))
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)

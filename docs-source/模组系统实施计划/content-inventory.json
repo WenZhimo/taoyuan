@@ -4,11 +4,11 @@
   "capturedAt": "2026-07-15",
   "summary": {
     "fileCount": 80,
-    "approximateLineCount": 31488,
+    "approximateLineCount": 31489,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 600,
-    "reviewedArtifactCount": 133
+    "reviewedArtifactCount": 136
   },
   "entries": [
     {
@@ -2208,6 +2208,7 @@
             "src/tests/domain/cropLookup.test.ts",
             "src/tests/domain/cropRegistryPilot.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
+            "src/tests/domain/travelingMerchantRegistryPilot.test.ts",
             "src/views/game/FarmView.vue"
           ],
           "migrationPhase": [
@@ -6672,6 +6673,7 @@
             "src/tests/composables/useShippingBoxUi.test.ts",
             "src/tests/composables/useVoidChestUi.test.ts",
             "src/tests/domain/contentRegistryEquivalence.test.ts",
+            "src/tests/domain/travelingMerchantRegistryPilot.test.ts",
             "src/views/GameLayout.vue",
             "src/views/game/AchievementView.vue",
             "src/views/game/AnimalView.vue",
@@ -10995,7 +10997,7 @@
     },
     {
       "file": "src/data/travelingMerchant.ts",
-      "lines": 99,
+      "lines": 100,
       "classification": "mixed",
       "domains": [
         "merchant_pool",
@@ -11016,30 +11018,35 @@
           "exportName": "TravelingMerchantItem",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:shop_offer",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/domain/mods/contentAccess.ts"
+          ],
           "migrationPhase": [
             3,
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "TypeScript-only legacy traveling merchant item shape retained for stock generation compatibility; public content remains the ShopOfferDef TypeBox contract."
         },
         {
           "file": "src/data/travelingMerchant.ts",
           "exportName": "TravelingMerchantStock",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "engine/domain/shops",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useShopStore.ts"
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/travelingMerchantRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             3,
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "Runtime stock and serialized remaining quantity shape remains framework-owned; the underlying merchant product pool is now resolved through taoyuan:shop_offer."
         },
         {
           "file": "src/data/travelingMerchant.ts",
@@ -11050,35 +11057,19 @@
           "persistentIds": true,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useShopStore.ts"
+            "src/tests/domain/travelingMerchantRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             3,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Legacy traveling merchant product pool is projected into taoyuan:shop_offer and verified against the registry-backed compatibility pool without changing order, names or base prices."
         },
         {
           "file": "src/data/travelingMerchant.ts",
           "exportName": "isTravelingMerchantDay",
-          "syntaxKind": "const",
-          "classification": "adapter",
-          "persistentIds": false,
-          "consumers": [
-            "src/stores/useShopStore.ts"
-          ],
-          "migrationPhase": [
-            3,
-            6
-          ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
-        },
-        {
-          "file": "src/data/travelingMerchant.ts",
-          "exportName": "generateMerchantStock",
           "syntaxKind": "const",
           "classification": "algorithm",
           "targetRegistry": "engine/domain/shops",
@@ -11091,7 +11082,25 @@
             6
           ],
           "status": "framework-retained",
-          "rationale": "Rule, calculation, random generator, formatter, or state-independent algorithm retained in framework/domain."
+          "rationale": "Traveling merchant schedule calculation remains framework-owned and is not content data in the shop offer migration slice."
+        },
+        {
+          "file": "src/data/travelingMerchant.ts",
+          "exportName": "generateMerchantStock",
+          "syntaxKind": "const",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/shops",
+          "persistentIds": false,
+          "consumers": [
+            "src/stores/useShopStore.ts",
+            "src/tests/domain/travelingMerchantRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            3,
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Deterministic stock generation, price variation, quantity rolls and off-season seed selection remain framework-owned while the rare item pool now reads the taoyuan:shop_offer compatibility facade."
         }
       ]
     },
@@ -13802,6 +13811,42 @@
       ],
       "status": "verified",
       "rationale": "Returns frozen registry farm map definitions and reconstructs legacy FarmMapDef compatibility objects for the MainMenu new-game flow."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "createOfficialShopOffers:traveling_merchant",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy traveling merchant product into ordered shop_offer entries without changing item IDs, names, base prices or display grouping."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialTravelingMerchantOffers/getOfficialTravelingMerchantPoolAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns registry-backed traveling merchant shop offers and reconstructs the legacy TravelingMerchantItem pool for stock generation and hidden NPC bonus consumers."
+    },
+    {
+      "file": "src/stores/useShopStore.ts",
+      "exportName": "refreshMerchantStock:traveling_merchant",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Uses the registry-backed traveling merchant pool for the hidden NPC bonus item while preserving existing stock key, save shape, random choice and purchase flow."
     }
   ]
 }

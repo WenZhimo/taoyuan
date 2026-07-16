@@ -3295,6 +3295,42 @@ const symbolReviewOverrides = new Map(Object.entries({
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
     rationale: 'Phase 5 projects all six ordered legacy zone arrays into required taoyuan:monster_pool entries and verifies fixed-random floor generation equivalence.'
+  },
+  'src/data/travelingMerchant.ts:TravelingMerchantItem': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy traveling merchant item shape retained for stock generation compatibility; public content remains the ShopOfferDef TypeBox contract.'
+  },
+  'src/data/travelingMerchant.ts:TravelingMerchantStock': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/shops',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Runtime stock and serialized remaining quantity shape remains framework-owned; the underlying merchant product pool is now resolved through taoyuan:shop_offer.'
+  },
+  'src/data/travelingMerchant.ts:TRAVELING_MERCHANT_POOL': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy traveling merchant product pool is projected into taoyuan:shop_offer and verified against the registry-backed compatibility pool without changing order, names or base prices.'
+  },
+  'src/data/travelingMerchant.ts:isTravelingMerchantDay': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/shops',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Traveling merchant schedule calculation remains framework-owned and is not content data in the shop offer migration slice.'
+  },
+  'src/data/travelingMerchant.ts:generateMerchantStock': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/shops',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Deterministic stock generation, price variation, quantity rolls and off-season seed selection remain framework-owned while the rare item pool now reads the taoyuan:shop_offer compatibility facade.'
   }
 }))
 
@@ -4628,6 +4664,36 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Returns frozen registry farm map definitions and reconstructs legacy FarmMapDef compatibility objects for the MainMenu new-game flow.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'createOfficialShopOffers:traveling_merchant',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy traveling merchant product into ordered shop_offer entries without changing item IDs, names, base prices or display grouping.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialTravelingMerchantOffers/getOfficialTravelingMerchantPoolAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns registry-backed traveling merchant shop offers and reconstructs the legacy TravelingMerchantItem pool for stock generation and hidden NPC bonus consumers.'
+  },
+  {
+    file: 'src/stores/useShopStore.ts',
+    exportName: 'refreshMerchantStock:traveling_merchant',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Uses the registry-backed traveling merchant pool for the hidden NPC bonus item while preserving existing stock key, save shape, random choice and purchase flow.'
   }
 ]
 
