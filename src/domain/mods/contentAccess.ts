@@ -30,6 +30,7 @@ import type {
 } from '@/types'
 import type { FarmMapDef as LegacyFarmMapDef } from '@/data/farmMapDefinitions'
 import type { MorningTipDef as LegacyMorningTipDef } from '@/data/tutorials'
+import type { SeasonEventDef as LegacySeasonEventDef } from '@/data/seasonEventDefinitions'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
 import type { EquipmentSetDef as LegacyEquipmentSetDef } from '@/data/equipmentSetDefinitions'
@@ -110,6 +111,7 @@ import type {
   RecipeDef,
   Season,
   SecretNoteDef as SecretNoteContentDef,
+  SeasonEventDef as SeasonEventContentDef,
   ShopDef,
   ShopOfferDef,
   StoryQuestDef as StoryQuestContentDef,
@@ -154,6 +156,9 @@ const toSecretNoteQueryContentId = (id: number | string) => {
 
 const toTutorialQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `tutorial/${id}`)
+
+const toSeasonEventQueryContentId = (id: string) =>
+  toQueryContentId(id.includes(':') || id.includes('/') ? id : `season_event/${id}`)
 
 const toGuildGoalQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `guild_goal/${id}`)
@@ -788,6 +793,16 @@ export const getOfficialTutorialDef = (id: string): Readonly<TutorialContentDef>
 
 export const getOfficialTutorialDefs = (): readonly Readonly<TutorialContentDef>[] =>
   getOfficialRegistrySet().get<TutorialContentDef>(toOfficialRegistryTypeId('tutorial')).values()
+
+export const getOfficialSeasonEventDef = (id: string): Readonly<SeasonEventContentDef> | undefined => {
+  const contentId = toSeasonEventQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<SeasonEventContentDef>(toOfficialRegistryTypeId('season_event')).get(contentId)
+    : undefined
+}
+
+export const getOfficialSeasonEventDefs = (): readonly Readonly<SeasonEventContentDef>[] =>
+  getOfficialRegistrySet().get<SeasonEventContentDef>(toOfficialRegistryTypeId('season_event')).values()
 
 export const getOfficialFarmMapDef = (id: string): Readonly<FarmMapContentDef> | undefined => {
   const contentId = toQueryContentId(id)
@@ -1468,6 +1483,47 @@ export const getOfficialTutorialById = (id: string): LegacyMorningTipDef | undef
 
 export const getOfficialMorningTipsAsLegacy = (): readonly LegacyMorningTipDef[] =>
   getOfficialTutorialDefs().map(toLegacyMorningTipDef)
+
+const toLegacySeasonEventEffects = (
+  effects: Readonly<SeasonEventContentDef['effects']>
+): LegacySeasonEventDef['effects'] => ({
+  ...(effects.friendshipBonus !== undefined ? { friendshipBonus: effects.friendshipBonus } : {}),
+  ...(effects.moneyReward !== undefined ? { moneyReward: effects.moneyReward } : {}),
+  ...(effects.itemReward
+    ? {
+        itemReward: effects.itemReward.map(item => ({
+          itemId: getLocalContentId(item.itemId),
+          quantity: item.quantity
+        }))
+      }
+    : {}),
+  ...(effects.staminaBonus !== undefined ? { staminaBonus: effects.staminaBonus } : {})
+})
+
+const toLegacySeasonEventDef = (event: Readonly<SeasonEventContentDef>): LegacySeasonEventDef => ({
+  id: event.eventId,
+  name: event.name.fallback,
+  season: event.season,
+  day: event.day,
+  description: event.description.fallback,
+  effects: toLegacySeasonEventEffects(event.effects),
+  narrative: event.narrative.map(line => line.fallback),
+  ...(event.interactive !== undefined ? { interactive: event.interactive } : {}),
+  ...(event.festivalType !== undefined ? { festivalType: event.festivalType } : {})
+})
+
+export const getOfficialSeasonEventById = (id: string): LegacySeasonEventDef | undefined => {
+  const event = getOfficialSeasonEventDef(id)
+  return event ? toLegacySeasonEventDef(event) : undefined
+}
+
+export const getOfficialSeasonEventsAsLegacy = (): readonly LegacySeasonEventDef[] =>
+  getOfficialSeasonEventDefs().map(toLegacySeasonEventDef)
+
+export const getOfficialTodaySeasonEvent = (season: Season, day: number): LegacySeasonEventDef | undefined => {
+  const event = getOfficialSeasonEventDefs().find(candidate => candidate.season === season && candidate.day === day)
+  return event ? toLegacySeasonEventDef(event) : undefined
+}
 
 const toLegacyFarmMapDef = (map: Readonly<FarmMapContentDef>): LegacyFarmMapDef => ({
   type: map.type as LegacyFarmMapDef['type'],

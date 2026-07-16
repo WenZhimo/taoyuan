@@ -71,6 +71,9 @@
     "taoyuan:tutorial": [
       "data/tutorials.json"
     ],
+    "taoyuan:season_event": [
+      "data/season-events.json"
+    ],
     "taoyuan:farm_map": [
       "data/farm-maps.json"
     ],

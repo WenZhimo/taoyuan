@@ -724,6 +724,52 @@ export const TutorialDefSchema = Type.Object(
   { $id: 'taoyuan.registry.TutorialDef', additionalProperties: false }
 )
 
+export const SeasonEventFestivalTypeSchema = Type.Union([
+  Type.Literal('fishing_contest'),
+  Type.Literal('harvest_fair'),
+  Type.Literal('dragon_boat'),
+  Type.Literal('lantern_riddle'),
+  Type.Literal('pot_throwing'),
+  Type.Literal('dumpling_making'),
+  Type.Literal('firework_show'),
+  Type.Literal('tea_contest'),
+  Type.Literal('kite_flying')
+])
+
+export const SeasonEventRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const SeasonEventEffectsSchema = Type.Object(
+  {
+    friendshipBonus: Type.Optional(Type.Integer()),
+    moneyReward: Type.Optional(Type.Integer({ minimum: 0 })),
+    itemReward: Type.Optional(Type.Array(SeasonEventRewardItemSchema, { minItems: 1 })),
+    staminaBonus: Type.Optional(Type.Integer({ minimum: 0 }))
+  },
+  { additionalProperties: false }
+)
+
+export const SeasonEventDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    eventId: Type.String({ minLength: 1, pattern: '^[a-z0-9_./-]+$' }),
+    name: LocalizedTextRefSchema,
+    season: SeasonSchema,
+    day: Type.Integer({ minimum: 1, maximum: 28 }),
+    description: LocalizedTextRefSchema,
+    effects: SeasonEventEffectsSchema,
+    narrative: Type.Array(LocalizedTextRefSchema, { minItems: 1 }),
+    interactive: Type.Optional(Type.Boolean()),
+    festivalType: Type.Optional(SeasonEventFestivalTypeSchema)
+  },
+  { $id: 'taoyuan.registry.SeasonEventDef', additionalProperties: false }
+)
+
 export const FarmMapTypeSchema = Type.Union([
   Type.Literal('standard'),
   Type.Literal('riverland'),
@@ -1697,6 +1743,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:story_quest': StoryQuestDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
+  'taoyuan:season_event': SeasonEventDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
@@ -1746,6 +1793,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'story-quest.schema.json': StoryQuestDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
+  'season-event.schema.json': SeasonEventDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
@@ -1831,6 +1879,10 @@ export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>
 export type SecretNoteDef = Static<typeof SecretNoteDefSchema>
 export type TutorialConditionKey = Static<typeof TutorialConditionKeySchema>
 export type TutorialDef = Static<typeof TutorialDefSchema>
+export type SeasonEventFestivalType = Static<typeof SeasonEventFestivalTypeSchema>
+export type SeasonEventRewardItem = Static<typeof SeasonEventRewardItemSchema>
+export type SeasonEventEffects = Static<typeof SeasonEventEffectsSchema>
+export type SeasonEventDef = Static<typeof SeasonEventDefSchema>
 export type FarmMapType = Static<typeof FarmMapTypeSchema>
 export type FarmMapDef = Static<typeof FarmMapDefSchema>
 export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>

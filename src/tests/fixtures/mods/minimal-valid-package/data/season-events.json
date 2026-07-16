@@ -1,0 +1,35 @@
+[
+  {
+    "id": "example_mod:season_event/test_festival",
+    "eventId": "test_festival",
+    "name": {
+      "key": "example_mod.season_event.test_festival.name",
+      "fallback": "测试节日"
+    },
+    "season": "spring",
+    "day": 3,
+    "description": {
+      "key": "example_mod.season_event.test_festival.description",
+      "fallback": "用于模组契约测试的季节事件。"
+    },
+    "effects": {
+      "friendshipBonus": 1,
+      "moneyReward": 10,
+      "itemReward": [
+        {
+          "itemId": "example_mod:test_item",
+          "quantity": 1
+        }
+      ],
+      "staminaBonus": 5
+    },
+    "narrative": [
+      {
+        "key": "example_mod.season_event.test_festival.narrative.0",
+        "fallback": "测试节日的第一段旁白。"
+      }
+    ],
+    "interactive": true,
+    "festivalType": "fishing_contest"
+  }
+]

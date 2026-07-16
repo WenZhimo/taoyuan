@@ -40,6 +40,7 @@ import { HIDDEN_NPC_HEART_EVENTS } from '@/data/hiddenNpcHeartEventDefinitions'
 import { STORY_QUESTS } from '@/data/storyQuestDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
+import { SEASON_EVENTS, type SeasonEventDef as LegacySeasonEventDef } from '@/data/seasonEventDefinitions'
 import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
 import {
   ANIMAL_BUILDINGS,
@@ -148,6 +149,7 @@ import type {
   RecipeIngredient,
   NpcFriendshipLevel,
   SecretNoteDef,
+  SeasonEventDef,
   ShopDef,
   ShopOfferDef,
   StoryQuestDef,
@@ -270,6 +272,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('tutorial'),
     description: '晨间教程提示定义',
     schemaName: 'tutorial.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('season_event'),
+    description: '季节节日事件定义',
+    schemaName: 'season-event.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('farm_map'),
@@ -1246,6 +1253,35 @@ export const adaptLegacyMorningTip = (tip: (typeof MORNING_TIPS)[number]): Tutor
 
 export const createOfficialTutorials = (): TutorialDef[] => MORNING_TIPS.map(adaptLegacyMorningTip)
 
+export const adaptLegacySeasonEvent = (event: LegacySeasonEventDef): SeasonEventDef => ({
+  id: toOfficialContentId(`season_event/${event.id}`),
+  eventId: event.id,
+  name: text(`taoyuan.season_event.${event.id}.name`, event.name),
+  season: event.season,
+  day: event.day,
+  description: text(`taoyuan.season_event.${event.id}.description`, event.description),
+  effects: {
+    ...(event.effects.friendshipBonus !== undefined ? { friendshipBonus: event.effects.friendshipBonus } : {}),
+    ...(event.effects.moneyReward !== undefined ? { moneyReward: event.effects.moneyReward } : {}),
+    ...(event.effects.staminaBonus !== undefined ? { staminaBonus: event.effects.staminaBonus } : {}),
+    ...(event.effects.itemReward
+      ? {
+          itemReward: event.effects.itemReward.map(item => ({
+            itemId: toOfficialContentId(item.itemId),
+            quantity: item.quantity
+          }))
+        }
+      : {})
+  },
+  narrative: event.narrative.map((line, index) =>
+    text(`taoyuan.season_event.${event.id}.narrative.${index}`, line)
+  ),
+  ...(event.interactive !== undefined ? { interactive: event.interactive } : {}),
+  ...(event.festivalType !== undefined ? { festivalType: event.festivalType } : {})
+})
+
+export const createOfficialSeasonEvents = (): SeasonEventDef[] => SEASON_EVENTS.map(adaptLegacySeasonEvent)
+
 export const adaptLegacyFarmMap = (map: (typeof FARM_MAP_DEFS)[number]): FarmMapDef => ({
   id: toOfficialContentId(map.type),
   type: map.type,
@@ -1769,6 +1805,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const storyQuestRegistry = registrySet.get<StoryQuestDef>(toOfficialRegistryTypeId('story_quest'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
+  const seasonEventRegistry = registrySet.get<SeasonEventDef>(toOfficialRegistryTypeId('season_event'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
@@ -1848,6 +1885,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const tip of createOfficialTutorials()) {
     tutorialRegistry.register(owner, tip, { file: 'src/data/tutorials.ts' })
+  }
+  for (const event of createOfficialSeasonEvents()) {
+    seasonEventRegistry.register(owner, event, { file: 'src/data/seasonEventDefinitions.ts' })
   }
   for (const map of createOfficialFarmMaps()) {
     farmMapRegistry.register(owner, map, { file: 'src/data/farmMapDefinitions.ts' })

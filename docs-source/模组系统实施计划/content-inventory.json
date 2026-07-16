@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 76,
-    "approximateLineCount": 31413,
+    "fileCount": 77,
+    "approximateLineCount": 31422,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 573,
-    "reviewedArtifactCount": 116
+    "symbolCount": 575,
+    "reviewedArtifactCount": 120
   },
   "entries": [
     {
@@ -2467,7 +2467,6 @@
     },
     {
       "file": "src/data/events.ts",
-      "lines": 378,
       "classification": "mixed",
       "domains": [
         "season_event",
@@ -2481,56 +2480,67 @@
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 15,
       "symbols": [
         {
           "file": "src/data/events.ts",
           "exportName": "SeasonEventDef",
-          "syntaxKind": "interface",
+          "syntaxKind": "re-export",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:season_event",
           "persistentIds": false,
           "consumers": [
             "src/components/game/EventDialog.vue",
-            "src/composables/useDialogs.ts"
+            "src/composables/useDialogs.ts",
+            "src/data/seasonEventDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/semanticValidation.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/seasonEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "Original type re-export keeps legacy SeasonEventDef imports stable after season event content moved to the leaf definitions module."
         },
         {
           "file": "src/data/events.ts",
           "exportName": "SEASON_EVENTS",
           "syntaxKind": "const",
-          "classification": "content",
+          "classification": "adapter",
           "targetRegistry": "taoyuan:season_event",
           "persistentIds": true,
           "consumers": [
+            "src/data/seasonEventDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/seasonEventRegistryPilot.test.ts",
             "src/views/game/CottageView.vue"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Original-name export now returns the registry-backed season event compatibility list while preserving old list order and field shape for CottageView."
         },
         {
           "file": "src/data/events.ts",
           "exportName": "getTodayEvent",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:season_event",
           "persistentIds": false,
           "consumers": [
-            "src/composables/useEndDay.ts"
+            "src/composables/useEndDay.ts",
+            "src/tests/domain/seasonEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getTodayEvent() signature is retained and now resolves the ordered taoyuan:season_event registry by season and day before returning the same local-ID event shape."
         }
       ]
     },
@@ -5359,7 +5369,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 1984,
+      "lines": 1983,
       "symbols": [
         {
           "file": "src/data/heartEventDefinitions.ts",
@@ -5543,7 +5553,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 466,
+      "lines": 465,
       "symbols": [
         {
           "file": "src/data/hiddenNpcHeartEventDefinitions.ts",
@@ -8886,6 +8896,66 @@
           ],
           "status": "verified",
           "rationale": "Legacy getRingById() signature is retained and now resolves taoyuan:equipment before returning the same local-ID RingDef shape."
+        }
+      ]
+    },
+    {
+      "file": "src/data/seasonEventDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "season_event"
+      ],
+      "candidateTargets": [
+        "taoyuan:season_event"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 374,
+      "symbols": [
+        {
+          "file": "src/data/seasonEventDefinitions.ts",
+          "exportName": "SeasonEventDef",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:season_event",
+          "persistentIds": false,
+          "consumers": [
+            "src/components/game/EventDialog.vue",
+            "src/composables/useDialogs.ts",
+            "src/data/events.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/schemas.ts",
+            "src/domain/mods/semanticValidation.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/seasonEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy season event compatibility shape; the public contract is SeasonEventDefSchema."
+        },
+        {
+          "file": "src/data/seasonEventDefinitions.ts",
+          "exportName": "SEASON_EVENTS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:season_event",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/events.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/seasonEventRegistryPilot.test.ts",
+            "src/views/game/CottageView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy season festival events; Phase 6 projects local event IDs, dates, rewards, narratives and interactive festival types into taoyuan:season_event."
         }
       ]
     },
@@ -12949,6 +13019,54 @@
       ],
       "status": "verified",
       "rationale": "Returns frozen registry tutorial definitions and reconstructs legacy MorningTipDef objects for end-day tutorial consumers."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "SeasonEventDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:season_event",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for season festival events, including stable event IDs, dates, effects, narrative text and supported interactive festival types."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacySeasonEvent/createOfficialSeasonEvents",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:season_event",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy season event into official registry entries without changing IDs, dates, rewards, narrative order or interactive festival metadata."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialSeasonEventDef/getOfficialSeasonEventById/getOfficialSeasonEventsAsLegacy/getOfficialTodaySeasonEvent",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:season_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen season event definitions and reconstructs legacy SeasonEventDef objects for end-day event and Cottage calendar consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:season_event",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:season_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks season event item reward references against taoyuan:item before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

@@ -41,6 +41,7 @@ import type {
   ProcessingRecipeDef,
   RecipeDef,
   SecretNoteDef,
+  SeasonEventDef,
   ShopOfferDef,
   StoryQuestDef,
   TagDef,
@@ -73,6 +74,7 @@ const REGISTRY_IDS = {
   achievement: toOfficialRegistryTypeId('achievement'),
   communityBundle: toOfficialRegistryTypeId('community_bundle'),
   secretNote: toOfficialRegistryTypeId('secret_note'),
+  seasonEvent: toOfficialRegistryTypeId('season_event'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
   processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
@@ -158,6 +160,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const achievementRegistry = registrySet.get<AchievementDef>(REGISTRY_IDS.achievement)
   const communityBundleRegistry = registrySet.get<CommunityBundleDef>(REGISTRY_IDS.communityBundle)
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
+  const seasonEventRegistry = registrySet.get<SeasonEventDef>(REGISTRY_IDS.seasonEvent)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
@@ -746,6 +749,19 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
           registryId: REGISTRY_IDS.item,
           contentId: contentId(item.itemId),
           fieldPath: `/reward/items/${index}/itemId`
+        })
+      }
+    })
+  }
+
+  for (const record of seasonEventRegistry.entries()) {
+    record.entry.effects.itemReward?.forEach((item, index) => {
+      if (!itemRegistry.has(contentId(item.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(item.itemId),
+          fieldPath: `/effects/itemReward/${index}/itemId`
         })
       }
     })

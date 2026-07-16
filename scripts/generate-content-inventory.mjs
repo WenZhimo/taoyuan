@@ -415,6 +415,24 @@ fileDefaults.set('src/data/storyQuests.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/seasonEventDefinitions.ts', {
+  file: 'src/data/seasonEventDefinitions.ts',
+  classification: 'mixed',
+  domains: ['season_event'],
+  candidateTargets: ['taoyuan:season_event'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/events.ts', {
+  file: 'src/data/events.ts',
+  classification: 'mixed',
+  domains: ['season_event', 'event_lookup'],
+  candidateTargets: ['taoyuan:season_event', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/secretNotes.ts', {
   file: 'src/data/secretNotes.ts',
   classification: 'content',
@@ -1579,6 +1597,43 @@ const symbolReviewOverrides = new Map(Object.entries({
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
     rationale: 'Phase 6 projects every legacy morning tutorial tip into taoyuan:tutorial while preserving IDs, priority order, condition keys and message text.'
+  },
+  'src/data/seasonEventDefinitions.ts:SeasonEventDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy season event compatibility shape; the public contract is SeasonEventDefSchema.'
+  },
+  'src/data/seasonEventDefinitions.ts:SEASON_EVENTS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy season festival events; Phase 6 projects local event IDs, dates, rewards, narratives and interactive festival types into taoyuan:season_event.'
+  },
+  'src/data/events.ts:SeasonEventDef': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Original type re-export keeps legacy SeasonEventDef imports stable after season event content moved to the leaf definitions module.'
+  },
+  'src/data/events.ts:SEASON_EVENTS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name export now returns the registry-backed season event compatibility list while preserving old list order and field shape for CottageView.'
+  },
+  'src/data/events.ts:getTodayEvent': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getTodayEvent() signature is retained and now resolves the ordered taoyuan:season_event registry by season and day before returning the same local-ID event shape.'
   },
   'src/data/farmMapDefinitions.ts:FarmMapDef': {
     classification: 'adapter',
@@ -4069,6 +4124,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Returns frozen registry tutorial definitions and reconstructs legacy MorningTipDef objects for end-day tutorial consumers.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'SeasonEventDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for season festival events, including stable event IDs, dates, effects, narrative text and supported interactive festival types.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacySeasonEvent/createOfficialSeasonEvents',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy season event into official registry entries without changing IDs, dates, rewards, narrative order or interactive festival metadata.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialSeasonEventDef/getOfficialSeasonEventById/getOfficialSeasonEventsAsLegacy/getOfficialTodaySeasonEvent',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen season event definitions and reconstructs legacy SeasonEventDef objects for end-day event and Cottage calendar consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:season_event',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:season_event',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks season event item reward references against taoyuan:item before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',
