@@ -715,6 +715,15 @@ fileDefaults.set('src/data/market.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/hanhaiDefinitions.ts', {
+  file: 'src/data/hanhaiDefinitions.ts',
+  classification: 'mixed',
+  domains: ['hanhai_trade_exchange'],
+  candidateTargets: ['taoyuan:hanhai_trade_exchange'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 const dataFiles = fs.readdirSync(dataRoot)
   .filter(file => file.endsWith('.ts'))
   .map(file => path.join(dataRoot, file))
@@ -3475,6 +3484,22 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Framework-owned daily market calculation preserves seed, category order, random calls, trends and output while category definitions come from the registry facade.'
+  },
+  'src/data/hanhaiDefinitions.ts:TRADE_EXCHANGE_ITEMS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for the six legacy Hanhai trade point exchange definitions; Phase 6 projects item IDs, names, point costs, descriptions and limit metadata into taoyuan:hanhai_trade_exchange.'
+  },
+  'src/data/hanhai.ts:TRADE_EXCHANGE_ITEMS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy Hanhai imports stable after the trade exchange leaf data moved to hanhaiDefinitions.ts.'
   }
 }))
 
@@ -4898,6 +4923,66 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'End-day market logs resolve category names through the registry-backed getter without changing weather, market log order or Store side effects.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'HanhaiTradeExchangeDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for Hanhai trade point exchange definitions, including localized text, point costs, limits, wallet flag and equipment type marker.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptHanhaiTradeExchange/createOfficialHanhaiTradeExchangeItems',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy Hanhai exchange item into official registry entries without changing item IDs, names, descriptions, point costs, weekly limits, total limits or special flags.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialHanhaiTradeExchangeDef/getOfficialHanhaiTradeExchangeDefs/getOfficialHanhaiTradeExchangeItemsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry exchange definitions and reconstructs legacy TradeExchangeItemDef objects for Hanhai UI and Store consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:hanhai_trade_exchange',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks Hanhai exchange item references against taoyuan:item or taoyuan:wallet_item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/stores/useHanhaiStore.ts',
+    exportName: 'exchangeItem:hanhai_trade_exchange',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Uses the registry-backed Hanhai exchange item lookup while preserving point deduction, weekly and total purchase counters, spice bundle behavior, wallet unlocks and old save fields.'
+  },
+  {
+    file: 'src/views/game/HanhaiView.vue',
+    exportName: 'tradeExchangeItems:hanhai_trade_exchange',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_trade_exchange',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Renders the Hanhai exchange list from the registry-backed compatibility list without changing order, text, limit display or click flow.'
   }
 ]
 

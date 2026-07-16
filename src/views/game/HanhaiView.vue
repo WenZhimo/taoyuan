@@ -162,7 +162,7 @@
           </p>
           <div class="flex flex-col space-y-1 max-h-60 overflow-y-auto">
             <div
-              v-for="exItem in TRADE_EXCHANGE_ITEMS"
+              v-for="exItem in tradeExchangeItems"
               :key="exItem.itemId"
               class="flex items-center justify-between border border-accent/10 rounded-xs px-2 py-1.5 cursor-pointer hover:bg-accent/5 transition-colors mr-1"
               @click="exchangeModalItem = exItem"
@@ -901,10 +901,10 @@
     TEXAS_TIERS,
     BUCKSHOT_BET_AMOUNT,
     BUCKSHOT_WIN_MULTIPLIER,
-    TRADE_EXCHANGE_ITEMS,
     calcTradePoints
   } from '@/data/hanhai'
   import { getItemById } from '@/data/items'
+  import { getOfficialHanhaiTradeExchangeItemsAsLegacy } from '@/domain/mods/contentAccess'
   import type { HanhaiShopItemDef, CricketDef, TexasSetup, TexasTierId, BuckshotSetup, TradeExchangeItemDef, InventoryItem, Quality } from '@/types'
   import { addLog } from '@/composables/useGameLog'
   import { useAudio } from '@/composables/useAudio'
@@ -1386,6 +1386,8 @@
     const base = calcTradePoints(tradeSelectedItem.value.sellPrice * tradeQuantity.value, tradeSelectedItem.value.quality)
     return Math.ceil(base * (1 + walletStore.getTradeBonus()))
   })
+
+  const tradeExchangeItems = computed(() => getOfficialHanhaiTradeExchangeItemsAsLegacy())
 
   const onTradeQuantityInput = (e: Event) => {
     tradeQuantityPicker.setQuantityFromInput((e.target as HTMLInputElement).value)

@@ -189,6 +189,28 @@ export const MarketCategoryDefSchema = Type.Object(
   { $id: 'taoyuan.registry.MarketCategoryDef', additionalProperties: false }
 )
 
+export const HanhaiTradeExchangeEquipTypeSchema = Type.Union([
+  Type.Literal('weapon'),
+  Type.Literal('ring'),
+  Type.Literal('hat'),
+  Type.Literal('shoe')
+])
+
+export const HanhaiTradeExchangeDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    itemId: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    pointsCost: Type.Integer({ minimum: 0 }),
+    description: LocalizedTextRefSchema,
+    weeklyLimit: Type.Optional(Type.Integer({ minimum: 0 })),
+    totalLimit: Type.Optional(Type.Integer({ minimum: 0 })),
+    isWalletItem: Type.Optional(Type.Boolean()),
+    equipType: Type.Optional(HanhaiTradeExchangeEquipTypeSchema)
+  },
+  { $id: 'taoyuan.registry.HanhaiTradeExchangeDef', additionalProperties: false }
+)
+
 export const SkillTypeSchema = Type.Union([
   Type.Literal('farming'),
   Type.Literal('foraging'),
@@ -1961,7 +1983,8 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:community_bundle': CommunityBundleDefSchema,
   'taoyuan:shop': ShopDefSchema,
   'taoyuan:shop_offer': ShopOfferDefSchema,
-  'taoyuan:market_category': MarketCategoryDefSchema
+  'taoyuan:market_category': MarketCategoryDefSchema,
+  'taoyuan:hanhai_trade_exchange': HanhaiTradeExchangeDefSchema
 } as const satisfies Record<string, TSchema>
 
 export const PUBLIC_JSON_SCHEMAS = {
@@ -2015,7 +2038,8 @@ export const PUBLIC_JSON_SCHEMAS = {
   'community-bundle.schema.json': CommunityBundleDefSchema,
   'shop.schema.json': ShopDefSchema,
   'shop-offer.schema.json': ShopOfferDefSchema,
-  'market-category.schema.json': MarketCategoryDefSchema
+  'market-category.schema.json': MarketCategoryDefSchema,
+  'hanhai-trade-exchange.schema.json': HanhaiTradeExchangeDefSchema
 } as const satisfies Record<string, TSchema>
 
 export type LocalizedTextRef = Static<typeof LocalizedTextRefSchema>
@@ -2030,6 +2054,8 @@ export type Weather = Static<typeof WeatherSchema>
 export type MarketSeasonCoefficients = Static<typeof MarketSeasonCoefficientsSchema>
 export type MarketSupplyThresholds = Static<typeof MarketSupplyThresholdsSchema>
 export type MarketCategoryDef = Static<typeof MarketCategoryDefSchema>
+export type HanhaiTradeExchangeEquipType = Static<typeof HanhaiTradeExchangeEquipTypeSchema>
+export type HanhaiTradeExchangeDef = Static<typeof HanhaiTradeExchangeDefSchema>
 export type FishWeather = Static<typeof FishWeatherSchema>
 export type FishingLocation = Static<typeof FishingLocationSchema>
 export type FishDifficulty = Static<typeof FishDifficultySchema>

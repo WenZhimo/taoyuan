@@ -39710,6 +39710,142 @@
       ]
     },
     {
+      "registryId": "taoyuan:hanhai_trade_exchange",
+      "schemaName": "hanhai-trade-exchange.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "武器，攻击40，暴击8%。",
+              "key": "taoyuan.hanhai.trade_exchange.trade_desert_blade.description"
+            },
+            "equipType": "weapon",
+            "id": "taoyuan:hanhai_trade_exchange/trade_desert_blade",
+            "itemId": "taoyuan:trade_desert_blade",
+            "name": {
+              "fallback": "沙漠弯刀",
+              "key": "taoyuan.hanhai.trade_exchange.trade_desert_blade.name"
+            },
+            "pointsCost": 200,
+            "totalLimit": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "钱袋物品，通商积分获取+20%。",
+              "key": "taoyuan.hanhai.trade_exchange.trade_prosperity_seal.description"
+            },
+            "id": "taoyuan:hanhai_trade_exchange/trade_prosperity_seal",
+            "isWalletItem": true,
+            "itemId": "taoyuan:trade_prosperity_seal",
+            "name": {
+              "fallback": "通商金印",
+              "key": "taoyuan.hanhai.trade_exchange.trade_prosperity_seal.name"
+            },
+            "pointsCost": 300,
+            "totalLimit": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "帽子，攻击+3，HP+20。",
+              "key": "taoyuan.hanhai.trade_exchange.trade_silk_robe.description"
+            },
+            "equipType": "hat",
+            "id": "taoyuan:hanhai_trade_exchange/trade_silk_robe",
+            "itemId": "taoyuan:trade_silk_robe",
+            "name": {
+              "fallback": "丝绸长袍",
+              "key": "taoyuan.hanhai.trade_exchange.trade_silk_robe.name"
+            },
+            "pointsCost": 150,
+            "totalLimit": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "获得西域香料×5。",
+              "key": "taoyuan.hanhai.trade_exchange.trade_spice_bundle.description"
+            },
+            "id": "taoyuan:hanhai_trade_exchange/trade_spice_bundle",
+            "itemId": "taoyuan:trade_spice_bundle",
+            "name": {
+              "fallback": "香料礼包",
+              "key": "taoyuan.hanhai.trade_exchange.trade_spice_bundle.name"
+            },
+            "pointsCost": 40,
+            "weeklyLimit": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "稀有材料，用于高级制作。",
+              "key": "taoyuan.hanhai.trade_exchange.trade_star_fragment.description"
+            },
+            "id": "taoyuan:hanhai_trade_exchange/trade_star_fragment",
+            "itemId": "taoyuan:trade_star_fragment",
+            "name": {
+              "fallback": "星辰碎片",
+              "key": "taoyuan.hanhai.trade_exchange.trade_star_fragment.name"
+            },
+            "pointsCost": 50,
+            "weeklyLimit": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "description": {
+              "fallback": "饰品，攻击+2，防御+3%。",
+              "key": "taoyuan.hanhai.trade_exchange.trade_turquoise_pendant.description"
+            },
+            "equipType": "ring",
+            "id": "taoyuan:hanhai_trade_exchange/trade_turquoise_pendant",
+            "itemId": "taoyuan:trade_turquoise_pendant",
+            "name": {
+              "fallback": "绿松石吊坠",
+              "key": "taoyuan.hanhai.trade_exchange.trade_turquoise_pendant.name"
+            },
+            "pointsCost": 120,
+            "totalLimit": 1
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:heart_event",
       "schemaName": "heart-event.schema.json",
       "entries": [
@@ -117070,5 +117206,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:fe432ceefb99e74ac36318ad2faf61ef72c39a3c2c58ef39cb843618a079db3b"
+  "snapshotHash": "sha256:2fc6ae8998bb8bbead7f4d4b5d6abf0248243ea1cb790f4ccc53563a2997a82e"
 }

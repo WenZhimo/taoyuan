@@ -1,0 +1,94 @@
+{
+  "$id": "taoyuan.registry.HanhaiTradeExchangeDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "itemId",
+    "name",
+    "pointsCost",
+    "description"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "itemId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "pointsCost": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "weeklyLimit": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "totalLimit": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "isWalletItem": {
+      "type": "boolean"
+    },
+    "equipType": {
+      "anyOf": [
+        {
+          "const": "weapon",
+          "type": "string"
+        },
+        {
+          "const": "ring",
+          "type": "string"
+        },
+        {
+          "const": "hat",
+          "type": "string"
+        },
+        {
+          "const": "shoe",
+          "type": "string"
+        }
+      ]
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

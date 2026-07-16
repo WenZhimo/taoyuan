@@ -18,6 +18,7 @@ import {
 } from '@/data/weaponDefinitions'
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/monsters'
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
+import { TRADE_EXCHANGE_ITEMS } from '@/data/hanhaiDefinitions'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
@@ -102,6 +103,7 @@ import type {
   ProcessingRecipeDef as LegacyProcessingRecipeDef,
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
+  TradeExchangeItemDef,
   WeaponDef as LegacyWeaponDef
 } from '@/types'
 import type { HybridDef as LegacyHybridDef } from '@/types/breeding'
@@ -155,6 +157,7 @@ import type {
   GuildDonationDef,
   GuildGoalDef,
   GuildLevelDef,
+  HanhaiTradeExchangeDef,
   HeartEventDef,
   HiddenNpcDef,
   CropDef,
@@ -425,6 +428,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('market_category'),
     description: '市场行情分类定义',
     schemaName: 'market-category.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('hanhai_trade_exchange'),
+    description: '瀚海通商积分兑换定义',
+    schemaName: 'hanhai-trade-exchange.schema.json'
   }
 ] as const satisfies readonly RegistryDefinition<RegistryEntry>[]
 
@@ -1934,6 +1942,21 @@ export const adaptMarketCategory = (category: MarketCategoryDefinition): MarketC
 export const createOfficialMarketCategories = (): MarketCategoryDef[] =>
   MARKET_CATEGORY_DEFINITIONS.map(adaptMarketCategory)
 
+export const adaptHanhaiTradeExchange = (item: TradeExchangeItemDef): HanhaiTradeExchangeDef => ({
+  id: toOfficialContentId(`hanhai_trade_exchange/${item.itemId}`),
+  itemId: toOfficialContentId(item.itemId),
+  name: text(`taoyuan.hanhai.trade_exchange.${item.itemId}.name`, item.name),
+  pointsCost: item.pointsCost,
+  description: text(`taoyuan.hanhai.trade_exchange.${item.itemId}.description`, item.description),
+  ...(item.weeklyLimit !== undefined ? { weeklyLimit: item.weeklyLimit } : {}),
+  ...(item.totalLimit !== undefined ? { totalLimit: item.totalLimit } : {}),
+  ...(item.isWalletItem !== undefined ? { isWalletItem: item.isWalletItem } : {}),
+  ...(item.equipType !== undefined ? { equipType: item.equipType } : {})
+})
+
+export const createOfficialHanhaiTradeExchangeItems = (): HanhaiTradeExchangeDef[] =>
+  TRADE_EXCHANGE_ITEMS.map(adaptHanhaiTradeExchange)
+
 const uniqueMonsters = (): LegacyMonsterDef[] => {
   const byId = new Map<string, LegacyMonsterDef>()
   for (const monster of [
@@ -1998,6 +2021,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const shopRegistry = registrySet.get<ShopDef>(toOfficialRegistryTypeId('shop'))
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer'))
   const marketCategoryRegistry = registrySet.get<MarketCategoryDef>(toOfficialRegistryTypeId('market_category'))
+  const hanhaiTradeExchangeRegistry = registrySet.get<HanhaiTradeExchangeDef>(toOfficialRegistryTypeId('hanhai_trade_exchange'))
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
@@ -2137,6 +2161,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const category of createOfficialMarketCategories()) {
     marketCategoryRegistry.register(owner, category, { file: 'src/data/marketDefinitions.ts' })
+  }
+  for (const item of createOfficialHanhaiTradeExchangeItems()) {
+    hanhaiTradeExchangeRegistry.register(owner, item, { file: 'src/data/hanhaiDefinitions.ts' })
   }
 
   return registrySet

@@ -26,10 +26,10 @@ import {
   BUCKSHOT_DEALER_HP,
   loadShotgun,
   TRADE_SHOP_UPGRADES,
-  TRADE_EXCHANGE_ITEMS,
   calcTradePoints
 } from '@/data/hanhai'
 import { getItemById } from '@/data/items'
+import { getOfficialHanhaiTradeExchangeItem } from '@/domain/mods/contentAccess'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { useGameStore } from './useGameStore'
@@ -426,7 +426,7 @@ export const useHanhaiStore = defineStore('hanhai', () => {
 
   /** 积分兑换物品 */
   const exchangeItem = (itemId: string): { success: boolean; message: string } => {
-    const exchangeDef = TRADE_EXCHANGE_ITEMS.find(e => e.itemId === itemId)
+    const exchangeDef = getOfficialHanhaiTradeExchangeItem(itemId)
     if (!exchangeDef) return { success: false, message: '兑换物品不存在。' }
     // 检查周限购
     if (exchangeDef.weeklyLimit) {

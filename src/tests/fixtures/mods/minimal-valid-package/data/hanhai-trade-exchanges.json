@@ -1,0 +1,16 @@
+[
+  {
+    "id": "example_mod:hanhai_trade_exchange/test_spice_bundle",
+    "itemId": "example_mod:test_item",
+    "name": {
+      "key": "example_mod.hanhai.trade_exchange.test_spice_bundle.name",
+      "fallback": "测试兑换物"
+    },
+    "pointsCost": 12,
+    "description": {
+      "key": "example_mod.hanhai.trade_exchange.test_spice_bundle.description",
+      "fallback": "用于验证瀚海兑换定义契约。"
+    },
+    "weeklyLimit": 2
+  }
+]

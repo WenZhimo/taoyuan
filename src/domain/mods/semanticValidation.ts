@@ -30,6 +30,7 @@ import type {
   GuildDonationDef,
   GuildGoalDef,
   GuildLevelDef,
+  HanhaiTradeExchangeDef,
   HeartEventDef,
   HiddenNpcDef,
   MonsterDef,
@@ -50,7 +51,8 @@ import type {
   StoryQuestDef,
   TagDef,
   ToolUpgradeDef,
-  TreeDef
+  TreeDef,
+  WalletItemDef
 } from './schemas'
 import type { RegistrySet } from './registry'
 
@@ -63,6 +65,7 @@ const REGISTRY_IDS = {
   forage: toOfficialRegistryTypeId('forage'),
   animal: toOfficialRegistryTypeId('animal'),
   animalFeed: toOfficialRegistryTypeId('animal_feed'),
+  walletItem: toOfficialRegistryTypeId('wallet_item'),
   animalBuilding: toOfficialRegistryTypeId('animal_building'),
   animalIncubation: toOfficialRegistryTypeId('animal_incubation'),
   museumCategory: toOfficialRegistryTypeId('museum_category'),
@@ -96,7 +99,8 @@ const REGISTRY_IDS = {
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
   dropTable: toOfficialRegistryTypeId('drop_table'),
   recipe: toOfficialRegistryTypeId('recipe'),
-  shopOffer: toOfficialRegistryTypeId('shop_offer')
+  shopOffer: toOfficialRegistryTypeId('shop_offer'),
+  hanhaiTradeExchange: toOfficialRegistryTypeId('hanhai_trade_exchange')
 }
 
 const pushMissingReference = (
@@ -152,6 +156,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const forageRegistry = registrySet.get<ForageDef>(REGISTRY_IDS.forage)
   const animalRegistry = registrySet.get<AnimalDef>(REGISTRY_IDS.animal)
   const animalFeedRegistry = registrySet.get<AnimalFeedDef>(REGISTRY_IDS.animalFeed)
+  const walletItemRegistry = registrySet.get<WalletItemDef>(REGISTRY_IDS.walletItem)
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(REGISTRY_IDS.animalBuilding)
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(REGISTRY_IDS.animalIncubation)
   const museumCategoryRegistry = registrySet.get<MuseumCategoryDef>(REGISTRY_IDS.museumCategory)
@@ -186,6 +191,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const monsterPoolRegistry = registrySet.get<MonsterPoolDef>(REGISTRY_IDS.monsterPool)
   const recipeRegistry = registrySet.get<RecipeDef>(REGISTRY_IDS.recipe)
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(REGISTRY_IDS.shopOffer)
+  const hanhaiTradeExchangeRegistry = registrySet.get<HanhaiTradeExchangeDef>(REGISTRY_IDS.hanhaiTradeExchange)
 
   for (const record of recipeRegistry.entries()) {
     record.entry.ingredients.forEach((ingredient, index) => {
@@ -250,6 +256,19 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         )
       }
     })
+  }
+
+  for (const record of hanhaiTradeExchangeRegistry.entries()) {
+    const targetRegistry = record.entry.isWalletItem ? walletItemRegistry : itemRegistry
+    const targetRegistryId = record.entry.isWalletItem ? REGISTRY_IDS.walletItem : REGISTRY_IDS.item
+    if (!targetRegistry.has(contentId(record.entry.itemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: record.owner,
+        registryId: targetRegistryId,
+        contentId: contentId(record.entry.itemId),
+        fieldPath: '/itemId'
+      })
+    }
   }
 
   for (const record of cropRegistry.entries()) {

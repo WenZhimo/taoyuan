@@ -15,6 +15,7 @@ import type {
   ShoeDef as LegacyShoeDef,
   ToolTier,
   ToolType,
+  TradeExchangeItemDef as LegacyTradeExchangeItemDef,
   WeaponDef as LegacyWeaponDef,
   WalletItemDef as LegacyWalletItemDef,
   MuseumCategory as LegacyMuseumCategory,
@@ -104,6 +105,7 @@ import type {
   FarmhouseUpgradeContentDef,
   FishWeather,
   ForageDef,
+  HanhaiTradeExchangeDef as HanhaiTradeExchangeContentDef,
   FruitTreeContentDef,
   ItemDef,
   MarketCategoryDef as MarketCategoryContentDef,
@@ -226,6 +228,19 @@ const toAchievementQueryContentId = (id: string) =>
 
 const toCommunityBundleQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `community_bundle/${id}`)
+
+const toHanhaiTradeExchangeQueryContentId = (id: string) => {
+  if (id.includes(':')) {
+    const parsed = toQueryContentId(id)
+    if (!parsed) return null
+    const localId = getLocalContentId(parsed)
+    return localId.startsWith('hanhai_trade_exchange/')
+      ? parsed
+      : toQueryContentId(`hanhai_trade_exchange/${localId}`)
+  }
+  if (id.startsWith('hanhai_trade_exchange/')) return toQueryContentId(id)
+  return toQueryContentId(`hanhai_trade_exchange/${id}`)
+}
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
   const contentId = toQueryContentId(id)
@@ -645,6 +660,43 @@ export const getOfficialMarketSupplyThresholds = (
   const category = getOfficialMarketCategoryDef(id)
   return category ? { ...category.supplyThresholds } : undefined
 }
+
+export const getOfficialHanhaiTradeExchangeDef = (
+  id: string
+): Readonly<HanhaiTradeExchangeContentDef> | undefined => {
+  const contentId = toHanhaiTradeExchangeQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet()
+        .get<HanhaiTradeExchangeContentDef>(toOfficialRegistryTypeId('hanhai_trade_exchange'))
+        .get(contentId)
+    : undefined
+}
+
+export const getOfficialHanhaiTradeExchangeDefs = (): readonly Readonly<HanhaiTradeExchangeContentDef>[] =>
+  getOfficialRegistrySet()
+    .get<HanhaiTradeExchangeContentDef>(toOfficialRegistryTypeId('hanhai_trade_exchange'))
+    .values()
+
+const toLegacyHanhaiTradeExchangeItem = (
+  item: Readonly<HanhaiTradeExchangeContentDef>
+): LegacyTradeExchangeItemDef => ({
+  itemId: getLocalContentId(item.itemId),
+  name: item.name.fallback,
+  pointsCost: item.pointsCost,
+  description: item.description.fallback,
+  ...(item.weeklyLimit !== undefined ? { weeklyLimit: item.weeklyLimit } : {}),
+  ...(item.totalLimit !== undefined ? { totalLimit: item.totalLimit } : {}),
+  ...(item.isWalletItem !== undefined ? { isWalletItem: item.isWalletItem } : {}),
+  ...(item.equipType !== undefined ? { equipType: item.equipType } : {})
+})
+
+export const getOfficialHanhaiTradeExchangeItem = (id: string): LegacyTradeExchangeItemDef | undefined => {
+  const item = getOfficialHanhaiTradeExchangeDef(id)
+  return item ? toLegacyHanhaiTradeExchangeItem(item) : undefined
+}
+
+export const getOfficialHanhaiTradeExchangeItemsAsLegacy = (): readonly LegacyTradeExchangeItemDef[] =>
+  getOfficialHanhaiTradeExchangeDefs().map(toLegacyHanhaiTradeExchangeItem)
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)
