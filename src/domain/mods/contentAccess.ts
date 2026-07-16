@@ -25,12 +25,14 @@ import type {
   HeartEventDef as LegacyHeartEventDef,
   MainQuestDef as LegacyMainQuestDef,
   MonsterGoalDef as LegacyGuildGoalDef,
+  QuestTemplateDef as LegacyQuestTemplateDef,
   SecretNoteDef as LegacySecretNoteDef,
   WildTreeDef as LegacyWildTreeDef
 } from '@/types'
 import type { FarmMapDef as LegacyFarmMapDef } from '@/data/farmMapDefinitions'
 import type { MorningTipDef as LegacyMorningTipDef } from '@/data/tutorials'
 import type { SeasonEventDef as LegacySeasonEventDef } from '@/data/seasonEventDefinitions'
+import type { SpecialOrderTemplate as LegacySpecialOrderTemplate } from '@/data/questDefinitions'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
 import type { AnimalFeedDef as LegacyAnimalFeedDef } from '@/data/animalFeedDefinitions'
 import type { EquipmentSetDef as LegacyEquipmentSetDef } from '@/data/equipmentSetDefinitions'
@@ -108,6 +110,7 @@ import type {
   PondableFishDef,
   ProcessingMachineDef as ProcessingMachineContentDef,
   ProcessingRecipeDef as ProcessingRecipeContentDef,
+  QuestTemplateDef as QuestTemplateContentDef,
   RecipeDef,
   Season,
   SecretNoteDef as SecretNoteContentDef,
@@ -159,6 +162,15 @@ const toTutorialQueryContentId = (id: string) =>
 
 const toSeasonEventQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `season_event/${id}`)
+
+const BOARD_QUEST_TEMPLATE_TYPES = new Set(['delivery', 'fishing', 'mining', 'gathering'])
+
+const toQuestTemplateQueryContentId = (id: string) => {
+  if (id.includes(':')) return toQueryContentId(id)
+  if (id.startsWith('quest_template/')) return toQueryContentId(id)
+  if (BOARD_QUEST_TEMPLATE_TYPES.has(id)) return toQueryContentId(`quest_template/board/${id}`)
+  return toQueryContentId(`quest_template/${id}`)
+}
 
 const toGuildGoalQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `guild_goal/${id}`)
@@ -803,6 +815,27 @@ export const getOfficialSeasonEventDef = (id: string): Readonly<SeasonEventConte
 
 export const getOfficialSeasonEventDefs = (): readonly Readonly<SeasonEventContentDef>[] =>
   getOfficialRegistrySet().get<SeasonEventContentDef>(toOfficialRegistryTypeId('season_event')).values()
+
+export const getOfficialQuestTemplateDef = (id: string): Readonly<QuestTemplateContentDef> | undefined => {
+  const contentId = toQuestTemplateQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<QuestTemplateContentDef>(toOfficialRegistryTypeId('quest_template')).get(contentId)
+    : undefined
+}
+
+export const getOfficialQuestTemplateDefs = (): readonly Readonly<QuestTemplateContentDef>[] =>
+  getOfficialRegistrySet().get<QuestTemplateContentDef>(toOfficialRegistryTypeId('quest_template')).values()
+
+export const getOfficialBoardQuestTemplateDefs = (): readonly Readonly<Extract<QuestTemplateContentDef, { kind: 'board' }>>[] =>
+  getOfficialQuestTemplateDefs().filter(
+    (template): template is Readonly<Extract<QuestTemplateContentDef, { kind: 'board' }>> => template.kind === 'board'
+  )
+
+export const getOfficialSpecialOrderTemplateDefs = (): readonly Readonly<Extract<QuestTemplateContentDef, { kind: 'special_order' }>>[] =>
+  getOfficialQuestTemplateDefs().filter(
+    (template): template is Readonly<Extract<QuestTemplateContentDef, { kind: 'special_order' }>> =>
+      template.kind === 'special_order'
+  )
 
 export const getOfficialFarmMapDef = (id: string): Readonly<FarmMapContentDef> | undefined => {
   const contentId = toQueryContentId(id)
@@ -1524,6 +1557,51 @@ export const getOfficialTodaySeasonEvent = (season: Season, day: number): Legacy
   const event = getOfficialSeasonEventDefs().find(candidate => candidate.season === season && candidate.day === day)
   return event ? toLegacySeasonEventDef(event) : undefined
 }
+
+const toLegacyQuestTemplateTarget = (
+  target: Readonly<Extract<QuestTemplateContentDef, { kind: 'board' }>['targets'][number]>
+): LegacyQuestTemplateDef['targets'][number] => ({
+  itemId: getLocalContentId(target.itemId),
+  name: target.name.fallback,
+  minQty: target.minQty,
+  maxQty: target.maxQty,
+  seasons: [...target.seasons] as LegacyQuestTemplateDef['targets'][number]['seasons'],
+  unitPrice: target.unitPrice
+})
+
+const toLegacyQuestTemplateDef = (
+  template: Readonly<Extract<QuestTemplateContentDef, { kind: 'board' }>>
+): LegacyQuestTemplateDef => ({
+  type: template.type,
+  targets: template.targets.map(toLegacyQuestTemplateTarget),
+  npcPool: template.npcPool.map(getLocalNpcId),
+  rewardMultiplier: template.rewardMultiplier,
+  friendshipReward: template.friendshipReward
+})
+
+const toLegacySpecialOrderTemplate = (
+  template: Readonly<Extract<QuestTemplateContentDef, { kind: 'special_order' }>>
+): LegacySpecialOrderTemplate => ({
+  name: template.name.fallback,
+  targetItemId: getLocalContentId(template.targetItemId),
+  targetItemName: template.targetItemName.fallback,
+  quantity: template.quantity,
+  days: template.days,
+  moneyReward: template.moneyReward,
+  itemReward: template.itemReward.map(item => ({
+    itemId: getLocalContentId(item.itemId),
+    quantity: item.quantity
+  })),
+  seasons: [...template.seasons] as LegacySpecialOrderTemplate['seasons'],
+  npcId: getLocalNpcId(template.npcId),
+  tier: template.tier
+})
+
+export const getOfficialQuestTemplatesAsLegacy = (): readonly LegacyQuestTemplateDef[] =>
+  getOfficialBoardQuestTemplateDefs().map(toLegacyQuestTemplateDef)
+
+export const getOfficialSpecialOrderTemplatesAsLegacy = (): readonly LegacySpecialOrderTemplate[] =>
+  getOfficialSpecialOrderTemplateDefs().map(toLegacySpecialOrderTemplate)
 
 const toLegacyFarmMapDef = (map: Readonly<FarmMapContentDef>): LegacyFarmMapDef => ({
   type: map.type as LegacyFarmMapDef['type'],

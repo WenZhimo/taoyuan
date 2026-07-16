@@ -1,0 +1,50 @@
+﻿[
+  {
+    "id": "example_mod:quest_template/board/delivery",
+    "templateId": "board/delivery",
+    "kind": "board",
+    "type": "delivery",
+    "targets": [
+      {
+        "itemId": "taoyuan:cabbage",
+        "name": {
+          "key": "example_mod.quest_template.delivery.targets.0.name",
+          "fallback": "青菜"
+        },
+        "minQty": 1,
+        "maxQty": 2,
+        "seasons": ["spring"],
+        "unitPrice": 35
+      }
+    ],
+    "npcPool": ["taoyuan:npc/chen_bo"],
+    "rewardMultiplier": 3,
+    "friendshipReward": 5
+  },
+  {
+    "id": "example_mod:quest_template/special_order/tier_1/cabbage_liu_niang",
+    "templateId": "special_order/tier_1/cabbage_liu_niang",
+    "kind": "special_order",
+    "name": {
+      "key": "example_mod.quest_template.special_order.tier_1.cabbage_liu_niang.name",
+      "fallback": "蔬菜采购"
+    },
+    "targetItemId": "taoyuan:cabbage",
+    "targetItemName": {
+      "key": "example_mod.quest_template.special_order.tier_1.cabbage_liu_niang.targetItemName",
+      "fallback": "青菜"
+    },
+    "quantity": 10,
+    "days": 7,
+    "moneyReward": 500,
+    "itemReward": [
+      {
+        "itemId": "taoyuan:basic_fertilizer",
+        "quantity": 5
+      }
+    ],
+    "seasons": ["spring"],
+    "npcId": "taoyuan:npc/liu_niang",
+    "tier": 1
+  }
+]

@@ -770,6 +770,71 @@ export const SeasonEventDefSchema = Type.Object(
   { $id: 'taoyuan.registry.SeasonEventDef', additionalProperties: false }
 )
 
+export const QuestTemplateTypeSchema = Type.Union([
+  Type.Literal('delivery'),
+  Type.Literal('fishing'),
+  Type.Literal('mining'),
+  Type.Literal('gathering')
+])
+
+export const QuestTemplateTargetSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    minQty: Type.Integer({ minimum: 1 }),
+    maxQty: Type.Integer({ minimum: 1 }),
+    seasons: Type.Array(SeasonSchema, { uniqueItems: true }),
+    unitPrice: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const QuestTemplateRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const BoardQuestTemplateDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    templateId: Type.String({ minLength: 1, pattern: '^[a-z0-9_./-]+$' }),
+    kind: Type.Literal('board'),
+    type: QuestTemplateTypeSchema,
+    targets: Type.Array(QuestTemplateTargetSchema, { minItems: 1 }),
+    npcPool: Type.Array(ContentIdSchema, { minItems: 1 }),
+    rewardMultiplier: Type.Number({ minimum: 0 }),
+    friendshipReward: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const SpecialOrderTemplateDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    templateId: Type.String({ minLength: 1, pattern: '^[a-z0-9_./-]+$' }),
+    kind: Type.Literal('special_order'),
+    name: LocalizedTextRefSchema,
+    targetItemId: ContentIdSchema,
+    targetItemName: LocalizedTextRefSchema,
+    quantity: Type.Integer({ minimum: 1 }),
+    days: Type.Integer({ minimum: 1 }),
+    moneyReward: Type.Integer({ minimum: 0 }),
+    itemReward: Type.Array(QuestTemplateRewardItemSchema, { minItems: 1 }),
+    seasons: Type.Array(SeasonSchema, { uniqueItems: true }),
+    npcId: ContentIdSchema,
+    tier: Type.Integer({ minimum: 1, maximum: 4 })
+  },
+  { additionalProperties: false }
+)
+
+export const QuestTemplateDefSchema = Type.Union(
+  [BoardQuestTemplateDefSchema, SpecialOrderTemplateDefSchema],
+  { $id: 'taoyuan.registry.QuestTemplateDef' }
+)
+
 export const FarmMapTypeSchema = Type.Union([
   Type.Literal('standard'),
   Type.Literal('riverland'),
@@ -1744,6 +1809,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
   'taoyuan:season_event': SeasonEventDefSchema,
+  'taoyuan:quest_template': QuestTemplateDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
   'taoyuan:animal_building': AnimalBuildingDefSchema,
   'taoyuan:animal_incubation': AnimalIncubationDefSchema,
@@ -1794,6 +1860,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
   'season-event.schema.json': SeasonEventDefSchema,
+  'quest-template.schema.json': QuestTemplateDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
   'animal-building.schema.json': AnimalBuildingDefSchema,
   'animal-incubation.schema.json': AnimalIncubationDefSchema,
@@ -1883,6 +1950,12 @@ export type SeasonEventFestivalType = Static<typeof SeasonEventFestivalTypeSchem
 export type SeasonEventRewardItem = Static<typeof SeasonEventRewardItemSchema>
 export type SeasonEventEffects = Static<typeof SeasonEventEffectsSchema>
 export type SeasonEventDef = Static<typeof SeasonEventDefSchema>
+export type QuestTemplateType = Static<typeof QuestTemplateTypeSchema>
+export type QuestTemplateTarget = Static<typeof QuestTemplateTargetSchema>
+export type QuestTemplateRewardItem = Static<typeof QuestTemplateRewardItemSchema>
+export type BoardQuestTemplateDef = Static<typeof BoardQuestTemplateDefSchema>
+export type SpecialOrderTemplateDef = Static<typeof SpecialOrderTemplateDefSchema>
+export type QuestTemplateDef = Static<typeof QuestTemplateDefSchema>
 export type FarmMapType = Static<typeof FarmMapTypeSchema>
 export type FarmMapDef = Static<typeof FarmMapDefSchema>
 export type AnimalBuildingDef = Static<typeof AnimalBuildingDefSchema>

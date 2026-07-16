@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 77,
-    "approximateLineCount": 31422,
+    "fileCount": 78,
+    "approximateLineCount": 31458,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 575,
-    "reviewedArtifactCount": 120
+    "symbolCount": 584,
+    "reviewedArtifactCount": 124
   },
   "entries": [
     {
@@ -8466,49 +8466,204 @@
       ]
     },
     {
-      "file": "src/data/quests.ts",
-      "lines": 396,
+      "file": "src/data/questDefinitions.ts",
       "classification": "mixed",
       "domains": [
         "quest_template",
-        "quest_generation"
+        "quest_reward_labels"
       ],
       "candidateTargets": [
         "taoyuan:quest_template",
-        "engine/domain/quests"
+        "engine/domain/quests",
+        "ui/quest-labels"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 314,
       "symbols": [
         {
-          "file": "src/data/quests.ts",
+          "file": "src/data/questDefinitions.ts",
           "exportName": "QUEST_TEMPLATES",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:quest_template",
           "persistentIds": true,
-          "consumers": [],
+          "consumers": [
+            "src/data/quests.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy board quest templates; Phase 6 projects quest type, target pools, NPC pools and reward multipliers into taoyuan:quest_template."
         },
         {
-          "file": "src/data/quests.ts",
+          "file": "src/data/questDefinitions.ts",
           "exportName": "QUEST_TYPE_LABELS",
           "syntaxKind": "const",
           "classification": "ui",
+          "targetRegistry": "ui/quest-labels",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/data/quests.ts"
+          ],
           "migrationPhase": [
             6
           ],
           "status": "framework-retained",
-          "rationale": "Presentation label, color, theme, or display helper retained outside content registries."
+          "rationale": "Board quest type labels remain UI-facing compatibility text and are not part of the quest template registry payload."
+        },
+        {
+          "file": "src/data/questDefinitions.ts",
+          "exportName": "SpecialOrderTemplate",
+          "syntaxKind": "interface",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:quest_template",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/quests.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "TypeScript-only legacy special-order compatibility shape; the public quest template contract is QuestTemplateDefSchema."
+        },
+        {
+          "file": "src/data/questDefinitions.ts",
+          "exportName": "SPECIAL_ORDER_TEMPLATES",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:quest_template",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/quests.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy special order templates; Phase 6 projects target items, item rewards, seasons, owner NPCs and tiers into taoyuan:quest_template."
+        },
+        {
+          "file": "src/data/questDefinitions.ts",
+          "exportName": "TIER_LABELS",
+          "syntaxKind": "const",
+          "classification": "ui",
+          "targetRegistry": "ui/quest-labels",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/quests.ts",
+            "src/views/game/BreedingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Special-order tier labels remain UI-facing compatibility text; tier identity and ordering are represented by taoyuan:quest_template."
+        },
+        {
+          "file": "src/data/questDefinitions.ts",
+          "exportName": "TIER_FRIENDSHIP",
+          "syntaxKind": "const",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/quests",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/quests.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "framework-retained",
+          "rationale": "Special-order tier friendship rewards remain framework quest reward constants so random generation and quest submission behavior stay unchanged."
+        }
+      ]
+    },
+    {
+      "file": "src/data/quests.ts",
+      "classification": "mixed",
+      "domains": [
+        "quest_template",
+        "quest_generation",
+        "lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:quest_template",
+        "engine/domain/quests",
+        "compatibility_adapter",
+        "ui/quest-labels"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 119,
+      "symbols": [
+        {
+          "file": "src/data/quests.ts",
+          "exportName": "QUEST_TYPE_LABELS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "ui/quest-labels",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/questDefinitions.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Original-name re-export keeps board quest type labels available while quest template content moved to questDefinitions."
+        },
+        {
+          "file": "src/data/quests.ts",
+          "exportName": "SpecialOrderTemplate",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:quest_template",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/questDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Original type re-export keeps legacy SpecialOrderTemplate imports stable after special order content moved to questDefinitions."
+        },
+        {
+          "file": "src/data/quests.ts",
+          "exportName": "QUEST_TEMPLATES",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:quest_template",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/questDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name export now returns the registry-backed board quest template compatibility list while preserving old order and field shape."
         },
         {
           "file": "src/data/quests.ts",
@@ -8519,13 +8674,14 @@
           "persistentIds": false,
           "consumers": [
             "src/composables/useEndDay.ts",
-            "src/stores/useQuestStore.ts"
+            "src/stores/useQuestStore.ts",
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "status": "framework-retained",
-          "rationale": "Rule, calculation, random generator, formatter, or state-independent algorithm retained in framework/domain."
+          "rationale": "Special-order generation remains framework-owned and preserves tier clamping, random call order, quest IDs, rewards, descriptions and local save IDs while reading template data through taoyuan:quest_template."
         },
         {
           "file": "src/data/quests.ts",
@@ -8541,7 +8697,39 @@
             6
           ],
           "status": "framework-retained",
-          "rationale": "Rule, calculation, random generator, formatter, or state-independent algorithm retained in framework/domain."
+          "rationale": "Daily board quest generation remains framework-owned and preserves random call order, quest IDs, rewards, descriptions and local save IDs while reading template data through taoyuan:quest_template."
+        },
+        {
+          "file": "src/data/quests.ts",
+          "exportName": "getQuestTemplates",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:quest_template",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy board quest template list query returns local-ID compatibility objects reconstructed from taoyuan:quest_template."
+        },
+        {
+          "file": "src/data/quests.ts",
+          "exportName": "getSpecialOrderTemplates",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:quest_template",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/questTemplateRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy special-order template list query returns local-ID compatibility objects reconstructed from taoyuan:quest_template."
         }
       ]
     },
@@ -8912,7 +9100,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 374,
+      "lines": 373,
       "symbols": [
         {
           "file": "src/data/seasonEventDefinitions.ts",
@@ -13067,6 +13255,54 @@
       ],
       "status": "verified",
       "rationale": "Checks season event item reward references against taoyuan:item before registry snapshots are accepted."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "QuestTemplateDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:quest_template",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for board quest and special-order template definitions, including targets, NPC pools, rewards, seasons and tier metadata."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyQuestTemplate/adaptLegacySpecialOrderTemplate/createOfficialQuestTemplates",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:quest_template",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy board quest and special-order template into official registry entries without changing local target IDs, NPC pools, quantities, rewards, seasons or tier ordering."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialQuestTemplateDef/getOfficialQuestTemplateDefs/getOfficialQuestTemplatesAsLegacy/getOfficialSpecialOrderTemplatesAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:quest_template",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen quest template registry definitions and reconstructs legacy board quest and special-order template objects for Quest Store generation consumers."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:quest_template",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:quest_template",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks board quest target items, board NPC pools, special-order target items, item rewards and owner NPC references before registry snapshots are accepted."
     },
     {
       "file": "src/domain/mods/schemas.ts",

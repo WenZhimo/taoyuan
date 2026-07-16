@@ -87401,6 +87401,1061 @@
       ]
     },
     {
+      "registryId": "taoyuan:quest_template",
+      "schemaName": "quest-template.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "friendshipReward": 5,
+            "id": "taoyuan:quest_template/board/delivery",
+            "kind": "board",
+            "npcPool": [
+              "taoyuan:npc/chen_bo",
+              "taoyuan:npc/liu_niang",
+              "taoyuan:npc/lin_lao",
+              "taoyuan:npc/xiao_man"
+            ],
+            "rewardMultiplier": 3,
+            "targets": [
+              {
+                "itemId": "taoyuan:cabbage",
+                "maxQty": 5,
+                "minQty": 2,
+                "name": {
+                  "fallback": "青菜",
+                  "key": "taoyuan.quest_template.delivery.targets.0.name"
+                },
+                "seasons": [
+                  "spring"
+                ],
+                "unitPrice": 35
+              },
+              {
+                "itemId": "taoyuan:radish",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "萝卜",
+                  "key": "taoyuan.quest_template.delivery.targets.1.name"
+                },
+                "seasons": [
+                  "spring"
+                ],
+                "unitPrice": 55
+              },
+              {
+                "itemId": "taoyuan:potato",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "土豆",
+                  "key": "taoyuan.quest_template.delivery.targets.2.name"
+                },
+                "seasons": [
+                  "spring"
+                ],
+                "unitPrice": 50
+              },
+              {
+                "itemId": "taoyuan:rice",
+                "maxQty": 5,
+                "minQty": 2,
+                "name": {
+                  "fallback": "稻米",
+                  "key": "taoyuan.quest_template.delivery.targets.3.name"
+                },
+                "seasons": [
+                  "summer"
+                ],
+                "unitPrice": 40
+              },
+              {
+                "itemId": "taoyuan:watermelon",
+                "maxQty": 3,
+                "minQty": 1,
+                "name": {
+                  "fallback": "西瓜",
+                  "key": "taoyuan.quest_template.delivery.targets.4.name"
+                },
+                "seasons": [
+                  "summer"
+                ],
+                "unitPrice": 80
+              },
+              {
+                "itemId": "taoyuan:chili",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "辣椒",
+                  "key": "taoyuan.quest_template.delivery.targets.5.name"
+                },
+                "seasons": [
+                  "summer"
+                ],
+                "unitPrice": 45
+              },
+              {
+                "itemId": "taoyuan:pumpkin",
+                "maxQty": 3,
+                "minQty": 1,
+                "name": {
+                  "fallback": "南瓜",
+                  "key": "taoyuan.quest_template.delivery.targets.6.name"
+                },
+                "seasons": [
+                  "autumn"
+                ],
+                "unitPrice": 100
+              },
+              {
+                "itemId": "taoyuan:sweet_potato",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "红薯",
+                  "key": "taoyuan.quest_template.delivery.targets.7.name"
+                },
+                "seasons": [
+                  "autumn"
+                ],
+                "unitPrice": 60
+              },
+              {
+                "itemId": "taoyuan:winter_wheat",
+                "maxQty": 5,
+                "minQty": 2,
+                "name": {
+                  "fallback": "冬小麦",
+                  "key": "taoyuan.quest_template.delivery.targets.8.name"
+                },
+                "seasons": [
+                  "winter"
+                ],
+                "unitPrice": 45
+              },
+              {
+                "itemId": "taoyuan:garlic",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "大蒜",
+                  "key": "taoyuan.quest_template.delivery.targets.9.name"
+                },
+                "seasons": [
+                  "winter"
+                ],
+                "unitPrice": 50
+              }
+            ],
+            "templateId": "delivery",
+            "type": "delivery"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "friendshipReward": 3,
+            "id": "taoyuan:quest_template/board/fishing",
+            "kind": "board",
+            "npcPool": [
+              "taoyuan:npc/qiu_yue",
+              "taoyuan:npc/chen_bo",
+              "taoyuan:npc/lin_lao"
+            ],
+            "rewardMultiplier": 3,
+            "targets": [
+              {
+                "itemId": "taoyuan:crucian",
+                "maxQty": 3,
+                "minQty": 1,
+                "name": {
+                  "fallback": "鲫鱼",
+                  "key": "taoyuan.quest_template.fishing.targets.0.name"
+                },
+                "seasons": [],
+                "unitPrice": 15
+              },
+              {
+                "itemId": "taoyuan:carp",
+                "maxQty": 2,
+                "minQty": 1,
+                "name": {
+                  "fallback": "鲤鱼",
+                  "key": "taoyuan.quest_template.fishing.targets.1.name"
+                },
+                "seasons": [
+                  "spring",
+                  "summer"
+                ],
+                "unitPrice": 25
+              },
+              {
+                "itemId": "taoyuan:grass_carp",
+                "maxQty": 2,
+                "minQty": 1,
+                "name": {
+                  "fallback": "草鱼",
+                  "key": "taoyuan.quest_template.fishing.targets.2.name"
+                },
+                "seasons": [
+                  "summer",
+                  "autumn"
+                ],
+                "unitPrice": 30
+              },
+              {
+                "itemId": "taoyuan:catfish",
+                "maxQty": 2,
+                "minQty": 1,
+                "name": {
+                  "fallback": "鲶鱼",
+                  "key": "taoyuan.quest_template.fishing.targets.3.name"
+                },
+                "seasons": [
+                  "summer"
+                ],
+                "unitPrice": 40
+              },
+              {
+                "itemId": "taoyuan:bass",
+                "maxQty": 2,
+                "minQty": 1,
+                "name": {
+                  "fallback": "鲈鱼",
+                  "key": "taoyuan.quest_template.fishing.targets.4.name"
+                },
+                "seasons": [
+                  "autumn"
+                ],
+                "unitPrice": 35
+              },
+              {
+                "itemId": "taoyuan:loach",
+                "maxQty": 3,
+                "minQty": 1,
+                "name": {
+                  "fallback": "泥鳅",
+                  "key": "taoyuan.quest_template.fishing.targets.5.name"
+                },
+                "seasons": [
+                  "summer",
+                  "autumn"
+                ],
+                "unitPrice": 20
+              },
+              {
+                "itemId": "taoyuan:creek_shrimp",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "溪虾",
+                  "key": "taoyuan.quest_template.fishing.targets.6.name"
+                },
+                "seasons": [
+                  "spring",
+                  "summer",
+                  "autumn"
+                ],
+                "unitPrice": 30
+              },
+              {
+                "itemId": "taoyuan:silver_carp",
+                "maxQty": 2,
+                "minQty": 1,
+                "name": {
+                  "fallback": "白鲢",
+                  "key": "taoyuan.quest_template.fishing.targets.7.name"
+                },
+                "seasons": [
+                  "summer"
+                ],
+                "unitPrice": 25
+              }
+            ],
+            "templateId": "fishing",
+            "type": "fishing"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "friendshipReward": 5,
+            "id": "taoyuan:quest_template/board/gathering",
+            "kind": "board",
+            "npcPool": [
+              "taoyuan:npc/lin_lao",
+              "taoyuan:npc/liu_niang",
+              "taoyuan:npc/xiao_man"
+            ],
+            "rewardMultiplier": 3,
+            "targets": [
+              {
+                "itemId": "taoyuan:wood",
+                "maxQty": 10,
+                "minQty": 5,
+                "name": {
+                  "fallback": "木材",
+                  "key": "taoyuan.quest_template.gathering.targets.0.name"
+                },
+                "seasons": [],
+                "unitPrice": 5
+              },
+              {
+                "itemId": "taoyuan:herb",
+                "maxQty": 5,
+                "minQty": 2,
+                "name": {
+                  "fallback": "草药",
+                  "key": "taoyuan.quest_template.gathering.targets.1.name"
+                },
+                "seasons": [
+                  "spring",
+                  "summer",
+                  "autumn"
+                ],
+                "unitPrice": 15
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "maxQty": 10,
+                "minQty": 5,
+                "name": {
+                  "fallback": "柴火",
+                  "key": "taoyuan.quest_template.gathering.targets.2.name"
+                },
+                "seasons": [],
+                "unitPrice": 3
+              },
+              {
+                "itemId": "taoyuan:bamboo",
+                "maxQty": 6,
+                "minQty": 3,
+                "name": {
+                  "fallback": "竹子",
+                  "key": "taoyuan.quest_template.gathering.targets.3.name"
+                },
+                "seasons": [
+                  "spring",
+                  "summer"
+                ],
+                "unitPrice": 10
+              },
+              {
+                "itemId": "taoyuan:pine_cone",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "松果",
+                  "key": "taoyuan.quest_template.gathering.targets.4.name"
+                },
+                "seasons": [
+                  "autumn",
+                  "winter"
+                ],
+                "unitPrice": 10
+              },
+              {
+                "itemId": "taoyuan:wild_mushroom",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "野蘑菇",
+                  "key": "taoyuan.quest_template.gathering.targets.5.name"
+                },
+                "seasons": [
+                  "autumn"
+                ],
+                "unitPrice": 20
+              },
+              {
+                "itemId": "taoyuan:wild_berry",
+                "maxQty": 5,
+                "minQty": 3,
+                "name": {
+                  "fallback": "野果",
+                  "key": "taoyuan.quest_template.gathering.targets.6.name"
+                },
+                "seasons": [
+                  "summer"
+                ],
+                "unitPrice": 10
+              },
+              {
+                "itemId": "taoyuan:ginseng",
+                "maxQty": 2,
+                "minQty": 1,
+                "name": {
+                  "fallback": "人参",
+                  "key": "taoyuan.quest_template.gathering.targets.7.name"
+                },
+                "seasons": [
+                  "autumn",
+                  "winter"
+                ],
+                "unitPrice": 50
+              }
+            ],
+            "templateId": "gathering",
+            "type": "gathering"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "friendshipReward": 3,
+            "id": "taoyuan:quest_template/board/mining",
+            "kind": "board",
+            "npcPool": [
+              "taoyuan:npc/a_shi",
+              "taoyuan:npc/xiao_man",
+              "taoyuan:npc/chen_bo"
+            ],
+            "rewardMultiplier": 2,
+            "targets": [
+              {
+                "itemId": "taoyuan:copper_ore",
+                "maxQty": 8,
+                "minQty": 3,
+                "name": {
+                  "fallback": "铜矿",
+                  "key": "taoyuan.quest_template.mining.targets.0.name"
+                },
+                "seasons": [],
+                "unitPrice": 10
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "maxQty": 6,
+                "minQty": 3,
+                "name": {
+                  "fallback": "铁矿",
+                  "key": "taoyuan.quest_template.mining.targets.1.name"
+                },
+                "seasons": [],
+                "unitPrice": 20
+              },
+              {
+                "itemId": "taoyuan:gold_ore",
+                "maxQty": 4,
+                "minQty": 2,
+                "name": {
+                  "fallback": "金矿",
+                  "key": "taoyuan.quest_template.mining.targets.2.name"
+                },
+                "seasons": [],
+                "unitPrice": 40
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "maxQty": 3,
+                "minQty": 1,
+                "name": {
+                  "fallback": "石英",
+                  "key": "taoyuan.quest_template.mining.targets.3.name"
+                },
+                "seasons": [],
+                "unitPrice": 30
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "maxQty": 2,
+                "minQty": 1,
+                "name": {
+                  "fallback": "翡翠",
+                  "key": "taoyuan.quest_template.mining.targets.4.name"
+                },
+                "seasons": [],
+                "unitPrice": 80
+              }
+            ],
+            "templateId": "mining",
+            "type": "mining"
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_1/cabbage_liu_niang",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:basic_fertilizer",
+                "quantity": 5
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 500,
+            "name": {
+              "fallback": "蔬菜采购",
+              "key": "taoyuan.quest_template/special_order/tier_1/cabbage_liu_niang.name"
+            },
+            "npcId": "taoyuan:npc/liu_niang",
+            "quantity": 10,
+            "seasons": [
+              "spring"
+            ],
+            "targetItemId": "taoyuan:cabbage",
+            "targetItemName": {
+              "fallback": "青菜",
+              "key": "taoyuan.quest_template/special_order/tier_1/cabbage_liu_niang.targetItemName"
+            },
+            "templateId": "special_order/tier_1/cabbage_liu_niang",
+            "tier": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_1/copper_ore_a_shi",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 3
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 600,
+            "name": {
+              "fallback": "铜矿采购",
+              "key": "taoyuan.quest_template/special_order/tier_1/copper_ore_a_shi.name"
+            },
+            "npcId": "taoyuan:npc/a_shi",
+            "quantity": 15,
+            "seasons": [],
+            "targetItemId": "taoyuan:copper_ore",
+            "targetItemName": {
+              "fallback": "铜矿",
+              "key": "taoyuan.quest_template/special_order/tier_1/copper_ore_a_shi.targetItemName"
+            },
+            "templateId": "special_order/tier_1/copper_ore_a_shi",
+            "tier": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_1/crucian_qiu_yue",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:standard_bait",
+                "quantity": 10
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 500,
+            "name": {
+              "fallback": "鲜鱼征集",
+              "key": "taoyuan.quest_template/special_order/tier_1/crucian_qiu_yue.name"
+            },
+            "npcId": "taoyuan:npc/qiu_yue",
+            "quantity": 8,
+            "seasons": [],
+            "targetItemId": "taoyuan:crucian",
+            "targetItemName": {
+              "fallback": "鲫鱼",
+              "key": "taoyuan.quest_template/special_order/tier_1/crucian_qiu_yue.targetItemName"
+            },
+            "templateId": "special_order/tier_1/crucian_qiu_yue",
+            "tier": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_1/wood_chen_bo",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:charcoal",
+                "quantity": 5
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 400,
+            "name": {
+              "fallback": "木材备料",
+              "key": "taoyuan.quest_template/special_order/tier_1/wood_chen_bo.name"
+            },
+            "npcId": "taoyuan:npc/chen_bo",
+            "quantity": 30,
+            "seasons": [],
+            "targetItemId": "taoyuan:wood",
+            "targetItemName": {
+              "fallback": "木材",
+              "key": "taoyuan.quest_template/special_order/tier_1/wood_chen_bo.targetItemName"
+            },
+            "templateId": "special_order/tier_1/wood_chen_bo",
+            "tier": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_2/catfish_qiu_yue",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:standard_bait",
+                "quantity": 20
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 1000,
+            "name": {
+              "fallback": "珍鱼征集令",
+              "key": "taoyuan.quest_template/special_order/tier_2/catfish_qiu_yue.name"
+            },
+            "npcId": "taoyuan:npc/qiu_yue",
+            "quantity": 5,
+            "seasons": [
+              "summer"
+            ],
+            "targetItemId": "taoyuan:catfish",
+            "targetItemName": {
+              "fallback": "鲶鱼",
+              "key": "taoyuan.quest_template/special_order/tier_2/catfish_qiu_yue.targetItemName"
+            },
+            "templateId": "special_order/tier_2/catfish_qiu_yue",
+            "tier": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_2/herb_lin_lao",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:quality_fertilizer",
+                "quantity": 3
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 800,
+            "name": {
+              "fallback": "药材收集",
+              "key": "taoyuan.quest_template/special_order/tier_2/herb_lin_lao.name"
+            },
+            "npcId": "taoyuan:npc/lin_lao",
+            "quantity": 15,
+            "seasons": [
+              "spring",
+              "summer",
+              "autumn"
+            ],
+            "targetItemId": "taoyuan:herb",
+            "targetItemName": {
+              "fallback": "草药",
+              "key": "taoyuan.quest_template/special_order/tier_2/herb_lin_lao.targetItemName"
+            },
+            "templateId": "special_order/tier_2/herb_lin_lao",
+            "tier": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_2/iron_ore_a_shi",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:charcoal",
+                "quantity": 10
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 1200,
+            "name": {
+              "fallback": "铁矿备料",
+              "key": "taoyuan.quest_template/special_order/tier_2/iron_ore_a_shi.name"
+            },
+            "npcId": "taoyuan:npc/a_shi",
+            "quantity": 15,
+            "seasons": [],
+            "targetItemId": "taoyuan:iron_ore",
+            "targetItemName": {
+              "fallback": "铁矿",
+              "key": "taoyuan.quest_template/special_order/tier_2/iron_ore_a_shi.targetItemName"
+            },
+            "templateId": "special_order/tier_2/iron_ore_a_shi",
+            "tier": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_2/winter_wheat_chen_bo",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:seed_garlic",
+                "quantity": 5
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 1200,
+            "name": {
+              "fallback": "冬储备战",
+              "key": "taoyuan.quest_template/special_order/tier_2/winter_wheat_chen_bo.name"
+            },
+            "npcId": "taoyuan:npc/chen_bo",
+            "quantity": 15,
+            "seasons": [
+              "winter"
+            ],
+            "targetItemId": "taoyuan:winter_wheat",
+            "targetItemName": {
+              "fallback": "冬小麦",
+              "key": "taoyuan.quest_template/special_order/tier_2/winter_wheat_chen_bo.targetItemName"
+            },
+            "templateId": "special_order/tier_2/winter_wheat_chen_bo",
+            "tier": 2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_3/ginseng_lin_lao",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:herb",
+                "quantity": 15
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 2000,
+            "name": {
+              "fallback": "药材囤积",
+              "key": "taoyuan.quest_template/special_order/tier_3/ginseng_lin_lao.name"
+            },
+            "npcId": "taoyuan:npc/lin_lao",
+            "quantity": 6,
+            "seasons": [
+              "autumn",
+              "winter"
+            ],
+            "targetItemId": "taoyuan:ginseng",
+            "targetItemName": {
+              "fallback": "人参",
+              "key": "taoyuan.quest_template/special_order/tier_3/ginseng_lin_lao.targetItemName"
+            },
+            "templateId": "special_order/tier_3/ginseng_lin_lao",
+            "tier": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_3/gold_ore_a_shi",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 5
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 2500,
+            "name": {
+              "fallback": "深层金矿",
+              "key": "taoyuan.quest_template/special_order/tier_3/gold_ore_a_shi.name"
+            },
+            "npcId": "taoyuan:npc/a_shi",
+            "quantity": 15,
+            "seasons": [],
+            "targetItemId": "taoyuan:gold_ore",
+            "targetItemName": {
+              "fallback": "金矿",
+              "key": "taoyuan.quest_template/special_order/tier_3/gold_ore_a_shi.targetItemName"
+            },
+            "templateId": "special_order/tier_3/gold_ore_a_shi",
+            "tier": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_3/pumpkin_liu_niang",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:quality_fertilizer",
+                "quantity": 5
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 2000,
+            "name": {
+              "fallback": "丰收计划",
+              "key": "taoyuan.quest_template/special_order/tier_3/pumpkin_liu_niang.name"
+            },
+            "npcId": "taoyuan:npc/liu_niang",
+            "quantity": 10,
+            "seasons": [
+              "autumn"
+            ],
+            "targetItemId": "taoyuan:pumpkin",
+            "targetItemName": {
+              "fallback": "南瓜",
+              "key": "taoyuan.quest_template/special_order/tier_3/pumpkin_liu_niang.targetItemName"
+            },
+            "templateId": "special_order/tier_3/pumpkin_liu_niang",
+            "tier": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_3/watermelon_xiao_man",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:seed_watermelon",
+                "quantity": 5
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 2200,
+            "name": {
+              "fallback": "西瓜大丰收",
+              "key": "taoyuan.quest_template/special_order/tier_3/watermelon_xiao_man.name"
+            },
+            "npcId": "taoyuan:npc/xiao_man",
+            "quantity": 10,
+            "seasons": [
+              "summer"
+            ],
+            "targetItemId": "taoyuan:watermelon",
+            "targetItemName": {
+              "fallback": "西瓜",
+              "key": "taoyuan.quest_template/special_order/tier_3/watermelon_xiao_man.targetItemName"
+            },
+            "templateId": "special_order/tier_3/watermelon_xiao_man",
+            "tier": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_4/catfish_qiu_yue",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:wild_bait",
+                "quantity": 10
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 3500,
+            "name": {
+              "fallback": "渔王挑战",
+              "key": "taoyuan.quest_template/special_order/tier_4/catfish_qiu_yue.name"
+            },
+            "npcId": "taoyuan:npc/qiu_yue",
+            "quantity": 12,
+            "seasons": [
+              "summer"
+            ],
+            "targetItemId": "taoyuan:catfish",
+            "targetItemName": {
+              "fallback": "鲶鱼",
+              "key": "taoyuan.quest_template/special_order/tier_4/catfish_qiu_yue.targetItemName"
+            },
+            "templateId": "special_order/tier_4/catfish_qiu_yue",
+            "tier": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_4/gold_ore_a_shi",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:jade",
+                "quantity": 2
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 4000,
+            "name": {
+              "fallback": "矿石大征集",
+              "key": "taoyuan.quest_template/special_order/tier_4/gold_ore_a_shi.name"
+            },
+            "npcId": "taoyuan:npc/a_shi",
+            "quantity": 25,
+            "seasons": [],
+            "targetItemId": "taoyuan:gold_ore",
+            "targetItemName": {
+              "fallback": "金矿",
+              "key": "taoyuan.quest_template/special_order/tier_4/gold_ore_a_shi.targetItemName"
+            },
+            "templateId": "special_order/tier_4/gold_ore_a_shi",
+            "tier": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_4/pumpkin_liu_niang",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:quality_fertilizer",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:speed_gro",
+                "quantity": 5
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 4500,
+            "name": {
+              "fallback": "丰年盛宴",
+              "key": "taoyuan.quest_template/special_order/tier_4/pumpkin_liu_niang.name"
+            },
+            "npcId": "taoyuan:npc/liu_niang",
+            "quantity": 20,
+            "seasons": [
+              "autumn"
+            ],
+            "targetItemId": "taoyuan:pumpkin",
+            "targetItemName": {
+              "fallback": "南瓜",
+              "key": "taoyuan.quest_template/special_order/tier_4/pumpkin_liu_niang.targetItemName"
+            },
+            "templateId": "special_order/tier_4/pumpkin_liu_niang",
+            "tier": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/questDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "days": 7,
+            "id": "taoyuan:quest_template/special_order/tier_4/winter_wheat_chen_bo",
+            "itemReward": [
+              {
+                "itemId": "taoyuan:seed_garlic",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:charcoal",
+                "quantity": 10
+              }
+            ],
+            "kind": "special_order",
+            "moneyReward": 3500,
+            "name": {
+              "fallback": "冬日大囤货",
+              "key": "taoyuan.quest_template/special_order/tier_4/winter_wheat_chen_bo.name"
+            },
+            "npcId": "taoyuan:npc/chen_bo",
+            "quantity": 30,
+            "seasons": [
+              "winter"
+            ],
+            "targetItemId": "taoyuan:winter_wheat",
+            "targetItemName": {
+              "fallback": "冬小麦",
+              "key": "taoyuan.quest_template/special_order/tier_4/winter_wheat_chen_bo.targetItemName"
+            },
+            "templateId": "special_order/tier_4/winter_wheat_chen_bo",
+            "tier": 4
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:recipe",
       "schemaName": "recipe.schema.json",
       "entries": [
@@ -103374,5 +104429,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:a569fc9d15e4a67e0d11944ba796bf8bbd256adc9195e0ba99cf6e13b17e1a85"
+  "snapshotHash": "sha256:5fa29f6ac0b1b1ca02b35ae8f19682e55e9ca5d56af712e3b45384331c50d6df"
 }

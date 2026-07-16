@@ -41,6 +41,11 @@ import { STORY_QUESTS } from '@/data/storyQuestDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
 import { SEASON_EVENTS, type SeasonEventDef as LegacySeasonEventDef } from '@/data/seasonEventDefinitions'
+import {
+  QUEST_TEMPLATES,
+  SPECIAL_ORDER_TEMPLATES,
+  type SpecialOrderTemplate as LegacySpecialOrderTemplate
+} from '@/data/questDefinitions'
 import { FARM_MAP_DEFS } from '@/data/farmMapDefinitions'
 import {
   ANIMAL_BUILDINGS,
@@ -145,6 +150,7 @@ import type {
   PondableFishDef,
   ProcessingMachineDef,
   ProcessingRecipeDef,
+  QuestTemplateDef,
   RecipeDef,
   RecipeIngredient,
   NpcFriendshipLevel,
@@ -159,6 +165,7 @@ import type {
   TreeDef,
   WalletItemDef
 } from './schemas'
+import type { QuestTemplateDef as LegacyQuestTemplateDef } from '@/types/quest'
 
 const FRUIT_TREE_DEFS = FRUIT_TREE_DEFINITIONS
 
@@ -277,6 +284,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('season_event'),
     description: '季节节日事件定义',
     schemaName: 'season-event.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('quest_template'),
+    description: '普通委托和特殊订单模板定义',
+    schemaName: 'quest-template.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('farm_map'),
@@ -1282,6 +1294,54 @@ export const adaptLegacySeasonEvent = (event: LegacySeasonEventDef): SeasonEvent
 
 export const createOfficialSeasonEvents = (): SeasonEventDef[] => SEASON_EVENTS.map(adaptLegacySeasonEvent)
 
+export const adaptLegacyQuestTemplate = (template: LegacyQuestTemplateDef): QuestTemplateDef => ({
+  id: toOfficialContentId(`quest_template/board/${template.type}`),
+  templateId: template.type,
+  kind: 'board',
+  type: template.type as Extract<QuestTemplateDef, { kind: 'board' }>['type'],
+  targets: template.targets.map((target, index) => ({
+    itemId: toOfficialContentId(target.itemId),
+    name: text(`taoyuan.quest_template.${template.type}.targets.${index}.name`, target.name),
+    minQty: target.minQty,
+    maxQty: target.maxQty,
+    seasons: [...target.seasons],
+    unitPrice: target.unitPrice
+  })),
+  npcPool: template.npcPool.map(npcId => toOfficialContentId(`npc/${npcId}`)),
+  rewardMultiplier: template.rewardMultiplier,
+  friendshipReward: template.friendshipReward
+})
+
+const getSpecialOrderTemplateContentKey = (template: LegacySpecialOrderTemplate): string =>
+  `quest_template/special_order/tier_${template.tier}/${template.targetItemId}_${template.npcId}`
+
+export const adaptLegacySpecialOrderTemplate = (template: LegacySpecialOrderTemplate): QuestTemplateDef => {
+  const key = getSpecialOrderTemplateContentKey(template)
+  return {
+    id: toOfficialContentId(key),
+    templateId: key.slice('quest_template/'.length),
+    kind: 'special_order',
+    name: text(`taoyuan.${key}.name`, template.name),
+    targetItemId: toOfficialContentId(template.targetItemId),
+    targetItemName: text(`taoyuan.${key}.targetItemName`, template.targetItemName),
+    quantity: template.quantity,
+    days: template.days,
+    moneyReward: template.moneyReward,
+    itemReward: template.itemReward.map(item => ({
+      itemId: toOfficialContentId(item.itemId),
+      quantity: item.quantity
+    })),
+    seasons: [...template.seasons],
+    npcId: toOfficialContentId(`npc/${template.npcId}`),
+    tier: template.tier
+  }
+}
+
+export const createOfficialQuestTemplates = (): QuestTemplateDef[] => [
+  ...QUEST_TEMPLATES.map(adaptLegacyQuestTemplate),
+  ...SPECIAL_ORDER_TEMPLATES.map(adaptLegacySpecialOrderTemplate)
+]
+
 export const adaptLegacyFarmMap = (map: (typeof FARM_MAP_DEFS)[number]): FarmMapDef => ({
   id: toOfficialContentId(map.type),
   type: map.type,
@@ -1806,6 +1866,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
   const seasonEventRegistry = registrySet.get<SeasonEventDef>(toOfficialRegistryTypeId('season_event'))
+  const questTemplateRegistry = registrySet.get<QuestTemplateDef>(toOfficialRegistryTypeId('quest_template'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
@@ -1888,6 +1949,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const event of createOfficialSeasonEvents()) {
     seasonEventRegistry.register(owner, event, { file: 'src/data/seasonEventDefinitions.ts' })
+  }
+  for (const template of createOfficialQuestTemplates()) {
+    questTemplateRegistry.register(owner, template, { file: 'src/data/questDefinitions.ts' })
   }
   for (const map of createOfficialFarmMaps()) {
     farmMapRegistry.register(owner, map, { file: 'src/data/farmMapDefinitions.ts' })

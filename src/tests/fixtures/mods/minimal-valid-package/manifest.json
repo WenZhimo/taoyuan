@@ -74,6 +74,9 @@
     "taoyuan:season_event": [
       "data/season-events.json"
     ],
+    "taoyuan:quest_template": [
+      "data/quest-templates.json"
+    ],
     "taoyuan:farm_map": [
       "data/farm-maps.json"
     ],

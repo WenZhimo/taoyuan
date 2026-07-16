@@ -39,6 +39,7 @@ import type {
   PondableFishDef,
   ProcessingMachineDef,
   ProcessingRecipeDef,
+  QuestTemplateDef,
   RecipeDef,
   SecretNoteDef,
   SeasonEventDef,
@@ -75,6 +76,7 @@ const REGISTRY_IDS = {
   communityBundle: toOfficialRegistryTypeId('community_bundle'),
   secretNote: toOfficialRegistryTypeId('secret_note'),
   seasonEvent: toOfficialRegistryTypeId('season_event'),
+  questTemplate: toOfficialRegistryTypeId('quest_template'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
   processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
@@ -161,6 +163,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const communityBundleRegistry = registrySet.get<CommunityBundleDef>(REGISTRY_IDS.communityBundle)
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
   const seasonEventRegistry = registrySet.get<SeasonEventDef>(REGISTRY_IDS.seasonEvent)
+  const questTemplateRegistry = registrySet.get<QuestTemplateDef>(REGISTRY_IDS.questTemplate)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
@@ -765,6 +768,58 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         })
       }
     })
+  }
+
+  for (const record of questTemplateRegistry.entries()) {
+    if (record.entry.kind === 'board') {
+      record.entry.targets.forEach((target, index) => {
+        if (!itemRegistry.has(contentId(target.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(target.itemId),
+            fieldPath: `/targets/${index}/itemId`
+          })
+        }
+      })
+      record.entry.npcPool.forEach((npcId, index) => {
+        if (!npcRegistry.has(contentId(npcId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.npc,
+            contentId: contentId(npcId),
+            fieldPath: `/npcPool/${index}`
+          })
+        }
+      })
+    } else {
+      if (!itemRegistry.has(contentId(record.entry.targetItemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(record.entry.targetItemId),
+          fieldPath: '/targetItemId'
+        })
+      }
+      record.entry.itemReward.forEach((item, index) => {
+        if (!itemRegistry.has(contentId(item.itemId))) {
+          pushMissingReference(diagnostics, {
+            packageId: record.owner,
+            registryId: REGISTRY_IDS.item,
+            contentId: contentId(item.itemId),
+            fieldPath: `/itemReward/${index}/itemId`
+          })
+        }
+      })
+      if (!npcRegistry.has(contentId(record.entry.npcId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.npc,
+          contentId: contentId(record.entry.npcId),
+          fieldPath: '/npcId'
+        })
+      }
+    }
   }
 
   for (const record of processingMachineRegistry.entries()) {

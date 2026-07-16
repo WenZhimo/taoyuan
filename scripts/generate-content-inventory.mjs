@@ -433,6 +433,24 @@ fileDefaults.set('src/data/events.ts', {
   status: 'symbol_inventoried'
 })
 
+fileDefaults.set('src/data/questDefinitions.ts', {
+  file: 'src/data/questDefinitions.ts',
+  classification: 'mixed',
+  domains: ['quest_template', 'quest_reward_labels'],
+  candidateTargets: ['taoyuan:quest_template', 'engine/domain/quests', 'ui/quest-labels'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/quests.ts', {
+  file: 'src/data/quests.ts',
+  classification: 'mixed',
+  domains: ['quest_template', 'quest_generation', 'lookup'],
+  candidateTargets: ['taoyuan:quest_template', 'engine/domain/quests', 'compatibility_adapter', 'ui/quest-labels'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
 fileDefaults.set('src/data/secretNotes.ts', {
   file: 'src/data/secretNotes.ts',
   classification: 'content',
@@ -811,6 +829,100 @@ const symbolReviewOverrides = new Map(Object.entries({
   'src/data/recipes.ts:getRecipeById': {
     status: 'verified',
     rationale: 'Legacy getRecipeById() signature is retained for display/effects and static compatibility tests; cooking now reads normalized registry ingredients through contentAccess.'
+  },
+  'src/data/questDefinitions.ts:QUEST_TEMPLATES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy board quest templates; Phase 6 projects quest type, target pools, NPC pools and reward multipliers into taoyuan:quest_template.'
+  },
+  'src/data/questDefinitions.ts:QUEST_TYPE_LABELS': {
+    classification: 'ui',
+    targetRegistry: 'ui/quest-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Board quest type labels remain UI-facing compatibility text and are not part of the quest template registry payload.'
+  },
+  'src/data/questDefinitions.ts:SpecialOrderTemplate': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy special-order compatibility shape; the public quest template contract is QuestTemplateDefSchema.'
+  },
+  'src/data/questDefinitions.ts:SPECIAL_ORDER_TEMPLATES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy special order templates; Phase 6 projects target items, item rewards, seasons, owner NPCs and tiers into taoyuan:quest_template.'
+  },
+  'src/data/questDefinitions.ts:TIER_LABELS': {
+    classification: 'ui',
+    targetRegistry: 'ui/quest-labels',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Special-order tier labels remain UI-facing compatibility text; tier identity and ordering are represented by taoyuan:quest_template.'
+  },
+  'src/data/questDefinitions.ts:TIER_FRIENDSHIP': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/quests',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Special-order tier friendship rewards remain framework quest reward constants so random generation and quest submission behavior stay unchanged.'
+  },
+  'src/data/quests.ts:QUEST_TYPE_LABELS': {
+    classification: 'adapter',
+    targetRegistry: 'ui/quest-labels',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Original-name re-export keeps board quest type labels available while quest template content moved to questDefinitions.'
+  },
+  'src/data/quests.ts:SpecialOrderTemplate': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Original type re-export keeps legacy SpecialOrderTemplate imports stable after special order content moved to questDefinitions.'
+  },
+  'src/data/quests.ts:QUEST_TEMPLATES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name export now returns the registry-backed board quest template compatibility list while preserving old order and field shape.'
+  },
+  'src/data/quests.ts:generateQuest': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/quests',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Daily board quest generation remains framework-owned and preserves random call order, quest IDs, rewards, descriptions and local save IDs while reading template data through taoyuan:quest_template.'
+  },
+  'src/data/quests.ts:generateSpecialOrder': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/quests',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Special-order generation remains framework-owned and preserves tier clamping, random call order, quest IDs, rewards, descriptions and local save IDs while reading template data through taoyuan:quest_template.'
+  },
+  'src/data/quests.ts:getQuestTemplates': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy board quest template list query returns local-ID compatibility objects reconstructed from taoyuan:quest_template.'
+  },
+  'src/data/quests.ts:getSpecialOrderTemplates': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy special-order template list query returns local-ID compatibility objects reconstructed from taoyuan:quest_template.'
   },
   'src/data/shops.ts:SHOPS': {
     status: 'verified',
@@ -4164,6 +4276,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Checks season event item reward references against taoyuan:item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'QuestTemplateDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for board quest and special-order template definitions, including targets, NPC pools, rewards, seasons and tier metadata.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyQuestTemplate/adaptLegacySpecialOrderTemplate/createOfficialQuestTemplates',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy board quest and special-order template into official registry entries without changing local target IDs, NPC pools, quantities, rewards, seasons or tier ordering.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialQuestTemplateDef/getOfficialQuestTemplateDefs/getOfficialQuestTemplatesAsLegacy/getOfficialSpecialOrderTemplatesAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen quest template registry definitions and reconstructs legacy board quest and special-order template objects for Quest Store generation consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:quest_template',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:quest_template',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks board quest target items, board NPC pools, special-order target items, item rewards and owner NPC references before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

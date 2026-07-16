@@ -1,0 +1,288 @@
+{
+  "$id": "taoyuan.registry.QuestTemplateDef",
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "templateId",
+        "kind",
+        "type",
+        "targets",
+        "npcPool",
+        "rewardMultiplier",
+        "friendshipReward"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "templateId": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "board",
+          "type": "string"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "const": "delivery",
+              "type": "string"
+            },
+            {
+              "const": "fishing",
+              "type": "string"
+            },
+            {
+              "const": "mining",
+              "type": "string"
+            },
+            {
+              "const": "gathering",
+              "type": "string"
+            }
+          ]
+        },
+        "targets": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "name",
+              "minQty",
+              "maxQty",
+              "seasons",
+              "unitPrice"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "name": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "minQty": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "maxQty": {
+                "minimum": 1,
+                "type": "integer"
+              },
+              "seasons": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "anyOf": [
+                    {
+                      "const": "spring",
+                      "type": "string"
+                    },
+                    {
+                      "const": "summer",
+                      "type": "string"
+                    },
+                    {
+                      "const": "autumn",
+                      "type": "string"
+                    },
+                    {
+                      "const": "winter",
+                      "type": "string"
+                    }
+                  ]
+                }
+              },
+              "unitPrice": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "npcPool": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          }
+        },
+        "rewardMultiplier": {
+          "minimum": 0,
+          "type": "number"
+        },
+        "friendshipReward": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "templateId",
+        "kind",
+        "name",
+        "targetItemId",
+        "targetItemName",
+        "quantity",
+        "days",
+        "moneyReward",
+        "itemReward",
+        "seasons",
+        "npcId",
+        "tier"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "templateId": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "special_order",
+          "type": "string"
+        },
+        "name": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "targetItemId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "targetItemName": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "quantity": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "days": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "moneyReward": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "itemReward": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "seasons": {
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "anyOf": [
+              {
+                "const": "spring",
+                "type": "string"
+              },
+              {
+                "const": "summer",
+                "type": "string"
+              },
+              {
+                "const": "autumn",
+                "type": "string"
+              },
+              {
+                "const": "winter",
+                "type": "string"
+              }
+            ]
+          }
+        },
+        "npcId": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "tier": {
+          "minimum": 1,
+          "maximum": 4,
+          "type": "integer"
+        }
+      }
+    }
+  ],
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}
