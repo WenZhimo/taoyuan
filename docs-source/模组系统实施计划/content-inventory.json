@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 78,
-    "approximateLineCount": 31458,
+    "fileCount": 79,
+    "approximateLineCount": 31489,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 584,
-    "reviewedArtifactCount": 124
+    "symbolCount": 596,
+    "reviewedArtifactCount": 129
   },
   "entries": [
     {
@@ -2545,144 +2545,401 @@
       ]
     },
     {
-      "file": "src/data/farmEvents.ts",
-      "lines": 271,
+      "file": "src/data/farmEventDefinitions.ts",
       "classification": "mixed",
       "domains": [
         "morning_event",
-        "event_effect"
+        "morning_event_no_loss"
       ],
       "candidateTargets": [
         "taoyuan:morning_event",
-        "engine/domain/events"
+        "engine/domain/morning-event"
       ],
       "phases": [
         6
       ],
       "status": "symbol_inventoried",
+      "lines": 271,
       "symbols": [
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "MorningEffect",
           "syntaxKind": "type",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/data/farmEvents.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "TypeScript-only legacy morning event effect compatibility shape; the public contract is MorningEventDefSchema."
         },
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "MorningNarration",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/data/farmEvents.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "TypeScript-only legacy morning narration compatibility shape; the public contract is MorningEventDefSchema."
         },
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "MorningChoiceEvent",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
           "consumers": [
             "src/composables/useDialogs.ts",
+            "src/data/farmEvents.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
             "src/views/GameLayout.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "TypeScript-only legacy morning choice event compatibility shape; the public contract is MorningEventDefSchema."
         },
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "MorningEasterEgg",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/data/farmEvents.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "verified",
+          "rationale": "TypeScript-only legacy morning easter egg compatibility shape; the public contract is MorningEventDefSchema."
         },
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "MORNING_NARRATIONS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:morning_event",
           "persistentIds": true,
           "consumers": [
-            "src/composables/useEndDay.ts"
+            "src/data/farmEvents.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy morning narration events; Phase 6 projects order, text and optional effects into taoyuan:morning_event."
         },
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "NARRATIONS_NO_LOSS",
           "syntaxKind": "const",
           "classification": "derived",
           "targetRegistry": "taoyuan:morning_event",
-          "persistentIds": true,
+          "persistentIds": false,
           "consumers": [
-            "src/composables/useEndDay.ts"
+            "src/data/farmEvents.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "verified",
+          "rationale": "Derived no-loss narration subset is verified against registry-backed morning narration compatibility results for empty-farm fallback."
         },
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "MORNING_CHOICE_EVENTS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:morning_event",
           "persistentIds": true,
           "consumers": [
-            "src/composables/useEndDay.ts"
+            "src/data/farmEvents.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy morning choice events; Phase 6 projects local event IDs, prompts, choices, results and optional effects into taoyuan:morning_event."
         },
         {
-          "file": "src/data/farmEvents.ts",
+          "file": "src/data/farmEventDefinitions.ts",
           "exportName": "MORNING_EASTER_EGGS",
           "syntaxKind": "const",
           "classification": "content",
           "targetRegistry": "taoyuan:morning_event",
           "persistentIds": true,
           "consumers": [
-            "src/composables/useEndDay.ts"
+            "src/data/farmEvents.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for legacy morning easter egg events; Phase 6 projects order, text and optional effects into taoyuan:morning_event."
+        }
+      ]
+    },
+    {
+      "file": "src/data/farmEvents.ts",
+      "classification": "mixed",
+      "domains": [
+        "morning_event",
+        "event_lookup"
+      ],
+      "candidateTargets": [
+        "taoyuan:morning_event",
+        "compatibility_adapter"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 39,
+      "symbols": [
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "MorningChoiceEvent",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useDialogs.ts",
+            "src/data/farmEventDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/views/GameLayout.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "MorningEasterEgg",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/farmEventDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "MorningEffect",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/farmEventDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "MorningNarration",
+          "syntaxKind": "re-export",
+          "classification": "barrel",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/farmEventDefinitions.ts",
+            "src/domain/mods/contentAccess.ts",
+            "src/domain/mods/staticAdapters.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "inventoried",
+          "rationale": "Barrel re-export; no content registry ownership."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "MORNING_NARRATIONS",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/farmEventDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name export now returns the registry-backed morning narration compatibility list while preserving old list order and field shape for end-day consumers."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "NARRATIONS_NO_LOSS",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": false,
+          "consumers": [
+            "src/data/farmEventDefinitions.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Original-name no-loss subset is derived from the registry-backed narration compatibility list and preserves the empty-farm fallback behavior."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "MORNING_CHOICE_EVENTS",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/farmEventDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name export now returns the registry-backed morning choice event compatibility list while preserving local event IDs and choice payloads."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "MORNING_EASTER_EGGS",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/farmEventDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name export now returns the registry-backed morning easter egg compatibility list while preserving old list order and field shape."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "getMorningNarrations",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy list getter resolves taoyuan:morning_event narration entries through the compatibility facade for end-day random event processing."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "getMorningChoiceEvents",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy list getter resolves taoyuan:morning_event choice entries through the compatibility facade for end-day random event processing."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "getMorningEasterEggs",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy list getter resolves taoyuan:morning_event easter egg entries through the compatibility facade for end-day random event processing."
+        },
+        {
+          "file": "src/data/farmEvents.ts",
+          "exportName": "getNoLossMorningNarrations",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:morning_event",
+          "persistentIds": false,
+          "consumers": [
+            "src/composables/useEndDay.ts",
+            "src/tests/domain/morningEventRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Legacy no-loss getter filters the registry-backed narration compatibility list so empty-farm random event behavior stays unchanged."
         }
       ]
     },
@@ -8481,7 +8738,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 314,
+      "lines": 306,
       "symbols": [
         {
           "file": "src/data/questDefinitions.ts",
@@ -13207,6 +13464,66 @@
       ],
       "status": "verified",
       "rationale": "Returns frozen registry tutorial definitions and reconstructs legacy MorningTipDef objects for end-day tutorial consumers."
+    },
+    {
+      "file": "src/domain/mods/schemas.ts",
+      "exportName": "MorningEventDefSchema",
+      "classification": "content",
+      "targetRegistry": "taoyuan:morning_event",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "TypeBox source of truth for morning random event definitions, including narration, choice and easter egg variants plus engine-supported effects."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "adaptLegacyMorningNarration/adaptLegacyMorningChoiceEvent/adaptLegacyMorningEasterEgg/createOfficialMorningEvents",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:morning_event",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy morning narration, choice event and easter egg into ordered official entries without changing local IDs, text, choices or effect payloads."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialMorningEventDef/getOfficialMorningEventDefs/getOfficialMorningNarrationsAsLegacy/getOfficialMorningChoiceEventsAsLegacy/getOfficialMorningEasterEggsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:morning_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns frozen morning event registry definitions and reconstructs legacy arrays for end-day random event consumers while preserving local item IDs in effects."
+    },
+    {
+      "file": "src/domain/mods/semanticValidation.ts",
+      "exportName": "validateRegistrySemantics:morning_event",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:morning_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Checks gainItem effect references in morning narration, choice and easter egg entries against taoyuan:item before registry snapshots are accepted."
+    },
+    {
+      "file": "src/composables/useEndDay.ts",
+      "exportName": "handleEndDay:morning_event",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:morning_event",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Wires morning random event processing through registry-backed compatibility getters while preserving event probabilities, random call order and Store side effects."
     },
     {
       "file": "src/domain/mods/schemas.ts",

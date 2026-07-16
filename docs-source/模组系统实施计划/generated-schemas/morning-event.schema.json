@@ -1,0 +1,414 @@
+{
+  "$id": "taoyuan.registry.MorningEventDef",
+  "anyOf": [
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "eventId",
+        "kind",
+        "message"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "eventId": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "narration",
+          "type": "string"
+        },
+        "message": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "effect": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "loseCrop",
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type",
+                "itemId",
+                "qty"
+              ],
+              "properties": {
+                "type": {
+                  "const": "gainItem",
+                  "type": "string"
+                },
+                "itemId": {
+                  "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                  "type": "string"
+                },
+                "qty": {
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              }
+            },
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type",
+                "amount"
+              ],
+              "properties": {
+                "type": {
+                  "const": "gainMoney",
+                  "type": "string"
+                },
+                "amount": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              }
+            },
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type",
+                "amount"
+              ],
+              "properties": {
+                "type": {
+                  "const": "gainFriendship",
+                  "type": "string"
+                },
+                "amount": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "eventId",
+        "kind",
+        "message",
+        "choices"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "eventId": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "choice",
+          "type": "string"
+        },
+        "message": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "choices": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "label",
+              "result"
+            ],
+            "properties": {
+              "label": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "result": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "key",
+                  "fallback"
+                ],
+                "properties": {
+                  "key": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "fallback": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                }
+              },
+              "effect": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                      "type"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "loseCrop",
+                        "type": "string"
+                      }
+                    }
+                  },
+                  {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "itemId",
+                      "qty"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "gainItem",
+                        "type": "string"
+                      },
+                      "itemId": {
+                        "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                        "type": "string"
+                      },
+                      "qty": {
+                        "minimum": 1,
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "amount"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "gainMoney",
+                        "type": "string"
+                      },
+                      "amount": {
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  {
+                    "additionalProperties": false,
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "amount"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "gainFriendship",
+                        "type": "string"
+                      },
+                      "amount": {
+                        "minimum": 0,
+                        "type": "integer"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "id",
+        "eventId",
+        "kind",
+        "message"
+      ],
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "eventId": {
+          "minLength": 1,
+          "pattern": "^[a-z0-9_./-]+$",
+          "type": "string"
+        },
+        "kind": {
+          "const": "easter_egg",
+          "type": "string"
+        },
+        "message": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "key",
+            "fallback"
+          ],
+          "properties": {
+            "key": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "fallback": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        },
+        "effect": {
+          "anyOf": [
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "loseCrop",
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type",
+                "itemId",
+                "qty"
+              ],
+              "properties": {
+                "type": {
+                  "const": "gainItem",
+                  "type": "string"
+                },
+                "itemId": {
+                  "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                  "type": "string"
+                },
+                "qty": {
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              }
+            },
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type",
+                "amount"
+              ],
+              "properties": {
+                "type": {
+                  "const": "gainMoney",
+                  "type": "string"
+                },
+                "amount": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              }
+            },
+            {
+              "additionalProperties": false,
+              "type": "object",
+              "required": [
+                "type",
+                "amount"
+              ],
+              "properties": {
+                "type": {
+                  "const": "gainFriendship",
+                  "type": "string"
+                },
+                "amount": {
+                  "minimum": 0,
+                  "type": "integer"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

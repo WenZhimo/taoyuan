@@ -71,6 +71,9 @@
     "taoyuan:tutorial": [
       "data/tutorials.json"
     ],
+    "taoyuan:morning_event": [
+      "data/morning-events.json"
+    ],
     "taoyuan:season_event": [
       "data/season-events.json"
     ],

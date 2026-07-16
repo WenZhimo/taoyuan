@@ -40,6 +40,15 @@ import { HIDDEN_NPC_HEART_EVENTS } from '@/data/hiddenNpcHeartEventDefinitions'
 import { STORY_QUESTS } from '@/data/storyQuestDefinitions'
 import { SECRET_NOTES } from '@/data/secretNotes'
 import { MORNING_TIPS } from '@/data/tutorials'
+import {
+  MORNING_CHOICE_EVENTS,
+  MORNING_EASTER_EGGS,
+  MORNING_NARRATIONS,
+  type MorningChoiceEvent as LegacyMorningChoiceEvent,
+  type MorningEasterEgg as LegacyMorningEasterEgg,
+  type MorningEffect as LegacyMorningEffect,
+  type MorningNarration as LegacyMorningNarration
+} from '@/data/farmEventDefinitions'
 import { SEASON_EVENTS, type SeasonEventDef as LegacySeasonEventDef } from '@/data/seasonEventDefinitions'
 import {
   QUEST_TEMPLATES,
@@ -137,6 +146,8 @@ import type {
   MuseumCategoryDef,
   MuseumItemDef,
   MuseumMilestoneDef,
+  MorningEventDef,
+  MorningEventEffect,
   GuildDonationDef,
   GuildGoalDef,
   GuildLevelDef,
@@ -279,6 +290,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('tutorial'),
     description: '晨间教程提示定义',
     schemaName: 'tutorial.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('morning_event'),
+    description: '晨间随机事件定义',
+    schemaName: 'morning-event.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('season_event'),
@@ -1265,6 +1281,57 @@ export const adaptLegacyMorningTip = (tip: (typeof MORNING_TIPS)[number]): Tutor
 
 export const createOfficialTutorials = (): TutorialDef[] => MORNING_TIPS.map(adaptLegacyMorningTip)
 
+const adaptLegacyMorningEffect = (effect: LegacyMorningEffect): MorningEventEffect => {
+  if (effect.type === 'gainItem') {
+    return {
+      type: effect.type,
+      itemId: toOfficialContentId(effect.itemId),
+      qty: effect.qty
+    }
+  }
+  return effect
+}
+
+export const adaptLegacyMorningNarration = (
+  narration: LegacyMorningNarration,
+  index: number
+): MorningEventDef => ({
+  id: toOfficialContentId(`morning_event/narration/${index}`),
+  eventId: `narration/${index}`,
+  kind: 'narration',
+  message: text(`taoyuan.morning_event.narration.${index}.message`, narration.message),
+  ...(narration.effect ? { effect: adaptLegacyMorningEffect(narration.effect) } : {})
+})
+
+export const adaptLegacyMorningChoiceEvent = (event: LegacyMorningChoiceEvent): MorningEventDef => ({
+  id: toOfficialContentId(`morning_event/choice/${event.id}`),
+  eventId: `choice/${event.id}`,
+  kind: 'choice',
+  message: text(`taoyuan.morning_event.choice.${event.id}.message`, event.message),
+  choices: event.choices.map((choice, index) => ({
+    label: text(`taoyuan.morning_event.choice.${event.id}.choices.${index}.label`, choice.label),
+    result: text(`taoyuan.morning_event.choice.${event.id}.choices.${index}.result`, choice.result),
+    ...(choice.effect ? { effect: adaptLegacyMorningEffect(choice.effect) } : {})
+  }))
+})
+
+export const adaptLegacyMorningEasterEgg = (
+  egg: LegacyMorningEasterEgg,
+  index: number
+): MorningEventDef => ({
+  id: toOfficialContentId(`morning_event/easter_egg/${index}`),
+  eventId: `easter_egg/${index}`,
+  kind: 'easter_egg',
+  message: text(`taoyuan.morning_event.easter_egg.${index}.message`, egg.message),
+  ...(egg.effect ? { effect: adaptLegacyMorningEffect(egg.effect) } : {})
+})
+
+export const createOfficialMorningEvents = (): MorningEventDef[] => [
+  ...MORNING_NARRATIONS.map(adaptLegacyMorningNarration),
+  ...MORNING_CHOICE_EVENTS.map(adaptLegacyMorningChoiceEvent),
+  ...MORNING_EASTER_EGGS.map(adaptLegacyMorningEasterEgg)
+]
+
 export const adaptLegacySeasonEvent = (event: LegacySeasonEventDef): SeasonEventDef => ({
   id: toOfficialContentId(`season_event/${event.id}`),
   eventId: event.id,
@@ -1865,6 +1932,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const storyQuestRegistry = registrySet.get<StoryQuestDef>(toOfficialRegistryTypeId('story_quest'))
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(toOfficialRegistryTypeId('secret_note'))
   const tutorialRegistry = registrySet.get<TutorialDef>(toOfficialRegistryTypeId('tutorial'))
+  const morningEventRegistry = registrySet.get<MorningEventDef>(toOfficialRegistryTypeId('morning_event'))
   const seasonEventRegistry = registrySet.get<SeasonEventDef>(toOfficialRegistryTypeId('season_event'))
   const questTemplateRegistry = registrySet.get<QuestTemplateDef>(toOfficialRegistryTypeId('quest_template'))
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
@@ -1946,6 +2014,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const tip of createOfficialTutorials()) {
     tutorialRegistry.register(owner, tip, { file: 'src/data/tutorials.ts' })
+  }
+  for (const event of createOfficialMorningEvents()) {
+    morningEventRegistry.register(owner, event, { file: 'src/data/farmEventDefinitions.ts' })
   }
   for (const event of createOfficialSeasonEvents()) {
     seasonEventRegistry.register(owner, event, { file: 'src/data/seasonEventDefinitions.ts' })

@@ -33,6 +33,8 @@ import type {
   HiddenNpcDef,
   MonsterDef,
   MonsterPoolDef,
+  MorningEventDef,
+  MorningEventEffect,
   NpcDef,
   PackageManifest,
   PondBreedDef,
@@ -76,6 +78,7 @@ const REGISTRY_IDS = {
   communityBundle: toOfficialRegistryTypeId('community_bundle'),
   secretNote: toOfficialRegistryTypeId('secret_note'),
   seasonEvent: toOfficialRegistryTypeId('season_event'),
+  morningEvent: toOfficialRegistryTypeId('morning_event'),
   questTemplate: toOfficialRegistryTypeId('quest_template'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
   processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
@@ -163,6 +166,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const communityBundleRegistry = registrySet.get<CommunityBundleDef>(REGISTRY_IDS.communityBundle)
   const secretNoteRegistry = registrySet.get<SecretNoteDef>(REGISTRY_IDS.secretNote)
   const seasonEventRegistry = registrySet.get<SeasonEventDef>(REGISTRY_IDS.seasonEvent)
+  const morningEventRegistry = registrySet.get<MorningEventDef>(REGISTRY_IDS.morningEvent)
   const questTemplateRegistry = registrySet.get<QuestTemplateDef>(REGISTRY_IDS.questTemplate)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
@@ -768,6 +772,32 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         })
       }
     })
+  }
+
+  const validateMorningEffect = (
+    effect: MorningEventEffect | undefined,
+    owner: PackageId,
+    fieldPath: string
+  ) => {
+    if (!effect || effect.type !== 'gainItem') return
+    if (!itemRegistry.has(contentId(effect.itemId))) {
+      pushMissingReference(diagnostics, {
+        packageId: owner,
+        registryId: REGISTRY_IDS.item,
+        contentId: contentId(effect.itemId),
+        fieldPath
+      })
+    }
+  }
+
+  for (const record of morningEventRegistry.entries()) {
+    if (record.entry.kind === 'choice') {
+      record.entry.choices.forEach((choice, index) => {
+        validateMorningEffect(choice.effect, record.owner, `/choices/${index}/effect/itemId`)
+      })
+    } else {
+      validateMorningEffect(record.entry.effect, record.owner, '/effect/itemId')
+    }
   }
 
   for (const record of questTemplateRegistry.entries()) {

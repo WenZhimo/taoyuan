@@ -31,6 +31,12 @@ import type {
 } from '@/types'
 import type { FarmMapDef as LegacyFarmMapDef } from '@/data/farmMapDefinitions'
 import type { MorningTipDef as LegacyMorningTipDef } from '@/data/tutorials'
+import type {
+  MorningChoiceEvent as LegacyMorningChoiceEvent,
+  MorningEasterEgg as LegacyMorningEasterEgg,
+  MorningEffect as LegacyMorningEffect,
+  MorningNarration as LegacyMorningNarration
+} from '@/data/farmEventDefinitions'
 import type { SeasonEventDef as LegacySeasonEventDef } from '@/data/seasonEventDefinitions'
 import type { SpecialOrderTemplate as LegacySpecialOrderTemplate } from '@/data/questDefinitions'
 import type { ForageItemDef as LegacyForageItemDef } from '@/data/forageDefinitions'
@@ -105,6 +111,8 @@ import type {
   HiddenNpcDef as HiddenNpcContentDef,
   MonsterDef,
   MonsterPoolDef,
+  MorningEventDef as MorningEventContentDef,
+  MorningEventEffect,
   NpcDef as NpcContentDef,
   PondBreedDef,
   PondableFishDef,
@@ -159,6 +167,12 @@ const toSecretNoteQueryContentId = (id: number | string) => {
 
 const toTutorialQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `tutorial/${id}`)
+
+const toMorningEventQueryContentId = (id: string) => {
+  if (id.includes(':')) return toQueryContentId(id)
+  if (id.startsWith('morning_event/')) return toQueryContentId(id)
+  return toQueryContentId(`morning_event/${id}`)
+}
 
 const toSeasonEventQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `season_event/${id}`)
@@ -805,6 +819,36 @@ export const getOfficialTutorialDef = (id: string): Readonly<TutorialContentDef>
 
 export const getOfficialTutorialDefs = (): readonly Readonly<TutorialContentDef>[] =>
   getOfficialRegistrySet().get<TutorialContentDef>(toOfficialRegistryTypeId('tutorial')).values()
+
+export const getOfficialMorningEventDef = (id: string): Readonly<MorningEventContentDef> | undefined => {
+  const contentId = toMorningEventQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<MorningEventContentDef>(toOfficialRegistryTypeId('morning_event')).get(contentId)
+    : undefined
+}
+
+export const getOfficialMorningEventDefs = (): readonly Readonly<MorningEventContentDef>[] =>
+  getOfficialRegistrySet().get<MorningEventContentDef>(toOfficialRegistryTypeId('morning_event')).values()
+
+export const getOfficialMorningNarrationEventDefs = ():
+  readonly Readonly<Extract<MorningEventContentDef, { kind: 'narration' }>>[] =>
+  getOfficialMorningEventDefs().filter(
+    (event): event is Readonly<Extract<MorningEventContentDef, { kind: 'narration' }>> =>
+      event.kind === 'narration'
+  )
+
+export const getOfficialMorningChoiceEventDefs = ():
+  readonly Readonly<Extract<MorningEventContentDef, { kind: 'choice' }>>[] =>
+  getOfficialMorningEventDefs().filter(
+    (event): event is Readonly<Extract<MorningEventContentDef, { kind: 'choice' }>> => event.kind === 'choice'
+  )
+
+export const getOfficialMorningEasterEggEventDefs = ():
+  readonly Readonly<Extract<MorningEventContentDef, { kind: 'easter_egg' }>>[] =>
+  getOfficialMorningEventDefs().filter(
+    (event): event is Readonly<Extract<MorningEventContentDef, { kind: 'easter_egg' }>> =>
+      event.kind === 'easter_egg'
+  )
 
 export const getOfficialSeasonEventDef = (id: string): Readonly<SeasonEventContentDef> | undefined => {
   const contentId = toSeasonEventQueryContentId(id)
@@ -1516,6 +1560,52 @@ export const getOfficialTutorialById = (id: string): LegacyMorningTipDef | undef
 
 export const getOfficialMorningTipsAsLegacy = (): readonly LegacyMorningTipDef[] =>
   getOfficialTutorialDefs().map(toLegacyMorningTipDef)
+
+const toLegacyMorningEffect = (effect: Readonly<MorningEventEffect>): LegacyMorningEffect => {
+  if (effect.type === 'gainItem') {
+    return {
+      type: effect.type,
+      itemId: getLocalContentId(effect.itemId),
+      qty: effect.qty
+    }
+  }
+  return effect
+}
+
+const toLegacyMorningNarration = (
+  event: Readonly<Extract<MorningEventContentDef, { kind: 'narration' }>>
+): LegacyMorningNarration => ({
+  message: event.message.fallback,
+  ...(event.effect ? { effect: toLegacyMorningEffect(event.effect) } : {})
+})
+
+const toLegacyMorningChoiceEvent = (
+  event: Readonly<Extract<MorningEventContentDef, { kind: 'choice' }>>
+): LegacyMorningChoiceEvent => ({
+  id: event.eventId.replace(/^choice\//, ''),
+  message: event.message.fallback,
+  choices: event.choices.map(choice => ({
+    label: choice.label.fallback,
+    result: choice.result.fallback,
+    ...(choice.effect ? { effect: toLegacyMorningEffect(choice.effect) } : {})
+  }))
+})
+
+const toLegacyMorningEasterEgg = (
+  event: Readonly<Extract<MorningEventContentDef, { kind: 'easter_egg' }>>
+): LegacyMorningEasterEgg => ({
+  message: event.message.fallback,
+  ...(event.effect ? { effect: toLegacyMorningEffect(event.effect) } : {})
+})
+
+export const getOfficialMorningNarrationsAsLegacy = (): readonly LegacyMorningNarration[] =>
+  getOfficialMorningNarrationEventDefs().map(toLegacyMorningNarration)
+
+export const getOfficialMorningChoiceEventsAsLegacy = (): readonly LegacyMorningChoiceEvent[] =>
+  getOfficialMorningChoiceEventDefs().map(toLegacyMorningChoiceEvent)
+
+export const getOfficialMorningEasterEggsAsLegacy = (): readonly LegacyMorningEasterEgg[] =>
+  getOfficialMorningEasterEggEventDefs().map(toLegacyMorningEasterEgg)
 
 const toLegacySeasonEventEffects = (
   effects: Readonly<SeasonEventContentDef['effects']>

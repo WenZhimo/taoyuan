@@ -30,7 +30,12 @@ import { addLog, showFloat } from './useGameLog'
 import { getDailyMarketInfo, MARKET_CATEGORY_NAMES } from '@/data/market'
 import { showEvent, showFestival, triggerWeddingEvent, triggerPetAdoption, showFarmEvent, showDiscoveryScene } from './useDialogs'
 import { sfxSleep, useAudio } from './useAudio'
-import { MORNING_NARRATIONS, NARRATIONS_NO_LOSS, MORNING_CHOICE_EVENTS, MORNING_EASTER_EGGS } from '@/data/farmEvents'
+import {
+  getMorningChoiceEvents,
+  getMorningEasterEggs,
+  getMorningNarrations,
+  getNoLossMorningNarrations
+} from '@/data/farmEvents'
 import { TAB_TO_LOCATION_GROUP, getLocationGroupName } from '@/data/timeConstants'
 import { getResourceSleepOptionsForLocation } from '@/domain/sleep/sleepOptions'
 import { getOfficialFishDefsAsLegacy, getOfficialMorningTipsAsLegacy } from '@/domain/mods/contentAccess'
@@ -240,10 +245,10 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   for (const msg of farmPlotEndDay.logs) addLog(msg)
 
   processMorningRandomEventEndDay({
-    narrations: MORNING_NARRATIONS,
-    noLossNarrations: NARRATIONS_NO_LOSS,
-    choiceEvents: MORNING_CHOICE_EVENTS,
-    easterEggs: MORNING_EASTER_EGGS,
+    narrations: getMorningNarrations(),
+    noLossNarrations: getNoLossMorningNarrations(),
+    choiceEvents: getMorningChoiceEvents(),
+    easterEggs: getMorningEasterEggs(),
     getPlots: () => farmStore.plots,
     getNpcStates: () => npcStore.npcStates,
     getCropName: cropId => getCropById(cropId)?.name,

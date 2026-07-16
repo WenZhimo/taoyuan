@@ -1,0 +1,54 @@
+[
+  {
+    "id": "example_mod:morning_event/narration/0",
+    "eventId": "narration/0",
+    "kind": "narration",
+    "message": {
+      "key": "example_mod.morning_event.narration.0.message",
+      "fallback": "昨夜很安静。"
+    },
+    "effect": {
+      "type": "gainMoney",
+      "amount": 3
+    }
+  },
+  {
+    "id": "example_mod:morning_event/choice/injured_bird",
+    "eventId": "choice/injured_bird",
+    "kind": "choice",
+    "message": {
+      "key": "example_mod.morning_event.choice.injured_bird.message",
+      "fallback": "你在田边发现一只受伤的小鸟。"
+    },
+    "choices": [
+      {
+        "label": {
+          "key": "example_mod.morning_event.choice.injured_bird.choices.0.label",
+          "fallback": "包扎伤口"
+        },
+        "result": {
+          "key": "example_mod.morning_event.choice.injured_bird.choices.0.result",
+          "fallback": "村民们都夸你心善。"
+        },
+        "effect": {
+          "type": "gainFriendship",
+          "amount": 10
+        }
+      }
+    ]
+  },
+  {
+    "id": "example_mod:morning_event/easter_egg/0",
+    "eventId": "easter_egg/0",
+    "kind": "easter_egg",
+    "message": {
+      "key": "example_mod.morning_event.easter_egg.0.message",
+      "fallback": "你在枕头底下发现了一枚铜板。"
+    },
+    "effect": {
+      "type": "gainItem",
+      "itemId": "taoyuan:ancient_coin",
+      "qty": 1
+    }
+  }
+]

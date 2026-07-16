@@ -724,6 +724,84 @@ export const TutorialDefSchema = Type.Object(
   { $id: 'taoyuan.registry.TutorialDef', additionalProperties: false }
 )
 
+export const MorningEventEffectSchema = Type.Union([
+  Type.Object(
+    {
+      type: Type.Literal('loseCrop')
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('gainItem'),
+      itemId: ContentIdSchema,
+      qty: Type.Integer({ minimum: 1 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('gainMoney'),
+      amount: Type.Integer({ minimum: 0 })
+    },
+    { additionalProperties: false }
+  ),
+  Type.Object(
+    {
+      type: Type.Literal('gainFriendship'),
+      amount: Type.Integer({ minimum: 0 })
+    },
+    { additionalProperties: false }
+  )
+])
+
+export const MorningEventChoiceSchema = Type.Object(
+  {
+    label: LocalizedTextRefSchema,
+    result: LocalizedTextRefSchema,
+    effect: Type.Optional(MorningEventEffectSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const MorningNarrationEventDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    eventId: Type.String({ minLength: 1, pattern: '^[a-z0-9_./-]+$' }),
+    kind: Type.Literal('narration'),
+    message: LocalizedTextRefSchema,
+    effect: Type.Optional(MorningEventEffectSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const MorningChoiceEventDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    eventId: Type.String({ minLength: 1, pattern: '^[a-z0-9_./-]+$' }),
+    kind: Type.Literal('choice'),
+    message: LocalizedTextRefSchema,
+    choices: Type.Array(MorningEventChoiceSchema, { minItems: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const MorningEasterEggEventDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    eventId: Type.String({ minLength: 1, pattern: '^[a-z0-9_./-]+$' }),
+    kind: Type.Literal('easter_egg'),
+    message: LocalizedTextRefSchema,
+    effect: Type.Optional(MorningEventEffectSchema)
+  },
+  { additionalProperties: false }
+)
+
+export const MorningEventDefSchema = Type.Union(
+  [MorningNarrationEventDefSchema, MorningChoiceEventDefSchema, MorningEasterEggEventDefSchema],
+  { $id: 'taoyuan.registry.MorningEventDef' }
+)
+
 export const SeasonEventFestivalTypeSchema = Type.Union([
   Type.Literal('fishing_contest'),
   Type.Literal('harvest_fair'),
@@ -1808,6 +1886,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:story_quest': StoryQuestDefSchema,
   'taoyuan:secret_note': SecretNoteDefSchema,
   'taoyuan:tutorial': TutorialDefSchema,
+  'taoyuan:morning_event': MorningEventDefSchema,
   'taoyuan:season_event': SeasonEventDefSchema,
   'taoyuan:quest_template': QuestTemplateDefSchema,
   'taoyuan:farm_map': FarmMapDefSchema,
@@ -1859,6 +1938,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'story-quest.schema.json': StoryQuestDefSchema,
   'secret-note.schema.json': SecretNoteDefSchema,
   'tutorial.schema.json': TutorialDefSchema,
+  'morning-event.schema.json': MorningEventDefSchema,
   'season-event.schema.json': SeasonEventDefSchema,
   'quest-template.schema.json': QuestTemplateDefSchema,
   'farm-map.schema.json': FarmMapDefSchema,
@@ -1946,6 +2026,12 @@ export type SecretNoteReward = Static<typeof SecretNoteRewardSchema>
 export type SecretNoteDef = Static<typeof SecretNoteDefSchema>
 export type TutorialConditionKey = Static<typeof TutorialConditionKeySchema>
 export type TutorialDef = Static<typeof TutorialDefSchema>
+export type MorningEventEffect = Static<typeof MorningEventEffectSchema>
+export type MorningEventChoice = Static<typeof MorningEventChoiceSchema>
+export type MorningNarrationEventDef = Static<typeof MorningNarrationEventDefSchema>
+export type MorningChoiceEventDef = Static<typeof MorningChoiceEventDefSchema>
+export type MorningEasterEggEventDef = Static<typeof MorningEasterEggEventDefSchema>
+export type MorningEventDef = Static<typeof MorningEventDefSchema>
 export type SeasonEventFestivalType = Static<typeof SeasonEventFestivalTypeSchema>
 export type SeasonEventRewardItem = Static<typeof SeasonEventRewardItemSchema>
 export type SeasonEventEffects = Static<typeof SeasonEventEffectsSchema>
