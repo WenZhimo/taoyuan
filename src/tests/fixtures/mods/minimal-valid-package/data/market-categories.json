@@ -1,0 +1,15 @@
+[
+  {
+    "id": "example_mod:test_market_category",
+    "name": {
+      "key": "example_mod.market_category.test.name",
+      "fallback": "测试行情分类"
+    },
+    "seasonCoefficients": [1, 1, 1, 1],
+    "supplyThresholds": {
+      "low": 1,
+      "mid": 2,
+      "high": 3
+    }
+  }
+]

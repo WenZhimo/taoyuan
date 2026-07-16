@@ -163,6 +163,32 @@ export const WeatherSchema = Type.Union([
   Type.Literal('green_rain')
 ])
 
+export const MarketSeasonCoefficientsSchema = Type.Tuple([
+  Type.Number({ minimum: 0 }),
+  Type.Number({ minimum: 0 }),
+  Type.Number({ minimum: 0 }),
+  Type.Number({ minimum: 0 })
+])
+
+export const MarketSupplyThresholdsSchema = Type.Object(
+  {
+    low: Type.Integer({ minimum: 0 }),
+    mid: Type.Integer({ minimum: 0 }),
+    high: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const MarketCategoryDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    seasonCoefficients: MarketSeasonCoefficientsSchema,
+    supplyThresholds: MarketSupplyThresholdsSchema
+  },
+  { $id: 'taoyuan.registry.MarketCategoryDef', additionalProperties: false }
+)
+
 export const SkillTypeSchema = Type.Union([
   Type.Literal('farming'),
   Type.Literal('foraging'),
@@ -1934,7 +1960,8 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:achievement': AchievementDefSchema,
   'taoyuan:community_bundle': CommunityBundleDefSchema,
   'taoyuan:shop': ShopDefSchema,
-  'taoyuan:shop_offer': ShopOfferDefSchema
+  'taoyuan:shop_offer': ShopOfferDefSchema,
+  'taoyuan:market_category': MarketCategoryDefSchema
 } as const satisfies Record<string, TSchema>
 
 export const PUBLIC_JSON_SCHEMAS = {
@@ -1987,7 +2014,8 @@ export const PUBLIC_JSON_SCHEMAS = {
   'achievement.schema.json': AchievementDefSchema,
   'community-bundle.schema.json': CommunityBundleDefSchema,
   'shop.schema.json': ShopDefSchema,
-  'shop-offer.schema.json': ShopOfferDefSchema
+  'shop-offer.schema.json': ShopOfferDefSchema,
+  'market-category.schema.json': MarketCategoryDefSchema
 } as const satisfies Record<string, TSchema>
 
 export type LocalizedTextRef = Static<typeof LocalizedTextRefSchema>
@@ -1999,6 +2027,9 @@ export type TagDef = Static<typeof TagDefSchema>
 export type ItemDef = Static<typeof ItemDefSchema>
 export type Season = Static<typeof SeasonSchema>
 export type Weather = Static<typeof WeatherSchema>
+export type MarketSeasonCoefficients = Static<typeof MarketSeasonCoefficientsSchema>
+export type MarketSupplyThresholds = Static<typeof MarketSupplyThresholdsSchema>
+export type MarketCategoryDef = Static<typeof MarketCategoryDefSchema>
 export type FishWeather = Static<typeof FishWeatherSchema>
 export type FishingLocation = Static<typeof FishingLocationSchema>
 export type FishDifficulty = Static<typeof FishDifficultySchema>

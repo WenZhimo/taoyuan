@@ -125,6 +125,9 @@
     "taoyuan:shop_offer": [
       "data/shop-offers.json"
     ],
+    "taoyuan:market_category": [
+      "data/market-categories.json"
+    ],
     "taoyuan:tool_upgrade": [
       "data/tool-upgrades.json"
     ],

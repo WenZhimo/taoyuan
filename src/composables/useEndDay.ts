@@ -27,7 +27,7 @@ import { RECIPES } from '@/data/recipes'
 import { CAVE_UNLOCK_EARNINGS } from '@/data/buildings'
 import { TOOL_NAMES, TIER_NAMES } from '@/data/upgrades'
 import { addLog, showFloat } from './useGameLog'
-import { getDailyMarketInfo, MARKET_CATEGORY_NAMES } from '@/data/market'
+import { getDailyMarketInfo, getMarketCategoryName } from '@/data/market'
 import { showEvent, showFestival, triggerWeddingEvent, triggerPetAdoption, showFarmEvent, showDiscoveryScene } from './useDialogs'
 import { sfxSleep, useAudio } from './useAudio'
 import {
@@ -507,7 +507,7 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     getSeasonName: season => SEASON_NAMES[season],
     getMarketInfo: () =>
       getDailyMarketInfo(gameStore.year, gameStore.seasonIndex, gameStore.day, shopStore.getRecentShipping()),
-    getMarketCategoryName: category => MARKET_CATEGORY_NAMES[category],
+    getMarketCategoryName,
     addLog,
     showFloat
   })

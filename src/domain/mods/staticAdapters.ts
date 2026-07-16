@@ -21,6 +21,7 @@ import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
+import { MARKET_CATEGORY_DEFINITIONS, type MarketCategoryDefinition } from '@/data/marketDefinitions'
 import { SHOPS, type ShopDef as LegacyShopDef } from '@/data/shops'
 import {
   FRUIT_TREE_DEFINITIONS,
@@ -145,6 +146,7 @@ import type {
   FishPondFacilityDef,
   ForageDef,
   ItemDef,
+  MarketCategoryDef,
   MuseumCategoryDef,
   MuseumItemDef,
   MuseumMilestoneDef,
@@ -418,6 +420,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('shop_offer'),
     description: '商店商品定义',
     schemaName: 'shop-offer.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('market_category'),
+    description: '市场行情分类定义',
+    schemaName: 'market-category.schema.json'
   }
 ] as const satisfies readonly RegistryDefinition<RegistryEntry>[]
 
@@ -1917,6 +1924,16 @@ export const createOfficialShopOffers = (): ShopOfferDef[] => [
   )
 ]
 
+export const adaptMarketCategory = (category: MarketCategoryDefinition): MarketCategoryDef => ({
+  id: toOfficialContentId(category.id),
+  name: text(`taoyuan.market_category.${category.id}.name`, category.name),
+  seasonCoefficients: [...category.seasonCoefficients] as [number, number, number, number],
+  supplyThresholds: { ...category.supplyThresholds }
+})
+
+export const createOfficialMarketCategories = (): MarketCategoryDef[] =>
+  MARKET_CATEGORY_DEFINITIONS.map(adaptMarketCategory)
+
 const uniqueMonsters = (): LegacyMonsterDef[] => {
   const byId = new Map<string, LegacyMonsterDef>()
   for (const monster of [
@@ -1980,6 +1997,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const communityBundleRegistry = registrySet.get<CommunityBundleDef>(toOfficialRegistryTypeId('community_bundle'))
   const shopRegistry = registrySet.get<ShopDef>(toOfficialRegistryTypeId('shop'))
   const shopOfferRegistry = registrySet.get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer'))
+  const marketCategoryRegistry = registrySet.get<MarketCategoryDef>(toOfficialRegistryTypeId('market_category'))
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
@@ -2116,6 +2134,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const offer of createOfficialShopOffers()) {
     shopOfferRegistry.register(owner, offer, { file: 'src/data/*shop*.ts' })
+  }
+  for (const category of createOfficialMarketCategories()) {
+    marketCategoryRegistry.register(owner, category, { file: 'src/data/marketDefinitions.ts' })
   }
 
   return registrySet

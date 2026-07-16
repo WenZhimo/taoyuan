@@ -82020,6 +82020,187 @@
       ]
     },
     {
+      "registryId": "taoyuan:market_category",
+      "schemaName": "market-category.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/marketDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:animal_product",
+            "name": {
+              "fallback": "畜产品",
+              "key": "taoyuan.market_category.animal_product.name"
+            },
+            "seasonCoefficients": [
+              1,
+              0.95,
+              1,
+              1.1
+            ],
+            "supplyThresholds": {
+              "high": 50,
+              "low": 10,
+              "mid": 25
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/marketDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:crop",
+            "name": {
+              "fallback": "农产品",
+              "key": "taoyuan.market_category.crop.name"
+            },
+            "seasonCoefficients": [
+              1,
+              0.9,
+              0.85,
+              1.2
+            ],
+            "supplyThresholds": {
+              "high": 100,
+              "low": 20,
+              "mid": 50
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/marketDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:fish",
+            "name": {
+              "fallback": "鱼类",
+              "key": "taoyuan.market_category.fish.name"
+            },
+            "seasonCoefficients": [
+              1,
+              0.9,
+              1,
+              1.15
+            ],
+            "supplyThresholds": {
+              "high": 50,
+              "low": 10,
+              "mid": 25
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/marketDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:fruit",
+            "name": {
+              "fallback": "水果",
+              "key": "taoyuan.market_category.fruit.name"
+            },
+            "seasonCoefficients": [
+              1.1,
+              0.85,
+              0.9,
+              1.2
+            ],
+            "supplyThresholds": {
+              "high": 50,
+              "low": 10,
+              "mid": 25
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/marketDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:gem",
+            "name": {
+              "fallback": "宝石",
+              "key": "taoyuan.market_category.gem.name"
+            },
+            "seasonCoefficients": [
+              1,
+              1.05,
+              1,
+              0.9
+            ],
+            "supplyThresholds": {
+              "high": 15,
+              "low": 3,
+              "mid": 8
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/marketDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:ore",
+            "name": {
+              "fallback": "矿石",
+              "key": "taoyuan.market_category.ore.name"
+            },
+            "seasonCoefficients": [
+              1,
+              1.05,
+              1,
+              0.9
+            ],
+            "supplyThresholds": {
+              "high": 80,
+              "low": 15,
+              "mid": 40
+            }
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/marketDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:processed",
+            "name": {
+              "fallback": "加工品",
+              "key": "taoyuan.market_category.processed.name"
+            },
+            "seasonCoefficients": [
+              0.95,
+              1,
+              1.1,
+              1.05
+            ],
+            "supplyThresholds": {
+              "high": 30,
+              "low": 5,
+              "mid": 15
+            }
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:monster",
       "schemaName": "monster.schema.json",
       "entries": [
@@ -116889,5 +117070,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:8904d51e5161f2935376fe41b36c9740a4f6db6d4a4cbf8228649013485de352"
+  "snapshotHash": "sha256:fe432ceefb99e74ac36318ad2faf61ef72c39a3c2c58ef39cb843618a079db3b"
 }

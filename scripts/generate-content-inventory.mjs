@@ -49,6 +49,7 @@ const contentNames = new Set([
   'MORNING_EASTER_EGGS',
   'MORNING_NARRATIONS',
   'MORNING_TIPS',
+  'MARKET_CATEGORY_DEFINITIONS',
   'MUSEUM_CATEGORIES',
   'MUSEUM_ITEMS',
   'MUSEUM_MILESTONES',
@@ -692,6 +693,24 @@ fileDefaults.set('src/data/wildTrees.ts', {
   classification: 'mixed',
   domains: ['wild_tree', 'lookup'],
   candidateTargets: ['taoyuan:tree', 'compatibility_adapter'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/marketDefinitions.ts', {
+  file: 'src/data/marketDefinitions.ts',
+  classification: 'mixed',
+  domains: ['market_category'],
+  candidateTargets: ['taoyuan:market_category'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/market.ts', {
+  file: 'src/data/market.ts',
+  classification: 'mixed',
+  domains: ['market_category', 'market_algorithm', 'market_ui'],
+  candidateTargets: ['taoyuan:market_category', 'engine/domain/market', 'ui/market', 'compatibility_adapter'],
   phases: [6],
   status: 'symbol_inventoried'
 })
@@ -3331,6 +3350,131 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'framework-retained',
     rationale: 'Deterministic stock generation, price variation, quantity rolls and off-season seed selection remain framework-owned while the rare item pool now reads the taoyuan:shop_offer compatibility facade.'
+  },
+  'src/data/marketDefinitions.ts:MarketCategory': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy market category union retained for public data/market compatibility; the public content contract is MarketCategoryDefSchema.'
+  },
+  'src/data/marketDefinitions.ts:MarketSupplyThresholds': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'TypeScript-only legacy supply threshold shape retained for compatibility; TypeBox owns the public market category contract.'
+  },
+  'src/data/marketDefinitions.ts:MarketCategoryDefinition': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Registry-free legacy leaf shape used only by the official static adapter and equivalence tests.'
+  },
+  'src/data/marketDefinitions.ts:MARKET_CATEGORY_DEFINITIONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for the seven official market categories; Phase 6 projects names, seasonal coefficients and supply thresholds into taoyuan:market_category.'
+  },
+  'src/data/marketDefinitions.ts:MARKET_CATEGORIES': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy ordered category list derived from MARKET_CATEGORY_DEFINITIONS; tests verify registry order matches this list.'
+  },
+  'src/data/marketDefinitions.ts:MARKET_CATEGORY_NAMES': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy name map derived from market category definitions; registry-backed getters preserve all displayed names.'
+  },
+  'src/data/marketDefinitions.ts:SEASON_COEFFICIENTS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy seasonal coefficient map derived from market category definitions; market algorithm equivalence tests preserve multiplier results.'
+  },
+  'src/data/marketDefinitions.ts:SUPPLY_THRESHOLDS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy supply threshold map derived from market category definitions; market algorithm equivalence tests preserve supply-demand multipliers.'
+  },
+  'src/data/market.ts:MarketCategory': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Original type export remains available from data/market while the leaf definition lives in marketDefinitions.'
+  },
+  'src/data/market.ts:MarketTrend': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/market',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Runtime trend label category remains framework-owned; market category content migration does not change trend identity.'
+  },
+  'src/data/market.ts:CategoryMarketInfo': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/market',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Runtime market info shape remains a framework result object, not content data.'
+  },
+  'src/data/market.ts:TREND_NAMES': {
+    classification: 'ui',
+    targetRegistry: 'ui/market',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Trend display labels remain UI text for framework-calculated market states.'
+  },
+  'src/data/market.ts:TREND_COLORS': {
+    classification: 'ui',
+    targetRegistry: 'ui/market',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Trend color classes remain presentation-only UI data.'
+  },
+  'src/data/market.ts:MARKET_CATEGORY_NAMES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name compatibility export now points at the verified marketDefinitions name map while runtime name lookup reads the registry facade.'
+  },
+  'src/data/market.ts:getMarketCategoryName': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Preserves market category display name lookup while resolving names through the registry-backed facade with legacy fallback.'
+  },
+  'src/data/market.ts:getMarketMultiplier': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/market',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy signature remains unchanged; the framework-owned multiplier algorithm now reads category coefficients and thresholds through taoyuan:market_category.'
+  },
+  'src/data/market.ts:getDailyMarketInfo': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/market',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Framework-owned daily market calculation preserves seed, category order, random calls, trends and output while category definitions come from the registry facade.'
   }
 }))
 
@@ -4694,6 +4838,66 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Uses the registry-backed traveling merchant pool for the hidden NPC bonus item while preserving existing stock key, save shape, random choice and purchase flow.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'MarketCategoryDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for market category definitions, including localized name, four seasonal coefficients and supply thresholds.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptMarketCategory/createOfficialMarketCategories',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy market category into ordered official entries without changing names, seasonal coefficients or supply thresholds.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMarketCategoryDef/getOfficialMarketCategoryDefs/getOfficialMarketCategoriesAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry market category definitions and reconstructs the legacy ordered category list for market calculations.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialMarketCategoryName/getOfficialMarketCategoryNamesAsLegacy/getOfficialMarketSeasonCoefficients/getOfficialMarketSupplyThresholds',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Supplies registry-backed market names, defensive coefficient copies and defensive threshold copies to legacy market APIs.'
+  },
+  {
+    file: 'src/data/market.ts',
+    exportName: 'getDailyMarketInfo/getMarketMultiplier/getMarketCategoryName',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Wires existing market API signatures through registry-backed category definitions while preserving multiplier, trend and unknown-category behavior.'
+  },
+  {
+    file: 'src/composables/useEndDay.ts',
+    exportName: 'handleEndDay:market_category',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:market_category',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'End-day market logs resolve category names through the registry-backed getter without changing weather, market log order or Store side effects.'
   }
 ]
 

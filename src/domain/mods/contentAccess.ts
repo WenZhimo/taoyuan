@@ -68,6 +68,7 @@ import type {
 import { HYBRID_TIER_COUNTS } from '@/data/breedingDefinitions'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import type { TravelingMerchantItem as LegacyTravelingMerchantItem } from '@/data/travelingMerchant'
+import type { MarketCategory as LegacyMarketCategory } from '@/data/marketDefinitions'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import {
   MAIN_MINE_BOSS_FLOORS,
@@ -105,6 +106,7 @@ import type {
   ForageDef,
   FruitTreeContentDef,
   ItemDef,
+  MarketCategoryDef as MarketCategoryContentDef,
   MuseumCategoryDef as MuseumCategoryContentDef,
   MuseumItemDef as MuseumItemContentDef,
   MuseumMilestoneDef as MuseumMilestoneContentDef,
@@ -602,6 +604,47 @@ export const getOfficialTravelingMerchantPoolAsLegacy = (): readonly LegacyTrave
     name: offer.name?.fallback ?? getLocalContentId(offer.itemId),
     basePrice: offer.price
   }))
+
+export const getOfficialMarketCategoryDef = (id: string): Readonly<MarketCategoryContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<MarketCategoryContentDef>(toOfficialRegistryTypeId('market_category')).get(contentId)
+    : undefined
+}
+
+export const getOfficialMarketCategoryDefs = (): readonly Readonly<MarketCategoryContentDef>[] =>
+  getOfficialRegistrySet().get<MarketCategoryContentDef>(toOfficialRegistryTypeId('market_category')).values()
+
+const toLegacyMarketCategory = (category: Readonly<MarketCategoryContentDef>): LegacyMarketCategory =>
+  getLocalContentId(category.id) as LegacyMarketCategory
+
+export const getOfficialMarketCategoriesAsLegacy = (): readonly LegacyMarketCategory[] =>
+  getOfficialMarketCategoryDefs().map(toLegacyMarketCategory)
+
+export const getOfficialMarketCategoryName = (id: string): string | undefined =>
+  getOfficialMarketCategoryDef(id)?.name.fallback
+
+export const getOfficialMarketCategoryNamesAsLegacy = (): Record<LegacyMarketCategory, string> => {
+  const result = {} as Record<LegacyMarketCategory, string>
+  for (const category of getOfficialMarketCategoryDefs()) {
+    result[toLegacyMarketCategory(category)] = category.name.fallback
+  }
+  return result
+}
+
+export const getOfficialMarketSeasonCoefficients = (
+  id: string
+): [number, number, number, number] | undefined => {
+  const category = getOfficialMarketCategoryDef(id)
+  return category ? [...category.seasonCoefficients] as [number, number, number, number] : undefined
+}
+
+export const getOfficialMarketSupplyThresholds = (
+  id: string
+): { low: number; mid: number; high: number } | undefined => {
+  const category = getOfficialMarketCategoryDef(id)
+  return category ? { ...category.supplyThresholds } : undefined
+}
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)
