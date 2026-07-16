@@ -1,8 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import {
-  HANHAI_FIXED_ITEMS,
-  getWeeklyRotatingItems,
   MAX_DAILY_BETS,
   HANHAI_UNLOCK_COST,
   spinRoulette,
@@ -29,7 +27,11 @@ import {
   calcTradePoints
 } from '@/data/hanhai'
 import { getItemById } from '@/data/items'
-import { getOfficialHanhaiTradeExchangeItem } from '@/domain/mods/contentAccess'
+import {
+  getOfficialHanhaiFixedShopItems,
+  getOfficialHanhaiTradeExchangeItem,
+  getOfficialHanhaiWeeklyRotatingItems
+} from '@/domain/mods/contentAccess'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { useGameStore } from './useGameStore'
@@ -82,7 +84,7 @@ export const useHanhaiStore = defineStore('hanhai', () => {
 
   /** 查询某商品本周剩余可购买数量 */
   const getWeeklyRemaining = (itemId: string): number => {
-    const allAvailable = [...HANHAI_FIXED_ITEMS, ...weeklyRotatingStock.value]
+    const allAvailable = [...getOfficialHanhaiFixedShopItems(), ...weeklyRotatingStock.value]
     const item = allAvailable.find(i => i.itemId === itemId)
     if (!item?.weeklyLimit) return Infinity
     return Math.max(0, item.weeklyLimit - (weeklyPurchases.value[itemId] ?? 0))
@@ -91,7 +93,7 @@ export const useHanhaiStore = defineStore('hanhai', () => {
   /** 购买驿站商品（固定+轮换） */
   const buyShopItem = (itemId: string): { success: boolean; message: string } => {
     // 从固定商品和当前轮换商品中查找
-    const allAvailable = [...HANHAI_FIXED_ITEMS, ...weeklyRotatingStock.value]
+    const allAvailable = [...getOfficialHanhaiFixedShopItems(), ...weeklyRotatingStock.value]
     const item = allAvailable.find(i => i.itemId === itemId)
     if (!item) return { success: false, message: '商品不存在。' }
     if (item.weeklyLimit && (weeklyPurchases.value[itemId] ?? 0) >= item.weeklyLimit) {
@@ -343,7 +345,7 @@ export const useHanhaiStore = defineStore('hanhai', () => {
   /** 刷新本周轮换商品 */
   const refreshRotatingStock = () => {
     const gameStore = useGameStore()
-    weeklyRotatingStock.value = getWeeklyRotatingItems(gameStore.year, gameStore.seasonIndex, gameStore.day)
+    weeklyRotatingStock.value = getOfficialHanhaiWeeklyRotatingItems(gameStore.year, gameStore.seasonIndex, gameStore.day)
   }
 
   /** 放入物品到通商售货槽 */

@@ -17,7 +17,7 @@ import {
   getBaseWeaponSellPrice
 } from '@/data/weaponDefinitions'
 import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@/data/monsters'
-import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhai'
+import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhaiShopDefinitions'
 import { TRADE_EXCHANGE_ITEMS } from '@/data/hanhaiDefinitions'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
@@ -1892,6 +1892,7 @@ export const createOfficialShopOffers = (): ShopOfferDef[] => [
       groupId: 'fixed',
       groupName: '固定商品',
       name: item.name,
+      description: item.description,
       weeklyLimit: item.weeklyLimit
     })
   ),
@@ -1904,6 +1905,7 @@ export const createOfficialShopOffers = (): ShopOfferDef[] => [
       groupId: 'rotating',
       groupName: '轮换商品',
       name: item.name,
+      description: item.description,
       weeklyLimit: item.weeklyLimit
     })
   ),

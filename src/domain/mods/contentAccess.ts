@@ -15,6 +15,7 @@ import type {
   ShoeDef as LegacyShoeDef,
   ToolTier,
   ToolType,
+  HanhaiShopItemDef as LegacyHanhaiShopItemDef,
   TradeExchangeItemDef as LegacyTradeExchangeItemDef,
   WeaponDef as LegacyWeaponDef,
   WalletItemDef as LegacyWalletItemDef,
@@ -573,6 +574,8 @@ export interface OfficialShopOfferGroup {
 }
 
 const TRAVELING_MERCHANT_SHOP_ID = 'traveling_merchant'
+const HANHAI_FIXED_SHOP_ID = 'hanhai'
+const HANHAI_ROTATING_SHOP_ID = 'hanhai_rotating'
 
 const compareShopOffers = (a: Readonly<ShopOfferDef>, b: Readonly<ShopOfferDef>): number =>
   (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id.localeCompare(b.id)
@@ -619,6 +622,43 @@ export const getOfficialTravelingMerchantPoolAsLegacy = (): readonly LegacyTrave
     name: offer.name?.fallback ?? getLocalContentId(offer.itemId),
     basePrice: offer.price
   }))
+
+const toLegacyHanhaiShopItem = (offer: Readonly<ShopOfferDef>): LegacyHanhaiShopItemDef => ({
+  itemId: getLocalContentId(offer.itemId),
+  name: offer.name?.fallback ?? getLocalContentId(offer.itemId),
+  price: offer.price,
+  description: offer.description?.fallback ?? '',
+  ...(offer.weeklyLimit !== undefined ? { weeklyLimit: offer.weeklyLimit } : {})
+})
+
+export const getOfficialHanhaiFixedShopOffers = (): readonly Readonly<ShopOfferDef>[] =>
+  getOfficialShopOffersForShop({ shopId: HANHAI_FIXED_SHOP_ID })
+
+export const getOfficialHanhaiRotatingShopOffers = (): readonly Readonly<ShopOfferDef>[] =>
+  getOfficialShopOffersForShop({ shopId: HANHAI_ROTATING_SHOP_ID })
+
+export const getOfficialHanhaiFixedShopItems = (): readonly LegacyHanhaiShopItemDef[] =>
+  getOfficialHanhaiFixedShopOffers().map(toLegacyHanhaiShopItem)
+
+export const getOfficialHanhaiRotatingPoolAsLegacy = (): readonly LegacyHanhaiShopItemDef[] =>
+  getOfficialHanhaiRotatingShopOffers().map(toLegacyHanhaiShopItem)
+
+export const getOfficialHanhaiWeeklyRotatingItems = (
+  year: number,
+  seasonIndex: number,
+  day: number
+): LegacyHanhaiShopItemDef[] => {
+  const weekNumber = Math.ceil(day / 7)
+  const seed = year * 10000 + seasonIndex * 100 + weekNumber
+  const pool = getOfficialHanhaiRotatingPoolAsLegacy().map(item => ({ ...item }))
+  let s = seed
+  for (let i = pool.length - 1; i > 0; i--) {
+    s = (s * 1103515245 + 12345) & 0x7fffffff
+    const j = s % (i + 1)
+    ;[pool[i], pool[j]] = [pool[j]!, pool[i]!]
+  }
+  return pool.slice(0, 4)
+}
 
 export const getOfficialMarketCategoryDef = (id: string): Readonly<MarketCategoryContentDef> | undefined => {
   const contentId = toQueryContentId(id)

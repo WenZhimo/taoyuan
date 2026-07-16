@@ -111051,6 +111051,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "戈壁滩的天然琥珀。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_amber.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111075,6 +111079,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "传说中飞毯的残片，珍贵的收藏品。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_carpet.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111099,6 +111107,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "甜蜜的异域干果，恢复体力。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_dried_fruit.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111123,6 +111135,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "西域珍贵香料，送礼佳品。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_incense.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111147,6 +111163,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "深蓝色的珍贵宝石。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_lapis.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111171,6 +111191,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "精致的西域彩陶，送礼佳品。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_pottery.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111195,6 +111219,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "上等的西域马具皮革。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_saddle_leather.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111219,6 +111247,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "细腻光滑的上等丝绸。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_silk.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111243,6 +111275,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "异域风情的香料，烹饪佳品。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_spice.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111267,6 +111303,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "西域特产的珍贵宝石。",
+              "key": "taoyuan.shop.hanhai_rotating.hanhai_turquoise.description"
+            },
             "groupId": "rotating",
             "groupName": {
               "fallback": "轮换商品",
@@ -111291,6 +111331,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "来自西域的奇特植物种子。",
+              "key": "taoyuan.shop.hanhai.hanhai_cactus_seed.description"
+            },
             "groupId": "fixed",
             "groupName": {
               "fallback": "固定商品",
@@ -111315,6 +111359,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "丝绸之路带来的果树种子。",
+              "key": "taoyuan.shop.hanhai.hanhai_date_seed.description"
+            },
             "groupId": "fixed",
             "groupName": {
               "fallback": "固定商品",
@@ -111339,6 +111387,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "标记着荒原某处宝藏的地图。",
+              "key": "taoyuan.shop.hanhai.hanhai_map.description"
+            },
             "groupId": "fixed",
             "groupName": {
               "fallback": "固定商品",
@@ -111363,6 +111415,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "据说能炸开整层矿洞的秘方。",
+              "key": "taoyuan.shop.hanhai.mega_bomb_recipe.description"
+            },
             "groupId": "fixed",
             "groupName": {
               "fallback": "固定商品",
@@ -117206,5 +117262,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:2fc6ae8998bb8bbead7f4d4b5d6abf0248243ea1cb790f4ccc53563a2997a82e"
+  "snapshotHash": "sha256:58e2c3c17fca5d338b9a69779221c96a4999f23dd41b2bdb3a782759d761dc44"
 }

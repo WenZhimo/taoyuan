@@ -42,7 +42,7 @@
           <!-- 固定商品 -->
           <p class="text-xs text-muted mb-0.5">常驻商品</p>
           <div
-            v-for="item in HANHAI_FIXED_ITEMS"
+            v-for="item in hanhaiFixedItems"
             :key="item.itemId"
             class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5 transition-colors mr-1"
             @click="shopModalItem = item"
@@ -884,7 +884,6 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useWalletStore } from '@/stores/useWalletStore'
   import {
-    HANHAI_FIXED_ITEMS,
     ROULETTE_BET_TIERS,
     ROULETTE_OUTCOMES,
     DICE_BET_AMOUNT,
@@ -904,7 +903,7 @@
     calcTradePoints
   } from '@/data/hanhai'
   import { getItemById } from '@/data/items'
-  import { getOfficialHanhaiTradeExchangeItemsAsLegacy } from '@/domain/mods/contentAccess'
+  import { getOfficialHanhaiFixedShopItems, getOfficialHanhaiTradeExchangeItemsAsLegacy } from '@/domain/mods/contentAccess'
   import type { HanhaiShopItemDef, CricketDef, TexasSetup, TexasTierId, BuckshotSetup, TradeExchangeItemDef, InventoryItem, Quality } from '@/types'
   import { addLog } from '@/composables/useGameLog'
   import { useAudio } from '@/composables/useAudio'
@@ -945,6 +944,7 @@
   const { startHanhaiBgm, endHanhaiBgm } = useAudio()
   const activeTab = ref<'shop' | 'casino' | 'trade'>('shop')
   const shopModalItem = ref<HanhaiShopItemDef | null>(null)
+  const hanhaiFixedItems = computed(() => getOfficialHanhaiFixedShopItems())
 
   onMounted(() => {
     startHanhaiBgm()

@@ -3,12 +3,12 @@
   "sourceRoot": "src/data",
   "capturedAt": "2026-07-15",
   "summary": {
-    "fileCount": 82,
-    "approximateLineCount": 31550,
+    "fileCount": 83,
+    "approximateLineCount": 31543,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 610,
-    "reviewedArtifactCount": 148
+    "symbolCount": 612,
+    "reviewedArtifactCount": 152
   },
   "entries": [
     {
@@ -4631,7 +4631,7 @@
     },
     {
       "file": "src/data/hanhai.ts",
-      "lines": 555,
+      "lines": 524,
       "classification": "mixed",
       "domains": [
         "hanhai_shop",
@@ -4648,6 +4648,44 @@
       ],
       "status": "symbol_inventoried",
       "symbols": [
+        {
+          "file": "src/data/hanhai.ts",
+          "exportName": "HANHAI_FIXED_ITEMS",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:shop_offer",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hanhaiShopDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/hanhaiShopOfferRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy Hanhai fixed shop imports stable after the shop item leaf data moved to hanhaiShopDefinitions.ts."
+        },
+        {
+          "file": "src/data/hanhai.ts",
+          "exportName": "HANHAI_ROTATING_POOL",
+          "syntaxKind": "re-export",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:shop_offer",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hanhaiShopDefinitions.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/hanhaiShopOfferRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Original-name re-export keeps legacy Hanhai rotating pool imports stable after the shop item leaf data moved to hanhaiShopDefinitions.ts."
+        },
         {
           "file": "src/data/hanhai.ts",
           "exportName": "TRADE_EXCHANGE_ITEMS",
@@ -4669,54 +4707,19 @@
         },
         {
           "file": "src/data/hanhai.ts",
-          "exportName": "HANHAI_FIXED_ITEMS",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:shop_offer",
-          "persistentIds": true,
-          "consumers": [
-            "src/domain/mods/staticAdapters.ts",
-            "src/stores/useHanhaiStore.ts",
-            "src/views/game/HanhaiView.vue"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/hanhai.ts",
-          "exportName": "HANHAI_ROTATING_POOL",
-          "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:shop_offer",
-          "persistentIds": true,
-          "consumers": [
-            "src/domain/mods/staticAdapters.ts"
-          ],
-          "migrationPhase": [
-            6
-          ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
-        },
-        {
-          "file": "src/data/hanhai.ts",
           "exportName": "getWeeklyRotatingItems",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/hanhai",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useHanhaiStore.ts"
+            "src/tests/domain/hanhaiShopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy deterministic weekly stock function preserves seed, shuffle order and four-item output while reading the product pool through the registry-backed Hanhai shop facade."
         },
         {
           "file": "src/data/hanhai.ts",
@@ -5407,6 +5410,61 @@
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
           "rationale": "Unique leaf source for the six legacy Hanhai trade point exchange definitions; Phase 6 projects item IDs, names, point costs, descriptions and limit metadata into taoyuan:hanhai_trade_exchange."
+        }
+      ]
+    },
+    {
+      "file": "src/data/hanhaiShopDefinitions.ts",
+      "classification": "mixed",
+      "domains": [
+        "hanhai_shop_offer"
+      ],
+      "candidateTargets": [
+        "taoyuan:shop_offer"
+      ],
+      "phases": [
+        6
+      ],
+      "status": "symbol_inventoried",
+      "lines": 24,
+      "symbols": [
+        {
+          "file": "src/data/hanhaiShopDefinitions.ts",
+          "exportName": "HANHAI_FIXED_ITEMS",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:shop_offer",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hanhai.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/hanhaiShopOfferRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique leaf source for Hanhai fixed inn shop items; Phase 6 projects item IDs, names, descriptions, prices and weekly limits into ordered taoyuan:shop_offer entries."
+        },
+        {
+          "file": "src/data/hanhaiShopDefinitions.ts",
+          "exportName": "HANHAI_ROTATING_POOL",
+          "syntaxKind": "const",
+          "classification": "content",
+          "targetRegistry": "taoyuan:shop_offer",
+          "persistentIds": true,
+          "consumers": [
+            "src/data/hanhai.ts",
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/hanhaiShopOfferRegistryPilot.test.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Unique leaf source for the Hanhai weekly rotating product pool; Phase 6 projects item IDs, names, descriptions, prices and weekly limits into ordered taoyuan:shop_offer entries while the weekly shuffle remains framework-owned."
         }
       ]
     },
@@ -14077,6 +14135,54 @@
       ],
       "status": "verified",
       "rationale": "Uses the registry-backed traveling merchant pool for the hidden NPC bonus item while preserving existing stock key, save shape, random choice and purchase flow."
+    },
+    {
+      "file": "src/domain/mods/staticAdapters.ts",
+      "exportName": "createOfficialShopOffers:hanhai_shop",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": true,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects every legacy Hanhai fixed and rotating inn product into ordered shop_offer entries without changing item IDs, names, descriptions, prices, weekly limits or display grouping."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialHanhaiFixedShopItems/getOfficialHanhaiRotatingPoolAsLegacy/getOfficialHanhaiWeeklyRotatingItems",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Returns registry-backed Hanhai inn shop offers as legacy HanhaiShopItemDef objects and preserves the deterministic weekly rotating stock algorithm."
+    },
+    {
+      "file": "src/stores/useHanhaiStore.ts",
+      "exportName": "buyShopItem/refreshRotatingStock:hanhai_shop_offer",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Uses the registry-backed Hanhai fixed and rotating shop lists while preserving money deduction, weekly purchase counters, inventory add rollback and old save fields."
+    },
+    {
+      "file": "src/views/game/HanhaiView.vue",
+      "exportName": "hanhaiFixedItems:hanhai_shop_offer",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Renders the Hanhai fixed shop list from the registry-backed compatibility list without changing order, text, limit display or click flow."
     },
     {
       "file": "src/domain/mods/schemas.ts",
