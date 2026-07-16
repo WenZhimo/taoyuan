@@ -1,4 +1,4 @@
-import fs from 'node:fs'
+﻿import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
@@ -42,6 +42,7 @@ const contentNames = new Set([
   'HIDDEN_NPCS',
   'HIDDEN_NPC_HEART_EVENTS',
   'HOSTILE_ANIMALS',
+  'HYBRID_DEFINITIONS',
   'HYBRID_DEFS',
   'MONSTER_GOALS',
   'MORNING_CHOICE_EVENTS',
@@ -80,6 +81,7 @@ const contentNames = new Set([
 const derivedNames = [
   /^BOSS_DROP_/,
   /^BREED_COUNTS$/,
+  /^HYBRID_TIER_COUNTS$/,
   /^CRAFTABLE_/,
   /^MINE_FLOORS$/,
   /^MONSTER_DROP_/,
@@ -510,6 +512,15 @@ fileDefaults.set('src/data/animalIncubationDefinitions.ts', {
   classification: 'mixed',
   domains: ['animal_incubation'],
   candidateTargets: ['taoyuan:animal_incubation'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/breedingDefinitions.ts', {
+  file: 'src/data/breedingDefinitions.ts',
+  classification: 'mixed',
+  domains: ['breeding_hybrid', 'breeding_hybrid_tier'],
+  candidateTargets: ['taoyuan:breeding_hybrid', 'engine/domain/breeding'],
   phases: [6],
   status: 'symbol_inventoried'
 })
@@ -2846,6 +2857,50 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Legacy cellar upgrade list query returns local-ID compatibility objects reconstructed from taoyuan:building_upgrade.'
   },
+  'src/data/breedingDefinitions.ts:HYBRID_DEFINITIONS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for legacy hybrid crop definitions; Phase 6 projects every hybrid ID, parent crops, thresholds, result crop, base genetics and discovery text into taoyuan:breeding_hybrid.'
+  },
+  'src/data/breedingDefinitions.ts:HYBRID_TIER_COUNTS': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Derived tier boundary summary retained for legacy getHybridTier() compatibility and verified against official breeding hybrid registry order.'
+  },
+  'src/data/breeding.ts:HYBRID_DEFS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name export now returns local-ID compatibility objects reconstructed from taoyuan:breeding_hybrid while preserving legacy import paths.'
+  },
+  'src/data/breeding.ts:getHybridTier': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getHybridTier() signature is retained and now derives tiers from official breeding hybrid registry order and tier counts.'
+  },
+  'src/data/breeding.ts:findPossibleHybrid': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy parent-crop lookup is retained and now searches official breeding hybrid entries before returning the same local-ID HybridDef shape.'
+  },
+  'src/data/breeding.ts:findPossibleHybridById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy hybrid ID lookup is retained and now resolves taoyuan:breeding_hybrid entries by local, prefixed or namespaced ID.'
+  },
   'src/data/pondBreedDefinitions.ts:POND_BREEDS': {
     classification: 'content',
     targetRegistry: 'taoyuan:pond_breed',
@@ -3633,6 +3688,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Supplies local egg item ID compatibility lookups and map shape for coop and barn incubation UI and Store flows.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'BreedingHybridDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for breeding hybrid definitions, including stable hybrid IDs, parent crops, thresholds, result crop, base genetics and discovery text.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptLegacyBreedingHybrid/createOfficialBreedingHybrids',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy hybrid definition into ordered official registry entries without changing local hybrid IDs, parent crop IDs, thresholds, result crop IDs, base genetics or discovery text.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialBreedingHybridDef/getOfficialBreedingHybridDefs/getOfficialBreedingHybridDefsAsLegacy/findOfficialBreedingHybridByParents/getOfficialBreedingHybridTier',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen breeding hybrid registry definitions and reconstructs legacy HybridDef objects for ID lookup, parent matching and tier calculation consumers.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:breeding_hybrid',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks breeding hybrid parent crop and result crop references against taoyuan:crop before registry snapshots are accepted.'
   },
   {
     file: 'src/domain/mods/schemas.ts',

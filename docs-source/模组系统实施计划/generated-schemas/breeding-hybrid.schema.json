@@ -1,0 +1,107 @@
+{
+  "$id": "taoyuan.registry.BreedingHybridDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "parentCropA",
+    "parentCropB",
+    "minSweetness",
+    "minYield",
+    "resultCropId",
+    "baseGenetics",
+    "discoveryText"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "parentCropA": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "parentCropB": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "minSweetness": {
+      "minimum": 0,
+      "maximum": 100,
+      "type": "integer"
+    },
+    "minYield": {
+      "minimum": 0,
+      "maximum": 100,
+      "type": "integer"
+    },
+    "resultCropId": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "baseGenetics": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "sweetness",
+        "yield",
+        "resistance"
+      ],
+      "properties": {
+        "sweetness": {
+          "minimum": 0,
+          "maximum": 100,
+          "type": "integer"
+        },
+        "yield": {
+          "minimum": 0,
+          "maximum": 100,
+          "type": "integer"
+        },
+        "resistance": {
+          "minimum": 0,
+          "maximum": 100,
+          "type": "integer"
+        }
+      }
+    },
+    "discoveryText": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

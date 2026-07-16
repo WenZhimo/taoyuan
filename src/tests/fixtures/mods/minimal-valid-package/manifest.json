@@ -89,6 +89,9 @@
     "taoyuan:animal_incubation": [
       "data/animal-incubations.json"
     ],
+    "taoyuan:breeding_hybrid": [
+      "data/breeding-hybrids.json"
+    ],
     "taoyuan:processing_machine": [
       "data/processing-machines.json"
     ],

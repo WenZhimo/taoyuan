@@ -78,6 +78,7 @@ import {
   FISH_POND_FACILITY,
   type FishPondFacilityDef as LegacyFishPondFacilityDef
 } from '@/data/fishPondFacilityDefinitions'
+import { HYBRID_DEFINITIONS } from '@/data/breedingDefinitions'
 import {
   CAVE_UPGRADES,
   CELLAR_UPGRADES,
@@ -102,6 +103,7 @@ import type {
   ShoeDef as LegacyShoeDef,
   WeaponDef as LegacyWeaponDef
 } from '@/types'
+import type { HybridDef as LegacyHybridDef } from '@/types/breeding'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
 import type { FruitTreeDef as LegacyFruitTreeDef, WildTreeDef as LegacyWildTreeDef } from '@/types'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
@@ -159,6 +161,7 @@ import type {
   NpcDef,
   PondBreedDef,
   PondableFishDef,
+  BreedingHybridDef,
   ProcessingMachineDef,
   ProcessingRecipeDef,
   QuestTemplateDef,
@@ -320,6 +323,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('animal_incubation'),
     description: '动物孵化映射定义',
     schemaName: 'animal-incubation.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('breeding_hybrid'),
+    description: '育种杂交品种定义',
+    schemaName: 'breeding-hybrid.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('processing_machine'),
@@ -1459,6 +1467,21 @@ export const adaptLegacyAnimalIncubation = (incubation: (typeof ANIMAL_INCUBATIO
 export const createOfficialAnimalIncubations = (): AnimalIncubationDef[] =>
   ANIMAL_INCUBATIONS.map(adaptLegacyAnimalIncubation)
 
+export const adaptLegacyBreedingHybrid = (hybrid: LegacyHybridDef): BreedingHybridDef => ({
+  id: toOfficialContentId(`breeding_hybrid/${hybrid.id}`),
+  name: text(`taoyuan.breeding_hybrid.${hybrid.id}.name`, hybrid.name),
+  parentCropA: toOfficialContentId(hybrid.parentCropA),
+  parentCropB: toOfficialContentId(hybrid.parentCropB),
+  minSweetness: hybrid.minSweetness,
+  minYield: hybrid.minYield,
+  resultCropId: toOfficialContentId(hybrid.resultCropId),
+  baseGenetics: { ...hybrid.baseGenetics },
+  discoveryText: text(`taoyuan.breeding_hybrid.${hybrid.id}.discovery`, hybrid.discoveryText)
+})
+
+export const createOfficialBreedingHybrids = (): BreedingHybridDef[] =>
+  HYBRID_DEFINITIONS.map(adaptLegacyBreedingHybrid)
+
 export const adaptLegacyProcessingMachine = (machine: LegacyProcessingMachineDef): ProcessingMachineDef => ({
   id: toOfficialContentId(machine.id),
   name: text(`taoyuan.processing_machine.${machine.id}.name`, machine.name),
@@ -1938,6 +1961,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const farmMapRegistry = registrySet.get<FarmMapDef>(toOfficialRegistryTypeId('farm_map'))
   const animalBuildingRegistry = registrySet.get<AnimalBuildingDef>(toOfficialRegistryTypeId('animal_building'))
   const animalIncubationRegistry = registrySet.get<AnimalIncubationDef>(toOfficialRegistryTypeId('animal_incubation'))
+  const breedingHybridRegistry = registrySet.get<BreedingHybridDef>(toOfficialRegistryTypeId('breeding_hybrid'))
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(toOfficialRegistryTypeId('processing_machine'))
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(toOfficialRegistryTypeId('processing_recipe'))
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(toOfficialRegistryTypeId('tool_upgrade'))
@@ -2032,6 +2056,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const incubation of createOfficialAnimalIncubations()) {
     animalIncubationRegistry.register(owner, incubation, { file: 'src/data/animalIncubationDefinitions.ts' })
+  }
+  for (const hybrid of createOfficialBreedingHybrids()) {
+    breedingHybridRegistry.register(owner, hybrid, { file: 'src/data/breedingDefinitions.ts' })
   }
   for (const machine of createOfficialProcessingMachines()) {
     processingMachineRegistry.register(owner, machine, { file: 'src/data/processingMachineDefinitions.ts' })

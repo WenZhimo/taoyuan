@@ -51,6 +51,7 @@ import type { ToolUpgradeCost as LegacyToolUpgradeCost } from '@/data/toolUpgrad
 import type { FishingLocation } from '@/types/skill'
 import type { CropDef as LegacyCropDef } from '@/types/farm'
 import type { PondBreedDef as LegacyPondBreedDef, PondableFishDef as LegacyPondableFishDef } from '@/types/fishPond'
+import type { HybridDef as LegacyHybridDef } from '@/types/breeding'
 import type {
   DiscoveryCondition as LegacyHiddenNpcDiscoveryCondition,
   HiddenNpcDef as LegacyHiddenNpcDef
@@ -64,6 +65,7 @@ import type {
   CellarUpgradeDef as LegacyCellarUpgradeDef,
   FarmhouseUpgradeDef as LegacyFarmhouseUpgradeDef
 } from '@/data/buildingUpgradeDefinitions'
+import { HYBRID_TIER_COUNTS } from '@/data/breedingDefinitions'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import { requireContentId, toOfficialContentId, toOfficialRegistryTypeId } from './ids'
 import {
@@ -84,6 +86,7 @@ import type {
   AnimalDef as AnimalContentDef,
   AnimalFeedDef as AnimalFeedContentDef,
   AnimalIncubationDef as AnimalIncubationContentDef,
+  BreedingHybridDef as BreedingHybridContentDef,
   BuildingUpgradeDef as BuildingUpgradeContentDef,
   CaveUpgradeContentDef,
   CellarUpgradeContentDef,
@@ -208,6 +211,12 @@ const toHiddenNpcQueryContentId = (id: string) =>
 
 const toStoryQuestQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `story_quest/${id}`)
+
+const toBreedingHybridQueryContentId = (id: string) => {
+  if (id.includes(':')) return toQueryContentId(id)
+  if (id.startsWith('breeding_hybrid/')) return toQueryContentId(id)
+  return toQueryContentId(`breeding_hybrid/${id}`)
+}
 
 const toAchievementQueryContentId = (id: string) =>
   toQueryContentId(id.includes(':') || id.includes('/') ? id : `achievement/${id}`)
@@ -1783,6 +1792,73 @@ export const getOfficialAnimalIncubationMap = (): Record<string, LegacyAnimalInc
       toLegacyAnimalIncubationMapping(incubation)
     ])
   )
+
+export const getOfficialBreedingHybridDef = (id: string): Readonly<BreedingHybridContentDef> | undefined => {
+  const contentId = toBreedingHybridQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<BreedingHybridContentDef>(toOfficialRegistryTypeId('breeding_hybrid')).get(contentId)
+    : undefined
+}
+
+export const getOfficialBreedingHybridDefs = (): readonly Readonly<BreedingHybridContentDef>[] =>
+  getOfficialRegistrySet().get<BreedingHybridContentDef>(toOfficialRegistryTypeId('breeding_hybrid')).values()
+
+const toLocalBreedingHybridId = (id: string): string =>
+  getLocalContentId(id).replace(/^breeding_hybrid\//, '')
+
+const toLegacyBreedingHybridDef = (hybrid: Readonly<BreedingHybridContentDef>): LegacyHybridDef => ({
+  id: toLocalBreedingHybridId(hybrid.id),
+  name: hybrid.name.fallback,
+  parentCropA: getLocalContentId(hybrid.parentCropA),
+  parentCropB: getLocalContentId(hybrid.parentCropB),
+  minSweetness: hybrid.minSweetness,
+  minYield: hybrid.minYield,
+  resultCropId: getLocalContentId(hybrid.resultCropId),
+  baseGenetics: { ...hybrid.baseGenetics },
+  discoveryText: hybrid.discoveryText.fallback
+})
+
+export const getOfficialBreedingHybridById = (id: string): LegacyHybridDef | undefined => {
+  const hybrid = getOfficialBreedingHybridDef(id)
+  return hybrid ? toLegacyBreedingHybridDef(hybrid) : undefined
+}
+
+export const getOfficialBreedingHybridDefsAsLegacy = (): readonly LegacyHybridDef[] =>
+  getOfficialBreedingHybridDefs().map(toLegacyBreedingHybridDef)
+
+const toLocalQueryId = (id: string): string => id.includes(':') ? getLocalContentId(id) : id
+
+export const findOfficialBreedingHybridByParents = (
+  cropIdA: string,
+  cropIdB: string
+): LegacyHybridDef | undefined => {
+  const parentA = toLocalQueryId(cropIdA)
+  const parentB = toLocalQueryId(cropIdB)
+  const hybrid = getOfficialBreedingHybridDefs().find(candidate => {
+    const candidateParentA = getLocalContentId(candidate.parentCropA)
+    const candidateParentB = getLocalContentId(candidate.parentCropB)
+    return (
+      (candidateParentA === parentA && candidateParentB === parentB) ||
+      (candidateParentA === parentB && candidateParentB === parentA)
+    )
+  })
+  return hybrid ? toLegacyBreedingHybridDef(hybrid) : undefined
+}
+
+export const getOfficialBreedingHybridTier = (hybridId: string): number => {
+  const target = toBreedingHybridQueryContentId(hybridId)
+  if (!target) return 1
+  let offset = 0
+  const hybrids = getOfficialBreedingHybridDefs()
+  for (let tier = 0; tier < HYBRID_TIER_COUNTS.length; tier++) {
+    const count = HYBRID_TIER_COUNTS[tier]!
+    for (let index = 0; index < count; index++) {
+      if (hybrids[offset + index]?.id === target) return tier + 1
+    }
+    offset += count
+  }
+  return 1
+}
 
 export const getOfficialProcessingMachineDef = (id: string): Readonly<ProcessingMachineContentDef> | undefined => {
   const contentId = toQueryContentId(id)

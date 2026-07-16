@@ -1,0 +1,23 @@
+[
+  {
+    "id": "example_mod:test_breeding_hybrid",
+    "name": {
+      "key": "example_mod.breeding_hybrid.test.name",
+      "fallback": "测试杂交作物"
+    },
+    "parentCropA": "taoyuan:cabbage",
+    "parentCropB": "taoyuan:radish",
+    "minSweetness": 10,
+    "minYield": 10,
+    "resultCropId": "taoyuan:emerald_radish",
+    "baseGenetics": {
+      "sweetness": 40,
+      "yield": 35,
+      "resistance": 30
+    },
+    "discoveryText": {
+      "key": "example_mod.breeding_hybrid.test.discovery",
+      "fallback": "测试杂交发现文本。"
+    }
+  }
+]

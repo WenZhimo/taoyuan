@@ -13,6 +13,7 @@ import type {
   AnimalDef,
   AnimalFeedDef,
   AnimalIncubationDef,
+  BreedingHybridDef,
   BuildingUpgradeDef,
   CommunityBundleDef,
   CropDef,
@@ -89,6 +90,7 @@ const REGISTRY_IDS = {
   pondableFish: toOfficialRegistryTypeId('pondable_fish'),
   pondBreed: toOfficialRegistryTypeId('pond_breed'),
   fishPondFacility: toOfficialRegistryTypeId('fish_pond_facility'),
+  breedingHybrid: toOfficialRegistryTypeId('breeding_hybrid'),
   buildingUpgrade: toOfficialRegistryTypeId('building_upgrade'),
   monster: toOfficialRegistryTypeId('monster'),
   monsterPool: toOfficialRegistryTypeId('monster_pool'),
@@ -177,6 +179,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const pondableFishRegistry = registrySet.get<PondableFishDef>(REGISTRY_IDS.pondableFish)
   const pondBreedRegistry = registrySet.get<PondBreedDef>(REGISTRY_IDS.pondBreed)
   const fishPondFacilityRegistry = registrySet.get<FishPondFacilityDef>(REGISTRY_IDS.fishPondFacility)
+  const breedingHybridRegistry = registrySet.get<BreedingHybridDef>(REGISTRY_IDS.breedingHybrid)
   const buildingUpgradeRegistry = registrySet.get<BuildingUpgradeDef>(REGISTRY_IDS.buildingUpgrade)
   const dropTableRegistry = registrySet.get<DropTableDef>(REGISTRY_IDS.dropTable)
   const monsterRegistry = registrySet.get<MonsterDef>(REGISTRY_IDS.monster)
@@ -1011,6 +1014,24 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         contentId: contentId(record.entry.parentBreedB),
         fieldPath: '/parentBreedB'
       })
+    }
+  }
+
+  for (const record of breedingHybridRegistry.entries()) {
+    const references = [
+      { cropId: record.entry.parentCropA, fieldPath: '/parentCropA' },
+      { cropId: record.entry.parentCropB, fieldPath: '/parentCropB' },
+      { cropId: record.entry.resultCropId, fieldPath: '/resultCropId' }
+    ]
+    for (const reference of references) {
+      if (!cropRegistry.has(contentId(reference.cropId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.crop,
+          contentId: contentId(reference.cropId),
+          fieldPath: reference.fieldPath
+        })
+      }
     }
   }
 
