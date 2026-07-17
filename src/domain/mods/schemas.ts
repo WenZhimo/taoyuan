@@ -232,6 +232,25 @@ export const HanhaiTradeShopUpgradeDefSchema = Type.Object(
   { $id: 'taoyuan.registry.HanhaiTradeShopUpgradeDef', additionalProperties: false }
 )
 
+export const HanhaiTreasureRewardItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const HanhaiTreasureRewardDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    rollMaxExclusive: Type.Number({ exclusiveMinimum: 0, maximum: 1 }),
+    money: Type.Integer({ minimum: 0 }),
+    items: Type.Array(HanhaiTreasureRewardItemSchema)
+  },
+  { $id: 'taoyuan.registry.HanhaiTreasureRewardDef', additionalProperties: false }
+)
+
 export const SkillTypeSchema = Type.Union([
   Type.Literal('farming'),
   Type.Literal('foraging'),
@@ -2006,7 +2025,8 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:shop_offer': ShopOfferDefSchema,
   'taoyuan:market_category': MarketCategoryDefSchema,
   'taoyuan:hanhai_trade_exchange': HanhaiTradeExchangeDefSchema,
-  'taoyuan:hanhai_trade_shop_upgrade': HanhaiTradeShopUpgradeDefSchema
+  'taoyuan:hanhai_trade_shop_upgrade': HanhaiTradeShopUpgradeDefSchema,
+  'taoyuan:hanhai_treasure_reward': HanhaiTreasureRewardDefSchema
 } as const satisfies Record<string, TSchema>
 
 export const PUBLIC_JSON_SCHEMAS = {
@@ -2062,7 +2082,8 @@ export const PUBLIC_JSON_SCHEMAS = {
   'shop-offer.schema.json': ShopOfferDefSchema,
   'market-category.schema.json': MarketCategoryDefSchema,
   'hanhai-trade-exchange.schema.json': HanhaiTradeExchangeDefSchema,
-  'hanhai-trade-shop-upgrade.schema.json': HanhaiTradeShopUpgradeDefSchema
+  'hanhai-trade-shop-upgrade.schema.json': HanhaiTradeShopUpgradeDefSchema,
+  'hanhai-treasure-reward.schema.json': HanhaiTreasureRewardDefSchema
 } as const satisfies Record<string, TSchema>
 
 export type LocalizedTextRef = Static<typeof LocalizedTextRefSchema>
@@ -2080,6 +2101,7 @@ export type MarketCategoryDef = Static<typeof MarketCategoryDefSchema>
 export type HanhaiTradeExchangeEquipType = Static<typeof HanhaiTradeExchangeEquipTypeSchema>
 export type HanhaiTradeExchangeDef = Static<typeof HanhaiTradeExchangeDefSchema>
 export type HanhaiTradeShopUpgradeDef = Static<typeof HanhaiTradeShopUpgradeDefSchema>
+export type HanhaiTreasureRewardDef = Static<typeof HanhaiTreasureRewardDefSchema>
 export type FishWeather = Static<typeof FishWeatherSchema>
 export type FishingLocation = Static<typeof FishingLocationSchema>
 export type FishDifficulty = Static<typeof FishDifficultySchema>

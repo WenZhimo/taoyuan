@@ -20,6 +20,7 @@ import { MONSTERS, BOSS_MONSTERS, SKULL_CAVERN_MONSTERS, ZONE_MONSTERS } from '@
 import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhaiShopDefinitions'
 import { TRADE_EXCHANGE_ITEMS } from '@/data/hanhaiDefinitions'
 import { TRADE_SHOP_UPGRADES } from '@/data/hanhaiTradeShopDefinitions'
+import { HANHAI_TREASURE_REWARDS } from '@/data/hanhaiTreasureDefinitions'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
@@ -105,6 +106,7 @@ import type {
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
   TradeExchangeItemDef,
+  HanhaiTreasureRewardDef as LegacyHanhaiTreasureRewardDef,
   TradeShopUpgradeDef as LegacyHanhaiTradeShopUpgradeDef,
   WeaponDef as LegacyWeaponDef
 } from '@/types'
@@ -161,6 +163,7 @@ import type {
   GuildLevelDef,
   HanhaiTradeExchangeDef,
   HanhaiTradeShopUpgradeDef,
+  HanhaiTreasureRewardDef,
   HeartEventDef,
   HiddenNpcDef,
   CropDef,
@@ -441,6 +444,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'),
     description: '瀚海通商店铺升级定义',
     schemaName: 'hanhai-trade-shop-upgrade.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('hanhai_treasure_reward'),
+    description: '瀚海藏宝图奖励定义',
+    schemaName: 'hanhai-treasure-reward.schema.json'
   }
 ] as const satisfies readonly RegistryDefinition<RegistryEntry>[]
 
@@ -1989,6 +1997,27 @@ export const adaptHanhaiTradeShopUpgrade = (
 export const createOfficialHanhaiTradeShopUpgrades = (): HanhaiTradeShopUpgradeDef[] =>
   TRADE_SHOP_UPGRADES.map(adaptHanhaiTradeShopUpgrade)
 
+const adaptHanhaiTreasureRewardItem = (
+  reward: LegacyHanhaiTreasureRewardDef,
+  item: LegacyHanhaiTreasureRewardDef['items'][number]
+): HanhaiTreasureRewardDef['items'][number] => ({
+  itemId: toOfficialContentId(item.itemId),
+  name: text(`taoyuan.hanhai.treasure_reward.${reward.id}.item.${item.itemId}.name`, item.name),
+  quantity: item.quantity
+})
+
+export const adaptHanhaiTreasureReward = (
+  reward: LegacyHanhaiTreasureRewardDef
+): HanhaiTreasureRewardDef => ({
+  id: toOfficialContentId(`hanhai_treasure_reward/${reward.id}`),
+  rollMaxExclusive: reward.rollMaxExclusive,
+  money: reward.money,
+  items: reward.items.map(item => adaptHanhaiTreasureRewardItem(reward, item))
+})
+
+export const createOfficialHanhaiTreasureRewards = (): HanhaiTreasureRewardDef[] =>
+  HANHAI_TREASURE_REWARDS.map(adaptHanhaiTreasureReward)
+
 const uniqueMonsters = (): LegacyMonsterDef[] => {
   const byId = new Map<string, LegacyMonsterDef>()
   for (const monster of [
@@ -2055,6 +2084,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const marketCategoryRegistry = registrySet.get<MarketCategoryDef>(toOfficialRegistryTypeId('market_category'))
   const hanhaiTradeExchangeRegistry = registrySet.get<HanhaiTradeExchangeDef>(toOfficialRegistryTypeId('hanhai_trade_exchange'))
   const hanhaiTradeShopUpgradeRegistry = registrySet.get<HanhaiTradeShopUpgradeDef>(toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'))
+  const hanhaiTreasureRewardRegistry = registrySet.get<HanhaiTreasureRewardDef>(toOfficialRegistryTypeId('hanhai_treasure_reward'))
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
@@ -2200,6 +2230,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const upgrade of createOfficialHanhaiTradeShopUpgrades()) {
     hanhaiTradeShopUpgradeRegistry.register(owner, upgrade, { file: 'src/data/hanhaiTradeShopDefinitions.ts' })
+  }
+  for (const reward of createOfficialHanhaiTreasureRewards()) {
+    hanhaiTreasureRewardRegistry.register(owner, reward, { file: 'src/data/hanhaiTreasureDefinitions.ts' })
   }
 
   return registrySet

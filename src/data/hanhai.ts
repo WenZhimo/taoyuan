@@ -17,6 +17,7 @@ import { getOfficialHanhaiWeeklyRotatingItems } from '@/domain/mods/contentAcces
 export { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from './hanhaiShopDefinitions'
 export { TRADE_EXCHANGE_ITEMS } from './hanhaiDefinitions'
 export { TRADE_SHOP_UPGRADES } from './hanhaiTradeShopDefinitions'
+export { HANHAI_TREASURE_REWARDS } from './hanhaiTreasureDefinitions'
 
 /** 根据年份+季节+周数生成本周轮换商品（确定性伪随机） */
 export const getWeeklyRotatingItems = (year: number, seasonIndex: number, day: number): HanhaiShopItemDef[] =>

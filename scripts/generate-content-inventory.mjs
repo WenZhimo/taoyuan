@@ -37,6 +37,7 @@ const contentNames = new Set([
   'GUILD_SHOP_ITEMS',
   'HANHAI_FIXED_ITEMS',
   'HANHAI_ROTATING_POOL',
+  'HANHAI_TREASURE_REWARDS',
   'HATS',
   'HEART_EVENTS',
   'HIDDEN_NPCS',
@@ -738,6 +739,15 @@ fileDefaults.set('src/data/hanhaiTradeShopDefinitions.ts', {
   classification: 'mixed',
   domains: ['hanhai_trade_shop_upgrade'],
   candidateTargets: ['taoyuan:hanhai_trade_shop_upgrade'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/hanhaiTreasureDefinitions.ts', {
+  file: 'src/data/hanhaiTreasureDefinitions.ts',
+  classification: 'mixed',
+  domains: ['hanhai_treasure_reward'],
+  candidateTargets: ['taoyuan:hanhai_treasure_reward'],
   phases: [6],
   status: 'symbol_inventoried'
 })
@@ -3573,6 +3583,22 @@ const symbolReviewOverrides = new Map(Object.entries({
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
     rationale: 'Original-name re-export keeps legacy Hanhai imports stable after trade shop upgrade leaf data moved to hanhaiTradeShopDefinitions.ts.'
+  },
+  'src/data/hanhaiTreasureDefinitions.ts:HANHAI_TREASURE_REWARDS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_treasure_reward',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for the four legacy Hanhai treasure map reward tiers; Phase 6 projects roll thresholds, money rewards and item rewards into taoyuan:hanhai_treasure_reward.'
+  },
+  'src/data/hanhai.ts:HANHAI_TREASURE_REWARDS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_treasure_reward',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy Hanhai imports stable after treasure reward leaf data moved to hanhaiTreasureDefinitions.ts.'
   }
 }))
 
@@ -5146,6 +5172,56 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Uses registry-backed Hanhai trade shop upgrade definitions while preserving tradeShopLevel, slot limits, sell days, money and material deduction, logs and old save fields.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'HanhaiTreasureRewardDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_treasure_reward',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for Hanhai treasure map reward tiers, including roll threshold, money reward and localized item rewards.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptHanhaiTreasureReward/createOfficialHanhaiTreasureRewards',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_treasure_reward',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects every legacy Hanhai treasure map reward tier into official registry entries without changing thresholds, money amounts, item IDs, display names, quantities or order.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialHanhaiTreasureRewardDef/getOfficialHanhaiTreasureRewardDefs/getOfficialHanhaiTreasureRewardsAsLegacy/getOfficialHanhaiTreasureRewardForRoll',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_treasure_reward',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry treasure reward definitions, reconstructs legacy HanhaiTreasureRewardDef objects and preserves the first-threshold match used by treasure map rewards.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:hanhai_treasure_reward',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_treasure_reward',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks Hanhai treasure reward item references against taoyuan:item before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/stores/useHanhaiStore.ts',
+    exportName: 'useTreasureMap:hanhai_treasure_reward',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_treasure_reward',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Uses registry-backed Hanhai treasure reward tiers while preserving map consumption, one Math.random() roll, reward text, money grant, item grants, logs and old save fields.'
   }
 ]
 

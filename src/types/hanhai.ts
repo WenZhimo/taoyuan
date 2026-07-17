@@ -8,6 +8,22 @@ export interface HanhaiShopItemDef {
   weeklyLimit?: number
 }
 
+/** 瀚海藏宝图奖励物品 */
+export interface HanhaiTreasureRewardItemDef {
+  itemId: string
+  name: string
+  quantity: number
+}
+
+/** 瀚海藏宝图奖励档位 */
+export interface HanhaiTreasureRewardDef {
+  id: string
+  /** Math.random() 结果小于该值时命中；最后一档可作为兜底 */
+  rollMaxExclusive: number
+  money: number
+  items: HanhaiTreasureRewardItemDef[]
+}
+
 /** 蛐蛐定义 */
 export interface CricketDef {
   id: string

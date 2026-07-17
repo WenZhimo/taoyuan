@@ -31,6 +31,7 @@ import {
   getOfficialHanhaiTradeShopUpgrade,
   getOfficialHanhaiTradeShopUpgradesAsLegacy,
   getOfficialHanhaiTradeExchangeItem,
+  getOfficialHanhaiTreasureRewardForRoll,
   getOfficialHanhaiWeeklyRotatingItems
 } from '@/domain/mods/contentAccess'
 import { usePlayerStore } from './usePlayerStore'
@@ -124,29 +125,13 @@ export const useHanhaiStore = defineStore('hanhai', () => {
     const playerStore = usePlayerStore()
     // 随机奖励池
     const roll = Math.random()
+    const rewardDef = getOfficialHanhaiTreasureRewardForRoll(roll)
     const rewards: { itemId: string; name: string; quantity: number }[] = []
-    if (roll < 0.05) {
-      // 5% 大奖：金钱+稀有物品
-      playerStore.earnMoney(5000)
-      rewards.push({ itemId: '', name: '5000文', quantity: 1 })
-      rewards.push({ itemId: 'hanhai_turquoise', name: '绿松石', quantity: 2 })
-      inventoryStore.addItem('hanhai_turquoise', 2)
-    } else if (roll < 0.2) {
-      // 15% 中奖：金钱+材料
-      playerStore.earnMoney(2000)
-      rewards.push({ itemId: '', name: '2000文', quantity: 1 })
-      rewards.push({ itemId: 'hanhai_spice', name: '西域香料', quantity: 3 })
-      inventoryStore.addItem('hanhai_spice', 3)
-    } else if (roll < 0.45) {
-      // 25% 小奖：金钱
-      playerStore.earnMoney(1000)
-      rewards.push({ itemId: '', name: '1000文', quantity: 1 })
-      rewards.push({ itemId: 'hanhai_silk', name: '丝绸', quantity: 1 })
-      inventoryStore.addItem('hanhai_silk', 1)
-    } else {
-      // 55% 安慰奖
-      playerStore.earnMoney(500)
-      rewards.push({ itemId: '', name: '500文', quantity: 1 })
+    playerStore.earnMoney(rewardDef.money)
+    rewards.push({ itemId: '', name: `${rewardDef.money}文`, quantity: 1 })
+    for (const item of rewardDef.items) {
+      rewards.push({ itemId: item.itemId, name: item.name, quantity: item.quantity })
+      inventoryStore.addItem(item.itemId, item.quantity)
     }
     const rewardText = rewards.map(r => r.name + (r.quantity > 1 ? `×${r.quantity}` : '')).join('、')
     addLog(`使用藏宝图寻宝，发现了：${rewardText}！`)

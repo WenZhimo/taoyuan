@@ -1,0 +1,17 @@
+[
+  {
+    "id": "example_mod:hanhai_treasure_reward/example",
+    "rollMaxExclusive": 1,
+    "money": 1,
+    "items": [
+      {
+        "itemId": "example_mod:test_item",
+        "name": {
+          "key": "example_mod.hanhai_treasure_reward.example.item.test_item.name",
+          "fallback": "测试物品"
+        },
+        "quantity": 1
+      }
+    ]
+  }
+]

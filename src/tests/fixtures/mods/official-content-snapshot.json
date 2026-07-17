@@ -39983,6 +39983,91 @@
       ]
     },
     {
+      "registryId": "taoyuan:hanhai_treasure_reward",
+      "schemaName": "hanhai-treasure-reward.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTreasureDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:hanhai_treasure_reward/consolation",
+            "items": [],
+            "money": 500,
+            "rollMaxExclusive": 1
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTreasureDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:hanhai_treasure_reward/grand",
+            "items": [
+              {
+                "itemId": "taoyuan:hanhai_turquoise",
+                "name": {
+                  "fallback": "绿松石",
+                  "key": "taoyuan.hanhai.treasure_reward.grand.item.hanhai_turquoise.name"
+                },
+                "quantity": 2
+              }
+            ],
+            "money": 5000,
+            "rollMaxExclusive": 0.05
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTreasureDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:hanhai_treasure_reward/major",
+            "items": [
+              {
+                "itemId": "taoyuan:hanhai_spice",
+                "name": {
+                  "fallback": "西域香料",
+                  "key": "taoyuan.hanhai.treasure_reward.major.item.hanhai_spice.name"
+                },
+                "quantity": 3
+              }
+            ],
+            "money": 2000,
+            "rollMaxExclusive": 0.2
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiTreasureDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "id": "taoyuan:hanhai_treasure_reward/minor",
+            "items": [
+              {
+                "itemId": "taoyuan:hanhai_silk",
+                "name": {
+                  "fallback": "丝绸",
+                  "key": "taoyuan.hanhai.treasure_reward.minor.item.hanhai_silk.name"
+                },
+                "quantity": 1
+              }
+            ],
+            "money": 1000,
+            "rollMaxExclusive": 0.45
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:heart_event",
       "schemaName": "heart-event.schema.json",
       "entries": [
@@ -117399,5 +117484,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:cf64a7806995f12b9c9d93b1114901a0c6953a1d71247a89a641a70abaf1a0f1"
+  "snapshotHash": "sha256:ebed6a7733d58ce294bc5949dd5f27f2b7067d0caacca2c23de5573706669362"
 }

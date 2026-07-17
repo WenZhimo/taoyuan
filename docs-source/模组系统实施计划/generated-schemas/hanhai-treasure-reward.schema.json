@@ -1,0 +1,67 @@
+{
+  "$id": "taoyuan.registry.HanhaiTreasureRewardDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "rollMaxExclusive",
+    "money",
+    "items"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "rollMaxExclusive": {
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "type": "number"
+    },
+    "money": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "itemId",
+          "name",
+          "quantity"
+        ],
+        "properties": {
+          "itemId": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          },
+          "name": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

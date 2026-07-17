@@ -16,6 +16,7 @@ import type {
   ToolTier,
   ToolType,
   HanhaiShopItemDef as LegacyHanhaiShopItemDef,
+  HanhaiTreasureRewardDef as LegacyHanhaiTreasureRewardDef,
   TradeExchangeItemDef as LegacyTradeExchangeItemDef,
   TradeShopUpgradeDef as LegacyHanhaiTradeShopUpgradeDef,
   WeaponDef as LegacyWeaponDef,
@@ -109,6 +110,7 @@ import type {
   ForageDef,
   HanhaiTradeExchangeDef as HanhaiTradeExchangeContentDef,
   HanhaiTradeShopUpgradeDef as HanhaiTradeShopUpgradeContentDef,
+  HanhaiTreasureRewardDef as HanhaiTreasureRewardContentDef,
   FruitTreeContentDef,
   ItemDef,
   MarketCategoryDef as MarketCategoryContentDef,
@@ -257,6 +259,19 @@ const toHanhaiTradeShopUpgradeQueryContentId = (level: number | string) => {
   }
   if (rawId.startsWith('hanhai_trade_shop_upgrade/')) return toQueryContentId(rawId)
   return toQueryContentId(`hanhai_trade_shop_upgrade/${rawId}`)
+}
+
+const toHanhaiTreasureRewardQueryContentId = (id: string) => {
+  if (id.includes(':')) {
+    const parsed = toQueryContentId(id)
+    if (!parsed) return null
+    const localId = getLocalContentId(parsed)
+    return localId.startsWith('hanhai_treasure_reward/')
+      ? parsed
+      : toQueryContentId(`hanhai_treasure_reward/${localId}`)
+  }
+  if (id.startsWith('hanhai_treasure_reward/')) return toQueryContentId(id)
+  return toQueryContentId(`hanhai_treasure_reward/${id}`)
 }
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
@@ -793,6 +808,43 @@ export const getOfficialHanhaiTradeShopUpgrade = (
 
 export const getOfficialHanhaiTradeShopUpgradesAsLegacy = (): readonly LegacyHanhaiTradeShopUpgradeDef[] =>
   getOfficialHanhaiTradeShopUpgradeDefs().map(toLegacyHanhaiTradeShopUpgrade)
+
+export const getOfficialHanhaiTreasureRewardDef = (
+  id: string
+): Readonly<HanhaiTreasureRewardContentDef> | undefined => {
+  const contentId = toHanhaiTreasureRewardQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet()
+        .get<HanhaiTreasureRewardContentDef>(toOfficialRegistryTypeId('hanhai_treasure_reward'))
+        .get(contentId)
+    : undefined
+}
+
+export const getOfficialHanhaiTreasureRewardDefs = (): readonly Readonly<HanhaiTreasureRewardContentDef>[] =>
+  getOfficialRegistrySet()
+    .get<HanhaiTreasureRewardContentDef>(toOfficialRegistryTypeId('hanhai_treasure_reward'))
+    .values()
+
+const toLegacyHanhaiTreasureReward = (
+  reward: Readonly<HanhaiTreasureRewardContentDef>
+): LegacyHanhaiTreasureRewardDef => ({
+  id: getLocalContentId(reward.id).replace(/^hanhai_treasure_reward\//, ''),
+  rollMaxExclusive: reward.rollMaxExclusive,
+  money: reward.money,
+  items: reward.items.map(item => ({
+    itemId: getLocalContentId(item.itemId),
+    name: item.name.fallback,
+    quantity: item.quantity
+  }))
+})
+
+export const getOfficialHanhaiTreasureRewardsAsLegacy = (): readonly LegacyHanhaiTreasureRewardDef[] =>
+  getOfficialHanhaiTreasureRewardDefs().map(toLegacyHanhaiTreasureReward)
+
+export const getOfficialHanhaiTreasureRewardForRoll = (roll: number): LegacyHanhaiTreasureRewardDef => {
+  const rewards = getOfficialHanhaiTreasureRewardsAsLegacy()
+  return rewards.find(reward => roll < reward.rollMaxExclusive) ?? rewards[rewards.length - 1]!
+}
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)

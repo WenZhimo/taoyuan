@@ -134,6 +134,9 @@
     "taoyuan:hanhai_trade_shop_upgrade": [
       "data/hanhai-trade-shop-upgrades.json"
     ],
+    "taoyuan:hanhai_treasure_reward": [
+      "data/hanhai-treasure-rewards.json"
+    ],
     "taoyuan:tool_upgrade": [
       "data/tool-upgrades.json"
     ],
