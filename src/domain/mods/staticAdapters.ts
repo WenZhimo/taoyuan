@@ -93,7 +93,7 @@ import {
   type CellarUpgradeDef as LegacyCellarUpgradeDef,
   type FarmhouseUpgradeDef as LegacyFarmhouseUpgradeDef
 } from '@/data/buildingUpgradeDefinitions'
-import { BAITS, FERTILIZERS, TACKLES } from '@/data/processingCraftDefinitions'
+import { BAITS, FERTILIZERS, SPRINKLERS, TACKLES } from '@/data/processingCraftDefinitions'
 import type {
   AchievementDef as LegacyAchievementDef,
   AnimalDef as LegacyAnimalDef,
@@ -105,6 +105,7 @@ import type {
   RecipeDef as LegacyRecipeDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
   ProcessingRecipeDef as LegacyProcessingRecipeDef,
+  SprinklerDef as LegacySprinklerDef,
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
   TradeExchangeItemDef,
@@ -187,6 +188,7 @@ import type {
   SeasonEventDef,
   ShopDef,
   ShopOfferDef,
+  SprinklerDef,
   StoryQuestDef,
   TagDef,
   ToolUpgradeDef,
@@ -353,6 +355,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('processing_recipe'),
     description: '加工配方定义',
     schemaName: 'processing-recipe.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('sprinkler'),
+    description: '洒水器制造定义',
+    schemaName: 'sprinkler.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('tool_upgrade'),
@@ -1571,6 +1578,21 @@ export const adaptLegacyProcessingRecipe = (recipe: LegacyProcessingRecipeDef): 
 export const createOfficialProcessingRecipes = (): ProcessingRecipeDef[] =>
   PROCESSING_RECIPES.map(adaptLegacyProcessingRecipe)
 
+export const adaptLegacySprinkler = (sprinkler: LegacySprinklerDef): SprinklerDef => ({
+  id: toOfficialContentId(sprinkler.id),
+  name: text(`taoyuan.sprinkler.${sprinkler.id}.name`, sprinkler.name),
+  description: text(`taoyuan.sprinkler.${sprinkler.id}.description`, sprinkler.description),
+  range: sprinkler.range,
+  craftCost: sprinkler.craftCost.map(material => ({
+    itemId: toOfficialContentId(material.itemId),
+    quantity: material.quantity
+  })),
+  craftMoney: sprinkler.craftMoney
+})
+
+export const createOfficialSprinklers = (): SprinklerDef[] =>
+  SPRINKLERS.map(adaptLegacySprinkler)
+
 const toolUpgradeIdSegment = (toolType: keyof typeof TOOL_UPGRADE_COSTS): string =>
   toolType.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
 
@@ -2106,6 +2128,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const breedingHybridRegistry = registrySet.get<BreedingHybridDef>(toOfficialRegistryTypeId('breeding_hybrid'))
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(toOfficialRegistryTypeId('processing_machine'))
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(toOfficialRegistryTypeId('processing_recipe'))
+  const sprinklerRegistry = registrySet.get<SprinklerDef>(toOfficialRegistryTypeId('sprinkler'))
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(toOfficialRegistryTypeId('tool_upgrade'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
   const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
@@ -2213,6 +2236,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const recipe of createOfficialProcessingRecipes()) {
     processingRecipeRegistry.register(owner, recipe, { file: 'src/data/processingRecipeDefinitions.ts' })
+  }
+  for (const sprinkler of createOfficialSprinklers()) {
+    sprinklerRegistry.register(owner, sprinkler, { file: 'src/data/processingCraftDefinitions.ts' })
   }
   for (const upgrade of createOfficialToolUpgrades()) {
     toolUpgradeRegistry.register(owner, upgrade, { file: 'src/data/toolUpgradeDefinitions.ts' })

@@ -3,7 +3,9 @@ import {
   getOfficialProcessingMachineById,
   getOfficialProcessingMachinesAsLegacy,
   getOfficialProcessingRecipeById,
-  getOfficialProcessingRecipesForMachine
+  getOfficialProcessingRecipesForMachine,
+  getOfficialSprinklerById,
+  getOfficialSprinklersAsLegacy
 } from '@/domain/mods/contentAccess'
 import { BAITS, BOMBS, FERTILIZERS, SPRINKLERS, TACKLES } from './processingCraftDefinitions'
 import { PROCESSING_MACHINES } from './processingMachineDefinitions'
@@ -32,8 +34,11 @@ export const getRecipesForMachine = (machineType: string): ProcessingRecipeDef[]
 }
 
 export const getSprinklerById = (id: string): SprinklerDef | undefined => {
-  return SPRINKLERS.find(s => s.id === id)
+  return getOfficialSprinklerById(id) ?? SPRINKLERS.find(s => s.id === id)
 }
+
+export const getSprinklers = (): readonly SprinklerDef[] =>
+  getOfficialSprinklersAsLegacy()
 
 export const getFertilizerById = (id: string): FertilizerDef | undefined => {
   return FERTILIZERS.find(f => f.id === id)

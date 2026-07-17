@@ -114272,6 +114272,106 @@
       ]
     },
     {
+      "registryId": "taoyuan:sprinkler",
+      "schemaName": "sprinkler.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingCraftDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:bamboo",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 3
+              }
+            ],
+            "craftMoney": 100,
+            "description": {
+              "fallback": "自动灌溉上下左右4块地。",
+              "key": "taoyuan.sprinkler.bamboo_sprinkler.description"
+            },
+            "id": "taoyuan:bamboo_sprinkler",
+            "name": {
+              "fallback": "竹筒洒水器",
+              "key": "taoyuan.sprinkler.bamboo_sprinkler.name"
+            },
+            "range": 4
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingCraftDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:copper_bar",
+                "quantity": 3
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 500,
+            "description": {
+              "fallback": "自动灌溉周围8块地。",
+              "key": "taoyuan.sprinkler.copper_sprinkler.description"
+            },
+            "id": "taoyuan:copper_sprinkler",
+            "name": {
+              "fallback": "铜管洒水器",
+              "key": "taoyuan.sprinkler.copper_sprinkler.name"
+            },
+            "range": 8
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingCraftDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "craftCost": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:iron_bar",
+                "quantity": 2
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 1
+              }
+            ],
+            "craftMoney": 1500,
+            "description": {
+              "fallback": "自动灌溉周围5×5共24块地。",
+              "key": "taoyuan.sprinkler.gold_sprinkler.description"
+            },
+            "id": "taoyuan:gold_sprinkler",
+            "name": {
+              "fallback": "金管洒水器",
+              "key": "taoyuan.sprinkler.gold_sprinkler.name"
+            },
+            "range": 24
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:story_quest",
       "schemaName": "story-quest.schema.json",
       "entries": [
@@ -117569,5 +117669,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:263748b01cf3e626ff9b882910c2042fed0a666a130039b2860e0de1a5cc1688"
+  "snapshotHash": "sha256:b60b8ce06d7d4a064c7762d65ff314cd14ff58560737123e564e2460a2e2b7ba"
 }

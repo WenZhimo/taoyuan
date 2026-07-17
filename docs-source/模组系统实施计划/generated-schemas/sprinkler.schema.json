@@ -1,0 +1,97 @@
+{
+  "$id": "taoyuan.registry.SprinklerDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "name",
+    "description",
+    "range",
+    "craftCost",
+    "craftMoney"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "description": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "key",
+        "fallback"
+      ],
+      "properties": {
+        "key": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "fallback": {
+          "minLength": 1,
+          "type": "string"
+        }
+      }
+    },
+    "range": {
+      "anyOf": [
+        {
+          "const": 4,
+          "type": "number"
+        },
+        {
+          "const": 8,
+          "type": "number"
+        },
+        {
+          "const": 24,
+          "type": "number"
+        }
+      ]
+    },
+    "craftCost": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "itemId",
+          "quantity"
+        ],
+        "properties": {
+          "itemId": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      }
+    },
+    "craftMoney": {
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

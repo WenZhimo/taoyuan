@@ -2,7 +2,6 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { MachineType, ProcessingJob, ProcessingSlot, Quality } from '@/types'
 import {
-  SPRINKLERS,
   FERTILIZERS,
   BAITS,
   TACKLES,
@@ -11,7 +10,8 @@ import {
   BOMBS,
   getMachineById,
   getRecipesForMachine,
-  getProcessingRecipeById
+  getProcessingRecipeById,
+  getSprinklerById
 } from '@/data/processing'
 import { useInventoryStore } from './useInventoryStore'
 import { usePlayerStore } from './usePlayerStore'
@@ -112,7 +112,7 @@ export const useProcessingStore = defineStore('processing', () => {
 
   /** 制造洒水器（返回物品ID放入背包） */
   const craftSprinkler = (sprinklerId: string): boolean => {
-    const def = SPRINKLERS.find(s => s.id === sprinklerId)
+    const def = getSprinklerById(sprinklerId)
     if (!def) return false
     if (!consumeCraftMaterials(def.craftCost, def.craftMoney)) return false
     inventoryStore.addItem(def.id)

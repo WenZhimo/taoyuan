@@ -51,6 +51,7 @@ import type {
   SecretNoteDef,
   SeasonEventDef,
   ShopOfferDef,
+  SprinklerDef,
   StoryQuestDef,
   TagDef,
   ToolUpgradeDef,
@@ -89,6 +90,7 @@ const REGISTRY_IDS = {
   questTemplate: toOfficialRegistryTypeId('quest_template'),
   processingMachine: toOfficialRegistryTypeId('processing_machine'),
   processingRecipe: toOfficialRegistryTypeId('processing_recipe'),
+  sprinkler: toOfficialRegistryTypeId('sprinkler'),
   toolUpgrade: toOfficialRegistryTypeId('tool_upgrade'),
   enchantment: toOfficialRegistryTypeId('enchantment'),
   equipment: toOfficialRegistryTypeId('equipment'),
@@ -183,6 +185,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const questTemplateRegistry = registrySet.get<QuestTemplateDef>(REGISTRY_IDS.questTemplate)
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(REGISTRY_IDS.processingMachine)
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(REGISTRY_IDS.processingRecipe)
+  const sprinklerRegistry = registrySet.get<SprinklerDef>(REGISTRY_IDS.sprinkler)
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(REGISTRY_IDS.toolUpgrade)
   const enchantmentRegistry = registrySet.get<EnchantmentDef>(REGISTRY_IDS.enchantment)
   const equipmentRegistry = registrySet.get<EquipmentDef>(REGISTRY_IDS.equipment)
@@ -937,6 +940,19 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   }
 
   for (const record of processingMachineRegistry.entries()) {
+    record.entry.craftCost.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/craftCost/${index}/itemId`
+        })
+      }
+    })
+  }
+
+  for (const record of sprinklerRegistry.entries()) {
     record.entry.craftCost.forEach((material, index) => {
       if (!itemRegistry.has(contentId(material.itemId))) {
         pushMissingReference(diagnostics, {

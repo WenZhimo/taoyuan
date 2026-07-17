@@ -11,6 +11,7 @@ import type {
   NpcDef as LegacyNpcDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
   ProcessingRecipeDef as LegacyProcessingRecipeDef,
+  SprinklerDef as LegacySprinklerDef,
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
   ToolTier,
@@ -142,6 +143,7 @@ import type {
   SeasonEventDef as SeasonEventContentDef,
   ShopDef,
   ShopOfferDef,
+  SprinklerDef as SprinklerContentDef,
   StoryQuestDef as StoryQuestContentDef,
   TagDef,
   ToolUpgradeDef as ToolUpgradeContentDef,
@@ -2300,6 +2302,36 @@ export const getOfficialProcessingRecipesForMachine = (
     .filter(recipe => recipe.machineId === machineId)
     .map(toLegacyProcessingRecipeDef)
 }
+
+export const getOfficialSprinklerDef = (id: string): Readonly<SprinklerContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<SprinklerContentDef>(toOfficialRegistryTypeId('sprinkler')).get(contentId)
+    : undefined
+}
+
+export const getOfficialSprinklerDefs = (): readonly Readonly<SprinklerContentDef>[] =>
+  getOfficialRegistrySet().get<SprinklerContentDef>(toOfficialRegistryTypeId('sprinkler')).values()
+
+const toLegacySprinklerDef = (sprinkler: Readonly<SprinklerContentDef>): LegacySprinklerDef => ({
+  id: getLocalContentId(sprinkler.id) as LegacySprinklerDef['id'],
+  name: sprinkler.name.fallback,
+  description: sprinkler.description.fallback,
+  range: sprinkler.range,
+  craftCost: sprinkler.craftCost.map(material => ({
+    itemId: getLocalContentId(material.itemId),
+    quantity: material.quantity
+  })),
+  craftMoney: sprinkler.craftMoney
+})
+
+export const getOfficialSprinklerById = (id: string): LegacySprinklerDef | undefined => {
+  const sprinkler = getOfficialSprinklerDef(id)
+  return sprinkler ? toLegacySprinklerDef(sprinkler) : undefined
+}
+
+export const getOfficialSprinklersAsLegacy = (): readonly LegacySprinklerDef[] =>
+  getOfficialSprinklerDefs().map(toLegacySprinklerDef)
 
 const toLegacyToolUpgradeCost = (upgrade: Readonly<ToolUpgradeContentDef>): LegacyToolUpgradeCost => ({
   fromTier: upgrade.fromTier,

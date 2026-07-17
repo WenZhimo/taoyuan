@@ -1172,6 +1172,32 @@ export const ProcessingRecipeDefSchema = Type.Union(
   { $id: 'taoyuan.registry.ProcessingRecipeDef' }
 )
 
+export const SprinklerRangeSchema = Type.Union([
+  Type.Literal(4),
+  Type.Literal(8),
+  Type.Literal(24)
+])
+
+export const SprinklerMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const SprinklerDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    range: SprinklerRangeSchema,
+    craftCost: Type.Array(SprinklerMaterialSchema),
+    craftMoney: Type.Integer({ minimum: 0 })
+  },
+  { $id: 'taoyuan.registry.SprinklerDef', additionalProperties: false }
+)
+
 export const ToolTypeSchema = Type.Union([
   Type.Literal('wateringCan'),
   Type.Literal('hoe'),
@@ -2034,6 +2060,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:breeding_hybrid': BreedingHybridDefSchema,
   'taoyuan:processing_machine': ProcessingMachineDefSchema,
   'taoyuan:processing_recipe': ProcessingRecipeDefSchema,
+  'taoyuan:sprinkler': SprinklerDefSchema,
   'taoyuan:tool_upgrade': ToolUpgradeDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
@@ -2093,6 +2120,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'breeding-hybrid.schema.json': BreedingHybridDefSchema,
   'processing-machine.schema.json': ProcessingMachineDefSchema,
   'processing-recipe.schema.json': ProcessingRecipeDefSchema,
+  'sprinkler.schema.json': SprinklerDefSchema,
   'tool-upgrade.schema.json': ToolUpgradeDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
@@ -2216,6 +2244,9 @@ export type BreedingHybridDef = Static<typeof BreedingHybridDefSchema>
 export type ProcessingMachineMaterial = Static<typeof ProcessingMachineMaterialSchema>
 export type ProcessingMachineDef = Static<typeof ProcessingMachineDefSchema>
 export type ProcessingRecipeDef = Static<typeof ProcessingRecipeDefSchema>
+export type SprinklerRange = Static<typeof SprinklerRangeSchema>
+export type SprinklerMaterial = Static<typeof SprinklerMaterialSchema>
+export type SprinklerDef = Static<typeof SprinklerDefSchema>
 export type ToolTypeDef = Static<typeof ToolTypeSchema>
 export type ToolTierDef = Static<typeof ToolTierSchema>
 export type ToolUpgradeMaterial = Static<typeof ToolUpgradeMaterialSchema>

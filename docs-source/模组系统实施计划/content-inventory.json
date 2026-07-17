@@ -4,10 +4,10 @@
   "capturedAt": "2026-07-15",
   "summary": {
     "fileCount": 87,
-    "approximateLineCount": 31617,
+    "approximateLineCount": 31622,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 627,
+    "symbolCount": 628,
     "reviewedArtifactCount": 173
   },
   "entries": [
@@ -8863,7 +8863,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 115,
+      "lines": 120,
       "symbols": [
         {
           "file": "src/data/processing.ts",
@@ -8943,16 +8943,15 @@
           "consumers": [
             "src/data/items.ts",
             "src/data/processingCraftDefinitions.ts",
-            "src/stores/useFarmStore.ts",
-            "src/stores/useProcessingStore.ts",
-            "src/views/game/ProcessingView.vue"
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/sprinklerRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Original-name re-export preserves legacy sprinkler imports after the leaf extraction; sprinkler registry migration remains out of this processing machine slice."
+          "status": "verified",
+          "rationale": "Original-name re-export preserves legacy sprinkler imports while new list and ID lookups resolve taoyuan:sprinkler first."
         },
         {
           "file": "src/data/processing.ts",
@@ -9093,14 +9092,36 @@
           "exportName": "getSprinklerById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "taoyuan:sprinkler",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/stores/useFarmStore.ts",
+            "src/stores/useProcessingStore.ts",
+            "src/tests/domain/sprinklerRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "verified",
+          "rationale": "Legacy getSprinklerById() signature is retained and now resolves taoyuan:sprinkler before returning the same local-ID SprinklerDef shape."
+        },
+        {
+          "file": "src/data/processing.ts",
+          "exportName": "getSprinklers",
+          "syntaxKind": "const",
+          "classification": "adapter",
+          "targetRegistry": "taoyuan:sprinkler",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/sprinklerRegistryPilot.test.ts",
+            "src/views/game/ProcessingView.vue"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "status": "verified",
+          "rationale": "Sprinkler list query returns local-ID compatibility objects reconstructed from taoyuan:sprinkler in legacy order."
         },
         {
           "file": "src/data/processing.ts",
@@ -9295,17 +9316,16 @@
           "consumers": [
             "src/data/items.ts",
             "src/data/processing.ts",
-            "src/stores/useFarmStore.ts",
-            "src/stores/useProcessingStore.ts",
-            "src/views/game/ProcessingView.vue"
+            "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/sprinklerRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             3,
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Leaf source extracted only to keep generated item derivation free of registry cycles; sprinkler registry migration remains a later production/facility slice."
+          "status": "verified",
+          "rationale": "Unique registry-free leaf source for all legacy sprinkler craft definitions; Phase 6 projects every sprinkler into taoyuan:sprinkler and verifies IDs, order, names, descriptions, ranges, materials, money and runtime consumers."
         },
         {
           "file": "src/data/processingCraftDefinitions.ts",

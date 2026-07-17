@@ -465,7 +465,6 @@
   import { useWarehouseStore } from '@/stores/useWarehouseStore'
   import { getCombinedItemCount, hasCombinedItem, removeCombinedItem } from '@/composables/useCombinedInventory'
   import {
-    SPRINKLERS,
     FERTILIZERS,
     BAITS,
     TACKLES,
@@ -477,7 +476,9 @@
     BOMBS,
     getProcessingRecipeById,
     getProcessingMachines,
-    getMachineById
+    getMachineById,
+    getSprinklers,
+    getSprinklerById
   } from '@/data/processing'
   import { getItemById, CHEST_DEFS, CHEST_TIER_ORDER } from '@/data/items'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
@@ -735,7 +736,7 @@
     {
       label: '农场设施',
       items: [
-        ...SPRINKLERS.map(s => ({
+        ...getSprinklers().map(s => ({
           id: s.id,
           name: s.name,
           description: s.description,
@@ -971,7 +972,7 @@
   const handleCraftSprinkler = (sprinklerId: string) => {
     if (processingStore.craftSprinkler(sprinklerId)) {
       sfxClick()
-      const name = SPRINKLERS.find(s => s.id === sprinklerId)?.name ?? sprinklerId
+      const name = getSprinklerById(sprinklerId)?.name ?? sprinklerId
       addLog(`制造了${name}，已放入背包。去农场放置吧。`)
       const tr = gameStore.advanceTime(ACTION_TIME_COSTS.craftMachine)
       if (tr.message) addLog(tr.message)

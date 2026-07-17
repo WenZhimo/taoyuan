@@ -4,7 +4,7 @@ import type { FarmPlot, FarmSize, Season, Quality } from '@/types'
 import type { SprinklerType, FertilizerType, PlantedFruitTree, FruitTreeType, WildTreeType, PlantedWildTree } from '@/types'
 import type { SeedGenetics } from '@/types/breeding'
 import { getCropById } from '@/data'
-import { SPRINKLERS, getFertilizerById } from '@/data/processing'
+import { getFertilizerById, getSprinklerById } from '@/data/processing'
 import {
   getOfficialFruitTreeById,
   getOfficialWildTreeById
@@ -362,7 +362,7 @@ export const useFarmStore = defineStore('farm', () => {
   const getAllWateredBySprinklers = (): Set<number> => {
     const watered = new Set<number>()
     for (const s of sprinklers.value) {
-      const def = SPRINKLERS.find(d => d.id === s.type)
+      const def = getSprinklerById(s.type)
       if (!def) continue
       watered.add(s.plotId)
       for (const pid of getSprinklerCoverage(s.plotId, def.range)) {

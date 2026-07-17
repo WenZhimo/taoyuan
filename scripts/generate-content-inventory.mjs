@@ -1169,8 +1169,8 @@ const symbolReviewOverrides = new Map(Object.entries({
     targetRegistry: 'taoyuan:sprinkler',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
-    status: 'baselined',
-    rationale: 'Leaf source extracted only to keep generated item derivation free of registry cycles; sprinkler registry migration remains a later production/facility slice.'
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all legacy sprinkler craft definitions; Phase 6 projects every sprinkler into taoyuan:sprinkler and verifies IDs, order, names, descriptions, ranges, materials, money and runtime consumers.'
   },
   'src/data/processingCraftDefinitions.ts:FERTILIZERS': {
     classification: 'content',
@@ -1253,8 +1253,22 @@ const symbolReviewOverrides = new Map(Object.entries({
     targetRegistry: 'taoyuan:sprinkler',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
-    status: 'baselined',
-    rationale: 'Original-name re-export preserves legacy sprinkler imports after the leaf extraction; sprinkler registry migration remains out of this processing machine slice.'
+    status: 'verified',
+    rationale: 'Original-name re-export preserves legacy sprinkler imports while new list and ID lookups resolve taoyuan:sprinkler first.'
+  },
+  'src/data/processing.ts:getSprinklerById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:sprinkler',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getSprinklerById() signature is retained and now resolves taoyuan:sprinkler before returning the same local-ID SprinklerDef shape.'
+  },
+  'src/data/processing.ts:getSprinklers': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:sprinkler',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Sprinkler list query returns local-ID compatibility objects reconstructed from taoyuan:sprinkler in legacy order.'
   },
   'src/data/processing.ts:FERTILIZERS': {
     classification: 'adapter',
