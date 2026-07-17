@@ -21,6 +21,7 @@ import { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from '@/data/hanhaiShopDefin
 import { TRADE_EXCHANGE_ITEMS } from '@/data/hanhaiDefinitions'
 import { TRADE_SHOP_UPGRADES } from '@/data/hanhaiTradeShopDefinitions'
 import { HANHAI_TREASURE_REWARDS } from '@/data/hanhaiTreasureDefinitions'
+import { HANHAI_ROULETTE_CONFIG, type HanhaiRouletteDefinition } from '@/data/hanhaiRouletteDefinitions'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
@@ -164,6 +165,7 @@ import type {
   HanhaiTradeExchangeDef,
   HanhaiTradeShopUpgradeDef,
   HanhaiTreasureRewardDef,
+  HanhaiRouletteDef,
   HeartEventDef,
   HiddenNpcDef,
   CropDef,
@@ -449,6 +451,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('hanhai_treasure_reward'),
     description: '瀚海藏宝图奖励定义',
     schemaName: 'hanhai-treasure-reward.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('hanhai_roulette'),
+    description: '瀚海幸运轮盘配置',
+    schemaName: 'hanhai-roulette.schema.json'
   }
 ] as const satisfies readonly RegistryDefinition<RegistryEntry>[]
 
@@ -2018,6 +2025,22 @@ export const adaptHanhaiTreasureReward = (
 export const createOfficialHanhaiTreasureRewards = (): HanhaiTreasureRewardDef[] =>
   HANHAI_TREASURE_REWARDS.map(adaptHanhaiTreasureReward)
 
+export const adaptHanhaiRoulette = (
+  config: HanhaiRouletteDefinition
+): HanhaiRouletteDef => ({
+  id: toOfficialContentId(`hanhai_roulette/${config.id}`),
+  outcomes: config.outcomes.map((outcome, index) => ({
+    label: text(`taoyuan.hanhai.roulette.${config.id}.outcome.${index}.label`, outcome.label),
+    multiplier: outcome.multiplier,
+    chance: outcome.chance
+  })),
+  betTiers: [...config.betTiers]
+})
+
+export const createOfficialHanhaiRoulettes = (): HanhaiRouletteDef[] => [
+  adaptHanhaiRoulette(HANHAI_ROULETTE_CONFIG)
+]
+
 const uniqueMonsters = (): LegacyMonsterDef[] => {
   const byId = new Map<string, LegacyMonsterDef>()
   for (const monster of [
@@ -2085,6 +2108,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const hanhaiTradeExchangeRegistry = registrySet.get<HanhaiTradeExchangeDef>(toOfficialRegistryTypeId('hanhai_trade_exchange'))
   const hanhaiTradeShopUpgradeRegistry = registrySet.get<HanhaiTradeShopUpgradeDef>(toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'))
   const hanhaiTreasureRewardRegistry = registrySet.get<HanhaiTreasureRewardDef>(toOfficialRegistryTypeId('hanhai_treasure_reward'))
+  const hanhaiRouletteRegistry = registrySet.get<HanhaiRouletteDef>(toOfficialRegistryTypeId('hanhai_roulette'))
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
@@ -2233,6 +2257,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const reward of createOfficialHanhaiTreasureRewards()) {
     hanhaiTreasureRewardRegistry.register(owner, reward, { file: 'src/data/hanhaiTreasureDefinitions.ts' })
+  }
+  for (const roulette of createOfficialHanhaiRoulettes()) {
+    hanhaiRouletteRegistry.register(owner, roulette, { file: 'src/data/hanhaiRouletteDefinitions.ts' })
   }
 
   return registrySet

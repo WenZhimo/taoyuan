@@ -1,0 +1,44 @@
+[
+  {
+    "id": "example_mod:hanhai_roulette/lucky",
+    "outcomes": [
+      {
+        "label": {
+          "key": "example_mod.hanhai_roulette.lucky.outcome.empty.label",
+          "fallback": "空"
+        },
+        "multiplier": 0,
+        "chance": 72
+      },
+      {
+        "label": {
+          "key": "example_mod.hanhai_roulette.lucky.outcome.double.label",
+          "fallback": "双倍"
+        },
+        "multiplier": 2,
+        "chance": 18
+      },
+      {
+        "label": {
+          "key": "example_mod.hanhai_roulette.lucky.outcome.triple.label",
+          "fallback": "三倍"
+        },
+        "multiplier": 3,
+        "chance": 7
+      },
+      {
+        "label": {
+          "key": "example_mod.hanhai_roulette.lucky.outcome.quintuple.label",
+          "fallback": "五倍"
+        },
+        "multiplier": 5,
+        "chance": 3
+      }
+    ],
+    "betTiers": [
+      100,
+      500,
+      1000
+    ]
+  }
+]

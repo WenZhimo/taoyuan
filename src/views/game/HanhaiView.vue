@@ -215,7 +215,7 @@
             <p class="text-xs text-muted mb-2">选择投注金额，转动轮盘赢取倍数奖励</p>
             <div class="flex space-x-1">
               <Button
-                v-for="tier in ROULETTE_BET_TIERS"
+                v-for="tier in rouletteBetTiers"
                 :key="tier"
                 class="flex-1 justify-center"
                 :disabled="playerStore.money < tier"
@@ -418,7 +418,7 @@
           <!-- 转盘格子 -->
           <div class="flex flex-col space-y-1 mb-3">
             <div
-              v-for="(outcome, i) in ROULETTE_OUTCOMES"
+              v-for="(outcome, i) in rouletteOutcomes"
               :key="i"
               class="border rounded-xs px-3 py-1.5 text-xs text-center transition-all duration-100"
               :class="rouletteHighlight === i ? 'border-accent bg-accent/15 text-accent' : 'border-accent/10 text-muted/40'"
@@ -884,8 +884,6 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useWalletStore } from '@/stores/useWalletStore'
   import {
-    ROULETTE_BET_TIERS,
-    ROULETTE_OUTCOMES,
     DICE_BET_AMOUNT,
     MAX_DAILY_BETS,
     HANHAI_UNLOCK_COST,
@@ -903,7 +901,12 @@
     calcTradePoints
   } from '@/data/hanhai'
   import { getItemById } from '@/data/items'
-  import { getOfficialHanhaiFixedShopItems, getOfficialHanhaiTradeExchangeItemsAsLegacy } from '@/domain/mods/contentAccess'
+  import {
+    getOfficialHanhaiFixedShopItems,
+    getOfficialHanhaiRouletteBetTiers,
+    getOfficialHanhaiRouletteOutcomes,
+    getOfficialHanhaiTradeExchangeItemsAsLegacy
+  } from '@/domain/mods/contentAccess'
   import type { HanhaiShopItemDef, CricketDef, TexasSetup, TexasTierId, BuckshotSetup, TradeExchangeItemDef, InventoryItem, Quality } from '@/types'
   import { addLog } from '@/composables/useGameLog'
   import { useAudio } from '@/composables/useAudio'
@@ -945,6 +948,8 @@
   const activeTab = ref<'shop' | 'casino' | 'trade'>('shop')
   const shopModalItem = ref<HanhaiShopItemDef | null>(null)
   const hanhaiFixedItems = computed(() => getOfficialHanhaiFixedShopItems())
+  const rouletteBetTiers = computed(() => getOfficialHanhaiRouletteBetTiers())
+  const rouletteOutcomes = computed(() => getOfficialHanhaiRouletteOutcomes())
 
   onMounted(() => {
     startHanhaiBgm()
@@ -1031,7 +1036,7 @@
 
   // === 轮盘逻辑 ===
   const startRouletteSpin = (targetIndex: number) => {
-    const len = ROULETTE_OUTCOMES.length
+    const len = rouletteOutcomes.value.length
     const fullCycles = 3 + Math.floor(Math.random() * 2) // 3~4 圈增加随机感
     const totalSteps = fullCycles * len + targetIndex
     let step = 0
@@ -1077,7 +1082,7 @@
     showRouletteModal.value = true
     sfxRouletteSpin()
 
-    const targetIndex = ROULETTE_OUTCOMES.findIndex(o => o.multiplier === result.multiplier)
+    const targetIndex = rouletteOutcomes.value.findIndex(o => o.multiplier === result.multiplier)
     startRouletteSpin(targetIndex >= 0 ? targetIndex : 0)
   }
 

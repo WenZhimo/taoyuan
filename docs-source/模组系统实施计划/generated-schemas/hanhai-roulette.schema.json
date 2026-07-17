@@ -1,0 +1,67 @@
+{
+  "$id": "taoyuan.registry.HanhaiRouletteDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "outcomes",
+    "betTiers"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "outcomes": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "label",
+          "multiplier",
+          "chance"
+        ],
+        "properties": {
+          "label": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "key",
+              "fallback"
+            ],
+            "properties": {
+              "key": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "fallback": {
+                "minLength": 1,
+                "type": "string"
+              }
+            }
+          },
+          "multiplier": {
+            "minimum": 0,
+            "type": "number"
+          },
+          "chance": {
+            "exclusiveMinimum": 0,
+            "maximum": 100,
+            "type": "number"
+          }
+        }
+      }
+    },
+    "betTiers": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "minimum": 1,
+        "type": "integer"
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

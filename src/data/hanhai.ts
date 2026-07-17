@@ -13,26 +13,23 @@ import type {
   PokerActionType,
   ShellType
 } from '@/types'
-import { getOfficialHanhaiWeeklyRotatingItems } from '@/domain/mods/contentAccess'
+import {
+  getOfficialHanhaiRouletteOutcomes,
+  getOfficialHanhaiWeeklyRotatingItems
+} from '@/domain/mods/contentAccess'
 export { HANHAI_FIXED_ITEMS, HANHAI_ROTATING_POOL } from './hanhaiShopDefinitions'
 export { TRADE_EXCHANGE_ITEMS } from './hanhaiDefinitions'
 export { TRADE_SHOP_UPGRADES } from './hanhaiTradeShopDefinitions'
 export { HANHAI_TREASURE_REWARDS } from './hanhaiTreasureDefinitions'
+export {
+  HANHAI_ROULETTE_CONFIG,
+  ROULETTE_BET_TIERS,
+  ROULETTE_OUTCOMES
+} from './hanhaiRouletteDefinitions'
 
 /** 根据年份+季节+周数生成本周轮换商品（确定性伪随机） */
 export const getWeeklyRotatingItems = (year: number, seasonIndex: number, day: number): HanhaiShopItemDef[] =>
   getOfficialHanhaiWeeklyRotatingItems(year, seasonIndex, day)
-
-/** 轮盘赔率 */
-export const ROULETTE_OUTCOMES: RouletteOutcome[] = [
-  { label: '空', multiplier: 0, chance: 72 },
-  { label: '双倍', multiplier: 2, chance: 18 },
-  { label: '三倍', multiplier: 3, chance: 7 },
-  { label: '五倍', multiplier: 5, chance: 3 }
-]
-
-/** 轮盘投注档位 */
-export const ROULETTE_BET_TIERS = [100, 500, 1000] as const
 
 /** 骰子投注金额 */
 export const DICE_BET_AMOUNT = 200
@@ -46,11 +43,12 @@ export const HANHAI_UNLOCK_COST = 100000
 /** 根据概率随机选择轮盘结果 */
 export const spinRoulette = (): RouletteOutcome => {
   let roll = Math.random() * 100
-  for (const outcome of ROULETTE_OUTCOMES) {
+  const outcomes = getOfficialHanhaiRouletteOutcomes()
+  for (const outcome of outcomes) {
     roll -= outcome.chance
     if (roll <= 0) return outcome
   }
-  return ROULETTE_OUTCOMES[0]!
+  return outcomes[0]!
 }
 
 /** 骰子游戏：投大小 */

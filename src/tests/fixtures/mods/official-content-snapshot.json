@@ -39710,6 +39710,61 @@
       ]
     },
     {
+      "registryId": "taoyuan:hanhai_roulette",
+      "schemaName": "hanhai-roulette.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiRouletteDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "betTiers": [
+              100,
+              500,
+              1000
+            ],
+            "id": "taoyuan:hanhai_roulette/lucky",
+            "outcomes": [
+              {
+                "chance": 72,
+                "label": {
+                  "fallback": "空",
+                  "key": "taoyuan.hanhai.roulette.lucky.outcome.0.label"
+                },
+                "multiplier": 0
+              },
+              {
+                "chance": 18,
+                "label": {
+                  "fallback": "双倍",
+                  "key": "taoyuan.hanhai.roulette.lucky.outcome.1.label"
+                },
+                "multiplier": 2
+              },
+              {
+                "chance": 7,
+                "label": {
+                  "fallback": "三倍",
+                  "key": "taoyuan.hanhai.roulette.lucky.outcome.2.label"
+                },
+                "multiplier": 3
+              },
+              {
+                "chance": 3,
+                "label": {
+                  "fallback": "五倍",
+                  "key": "taoyuan.hanhai.roulette.lucky.outcome.3.label"
+                },
+                "multiplier": 5
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:hanhai_trade_exchange",
       "schemaName": "hanhai-trade-exchange.schema.json",
       "entries": [
@@ -117484,5 +117539,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:ebed6a7733d58ce294bc5949dd5f27f2b7067d0caacca2c23de5573706669362"
+  "snapshotHash": "sha256:b19113b98069dcd78cf172bc90c0714acaa6105f23d4eb16d2fa67675aae549c"
 }

@@ -17,6 +17,7 @@ import type {
   ToolType,
   HanhaiShopItemDef as LegacyHanhaiShopItemDef,
   HanhaiTreasureRewardDef as LegacyHanhaiTreasureRewardDef,
+  RouletteOutcome as LegacyRouletteOutcome,
   TradeExchangeItemDef as LegacyTradeExchangeItemDef,
   TradeShopUpgradeDef as LegacyHanhaiTradeShopUpgradeDef,
   WeaponDef as LegacyWeaponDef,
@@ -111,6 +112,7 @@ import type {
   HanhaiTradeExchangeDef as HanhaiTradeExchangeContentDef,
   HanhaiTradeShopUpgradeDef as HanhaiTradeShopUpgradeContentDef,
   HanhaiTreasureRewardDef as HanhaiTreasureRewardContentDef,
+  HanhaiRouletteDef as HanhaiRouletteContentDef,
   FruitTreeContentDef,
   ItemDef,
   MarketCategoryDef as MarketCategoryContentDef,
@@ -272,6 +274,19 @@ const toHanhaiTreasureRewardQueryContentId = (id: string) => {
   }
   if (id.startsWith('hanhai_treasure_reward/')) return toQueryContentId(id)
   return toQueryContentId(`hanhai_treasure_reward/${id}`)
+}
+
+const toHanhaiRouletteQueryContentId = (id = 'lucky') => {
+  if (id.includes(':')) {
+    const parsed = toQueryContentId(id)
+    if (!parsed) return null
+    const localId = getLocalContentId(parsed)
+    return localId.startsWith('hanhai_roulette/')
+      ? parsed
+      : toQueryContentId(`hanhai_roulette/${localId}`)
+  }
+  if (id.startsWith('hanhai_roulette/')) return toQueryContentId(id)
+  return toQueryContentId(`hanhai_roulette/${id}`)
 }
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
@@ -845,6 +860,47 @@ export const getOfficialHanhaiTreasureRewardForRoll = (roll: number): LegacyHanh
   const rewards = getOfficialHanhaiTreasureRewardsAsLegacy()
   return rewards.find(reward => roll < reward.rollMaxExclusive) ?? rewards[rewards.length - 1]!
 }
+
+export const getOfficialHanhaiRouletteDef = (
+  id = 'lucky'
+): Readonly<HanhaiRouletteContentDef> | undefined => {
+  const contentId = toHanhaiRouletteQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet()
+        .get<HanhaiRouletteContentDef>(toOfficialRegistryTypeId('hanhai_roulette'))
+        .get(contentId)
+    : undefined
+}
+
+export const getOfficialHanhaiRouletteDefs = (): readonly Readonly<HanhaiRouletteContentDef>[] =>
+  getOfficialRegistrySet()
+    .get<HanhaiRouletteContentDef>(toOfficialRegistryTypeId('hanhai_roulette'))
+    .values()
+
+const toLegacyHanhaiRoulette = (
+  roulette: Readonly<HanhaiRouletteContentDef>
+): { id: string; outcomes: LegacyRouletteOutcome[]; betTiers: number[] } => ({
+  id: getLocalContentId(roulette.id).replace(/^hanhai_roulette\//, ''),
+  outcomes: roulette.outcomes.map(outcome => ({
+    label: outcome.label.fallback,
+    multiplier: outcome.multiplier,
+    chance: outcome.chance
+  })),
+  betTiers: [...roulette.betTiers]
+})
+
+export const getOfficialHanhaiRouletteAsLegacy = (
+  id = 'lucky'
+): { id: string; outcomes: LegacyRouletteOutcome[]; betTiers: number[] } | undefined => {
+  const roulette = getOfficialHanhaiRouletteDef(id)
+  return roulette ? toLegacyHanhaiRoulette(roulette) : undefined
+}
+
+export const getOfficialHanhaiRouletteOutcomes = (id = 'lucky'): LegacyRouletteOutcome[] =>
+  getOfficialHanhaiRouletteAsLegacy(id)?.outcomes ?? []
+
+export const getOfficialHanhaiRouletteBetTiers = (id = 'lucky'): number[] =>
+  getOfficialHanhaiRouletteAsLegacy(id)?.betTiers ?? []
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)

@@ -37,6 +37,7 @@ const contentNames = new Set([
   'GUILD_SHOP_ITEMS',
   'HANHAI_FIXED_ITEMS',
   'HANHAI_ROTATING_POOL',
+  'HANHAI_ROULETTE_CONFIG',
   'HANHAI_TREASURE_REWARDS',
   'HATS',
   'HEART_EVENTS',
@@ -62,6 +63,8 @@ const contentNames = new Set([
   'QUEST_TEMPLATES',
   'RECIPES',
   'RINGS',
+  'ROULETTE_BET_TIERS',
+  'ROULETTE_OUTCOMES',
   'SECRET_NOTES',
   'SEASON_EVENTS',
   'SHOES',
@@ -748,6 +751,41 @@ fileDefaults.set('src/data/hanhaiTreasureDefinitions.ts', {
   classification: 'mixed',
   domains: ['hanhai_treasure_reward'],
   candidateTargets: ['taoyuan:hanhai_treasure_reward'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/hanhaiRouletteDefinitions.ts', {
+  file: 'src/data/hanhaiRouletteDefinitions.ts',
+  classification: 'mixed',
+  domains: ['hanhai_roulette'],
+  candidateTargets: ['taoyuan:hanhai_roulette'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
+
+fileDefaults.set('src/data/hanhai.ts', {
+  file: 'src/data/hanhai.ts',
+  classification: 'mixed',
+  domains: [
+    'hanhai_shop_offer',
+    'hanhai_trade_exchange',
+    'hanhai_trade_shop_upgrade',
+    'hanhai_treasure_reward',
+    'hanhai_roulette',
+    'minigame_config',
+    'minigame_algorithm'
+  ],
+  candidateTargets: [
+    'taoyuan:shop_offer',
+    'taoyuan:hanhai_trade_exchange',
+    'taoyuan:hanhai_trade_shop_upgrade',
+    'taoyuan:hanhai_treasure_reward',
+    'taoyuan:hanhai_roulette',
+    'taoyuan:minigame_config',
+    'engine/domain/hanhai',
+    'compatibility_adapter'
+  ],
   phases: [6],
   status: 'symbol_inventoried'
 })
@@ -3599,6 +3637,68 @@ const symbolReviewOverrides = new Map(Object.entries({
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
     rationale: 'Original-name re-export keeps legacy Hanhai imports stable after treasure reward leaf data moved to hanhaiTreasureDefinitions.ts.'
+  },
+  'src/data/hanhaiRouletteDefinitions.ts:HanhaiRouletteDefinition': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    status: 'verified',
+    rationale: 'Legacy local TypeScript shape for the Hanhai lucky roulette leaf config; public external shape remains the TypeBox HanhaiRouletteDefSchema.'
+  },
+  'src/data/hanhaiRouletteDefinitions.ts:ROULETTE_OUTCOMES': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for the four legacy lucky roulette outcome labels, multipliers and probability weights; Phase 6 projects them into taoyuan:hanhai_roulette without changing order or thresholds.'
+  },
+  'src/data/hanhaiRouletteDefinitions.ts:ROULETTE_BET_TIERS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for the three legacy lucky roulette bet tiers; Phase 6 projects them into taoyuan:hanhai_roulette while bet validation stays in the Hanhai store.'
+  },
+  'src/data/hanhaiRouletteDefinitions.ts:HANHAI_ROULETTE_CONFIG': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Single official Hanhai lucky roulette config leaf tying outcome order and bet tier order to the taoyuan:hanhai_roulette registry entry.'
+  },
+  'src/data/hanhai.ts:HANHAI_ROULETTE_CONFIG': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy Hanhai roulette config imports stable after the fixed config moved to hanhaiRouletteDefinitions.ts.'
+  },
+  'src/data/hanhai.ts:ROULETTE_OUTCOMES': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy roulette outcome imports stable while Store and View consumers can read outcomes through the registry facade.'
+  },
+  'src/data/hanhai.ts:ROULETTE_BET_TIERS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy bet tier imports stable while runtime validation reads tiers through the registry facade.'
+  },
+  'src/data/hanhai.ts:spinRoulette': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/hanhai',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Framework-owned lucky roulette random selection keeps the same signature, one Math.random() call and threshold semantics while reading outcome weights through taoyuan:hanhai_roulette.'
   }
 }))
 
@@ -5222,6 +5322,66 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Uses registry-backed Hanhai treasure reward tiers while preserving map consumption, one Math.random() roll, reward text, money grant, item grants, logs and old save fields.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'HanhaiRouletteDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for Hanhai lucky roulette fixed config, including localized outcome labels, multipliers, chance weights and bet tiers.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptHanhaiRoulette/createOfficialHanhaiRoulettes',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects the legacy Hanhai lucky roulette outcome order and bet tiers into official registry entries without changing labels, multipliers, chances or tier order.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialHanhaiRouletteDef/getOfficialHanhaiRouletteDefs/getOfficialHanhaiRouletteAsLegacy/getOfficialHanhaiRouletteOutcomes/getOfficialHanhaiRouletteBetTiers',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen registry roulette config, reconstructs legacy outcome and bet tier arrays, and accepts local, prefixed or namespaced IDs.'
+  },
+  {
+    file: 'src/domain/mods/semanticValidation.ts',
+    exportName: 'validateRegistrySemantics:hanhai_roulette',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Checks Hanhai roulette chance totals and duplicate bet tiers before registry snapshots are accepted.'
+  },
+  {
+    file: 'src/stores/useHanhaiStore.ts',
+    exportName: 'playRoulette:hanhai_roulette',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Uses registry-backed lucky roulette bet tiers and outcomes while preserving bet validation, money deduction, one Math.random() spin, payouts, logs and old save fields.'
+  },
+  {
+    file: 'src/views/game/HanhaiView.vue',
+    exportName: 'rouletteBetTiers/rouletteOutcomes:hanhai_roulette',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_roulette',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Renders lucky roulette buttons and animation outcomes from registry-backed compatibility arrays without changing UI text, order or animation flow.'
   }
 ]
 

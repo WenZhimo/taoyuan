@@ -33,6 +33,7 @@ import type {
   HanhaiTradeExchangeDef,
   HanhaiTradeShopUpgradeDef,
   HanhaiTreasureRewardDef,
+  HanhaiRouletteDef,
   HeartEventDef,
   HiddenNpcDef,
   MonsterDef,
@@ -104,7 +105,8 @@ const REGISTRY_IDS = {
   shopOffer: toOfficialRegistryTypeId('shop_offer'),
   hanhaiTradeExchange: toOfficialRegistryTypeId('hanhai_trade_exchange'),
   hanhaiTradeShopUpgrade: toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'),
-  hanhaiTreasureReward: toOfficialRegistryTypeId('hanhai_treasure_reward')
+  hanhaiTreasureReward: toOfficialRegistryTypeId('hanhai_treasure_reward'),
+  hanhaiRoulette: toOfficialRegistryTypeId('hanhai_roulette')
 }
 
 const pushMissingReference = (
@@ -198,6 +200,7 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
   const hanhaiTradeExchangeRegistry = registrySet.get<HanhaiTradeExchangeDef>(REGISTRY_IDS.hanhaiTradeExchange)
   const hanhaiTradeShopUpgradeRegistry = registrySet.get<HanhaiTradeShopUpgradeDef>(REGISTRY_IDS.hanhaiTradeShopUpgrade)
   const hanhaiTreasureRewardRegistry = registrySet.get<HanhaiTreasureRewardDef>(REGISTRY_IDS.hanhaiTreasureReward)
+  const hanhaiRouletteRegistry = registrySet.get<HanhaiRouletteDef>(REGISTRY_IDS.hanhaiRoulette)
 
   for (const record of recipeRegistry.entries()) {
     record.entry.ingredients.forEach((ingredient, index) => {
@@ -301,6 +304,33 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         })
       }
     })
+  }
+
+  for (const record of hanhaiRouletteRegistry.entries()) {
+    const chanceTotal = record.entry.outcomes.reduce((total, outcome) => total + outcome.chance, 0)
+    if (Math.abs(chanceTotal - 100) > 1e-9) {
+      diagnostics.push(
+        createDiagnostic('SCHEMA-VALIDATE-001', {
+          stage: 'registry.semantic',
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.hanhaiRoulette,
+          contentId: contentId(record.entry.id),
+          fieldPath: '/outcomes'
+        })
+      )
+    }
+
+    if (new Set(record.entry.betTiers).size !== record.entry.betTiers.length) {
+      diagnostics.push(
+        createDiagnostic('SCHEMA-VALIDATE-001', {
+          stage: 'registry.semantic',
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.hanhaiRoulette,
+          contentId: contentId(record.entry.id),
+          fieldPath: '/betTiers'
+        })
+      )
+    }
   }
 
   for (const record of cropRegistry.entries()) {

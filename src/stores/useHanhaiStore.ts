@@ -5,7 +5,6 @@ import {
   HANHAI_UNLOCK_COST,
   spinRoulette,
   rollDice,
-  ROULETTE_BET_TIERS,
   DICE_BET_AMOUNT,
   CUP_BET_AMOUNT,
   CUP_WIN_MULTIPLIER,
@@ -31,6 +30,7 @@ import {
   getOfficialHanhaiTradeShopUpgrade,
   getOfficialHanhaiTradeShopUpgradesAsLegacy,
   getOfficialHanhaiTradeExchangeItem,
+  getOfficialHanhaiRouletteBetTiers,
   getOfficialHanhaiTreasureRewardForRoll,
   getOfficialHanhaiWeeklyRotatingItems
 } from '@/domain/mods/contentAccess'
@@ -141,7 +141,7 @@ export const useHanhaiStore = defineStore('hanhai', () => {
   /** 玩幸运轮盘 */
   const playRoulette = (betTier: number): { success: boolean; message: string; multiplier: number; winnings: number } => {
     if (!canBet.value) return { success: false, message: '今天的赌博次数已用完。', multiplier: 0, winnings: 0 }
-    if (!ROULETTE_BET_TIERS.includes(betTier as (typeof ROULETTE_BET_TIERS)[number])) {
+    if (!getOfficialHanhaiRouletteBetTiers().includes(betTier)) {
       return { success: false, message: '无效的投注金额。', multiplier: 0, winnings: 0 }
     }
     const playerStore = usePlayerStore()

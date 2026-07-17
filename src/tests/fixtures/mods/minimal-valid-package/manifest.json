@@ -137,6 +137,9 @@
     "taoyuan:hanhai_treasure_reward": [
       "data/hanhai-treasure-rewards.json"
     ],
+    "taoyuan:hanhai_roulette": [
+      "data/hanhai-roulettes.json"
+    ],
     "taoyuan:tool_upgrade": [
       "data/tool-upgrades.json"
     ],
