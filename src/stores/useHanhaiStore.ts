@@ -5,9 +5,6 @@ import {
   HANHAI_UNLOCK_COST,
   spinRoulette,
   rollDice,
-  DICE_BET_AMOUNT,
-  CUP_BET_AMOUNT,
-  CUP_WIN_MULTIPLIER,
   playCupRound,
   CRICKET_BET_AMOUNT,
   CRICKET_WIN_MULTIPLIER,
@@ -30,6 +27,8 @@ import {
   getOfficialHanhaiTradeShopUpgrade,
   getOfficialHanhaiTradeShopUpgradesAsLegacy,
   getOfficialHanhaiTradeExchangeItem,
+  getOfficialHanhaiCasinoBetAmount,
+  getOfficialHanhaiCasinoWinMultiplier,
   getOfficialHanhaiRouletteBetTiers,
   getOfficialHanhaiTreasureRewardForRoll,
   getOfficialHanhaiWeeklyRotatingItems
@@ -168,13 +167,14 @@ export const useHanhaiStore = defineStore('hanhai', () => {
   ): { success: boolean; message: string; dice1: number; dice2: number; won: boolean; winnings: number } => {
     if (!canBet.value) return { success: false, message: '今天的赌博次数已用完。', dice1: 0, dice2: 0, won: false, winnings: 0 }
     const playerStore = usePlayerStore()
-    if (!playerStore.spendMoney(DICE_BET_AMOUNT)) {
+    const betAmount = getOfficialHanhaiCasinoBetAmount('dice')
+    if (!playerStore.spendMoney(betAmount)) {
       return { success: false, message: '金钱不足。', dice1: 0, dice2: 0, won: false, winnings: 0 }
     }
     casinoBetsToday.value++
     const result = rollDice()
     const won = guessBig === result.isBig
-    const winnings = won ? DICE_BET_AMOUNT * 2 : 0
+    const winnings = won ? betAmount * getOfficialHanhaiCasinoWinMultiplier('dice') : 0
     if (won) {
       playerStore.earnMoney(winnings)
     }
@@ -183,7 +183,7 @@ export const useHanhaiStore = defineStore('hanhai', () => {
     if (won) {
       addLog(`骰子${result.dice1}+${result.dice2}=${result.total}（${resultText}），你猜${guessText}——赢了${winnings}文！`)
     } else {
-      addLog(`骰子${result.dice1}+${result.dice2}=${result.total}（${resultText}），你猜${guessText}——输了${DICE_BET_AMOUNT}文。`)
+      addLog(`骰子${result.dice1}+${result.dice2}=${result.total}（${resultText}），你猜${guessText}——输了${betAmount}文。`)
     }
     return { success: true, message: won ? '赢了！' : '输了…', dice1: result.dice1, dice2: result.dice2, won, winnings }
   }
@@ -192,18 +192,19 @@ export const useHanhaiStore = defineStore('hanhai', () => {
   const playCup = (guess: number): { success: boolean; message: string; correctCup: number; won: boolean; winnings: number } => {
     if (!canBet.value) return { success: false, message: '今天的赌博次数已用完。', correctCup: 0, won: false, winnings: 0 }
     const playerStore = usePlayerStore()
-    if (!playerStore.spendMoney(CUP_BET_AMOUNT)) {
+    const betAmount = getOfficialHanhaiCasinoBetAmount('cup')
+    if (!playerStore.spendMoney(betAmount)) {
       return { success: false, message: '金钱不足。', correctCup: 0, won: false, winnings: 0 }
     }
     casinoBetsToday.value++
     const result = playCupRound()
     const won = guess === result.correctCup
-    const winnings = won ? Math.floor(CUP_BET_AMOUNT * CUP_WIN_MULTIPLIER) : 0
+    const winnings = won ? Math.floor(betAmount * getOfficialHanhaiCasinoWinMultiplier('cup')) : 0
     if (won) {
       playerStore.earnMoney(winnings)
       addLog(`猜杯猜中了第${guess + 1}号杯！赢得${winnings}文！`)
     } else {
-      addLog(`猜杯猜错了，球在第${result.correctCup + 1}号杯下，损失了${CUP_BET_AMOUNT}文。`)
+      addLog(`猜杯猜错了，球在第${result.correctCup + 1}号杯下，损失了${betAmount}文。`)
     }
     return { success: true, message: won ? '猜中了！' : '猜错了…', correctCup: result.correctCup, won, winnings }
   }

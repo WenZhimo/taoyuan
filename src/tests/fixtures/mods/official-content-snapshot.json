@@ -39710,6 +39710,36 @@
       ]
     },
     {
+      "registryId": "taoyuan:hanhai_casino_wager",
+      "schemaName": "hanhai-casino-wager.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiCasinoDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "betAmount": 250,
+            "id": "taoyuan:hanhai_casino_wager/cup",
+            "winMultiplier": 3
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/hanhaiCasinoDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "betAmount": 200,
+            "id": "taoyuan:hanhai_casino_wager/dice",
+            "winMultiplier": 2
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:hanhai_roulette",
       "schemaName": "hanhai-roulette.schema.json",
       "entries": [
@@ -117539,5 +117569,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:b19113b98069dcd78cf172bc90c0714acaa6105f23d4eb16d2fa67675aae549c"
+  "snapshotHash": "sha256:263748b01cf3e626ff9b882910c2042fed0a666a130039b2860e0de1a5cc1688"
 }

@@ -232,12 +232,12 @@
               <Dices :size="12" />
               <span>骰子猜大小</span>
             </p>
-            <p class="text-xs text-muted mb-2">投注{{ DICE_BET_AMOUNT }}文，猜对大小赢2倍</p>
+            <p class="text-xs text-muted mb-2">投注{{ diceBetAmount }}文，猜对大小赢{{ diceWinMultiplier }}倍</p>
             <div class="flex space-x-1">
-              <Button class="flex-1 justify-center" :disabled="playerStore.money < DICE_BET_AMOUNT" @click="handleDice(false)">
+              <Button class="flex-1 justify-center" :disabled="playerStore.money < diceBetAmount" @click="handleDice(false)">
                 猜小 (2-6)
               </Button>
-              <Button class="flex-1 justify-center" :disabled="playerStore.money < DICE_BET_AMOUNT" @click="handleDice(true)">
+              <Button class="flex-1 justify-center" :disabled="playerStore.money < diceBetAmount" @click="handleDice(true)">
                 猜大 (7-12)
               </Button>
             </div>
@@ -249,13 +249,13 @@
               <Trophy :size="12" />
               <span>猜杯</span>
             </p>
-            <p class="text-xs text-muted mb-2">投注{{ CUP_BET_AMOUNT }}文，3选1猜中赢{{ CUP_WIN_MULTIPLIER }}倍</p>
+            <p class="text-xs text-muted mb-2">投注{{ cupBetAmount }}文，3选1猜中赢{{ cupWinMultiplier }}倍</p>
             <div class="flex space-x-1">
               <Button
                 v-for="i in 3"
                 :key="i"
                 class="flex-1 justify-center"
-                :disabled="playerStore.money < CUP_BET_AMOUNT"
+                :disabled="playerStore.money < cupBetAmount"
                 @click="handleCup(i - 1)"
               >
                 第{{ i }}杯
@@ -481,7 +481,7 @@
                 {{ diceAnimResult.won ? '猜对了！' : '猜错了…' }}
               </p>
               <p class="text-xs mt-0.5" :class="diceAnimResult.won ? 'text-success' : 'text-danger'">
-                {{ diceAnimResult.won ? '+' + diceAnimResult.winnings + '文' : '-' + DICE_BET_AMOUNT + '文' }}
+                {{ diceAnimResult.won ? '+' + diceAnimResult.winnings + '文' : '-' + diceBetAmount + '文' }}
               </p>
             </div>
             <Button class="w-full justify-center" @click="showDiceModal = false">确定</Button>
@@ -536,7 +536,7 @@
                 {{ cupAnimResult.won ? '猜中了！' : '猜错了…' }}
               </p>
               <p class="text-xs mt-0.5" :class="cupAnimResult.won ? 'text-success' : 'text-danger'">
-                {{ cupAnimResult.won ? '+' + cupAnimResult.winnings + '文' : '-' + CUP_BET_AMOUNT + '文' }}
+                {{ cupAnimResult.won ? '+' + cupAnimResult.winnings + '文' : '-' + cupBetAmount + '文' }}
               </p>
             </div>
             <Button class="w-full justify-center" @click="showCupModal = false">确定</Button>
@@ -884,11 +884,8 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useWalletStore } from '@/stores/useWalletStore'
   import {
-    DICE_BET_AMOUNT,
     MAX_DAILY_BETS,
     HANHAI_UNLOCK_COST,
-    CUP_BET_AMOUNT,
-    CUP_WIN_MULTIPLIER,
     CRICKET_BET_AMOUNT,
     CRICKET_WIN_MULTIPLIER,
     CRICKETS,
@@ -903,6 +900,8 @@
   import { getItemById } from '@/data/items'
   import {
     getOfficialHanhaiFixedShopItems,
+    getOfficialHanhaiCasinoBetAmount,
+    getOfficialHanhaiCasinoWinMultiplier,
     getOfficialHanhaiRouletteBetTiers,
     getOfficialHanhaiRouletteOutcomes,
     getOfficialHanhaiTradeExchangeItemsAsLegacy
@@ -983,6 +982,8 @@
   const diceGuessIsBig = ref(false)
 
   const diceSum = computed(() => (diceDisplay.value[0] ?? 0) + (diceDisplay.value[1] ?? 0))
+  const diceBetAmount = computed(() => getOfficialHanhaiCasinoBetAmount('dice'))
+  const diceWinMultiplier = computed(() => getOfficialHanhaiCasinoWinMultiplier('dice'))
 
   /** 骰面点位 (3×3 grid, 0-indexed) */
   const DICE_DOTS: Record<number, number[]> = {
@@ -1000,6 +1001,8 @@
   const cupGuess = ref(0)
   const cupShuffleIndex = ref(0)
   const cupAnimResult = ref<{ correctCup: number; won: boolean; winnings: number } | null>(null)
+  const cupBetAmount = computed(() => getOfficialHanhaiCasinoBetAmount('cup'))
+  const cupWinMultiplier = computed(() => getOfficialHanhaiCasinoWinMultiplier('cup'))
 
   // === 斗蛐蛐动画状态 ===
   const showCricketModal = ref(false)

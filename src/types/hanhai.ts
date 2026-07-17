@@ -39,6 +39,15 @@ export interface RouletteOutcome {
   chance: number
 }
 
+export type HanhaiCasinoWagerId = 'dice' | 'cup'
+
+/** 瀚海赌坊固定投注配置 */
+export interface HanhaiCasinoWagerDef {
+  id: HanhaiCasinoWagerId
+  betAmount: number
+  winMultiplier: number
+}
+
 // === 瀚海扑克 ===
 
 export type PokerSuit = 'spade' | 'heart' | 'diamond' | 'club'

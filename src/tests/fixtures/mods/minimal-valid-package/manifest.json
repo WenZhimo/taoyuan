@@ -140,6 +140,9 @@
     "taoyuan:hanhai_roulette": [
       "data/hanhai-roulettes.json"
     ],
+    "taoyuan:hanhai_casino_wager": [
+      "data/hanhai-casino-wagers.json"
+    ],
     "taoyuan:tool_upgrade": [
       "data/tool-upgrades.json"
     ],

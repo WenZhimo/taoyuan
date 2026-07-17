@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs'
+import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
@@ -38,6 +38,7 @@ const contentNames = new Set([
   'HANHAI_FIXED_ITEMS',
   'HANHAI_ROTATING_POOL',
   'HANHAI_ROULETTE_CONFIG',
+  'HANHAI_CASINO_WAGERS',
   'HANHAI_TREASURE_REWARDS',
   'HATS',
   'HEART_EVENTS',
@@ -763,6 +764,14 @@ fileDefaults.set('src/data/hanhaiRouletteDefinitions.ts', {
   phases: [6],
   status: 'symbol_inventoried'
 })
+.set('src/data/hanhaiCasinoDefinitions.ts', {
+  file: 'src/data/hanhaiCasinoDefinitions.ts',
+  classification: 'mixed',
+  domains: ['hanhai_casino_wager'],
+  candidateTargets: ['taoyuan:hanhai_casino_wager'],
+  phases: [6],
+  status: 'symbol_inventoried'
+})
 
 fileDefaults.set('src/data/hanhai.ts', {
   file: 'src/data/hanhai.ts',
@@ -773,6 +782,7 @@ fileDefaults.set('src/data/hanhai.ts', {
     'hanhai_trade_shop_upgrade',
     'hanhai_treasure_reward',
     'hanhai_roulette',
+    'hanhai_casino_wager',
     'minigame_config',
     'minigame_algorithm'
   ],
@@ -782,6 +792,7 @@ fileDefaults.set('src/data/hanhai.ts', {
     'taoyuan:hanhai_trade_shop_upgrade',
     'taoyuan:hanhai_treasure_reward',
     'taoyuan:hanhai_roulette',
+    'taoyuan:hanhai_casino_wager',
     'taoyuan:minigame_config',
     'engine/domain/hanhai',
     'compatibility_adapter'
@@ -3699,6 +3710,86 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: false,
     status: 'verified',
     rationale: 'Framework-owned lucky roulette random selection keeps the same signature, one Math.random() call and threshold semantics while reading outcome weights through taoyuan:hanhai_roulette.'
+  },
+  'src/data/hanhaiCasinoDefinitions.ts:HANHAI_CASINO_WAGERS': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Unique leaf source for the legacy dice and cup fixed wager definitions; Phase 6 projects bet amounts and win multipliers into taoyuan:hanhai_casino_wager without changing minigame algorithms.'
+  },
+  'src/data/hanhaiCasinoDefinitions.ts:DICE_BET_AMOUNT': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy dice bet constant is derived from the verified casino wager leaf so old imports keep the same 200 wen value.'
+  },
+  'src/data/hanhaiCasinoDefinitions.ts:DICE_WIN_MULTIPLIER': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy dice multiplier constant is derived from the verified casino wager leaf so old imports keep the same 2x payout.'
+  },
+  'src/data/hanhaiCasinoDefinitions.ts:CUP_BET_AMOUNT': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy cup bet constant is derived from the verified casino wager leaf so old imports keep the same 250 wen value.'
+  },
+  'src/data/hanhaiCasinoDefinitions.ts:CUP_WIN_MULTIPLIER': {
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Legacy cup multiplier constant is derived from the verified casino wager leaf so old imports keep the same 3x payout.'
+  },
+  'src/data/hanhai.ts:HANHAI_CASINO_WAGERS': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy Hanhai casino wager imports stable after dice and cup fixed config moved to hanhaiCasinoDefinitions.ts.'
+  },
+  'src/data/hanhai.ts:DICE_BET_AMOUNT': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy dice bet imports stable while Store and View consumers read the value through the registry facade.'
+  },
+  'src/data/hanhai.ts:DICE_WIN_MULTIPLIER': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy dice multiplier imports stable while Store and View consumers read the value through the registry facade.'
+  },
+  'src/data/hanhai.ts:CUP_BET_AMOUNT': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy cup bet imports stable while Store and View consumers read the value through the registry facade.'
+  },
+  'src/data/hanhai.ts:CUP_WIN_MULTIPLIER': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+    status: 'verified',
+    rationale: 'Original-name re-export keeps legacy cup multiplier imports stable while Store and View consumers read the value through the registry facade.'
   }
 }))
 
@@ -5382,6 +5473,56 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Renders lucky roulette buttons and animation outcomes from registry-backed compatibility arrays without changing UI text, order or animation flow.'
+  },
+  {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'HanhaiCasinoWagerDefSchema',
+    classification: 'content',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'TypeBox source of truth for Hanhai dice and cup fixed wager definitions, including bet amounts and win multipliers.'
+  },
+  {
+    file: 'src/domain/mods/staticAdapters.ts',
+    exportName: 'adaptHanhaiCasinoWager/createOfficialHanhaiCasinoWagers',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: true,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects the legacy dice and cup bet amounts and win multipliers into official registry entries without changing casino minigame algorithms.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialHanhaiCasinoWagerDef/getOfficialHanhaiCasinoWagerDefs/getOfficialHanhaiCasinoWager/getOfficialHanhaiCasinoBetAmount/getOfficialHanhaiCasinoWinMultiplier',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns frozen casino wager definitions, reconstructs legacy local-ID wager objects, and accepts local, prefixed or namespaced IDs.'
+  },
+  {
+    file: 'src/stores/useHanhaiStore.ts',
+    exportName: 'playDice/playCup:hanhai_casino_wager',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Uses registry-backed dice and cup wager values while preserving spend/earn flow, random call counts, daily bet counter, logs and old save fields.'
+  },
+  {
+    file: 'src/views/game/HanhaiView.vue',
+    exportName: 'diceBetAmount/cupBetAmount:hanhai_casino_wager',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:hanhai_casino_wager',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Renders dice and cup wager text, disabled states and result deductions from registry-backed values without changing the modal flow.'
   }
 ]
 

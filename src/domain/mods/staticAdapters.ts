@@ -22,6 +22,7 @@ import { TRADE_EXCHANGE_ITEMS } from '@/data/hanhaiDefinitions'
 import { TRADE_SHOP_UPGRADES } from '@/data/hanhaiTradeShopDefinitions'
 import { HANHAI_TREASURE_REWARDS } from '@/data/hanhaiTreasureDefinitions'
 import { HANHAI_ROULETTE_CONFIG, type HanhaiRouletteDefinition } from '@/data/hanhaiRouletteDefinitions'
+import { HANHAI_CASINO_WAGERS } from '@/data/hanhaiCasinoDefinitions'
 import { GUILD_DONATIONS, GUILD_LEVELS, GUILD_SHOP_ITEMS, MONSTER_GOALS } from '@/data/guildDefinitions'
 import { ACHIEVEMENTS, COMMUNITY_BUNDLES } from '@/data/achievementDefinitions'
 import { TRAVELING_MERCHANT_POOL } from '@/data/travelingMerchant'
@@ -166,6 +167,7 @@ import type {
   HanhaiTradeShopUpgradeDef,
   HanhaiTreasureRewardDef,
   HanhaiRouletteDef,
+  HanhaiCasinoWagerDef,
   HeartEventDef,
   HiddenNpcDef,
   CropDef,
@@ -456,6 +458,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('hanhai_roulette'),
     description: '瀚海幸运轮盘配置',
     schemaName: 'hanhai-roulette.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('hanhai_casino_wager'),
+    description: '瀚海赌坊固定投注配置',
+    schemaName: 'hanhai-casino-wager.schema.json'
   }
 ] as const satisfies readonly RegistryDefinition<RegistryEntry>[]
 
@@ -2041,6 +2048,17 @@ export const createOfficialHanhaiRoulettes = (): HanhaiRouletteDef[] => [
   adaptHanhaiRoulette(HANHAI_ROULETTE_CONFIG)
 ]
 
+export const adaptHanhaiCasinoWager = (
+  wager: typeof HANHAI_CASINO_WAGERS[number]
+): HanhaiCasinoWagerDef => ({
+  id: toOfficialContentId(`hanhai_casino_wager/${wager.id}`),
+  betAmount: wager.betAmount,
+  winMultiplier: wager.winMultiplier
+})
+
+export const createOfficialHanhaiCasinoWagers = (): HanhaiCasinoWagerDef[] =>
+  HANHAI_CASINO_WAGERS.map(adaptHanhaiCasinoWager)
+
 const uniqueMonsters = (): LegacyMonsterDef[] => {
   const byId = new Map<string, LegacyMonsterDef>()
   for (const monster of [
@@ -2109,6 +2127,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const hanhaiTradeShopUpgradeRegistry = registrySet.get<HanhaiTradeShopUpgradeDef>(toOfficialRegistryTypeId('hanhai_trade_shop_upgrade'))
   const hanhaiTreasureRewardRegistry = registrySet.get<HanhaiTreasureRewardDef>(toOfficialRegistryTypeId('hanhai_treasure_reward'))
   const hanhaiRouletteRegistry = registrySet.get<HanhaiRouletteDef>(toOfficialRegistryTypeId('hanhai_roulette'))
+  const hanhaiCasinoWagerRegistry = registrySet.get<HanhaiCasinoWagerDef>(toOfficialRegistryTypeId('hanhai_casino_wager'))
 
   for (const tag of createOfficialTags()) tagRegistry.register(owner, tag, { file: 'src/domain/mods/staticAdapters.ts' })
   for (const item of ITEMS.map(adaptLegacyItem)) itemRegistry.register(owner, item, { file: 'src/data/items.ts' })
@@ -2260,6 +2279,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const roulette of createOfficialHanhaiRoulettes()) {
     hanhaiRouletteRegistry.register(owner, roulette, { file: 'src/data/hanhaiRouletteDefinitions.ts' })
+  }
+  for (const wager of createOfficialHanhaiCasinoWagers()) {
+    hanhaiCasinoWagerRegistry.register(owner, wager, { file: 'src/data/hanhaiCasinoDefinitions.ts' })
   }
 
   return registrySet

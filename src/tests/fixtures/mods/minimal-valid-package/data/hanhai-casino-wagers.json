@@ -1,0 +1,12 @@
+[
+  {
+    "id": "example_mod:hanhai_casino_wager/dice",
+    "betAmount": 200,
+    "winMultiplier": 2
+  },
+  {
+    "id": "example_mod:hanhai_casino_wager/cup",
+    "betAmount": 250,
+    "winMultiplier": 3
+  }
+]

@@ -269,6 +269,15 @@ export const HanhaiRouletteDefSchema = Type.Object(
   { $id: 'taoyuan.registry.HanhaiRouletteDef', additionalProperties: false }
 )
 
+export const HanhaiCasinoWagerDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    betAmount: Type.Integer({ minimum: 1 }),
+    winMultiplier: Type.Number({ exclusiveMinimum: 0 })
+  },
+  { $id: 'taoyuan.registry.HanhaiCasinoWagerDef', additionalProperties: false }
+)
+
 export const SkillTypeSchema = Type.Union([
   Type.Literal('farming'),
   Type.Literal('foraging'),
@@ -2045,7 +2054,8 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:hanhai_trade_exchange': HanhaiTradeExchangeDefSchema,
   'taoyuan:hanhai_trade_shop_upgrade': HanhaiTradeShopUpgradeDefSchema,
   'taoyuan:hanhai_treasure_reward': HanhaiTreasureRewardDefSchema,
-  'taoyuan:hanhai_roulette': HanhaiRouletteDefSchema
+  'taoyuan:hanhai_roulette': HanhaiRouletteDefSchema,
+  'taoyuan:hanhai_casino_wager': HanhaiCasinoWagerDefSchema
 } as const satisfies Record<string, TSchema>
 
 export const PUBLIC_JSON_SCHEMAS = {
@@ -2103,7 +2113,8 @@ export const PUBLIC_JSON_SCHEMAS = {
   'hanhai-trade-exchange.schema.json': HanhaiTradeExchangeDefSchema,
   'hanhai-trade-shop-upgrade.schema.json': HanhaiTradeShopUpgradeDefSchema,
   'hanhai-treasure-reward.schema.json': HanhaiTreasureRewardDefSchema,
-  'hanhai-roulette.schema.json': HanhaiRouletteDefSchema
+  'hanhai-roulette.schema.json': HanhaiRouletteDefSchema,
+  'hanhai-casino-wager.schema.json': HanhaiCasinoWagerDefSchema
 } as const satisfies Record<string, TSchema>
 
 export type LocalizedTextRef = Static<typeof LocalizedTextRefSchema>
@@ -2124,6 +2135,7 @@ export type HanhaiTradeShopUpgradeDef = Static<typeof HanhaiTradeShopUpgradeDefS
 export type HanhaiTreasureRewardDef = Static<typeof HanhaiTreasureRewardDefSchema>
 export type HanhaiRouletteOutcome = Static<typeof HanhaiRouletteOutcomeSchema>
 export type HanhaiRouletteDef = Static<typeof HanhaiRouletteDefSchema>
+export type HanhaiCasinoWagerDef = Static<typeof HanhaiCasinoWagerDefSchema>
 export type FishWeather = Static<typeof FishWeatherSchema>
 export type FishingLocation = Static<typeof FishingLocationSchema>
 export type FishDifficulty = Static<typeof FishDifficultySchema>

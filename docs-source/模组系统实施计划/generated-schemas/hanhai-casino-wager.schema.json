@@ -1,0 +1,25 @@
+{
+  "$id": "taoyuan.registry.HanhaiCasinoWagerDef",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "id",
+    "betAmount",
+    "winMultiplier"
+  ],
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+      "type": "string"
+    },
+    "betAmount": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "winMultiplier": {
+      "exclusiveMinimum": 0,
+      "type": "number"
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

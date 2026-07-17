@@ -15,6 +15,7 @@ import type {
   ShoeDef as LegacyShoeDef,
   ToolTier,
   ToolType,
+  HanhaiCasinoWagerDef as LegacyHanhaiCasinoWagerDef,
   HanhaiShopItemDef as LegacyHanhaiShopItemDef,
   HanhaiTreasureRewardDef as LegacyHanhaiTreasureRewardDef,
   RouletteOutcome as LegacyRouletteOutcome,
@@ -113,6 +114,7 @@ import type {
   HanhaiTradeShopUpgradeDef as HanhaiTradeShopUpgradeContentDef,
   HanhaiTreasureRewardDef as HanhaiTreasureRewardContentDef,
   HanhaiRouletteDef as HanhaiRouletteContentDef,
+  HanhaiCasinoWagerDef as HanhaiCasinoWagerContentDef,
   FruitTreeContentDef,
   ItemDef,
   MarketCategoryDef as MarketCategoryContentDef,
@@ -287,6 +289,19 @@ const toHanhaiRouletteQueryContentId = (id = 'lucky') => {
   }
   if (id.startsWith('hanhai_roulette/')) return toQueryContentId(id)
   return toQueryContentId(`hanhai_roulette/${id}`)
+}
+
+const toHanhaiCasinoWagerQueryContentId = (id: string) => {
+  if (id.includes(':')) {
+    const parsed = toQueryContentId(id)
+    if (!parsed) return null
+    const localId = getLocalContentId(parsed)
+    return localId.startsWith('hanhai_casino_wager/')
+      ? parsed
+      : toQueryContentId(`hanhai_casino_wager/${localId}`)
+  }
+  if (id.startsWith('hanhai_casino_wager/')) return toQueryContentId(id)
+  return toQueryContentId(`hanhai_casino_wager/${id}`)
 }
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
@@ -901,6 +916,46 @@ export const getOfficialHanhaiRouletteOutcomes = (id = 'lucky'): LegacyRouletteO
 
 export const getOfficialHanhaiRouletteBetTiers = (id = 'lucky'): number[] =>
   getOfficialHanhaiRouletteAsLegacy(id)?.betTiers ?? []
+
+export const getOfficialHanhaiCasinoWagerDef = (
+  id: string
+): Readonly<HanhaiCasinoWagerContentDef> | undefined => {
+  const contentId = toHanhaiCasinoWagerQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet()
+        .get<HanhaiCasinoWagerContentDef>(toOfficialRegistryTypeId('hanhai_casino_wager'))
+        .get(contentId)
+    : undefined
+}
+
+export const getOfficialHanhaiCasinoWagerDefs = (): readonly Readonly<HanhaiCasinoWagerContentDef>[] =>
+  getOfficialRegistrySet()
+    .get<HanhaiCasinoWagerContentDef>(toOfficialRegistryTypeId('hanhai_casino_wager'))
+    .values()
+
+const toLegacyHanhaiCasinoWager = (
+  wager: Readonly<HanhaiCasinoWagerContentDef>
+): LegacyHanhaiCasinoWagerDef => ({
+  id: getLocalContentId(wager.id).replace(/^hanhai_casino_wager\//, '') as LegacyHanhaiCasinoWagerDef['id'],
+  betAmount: wager.betAmount,
+  winMultiplier: wager.winMultiplier
+})
+
+export const getOfficialHanhaiCasinoWager = (
+  id: string
+): LegacyHanhaiCasinoWagerDef | undefined => {
+  const wager = getOfficialHanhaiCasinoWagerDef(id)
+  return wager ? toLegacyHanhaiCasinoWager(wager) : undefined
+}
+
+export const getOfficialHanhaiCasinoWagersAsLegacy = (): readonly LegacyHanhaiCasinoWagerDef[] =>
+  getOfficialHanhaiCasinoWagerDefs().map(toLegacyHanhaiCasinoWager)
+
+export const getOfficialHanhaiCasinoBetAmount = (id: string): number =>
+  getOfficialHanhaiCasinoWager(id)!.betAmount
+
+export const getOfficialHanhaiCasinoWinMultiplier = (id: string): number =>
+  getOfficialHanhaiCasinoWager(id)!.winMultiplier
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
   const contentId = toQueryContentId(id)

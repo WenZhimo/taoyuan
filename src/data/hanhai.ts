@@ -26,13 +26,17 @@ export {
   ROULETTE_BET_TIERS,
   ROULETTE_OUTCOMES
 } from './hanhaiRouletteDefinitions'
+export {
+  CUP_BET_AMOUNT,
+  CUP_WIN_MULTIPLIER,
+  DICE_BET_AMOUNT,
+  DICE_WIN_MULTIPLIER,
+  HANHAI_CASINO_WAGERS
+} from './hanhaiCasinoDefinitions'
 
 /** 根据年份+季节+周数生成本周轮换商品（确定性伪随机） */
 export const getWeeklyRotatingItems = (year: number, seasonIndex: number, day: number): HanhaiShopItemDef[] =>
   getOfficialHanhaiWeeklyRotatingItems(year, seasonIndex, day)
-
-/** 骰子投注金额 */
-export const DICE_BET_AMOUNT = 200
 
 /** 每天最大赌博次数 */
 export const MAX_DAILY_BETS = 10
@@ -60,12 +64,6 @@ export const rollDice = (): { dice1: number; dice2: number; total: number; isBig
 }
 
 // ==================== 猜杯 ====================
-
-/** 猜杯投注金额 */
-export const CUP_BET_AMOUNT = 250
-
-/** 猜杯倍率 */
-export const CUP_WIN_MULTIPLIER = 3
 
 /** 猜杯游戏：球藏在哪个杯子下 */
 export const playCupRound = (): { correctCup: number } => {
