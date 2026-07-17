@@ -3601,6 +3601,41 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Legacy deterministic weekly stock function preserves seed, shuffle order and four-item output while reading the product pool through the registry-backed Hanhai shop facade.'
   },
+  'src/data/hanhai.ts:MAX_DAILY_BETS': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/hanhai-mechanism-plugin',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Daily gambling limit is shared mutable Hanhai minigame gating, not standalone content data; it remains framework-owned until a future mechanism-plugin slice owns the whole casino runtime.'
+  },
+  'src/data/hanhai.ts:CRICKETS': {
+    classification: 'content',
+    targetRegistry: 'engine/domain/hanhai-mechanism-plugin',
+    persistentIds: true,
+    status: 'framework-retained',
+    rationale: 'Cricket candidates are inseparable from the cricket betting runtime, animation, random battle and settlement flow; treat them as a future Phase 3 mechanism-plugin candidate instead of another Phase 6 static registry.'
+  },
+  'src/data/hanhai.ts:CARD_TOTAL': {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/hanhai-mechanism-plugin',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Card count is part of the Hanhai card-flip minigame rule set and stays with its random treasure placement and settlement runtime until a mechanism-plugin slice owns that game.'
+  },
+  'src/data/hanhai.ts:TEXAS_TIERS': {
+    classification: 'content',
+    targetRegistry: 'engine/domain/hanhai-mechanism-plugin',
+    persistentIds: true,
+    status: 'framework-retained',
+    rationale: 'Texas hold em tier definitions are coupled to entry fees, blinds, dealer AI, round state, component UI and settlement; keep them framework-owned as a future Phase 3 mechanism-plugin candidate.'
+  },
+  'src/data/hanhai.ts:getTexasTier': {
+    classification: 'adapter',
+    targetRegistry: 'engine/domain/hanhai-mechanism-plugin',
+    persistentIds: false,
+    status: 'framework-retained',
+    rationale: 'Compatibility lookup for framework-owned Texas tier definitions; no Phase 6 data registry is introduced until the whole poker mechanism is extracted.'
+  },
   'src/data/hanhaiDefinitions.ts:TRADE_EXCHANGE_ITEMS': {
     classification: 'content',
     targetRegistry: 'taoyuan:hanhai_trade_exchange',

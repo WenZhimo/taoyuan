@@ -4920,8 +4920,8 @@
           "file": "src/data/hanhai.ts",
           "exportName": "MAX_DAILY_BETS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/hanhai-mechanism-plugin",
           "persistentIds": false,
           "consumers": [
             "src/stores/useHanhaiStore.ts",
@@ -4930,8 +4930,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "Daily gambling limit is shared mutable Hanhai minigame gating, not standalone content data; it remains framework-owned until a future mechanism-plugin slice owns the whole casino runtime."
         },
         {
           "file": "src/data/hanhai.ts",
@@ -5038,7 +5038,7 @@
           "exportName": "CRICKETS",
           "syntaxKind": "const",
           "classification": "content",
-          "targetRegistry": "taoyuan:shop_offer",
+          "targetRegistry": "engine/domain/hanhai-mechanism-plugin",
           "persistentIds": true,
           "consumers": [
             "src/views/game/HanhaiView.vue"
@@ -5047,8 +5047,8 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "framework-retained",
+          "rationale": "Cricket candidates are inseparable from the cricket betting runtime, animation, random battle and settlement flow; treat them as a future Phase 3 mechanism-plugin candidate instead of another Phase 6 static registry."
         },
         {
           "file": "src/data/hanhai.ts",
@@ -5103,8 +5103,8 @@
           "file": "src/data/hanhai.ts",
           "exportName": "CARD_TOTAL",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/hanhai-mechanism-plugin",
           "persistentIds": false,
           "consumers": [
             "src/views/game/HanhaiView.vue"
@@ -5112,8 +5112,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "Card count is part of the Hanhai card-flip minigame rule set and stays with its random treasure placement and settlement runtime until a mechanism-plugin slice owns that game."
         },
         {
           "file": "src/data/hanhai.ts",
@@ -5152,7 +5152,7 @@
           "exportName": "TEXAS_TIERS",
           "syntaxKind": "const",
           "classification": "content",
-          "targetRegistry": "taoyuan:shop_offer",
+          "targetRegistry": "engine/domain/hanhai-mechanism-plugin",
           "persistentIds": true,
           "consumers": [
             "src/views/game/HanhaiView.vue"
@@ -5161,15 +5161,15 @@
             6
           ],
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Static content definition exported from src/data."
+          "status": "framework-retained",
+          "rationale": "Texas hold em tier definitions are coupled to entry fees, blinds, dealer AI, round state, component UI and settlement; keep them framework-owned as a future Phase 3 mechanism-plugin candidate."
         },
         {
           "file": "src/data/hanhai.ts",
           "exportName": "getTexasTier",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/hanhai-mechanism-plugin",
           "persistentIds": false,
           "consumers": [
             "src/stores/useHanhaiStore.ts"
@@ -5177,8 +5177,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "Compatibility lookup for framework-owned Texas tier definitions; no Phase 6 data registry is introduced until the whole poker mechanism is extracted."
         },
         {
           "file": "src/data/hanhai.ts",
