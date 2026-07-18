@@ -19,6 +19,7 @@
     "validate:data": "vitest run src/tests/data/gameDataValidation.test.ts --no-file-parallelism",
     "validate:docs": "vitest run src/tests/data/documentationValidation.test.ts --no-file-parallelism",
     "mod:inventory": "node scripts/generate-content-inventory.mjs",
+    "mod:audit-phase6": "node scripts/audit-mod-phase6.mjs",
     "mod:schemas": "node scripts/generate-mod-schemas.mjs",
     "mod:check-schemas": "node scripts/validate-mod-schemas.mjs",
     "mod:fixtures": "node scripts/generate-mod-fixtures.mjs",
