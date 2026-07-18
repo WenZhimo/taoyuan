@@ -1198,6 +1198,28 @@ export const SprinklerDefSchema = Type.Object(
   { $id: 'taoyuan.registry.SprinklerDef', additionalProperties: false }
 )
 
+export const BombMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const BombDefSchema = Type.Object(
+  {
+    id: ContentIdSchema,
+    name: LocalizedTextRefSchema,
+    description: LocalizedTextRefSchema,
+    oreMultiplier: Type.Integer({ minimum: 1 }),
+    clearsMonster: Type.Boolean(),
+    craftCost: Type.Array(BombMaterialSchema),
+    craftMoney: Type.Integer({ minimum: 0 }),
+    shopPrice: Type.Union([Type.Integer({ minimum: 0 }), Type.Null()])
+  },
+  { $id: 'taoyuan.registry.BombDef', additionalProperties: false }
+)
+
 export const ToolTypeSchema = Type.Union([
   Type.Literal('wateringCan'),
   Type.Literal('hoe'),
@@ -2061,6 +2083,7 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
   'taoyuan:processing_machine': ProcessingMachineDefSchema,
   'taoyuan:processing_recipe': ProcessingRecipeDefSchema,
   'taoyuan:sprinkler': SprinklerDefSchema,
+  'taoyuan:bomb': BombDefSchema,
   'taoyuan:tool_upgrade': ToolUpgradeDefSchema,
   'taoyuan:pondable_fish': PondableFishDefSchema,
   'taoyuan:pond_breed': PondBreedDefSchema,
@@ -2121,6 +2144,7 @@ export const PUBLIC_JSON_SCHEMAS = {
   'processing-machine.schema.json': ProcessingMachineDefSchema,
   'processing-recipe.schema.json': ProcessingRecipeDefSchema,
   'sprinkler.schema.json': SprinklerDefSchema,
+  'bomb.schema.json': BombDefSchema,
   'tool-upgrade.schema.json': ToolUpgradeDefSchema,
   'pondable-fish.schema.json': PondableFishDefSchema,
   'pond-breed.schema.json': PondBreedDefSchema,
@@ -2247,6 +2271,8 @@ export type ProcessingRecipeDef = Static<typeof ProcessingRecipeDefSchema>
 export type SprinklerRange = Static<typeof SprinklerRangeSchema>
 export type SprinklerMaterial = Static<typeof SprinklerMaterialSchema>
 export type SprinklerDef = Static<typeof SprinklerDefSchema>
+export type BombMaterial = Static<typeof BombMaterialSchema>
+export type BombDef = Static<typeof BombDefSchema>
 export type ToolTypeDef = Static<typeof ToolTypeSchema>
 export type ToolTierDef = Static<typeof ToolTierSchema>
 export type ToolUpgradeMaterial = Static<typeof ToolUpgradeMaterialSchema>

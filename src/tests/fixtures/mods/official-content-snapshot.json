@@ -4316,6 +4316,120 @@
       ]
     },
     {
+      "registryId": "taoyuan:bomb",
+      "schemaName": "bomb.schema.json",
+      "entries": [
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingCraftDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "clearsMonster": true,
+            "craftCost": [
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 12
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 18
+              },
+              {
+                "itemId": "taoyuan:quartz",
+                "quantity": 5
+              }
+            ],
+            "craftMoney": 250,
+            "description": {
+              "fallback": "大范围爆破，获取5份矿石并清除怪物。",
+              "key": "taoyuan.bomb.bomb.description"
+            },
+            "id": "taoyuan:bomb",
+            "name": {
+              "fallback": "火药包",
+              "key": "taoyuan.bomb.bomb.name"
+            },
+            "oreMultiplier": 5,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingCraftDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "clearsMonster": false,
+            "craftCost": [
+              {
+                "itemId": "taoyuan:copper_ore",
+                "quantity": 12
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 15
+              }
+            ],
+            "craftMoney": 100,
+            "description": {
+              "fallback": "小范围爆破，一次获取3份矿石。",
+              "key": "taoyuan.bomb.cherry_bomb.description"
+            },
+            "id": "taoyuan:cherry_bomb",
+            "name": {
+              "fallback": "爆竹",
+              "key": "taoyuan.bomb.cherry_bomb.name"
+            },
+            "oreMultiplier": 3,
+            "shopPrice": null
+          }
+        },
+        {
+          "owner": "taoyuan-core",
+          "source": {
+            "file": "src/data/processingCraftDefinitions.ts",
+            "packageId": "taoyuan-core"
+          },
+          "entry": {
+            "clearsMonster": true,
+            "craftCost": [
+              {
+                "itemId": "taoyuan:gold_ore",
+                "quantity": 18
+              },
+              {
+                "itemId": "taoyuan:iron_ore",
+                "quantity": 15
+              },
+              {
+                "itemId": "taoyuan:firewood",
+                "quantity": 25
+              },
+              {
+                "itemId": "taoyuan:ruby",
+                "quantity": 3
+              }
+            ],
+            "craftMoney": 500,
+            "description": {
+              "fallback": "超大范围爆破，获取8份矿石并清除怪物。",
+              "key": "taoyuan.bomb.mega_bomb.description"
+            },
+            "id": "taoyuan:mega_bomb",
+            "name": {
+              "fallback": "雷火弹",
+              "key": "taoyuan.bomb.mega_bomb.name"
+            },
+            "oreMultiplier": 8,
+            "shopPrice": null
+          }
+        }
+      ]
+    },
+    {
       "registryId": "taoyuan:breeding_hybrid",
       "schemaName": "breeding-hybrid.schema.json",
       "entries": [
@@ -117669,5 +117783,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:b60b8ce06d7d4a064c7762d65ff314cd14ff58560737123e564e2460a2e2b7ba"
+  "snapshotHash": "sha256:22cbe8358ceb0fd60791f029196f9e4acf4c49d836cd8d49df221fea2ea14aba"
 }

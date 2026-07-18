@@ -4,6 +4,7 @@ import {
   getOfficialProcessingMachinesAsLegacy,
   getOfficialProcessingRecipeById,
   getOfficialProcessingRecipesForMachine,
+  getOfficialBombById,
   getOfficialSprinklerById,
   getOfficialSprinklersAsLegacy
 } from '@/domain/mods/contentAccess'
@@ -115,5 +116,5 @@ export const AUTO_PETTER = {
 }
 
 export const getBombById = (id: string): BombDef | undefined => {
-  return BOMBS.find(b => b.id === id)
+  return getOfficialBombById(id) ?? BOMBS.find(b => b.id === id)
 }

@@ -2,6 +2,7 @@ import type {
   AchievementDef as LegacyAchievementDef,
   AnimalBuildingDef as LegacyAnimalBuildingDef,
   AnimalDef as LegacyAnimalDef,
+  BombDef as LegacyBombDef,
   CommunityBundleDef as LegacyCommunityBundleDef,
   EnchantmentDef as LegacyEnchantmentDef,
   FishDef as LegacyFishDef,
@@ -95,6 +96,7 @@ import type {
   AnimalDef as AnimalContentDef,
   AnimalFeedDef as AnimalFeedContentDef,
   AnimalIncubationDef as AnimalIncubationContentDef,
+  BombDef as BombContentDef,
   BreedingHybridDef as BreedingHybridContentDef,
   BuildingUpgradeDef as BuildingUpgradeContentDef,
   CaveUpgradeContentDef,
@@ -2332,6 +2334,38 @@ export const getOfficialSprinklerById = (id: string): LegacySprinklerDef | undef
 
 export const getOfficialSprinklersAsLegacy = (): readonly LegacySprinklerDef[] =>
   getOfficialSprinklerDefs().map(toLegacySprinklerDef)
+
+export const getOfficialBombDef = (id: string): Readonly<BombContentDef> | undefined => {
+  const contentId = toQueryContentId(id)
+  return contentId
+    ? getOfficialRegistrySet().get<BombContentDef>(toOfficialRegistryTypeId('bomb')).get(contentId)
+    : undefined
+}
+
+export const getOfficialBombDefs = (): readonly Readonly<BombContentDef>[] =>
+  getOfficialRegistrySet().get<BombContentDef>(toOfficialRegistryTypeId('bomb')).values()
+
+const toLegacyBombDef = (bomb: Readonly<BombContentDef>): LegacyBombDef => ({
+  id: getLocalContentId(bomb.id),
+  name: bomb.name.fallback,
+  description: bomb.description.fallback,
+  oreMultiplier: bomb.oreMultiplier,
+  clearsMonster: bomb.clearsMonster,
+  craftCost: bomb.craftCost.map(material => ({
+    itemId: getLocalContentId(material.itemId),
+    quantity: material.quantity
+  })),
+  craftMoney: bomb.craftMoney,
+  shopPrice: bomb.shopPrice
+})
+
+export const getOfficialBombById = (id: string): LegacyBombDef | undefined => {
+  const bomb = getOfficialBombDef(id)
+  return bomb ? toLegacyBombDef(bomb) : undefined
+}
+
+export const getOfficialBombsAsLegacy = (): readonly LegacyBombDef[] =>
+  getOfficialBombDefs().map(toLegacyBombDef)
 
 const toLegacyToolUpgradeCost = (upgrade: Readonly<ToolUpgradeContentDef>): LegacyToolUpgradeCost => ({
   fromTier: upgrade.fromTier,

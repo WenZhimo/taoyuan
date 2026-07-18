@@ -579,8 +579,8 @@ fileDefaults.set('src/data/processingCraftDefinitions.ts', {
 fileDefaults.set('src/data/processing.ts', {
   file: 'src/data/processing.ts',
   classification: 'mixed',
-  domains: ['processing_recipe', 'processing_machine', 'processing_craft', 'lookup'],
-  candidateTargets: ['taoyuan:processing_recipe', 'taoyuan:processing_machine', 'compatibility_adapter', 'engine/domain/processing'],
+  domains: ['processing_recipe', 'processing_machine', 'processing_craft', 'bomb', 'lookup'],
+  candidateTargets: ['taoyuan:processing_recipe', 'taoyuan:processing_machine', 'taoyuan:bomb', 'compatibility_adapter', 'engine/domain/processing'],
   phases: [6],
   status: 'symbol_inventoried'
 })
@@ -1201,8 +1201,8 @@ const symbolReviewOverrides = new Map(Object.entries({
     targetRegistry: 'taoyuan:bomb',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
-    status: 'baselined',
-    rationale: 'Leaf source extracted only to keep generated item derivation free of registry cycles; bomb registry migration remains a later production/combat slice.'
+    status: 'verified',
+    rationale: 'Unique registry-free leaf source for all legacy bomb craft definitions; Phase 6 projects every bomb into taoyuan:bomb and verifies IDs, order, names, descriptions, mining effects, materials, money, shop price and runtime consumers.'
   },
   'src/data/processing.ts:PROCESSING_MACHINES': {
     classification: 'adapter',
@@ -1299,8 +1299,15 @@ const symbolReviewOverrides = new Map(Object.entries({
     targetRegistry: 'taoyuan:bomb',
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
-    status: 'baselined',
-    rationale: 'Original-name re-export preserves legacy bomb imports after the leaf extraction; bomb registry migration remains out of this processing machine slice.'
+    status: 'verified',
+    rationale: 'Original-name re-export preserves legacy bomb imports while getBombById() resolves taoyuan:bomb first and static consumers retain a direct rollback path.'
+  },
+  'src/data/processing.ts:getBombById': {
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:bomb',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Legacy getBombById() signature and undefined result for unknown IDs are retained while known bomb definitions resolve through taoyuan:bomb before the static fallback.'
   },
   'src/data/animalDefinitions.ts:ANIMAL_DEFS': {
     classification: 'content',

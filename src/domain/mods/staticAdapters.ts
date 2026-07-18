@@ -93,10 +93,11 @@ import {
   type CellarUpgradeDef as LegacyCellarUpgradeDef,
   type FarmhouseUpgradeDef as LegacyFarmhouseUpgradeDef
 } from '@/data/buildingUpgradeDefinitions'
-import { BAITS, FERTILIZERS, SPRINKLERS, TACKLES } from '@/data/processingCraftDefinitions'
+import { BAITS, BOMBS, FERTILIZERS, SPRINKLERS, TACKLES } from '@/data/processingCraftDefinitions'
 import type {
   AchievementDef as LegacyAchievementDef,
   AnimalDef as LegacyAnimalDef,
+  BombDef as LegacyBombDef,
   CommunityBundleDef as LegacyCommunityBundleDef,
   HatDef as LegacyHatDef,
   HeartEventDef as LegacyHeartEventDef,
@@ -144,6 +145,7 @@ import type {
   AnimalDef,
   AnimalFeedDef,
   AnimalIncubationDef,
+  BombDef,
   BuildingUpgradeDef,
   CommunityBundleDef,
   DropTableDef,
@@ -360,6 +362,11 @@ export const OFFICIAL_REGISTRY_DEFINITIONS = [
     registryId: toOfficialRegistryTypeId('sprinkler'),
     description: '洒水器制造定义',
     schemaName: 'sprinkler.schema.json'
+  },
+  {
+    registryId: toOfficialRegistryTypeId('bomb'),
+    description: '炸弹制造定义',
+    schemaName: 'bomb.schema.json'
   },
   {
     registryId: toOfficialRegistryTypeId('tool_upgrade'),
@@ -1593,6 +1600,23 @@ export const adaptLegacySprinkler = (sprinkler: LegacySprinklerDef): SprinklerDe
 export const createOfficialSprinklers = (): SprinklerDef[] =>
   SPRINKLERS.map(adaptLegacySprinkler)
 
+export const adaptLegacyBomb = (bomb: LegacyBombDef): BombDef => ({
+  id: toOfficialContentId(bomb.id),
+  name: text(`taoyuan.bomb.${bomb.id}.name`, bomb.name),
+  description: text(`taoyuan.bomb.${bomb.id}.description`, bomb.description),
+  oreMultiplier: bomb.oreMultiplier,
+  clearsMonster: bomb.clearsMonster,
+  craftCost: bomb.craftCost.map(material => ({
+    itemId: toOfficialContentId(material.itemId),
+    quantity: material.quantity
+  })),
+  craftMoney: bomb.craftMoney,
+  shopPrice: bomb.shopPrice
+})
+
+export const createOfficialBombs = (): BombDef[] =>
+  BOMBS.map(adaptLegacyBomb)
+
 const toolUpgradeIdSegment = (toolType: keyof typeof TOOL_UPGRADE_COSTS): string =>
   toolType.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
 
@@ -2129,6 +2153,7 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   const processingMachineRegistry = registrySet.get<ProcessingMachineDef>(toOfficialRegistryTypeId('processing_machine'))
   const processingRecipeRegistry = registrySet.get<ProcessingRecipeDef>(toOfficialRegistryTypeId('processing_recipe'))
   const sprinklerRegistry = registrySet.get<SprinklerDef>(toOfficialRegistryTypeId('sprinkler'))
+  const bombRegistry = registrySet.get<BombDef>(toOfficialRegistryTypeId('bomb'))
   const toolUpgradeRegistry = registrySet.get<ToolUpgradeDef>(toOfficialRegistryTypeId('tool_upgrade'))
   const pondableFishRegistry = registrySet.get<PondableFishDef>(toOfficialRegistryTypeId('pondable_fish'))
   const pondBreedRegistry = registrySet.get<PondBreedDef>(toOfficialRegistryTypeId('pond_breed'))
@@ -2239,6 +2264,9 @@ export const buildOfficialRegistrySetFromStaticData = (owner: PackageId = OFFICI
   }
   for (const sprinkler of createOfficialSprinklers()) {
     sprinklerRegistry.register(owner, sprinkler, { file: 'src/data/processingCraftDefinitions.ts' })
+  }
+  for (const bomb of createOfficialBombs()) {
+    bombRegistry.register(owner, bomb, { file: 'src/data/processingCraftDefinitions.ts' })
   }
   for (const upgrade of createOfficialToolUpgrades()) {
     toolUpgradeRegistry.register(owner, upgrade, { file: 'src/data/toolUpgradeDefinitions.ts' })
