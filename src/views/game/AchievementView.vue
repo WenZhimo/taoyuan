@@ -500,16 +500,16 @@
   import { useShopStore } from '@/stores/useShopStore'
   import { useSkillStore } from '@/stores/useSkillStore'
   import { getAchievements, getBundleById, getCommunityBundles } from '@/data/achievements'
-  import { ITEMS, getItemById } from '@/data/items'
+  import { getItemById } from '@/data/items'
   import { HYBRID_DEFS } from '@/data/breeding'
   import { WEAPONS, ENCHANTMENTS, WEAPON_TYPE_NAMES } from '@/data/weapons'
   import { getRingById } from '@/data/rings'
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
-  import { getOfficialSecretNotesAsLegacy } from '@/domain/mods/contentAccess'
+  import { getOfficialItemsAsLegacy, getOfficialSecretNotesAsLegacy } from '@/domain/mods/contentAccess'
   import { sfxClick } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
-  import type { ItemCategory, AchievementDef, CommunityBundleDef, SecretNoteDef } from '@/types'
+  import type { ItemCategory, ItemDef, AchievementDef, CommunityBundleDef, SecretNoteDef } from '@/types'
 
   const achievementStore = useAchievementStore()
   const inventoryStore = useInventoryStore()
@@ -527,7 +527,7 @@
 
   const achievements = computed(() => getAchievements())
   const communityBundles = computed(() => getCommunityBundles())
-  const allItems = ITEMS
+  const allItems = getOfficialItemsAsLegacy()
 
   // === 图鉴分类筛选 ===
   const selectedCategory = ref<ItemCategory | null>(null)
@@ -779,12 +779,12 @@
   /** 可出货的类别（排除种子、机器、工具类） */
   const SHIPPABLE_CATEGORIES = ['crop', 'fish', 'animal_product', 'processed', 'fruit', 'ore', 'gem', 'material', 'misc', 'food', 'gift']
 
-  const shippableItems = computed(() => ITEMS.filter(i => SHIPPABLE_CATEGORIES.includes(i.category)))
+  const shippableItems = computed(() => allItems.filter(i => SHIPPABLE_CATEGORIES.includes(i.category)))
 
   const hybridItemIds = new Set(HYBRID_DEFS.map(h => h.resultCropId))
 
   const itemsByCategory = computed(() => {
-    const groups: Record<string, typeof ITEMS> = {}
+    const groups: Record<string, ItemDef[]> = {}
     for (const item of shippableItems.value) {
       const cat = item.category === 'crop' && hybridItemIds.has(item.id) ? 'hybrid' : item.category
       if (!groups[cat]) groups[cat] = []

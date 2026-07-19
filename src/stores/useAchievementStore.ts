@@ -2,8 +2,8 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { AchievementDef, AchievementCondition } from '@/types'
 import { getAchievements, getBundleById, getCommunityBundles } from '@/data/achievements'
-import { ITEMS } from '@/data/items'
 import { HYBRID_DEFS } from '@/data/breeding'
+import { getOfficialItemsAsLegacy } from '@/domain/mods/contentAccess'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { useSkillStore } from './useSkillStore'
@@ -17,6 +17,7 @@ import { useGuildStore } from './useGuildStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
 
 export const useAchievementStore = defineStore('achievement', () => {
+  const itemDefs = getOfficialItemsAsLegacy()
   const playerStore = usePlayerStore()
   const inventoryStore = useInventoryStore()
   const skillStore = useSkillStore()
@@ -188,7 +189,7 @@ export const useAchievementStore = defineStore('achievement', () => {
           'food',
           'gift'
         ]
-        const shippableCount = ITEMS.filter(i => shippableCategories.includes(i.category)).length
+        const shippableCount = itemDefs.filter(i => shippableCategories.includes(i.category)).length
         return shopStore.shippedItems.length >= shippableCount
       }
       case 'animalCount': {
@@ -304,7 +305,7 @@ export const useAchievementStore = defineStore('achievement', () => {
   // === 完成度 ===
 
   const SHIPPABLE_CATEGORIES = ['crop', 'fish', 'animal_product', 'processed', 'fruit', 'ore', 'gem', 'material', 'misc', 'food', 'gift']
-  const shippableItemCount = ITEMS.filter(i => SHIPPABLE_CATEGORIES.includes(i.category)).length
+  const shippableItemCount = itemDefs.filter(i => SHIPPABLE_CATEGORIES.includes(i.category)).length
 
   const perfectionPercent = computed(() => {
     const shopStore = useShopStore()
@@ -316,7 +317,7 @@ export const useAchievementStore = defineStore('achievement', () => {
     // 祠堂任务 15%
     const bundleRate = communityBundles.length > 0 ? completedBundles.value.length / communityBundles.length : 0
     // 图鉴 15%
-    const collectionRate = ITEMS.length > 0 ? discoveredItems.value.length / ITEMS.length : 0
+    const collectionRate = itemDefs.length > 0 ? discoveredItems.value.length / itemDefs.length : 0
     // 技能 15%
     const avgSkillLevel = skillStore.skills.reduce((sum, s) => sum + s.level, 0) / skillStore.skills.length
     const skillRate = avgSkillLevel / 10

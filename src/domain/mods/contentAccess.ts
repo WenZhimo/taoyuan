@@ -8,6 +8,7 @@ import type {
   FishDef as LegacyFishDef,
   FruitTreeDef as LegacyFruitTreeDef,
   HatDef as LegacyHatDef,
+  ItemDef as LegacyItemDef,
   MonsterDef as LegacyMonsterDef,
   NpcDef as LegacyNpcDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
@@ -328,6 +329,20 @@ export const getOfficialShopDef = (id: string): Readonly<ShopDef> | undefined =>
 
 export const getOfficialItemDefs = (): readonly Readonly<ItemDef>[] =>
   getOfficialRegistrySet().get<ItemDef>(toOfficialRegistryTypeId('item')).values()
+
+const toLegacyItemDef = (item: Readonly<ItemDef>): LegacyItemDef => ({
+  id: getLocalContentId(item.id),
+  name: item.name.fallback,
+  category: item.category,
+  description: item.description.fallback,
+  sellPrice: item.sellPrice,
+  edible: item.edible,
+  ...(item.staminaRestore !== undefined ? { staminaRestore: item.staminaRestore } : {}),
+  ...(item.healthRestore !== undefined ? { healthRestore: item.healthRestore } : {})
+})
+
+export const getOfficialItemsAsLegacy = (): readonly LegacyItemDef[] =>
+  getOfficialItemDefs().map(toLegacyItemDef)
 
 export const getOfficialShopDefs = (): readonly Readonly<ShopDef>[] =>
   getOfficialRegistrySet().get<ShopDef>(toOfficialRegistryTypeId('shop')).values()
