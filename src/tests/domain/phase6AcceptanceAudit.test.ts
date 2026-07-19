@@ -1,3 +1,7 @@
+/// <reference types="node" />
+
+import { execFileSync } from 'node:child_process'
+import process from 'node:process'
 import { describe, expect, it } from 'vitest'
 import {
   createSerializableRegistrySnapshot,
@@ -11,6 +15,69 @@ import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData }
 import officialContentSnapshot from '../fixtures/mods/official-content-snapshot.json'
 
 describe('phase 6 official registry snapshot acceptance evidence', () => {
+  it('classifies every runtime src/data import used by non-test business code', () => {
+    const report = JSON.parse(execFileSync(
+      process.execPath,
+      ['scripts/audit-mod-phase6.mjs'],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    )) as {
+      businessDataImports: {
+        status: string
+        count: number
+        categories: string[]
+        categoryCounts: Record<string, number>
+        findings: Array<{ importer: string, dataFile: string, exportName: string, auditCategory: string }>
+        unresolvedRuntimeImports: unknown[]
+        namespaceImports: unknown[]
+      }
+      businessStaticReads: {
+        status: string
+        count: number
+        findings: Array<{ importer: string, dataFile: string, exportName: string }>
+      }
+    }
+
+    expect(report.businessDataImports.status).toBe('PASS')
+    expect(report.businessDataImports.count).toBe(510)
+    expect(report.businessDataImports.categories).toEqual([
+      'official-adapter-leaf',
+      'compatibility-fallback',
+      'framework-algorithm',
+      'legal-derived',
+      'pending-migration-violation'
+    ])
+    expect(report.businessDataImports.categoryCounts).toEqual({
+      'official-adapter-leaf': 87,
+      'compatibility-fallback': 289,
+      'framework-algorithm': 82,
+      'legal-derived': 19,
+      'pending-migration-violation': 33
+    })
+    expect(Object.values(report.businessDataImports.categoryCounts).reduce(
+      (total, count) => total + count,
+      0
+    )).toBe(report.businessDataImports.count)
+    expect(new Set(report.businessDataImports.findings.map(finding => finding.auditCategory))).toEqual(
+      new Set(report.businessDataImports.categories.filter(
+        category => (report.businessDataImports.categoryCounts[category] ?? 0) > 0
+      ))
+    )
+    expect(report.businessDataImports.unresolvedRuntimeImports).toEqual([])
+    expect(report.businessDataImports.namespaceImports).toEqual([])
+
+    const findingKey = (finding: { importer: string, dataFile: string, exportName: string }) =>
+      `${finding.importer}:${finding.dataFile}:${finding.exportName}`
+    const classifiedViolations = report.businessDataImports.findings
+      .filter(finding => finding.auditCategory === 'pending-migration-violation')
+      .map(findingKey)
+      .sort()
+    const reportedViolations = report.businessStaticReads.findings.map(findingKey).sort()
+
+    expect(report.businessStaticReads.status).toBe('FAIL')
+    expect(report.businessStaticReads.count).toBe(33)
+    expect(classifiedViolations).toEqual(reportedViolations)
+  })
+
   it('keeps hashes and ID lookups equal while recording the restore-order gap', () => {
     const built = buildOfficialRegistrySetFromStaticData()
     built.freezeEntries()

@@ -20,6 +20,14 @@ const inventory = readJson(inventoryPath)
 const officialSnapshot = readJson(snapshotPath)
 const officialRegistryIds = new Set(officialSnapshot.registries.map(registry => registry.registryId))
 const inventorySymbols = inventory.entries.flatMap(entry => entry.symbols)
+const staticAdapterFile = 'src/domain/mods/staticAdapters.ts'
+const dataImportCategories = [
+  'official-adapter-leaf',
+  'compatibility-fallback',
+  'framework-algorithm',
+  'legal-derived',
+  'pending-migration-violation'
+]
 const inventoryByExport = new Map(
   inventorySymbols.map(symbol => [`${symbol.file}:${symbol.exportName}`, symbol])
 )
@@ -80,13 +88,29 @@ const isRegistryBackedStaticValue = symbol => {
   ) || keepsStaticRollback
 }
 
+const classifyDataImport = (symbol, importer) => {
+  if (importer === staticAdapterFile) return 'official-adapter-leaf'
+  if (isRegistryBackedStaticValue(symbol)) return 'pending-migration-violation'
+  if (symbol.classification === 'algorithm') {
+    return 'framework-algorithm'
+  }
+  if (
+    symbol.status === 'framework-retained' ||
+    symbol.classification === 'derived' ||
+    symbol.classification === 'ui'
+  ) {
+    return 'legal-derived'
+  }
+  return 'compatibility-fallback'
+}
+
+const classifiedRuntimeImports = []
 const directReads = []
 const unresolvedRuntimeImports = []
 const namespaceImports = []
 
 for (const file of walkSourceFiles(srcRoot)) {
   const importer = relative(file)
-  if (importer === 'src/domain/mods/staticAdapters.ts') continue
 
   for (const block of getScriptBlocks(file)) {
     const sourceFile = ts.createSourceFile(
@@ -121,13 +145,20 @@ for (const file of walkSourceFiles(srcRoot)) {
         const finding = { importer, dataFile, exportName }
         if (!symbol) {
           unresolvedRuntimeImports.push(finding)
-        } else if (isRegistryBackedStaticValue(symbol)) {
-          directReads.push({
+        } else {
+          const auditCategory = classifyDataImport(symbol, importer)
+          const classifiedFinding = {
             ...finding,
+            auditCategory,
+            inventoryStatus: symbol.status,
             classification: symbol.classification,
             targetRegistry: symbol.targetRegistry ?? null,
             migrationPhase: symbol.migrationPhase
-          })
+          }
+          classifiedRuntimeImports.push(classifiedFinding)
+          if (auditCategory === 'pending-migration-violation') {
+            directReads.push(classifiedFinding)
+          }
         }
       }
     }
@@ -145,6 +176,17 @@ const snapshotEntryCount = officialSnapshot.registries.reduce(
   (total, registry) => total + registry.entries.length,
   0
 )
+const sortedRuntimeImports = classifiedRuntimeImports.sort((a, b) =>
+  `${a.importer}:${a.dataFile}:${a.exportName}`.localeCompare(
+    `${b.importer}:${b.dataFile}:${b.exportName}`
+  )
+)
+const dataImportCategoryCounts = Object.fromEntries(
+  dataImportCategories.map(category => [
+    category,
+    sortedRuntimeImports.filter(finding => finding.auditCategory === category).length
+  ])
+)
 
 const report = {
   inventory: {
@@ -153,6 +195,17 @@ const report = {
     phase6StatusCounts: statusCounts,
     provisionalStatusCount: provisionalSymbols.length,
     provisionalStatuses: ['baselined', 'inventoried']
+  },
+  businessDataImports: {
+    status: unresolvedRuntimeImports.length === 0 && namespaceImports.length === 0 ? 'PASS' : 'FAIL',
+    count: sortedRuntimeImports.length,
+    categories: dataImportCategories,
+    categoryCounts: dataImportCategoryCounts,
+    findings: sortedRuntimeImports,
+    unresolvedRuntimeImports: unresolvedRuntimeImports.sort((a, b) =>
+      `${a.importer}:${a.exportName}`.localeCompare(`${b.importer}:${b.exportName}`)
+    ),
+    namespaceImports
   },
   businessStaticReads: {
     status: directReads.length === 0 ? 'PASS' : 'FAIL',
