@@ -80,7 +80,7 @@
           <!-- 六大商铺卡片 -->
           <div class="flex flex-col space-y-2">
             <div
-              v-for="shop in SHOPS"
+              v-for="shop in shops"
               :key="shop.id"
               class="flex items-center justify-between border rounded-xs px-3 py-2"
               :class="isOpen(shop) ? 'border-accent/30 cursor-pointer hover:bg-accent/5' : 'border-accent/10 opacity-50'"
@@ -628,7 +628,7 @@
   import { useWarehouseStore } from '@/stores/useWarehouseStore'
   import { getItemById } from '@/data'
   import { getCropBySeedId } from '@/data/crops'
-  import { SHOPS, isShopAvailable, getShopClosedReason } from '@/data/shops'
+  import { isShopAvailable, getShopClosedReason } from '@/data/shops'
   import type { ShopDef } from '@/data/shops'
   import { WEAPON_TYPE_NAMES } from '@/data/weapons'
   import type { WeaponDef, RingDef, RingEffectType, Season, Quality, HatDef, ShoeDef, ItemCategory } from '@/types'
@@ -638,6 +638,7 @@
     getOfficialCraftableShoesAsLegacy,
     getOfficialFruitTreeBySaplingId,
     getOfficialShopHatsAsLegacy,
+    getOfficialShopsAsLegacy,
     getOfficialShopShoesAsLegacy,
     getOfficialShopWeaponsAsLegacy
   } from '@/domain/mods/contentAccess'
@@ -660,6 +661,7 @@
   const craftableRings = getOfficialCraftableRingsAsLegacy()
   const craftableHats = getOfficialCraftableHatsAsLegacy()
   const craftableShoes = getOfficialCraftableShoesAsLegacy()
+  const shops = getOfficialShopsAsLegacy()
 
   const shopStore = useShopStore()
   const playerStore = usePlayerStore()
@@ -1052,7 +1054,7 @@
     return SEASON_NAMES[season] ?? season
   }
 
-  const currentShop = computed(() => SHOPS.find(shop => shop.id === shopStore.currentShopId) ?? null)
+  const currentShop = computed(() => shops.find(shop => shop.id === shopStore.currentShopId) ?? null)
 
   const currentShopOfferGroups = computed<ShopOfferGroupEntry[]>(() => {
     const groups = shopStore.currentShopOfferGroups

@@ -2844,6 +2844,9 @@ const toLegacyShopDef = (shop: Readonly<ShopDef>): LegacyShopDef => ({
   closedSeasons: [...shop.closedSeasons] as LegacyShopDef['closedSeasons']
 })
 
+export const getOfficialShopsAsLegacy = (): readonly LegacyShopDef[] =>
+  getOfficialShopDefs().map(toLegacyShopDef)
+
 export const getOfficialShopById = (id: string): LegacyShopDef | undefined => {
   const shop = getOfficialShopDef(id)
   return shop ? toLegacyShopDef(shop) : undefined
