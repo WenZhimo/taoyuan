@@ -1424,7 +1424,8 @@
           "consumers": [
             "src/data/breedingDefinitions.ts",
             "src/domain/mods/contentAccess.ts",
-            "src/tests/domain/breedingHybridRegistryPilot.test.ts"
+            "src/tests/domain/breedingHybridRegistryPilot.test.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts"
           ],
           "migrationPhase": [
             6
@@ -1568,7 +1569,8 @@
           "consumers": [
             "src/data/breeding.ts",
             "src/domain/mods/contentAccess.ts",
-            "src/tests/domain/breedingHybridRegistryPilot.test.ts"
+            "src/tests/domain/breedingHybridRegistryPilot.test.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts"
           ],
           "migrationPhase": [
             6
@@ -2209,6 +2211,7 @@
             "src/tests/domain/contentRegistryEquivalence.test.ts",
             "src/tests/domain/cropLookup.test.ts",
             "src/tests/domain/cropRegistryPilot.test.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/tests/domain/travelingMerchantRegistryPilot.test.ts",
             "src/views/game/FarmView.vue"
@@ -2318,8 +2321,7 @@
             "src/data/weapons.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
-            "src/views/game/AchievementView.vue",
-            "src/views/game/InventoryView.vue"
+            "src/tests/domain/equipmentDisplayConsumers.test.ts"
           ],
           "migrationPhase": [
             4
@@ -5919,8 +5921,8 @@
             "src/data/hats.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -5940,7 +5942,7 @@
           "consumers": [
             "src/data/hats.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -6063,8 +6065,8 @@
             "src/data/hatDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
@@ -6083,7 +6085,7 @@
           "consumers": [
             "src/data/hatDefinitions.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts"
           ],
           "migrationPhase": [
             6
@@ -8695,6 +8697,7 @@
           "persistentIds": true,
           "consumers": [
             "src/data/pondBreeds.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts",
             "src/tests/domain/pondBreedRegistryPilot.test.ts",
             "src/views/game/FishPondView.vue"
           ],
@@ -8733,6 +8736,7 @@
           "persistentIds": true,
           "consumers": [
             "src/data/pondBreedDefinitions.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts",
             "src/tests/domain/pondBreedRegistryPilot.test.ts",
             "src/views/game/FishPondView.vue"
           ],
@@ -9806,7 +9810,8 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useNpcStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
-            "src/tests/domain/contentRegistryEquivalence.test.ts"
+            "src/tests/domain/contentRegistryEquivalence.test.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts"
           ],
           "migrationPhase": [
             2
@@ -9915,7 +9920,7 @@
           "consumers": [
             "src/data/rings.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -10037,7 +10042,7 @@
           "consumers": [
             "src/data/ringDefinitions.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts"
           ],
           "migrationPhase": [
             6
@@ -10307,8 +10312,8 @@
             "src/data/shoes.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -10328,7 +10333,7 @@
           "consumers": [
             "src/data/shoes.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -10451,8 +10456,8 @@
             "src/data/shoeDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
@@ -10471,7 +10476,7 @@
           "consumers": [
             "src/data/shoeDefinitions.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts"
           ],
           "migrationPhase": [
             6
@@ -10613,8 +10618,8 @@
           "persistentIds": true,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
-            "src/tests/domain/shopRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopDefinitionConsumers.test.ts",
+            "src/tests/domain/shopRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             3
@@ -10646,6 +10651,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/shopDefinitionConsumers.test.ts",
             "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
             "src/views/game/ShopView.vue"
@@ -10663,6 +10669,7 @@
           "classification": "adapter",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/shopDefinitionConsumers.test.ts",
             "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
             "src/views/game/ShopView.vue"
@@ -12185,8 +12192,8 @@
             "src/data/items.ts",
             "src/data/weapons.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/AchievementView.vue"
+            "src/tests/domain/equipmentDisplayConsumers.test.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             3,
@@ -12208,8 +12215,8 @@
             "src/data/weapons.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             3,
@@ -12340,8 +12347,7 @@
             "src/data/enchantmentDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
-            "src/views/game/AchievementView.vue",
-            "src/views/game/InventoryView.vue"
+            "src/tests/domain/equipmentDisplayConsumers.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -12463,8 +12469,8 @@
             "src/data/weaponDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/views/game/ShopView.vue"
+            "src/tests/domain/shopEquipmentPoolConsumers.test.ts",
+            "src/tests/domain/shopOfferRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -12526,8 +12532,8 @@
             "src/data/items.ts",
             "src/data/weaponDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/tests/domain/equipmentRegistryPilot.test.ts",
-            "src/views/game/AchievementView.vue"
+            "src/tests/domain/equipmentDisplayConsumers.test.ts",
+            "src/tests/domain/equipmentRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             4,
