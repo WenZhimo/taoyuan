@@ -43,7 +43,7 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     }
 
     expect(report.businessDataImports.status).toBe('PASS')
-    expect(report.businessDataImports.count).toBe(510)
+    expect(report.businessDataImports.count).toBe(507)
     expect(report.businessDataImports.categories).toEqual([
       'official-adapter-leaf',
       'compatibility-fallback',
@@ -56,7 +56,7 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
       'compatibility-fallback': 289,
       'framework-algorithm': 82,
       'legal-derived': 19,
-      'pending-migration-violation': 33
+      'pending-migration-violation': 30
     })
     expect(Object.values(report.businessDataImports.categoryCounts).reduce(
       (total, count) => total + count,
@@ -79,8 +79,9 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     const reportedViolations = report.businessStaticReads.findings.map(findingKey).sort()
 
     expect(report.businessStaticReads.status).toBe('FAIL')
-    expect(report.businessStaticReads.count).toBe(33)
+    expect(report.businessStaticReads.count).toBe(30)
     expect(classifiedViolations).toEqual(reportedViolations)
+    expect(report.businessStaticReads.findings.filter(finding => finding.exportName === 'BOMBS')).toEqual([])
 
     expect(report.officialStartupSemantics.status).toBe('PASS')
     expect(report.officialStartupSemantics.checks).toEqual([

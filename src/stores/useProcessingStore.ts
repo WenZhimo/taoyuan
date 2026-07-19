@@ -7,12 +7,12 @@ import {
   TACKLES,
   TAPPER,
   CRAB_POT_CRAFT,
-  BOMBS,
   getMachineById,
   getRecipesForMachine,
   getProcessingRecipeById,
   getSprinklerById
 } from '@/data/processing'
+import { getOfficialBombById } from '@/domain/mods/contentAccess'
 import { useInventoryStore } from './useInventoryStore'
 import { usePlayerStore } from './usePlayerStore'
 import { useSkillStore } from './useSkillStore'
@@ -162,7 +162,7 @@ export const useProcessingStore = defineStore('processing', () => {
 
   /** 制造炸弹 */
   const craftBomb = (bombId: string): boolean => {
-    const def = BOMBS.find(b => b.id === bombId)
+    const def = getOfficialBombById(bombId)
     if (!def) return false
     if (!consumeCraftMaterials(def.craftCost, def.craftMoney)) return false
     inventoryStore.addItem(def.id)

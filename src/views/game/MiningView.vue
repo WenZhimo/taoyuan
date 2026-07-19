@@ -216,7 +216,6 @@
   import { getWeaponById, getOwnedWeaponEnchantments, getWeaponDisplayName, WEAPON_TYPE_NAMES, formatEnchantmentSummary } from '@/data/weapons'
   import { getRingById, getHatById, getShoeById } from '@/data'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
-  import { BOMBS } from '@/data/processing'
   import { getItemById } from '@/data/items'
   import type { CombatAction, CombatStatusEffect, MineTile } from '@/types'
   import {
@@ -227,7 +226,7 @@
   import { chooseAutoCombatAction as chooseAutoCombatActionRule } from '@/domain/mining/combat'
   import { buildMineElevatorZones, buildMineMapZones, buildSkullElevatorFloors, createMineLeaveHint } from '@/domain/mining/navigationDisplay'
   import { getMineTileClass, getMineTileIcon, isMineTileClickable } from '@/domain/mining/tileDisplay'
-  import { getOfficialMainMineBoss } from '@/domain/mods/contentAccess'
+  import { getOfficialBombsAsLegacy, getOfficialMainMineBoss } from '@/domain/mods/contentAccess'
   import { MAIN_MINE_BOSS_FLOORS } from '@/domain/mods/monsterPoolIds'
   import { createHatDetailInfo, createRingDetailInfo, createShoeDetailInfo, createWeaponDetailInfo } from '@/domain/enchantments/equipmentEffects'
   import { createWeaponEnchantmentDetailInfo } from '@/domain/enchantments/summarizeEnchantments'
@@ -276,6 +275,7 @@
 
   /** 炸弹模式 */
   const bombModeId = ref<string | null>(null)
+  const bombDefs = getOfficialBombsAsLegacy()
 
   /** 战斗道具面板 */
   const showCombatItems = ref(false)
@@ -368,7 +368,7 @@
   })
 
   const availableBombs = computed(() => {
-    return BOMBS.map(b => ({ id: b.id, name: b.name, count: inventoryStore.getItemCount(b.id) })).filter(b => b.count > 0)
+    return bombDefs.map(b => ({ id: b.id, name: b.name, count: inventoryStore.getItemCount(b.id) })).filter(b => b.count > 0)
   })
 
   /** 战斗中可用道具列表 */

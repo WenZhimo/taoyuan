@@ -12,6 +12,7 @@ import {
   getOfficialBombDefs,
   getOfficialBombsAsLegacy
 } from '@/domain/mods/contentAccess'
+import * as officialContentBootstrap from '@/domain/mods/officialContentBootstrap'
 import { toOfficialContentId, toOfficialRegistryTypeId } from '@/domain/mods/ids'
 import { RegistryError } from '@/domain/mods/registry'
 import { validateUnknown } from '@/domain/mods/schemaValidation'
@@ -191,6 +192,16 @@ describe('bomb registry pilot', () => {
     expect(inventoryStore.getItemCount('firewood')).toBe(0)
     expect(inventoryStore.getItemCount('cherry_bomb')).toBe(1)
     expect(inventoryStore.getItemCount('taoyuan:cherry_bomb')).toBe(0)
+  })
+
+  it('fails explicitly instead of falling back when the official registry is unavailable', () => {
+    const unavailable = new Error('official registry unavailable')
+    vi.spyOn(officialContentBootstrap, 'getOfficialRegistrySet').mockImplementation(() => {
+      throw unavailable
+    })
+
+    expect(() => getOfficialBombsAsLegacy()).toThrow(unavailable)
+    expect(() => useProcessingStore().craftBomb('cherry_bomb')).toThrow(unavailable)
   })
 
   it('keeps mine use and mine action list behavior unchanged', () => {

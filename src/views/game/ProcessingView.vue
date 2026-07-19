@@ -473,13 +473,13 @@
     LIGHTNING_ROD,
     SCARECROW,
     AUTO_PETTER,
-    BOMBS,
     getProcessingRecipeById,
     getProcessingMachines,
     getMachineById,
     getSprinklers,
     getSprinklerById
   } from '@/data/processing'
+  import { getOfficialBombsAsLegacy } from '@/domain/mods/contentAccess'
   import { getItemById, CHEST_DEFS, CHEST_TIER_ORDER } from '@/data/items'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { sfxClick } from '@/composables/useAudio'
@@ -496,6 +496,7 @@
   const animalStore = useAnimalStore()
   const skillStore = useSkillStore()
   const warehouseStore = useWarehouseStore()
+  const bombDefs = getOfficialBombsAsLegacy()
 
   const activeTab = ref<'process' | 'craft'>('process')
   const onlyAvailable = ref(false)
@@ -858,7 +859,7 @@
     {
       label: '其他',
       items: [
-        ...BOMBS.map(b => ({
+        ...bombDefs.map(b => ({
           id: b.id,
           name: b.name,
           description: b.description,
@@ -1118,7 +1119,7 @@
   const handleCraftBomb = (bombId: string) => {
     if (processingStore.craftBomb(bombId)) {
       sfxClick()
-      const name = BOMBS.find(b => b.id === bombId)?.name ?? bombId
+      const name = bombDefs.find(b => b.id === bombId)?.name ?? bombId
       addLog(`制造了${name}，已放入背包。`)
       const tr = gameStore.advanceTime(ACTION_TIME_COSTS.craftMachine)
       if (tr.message) addLog(tr.message)
