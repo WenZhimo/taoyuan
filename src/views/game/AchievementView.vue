@@ -119,7 +119,7 @@
               </div>
               <div v-if="activeWeaponDef.fixedEnchantment" class="flex items-center justify-between mt-0.5">
                 <span class="text-xs text-muted">固定附魔</span>
-                <span class="text-xs text-quality-supreme">{{ ENCHANTMENTS[activeWeaponDef.fixedEnchantment]?.name }}</span>
+                <span class="text-xs text-quality-supreme">{{ activeWeaponEnchantment?.name }}</span>
               </div>
             </template>
             <!-- 戒指/帽子/鞋子效果 -->
@@ -502,11 +502,16 @@
   import { getAchievements, getBundleById, getCommunityBundles } from '@/data/achievements'
   import { getItemById } from '@/data/items'
   import { HYBRID_DEFS } from '@/data/breeding'
-  import { WEAPONS, ENCHANTMENTS, WEAPON_TYPE_NAMES } from '@/data/weapons'
+  import { WEAPON_TYPE_NAMES } from '@/data/weapons'
   import { getRingById } from '@/data/rings'
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
-  import { getOfficialItemsAsLegacy, getOfficialSecretNotesAsLegacy } from '@/domain/mods/contentAccess'
+  import {
+    getOfficialEnchantmentById,
+    getOfficialItemsAsLegacy,
+    getOfficialSecretNotesAsLegacy,
+    getOfficialWeaponById
+  } from '@/domain/mods/contentAccess'
   import { sfxClick } from '@/composables/useAudio'
   import { addLog } from '@/composables/useGameLog'
   import type { ItemCategory, ItemDef, AchievementDef, CommunityBundleDef, SecretNoteDef } from '@/types'
@@ -665,7 +670,12 @@
   /** 当前详情的武器定义（若为武器类） */
   const activeWeaponDef = computed(() => {
     if (!activeCollectionItem.value || activeCollectionItem.value.category !== 'weapon') return null
-    return WEAPONS[activeCollectionItem.value.id] ?? null
+    return getOfficialWeaponById(activeCollectionItem.value.id) ?? null
+  })
+
+  const activeWeaponEnchantment = computed(() => {
+    const enchantmentId = activeWeaponDef.value?.fixedEnchantment
+    return enchantmentId ? getOfficialEnchantmentById(enchantmentId) ?? null : null
   })
 
   /** 当前详情的装备效果列表（戒指/帽子/鞋子） */

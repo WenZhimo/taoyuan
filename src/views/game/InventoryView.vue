@@ -983,7 +983,6 @@
   import { getItemById, getItemSource } from '@/data'
   import { getRecipeById } from '@/data/recipes'
   import {
-    ENCHANTMENTS,
     getWeaponById,
     getWeaponDisplayName,
     getWeaponSellPrice,
@@ -998,6 +997,7 @@
   import { getRingById } from '@/data/rings'
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
+  import { getOfficialEnchantmentsAsLegacy } from '@/domain/mods/contentAccess'
   import { QUALITY_NAMES } from '@/composables/useFarmActions'
   import { addLog } from '@/composables/useGameLog'
   import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
@@ -1246,7 +1246,7 @@
 
   const activeWeaponIdx = ref<number | null>(null)
   const selectedCustomEnchantments = ref<string[]>([])
-  const availableEnchantments = Object.values(ENCHANTMENTS)
+  const availableEnchantments = getOfficialEnchantmentsAsLegacy()
   const randomEnchantPreviewCost = Math.min(...availableEnchantments.map(enchant => getEnchantmentCost(enchant.id)))
 
   const activeEnchantTarget = computed<{ type: EnchantableEquipmentType; index: number } | null>(() => {

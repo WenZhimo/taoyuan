@@ -367,6 +367,9 @@ const toLegacyEnchantmentDef = (enchantment: Readonly<EnchantmentDef>): LegacyEn
   special: enchantment.special
 })
 
+export const getOfficialEnchantmentsAsLegacy = (): readonly LegacyEnchantmentDef[] =>
+  getOfficialEnchantmentDefs().map(toLegacyEnchantmentDef)
+
 export const getOfficialEnchantmentById = (id: string): LegacyEnchantmentDef | undefined => {
   const enchantment = getOfficialEnchantmentDef(id)
   return enchantment ? toLegacyEnchantmentDef(enchantment) : undefined
