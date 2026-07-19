@@ -71,8 +71,8 @@ describe('official equipment drop table registry pilot', () => {
     })!)).toEqual([])
   })
 
-  it('projects every treasure equipment pool with legacy local IDs and order', () => {
-    for (const dropCase of dropCases.filter(dropCase => dropCase.query.source === 'treasure')) {
+  it('projects every monster and treasure equipment pool with legacy local IDs and order', () => {
+    for (const dropCase of dropCases) {
       const pools = getOfficialEquipmentDropPoolsAsLegacy(dropCase.query)
       expect(Object.keys(pools)).toEqual(Object.keys(dropCase.pools))
       for (const [zone, drops] of Object.entries(dropCase.pools)) {

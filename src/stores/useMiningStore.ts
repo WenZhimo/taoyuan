@@ -21,15 +21,14 @@ import { getItemById } from '@/data/items'
 import {
   getWeaponById,
   getOwnedWeaponEnchantments,
-  MONSTER_DROP_WEAPONS,
   BOSS_DROP_WEAPONS,
   rollRandomEnchantment,
   getWeaponDisplayName,
   getWeaponSellPrice
 } from '@/data/weapons'
-import { getRingById, MONSTER_DROP_RINGS, BOSS_DROP_RINGS } from '@/data/rings'
-import { getHatById, MONSTER_DROP_HATS, BOSS_DROP_HATS } from '@/data/hats'
-import { getShoeById, MONSTER_DROP_SHOES, BOSS_DROP_SHOES } from '@/data/shoes'
+import { getRingById, BOSS_DROP_RINGS } from '@/data/rings'
+import { getHatById, BOSS_DROP_HATS } from '@/data/hats'
+import { getShoeById, BOSS_DROP_SHOES } from '@/data/shoes'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { useSkillStore } from './useSkillStore'
@@ -204,6 +203,12 @@ export const useMiningStore = defineStore('mining', () => {
     hat: getOfficialEquipmentDropPoolsAsLegacy({ source: 'treasure', kind: 'hat' }),
     shoe: getOfficialEquipmentDropPoolsAsLegacy({ source: 'treasure', kind: 'shoe' }),
     weapon: getOfficialEquipmentDropPoolsAsLegacy({ source: 'treasure', kind: 'weapon' })
+  }
+  const monsterDropPools = {
+    weapon: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'weapon' }),
+    ring: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'ring' }),
+    hat: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'hat' }),
+    shoe: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'shoe' })
   }
   const playerStore = usePlayerStore()
   const inventoryStore = useInventoryStore()
@@ -414,17 +419,17 @@ export const useMiningStore = defineStore('mining', () => {
     let message = ''
     let autoSoldMoney = 0
 
-    for (const drop of MONSTER_DROP_WEAPONS[zone] ?? []) {
+    for (const drop of monsterDropPools.weapon[zone] ?? []) {
       const attempts = rollChanceQuantity(drop.chance + luckyBonus * drop.chance)
       for (let i = 0; i < attempts; i++) {
         const enchantId = rollRandomEnchantment()
-        if (inventoryStore.hasWeaponExact(drop.weaponId, enchantId)) {
-          const price = getWeaponSellPrice(drop.weaponId, enchantId)
+        if (inventoryStore.hasWeaponExact(drop.gearId, enchantId)) {
+          const price = getWeaponSellPrice(drop.gearId, enchantId)
           playerStore.earnMoney(price)
           autoSoldMoney += price
         } else {
-          inventoryStore.addWeapon(drop.weaponId, enchantId)
-          const displayName = getWeaponDisplayName(drop.weaponId, enchantId)
+          inventoryStore.addWeapon(drop.gearId, enchantId)
+          const displayName = getWeaponDisplayName(drop.gearId, enchantId)
           message += ` 获得了武器：${displayName}！`
         }
       }
@@ -437,17 +442,17 @@ export const useMiningStore = defineStore('mining', () => {
     let message = ''
     let autoSoldMoney = 0
 
-    for (const drop of MONSTER_DROP_RINGS[zone] ?? []) {
+    for (const drop of monsterDropPools.ring[zone] ?? []) {
       const attempts = rollChanceQuantity(drop.chance + luckyBonus * drop.chance)
       for (let i = 0; i < attempts; i++) {
-        if (inventoryStore.hasRing(drop.ringId)) {
-          const price = getRingById(drop.ringId)?.sellPrice ?? 0
+        if (inventoryStore.hasRing(drop.gearId)) {
+          const price = getRingById(drop.gearId)?.sellPrice ?? 0
           playerStore.earnMoney(price)
           autoSoldMoney += price
         } else {
-          inventoryStore.addRing(drop.ringId)
-          const ringDef = getRingById(drop.ringId)
-          message += ` 获得了戒指：${ringDef?.name ?? drop.ringId}！`
+          inventoryStore.addRing(drop.gearId)
+          const ringDef = getRingById(drop.gearId)
+          message += ` 获得了戒指：${ringDef?.name ?? drop.gearId}！`
         }
       }
     }
@@ -459,17 +464,17 @@ export const useMiningStore = defineStore('mining', () => {
     let message = ''
     let autoSoldMoney = 0
 
-    for (const drop of MONSTER_DROP_HATS[zone] ?? []) {
+    for (const drop of monsterDropPools.hat[zone] ?? []) {
       const attempts = rollChanceQuantity(drop.chance + luckyBonus * drop.chance)
       for (let i = 0; i < attempts; i++) {
-        if (inventoryStore.hasHat(drop.hatId)) {
-          const price = getHatById(drop.hatId)?.sellPrice ?? 0
+        if (inventoryStore.hasHat(drop.gearId)) {
+          const price = getHatById(drop.gearId)?.sellPrice ?? 0
           playerStore.earnMoney(price)
           autoSoldMoney += price
         } else {
-          inventoryStore.addHat(drop.hatId)
-          const hatDef = getHatById(drop.hatId)
-          message += ` 获得了帽子：${hatDef?.name ?? drop.hatId}！`
+          inventoryStore.addHat(drop.gearId)
+          const hatDef = getHatById(drop.gearId)
+          message += ` 获得了帽子：${hatDef?.name ?? drop.gearId}！`
         }
       }
     }
@@ -481,17 +486,17 @@ export const useMiningStore = defineStore('mining', () => {
     let message = ''
     let autoSoldMoney = 0
 
-    for (const drop of MONSTER_DROP_SHOES[zone] ?? []) {
+    for (const drop of monsterDropPools.shoe[zone] ?? []) {
       const attempts = rollChanceQuantity(drop.chance + luckyBonus * drop.chance)
       for (let i = 0; i < attempts; i++) {
-        if (inventoryStore.hasShoe(drop.shoeId)) {
-          const price = getShoeById(drop.shoeId)?.sellPrice ?? 0
+        if (inventoryStore.hasShoe(drop.gearId)) {
+          const price = getShoeById(drop.gearId)?.sellPrice ?? 0
           playerStore.earnMoney(price)
           autoSoldMoney += price
         } else {
-          inventoryStore.addShoe(drop.shoeId)
-          const shoeDef = getShoeById(drop.shoeId)
-          message += ` 获得了鞋子：${shoeDef?.name ?? drop.shoeId}！`
+          inventoryStore.addShoe(drop.gearId)
+          const shoeDef = getShoeById(drop.gearId)
+          message += ` 获得了鞋子：${shoeDef?.name ?? drop.gearId}！`
         }
       }
     }
