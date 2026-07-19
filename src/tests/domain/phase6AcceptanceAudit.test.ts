@@ -43,7 +43,7 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     }
 
     expect(report.businessDataImports.status).toBe('PASS')
-    expect(report.businessDataImports.count).toBe(491)
+    expect(report.businessDataImports.count).toBe(481)
     expect(report.businessDataImports.categories).toEqual([
       'official-adapter-leaf',
       'compatibility-fallback',
@@ -56,7 +56,7 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
       'compatibility-fallback': 289,
       'framework-algorithm': 82,
       'legal-derived': 19,
-      'pending-migration-violation': 14
+      'pending-migration-violation': 4
     })
     expect(Object.values(report.businessDataImports.categoryCounts).reduce(
       (total, count) => total + count,
@@ -79,8 +79,14 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     const reportedViolations = report.businessStaticReads.findings.map(findingKey).sort()
 
     expect(report.businessStaticReads.status).toBe('FAIL')
-    expect(report.businessStaticReads.count).toBe(14)
+    expect(report.businessStaticReads.count).toBe(4)
     expect(classifiedViolations).toEqual(reportedViolations)
+    expect(reportedViolations).toEqual([
+      'src/composables/useEndDay.ts:src/data/recipes.ts:RECIPES',
+      'src/domain/mods/contentAccess.ts:src/data/breedingDefinitions.ts:HYBRID_TIER_COUNTS',
+      'src/views/game/FarmView.vue:src/data/crops.ts:CROPS',
+      'src/views/game/FishPondView.vue:src/data/pondBreeds.ts:BREED_COUNTS'
+    ])
     expect(report.businessStaticReads.findings.filter(finding => finding.exportName === 'BOMBS')).toEqual([])
     expect(report.businessStaticReads.findings.filter(finding => finding.exportName === 'GUILD_SHOP_ITEMS')).toEqual([])
     expect(report.businessStaticReads.findings.filter(finding => finding.exportName === 'ITEMS')).toEqual([])
