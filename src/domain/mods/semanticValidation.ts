@@ -1262,6 +1262,16 @@ export const validateRegistrySemantics = (registrySet: RegistrySet): ModDiagnost
         fieldPath: '/itemId'
       })
     }
+    record.entry.materials?.forEach((material, index) => {
+      if (!itemRegistry.has(contentId(material.itemId))) {
+        pushMissingReference(diagnostics, {
+          packageId: record.owner,
+          registryId: REGISTRY_IDS.item,
+          contentId: contentId(material.itemId),
+          fieldPath: `/materials/${index}/itemId`
+        })
+      }
+    })
   }
 
   for (const record of tagRegistry.entries()) {

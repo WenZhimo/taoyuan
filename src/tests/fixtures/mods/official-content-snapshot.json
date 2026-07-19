@@ -110939,6 +110939,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "恢复25体力和25HP。",
+              "key": "taoyuan.shop.guild.adventurer_ration.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -110952,7 +110956,8 @@
             },
             "price": 350,
             "shopId": "taoyuan:guild",
-            "sortOrder": 1
+            "sortOrder": 1,
+            "unlockGuildLevel": 2
           }
         },
         {
@@ -110962,6 +110967,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "dailyLimit": 2,
+            "description": {
+              "fallback": "本次探索攻击力+500。",
+              "key": "taoyuan.shop.guild.attack_potion.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -110975,7 +110985,8 @@
             },
             "price": 2500,
             "shopId": "taoyuan:guild",
-            "sortOrder": 12
+            "sortOrder": 12,
+            "unlockGuildLevel": 6
           }
         },
         {
@@ -110985,6 +110996,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "可炸开矿洞格子，也可在战斗中造成无视防御伤害。",
+              "key": "taoyuan.shop.guild.bomb.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -110998,7 +111013,8 @@
             },
             "price": 600,
             "shopId": "taoyuan:guild",
-            "sortOrder": 8
+            "sortOrder": 8,
+            "unlockGuildLevel": 2
           }
         },
         {
@@ -111008,6 +111024,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "恢复30点HP。",
+              "key": "taoyuan.shop.guild.combat_tonic.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111031,6 +111051,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 180,
+            "description": {
+              "fallback": "防御永久+3%。",
+              "key": "taoyuan.shop.guild.defense_charm.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111045,6 +111070,8 @@
             "price": 0,
             "shopId": "taoyuan:guild",
             "sortOrder": 21,
+            "totalLimit": 10,
+            "unlockGuildLevel": 7,
             "weeklyLimit": 3
           }
         },
@@ -111055,6 +111082,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "恢复60点HP。",
+              "key": "taoyuan.shop.guild.fortify_brew.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111078,6 +111109,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "dailyLimit": 2,
+            "description": {
+              "fallback": "本次探索受到的伤害降低35%。",
+              "key": "taoyuan.shop.guild.guardian_potion.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111091,7 +111127,8 @@
             },
             "price": 2200,
             "shopId": "taoyuan:guild",
-            "sortOrder": 13
+            "sortOrder": 13,
+            "unlockGuildLevel": 6
           }
         },
         {
@@ -111101,6 +111138,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 150,
+            "description": {
+              "fallback": "攻击力永久+3。",
+              "key": "taoyuan.shop.guild.guild_badge.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111115,6 +111157,7 @@
             "price": 0,
             "shopId": "taoyuan:guild",
             "sortOrder": 19,
+            "unlockGuildLevel": 6,
             "weeklyLimit": 10
           }
         },
@@ -111125,6 +111168,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 350,
+            "description": {
+              "fallback": "攻击力36，暴击率10%。",
+              "key": "taoyuan.shop.guild.guild_war_blade.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111132,13 +111180,26 @@
             },
             "id": "taoyuan:shop/guild/guild/guild_war_blade/18",
             "itemId": "taoyuan:guild_war_blade",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 10
+              },
+              {
+                "itemId": "taoyuan:dragon_jade",
+                "quantity": 1
+              }
+            ],
             "name": {
               "fallback": "公会战刃",
               "key": "taoyuan.shop.guild.guild_war_blade.name"
             },
             "price": 0,
+            "purchaseKind": "weapon",
             "shopId": "taoyuan:guild",
-            "sortOrder": 18
+            "sortOrder": 18,
+            "totalLimit": 1,
+            "unlockGuildLevel": 9
           }
         },
         {
@@ -111148,6 +111209,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 250,
+            "description": {
+              "fallback": "攻击+2，防御+5%，移速+10%。",
+              "key": "taoyuan.shop.guild.guild_war_boots.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111155,13 +111221,26 @@
             },
             "id": "taoyuan:shop/guild/guild/guild_war_boots/17",
             "itemId": "taoyuan:guild_war_boots",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:obsidian",
+                "quantity": 1
+              }
+            ],
             "name": {
               "fallback": "公会战靴",
               "key": "taoyuan.shop.guild.guild_war_boots.name"
             },
             "price": 0,
+            "purchaseKind": "shoe",
             "shopId": "taoyuan:guild",
-            "sortOrder": 17
+            "sortOrder": 17,
+            "totalLimit": 1,
+            "unlockGuildLevel": 7
           }
         },
         {
@@ -111171,6 +111250,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 250,
+            "description": {
+              "fallback": "攻击+3，HP+15。",
+              "key": "taoyuan.shop.guild.guild_war_helm.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111178,13 +111262,26 @@
             },
             "id": "taoyuan:shop/guild/guild/guild_war_helm/16",
             "itemId": "taoyuan:guild_war_helm",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:moonstone",
+                "quantity": 1
+              }
+            ],
             "name": {
               "fallback": "公会战盔",
               "key": "taoyuan.shop.guild.guild_war_helm.name"
             },
             "price": 0,
+            "purchaseKind": "hat",
             "shopId": "taoyuan:guild",
-            "sortOrder": 16
+            "sortOrder": 16,
+            "totalLimit": 1,
+            "unlockGuildLevel": 6
           }
         },
         {
@@ -111194,6 +111291,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 200,
+            "description": {
+              "fallback": "攻击+4，防御+6%。",
+              "key": "taoyuan.shop.guild.guild_war_ring.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111201,13 +111303,26 @@
             },
             "id": "taoyuan:shop/guild/guild/guild_war_ring/15",
             "itemId": "taoyuan:guild_war_ring",
+            "materials": [
+              {
+                "itemId": "taoyuan:gold_bar",
+                "quantity": 5
+              },
+              {
+                "itemId": "taoyuan:ruby",
+                "quantity": 2
+              }
+            ],
             "name": {
               "fallback": "公会战戒",
               "key": "taoyuan.shop.guild.guild_war_ring.name"
             },
             "price": 0,
+            "purchaseKind": "ring",
             "shopId": "taoyuan:guild",
-            "sortOrder": 15
+            "sortOrder": 15,
+            "totalLimit": 1,
+            "unlockGuildLevel": 5
           }
         },
         {
@@ -111217,6 +111332,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "战斗中造成无视防御伤害并附加[冻结]。",
+              "key": "taoyuan.shop.guild.ice_bomb.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111230,7 +111349,8 @@
             },
             "price": 1200,
             "shopId": "taoyuan:guild",
-            "sortOrder": 11
+            "sortOrder": 11,
+            "unlockGuildLevel": 5
           }
         },
         {
@@ -111240,6 +111360,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "恢复全部HP。",
+              "key": "taoyuan.shop.guild.ironhide_potion.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111263,6 +111387,12 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 200,
+            "dailyLimit": 1,
+            "description": {
+              "fallback": "最大生命值永久+15。",
+              "key": "taoyuan.shop.guild.life_talisman.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111276,7 +111406,9 @@
             },
             "price": 0,
             "shopId": "taoyuan:guild",
-            "sortOrder": 20
+            "sortOrder": 20,
+            "totalLimit": 100,
+            "unlockGuildLevel": 8
           }
         },
         {
@@ -111286,6 +111418,11 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "contributionCost": 300,
+            "description": {
+              "fallback": "怪物掉落率永久+5%。",
+              "key": "taoyuan.shop.guild.lucky_coin.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111300,6 +111437,8 @@
             "price": 0,
             "shopId": "taoyuan:guild",
             "sortOrder": 22,
+            "totalLimit": 10,
+            "unlockGuildLevel": 10,
             "weeklyLimit": 3
           }
         },
@@ -111310,6 +111449,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "大型爆炸物，战斗中造成大量伤害并附加[燃烧]。",
+              "key": "taoyuan.shop.guild.mega_bomb.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111323,7 +111466,8 @@
             },
             "price": 1800,
             "shopId": "taoyuan:guild",
-            "sortOrder": 9
+            "sortOrder": 9,
+            "unlockGuildLevel": 6
           }
         },
         {
@@ -111333,6 +111477,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "本层怪物数量翻倍。",
+              "key": "taoyuan.shop.guild.monster_lure.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111346,7 +111494,8 @@
             },
             "price": 2000,
             "shopId": "taoyuan:guild",
-            "sortOrder": 7
+            "sortOrder": 7,
+            "unlockGuildLevel": 7
           }
         },
         {
@@ -111356,6 +111505,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "大量无视防御百分比伤害，并附加永久[辐射]。",
+              "key": "taoyuan.shop.guild.nuclear_bomb.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111370,6 +111523,7 @@
             "price": 12000,
             "shopId": "taoyuan:guild",
             "sortOrder": 14,
+            "unlockGuildLevel": 10,
             "weeklyLimit": 1
           }
         },
@@ -111380,6 +111534,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "战斗中造成伤害并附加[中毒]。",
+              "key": "taoyuan.shop.guild.poison_arrow.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111393,7 +111551,8 @@
             },
             "price": 500,
             "shopId": "taoyuan:guild",
-            "sortOrder": 10
+            "sortOrder": 10,
+            "unlockGuildLevel": 3
           }
         },
         {
@@ -111403,6 +111562,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "怪物掉落率+20%（当次探索）。",
+              "key": "taoyuan.shop.guild.slayer_charm.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111416,7 +111579,8 @@
             },
             "price": 1500,
             "shopId": "taoyuan:guild",
-            "sortOrder": 5
+            "sortOrder": 5,
+            "unlockGuildLevel": 3
           }
         },
         {
@@ -111426,6 +111590,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "恢复120点体力。",
+              "key": "taoyuan.shop.guild.stamina_elixir.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111439,7 +111607,8 @@
             },
             "price": 600,
             "shopId": "taoyuan:guild",
-            "sortOrder": 6
+            "sortOrder": 6,
+            "unlockGuildLevel": 4
           }
         },
         {
@@ -111449,6 +111618,10 @@
             "packageId": "taoyuan-core"
           },
           "entry": {
+            "description": {
+              "fallback": "恢复50体力和50HP。",
+              "key": "taoyuan.shop.guild.warriors_feast.description"
+            },
             "groupId": "guild",
             "groupName": {
               "fallback": "行会商品",
@@ -111462,7 +111635,8 @@
             },
             "price": 1000,
             "shopId": "taoyuan:guild",
-            "sortOrder": 4
+            "sortOrder": 4,
+            "unlockGuildLevel": 5
           }
         },
         {
@@ -117783,5 +117957,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:22cbe8358ceb0fd60791f029196f9e4acf4c49d836cd8d49df221fea2ea14aba"
+  "snapshotHash": "sha256:6fa556c65520a948606b1e11bd5e67b7e2cb35fed47d2850477b0fd5803fcfc2"
 }

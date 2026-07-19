@@ -249,7 +249,7 @@
     <!-- 公会商店 -->
     <div v-if="tab === 'shop'" class="flex flex-col space-y-2">
       <div
-        v-for="item in GUILD_SHOP_ITEMS"
+        v-for="item in guildShopItems"
         :key="item.itemId"
         class="flex items-center justify-between border border-accent/20 rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5"
         @click="openShopModal(item)"
@@ -541,7 +541,7 @@
   import { useGuildStore } from '@/stores/useGuildStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
-  import { GUILD_SHOP_ITEMS, getGuildDonations, getMonsterGoals } from '@/data/guild'
+  import { getGuildDonations, getMonsterGoals } from '@/data/guild'
   import { MONSTER_DROP_WEAPONS, BOSS_DROP_WEAPONS, getWeaponById } from '@/data/weapons'
   import { MONSTER_DROP_RINGS, BOSS_DROP_RINGS, getRingById } from '@/data/rings'
   import { MONSTER_DROP_HATS, BOSS_DROP_HATS, getHatById } from '@/data/hats'
@@ -552,6 +552,7 @@
   import {
     getOfficialMainMineBoss,
     getOfficialMainMineZoneMonsters,
+    getOfficialGuildShopItemsAsLegacy,
     getOfficialSkullCavernBaseMonsters,
     getOfficialSkullCavernBosses
   } from '@/domain/mods/contentAccess'
@@ -562,6 +563,7 @@
   const guildStore = useGuildStore()
   const playerStore = usePlayerStore()
   const inventoryStore = useInventoryStore()
+  const guildShopItems = getOfficialGuildShopItemsAsLegacy()
 
   const tab = ref<Tab>('goals')
   const goalZone = ref('all')

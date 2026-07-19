@@ -2,12 +2,12 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import {
   GUILD_BONUS_PER_LEVEL,
-  GUILD_SHOP_ITEMS,
   getGuildDonationByItemId,
   getGuildLevels,
   getMonsterGoalByMonsterId,
   getMonsterGoals
 } from '@/data/guild'
+import { getOfficialGuildShopItemById } from '@/domain/mods/contentAccess'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { useGameStore } from './useGameStore'
@@ -193,7 +193,7 @@ export const useGuildStore = defineStore('guild', () => {
 
   /** 公会商店：检查物品是否已解锁 */
   const isShopItemUnlocked = (itemId: string): boolean => {
-    const item = GUILD_SHOP_ITEMS.find(i => i.itemId === itemId)
+    const item = getOfficialGuildShopItemById(itemId)
     if (!item) return false
     if (!item.unlockGuildLevel) return true
     return guildLevel.value >= item.unlockGuildLevel
@@ -201,9 +201,9 @@ export const useGuildStore = defineStore('guild', () => {
 
   /** 公会商店：购买物品 */
   const buyShopItem = (itemId: string): boolean => {
-    const item = GUILD_SHOP_ITEMS.find(i => i.itemId === itemId)
+    const item = getOfficialGuildShopItemById(itemId)
     if (!item) return false
-    if (!isShopItemUnlocked(itemId)) return false
+    if (item.unlockGuildLevel && guildLevel.value < item.unlockGuildLevel) return false
 
     // 每日限购检查
     if (item.dailyLimit) {

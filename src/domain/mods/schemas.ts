@@ -2027,9 +2027,18 @@ export const ShopOfferPurchaseKindSchema = Type.Union([
   Type.Literal('item'),
   Type.Literal('seed'),
   Type.Literal('weapon'),
+  Type.Literal('ring'),
   Type.Literal('hat'),
   Type.Literal('shoe')
 ])
+
+export const ShopOfferMaterialSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
 
 export const ShopOfferDefSchema = Type.Object(
   {
@@ -2042,9 +2051,13 @@ export const ShopOfferDefSchema = Type.Object(
     groupName: Type.Optional(LocalizedTextRefSchema),
     purchaseKind: Type.Optional(ShopOfferPurchaseKindSchema),
     price: Type.Integer({ minimum: 0 }),
+    contributionCost: Type.Optional(Type.Integer({ minimum: 1 })),
+    unlockGuildLevel: Type.Optional(Type.Integer({ minimum: 1 })),
+    dailyLimit: Type.Optional(Type.Integer({ minimum: 0 })),
     quantity: Type.Optional(Type.Integer({ minimum: 1 })),
     weeklyLimit: Type.Optional(Type.Integer({ minimum: 0 })),
     totalLimit: Type.Optional(Type.Integer({ minimum: 0 })),
+    materials: Type.Optional(Type.Array(ShopOfferMaterialSchema)),
     sortOrder: Type.Optional(Type.Integer({ minimum: 0 })),
     availableSeasons: Type.Optional(Type.Array(SeasonSchema, { minItems: 1, uniqueItems: true }))
   },
@@ -2322,6 +2335,7 @@ export type CommunityBundleReward = Static<typeof CommunityBundleRewardSchema>
 export type CommunityBundleDef = Static<typeof CommunityBundleDefSchema>
 export type ShopDef = Static<typeof ShopDefSchema>
 export type ShopOfferPurchaseKind = Static<typeof ShopOfferPurchaseKindSchema>
+export type ShopOfferMaterial = Static<typeof ShopOfferMaterialSchema>
 export type ShopOfferDef = Static<typeof ShopOfferDefSchema>
 
 export type OfficialRegistryId = keyof typeof OFFICIAL_REGISTRY_SCHEMAS

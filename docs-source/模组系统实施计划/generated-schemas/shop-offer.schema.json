@@ -94,6 +94,10 @@
           "type": "string"
         },
         {
+          "const": "ring",
+          "type": "string"
+        },
+        {
           "const": "hat",
           "type": "string"
         },
@@ -104,6 +108,18 @@
       ]
     },
     "price": {
+      "minimum": 0,
+      "type": "integer"
+    },
+    "contributionCost": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "unlockGuildLevel": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "dailyLimit": {
       "minimum": 0,
       "type": "integer"
     },
@@ -118,6 +134,27 @@
     "totalLimit": {
       "minimum": 0,
       "type": "integer"
+    },
+    "materials": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "itemId",
+          "quantity"
+        ],
+        "properties": {
+          "itemId": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          },
+          "quantity": {
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      }
     },
     "sortOrder": {
       "minimum": 0,

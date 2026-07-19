@@ -30,6 +30,7 @@ import type {
   MuseumMilestone as LegacyMuseumMilestone,
   GuildDonationDef as LegacyGuildDonationDef,
   GuildLevelDef as LegacyGuildLevelDef,
+  GuildShopItemDef as LegacyGuildShopItemDef,
   HeartEventDef as LegacyHeartEventDef,
   MainQuestDef as LegacyMainQuestDef,
   MonsterGoalDef as LegacyGuildGoalDef,
@@ -630,6 +631,7 @@ export interface OfficialShopOfferGroup {
 const TRAVELING_MERCHANT_SHOP_ID = 'traveling_merchant'
 const HANHAI_FIXED_SHOP_ID = 'hanhai'
 const HANHAI_ROTATING_SHOP_ID = 'hanhai_rotating'
+const GUILD_SHOP_ID = 'guild'
 
 const compareShopOffers = (a: Readonly<ShopOfferDef>, b: Readonly<ShopOfferDef>): number =>
   (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.id.localeCompare(b.id)
@@ -665,6 +667,40 @@ export const getOfficialShopOfferGroupsForShop = (
     groupName: group.groupName,
     offers: group.offers
   }))
+}
+
+const toLegacyGuildShopItem = (offer: Readonly<ShopOfferDef>): LegacyGuildShopItemDef => ({
+  itemId: getLocalContentId(offer.itemId),
+  name: offer.name?.fallback ?? getLocalContentId(offer.itemId),
+  price: offer.price,
+  description: offer.description?.fallback ?? '',
+  ...(offer.contributionCost !== undefined ? { contributionCost: offer.contributionCost } : {}),
+  ...(offer.unlockGuildLevel !== undefined ? { unlockGuildLevel: offer.unlockGuildLevel } : {}),
+  ...(offer.dailyLimit !== undefined ? { dailyLimit: offer.dailyLimit } : {}),
+  ...(offer.weeklyLimit !== undefined ? { weeklyLimit: offer.weeklyLimit } : {}),
+  ...(offer.totalLimit !== undefined ? { totalLimit: offer.totalLimit } : {}),
+  ...(offer.materials ? {
+    materials: offer.materials.map(material => ({
+      itemId: getLocalContentId(material.itemId),
+      quantity: material.quantity
+    }))
+  } : {}),
+  ...(offer.purchaseKind && offer.purchaseKind !== 'item' && offer.purchaseKind !== 'seed'
+    ? { equipType: offer.purchaseKind }
+    : {})
+})
+
+export const getOfficialGuildShopOffers = (): readonly Readonly<ShopOfferDef>[] =>
+  getOfficialShopOffersForShop({ shopId: GUILD_SHOP_ID })
+
+export const getOfficialGuildShopItemsAsLegacy = (): readonly LegacyGuildShopItemDef[] =>
+  getOfficialGuildShopOffers().map(toLegacyGuildShopItem)
+
+export const getOfficialGuildShopItemById = (id: string): LegacyGuildShopItemDef | undefined => {
+  const itemId = toQueryContentId(id)
+  if (!itemId) return undefined
+  const offer = getOfficialGuildShopOffers().find(candidate => candidate.itemId === itemId)
+  return offer ? toLegacyGuildShopItem(offer) : undefined
 }
 
 export const getOfficialTravelingMerchantOffers = (): readonly Readonly<ShopOfferDef>[] =>

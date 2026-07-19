@@ -1767,7 +1767,12 @@ interface LegacyShopOfferInput {
   name?: string
   description?: string
   purchaseKind?: ShopOfferDef['purchaseKind']
+  contributionCost?: number
+  unlockGuildLevel?: number
+  dailyLimit?: number
   weeklyLimit?: number
+  totalLimit?: number
+  materials?: readonly { itemId: string, quantity: number }[]
   availableSeasons?: ShopOfferDef['availableSeasons']
 }
 
@@ -1781,7 +1786,17 @@ const createShopOffer = (offer: LegacyShopOfferInput): ShopOfferDef => ({
   ...(offer.groupName ? { groupName: text(`taoyuan.shop.${offer.shopId}.${offer.groupId}.name`, offer.groupName) } : {}),
   ...(offer.purchaseKind ? { purchaseKind: offer.purchaseKind } : {}),
   price: offer.price,
+  ...(offer.contributionCost !== undefined ? { contributionCost: offer.contributionCost } : {}),
+  ...(offer.unlockGuildLevel !== undefined ? { unlockGuildLevel: offer.unlockGuildLevel } : {}),
+  ...(offer.dailyLimit !== undefined ? { dailyLimit: offer.dailyLimit } : {}),
   ...(offer.weeklyLimit !== undefined ? { weeklyLimit: offer.weeklyLimit } : {}),
+  ...(offer.totalLimit !== undefined ? { totalLimit: offer.totalLimit } : {}),
+  ...(offer.materials ? {
+    materials: offer.materials.map(material => ({
+      itemId: toOfficialContentId(material.itemId),
+      quantity: material.quantity
+    }))
+  } : {}),
   sortOrder: offer.index,
   ...(offer.availableSeasons ? { availableSeasons: [...offer.availableSeasons] } : {})
 })
@@ -1994,7 +2009,14 @@ export const createOfficialShopOffers = (): ShopOfferDef[] => [
       groupId: 'guild',
       groupName: '行会商品',
       name: item.name,
-      weeklyLimit: item.weeklyLimit
+      description: item.description,
+      purchaseKind: item.equipType,
+      contributionCost: item.contributionCost,
+      unlockGuildLevel: item.unlockGuildLevel,
+      dailyLimit: item.dailyLimit,
+      weeklyLimit: item.weeklyLimit,
+      totalLimit: item.totalLimit,
+      materials: item.materials
     })
   ),
   ...TRAVELING_MERCHANT_POOL.map((item, index) =>
