@@ -572,6 +572,9 @@ export const getOfficialRingDefs = (): readonly Readonly<WearableEquipmentDef>[]
 export const getOfficialRingsAsLegacy = (): readonly LegacyRingDef[] =>
   getOfficialRingDefs().map(toLegacyRingDef)
 
+export const getOfficialCraftableRingsAsLegacy = (): readonly LegacyRingDef[] =>
+  getOfficialRingsAsLegacy().filter(ring => ring.recipe !== null)
+
 export const getOfficialRingById = (id: string): LegacyRingDef | undefined => {
   const equipment = getOfficialEquipmentDef(id)
   return equipment?.kind === 'ring' ? toLegacyRingDef(equipment) : undefined
@@ -583,6 +586,12 @@ export const getOfficialHatDefs = (): readonly Readonly<WearableEquipmentDef>[] 
 export const getOfficialHatsAsLegacy = (): readonly LegacyHatDef[] =>
   getOfficialHatDefs().map(toLegacyHatDef)
 
+export const getOfficialShopHatsAsLegacy = (): readonly LegacyHatDef[] =>
+  getOfficialHatsAsLegacy().filter(hat => hat.shopPrice !== null)
+
+export const getOfficialCraftableHatsAsLegacy = (): readonly LegacyHatDef[] =>
+  getOfficialHatsAsLegacy().filter(hat => hat.recipe !== null)
+
 export const getOfficialHatById = (id: string): LegacyHatDef | undefined => {
   const equipment = getOfficialEquipmentDef(id)
   return equipment?.kind === 'hat' ? toLegacyHatDef(equipment) : undefined
@@ -593,6 +602,12 @@ export const getOfficialShoeDefs = (): readonly Readonly<WearableEquipmentDef>[]
 
 export const getOfficialShoesAsLegacy = (): readonly LegacyShoeDef[] =>
   getOfficialShoeDefs().map(toLegacyShoeDef)
+
+export const getOfficialShopShoesAsLegacy = (): readonly LegacyShoeDef[] =>
+  getOfficialShoesAsLegacy().filter(shoe => shoe.shopPrice !== null)
+
+export const getOfficialCraftableShoesAsLegacy = (): readonly LegacyShoeDef[] =>
+  getOfficialShoesAsLegacy().filter(shoe => shoe.recipe !== null)
 
 export const getOfficialShoeById = (id: string): LegacyShoeDef | undefined => {
   const equipment = getOfficialEquipmentDef(id)
@@ -619,6 +634,9 @@ export const getOfficialWeaponDefs = (): readonly Readonly<WeaponEquipmentDef>[]
 
 export const getOfficialWeaponsAsLegacy = (): readonly LegacyWeaponDef[] =>
   getOfficialWeaponDefs().map(toLegacyWeaponDef)
+
+export const getOfficialShopWeaponsAsLegacy = (): readonly LegacyWeaponDef[] =>
+  getOfficialWeaponsAsLegacy().filter(weapon => weapon.shopPrice !== null)
 
 export const getOfficialWeaponById = (id: string): LegacyWeaponDef | undefined => {
   const equipment = getOfficialEquipmentDef(id)

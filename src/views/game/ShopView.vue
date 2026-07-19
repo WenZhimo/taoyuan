@@ -230,7 +230,7 @@
             </h4>
             <div class="flex flex-col space-y-2">
               <div
-                v-for="hat in CRAFTABLE_HATS"
+                v-for="hat in craftableHats"
                 :key="hat.id"
                 class="flex items-center justify-between border rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5"
                 :class="canCraftHat(hat) ? 'border-success/50 bg-success/5' : 'border-accent/20'"
@@ -254,7 +254,7 @@
             </h4>
             <div class="flex flex-col space-y-2">
               <div
-                v-for="shoe in CRAFTABLE_SHOES"
+                v-for="shoe in craftableShoes"
                 :key="shoe.id"
                 class="flex items-center justify-between border rounded-xs px-3 py-2 cursor-pointer hover:bg-accent/5"
                 :class="canCraftShoe(shoe) ? 'border-success/50 bg-success/5' : 'border-accent/20'"
@@ -630,12 +630,17 @@
   import { getCropBySeedId } from '@/data/crops'
   import { SHOPS, isShopAvailable, getShopClosedReason } from '@/data/shops'
   import type { ShopDef } from '@/data/shops'
-  import { SHOP_WEAPONS, WEAPON_TYPE_NAMES } from '@/data/weapons'
+  import { WEAPON_TYPE_NAMES } from '@/data/weapons'
   import type { WeaponDef, RingDef, RingEffectType, Season, Quality, HatDef, ShoeDef, ItemCategory } from '@/types'
-  import { getOfficialFruitTreeBySaplingId } from '@/domain/mods/contentAccess'
-  import { CRAFTABLE_RINGS } from '@/data/rings'
-  import { SHOP_HATS, CRAFTABLE_HATS } from '@/data/hats'
-  import { SHOP_SHOES, CRAFTABLE_SHOES } from '@/data/shoes'
+  import {
+    getOfficialCraftableHatsAsLegacy,
+    getOfficialCraftableRingsAsLegacy,
+    getOfficialCraftableShoesAsLegacy,
+    getOfficialFruitTreeBySaplingId,
+    getOfficialShopHatsAsLegacy,
+    getOfficialShopShoesAsLegacy,
+    getOfficialShopWeaponsAsLegacy
+  } from '@/domain/mods/contentAccess'
   import { addLog } from '@/composables/useGameLog'
   import { sfxBuy } from '@/composables/useAudio'
   import { showFloat } from '@/composables/useGameLog'
@@ -649,9 +654,12 @@
   import type { QualityQuantityEntry } from '@/domain/inventory/qualityGroups'
 
 
-  const SHOP_WEAPON_BY_ID = new Map(SHOP_WEAPONS.map(weapon => [weapon.id, weapon]))
-  const SHOP_HAT_BY_ID = new Map(SHOP_HATS.map(hat => [hat.id, hat]))
-  const SHOP_SHOE_BY_ID = new Map(SHOP_SHOES.map(shoe => [shoe.id, shoe]))
+  const SHOP_WEAPON_BY_ID = new Map(getOfficialShopWeaponsAsLegacy().map(weapon => [weapon.id, weapon]))
+  const SHOP_HAT_BY_ID = new Map(getOfficialShopHatsAsLegacy().map(hat => [hat.id, hat]))
+  const SHOP_SHOE_BY_ID = new Map(getOfficialShopShoesAsLegacy().map(shoe => [shoe.id, shoe]))
+  const craftableRings = getOfficialCraftableRingsAsLegacy()
+  const craftableHats = getOfficialCraftableHatsAsLegacy()
+  const craftableShoes = getOfficialCraftableShoesAsLegacy()
 
   const shopStore = useShopStore()
   const playerStore = usePlayerStore()
@@ -1264,8 +1272,6 @@
     travel_speed: '旅行加速',
     combat_regen: '回合自愈'
   }
-
-  const craftableRings = computed(() => CRAFTABLE_RINGS)
 
   const canCraftRing = (ring: RingDef): boolean => {
     if (!ring.recipe) return false
