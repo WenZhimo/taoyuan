@@ -542,16 +542,17 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
   import { getGuildDonations, getMonsterGoals } from '@/data/guild'
-  import { MONSTER_DROP_WEAPONS, BOSS_DROP_WEAPONS, getWeaponById } from '@/data/weapons'
-  import { MONSTER_DROP_RINGS, BOSS_DROP_RINGS, getRingById } from '@/data/rings'
-  import { MONSTER_DROP_HATS, BOSS_DROP_HATS, getHatById } from '@/data/hats'
-  import { MONSTER_DROP_SHOES, BOSS_DROP_SHOES, getShoeById } from '@/data/shoes'
+  import { BOSS_DROP_WEAPONS, getWeaponById } from '@/data/weapons'
+  import { BOSS_DROP_RINGS, getRingById } from '@/data/rings'
+  import { BOSS_DROP_HATS, getHatById } from '@/data/hats'
+  import { BOSS_DROP_SHOES, getShoeById } from '@/data/shoes'
   import type { MonsterDef, GuildShopItemDef, MonsterGoalDef } from '@/types'
   import { getItemById } from '@/data/items'
   import { addLog } from '@/composables/useGameLog'
   import {
     getOfficialMainMineBoss,
     getOfficialMainMineZoneMonsters,
+    getOfficialEquipmentDropPoolsAsLegacy,
     getOfficialGuildShopItemsAsLegacy,
     getOfficialSkullCavernBaseMonsters,
     getOfficialSkullCavernBosses
@@ -564,6 +565,12 @@
   const playerStore = usePlayerStore()
   const inventoryStore = useInventoryStore()
   const guildShopItems = getOfficialGuildShopItemsAsLegacy()
+  const monsterEquipmentDropPools = {
+    weapon: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'weapon' }),
+    ring: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'ring' }),
+    hat: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'hat' }),
+    shoe: getOfficialEquipmentDropPoolsAsLegacy({ source: 'monster', kind: 'shoe' })
+  }
 
   const tab = ref<Tab>('goals')
   const goalZone = ref('all')
@@ -768,17 +775,17 @@
     const bossFloor = getBossFloor(monster.id)
 
     if (zone) {
-      for (const d of MONSTER_DROP_WEAPONS[zone] ?? []) {
-        drops.push({ name: getWeaponById(d.weaponId)?.name ?? d.weaponId, chance: d.chance, firstKill: false })
+      for (const d of monsterEquipmentDropPools.weapon[zone] ?? []) {
+        drops.push({ name: getWeaponById(d.gearId)?.name ?? d.gearId, chance: d.chance, firstKill: false })
       }
-      for (const d of MONSTER_DROP_RINGS[zone] ?? []) {
-        drops.push({ name: getRingById(d.ringId)?.name ?? d.ringId, chance: d.chance, firstKill: false })
+      for (const d of monsterEquipmentDropPools.ring[zone] ?? []) {
+        drops.push({ name: getRingById(d.gearId)?.name ?? d.gearId, chance: d.chance, firstKill: false })
       }
-      for (const d of MONSTER_DROP_HATS[zone] ?? []) {
-        drops.push({ name: getHatById(d.hatId)?.name ?? d.hatId, chance: d.chance, firstKill: false })
+      for (const d of monsterEquipmentDropPools.hat[zone] ?? []) {
+        drops.push({ name: getHatById(d.gearId)?.name ?? d.gearId, chance: d.chance, firstKill: false })
       }
-      for (const d of MONSTER_DROP_SHOES[zone] ?? []) {
-        drops.push({ name: getShoeById(d.shoeId)?.name ?? d.shoeId, chance: d.chance, firstKill: false })
+      for (const d of monsterEquipmentDropPools.shoe[zone] ?? []) {
+        drops.push({ name: getShoeById(d.gearId)?.name ?? d.gearId, chance: d.chance, firstKill: false })
       }
     } else if (bossFloor !== null) {
       const w = BOSS_DROP_WEAPONS[bossFloor]
