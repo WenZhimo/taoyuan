@@ -44,6 +44,15 @@ const publicPath = path.join(appRoot, 'public')
 
 // 设置文件路径
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
+const startupLogPath = path.join(app.getPath('userData'), 'startup.log')
+
+const appendStartupLog = message => {
+  try {
+    fs.appendFileSync(startupLogPath, `[${new Date().toISOString()}] ${message}\n`, 'utf8')
+  } catch (e) {
+    console.error('Failed to write startup log:', e)
+  }
+}
 
 // 默认设置
 const defaultSettings = {
@@ -252,6 +261,11 @@ ipcMain.handle('restart-window', () => {
 ipcMain.handle('quit-app', () => {
   isQuitting = true
   app.quit()
+})
+
+ipcMain.on('startup-failure', (_event, message) => {
+  if (typeof message !== 'string') return
+  appendStartupLog(`[taoyuan-core] ${message.slice(0, 100_000)}`)
 })
 
 app.whenReady().then(() => {

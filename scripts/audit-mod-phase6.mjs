@@ -21,6 +21,17 @@ const officialSnapshot = readJson(snapshotPath)
 const officialRegistryIds = new Set(officialSnapshot.registries.map(registry => registry.registryId))
 const inventorySymbols = inventory.entries.flatMap(entry => entry.symbols)
 const staticAdapterFile = 'src/domain/mods/staticAdapters.ts'
+const readSource = file => fs.readFileSync(path.join(root, file), 'utf8')
+const startupSources = {
+  applicationBootstrap: readSource('src/bootstrap.ts'),
+  capacitor: readSource('capacitor.config.ts'),
+  contentAccess: readSource('src/domain/mods/contentAccess.ts'),
+  electronMain: readSource('electron/main.js'),
+  electronPreload: readSource('electron/preload.js'),
+  main: readSource('src/main.ts'),
+  officialContentBootstrap: readSource('src/domain/mods/officialContentBootstrap.ts'),
+  webIndex: readSource('index.html')
+}
 const dataImportCategories = [
   'official-adapter-leaf',
   'compatibility-fallback',
@@ -31,6 +42,61 @@ const dataImportCategories = [
 const inventoryByExport = new Map(
   inventorySymbols.map(symbol => [`${symbol.file}:${symbol.exportName}`, symbol])
 )
+
+const appearsInOrder = (source, tokens) => {
+  let cursor = -1
+  for (const token of tokens) {
+    cursor = source.indexOf(token, cursor + 1)
+    if (cursor < 0) return false
+  }
+  return true
+}
+
+const officialStartupChecks = [
+  {
+    id: 'official-registry-lifecycle',
+    pass: appearsInOrder(startupSources.officialContentBootstrap, [
+      'dependencies.buildRegistrySet',
+      'dependencies.validateStructure',
+      'dependencies.validateSemantics',
+      'dependencies.freezeRegistrySet',
+      'publishedRegistrySet = candidate'
+    ]),
+    evidence: 'src/domain/mods/officialContentBootstrap.ts'
+  },
+  {
+    id: 'application-gate-order',
+    pass: appearsInOrder(startupSources.applicationBootstrap, [
+      'await dependencies.bootstrapOfficialContent()',
+      'dependencies.createApp()',
+      'dependencies.createPinia()',
+      'dependencies.mount(app, router)'
+    ]),
+    evidence: 'src/bootstrap.ts'
+  },
+  {
+    id: 'content-access-published-only',
+    pass: startupSources.contentAccess.includes("from './officialContentBootstrap'")
+      && !startupSources.contentAccess.includes('buildOfficialRegistrySetFromStaticData'),
+    evidence: 'src/domain/mods/contentAccess.ts'
+  },
+  {
+    id: 'shared-renderer-entry',
+    pass: startupSources.webIndex.includes('src="/src/main.ts"')
+      && startupSources.electronMain.includes("loadFile(path.join(docsPath, 'index.html'))")
+      && startupSources.capacitor.includes("webDir: 'docs'")
+      && startupSources.main.includes('bootstrapOfficialContent'),
+    evidence: 'index.html, src/main.ts, electron/main.js, capacitor.config.ts'
+  },
+  {
+    id: 'electron-startup-diagnostic',
+    pass: startupSources.electronPreload.includes("ipcRenderer.send('startup-failure'")
+      && startupSources.electronMain.includes("ipcMain.on('startup-failure'")
+      && startupSources.electronMain.includes("'startup.log'"),
+    evidence: 'electron/preload.js, electron/main.js'
+  }
+]
+const officialStartupStatus = officialStartupChecks.every(check => check.pass) ? 'PASS' : 'FAIL'
 
 const walkSourceFiles = directory => fs.readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
   const absolute = path.join(directory, entry.name)
@@ -218,6 +284,10 @@ const report = {
     ),
     namespaceImports
   },
+  officialStartupSemantics: {
+    status: officialStartupStatus,
+    checks: officialStartupChecks
+  },
   officialSnapshot: {
     formatVersion: officialSnapshot.formatVersion,
     registryCount: officialSnapshot.registries.length,
@@ -228,6 +298,9 @@ const report = {
 
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
 
-if (process.argv.includes('--strict') && (directReads.length > 0 || provisionalSymbols.length > 0)) {
+if (
+  process.argv.includes('--strict')
+  && (directReads.length > 0 || provisionalSymbols.length > 0 || officialStartupStatus !== 'PASS')
+) {
   process.exitCode = 1
 }

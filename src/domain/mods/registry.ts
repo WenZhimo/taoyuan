@@ -113,7 +113,11 @@ export class Registry<T extends RegistryEntry> {
 
   freeze(): void {
     if (this.frozen) return
-    for (const record of this.records.values()) deepFreeze(record.entry)
+    for (const record of this.records.values()) {
+      deepFreeze(record.entry)
+      if (record.source) deepFreeze(record.source)
+      Object.freeze(record)
+    }
     this.frozenValues = Object.freeze(Array.from(this.records.values(), record => record.entry))
     this.frozen = true
   }

@@ -82,6 +82,32 @@ button {
 }
 
 /* 像素风按钮基础样式 */
+.startup-failure {
+  min-height: calc(100vh - var(--spacing-8));
+  min-height: calc(100dvh - var(--spacing-8));
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  text-align: center;
+}
+
+.startup-failure h1,
+.startup-failure p {
+  margin: 0;
+}
+
+.startup-failure h1 {
+  color: var(--color-danger);
+  font-size: 1.25rem;
+}
+
+.startup-failure p {
+  color: rgb(var(--color-text));
+  font-size: 0.875rem;
+}
+
 .btn {
   display: inline-flex;
   justify-content: center;

@@ -1,25 +1,32 @@
 import { createApp, toRaw } from 'vue'
 import { createPinia } from 'pinia'
-import router from '@/router'
-import { mountAfterRouterReady } from '@/bootstrap'
-import App from './App.vue'
+import {
+  bootstrapApplication,
+  mountAfterRouterReady,
+  reportApplicationStartupFailure
+} from '@/bootstrap'
+import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
 import './app.css'
 
-const app = createApp(App)
-const pinia = createPinia()
-
-// 为 setup store 添加 $reset() 支持（Pinia 默认仅 option store 支持 $reset）
-// 使用 JSON 深拷贝而非 structuredClone，因为后者无法处理 Vue 的 reactive Proxy
-pinia.use(({ store }) => {
-  const initialState = JSON.parse(JSON.stringify(toRaw(store.$state)))
-  store.$reset = () => {
-    store.$patch($state => {
-      Object.assign($state, JSON.parse(JSON.stringify(initialState)))
+void bootstrapApplication({
+  bootstrapOfficialContent,
+  createApp: async () => createApp((await import('./App.vue')).default),
+  createPinia,
+  configurePinia: pinia => {
+    // setup stores do not receive Pinia's built-in $reset implementation.
+    pinia.use(({ store }) => {
+      const initialState = JSON.parse(JSON.stringify(toRaw(store.$state)))
+      store.$reset = () => {
+        store.$patch($state => {
+          Object.assign($state, JSON.parse(JSON.stringify(initialState)))
+        })
+      }
     })
-  }
+  },
+  installPinia: (app, pinia) => app.use(pinia),
+  getRouter: async () => (await import('@/router')).default,
+  installRouter: (app, router) => app.use(router),
+  mount: (app, router) => mountAfterRouterReady(app, router)
+}).catch(error => {
+  reportApplicationStartupFailure(error)
 })
-
-app.use(pinia)
-app.use(router)
-
-void mountAfterRouterReady(app, router)

@@ -10,6 +10,7 @@ import {
   type SerializableRegistrySnapshot
 } from '@/domain/mods/registry'
 import { requireContentId } from '@/domain/mods/ids'
+import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import officialContentSnapshot from '../fixtures/mods/official-content-snapshot.json'
@@ -34,6 +35,10 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
         status: string
         count: number
         findings: Array<{ importer: string, dataFile: string, exportName: string }>
+      }
+      officialStartupSemantics: {
+        status: string
+        checks: Array<{ id: string, pass: boolean, evidence: string }>
       }
     }
 
@@ -76,16 +81,33 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     expect(report.businessStaticReads.status).toBe('FAIL')
     expect(report.businessStaticReads.count).toBe(33)
     expect(classifiedViolations).toEqual(reportedViolations)
+
+    expect(report.officialStartupSemantics.status).toBe('PASS')
+    expect(report.officialStartupSemantics.checks).toEqual([
+      expect.objectContaining({ id: 'official-registry-lifecycle', pass: true }),
+      expect.objectContaining({ id: 'application-gate-order', pass: true }),
+      expect.objectContaining({ id: 'content-access-published-only', pass: true }),
+      expect.objectContaining({ id: 'shared-renderer-entry', pass: true }),
+      expect.objectContaining({ id: 'electron-startup-diagnostic', pass: true })
+    ])
   })
 
-  it('keeps hashes and ID lookups equal while recording the restore-order gap', () => {
+  it('keeps hashes, runtime order, and ID lookups equal while recording the restore-order gap', async () => {
+    const bootstrapped = await bootstrapOfficialContent()
     const built = buildOfficialRegistrySetFromStaticData()
     built.freezeEntries()
 
+    expect(bootstrapped.currentPhase).toBe('frozen')
     expect(validateRegistrySemantics(built)).toEqual([])
 
     const builtSnapshot = createSerializableRegistrySnapshot(built)
+    expect(createSerializableRegistrySnapshot(bootstrapped)).toEqual(builtSnapshot)
     expect(builtSnapshot).toEqual(officialContentSnapshot)
+
+    for (const registryId of built.registryIds()) {
+      expect(bootstrapped.get<RegistryEntry>(registryId).entries().map(record => record.entry.id))
+        .toEqual(built.get<RegistryEntry>(registryId).entries().map(record => record.entry.id))
+    }
 
     const restored = restoreRegistrySetFromSnapshot(
       OFFICIAL_REGISTRY_DEFINITIONS,

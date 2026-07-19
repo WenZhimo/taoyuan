@@ -11,5 +11,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   restartWindow: () => ipcRenderer.invoke('restart-window'),
 
   // 退出应用
-  quitApp: () => ipcRenderer.invoke('quit-app')
+  quitApp: () => ipcRenderer.invoke('quit-app'),
+
+  // Report fatal renderer startup failures without exposing filesystem access.
+  reportStartupFailure: message => ipcRenderer.send('startup-failure', message)
 })

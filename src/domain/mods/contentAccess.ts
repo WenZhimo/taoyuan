@@ -88,7 +88,6 @@ import {
   type MainMineZone
 } from './monsterPoolIds'
 import { resolveMonsterPoolEntries } from './monsterPoolResolution'
-import type { RegistrySet } from './registry'
 import type {
   AnimalBuildingType,
   AchievementDef as AchievementContentDef,
@@ -156,17 +155,7 @@ import type {
   WearableEquipmentDef,
   WildTreeContentDef
 } from './schemas'
-import { buildOfficialRegistrySetFromStaticData } from './staticAdapters'
-
-let officialRegistrySet: RegistrySet | null = null
-
-const getOfficialRegistrySet = (): RegistrySet => {
-  if (!officialRegistrySet) {
-    officialRegistrySet = buildOfficialRegistrySetFromStaticData()
-    officialRegistrySet.freezeEntries()
-  }
-  return officialRegistrySet
-}
+import { getOfficialRegistrySet } from './officialContentBootstrap'
 
 const toQueryContentId = (id: string) => {
   try {
