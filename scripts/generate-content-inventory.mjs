@@ -5621,6 +5621,66 @@ const reviewedArtifacts = [
     rationale: 'Builds bomb craft entries and completion text from the ordered registry-backed legacy projection without changing recipes, recipe-item gating, costs or displayed names.'
   },
   {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialGuildShopOffers/getOfficialGuildShopItemsAsLegacy/getOfficialGuildShopItemById',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Projects the published guild shop offers back to the complete legacy GuildShopItemDef shape while preserving order, local item IDs, currencies, unlock levels, limits, materials and equipment purchase kinds.'
+  },
+  {
+    file: 'src/stores/useGuildStore.ts + src/views/game/GuildView.vue',
+    exportName: 'guild-shop-consumers:taoyuan:shop_offer',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:shop_offer',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Routes both guild purchase settlement and the ordered shop display through published offers while preserving money, contribution points, materials, equipment grants, all limit counters, rollback and old save fields.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialItemsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:item',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Reconstructs the exact ordered legacy ItemDef catalog from the published item registry, preserving every local ID, display field, category, price and optional recovery field.'
+  },
+  {
+    file: 'src/stores/useAchievementStore.ts + src/views/game/AchievementView.vue',
+    exportName: 'achievement-item-catalog-consumers:taoyuan:item',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:item',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Uses the registry-backed legacy item catalog for collection categories, virtualized display, full shipment, shipping groups and perfection denominators without changing progress IDs or save data.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'LegacyEquipmentDrop/getOfficialEquipmentDropPoolsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Reconstructs ordered local-ID equipment drop pools by source, kind and zone from published named drop tables, rejecting quantities that the legacy one-item settlement cannot represent.'
+  },
+  {
+    file: 'src/stores/useMiningStore.ts',
+    exportName: 'applyTreasureGearDropsForZone:taoyuan:drop_table',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Reads ring, hat, shoe and weapon treasure pools from the published registry before Store initialization while preserving zone order, chance rolls, enchantments, grants, duplicate auto-sales and treasure messages.'
+  },
+  {
     file: 'src/domain/mods/officialContentBootstrap.ts',
     exportName: 'bootstrapOfficialContent/getOfficialRegistrySet/createOfficialContentBootstrap/validateOfficialRegistryStructure',
     classification: 'adapter',

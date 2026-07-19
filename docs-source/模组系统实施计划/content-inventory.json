@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 628,
-    "reviewedArtifactCount": 182
+    "reviewedArtifactCount": 188
   },
   "entries": [
     {
@@ -134,6 +134,7 @@
           "persistentIds": false,
           "consumers": [
             "src/stores/useAchievementStore.ts",
+            "src/tests/domain/achievementItemConsumers.test.ts",
             "src/tests/domain/achievementRegistryPilot.test.ts",
             "src/views/game/AchievementView.vue"
           ],
@@ -168,6 +169,7 @@
           "persistentIds": false,
           "consumers": [
             "src/stores/useAchievementStore.ts",
+            "src/tests/domain/achievementItemConsumers.test.ts",
             "src/tests/domain/achievementRegistryPilot.test.ts",
             "src/views/game/AchievementView.vue"
           ],
@@ -4377,8 +4379,8 @@
           "consumers": [
             "src/data/guildDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useGuildStore.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/domain/guildShopOfferConsumers.test.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts"
           ],
           "migrationPhase": [
             6
@@ -4562,8 +4564,8 @@
           "consumers": [
             "src/data/guild.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useGuildStore.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/domain/guildShopOfferConsumers.test.ts",
+            "src/tests/domain/phase6AcceptanceAudit.test.ts"
           ],
           "migrationPhase": [
             6
@@ -5998,7 +6000,6 @@
           "consumers": [
             "src/data/hats.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -6137,7 +6138,6 @@
           "consumers": [
             "src/data/hatDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -7100,10 +7100,10 @@
           "persistentIds": false,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useAchievementStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/achievementItemConsumers.test.ts",
             "src/tests/domain/contentRegistryEquivalence.test.ts",
-            "src/views/game/AchievementView.vue"
+            "src/tests/domain/phase6AcceptanceAudit.test.ts"
           ],
           "migrationPhase": [
             2
@@ -7136,6 +7136,7 @@
             "src/stores/useWarehouseStore.ts",
             "src/tests/composables/useShippingBoxUi.test.ts",
             "src/tests/composables/useVoidChestUi.test.ts",
+            "src/tests/domain/achievementItemConsumers.test.ts",
             "src/tests/domain/bombRegistryPilot.test.ts",
             "src/tests/domain/contentRegistryEquivalence.test.ts",
             "src/tests/domain/travelingMerchantRegistryPilot.test.ts",
@@ -9970,7 +9971,6 @@
           "consumers": [
             "src/data/rings.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -10088,7 +10088,6 @@
           "consumers": [
             "src/data/ringDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -10381,7 +10380,6 @@
           "consumers": [
             "src/data/shoes.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -10521,7 +10519,6 @@
           "consumers": [
             "src/data/shoeDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -12285,7 +12282,6 @@
           "consumers": [
             "src/data/weapons.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -12476,7 +12472,6 @@
           "consumers": [
             "src/data/weaponDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -15020,6 +15015,78 @@
       ],
       "status": "verified",
       "rationale": "Builds bomb craft entries and completion text from the ordered registry-backed legacy projection without changing recipes, recipe-item gating, costs or displayed names."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialGuildShopOffers/getOfficialGuildShopItemsAsLegacy/getOfficialGuildShopItemById",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Projects the published guild shop offers back to the complete legacy GuildShopItemDef shape while preserving order, local item IDs, currencies, unlock levels, limits, materials and equipment purchase kinds."
+    },
+    {
+      "file": "src/stores/useGuildStore.ts + src/views/game/GuildView.vue",
+      "exportName": "guild-shop-consumers:taoyuan:shop_offer",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:shop_offer",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Routes both guild purchase settlement and the ordered shop display through published offers while preserving money, contribution points, materials, equipment grants, all limit counters, rollback and old save fields."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "getOfficialItemsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:item",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Reconstructs the exact ordered legacy ItemDef catalog from the published item registry, preserving every local ID, display field, category, price and optional recovery field."
+    },
+    {
+      "file": "src/stores/useAchievementStore.ts + src/views/game/AchievementView.vue",
+      "exportName": "achievement-item-catalog-consumers:taoyuan:item",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:item",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Uses the registry-backed legacy item catalog for collection categories, virtualized display, full shipment, shipping groups and perfection denominators without changing progress IDs or save data."
+    },
+    {
+      "file": "src/domain/mods/contentAccess.ts",
+      "exportName": "LegacyEquipmentDrop/getOfficialEquipmentDropPoolsAsLegacy",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:drop_table",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Reconstructs ordered local-ID equipment drop pools by source, kind and zone from published named drop tables, rejecting quantities that the legacy one-item settlement cannot represent."
+    },
+    {
+      "file": "src/stores/useMiningStore.ts",
+      "exportName": "applyTreasureGearDropsForZone:taoyuan:drop_table",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:drop_table",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Reads ring, hat, shoe and weapon treasure pools from the published registry before Store initialization while preserving zone order, chance rolls, enchantments, grants, duplicate auto-sales and treasure messages."
     },
     {
       "file": "src/domain/mods/officialContentBootstrap.ts",
