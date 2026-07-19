@@ -1202,7 +1202,7 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Unique registry-free leaf source for all legacy bomb craft definitions; Phase 6 projects every bomb into taoyuan:bomb and verifies IDs, order, names, descriptions, mining effects, materials, money, shop price and runtime consumers.'
+    rationale: 'Unique registry-free leaf source for all legacy bomb craft definitions; Phase 6 projects every bomb into taoyuan:bomb and verifies IDs, order, names, descriptions, mining effects, materials, money and shop price while all production bomb consumers read the published registry.'
   },
   'src/data/processing.ts:PROCESSING_MACHINES': {
     classification: 'adapter',
@@ -1300,7 +1300,7 @@ const symbolReviewOverrides = new Map(Object.entries({
     persistentIds: true,
     snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
     status: 'verified',
-    rationale: 'Original-name re-export preserves legacy bomb imports while getBombById() resolves taoyuan:bomb first and static consumers retain a direct rollback path.'
+    rationale: 'Original-name re-export remains for compatibility, equivalence tests and rollback; the processing Store plus mining and processing views no longer import it in production.'
   },
   'src/data/processing.ts:getBombById': {
     classification: 'adapter',
@@ -5579,6 +5579,46 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Renders dice and cup wager text, disabled states and result deductions from registry-backed values without changing the modal flow.'
+  },
+  {
+    file: 'src/domain/mods/contentAccess.ts',
+    exportName: 'getOfficialBombById/getOfficialBombsAsLegacy',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:bomb',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Returns legacy-shaped bomb definitions directly from the published registry, preserving official order, local IDs, unknown-ID behavior and explicit failure before publication.'
+  },
+  {
+    file: 'src/stores/useProcessingStore.ts',
+    exportName: 'craftBomb:taoyuan:bomb',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:bomb',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Resolves the requested bomb through the official registry while preserving the craftBomb signature, material and money deduction, local inventory ID and unknown-ID result.'
+  },
+  {
+    file: 'src/views/game/MiningView.vue',
+    exportName: 'availableBombs:taoyuan:bomb',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:bomb',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Builds the mine action list from the ordered registry-backed legacy projection while preserving names, inventory counts and bomb selection behavior.'
+  },
+  {
+    file: 'src/views/game/ProcessingView.vue',
+    exportName: 'bombCraftItems/handleCraftBomb:taoyuan:bomb',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:bomb',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Builds bomb craft entries and completion text from the ordered registry-backed legacy projection without changing recipes, recipe-item gating, costs or displayed names.'
   },
   {
     file: 'src/domain/mods/officialContentBootstrap.ts',
