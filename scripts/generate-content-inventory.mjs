@@ -5681,6 +5681,26 @@ const reviewedArtifacts = [
     rationale: 'Reads ring, hat, shoe and weapon treasure pools from the published registry before Store initialization while preserving zone order, chance rolls, enchantments, grants, duplicate auto-sales and treasure messages.'
   },
   {
+    file: 'src/stores/useMiningStore.ts',
+    exportName: 'applyMonsterGearDropsForZone:taoyuan:drop_table',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Reads all four monster equipment pools from published named drop tables before Store initialization while preserving six-zone order, exact chance boundaries and random calls, random weapon enchantments, grants, duplicate auto-sales and messages.'
+  },
+  {
+    file: 'src/views/game/GuildView.vue',
+    exportName: 'getEquipDrops:taoyuan:drop_table',
+    classification: 'adapter',
+    targetRegistry: 'taoyuan:drop_table',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Renders all four monster equipment pool projections from the published registry while preserving zone association, kind and entry order, equipment names, rounded chances, boss rewards and empty bestiary states.'
+  },
+  {
     file: 'src/domain/mods/officialContentBootstrap.ts',
     exportName: 'bootstrapOfficialContent/getOfficialRegistrySet/createOfficialContentBootstrap/validateOfficialRegistryStructure',
     classification: 'adapter',

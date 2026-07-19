@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 628,
-    "reviewedArtifactCount": 188
+    "reviewedArtifactCount": 190
   },
   "entries": [
     {
@@ -5893,6 +5893,8 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -5958,9 +5960,9 @@
           "consumers": [
             "src/data/hats.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -6100,9 +6102,9 @@
           "consumers": [
             "src/data/hatDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             6
@@ -6160,6 +6162,8 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -9886,6 +9890,8 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -9929,9 +9935,9 @@
           "consumers": [
             "src/data/rings.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -10050,9 +10056,9 @@
           "consumers": [
             "src/data/ringDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             6
@@ -10110,6 +10116,8 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -10273,6 +10281,8 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -10338,9 +10348,9 @@
           "consumers": [
             "src/data/shoes.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -10480,9 +10490,9 @@
           "consumers": [
             "src/data/shoeDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             6
@@ -10541,6 +10551,8 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts",
             "src/views/game/AchievementView.vue",
             "src/views/game/CharInfoView.vue",
             "src/views/game/GuildView.vue",
@@ -12218,9 +12230,9 @@
           "consumers": [
             "src/data/weapons.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             3,
@@ -12428,9 +12440,9 @@
           "consumers": [
             "src/data/weaponDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentDropRegistryPilot.test.ts",
-            "src/views/game/GuildView.vue"
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
+            "src/tests/views/GuildView.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -12762,6 +12774,7 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/equipmentRegistryPilot.test.ts",
+            "src/tests/views/GuildView.test.ts",
             "src/views/game/CharInfoView.vue",
             "src/views/game/ForageView.vue",
             "src/views/game/GuildView.vue",
@@ -12805,6 +12818,7 @@
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
             "src/tests/domain/inventoryEquipmentSales.test.ts",
+            "src/tests/stores/miningMonsterEquipmentDropConsumers.test.ts",
             "src/views/game/InventoryView.vue"
           ],
           "migrationPhase": [
@@ -15087,6 +15101,30 @@
       ],
       "status": "verified",
       "rationale": "Reads ring, hat, shoe and weapon treasure pools from the published registry before Store initialization while preserving zone order, chance rolls, enchantments, grants, duplicate auto-sales and treasure messages."
+    },
+    {
+      "file": "src/stores/useMiningStore.ts",
+      "exportName": "applyMonsterGearDropsForZone:taoyuan:drop_table",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:drop_table",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Reads all four monster equipment pools from published named drop tables before Store initialization while preserving six-zone order, exact chance boundaries and random calls, random weapon enchantments, grants, duplicate auto-sales and messages."
+    },
+    {
+      "file": "src/views/game/GuildView.vue",
+      "exportName": "getEquipDrops:taoyuan:drop_table",
+      "classification": "adapter",
+      "targetRegistry": "taoyuan:drop_table",
+      "persistentIds": false,
+      "migrationPhase": [
+        6
+      ],
+      "status": "verified",
+      "rationale": "Renders all four monster equipment pool projections from the published registry while preserving zone association, kind and entry order, equipment names, rounded chances, boss rewards and empty bestiary states."
     },
     {
       "file": "src/domain/mods/officialContentBootstrap.ts",
