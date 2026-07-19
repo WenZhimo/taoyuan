@@ -471,6 +471,38 @@ export const getOfficialEquipmentDropTableDef = (
 ): Readonly<DropTableDef> | undefined =>
   getOfficialDropTableDef(`drop/equipment/${query.source}/${query.kind}/${query.zone}`)
 
+export interface LegacyEquipmentDrop {
+  gearId: string
+  chance: number
+}
+
+export const getOfficialEquipmentDropPoolsAsLegacy = (
+  query: Omit<OfficialEquipmentDropTableQuery, 'zone'>
+): Readonly<Record<string, readonly LegacyEquipmentDrop[]>> => {
+  const prefix = `drop/equipment/${query.source}/${query.kind}/`
+  const pools: Record<string, readonly LegacyEquipmentDrop[]> = {}
+
+  for (const table of getOfficialDropTableDefs()) {
+    const localTableId = getLocalContentId(table.id)
+    if (!localTableId.startsWith(prefix)) continue
+
+    const zone = localTableId.slice(prefix.length)
+    pools[zone] = table.entries.map(entry => {
+      const minQuantity = entry.minQuantity ?? 1
+      const maxQuantity = entry.maxQuantity ?? minQuantity
+      if (minQuantity !== 1 || maxQuantity !== 1) {
+        throw new Error(`Legacy equipment drops require quantity 1: ${table.id}/${entry.itemId}`)
+      }
+      return {
+        gearId: getLocalContentId(entry.itemId),
+        chance: entry.chance
+      }
+    })
+  }
+
+  return pools
+}
+
 export const getOfficialEquipmentDef = (id: string): Readonly<EquipmentContentDef> | undefined => {
   const contentId = toQueryContentId(id)
   return contentId

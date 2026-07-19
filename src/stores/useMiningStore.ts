@@ -15,7 +15,7 @@ import {
   getAdjacentIndices,
   getBombIndices
 } from '@/data'
-import { getOfficialMainMineBoss } from '@/domain/mods/contentAccess'
+import { getOfficialEquipmentDropPoolsAsLegacy, getOfficialMainMineBoss } from '@/domain/mods/contentAccess'
 import { getBombById } from '@/data/processing'
 import { getItemById } from '@/data/items'
 import {
@@ -23,14 +23,13 @@ import {
   getOwnedWeaponEnchantments,
   MONSTER_DROP_WEAPONS,
   BOSS_DROP_WEAPONS,
-  TREASURE_DROP_WEAPONS,
   rollRandomEnchantment,
   getWeaponDisplayName,
   getWeaponSellPrice
 } from '@/data/weapons'
-import { getRingById, MONSTER_DROP_RINGS, BOSS_DROP_RINGS, TREASURE_DROP_RINGS } from '@/data/rings'
-import { getHatById, MONSTER_DROP_HATS, BOSS_DROP_HATS, TREASURE_DROP_HATS } from '@/data/hats'
-import { getShoeById, MONSTER_DROP_SHOES, BOSS_DROP_SHOES, TREASURE_DROP_SHOES } from '@/data/shoes'
+import { getRingById, MONSTER_DROP_RINGS, BOSS_DROP_RINGS } from '@/data/rings'
+import { getHatById, MONSTER_DROP_HATS, BOSS_DROP_HATS } from '@/data/hats'
+import { getShoeById, MONSTER_DROP_SHOES, BOSS_DROP_SHOES } from '@/data/shoes'
 import { usePlayerStore } from './usePlayerStore'
 import { useInventoryStore } from './useInventoryStore'
 import { useSkillStore } from './useSkillStore'
@@ -200,6 +199,12 @@ interface MonsterLureResult {
 }
 
 export const useMiningStore = defineStore('mining', () => {
+  const treasureDropPools = {
+    ring: getOfficialEquipmentDropPoolsAsLegacy({ source: 'treasure', kind: 'ring' }),
+    hat: getOfficialEquipmentDropPoolsAsLegacy({ source: 'treasure', kind: 'hat' }),
+    shoe: getOfficialEquipmentDropPoolsAsLegacy({ source: 'treasure', kind: 'shoe' }),
+    weapon: getOfficialEquipmentDropPoolsAsLegacy({ source: 'treasure', kind: 'weapon' })
+  }
   const playerStore = usePlayerStore()
   const inventoryStore = useInventoryStore()
   const skillStore = useSkillStore()
@@ -363,7 +368,7 @@ export const useMiningStore = defineStore('mining', () => {
 
     addResult(
       applyTreasureGearDropRolls({
-        drops: (TREASURE_DROP_RINGS[zone] ?? []).map(drop => ({ chance: drop.chance, gearId: drop.ringId })),
+        drops: treasureDropPools.ring[zone] ?? [],
         gearKind: 'ring',
         treasureFindBonus,
         isAlreadyOwned: gearId => inventoryStore.hasRing(gearId),
@@ -374,7 +379,7 @@ export const useMiningStore = defineStore('mining', () => {
 
     addResult(
       applyTreasureGearDropRolls({
-        drops: (TREASURE_DROP_HATS[zone] ?? []).map(drop => ({ chance: drop.chance, gearId: drop.hatId })),
+        drops: treasureDropPools.hat[zone] ?? [],
         gearKind: 'hat',
         treasureFindBonus,
         isAlreadyOwned: gearId => inventoryStore.hasHat(gearId),
@@ -385,7 +390,7 @@ export const useMiningStore = defineStore('mining', () => {
 
     addResult(
       applyTreasureGearDropRolls({
-        drops: (TREASURE_DROP_SHOES[zone] ?? []).map(drop => ({ chance: drop.chance, gearId: drop.shoeId })),
+        drops: treasureDropPools.shoe[zone] ?? [],
         gearKind: 'shoe',
         treasureFindBonus,
         isAlreadyOwned: gearId => inventoryStore.hasShoe(gearId),
@@ -396,7 +401,7 @@ export const useMiningStore = defineStore('mining', () => {
 
     addResult(
       applyWeaponTreasureGearDropRolls({
-        drops: (TREASURE_DROP_WEAPONS[zone] ?? []).map(drop => ({ chance: drop.chance, gearId: drop.weaponId })),
+        drops: treasureDropPools.weapon[zone] ?? [],
         treasureFindBonus,
         onGranted
       })

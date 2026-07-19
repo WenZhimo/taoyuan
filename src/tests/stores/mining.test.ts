@@ -4,6 +4,7 @@ import { useMiningStore } from '@/stores/useMiningStore'
 import { useInventoryStore } from '@/stores/useInventoryStore'
 import { usePlayerStore } from '@/stores/usePlayerStore'
 import { useSkillStore } from '@/stores/useSkillStore'
+import * as officialContentBootstrap from '@/domain/mods/officialContentBootstrap'
 
 describe('mining store sleep and save boundaries', () => {
   beforeEach(() => {
@@ -243,6 +244,21 @@ describe('mining store sleep and save boundaries', () => {
     expect(inventoryStore.ownedShoes.some(shoe => shoe.defId === 'lucky_boots')).toBe(true)
     expect(playerStore.money).toBe(670)
     expect(playerStore.stamina).toBe(118)
+  })
+
+  it('fails before mine, inventory, or player state changes when treasure registries are unavailable', () => {
+    const inventoryStore = useInventoryStore()
+    const playerStore = usePlayerStore()
+    const inventoryBefore = inventoryStore.serialize()
+    const playerBefore = playerStore.serialize()
+    const unavailable = new Error('official registry unavailable')
+    vi.spyOn(officialContentBootstrap, 'getOfficialRegistrySet').mockImplementation(() => {
+      throw unavailable
+    })
+
+    expect(() => useMiningStore()).toThrow(unavailable)
+    expect(inventoryStore.serialize()).toEqual(inventoryBefore)
+    expect(playerStore.serialize()).toEqual(playerBefore)
   })
 
   it('applies treasure gear drops during chain auto exploration cleanup', () => {

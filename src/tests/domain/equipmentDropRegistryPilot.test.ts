@@ -6,6 +6,7 @@ import { MONSTER_DROP_WEAPONS, TREASURE_DROP_WEAPONS } from '@/data/weapons'
 import {
   getOfficialDropTableDefs,
   getOfficialEquipmentDropTableDef,
+  getOfficialEquipmentDropPoolsAsLegacy,
   type OfficialEquipmentDropTableQuery
 } from '@/domain/mods/contentAccess'
 import { toOfficialContentId } from '@/domain/mods/ids'
@@ -68,6 +69,20 @@ describe('official equipment drop table registry pilot', () => {
       kind: 'shoe',
       zone: 'abyss'
     })!)).toEqual([])
+  })
+
+  it('projects every treasure equipment pool with legacy local IDs and order', () => {
+    for (const dropCase of dropCases.filter(dropCase => dropCase.query.source === 'treasure')) {
+      const pools = getOfficialEquipmentDropPoolsAsLegacy(dropCase.query)
+      expect(Object.keys(pools)).toEqual(Object.keys(dropCase.pools))
+      for (const [zone, drops] of Object.entries(dropCase.pools)) {
+        expect(pools[zone], `${dropCase.query.kind}/${zone}`).toEqual(drops.map(drop => ({
+          gearId: dropCase.getItemId(drop),
+          chance: drop.chance
+        })))
+      }
+      expect(pools.missing_zone).toBeUndefined()
+    }
   })
 
   it('includes all equipment drop tables in the official drop table registry', () => {
