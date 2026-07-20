@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { ITEMS, getItemById } from '@/data/items'
 import { CROPS } from '@/data/crops'
 import { RECIPES, getRecipeById } from '@/data/recipes'
-import { getOfficialCropDef, getOfficialItemDefs, getOfficialRecipeDef } from '@/domain/mods/contentAccess'
+import {
+  getOfficialCropDef,
+  getOfficialItemDefs,
+  getOfficialRecipeDef,
+  getOfficialRecipesAsLegacy
+} from '@/domain/mods/contentAccess'
 import { toOfficialContentId } from '@/domain/mods/ids'
 import type { ItemDef, RecipeDef, RecipeIngredient } from '@/domain/mods/schemas'
 import type { ItemDef as LegacyItemDef } from '@/types'
@@ -141,6 +146,10 @@ describe('official content registry equivalence', () => {
       expect(officialRecipe, recipe.id).toBeDefined()
       expect(normalizeOfficialRecipe(officialRecipe!)).toEqual(normalizeLegacyRecipe(recipe))
     }
+  })
+
+  it('projects the full official recipe list back to the ordered legacy shape', () => {
+    expect(getOfficialRecipesAsLegacy()).toEqual(RECIPES)
   })
 
   it('keeps legacy item and recipe query entrypoints equivalent to the old local shapes', () => {

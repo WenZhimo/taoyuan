@@ -23,7 +23,6 @@ import { useMiningStore } from '@/stores/useMiningStore'
 import { useWarehouseStore } from '@/stores/useWarehouseStore'
 import { getItemById, getTodayEvent, getNpcById, getCropById, getForageItems } from '@/data'
 import { getFertilizerById } from '@/data/processing'
-import { RECIPES } from '@/data/recipes'
 import { CAVE_UNLOCK_EARNINGS } from '@/data/buildings'
 import { TOOL_NAMES, TIER_NAMES } from '@/data/upgrades'
 import { addLog, showFloat } from './useGameLog'
@@ -73,6 +72,7 @@ import {
   processAchievementRecipeUnlocks,
   processDailyRecipeUnlocks
 } from '@/domain/endDay/recipeEndDay'
+import { getOfficialRecipesAsLegacy } from '@/domain/mods/contentAccess'
 import { processMorningRandomEventEndDay } from '@/domain/endDay/morningEventEndDay'
 import { processSeasonChangeEndDay } from '@/domain/endDay/seasonEndDay'
 import type { LocationGroup } from '@/types'
@@ -539,7 +539,7 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   processDailyRecipeUnlocks({
     getFriendshipLevel: npcStore.getFriendshipLevel,
     getSpouse: npcStore.getSpouse,
-    recipes: RECIPES,
+    recipes: getOfficialRecipesAsLegacy(),
     getSkillLevel: skillType => skillStore.getSkill(skillType).level,
     hasItem: inventoryStore.hasItem,
     unlockRecipe: cookingStore.unlockRecipe,

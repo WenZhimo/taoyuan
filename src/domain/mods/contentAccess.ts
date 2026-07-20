@@ -13,6 +13,7 @@ import type {
   NpcDef as LegacyNpcDef,
   ProcessingMachineDef as LegacyProcessingMachineDef,
   ProcessingRecipeDef as LegacyProcessingRecipeDef,
+  RecipeDef as LegacyRecipeDef,
   SprinklerDef as LegacySprinklerDef,
   RingDef as LegacyRingDef,
   ShoeDef as LegacyShoeDef,
@@ -321,6 +322,31 @@ export const getOfficialRecipeDef = (id: string): Readonly<RecipeDef> | undefine
   const contentId = toQueryContentId(id)
   return contentId ? getOfficialRegistrySet().get<RecipeDef>(toOfficialRegistryTypeId('recipe')).get(contentId) : undefined
 }
+
+export const getOfficialRecipeDefs = (): readonly Readonly<RecipeDef>[] =>
+  getOfficialRegistrySet().get<RecipeDef>(toOfficialRegistryTypeId('recipe')).values()
+
+const toLegacyRecipeDef = (recipe: Readonly<RecipeDef>): LegacyRecipeDef => ({
+  id: getLocalContentId(recipe.id),
+  name: recipe.name.fallback,
+  // Legacy RecipeDef cannot represent tag slots; raw registry queries retain them for cooking.
+  ingredients: recipe.ingredients.flatMap(ingredient =>
+    ingredient.type === 'item'
+      ? [{ itemId: getLocalContentId(ingredient.itemId), quantity: ingredient.quantity }]
+      : []
+  ),
+  effect: {
+    staminaRestore: recipe.effect.staminaRestore,
+    ...(recipe.effect.healthRestore !== undefined ? { healthRestore: recipe.effect.healthRestore } : {}),
+    ...(recipe.effect.buff ? { buff: { ...recipe.effect.buff } } : {})
+  },
+  unlockSource: recipe.unlockSource,
+  description: recipe.description.fallback,
+  ...(recipe.requiredSkill ? { requiredSkill: { ...recipe.requiredSkill } } : {})
+})
+
+export const getOfficialRecipesAsLegacy = (): readonly LegacyRecipeDef[] =>
+  getOfficialRecipeDefs().map(toLegacyRecipeDef)
 
 export const getOfficialShopDef = (id: string): Readonly<ShopDef> | undefined => {
   const contentId = toQueryContentId(id)

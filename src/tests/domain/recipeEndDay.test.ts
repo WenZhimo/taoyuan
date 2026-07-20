@@ -1,10 +1,38 @@
 import { describe, expect, it } from 'vitest'
+import { RECIPES } from '@/data/recipes'
 import {
   processAchievementRecipeUnlocks,
   processDailyRecipeUnlocks
 } from '@/domain/endDay/recipeEndDay'
+import { getOfficialRecipesAsLegacy } from '@/domain/mods/contentAccess'
+import type { RecipeDef } from '@/types'
 
 describe('daily recipe unlock processor', () => {
+  it('keeps overnight unlock attempts, duplicate handling, and logs equal for the registry projection', () => {
+    const runUnlocks = (recipes: readonly RecipeDef[]) => {
+      const attempts: string[] = []
+      const logs: string[] = []
+      const unlocked = new Set<string>()
+      const result = processDailyRecipeUnlocks({
+        getFriendshipLevel: () => 'bestFriend',
+        getSpouse: () => ({ npcId: 'qiu_yue' }),
+        recipes,
+        getSkillLevel: () => 10,
+        hasItem: () => true,
+        unlockRecipe: recipeId => {
+          attempts.push(recipeId)
+          if (unlocked.has(recipeId)) return false
+          unlocked.add(recipeId)
+          return true
+        },
+        addLog: message => logs.push(message)
+      })
+      return { attempts, logs, result, unlocked: [...unlocked] }
+    }
+
+    expect(runUnlocks(getOfficialRecipesAsLegacy())).toEqual(runUnlocks(RECIPES))
+  })
+
   it('preserves NPC, marriage, skill, and item recipe order and messages', () => {
     const order: string[] = []
     const unlockable = new Set([
