@@ -8,6 +8,8 @@ const formatSha256 = (hex: string): Sha256Hash => `sha256:${hex.toLowerCase()}`
 export const sha256Utf8 = (value: string): Sha256Hash =>
   formatSha256(CryptoJS.SHA256(CryptoJS.enc.Utf8.parse(value)).toString(CryptoJS.enc.Hex))
 
+export const utf8ByteLength = (value: string): number => CryptoJS.enc.Utf8.parse(value).sigBytes
+
 export const hashCanonicalJson = (value: unknown): Sha256Hash => sha256Utf8(canonicalizeJson(value))
 
 export interface CanonicalFileEntry {
