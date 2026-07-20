@@ -4,10 +4,10 @@
   "capturedAt": "2026-07-15",
   "summary": {
     "fileCount": 87,
-    "approximateLineCount": 31623,
+    "approximateLineCount": 31637,
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
-    "symbolCount": 628,
+    "symbolCount": 629,
     "reviewedArtifactCount": 190
   },
   "entries": [
@@ -1406,7 +1406,6 @@
           "persistentIds": false,
           "consumers": [
             "src/data/breedingDefinitions.ts",
-            "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/breedingHybridRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -1423,9 +1422,7 @@
           "persistentIds": false,
           "consumers": [
             "src/data/breedingDefinitions.ts",
-            "src/domain/mods/contentAccess.ts",
-            "src/tests/domain/breedingHybridRegistryPilot.test.ts",
-            "src/tests/domain/phase6AcceptanceAudit.test.ts"
+            "src/tests/domain/breedingHybridRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
@@ -1538,7 +1535,7 @@
         6
       ],
       "status": "symbol_inventoried",
-      "lines": 4417,
+      "lines": 4431,
       "symbols": [
         {
           "file": "src/data/breedingDefinitions.ts",
@@ -1549,7 +1546,6 @@
           "persistentIds": true,
           "consumers": [
             "src/data/breeding.ts",
-            "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/breedingHybridRegistryPilot.test.ts"
           ],
           "migrationPhase": [
@@ -1568,9 +1564,7 @@
           "persistentIds": false,
           "consumers": [
             "src/data/breeding.ts",
-            "src/domain/mods/contentAccess.ts",
-            "src/tests/domain/breedingHybridRegistryPilot.test.ts",
-            "src/tests/domain/phase6AcceptanceAudit.test.ts"
+            "src/tests/domain/breedingHybridRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             6
@@ -1578,6 +1572,23 @@
           "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
           "status": "verified",
           "rationale": "Derived tier boundary summary retained for legacy getHybridTier() compatibility and verified against official breeding hybrid registry order."
+        },
+        {
+          "file": "src/data/breedingDefinitions.ts",
+          "exportName": "getTieredHybridDefinitions",
+          "syntaxKind": "const",
+          "classification": "derived",
+          "targetRegistry": "taoyuan:breeding_hybrid",
+          "persistentIds": false,
+          "consumers": [
+            "src/domain/mods/staticAdapters.ts"
+          ],
+          "migrationPhase": [
+            6
+          ],
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "Combines the legacy hybrid catalog and tier boundaries for the official adapter so every taoyuan:breeding_hybrid entry carries explicit tier semantics."
         }
       ]
     },
@@ -2207,14 +2218,13 @@
             "src/data/items.ts",
             "src/data/travelingMerchant.ts",
             "src/domain/mods/staticAdapters.ts",
+            "src/tests/composables/useGreenhouseUi.test.ts",
             "src/tests/data/gameDataValidation.test.ts",
             "src/tests/domain/contentRegistryEquivalence.test.ts",
             "src/tests/domain/cropLookup.test.ts",
             "src/tests/domain/cropRegistryPilot.test.ts",
-            "src/tests/domain/phase6AcceptanceAudit.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
-            "src/tests/domain/travelingMerchantRegistryPilot.test.ts",
-            "src/views/game/FarmView.vue"
+            "src/tests/domain/travelingMerchantRegistryPilot.test.ts"
           ],
           "migrationPhase": [
             2
@@ -8697,9 +8707,8 @@
           "persistentIds": true,
           "consumers": [
             "src/data/pondBreeds.ts",
-            "src/tests/domain/phase6AcceptanceAudit.test.ts",
             "src/tests/domain/pondBreedRegistryPilot.test.ts",
-            "src/views/game/FishPondView.vue"
+            "src/tests/views/FishPondView.test.ts"
           ],
           "migrationPhase": [
             6
@@ -8736,9 +8745,8 @@
           "persistentIds": true,
           "consumers": [
             "src/data/pondBreedDefinitions.ts",
-            "src/tests/domain/phase6AcceptanceAudit.test.ts",
             "src/tests/domain/pondBreedRegistryPilot.test.ts",
-            "src/views/game/FishPondView.vue"
+            "src/tests/views/FishPondView.test.ts"
           ],
           "migrationPhase": [
             6
@@ -9805,13 +9813,12 @@
           "targetRegistry": "taoyuan:recipe",
           "persistentIds": true,
           "consumers": [
-            "src/composables/useEndDay.ts",
             "src/data/items.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useNpcStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
             "src/tests/domain/contentRegistryEquivalence.test.ts",
-            "src/tests/domain/phase6AcceptanceAudit.test.ts"
+            "src/tests/domain/recipeEndDay.test.ts"
           ],
           "migrationPhase": [
             2
