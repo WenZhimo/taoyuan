@@ -19,6 +19,12 @@ const bundlePath = path.join(tempDir, `run-${mode}.mjs`)
 const aliasPlugin = {
   name: 'taoyuan-alias',
   setup(build) {
+    // The generator never invokes the browser bootstrap path. Leave Vite raw
+    // imports untouched when legacy data adapters pull that path into the bundle.
+    build.onResolve({ filter: /\?raw$/ }, args => ({
+      path: args.path,
+      external: true
+    }))
     build.onResolve({ filter: /^@\// }, args => ({
       path: fs.existsSync(path.join(root, 'src', args.path.slice(2)))
         ? fs.statSync(path.join(root, 'src', args.path.slice(2))).isDirectory()

@@ -6,6 +6,7 @@ import {
   OfficialContentBootstrapError,
   validateOfficialRegistryStructure
 } from '@/domain/mods/officialContentBootstrap'
+import type { OfficialContentBootstrapDependencies } from '@/domain/mods/officialContentBootstrap'
 import { RegistryError, RegistrySet, type RegistryEntry } from '@/domain/mods/registry'
 import { OFFICIAL_REGISTRY_SCHEMAS } from '@/domain/mods/schemas'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
@@ -30,6 +31,7 @@ const createHarness = (overrides: Partial<{
   validateStructure: (registrySet: RegistrySet) => ReturnType<typeof validateRegistrySemantics>
   validateSemantics: (registrySet: RegistrySet) => ReturnType<typeof validateRegistrySemantics>
   freezeRegistrySet: (registrySet: RegistrySet) => void
+  precompiled: NonNullable<OfficialContentBootstrapDependencies['precompiled']>
 }> = {}) => {
   const events: string[] = []
   const candidate = createCandidate()
@@ -89,6 +91,43 @@ describe('official content bootstrap', () => {
     ])
     await expect(harness.bootstrap.bootstrap()).resolves.toBe(harness.candidate)
     expect(harness.dependencies.buildRegistrySet).toHaveBeenCalledOnce()
+  })
+
+  it('publishes a validated precompiled candidate without running the static build', async () => {
+    const precompiledCandidate = createCandidate()
+    const harness = createHarness({
+      precompiled: {
+        load: vi.fn(async () => ({ artifact: true })),
+        restore: vi.fn(() => precompiledCandidate)
+      }
+    })
+
+    await expect(harness.bootstrap.bootstrap()).resolves.toBe(precompiledCandidate)
+    expect(harness.dependencies.buildRegistrySet).not.toHaveBeenCalled()
+    expect(harness.bootstrap.getLastReport()).toEqual({
+      source: 'precompiled',
+      precompiledStatus: 'official-precompiled-hit',
+      diagnostics: []
+    })
+  })
+
+  it('reports a missing artifact and falls back to one complete static build', async () => {
+    const harness = createHarness({
+      precompiled: {
+        load: vi.fn(async () => null),
+        restore: vi.fn(() => {
+          throw new Error('restore should not run')
+        })
+      }
+    })
+
+    await expect(harness.bootstrap.bootstrap()).resolves.toBe(harness.candidate)
+    expect(harness.dependencies.buildRegistrySet).toHaveBeenCalledOnce()
+    expect(harness.bootstrap.getLastReport()).toMatchObject({
+      source: 'static',
+      precompiledStatus: 'cache-miss-not-found',
+      diagnostics: [expect.objectContaining({ code: 'CACHE-NOT-FOUND-001' })]
+    })
   })
 
   it.each([

@@ -34,6 +34,7 @@ const startupSources = {
   electronPreload: readSource('electron/preload.js'),
   main: readSource('src/main.ts'),
   officialContentBootstrap: readSource('src/domain/mods/officialContentBootstrap.ts'),
+  officialPrecompiledRuntime: readSource('src/domain/mods/officialPrecompiledRuntime.ts'),
   webIndex: readSource('index.html')
 }
 const dataImportCategories = [
@@ -60,13 +61,29 @@ const officialStartupChecks = [
   {
     id: 'official-registry-lifecycle',
     pass: appearsInOrder(startupSources.officialContentBootstrap, [
-      'dependencies.buildRegistrySet',
+      'const prepareCandidate',
       'dependencies.validateStructure',
       'dependencies.validateSemantics',
       'dependencies.freezeRegistrySet',
+      'const bootstrap'
+    ]) && appearsInOrder(startupSources.officialContentBootstrap, [
+      "precompiledStatus: 'not-configured'",
       'publishedRegistrySet = candidate'
     ]),
     evidence: 'src/domain/mods/officialContentBootstrap.ts'
+  },
+  {
+    id: 'official-precompiled-fallback',
+    pass: appearsInOrder(startupSources.officialContentBootstrap, [
+      'dependencies.precompiled.load()',
+      'dependencies.precompiled.restore(value)',
+      'classifyPrecompiledFailure(error)',
+      "runStage('build', dependencies.buildRegistrySet)"
+    ])
+      && startupSources.officialPrecompiledRuntime.includes("official-precompiled-registry.json?raw")
+      && startupSources.officialPrecompiledRuntime.includes('createExpectedOfficialEnvironmentHash')
+      && startupSources.officialPrecompiledRuntime.includes('restoreOfficialPrecompiledRegistryArtifactText'),
+    evidence: 'src/domain/mods/officialContentBootstrap.ts, src/domain/mods/officialPrecompiledRuntime.ts'
   },
   {
     id: 'application-gate-order',
