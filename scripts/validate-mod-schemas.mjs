@@ -2,25 +2,13 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import * as esbuild from 'esbuild'
+import { createTaoyuanAliasPlugin } from './esbuild-taoyuan-alias.mjs'
 
 const root = process.cwd()
 const outputDir = path.join(root, 'docs-source', '模组系统实施计划', 'generated-schemas')
 const tempDir = path.join(root, 'node_modules', '.cache', 'taoyuan-mod-schemas')
 const bundlePath = path.join(tempDir, 'validate.mjs')
-const aliasPlugin = {
-  name: 'taoyuan-alias',
-  setup(build) {
-    build.onResolve({ filter: /^@\// }, args => ({
-      path: fs.existsSync(path.join(root, 'src', args.path.slice(2)))
-        ? fs.statSync(path.join(root, 'src', args.path.slice(2))).isDirectory()
-          ? path.join(root, 'src', args.path.slice(2), 'index.ts')
-          : path.join(root, 'src', args.path.slice(2))
-        : fs.existsSync(path.join(root, 'src', `${args.path.slice(2)}.ts`))
-          ? path.join(root, 'src', `${args.path.slice(2)}.ts`)
-          : path.join(root, 'src', `${args.path.slice(2)}.vue`)
-    }))
-  }
-}
+const aliasPlugin = createTaoyuanAliasPlugin(root)
 
 fs.mkdirSync(tempDir, { recursive: true })
 

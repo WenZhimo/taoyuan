@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import * as esbuild from 'esbuild'
+import { createTaoyuanAliasPlugin } from './esbuild-taoyuan-alias.mjs'
 
 const root = process.cwd()
 const mode = process.argv.includes('--write')
@@ -16,26 +17,7 @@ if (!mode) throw new Error('Expected one of --write, --check, or --probe')
 
 const tempDir = path.join(root, 'node_modules', '.cache', 'taoyuan-official-precompiled')
 const bundlePath = path.join(tempDir, `run-${mode}.mjs`)
-const aliasPlugin = {
-  name: 'taoyuan-alias',
-  setup(build) {
-    // The generator never invokes the browser bootstrap path. Leave Vite raw
-    // imports untouched when legacy data adapters pull that path into the bundle.
-    build.onResolve({ filter: /\?raw$/ }, args => ({
-      path: args.path,
-      external: true
-    }))
-    build.onResolve({ filter: /^@\// }, args => ({
-      path: fs.existsSync(path.join(root, 'src', args.path.slice(2)))
-        ? fs.statSync(path.join(root, 'src', args.path.slice(2))).isDirectory()
-          ? path.join(root, 'src', args.path.slice(2), 'index.ts')
-          : path.join(root, 'src', args.path.slice(2))
-        : fs.existsSync(path.join(root, 'src', `${args.path.slice(2)}.ts`))
-          ? path.join(root, 'src', `${args.path.slice(2)}.ts`)
-          : path.join(root, 'src', `${args.path.slice(2)}.vue`)
-    }))
-  }
-}
+const aliasPlugin = createTaoyuanAliasPlugin(root)
 
 fs.mkdirSync(tempDir, { recursive: true })
 
