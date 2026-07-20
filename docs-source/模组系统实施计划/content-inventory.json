@@ -604,6 +604,7 @@
           "exportName": "HAY_ITEM_ID",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:animal_feed",
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
@@ -614,8 +615,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "HAY_ITEM_ID is an original-name compatibility re-export of the reviewed animalDefinitions stable ID and takes no new content ownership. animalFeedRegistryPilot.test.ts and phase6InventoryClosure.test.ts verify the source IDs; phase6BarrelInventory.test.ts verifies the re-export source and runtime barrel entry."
         },
         {
           "file": "src/data/animals.ts",
@@ -640,6 +641,7 @@
           "exportName": "NOURISHING_FEED_ID",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:animal_feed",
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
@@ -650,14 +652,15 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "NOURISHING_FEED_ID is an original-name compatibility re-export of the reviewed animalDefinitions stable ID and takes no new content ownership. animalFeedRegistryPilot.test.ts and phase6InventoryClosure.test.ts verify the source IDs; phase6BarrelInventory.test.ts verifies the re-export source and runtime barrel entry."
         },
         {
           "file": "src/data/animals.ts",
           "exportName": "PREMIUM_FEED_ID",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:animal_feed",
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
@@ -668,14 +671,15 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "PREMIUM_FEED_ID is an original-name compatibility re-export of the reviewed animalDefinitions stable ID and takes no new content ownership. animalFeedRegistryPilot.test.ts and phase6InventoryClosure.test.ts verify the source IDs; phase6BarrelInventory.test.ts verifies the re-export source and runtime barrel entry."
         },
         {
           "file": "src/data/animals.ts",
           "exportName": "VITALITY_FEED_ID",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:animal_feed",
           "persistentIds": false,
           "consumers": [
             "src/data/animalDefinitions.ts",
@@ -686,8 +690,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "VITALITY_FEED_ID is an original-name compatibility re-export of the reviewed animalDefinitions stable ID and takes no new content ownership. animalFeedRegistryPilot.test.ts and phase6InventoryClosure.test.ts verify the source IDs; phase6BarrelInventory.test.ts verifies the re-export source and runtime barrel entry."
         },
         {
           "file": "src/data/animals.ts",
@@ -1447,6 +1451,7 @@
           "exportName": "HYBRID_DEFINITIONS",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:breeding_hybrid",
           "persistentIds": false,
           "consumers": [
             "src/data/breedingDefinitions.ts",
@@ -1455,14 +1460,15 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "HYBRID_DEFINITIONS is an original-name compatibility re-export of the reviewed breedingDefinitions source and takes no new content ownership. breedingHybridRegistryPilot.test.ts proves all definitions and tier results against taoyuan:breeding_hybrid; phase6BarrelInventory.test.ts verifies the export target and runtime entry."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "HYBRID_TIER_COUNTS",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:breeding_hybrid",
           "persistentIds": false,
           "consumers": [
             "src/data/breedingDefinitions.ts",
@@ -1471,8 +1477,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "HYBRID_TIER_COUNTS is an original-name compatibility re-export of the reviewed breedingDefinitions source and takes no new content ownership. breedingHybridRegistryPilot.test.ts proves all definitions and tier results against taoyuan:breeding_hybrid; phase6BarrelInventory.test.ts verifies the export target and runtime entry."
         },
         {
           "file": "src/data/breeding.ts",
@@ -2901,6 +2907,7 @@
           "exportName": "MorningChoiceEvent",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
           "consumers": [
             "src/composables/useDialogs.ts",
@@ -2912,14 +2919,15 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "MorningChoiceEvent is a type-only compatibility re-export of the reviewed farmEventDefinitions legacy shape and takes no registry ownership. morningEventRegistryPilot.test.ts proves the TypeBox projection and runtime behavior; phase6BarrelInventory.test.ts verifies the source declaration and final source status."
         },
         {
           "file": "src/data/farmEvents.ts",
           "exportName": "MorningEasterEgg",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
           "consumers": [
             "src/data/farmEventDefinitions.ts",
@@ -2929,14 +2937,15 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "MorningEasterEgg is a type-only compatibility re-export of the reviewed farmEventDefinitions legacy shape and takes no registry ownership. morningEventRegistryPilot.test.ts proves the TypeBox projection and runtime behavior; phase6BarrelInventory.test.ts verifies the source declaration and final source status."
         },
         {
           "file": "src/data/farmEvents.ts",
           "exportName": "MorningEffect",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
           "consumers": [
             "src/data/farmEventDefinitions.ts",
@@ -2946,14 +2955,15 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "MorningEffect is a type-only compatibility re-export of the reviewed farmEventDefinitions legacy shape and takes no registry ownership. morningEventRegistryPilot.test.ts proves the TypeBox projection and runtime behavior; phase6BarrelInventory.test.ts verifies the source declaration and final source status."
         },
         {
           "file": "src/data/farmEvents.ts",
           "exportName": "MorningNarration",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:morning_event",
           "persistentIds": false,
           "consumers": [
             "src/data/farmEventDefinitions.ts",
@@ -2963,8 +2973,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "MorningNarration is a type-only compatibility re-export of the reviewed farmEventDefinitions legacy shape and takes no registry ownership. morningEventRegistryPilot.test.ts proves the TypeBox projection and runtime behavior; phase6BarrelInventory.test.ts verifies the source declaration and final source status."
         },
         {
           "file": "src/data/farmEvents.ts",
@@ -3280,6 +3290,7 @@
           "exportName": "FISHING_LOCATIONS",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "ui/fishing-location",
           "persistentIds": false,
           "consumers": [
             "src/data/fishDefinitions.ts",
@@ -3288,8 +3299,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "framework-retained",
+          "rationale": "FISHING_LOCATIONS is an original-name re-export of fishing location labels used by FishingView, not taoyuan:fish species content. phase6InventoryClosure.test.ts and phase6BarrelInventory.test.ts preserve the framework source and export path. Location presentation remains UI-owned until a complete fishing-location mechanism contract exists."
         },
         {
           "file": "src/data/fish.ts",
@@ -6200,6 +6211,7 @@
           "exportName": "BOSS_DROP_HATS",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
           "persistentIds": false,
           "consumers": [
             "src/data/hatDefinitions.ts",
@@ -6210,8 +6222,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_HATS is an original-name re-export of the reviewed first-kill boss reward map and takes no content ownership. mining.test.ts and phase6InventoryClosure.test.ts verify settlement and exact mappings; phase6BarrelInventory.test.ts verifies the source and compatibility entry. Boss progression remains framework-owned."
         },
         {
           "file": "src/data/hats.ts",
@@ -6653,507 +6665,546 @@
           "exportName": "* from ./crops",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:crop",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./crops is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./items",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:item",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./items is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./fish",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:fish",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./fish is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./npcs",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:npc",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./npcs is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./mine",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:monster_pool",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./mine is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./recipes",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:recipe",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./recipes is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./events",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:season_event",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./events is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./forage",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:forage",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./forage is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./upgrades",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:tool_upgrade",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./upgrades is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./processing",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:processing_machine",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./processing is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./achievements",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:achievement",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./achievements is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./heartEvents",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:heart_event",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./heartEvents is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./timeConstants",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "framework-retained",
+          "rationale": "* from ./timeConstants is a backward-compatible barrel for framework/UI-owned exports and owns no content entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module retains its explicit framework owner."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./animals",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:animal",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./animals is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./fruitTrees",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:tree",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./fruitTrees is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./buildings",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:building_upgrade",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./buildings is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./farmMaps",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:farm_map",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./farmMaps is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./quests",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:quest_template",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./quests is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./weapons",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:equipment",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./weapons is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./travelingMerchant",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:shop_offer",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./travelingMerchant is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./shops",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:shop",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./shops is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./storyQuests",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:story_quest",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./storyQuests is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./rings",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:equipment",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./rings is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./hats",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:equipment",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./hats is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./shoes",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:equipment",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./shoes is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./themes",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "ui/player-settings",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "framework-retained",
+          "rationale": "* from ./themes is a backward-compatible barrel for framework/UI-owned exports and owns no content entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module retains its explicit framework owner."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./breeding",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:breeding_hybrid",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./breeding is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./market",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:market_category",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./market is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./museum",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:museum_item",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./museum is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./guild",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:guild_goal",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./guild is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./npcTips",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "framework-retained",
+          "rationale": "* from ./npcTips is a backward-compatible barrel for framework/UI-owned exports and owns no content entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module retains its explicit framework owner."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./secretNotes",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:secret_note",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./secretNotes is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./hanhai",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:hanhai_trade_exchange",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./hanhai is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./fishPond",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:fish_pond_facility",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./fishPond is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./pondBreeds",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:pond_breed",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./pondBreeds is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./equipmentSets",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:equipment_set",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./equipmentSets is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./hiddenNpcs",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:hidden_npc",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./hiddenNpcs is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./hiddenNpcHeartEvents",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:heart_event",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./hiddenNpcHeartEvents is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         },
         {
           "file": "src/data/index.ts",
           "exportName": "* from ./specialItems",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "taoyuan:item",
           "persistentIds": false,
           "consumers": [],
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "verified",
+          "rationale": "* from ./specialItems is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative."
         }
       ]
     },
@@ -10218,6 +10269,7 @@
           "exportName": "BOSS_DROP_RINGS",
           "syntaxKind": "re-export",
           "classification": "barrel",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
           "persistentIds": false,
           "consumers": [
             "src/data/ringDefinitions.ts",
@@ -10228,8 +10280,8 @@
           "migrationPhase": [
             6
           ],
-          "status": "inventoried",
-          "rationale": "Barrel re-export; no content registry ownership."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_RINGS is an original-name re-export of the reviewed first-kill boss reward map and takes no content ownership. mining.test.ts and phase6InventoryClosure.test.ts verify settlement and exact mappings; phase6BarrelInventory.test.ts verifies the source and compatibility entry. Boss progression remains framework-owned."
         },
         {
           "file": "src/data/rings.ts",

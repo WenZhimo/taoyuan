@@ -4161,6 +4161,112 @@ registerInventoryClosureReviews('src/data/shops.ts', [
   rationale: exportName => `${exportName} evaluates calendar, weather, season and hour rules over a ShopDef rather than owning shop content. ShopView owns the decision flow; shopRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve boundary results. It remains framework-owned even though definitions resolve through taoyuan:shop.`
 })
 
+registerInventoryClosureReviews('src/data/animals.ts', [
+  'HAY_ITEM_ID',
+  'NOURISHING_FEED_ID',
+  'PREMIUM_FEED_ID',
+  'VITALITY_FEED_ID'
+], {
+  classification: 'barrel',
+  targetRegistry: 'taoyuan:animal_feed',
+  status: 'verified',
+  rationale: exportName => `${exportName} is an original-name compatibility re-export of the reviewed animalDefinitions stable ID and takes no new content ownership. animalFeedRegistryPilot.test.ts and phase6InventoryClosure.test.ts verify the source IDs; phase6BarrelInventory.test.ts verifies the re-export source and runtime barrel entry.`
+})
+
+registerInventoryClosureReviews('src/data/breeding.ts', [
+  'HYBRID_DEFINITIONS',
+  'HYBRID_TIER_COUNTS'
+], {
+  classification: 'barrel',
+  targetRegistry: 'taoyuan:breeding_hybrid',
+  status: 'verified',
+  rationale: exportName => `${exportName} is an original-name compatibility re-export of the reviewed breedingDefinitions source and takes no new content ownership. breedingHybridRegistryPilot.test.ts proves all definitions and tier results against taoyuan:breeding_hybrid; phase6BarrelInventory.test.ts verifies the export target and runtime entry.`
+})
+
+registerInventoryClosureReviews('src/data/farmEvents.ts', [
+  'MorningChoiceEvent',
+  'MorningEasterEgg',
+  'MorningEffect',
+  'MorningNarration'
+], {
+  classification: 'barrel',
+  targetRegistry: 'taoyuan:morning_event',
+  status: 'verified',
+  rationale: exportName => `${exportName} is a type-only compatibility re-export of the reviewed farmEventDefinitions legacy shape and takes no registry ownership. morningEventRegistryPilot.test.ts proves the TypeBox projection and runtime behavior; phase6BarrelInventory.test.ts verifies the source declaration and final source status.`
+})
+
+registerInventoryClosureReviews('src/data/fish.ts', ['FISHING_LOCATIONS'], {
+  classification: 'barrel',
+  targetRegistry: 'ui/fishing-location',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is an original-name re-export of fishing location labels used by FishingView, not taoyuan:fish species content. phase6InventoryClosure.test.ts and phase6BarrelInventory.test.ts preserve the framework source and export path. Location presentation remains UI-owned until a complete fishing-location mechanism contract exists.`
+})
+
+for (const [file, exportName] of [
+  ['src/data/hats.ts', 'BOSS_DROP_HATS'],
+  ['src/data/rings.ts', 'BOSS_DROP_RINGS']
+]) {
+  registerInventoryClosureReviews(file, [exportName], {
+    classification: 'barrel',
+    targetRegistry: 'engine/domain/mining-boss-rewards',
+    status: 'framework-retained',
+    rationale: name => `${name} is an original-name re-export of the reviewed first-kill boss reward map and takes no content ownership. mining.test.ts and phase6InventoryClosure.test.ts verify settlement and exact mappings; phase6BarrelInventory.test.ts verifies the source and compatibility entry. Boss progression remains framework-owned.`
+  })
+}
+
+const dataBarrelClosureReviews = {
+  achievements: { status: 'verified', targetRegistry: 'taoyuan:achievement' },
+  animals: { status: 'verified', targetRegistry: 'taoyuan:animal' },
+  breeding: { status: 'verified', targetRegistry: 'taoyuan:breeding_hybrid' },
+  buildings: { status: 'verified', targetRegistry: 'taoyuan:building_upgrade' },
+  crops: { status: 'verified', targetRegistry: 'taoyuan:crop' },
+  equipmentSets: { status: 'verified', targetRegistry: 'taoyuan:equipment_set' },
+  events: { status: 'verified', targetRegistry: 'taoyuan:season_event' },
+  farmMaps: { status: 'verified', targetRegistry: 'taoyuan:farm_map' },
+  fish: { status: 'verified', targetRegistry: 'taoyuan:fish' },
+  fishPond: { status: 'verified', targetRegistry: 'taoyuan:fish_pond_facility' },
+  forage: { status: 'verified', targetRegistry: 'taoyuan:forage' },
+  fruitTrees: { status: 'verified', targetRegistry: 'taoyuan:tree' },
+  guild: { status: 'verified', targetRegistry: 'taoyuan:guild_goal' },
+  hanhai: { status: 'verified', targetRegistry: 'taoyuan:hanhai_trade_exchange' },
+  hats: { status: 'verified', targetRegistry: 'taoyuan:equipment' },
+  heartEvents: { status: 'verified', targetRegistry: 'taoyuan:heart_event' },
+  hiddenNpcHeartEvents: { status: 'verified', targetRegistry: 'taoyuan:heart_event' },
+  hiddenNpcs: { status: 'verified', targetRegistry: 'taoyuan:hidden_npc' },
+  items: { status: 'verified', targetRegistry: 'taoyuan:item' },
+  market: { status: 'verified', targetRegistry: 'taoyuan:market_category' },
+  mine: { status: 'verified', targetRegistry: 'taoyuan:monster_pool' },
+  museum: { status: 'verified', targetRegistry: 'taoyuan:museum_item' },
+  npcs: { status: 'verified', targetRegistry: 'taoyuan:npc' },
+  npcTips: { status: 'framework-retained', targetRegistry: 'ui/npc-daily-tips' },
+  pondBreeds: { status: 'verified', targetRegistry: 'taoyuan:pond_breed' },
+  processing: { status: 'verified', targetRegistry: 'taoyuan:processing_machine' },
+  quests: { status: 'verified', targetRegistry: 'taoyuan:quest_template' },
+  recipes: { status: 'verified', targetRegistry: 'taoyuan:recipe' },
+  rings: { status: 'verified', targetRegistry: 'taoyuan:equipment' },
+  secretNotes: { status: 'verified', targetRegistry: 'taoyuan:secret_note' },
+  shoes: { status: 'verified', targetRegistry: 'taoyuan:equipment' },
+  shops: { status: 'verified', targetRegistry: 'taoyuan:shop' },
+  specialItems: { status: 'verified', targetRegistry: 'taoyuan:item' },
+  storyQuests: { status: 'verified', targetRegistry: 'taoyuan:story_quest' },
+  themes: { status: 'framework-retained', targetRegistry: 'ui/player-settings' },
+  timeConstants: { status: 'framework-retained', targetRegistry: 'engine/domain/time-navigation-schedules' },
+  travelingMerchant: { status: 'verified', targetRegistry: 'taoyuan:shop_offer' },
+  upgrades: { status: 'verified', targetRegistry: 'taoyuan:tool_upgrade' },
+  weapons: { status: 'verified', targetRegistry: 'taoyuan:equipment' }
+}
+
+for (const [moduleName, review] of Object.entries(dataBarrelClosureReviews)) {
+  registerInventoryClosureReviews('src/data/index.ts', [`* from ./${moduleName}`], {
+    classification: 'barrel',
+    targetRegistry: review.targetRegistry,
+    status: review.status,
+    rationale: exportName => review.status === 'verified'
+      ? `${exportName} is a backward-compatible module barrel only and owns no registry entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module's registry tests remain authoritative.`
+      : `${exportName} is a backward-compatible barrel for framework/UI-owned exports and owns no content entries. phase6BarrelInventory.test.ts independently verifies this exact source declaration, source-file existence, final source-symbol statuses, absence of a barrel import cycle and runtime const/function exports; the source module retains its explicit framework owner.`
+  })
+}
+
 const reviewedArtifacts = [
   {
     file: 'src/domain/mods/contentAccess.ts',
