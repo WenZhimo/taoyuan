@@ -1,4 +1,4 @@
-import { canonicalizeJson } from './canonicalJson'
+import { assertPureJsonValue, canonicalizeJson } from './canonicalJson'
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import { hashCanonicalJson } from './hash'
 import {
@@ -52,53 +52,6 @@ export class RegistryError extends Error {
 }
 
 const cloneSerializable = <T>(value: T): T => JSON.parse(canonicalizeJson(value)) as T
-
-const assertSnapshotJsonValue = (value: unknown, path: string, ancestors = new Set<object>()): void => {
-  if (value === null || typeof value === 'string' || typeof value === 'boolean') return
-  if (typeof value === 'number' && Number.isFinite(value)) return
-  if (!value || typeof value !== 'object') {
-    throw new Error(`Registry snapshot contains non-JSON value at ${path}`)
-  }
-  if (ancestors.has(value)) throw new Error(`Registry snapshot contains a cycle at ${path}`)
-
-  const isArray = Array.isArray(value)
-  const prototype = Object.getPrototypeOf(value)
-  if (isArray && prototype !== Array.prototype) {
-    throw new Error(`Registry snapshot contains non-JSON array at ${path}`)
-  }
-  if (!isArray && prototype !== Object.prototype && prototype !== null) {
-    throw new Error(`Registry snapshot contains non-JSON object at ${path}`)
-  }
-  const ownKeys = Reflect.ownKeys(value)
-  if (ownKeys.some(key => typeof key !== 'string')) {
-    throw new Error(`Registry snapshot contains a symbol key at ${path}`)
-  }
-
-  ancestors.add(value)
-  if (isArray) {
-    const invalidKey = ownKeys.find(key =>
-      typeof key === 'string'
-      && key !== 'length'
-      && (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length)
-    )
-    if (invalidKey !== undefined) {
-      throw new Error(`Registry snapshot contains a non-JSON array property at ${path}/${String(invalidKey)}`)
-    }
-    for (let index = 0; index < value.length; index += 1) {
-      if (!(index in value)) throw new Error(`Registry snapshot contains a sparse array at ${path}/${index}`)
-      assertSnapshotJsonValue(value[index], `${path}/${index}`, ancestors)
-    }
-  } else {
-    for (const key of ownKeys as string[]) {
-      const descriptor = Object.getOwnPropertyDescriptor(value, key)
-      if (!descriptor?.enumerable || !('value' in descriptor)) {
-        throw new Error(`Registry snapshot contains a non-JSON object property at ${path}/${key}`)
-      }
-      assertSnapshotJsonValue(descriptor.value, `${path}/${key}`, ancestors)
-    }
-  }
-  ancestors.delete(value)
-}
 
 const deepFreeze = <T>(value: T): Readonly<T> => {
   if (value && typeof value === 'object') {
@@ -285,7 +238,7 @@ const getSnapshotBody = (snapshot: SerializableRegistrySnapshot) => ({
 
 const assertSnapshotInputIsJson = (value: unknown): void => {
   try {
-    assertSnapshotJsonValue(value, '/')
+    assertPureJsonValue(value)
   } catch (error) {
     throw new RegistrySnapshotError(
       'structure',
@@ -427,7 +380,7 @@ export const createSerializableRegistrySnapshot = (registrySet: RegistrySet): Se
   const registries = registrySet.registryIds().map(registryId => {
     const registry = registrySet.get(registryId)
     const entries = registry.entries().map((record, index): SerializableRegistryEntry => {
-      assertSnapshotJsonValue(record.entry, `/registries/${registryId}/entries/${index}/entry`)
+      assertPureJsonValue(record.entry, `/registries/${registryId}/entries/${index}/entry`)
       const source = record.source ?? { packageId: record.owner }
       return {
         owner: record.owner,

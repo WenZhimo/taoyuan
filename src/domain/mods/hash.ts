@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js'
-import { canonicalizeJson } from './canonicalJson'
+import { canonicalizeJson, compareCodePoints } from './canonicalJson'
 
 export type Sha256Hash = `sha256:${string}`
 
@@ -40,7 +40,7 @@ export const createCanonicalFileManifestHash = (entries: readonly CanonicalFileE
       size: entry.size,
       sha256: entry.sha256
     }))
-    .sort((a, b) => a.path.localeCompare(b.path, 'en', { sensitivity: 'variant' }))
+    .sort((a, b) => compareCodePoints(a.path, b.path))
   return hashCanonicalJson(normalized)
 }
 

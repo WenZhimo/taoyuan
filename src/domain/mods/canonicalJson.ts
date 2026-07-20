@@ -4,7 +4,7 @@ export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue
 const isPlainObject = (value: unknown): value is Record<string, unknown> =>
   Object.prototype.toString.call(value) === '[object Object]'
 
-const compareCodePoints = (a: string, b: string): number => {
+export const compareCodePoints = (a: string, b: string): number => {
   const aPoints = Array.from(a)
   const bPoints = Array.from(b)
   const length = Math.min(aPoints.length, bPoints.length)
@@ -13,6 +13,57 @@ const compareCodePoints = (a: string, b: string): number => {
     if (diff !== 0) return diff
   }
   return aPoints.length - bPoints.length
+}
+
+export const assertPureJsonValue = (
+  value: unknown,
+  path = '/',
+  ancestors = new Set<object>()
+): void => {
+  if (value === null || typeof value === 'string' || typeof value === 'boolean') return
+  if (typeof value === 'number' && Number.isFinite(value)) return
+  if (!value || typeof value !== 'object') {
+    throw new Error(`JSON data contains a non-JSON value at ${path}`)
+  }
+  if (ancestors.has(value)) throw new Error(`JSON data contains a cycle at ${path}`)
+
+  const isArray = Array.isArray(value)
+  const prototype = Object.getPrototypeOf(value)
+  if (isArray && prototype !== Array.prototype) {
+    throw new Error(`JSON data contains a non-JSON array at ${path}`)
+  }
+  if (!isArray && prototype !== Object.prototype && prototype !== null) {
+    throw new Error(`JSON data contains a non-JSON object at ${path}`)
+  }
+  const ownKeys = Reflect.ownKeys(value)
+  if (ownKeys.some(key => typeof key !== 'string')) {
+    throw new Error(`JSON data contains a symbol key at ${path}`)
+  }
+
+  ancestors.add(value)
+  if (isArray) {
+    const invalidKey = ownKeys.find(key =>
+      typeof key === 'string'
+      && key !== 'length'
+      && (!/^(0|[1-9]\d*)$/.test(key) || Number(key) >= value.length)
+    )
+    if (invalidKey !== undefined) {
+      throw new Error(`JSON data contains a non-JSON array property at ${path}/${String(invalidKey)}`)
+    }
+    for (let index = 0; index < value.length; index += 1) {
+      if (!(index in value)) throw new Error(`JSON data contains a sparse array at ${path}/${index}`)
+      assertPureJsonValue(value[index], `${path}/${index}`, ancestors)
+    }
+  } else {
+    for (const key of ownKeys as string[]) {
+      const descriptor = Object.getOwnPropertyDescriptor(value, key)
+      if (!descriptor?.enumerable || !('value' in descriptor)) {
+        throw new Error(`JSON data contains a non-JSON object property at ${path}/${key}`)
+      }
+      assertPureJsonValue(descriptor.value, `${path}/${key}`, ancestors)
+    }
+  }
+  ancestors.delete(value)
 }
 
 export const canonicalizeJson = (value: unknown): string => {
