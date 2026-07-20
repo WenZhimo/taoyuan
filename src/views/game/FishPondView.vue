@@ -268,7 +268,7 @@
         </div>
 
         <!-- 进度 -->
-        <p class="text-xs text-muted mb-2">已发现 {{ discoveredCountByGen(compendiumGen) }}/{{ BREED_COUNTS[compendiumGen] }}</p>
+        <p class="text-xs text-muted mb-2">已发现 {{ discoveredCountByGen(compendiumGen) }}/{{ breedCountByGen(compendiumGen) }}</p>
 
         <!-- 提示 -->
         <div v-if="compendiumGen > 1" class="border border-accent/10 rounded-xs p-2 mb-2">
@@ -310,7 +310,7 @@
           <div class="grid grid-cols-2 gap-x-3 gap-y-0.5">
             <div v-for="g in 5" :key="g" class="flex items-center justify-between">
               <span class="text-xs text-muted">{{ g }}代</span>
-              <span class="text-xs">{{ discoveredCountByGen(g) }}/{{ BREED_COUNTS[g] }}</span>
+              <span class="text-xs">{{ discoveredCountByGen(g) }}/{{ breedCountByGen(g) }}</span>
             </div>
           </div>
         </div>
@@ -594,9 +594,9 @@
     getPondableFish,
     getPondableFishDefs
   } from '@/data/fishPond'
-  import { getBreedById, getBreedsByGeneration, BREED_COUNTS } from '@/data/pondBreeds'
+  import { getBreedById, getBreedsByGeneration } from '@/data/pondBreeds'
   import { getItemById } from '@/data/items'
-  import type { PondFish } from '@/types/fishPond'
+  import type { PondBreedDef, PondFish } from '@/types/fishPond'
 
   const fishPondStore = useFishPondStore()
   const inventoryStore = useInventoryStore()
@@ -627,23 +627,35 @@
   const getItemName = (itemId: string): string => getItemById(itemId)?.name ?? itemId
   const getPondableFishName = (fishId: string): string => getPondableFish(fishId)?.name ?? fishId
 
-  const totalBreedCount = 400
+  const BREED_GENERATIONS = [1, 2, 3, 4, 5] as const
+  const breedsByGeneration = computed(() => Object.fromEntries(
+    BREED_GENERATIONS.map(generation => [generation, getBreedsByGeneration(generation)])
+  ) as Record<(typeof BREED_GENERATIONS)[number], PondBreedDef[]>)
+
+  const breedCountByGen = (gen: number): number =>
+    breedsByGeneration.value[gen as (typeof BREED_GENERATIONS)[number]]?.length ?? 0
+
+  const totalBreedCount = computed(() =>
+    BREED_GENERATIONS.reduce((total, generation) => total + breedCountByGen(generation), 0)
+  )
 
   const isDiscovered = (breedId: string): boolean => fishPondStore.discoveredBreeds.has(breedId)
 
   const discoveredCountByGen = (gen: number): number => {
-    const breeds = getBreedsByGeneration(gen as 1 | 2 | 3 | 4 | 5)
+    const breeds = breedsByGeneration.value[gen as (typeof BREED_GENERATIONS)[number]] ?? []
     return breeds.filter(b => fishPondStore.discoveredBreeds.has(b.breedId)).length
   }
 
-  const currentGenBreeds = computed(() => getBreedsByGeneration(compendiumGen.value))
+  const currentGenBreeds = computed(() => breedsByGeneration.value[compendiumGen.value])
   const detailBreed = computed(() => (detailBreedId.value ? (getBreedById(detailBreedId.value) ?? null) : null))
   const detailParentA = computed(() => (detailBreed.value?.parentBreedA ? (getBreedById(detailBreed.value.parentBreedA) ?? null) : null))
   const detailParentB = computed(() => (detailBreed.value?.parentBreedB ? (getBreedById(detailBreed.value.parentBreedB) ?? null) : null))
 
   /** 图鉴完成度 */
   const completionPercent = computed(() => {
-    return Math.floor((fishPondStore.discoveredBreeds.size / totalBreedCount) * 100)
+    return totalBreedCount.value > 0
+      ? Math.floor((fishPondStore.discoveredBreeds.size / totalBreedCount.value) * 100)
+      : 0
   })
 
   /** 代数颜色 */
