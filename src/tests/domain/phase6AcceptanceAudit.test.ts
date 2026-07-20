@@ -9,7 +9,10 @@ import {
   type RegistryEntry
 } from '@/domain/mods/registry'
 import { requireContentId } from '@/domain/mods/ids'
-import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
+import {
+  bootstrapOfficialContent,
+  getOfficialContentBootstrapReport
+} from '@/domain/mods/officialContentBootstrap'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import officialContentSnapshot from '../fixtures/mods/official-content-snapshot.json'
@@ -178,6 +181,11 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     const builtSnapshot = createSerializableRegistrySnapshot(built)
     expect(createSerializableRegistrySnapshot(bootstrapped)).toEqual(builtSnapshot)
     expect(builtSnapshot).toEqual(officialContentSnapshot)
+    expect(getOfficialContentBootstrapReport()).toEqual({
+      source: 'precompiled',
+      precompiledStatus: 'official-precompiled-hit',
+      diagnostics: []
+    })
 
     for (const registryId of built.registryIds()) {
       expect(bootstrapped.get<RegistryEntry>(registryId).entries().map(record => record.entry.id))
