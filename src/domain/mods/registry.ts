@@ -299,6 +299,7 @@ const assertSnapshotInputIsJson = (value: unknown): void => {
 }
 
 const parseRegistrySnapshot = (value: unknown): SerializableRegistrySnapshot => {
+  assertSnapshotInputIsJson(value)
   if (
     value
     && typeof value === 'object'
@@ -314,7 +315,6 @@ const parseRegistrySnapshot = (value: unknown): SerializableRegistrySnapshot => 
     )
   }
 
-  assertSnapshotInputIsJson(value)
   const result = validateUnknown(SerializableRegistrySnapshotSchema, value, {
     stage: 'registry.snapshot.structure'
   })
@@ -442,10 +442,10 @@ export const createSerializableRegistrySnapshot = (registrySet: RegistrySet): Se
     }
   })
   const body = { formatVersion: 2 as const, registries }
-  return {
+  return parseRegistrySnapshot({
     ...body,
     snapshotHash: hashCanonicalJson(body)
-  }
+  })
 }
 
 export const restoreRegistrySetFromSnapshot = (

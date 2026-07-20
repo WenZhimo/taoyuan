@@ -44,7 +44,10 @@ const rehash = (snapshot: MutableSnapshot): MutableSnapshot => {
   return snapshot
 }
 
-const buildSet = (order: readonly string[]): RegistrySet => {
+const buildSet = (
+  order: readonly string[],
+  sourceFile = 'data/snapshot-order.json'
+): RegistrySet => {
   const set = new RegistrySet()
   const registry = set.defineRegistry(definition)
   set.freezeDefinitions()
@@ -54,7 +57,7 @@ const buildSet = (order: readonly string[]): RegistrySet => {
       label: localId
     }
     registry.register(owner, entry, {
-      file: 'data/snapshot-order.json',
+      file: sourceFile,
       localId
     })
   }
@@ -164,6 +167,24 @@ describe('registry snapshot v2 order-preserving codec', () => {
     const cyclicEntry = cloneMutable(snapshot)
     cyclicEntry.registries[0]!.entries[0]!.entry.runtime = cyclicEntry
     expectSnapshotError(cyclicEntry, 'structure')
+
+    let accessorRead = false
+    const accessorSnapshot = cloneMutable(snapshot)
+    Object.defineProperty(accessorSnapshot, 'formatVersion', {
+      enumerable: true,
+      get: () => {
+        accessorRead = true
+        return 2
+      }
+    })
+    expectSnapshotError(accessorSnapshot, 'structure')
+    expect(accessorRead).toBe(false)
+  })
+
+  it('refuses to create a snapshot that violates the public source-path contract', () => {
+    expect(() => createSerializableRegistrySnapshot(
+      buildSet(['z', 'a', 'm'], 'C:\\private\\snapshot.json')
+    )).toThrow(RegistrySnapshotError)
   })
 
   it('rejects invalid registry sets, schemas, owners, and duplicate entries with valid hashes', () => {
