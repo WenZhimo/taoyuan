@@ -6,8 +6,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createSerializableRegistrySnapshot,
   restoreRegistrySetFromSnapshot,
-  type RegistryEntry,
-  type SerializableRegistrySnapshot
+  type RegistryEntry
 } from '@/domain/mods/registry'
 import { requireContentId } from '@/domain/mods/ids'
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
@@ -134,10 +133,10 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
       expect.objectContaining({ id: 'electron-startup-diagnostic', pass: true })
     ])
     expect(report.officialSnapshot).toEqual({
-      formatVersion: 1,
+      formatVersion: 2,
       registryCount: 54,
       entryCount: 4242,
-      snapshotHash: 'sha256:31f5e59b53c8f1d49d99d5da18dbeccad5ac12b09b5367982496dbeecc53ff21'
+      snapshotHash: 'sha256:4e87e4bc1d6310d4467335da77603006bf769fdb5c4da45ad927f7ed85a5c4b3'
     })
     expect(report.strict).toEqual({
       requested: true,
@@ -166,13 +165,14 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     ])
   })
 
-  it('keeps hashes, runtime order, and ID lookups equal while recording the restore-order gap', async () => {
+  it('keeps complete, bootstrapped, and restored registries equal without sorting', async () => {
     const bootstrapped = await bootstrapOfficialContent()
     const built = buildOfficialRegistrySetFromStaticData()
     built.freezeEntries()
 
     expect(bootstrapped.currentPhase).toBe('frozen')
     expect(validateRegistrySemantics(built)).toEqual([])
+    expect(validateRegistrySemantics(bootstrapped)).toEqual([])
 
     const builtSnapshot = createSerializableRegistrySnapshot(built)
     expect(createSerializableRegistrySnapshot(bootstrapped)).toEqual(builtSnapshot)
@@ -185,79 +185,38 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
 
     const restored = restoreRegistrySetFromSnapshot(
       OFFICIAL_REGISTRY_DEFINITIONS,
-      officialContentSnapshot as unknown as SerializableRegistrySnapshot
+      officialContentSnapshot as unknown
     )
     const restoredSnapshot = createSerializableRegistrySnapshot(restored)
 
     expect(restored.currentPhase).toBe('frozen')
     expect(validateRegistrySemantics(restored)).toEqual([])
     expect(restoredSnapshot).toEqual(builtSnapshot)
+    expect(bootstrapped.registryIds()).toEqual(built.registryIds())
+    expect(restored.registryIds()).toEqual(built.registryIds())
 
     const registrationOrderMismatches: string[] = []
     for (const registryId of built.registryIds()) {
       const builtRecords = built.get<RegistryEntry>(registryId).entries()
+      const bootstrappedRegistry = bootstrapped.get<RegistryEntry>(registryId)
       const restoredRegistry = restored.get<RegistryEntry>(registryId)
       const restoredRecords = restoredRegistry.entries()
 
+      expect(bootstrappedRegistry.entries()).toEqual(builtRecords)
+      expect(bootstrappedRegistry.values()).toEqual(built.get<RegistryEntry>(registryId).values())
+      expect(restoredRecords).toEqual(builtRecords)
+      expect(restoredRegistry.values()).toEqual(built.get<RegistryEntry>(registryId).values())
+      expect(bootstrappedRegistry.isFrozen).toBe(true)
+      expect(restoredRegistry.isFrozen).toBe(true)
       if (restoredRecords.some((record, index) => record.entry.id !== builtRecords[index]?.entry.id)) {
         registrationOrderMismatches.push(registryId)
       }
       for (const record of builtRecords) {
+        expect(bootstrappedRegistry.require(requireContentId(record.entry.id))).toEqual(record.entry)
         expect(restoredRegistry.require(requireContentId(record.entry.id))).toEqual(record.entry)
       }
     }
 
-    expect(registrationOrderMismatches).toEqual([
-      'taoyuan:achievement',
-      'taoyuan:animal',
-      'taoyuan:animal_building',
-      'taoyuan:animal_feed',
-      'taoyuan:animal_incubation',
-      'taoyuan:bomb',
-      'taoyuan:breeding_hybrid',
-      'taoyuan:building_upgrade',
-      'taoyuan:community_bundle',
-      'taoyuan:crop',
-      'taoyuan:drop_table',
-      'taoyuan:enchantment',
-      'taoyuan:equipment',
-      'taoyuan:equipment_set',
-      'taoyuan:farm_map',
-      'taoyuan:fish',
-      'taoyuan:forage',
-      'taoyuan:guild_donation',
-      'taoyuan:guild_goal',
-      'taoyuan:guild_level',
-      'taoyuan:hanhai_casino_wager',
-      'taoyuan:hanhai_trade_exchange',
-      'taoyuan:hanhai_treasure_reward',
-      'taoyuan:heart_event',
-      'taoyuan:hidden_npc',
-      'taoyuan:item',
-      'taoyuan:market_category',
-      'taoyuan:monster',
-      'taoyuan:monster_pool',
-      'taoyuan:morning_event',
-      'taoyuan:museum_category',
-      'taoyuan:museum_item',
-      'taoyuan:museum_milestone',
-      'taoyuan:npc',
-      'taoyuan:pond_breed',
-      'taoyuan:pondable_fish',
-      'taoyuan:processing_machine',
-      'taoyuan:processing_recipe',
-      'taoyuan:quest_template',
-      'taoyuan:recipe',
-      'taoyuan:season_event',
-      'taoyuan:secret_note',
-      'taoyuan:shop',
-      'taoyuan:shop_offer',
-      'taoyuan:story_quest',
-      'taoyuan:tag',
-      'taoyuan:tool_upgrade',
-      'taoyuan:tree',
-      'taoyuan:tutorial',
-      'taoyuan:wallet_item'
-    ])
+    expect(registrationOrderMismatches).toEqual([])
   })
 })
