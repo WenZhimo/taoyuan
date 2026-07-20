@@ -283,6 +283,21 @@ const getSnapshotBody = (snapshot: SerializableRegistrySnapshot) => ({
   registries: snapshot.registries
 })
 
+const assertSnapshotInputIsJson = (value: unknown): void => {
+  try {
+    assertSnapshotJsonValue(value, '/')
+  } catch (error) {
+    throw new RegistrySnapshotError(
+      'structure',
+      error instanceof Error ? error.message : String(error),
+      [createDiagnostic('SCHEMA-VALIDATE-001', {
+        stage: 'registry.snapshot.structure',
+        details: { message: error instanceof Error ? error.message : String(error) }
+      })]
+    )
+  }
+}
+
 const parseRegistrySnapshot = (value: unknown): SerializableRegistrySnapshot => {
   if (
     value
@@ -299,6 +314,7 @@ const parseRegistrySnapshot = (value: unknown): SerializableRegistrySnapshot => 
     )
   }
 
+  assertSnapshotInputIsJson(value)
   const result = validateUnknown(SerializableRegistrySnapshotSchema, value, {
     stage: 'registry.snapshot.structure'
   })
@@ -311,25 +327,6 @@ const parseRegistrySnapshot = (value: unknown): SerializableRegistrySnapshot => 
   }
 
   const snapshot = result.data
-  try {
-    snapshot.registries.forEach((registry, registryIndex) => {
-      registry.entries.forEach((record, entryIndex) => {
-        assertSnapshotJsonValue(
-          record.entry,
-          `/registries/${registryIndex}/entries/${entryIndex}/entry`
-        )
-      })
-    })
-  } catch (error) {
-    throw new RegistrySnapshotError(
-      'structure',
-      error instanceof Error ? error.message : String(error),
-      [createDiagnostic('SCHEMA-VALIDATE-001', {
-        stage: 'registry.snapshot.structure',
-        details: { message: error instanceof Error ? error.message : String(error) }
-      })]
-    )
-  }
   if (hashCanonicalJson(getSnapshotBody(snapshot)) !== snapshot.snapshotHash) {
     throwSnapshotError(
       'hash',

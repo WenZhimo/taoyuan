@@ -160,6 +160,10 @@ describe('registry snapshot v2 order-preserving codec', () => {
     const dateEntry = cloneMutable(snapshot)
     dateEntry.registries[0]!.entries[0]!.entry.runtime = new Date(0)
     expectSnapshotError(dateEntry, 'structure')
+
+    const cyclicEntry = cloneMutable(snapshot)
+    cyclicEntry.registries[0]!.entries[0]!.entry.runtime = cyclicEntry
+    expectSnapshotError(cyclicEntry, 'structure')
   })
 
   it('rejects invalid registry sets, schemas, owners, and duplicate entries with valid hashes', () => {
