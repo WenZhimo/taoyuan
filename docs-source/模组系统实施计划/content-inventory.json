@@ -314,17 +314,20 @@
           "exportName": "HAY_ITEM_ID",
           "syntaxKind": "const",
           "classification": "adapter",
-          "persistentIds": false,
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": true,
           "consumers": [
             "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "HAY_ITEM_ID is a stable local feed/item ID consumed by animalFeedDefinitions and AnimalStore; animalFeedRegistryPilot.test.ts proves the complete taoyuan:animal_feed legacy projection and phase6InventoryClosure.test.ts pins the four IDs. The named constant remains for legacy Store and save-compatible item references."
         },
         {
           "file": "src/data/animalDefinitions.ts",
@@ -349,51 +352,60 @@
           "exportName": "PREMIUM_FEED_ID",
           "syntaxKind": "const",
           "classification": "adapter",
-          "persistentIds": false,
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": true,
           "consumers": [
             "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "PREMIUM_FEED_ID is a stable local feed/item ID consumed by animalFeedDefinitions and AnimalStore; animalFeedRegistryPilot.test.ts proves the complete taoyuan:animal_feed legacy projection and phase6InventoryClosure.test.ts pins the four IDs. The named constant remains for legacy Store and save-compatible item references."
         },
         {
           "file": "src/data/animalDefinitions.ts",
           "exportName": "NOURISHING_FEED_ID",
           "syntaxKind": "const",
           "classification": "adapter",
-          "persistentIds": false,
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": true,
           "consumers": [
             "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "NOURISHING_FEED_ID is a stable local feed/item ID consumed by animalFeedDefinitions and AnimalStore; animalFeedRegistryPilot.test.ts proves the complete taoyuan:animal_feed legacy projection and phase6InventoryClosure.test.ts pins the four IDs. The named constant remains for legacy Store and save-compatible item references."
         },
         {
           "file": "src/data/animalDefinitions.ts",
           "exportName": "VITALITY_FEED_ID",
           "syntaxKind": "const",
           "classification": "adapter",
-          "persistentIds": false,
+          "targetRegistry": "taoyuan:animal_feed",
+          "persistentIds": true,
           "consumers": [
             "src/data/animalFeedDefinitions.ts",
             "src/data/animals.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "VITALITY_FEED_ID is a stable local feed/item ID consumed by animalFeedDefinitions and AnimalStore; animalFeedRegistryPilot.test.ts proves the complete taoyuan:animal_feed legacy projection and phase6InventoryClosure.test.ts pins the four IDs. The named constant remains for legacy Store and save-compatible item references."
         }
       ]
     },
@@ -443,7 +455,8 @@
           "consumers": [
             "src/data/animals.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/tests/domain/animalFeedRegistryPilot.test.ts"
+            "src/tests/domain/animalFeedRegistryPilot.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
@@ -595,7 +608,8 @@
           "consumers": [
             "src/data/animalDefinitions.ts",
             "src/data/animalFeedDefinitions.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
@@ -630,7 +644,8 @@
           "consumers": [
             "src/data/animalDefinitions.ts",
             "src/data/animalFeedDefinitions.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
@@ -647,7 +662,8 @@
           "consumers": [
             "src/data/animalDefinitions.ts",
             "src/data/animalFeedDefinitions.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
@@ -664,7 +680,8 @@
           "consumers": [
             "src/data/animalDefinitions.ts",
             "src/data/animalFeedDefinitions.ts",
-            "src/stores/useAnimalStore.ts"
+            "src/stores/useAnimalStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
@@ -682,7 +699,8 @@
           "consumers": [
             "src/data/animalFeedDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
-            "src/tests/domain/animalFeedRegistryPilot.test.ts"
+            "src/tests/domain/animalFeedRegistryPilot.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
@@ -1041,47 +1059,53 @@
           "file": "src/data/breeding.ts",
           "exportName": "BASE_BREEDING_BOX",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "BASE_BREEDING_BOX controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "SEED_BOX_UPGRADES",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "SEED_BOX_UPGRADES controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "SEED_BOX_UPGRADE_INCREMENT",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
             "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/BreedingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "SEED_BOX_UPGRADE_INCREMENT controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
@@ -1117,91 +1141,103 @@
           "file": "src/data/breeding.ts",
           "exportName": "BASE_MUTATION_MAGNITUDE",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "BASE_MUTATION_MAGNITUDE controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "GENERATIONAL_STABILITY_GAIN",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "GENERATIONAL_STABILITY_GAIN controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "MAX_STABILITY",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MAX_STABILITY controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "MUTATION_JUMP_MIN",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MUTATION_JUMP_MIN controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "MUTATION_JUMP_MAX",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MUTATION_JUMP_MAX controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "MUTATION_RATE_DRIFT",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MUTATION_RATE_DRIFT controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
@@ -1271,17 +1307,19 @@
           "file": "src/data/breeding.ts",
           "exportName": "MAX_BREEDING_STATIONS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
             "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/BreedingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MAX_BREEDING_STATIONS controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
@@ -1337,50 +1375,56 @@
           "file": "src/data/breeding.ts",
           "exportName": "getDefaultGenetics",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getDefaultGenetics controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "getTotalStats",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/BreedingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getTotalStats controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
           "exportName": "getStarRating",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
             "src/composables/farm/useGreenhouseUi.ts",
             "src/stores/useBreedingStore.ts",
             "src/tests/composables/useGreenhouseUi.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/BreedingView.vue",
             "src/views/game/FarmView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getStarRating controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         },
         {
           "file": "src/data/breeding.ts",
@@ -1507,16 +1551,18 @@
           "file": "src/data/breeding.ts",
           "exportName": "getSeedMakerGeneticChance",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/breeding",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useBreedingStore.ts"
+            "src/stores/useBreedingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getSeedMakerGeneticChance controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework."
         }
       ]
     },
@@ -1748,17 +1794,18 @@
           "file": "src/data/buildings.ts",
           "exportName": "CAVE_UNLOCK_EARNINGS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/facilities",
           "persistentIds": false,
           "consumers": [
-            "src/composables/useEndDay.ts"
+            "src/composables/useEndDay.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "CAVE_UNLOCK_EARNINGS belongs to cave progression or greenhouse/warehouse facility rules explicitly excluded from taoyuan:building_upgrade. HomeStore and facility views own the behavior; buildingUpgradeRegistryPilot.test.ts and phase6InventoryClosure.test.ts pin the existing boundary and values. It remains framework-owned until a complete facility mechanism contract exists."
         },
         {
           "file": "src/data/buildings.ts",
@@ -1792,15 +1839,17 @@
           "file": "src/data/buildings.ts",
           "exportName": "CAVE_QUALITY_THRESHOLDS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/facilities",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "CAVE_QUALITY_THRESHOLDS belongs to cave progression or greenhouse/warehouse facility rules explicitly excluded from taoyuan:building_upgrade. HomeStore and facility views own the behavior; buildingUpgradeRegistryPilot.test.ts and phase6InventoryClosure.test.ts pin the existing boundary and values. It remains framework-owned until a complete facility mechanism contract exists."
         },
         {
           "file": "src/data/buildings.ts",
@@ -1841,33 +1890,35 @@
           "file": "src/data/buildings.ts",
           "exportName": "getCaveQuality",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/facilities",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useHomeStore.ts"
+            "src/stores/useHomeStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getCaveQuality belongs to cave progression or greenhouse/warehouse facility rules explicitly excluded from taoyuan:building_upgrade. HomeStore and facility views own the behavior; buildingUpgradeRegistryPilot.test.ts and phase6InventoryClosure.test.ts pin the existing boundary and values. It remains framework-owned until a complete facility mechanism contract exists."
         },
         {
           "file": "src/data/buildings.ts",
           "exportName": "WAREHOUSE_UNLOCK_MATERIALS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/facilities",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/HomeView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "WAREHOUSE_UNLOCK_MATERIALS belongs to cave progression or greenhouse/warehouse facility rules explicitly excluded from taoyuan:building_upgrade. HomeStore and facility views own the behavior; buildingUpgradeRegistryPilot.test.ts and phase6InventoryClosure.test.ts pin the existing boundary and values. It remains framework-owned until a complete facility mechanism contract exists."
         },
         {
           "file": "src/data/buildings.ts",
@@ -1925,7 +1976,7 @@
           "exportName": "GreenhouseUpgradeDef",
           "syntaxKind": "interface",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/facilities",
           "persistentIds": false,
           "consumers": [
             "src/components/game/farm/GreenhouseUpgradeDialog.vue",
@@ -1933,29 +1984,31 @@
             "src/composables/farm/useGreenhouseUi.ts",
             "src/tests/components/GreenhouseUpgradeDialog.test.ts",
             "src/tests/composables/useGreenhouseActions.test.ts",
-            "src/tests/composables/useGreenhouseUi.test.ts"
+            "src/tests/composables/useGreenhouseUi.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "GreenhouseUpgradeDef is the TypeScript-only shape for the currently empty greenhouse upgrade framework list, not an official content contract. FarmView owns the compatibility surface and phase6InventoryClosure.test.ts type-checks it. A future facility mechanism plugin must define any public replacement."
         },
         {
           "file": "src/data/buildings.ts",
           "exportName": "GREENHOUSE_UPGRADES",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/facilities",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/FarmView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "GREENHOUSE_UPGRADES belongs to cave progression or greenhouse/warehouse facility rules explicitly excluded from taoyuan:building_upgrade. HomeStore and facility views own the behavior; buildingUpgradeRegistryPilot.test.ts and phase6InventoryClosure.test.ts pin the existing boundary and values. It remains framework-owned until a complete facility mechanism contract exists."
         },
         {
           "file": "src/data/buildings.ts",
@@ -2331,7 +2384,8 @@
             "src/data/weapons.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
-            "src/tests/domain/equipmentDisplayConsumers.test.ts"
+            "src/tests/domain/equipmentDisplayConsumers.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             4
@@ -3550,65 +3604,69 @@
           "file": "src/data/fishPond.ts",
           "exportName": "WATER_QUALITY_DECAY_BASE",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "WATER_QUALITY_DECAY_BASE governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "WATER_QUALITY_DECAY_HALF",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "WATER_QUALITY_DECAY_HALF governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "WATER_QUALITY_DECAY_CROWDED",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "WATER_QUALITY_DECAY_CROWDED governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "WATER_QUALITY_DECAY_HUNGRY",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "WATER_QUALITY_DECAY_HUNGRY governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
@@ -3630,17 +3688,18 @@
           "file": "src/data/fishPond.ts",
           "exportName": "DISEASE_CHANCE_BASE",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "DISEASE_CHANCE_BASE governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
@@ -3663,33 +3722,35 @@
           "file": "src/data/fishPond.ts",
           "exportName": "FEED_WATER_RESTORE",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "FEED_WATER_RESTORE governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "PURIFIER_WATER_RESTORE",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "PURIFIER_WATER_RESTORE governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
@@ -3712,49 +3773,52 @@
           "file": "src/data/fishPond.ts",
           "exportName": "GENETICS_FLUCTUATION_BASE",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "GENETICS_FLUCTUATION_BASE governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "POND_MUTATION_JUMP_MIN",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "POND_MUTATION_JUMP_MIN governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
           "exportName": "POND_MUTATION_JUMP_MAX",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/fish-pond",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useFishPondStore.ts"
+            "src/stores/useFishPondStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "POND_MUTATION_JUMP_MAX governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate."
         },
         {
           "file": "src/data/fishPond.ts",
@@ -4003,7 +4067,8 @@
           "consumers": [
             "src/data/forageDefinitions.ts",
             "src/domain/mods/contentAccess.ts",
-            "src/tests/domain/forageRegistryPilot.test.ts"
+            "src/tests/domain/forageRegistryPilot.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5,
@@ -4091,52 +4156,54 @@
           "file": "src/data/forage.ts",
           "exportName": "FriendlyAnimalDef",
           "syntaxKind": "interface",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/forage-encounters",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ForageView.vue"
           ],
           "migrationPhase": [
             5,
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "FriendlyAnimalDef is coupled to weighted forest encounters, combat and defeat settlement rather than taoyuan:forage item content. Forage runtime owns the rule; gameDataValidation.test.ts and phase6InventoryClosure.test.ts verify IDs, weights and item references. The complete encounter flow is a future mechanism plugin candidate."
         },
         {
           "file": "src/data/forage.ts",
           "exportName": "FRIENDLY_ANIMALS",
           "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:animal",
-          "persistentIds": true,
-          "consumers": [],
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/forage-encounters",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             5,
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Friendly bamboo forest encounters are intentionally left for the later animal slice; this forage slice does not migrate encounter weights or product collection."
+          "status": "framework-retained",
+          "rationale": "FRIENDLY_ANIMALS is coupled to weighted forest encounters, combat and defeat settlement rather than taoyuan:forage item content. Forage runtime owns the rule; gameDataValidation.test.ts and phase6InventoryClosure.test.ts verify IDs, weights and item references. The complete encounter flow is a future mechanism plugin candidate."
         },
         {
           "file": "src/data/forage.ts",
           "exportName": "HOSTILE_ANIMALS",
           "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "taoyuan:monster",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/forage-encounters",
+          "persistentIds": false,
           "consumers": [
-            "src/tests/data/gameDataValidation.test.ts"
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5,
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Hostile bamboo forest encounters are intentionally left for a later monster/encounter slice; this forage slice does not migrate combat or defeat penalties."
+          "status": "framework-retained",
+          "rationale": "HOSTILE_ANIMALS is coupled to weighted forest encounters, combat and defeat settlement rather than taoyuan:forage item content. Forage runtime owns the rule; gameDataValidation.test.ts and phase6InventoryClosure.test.ts verify IDs, weights and item references. The complete encounter flow is a future mechanism plugin candidate."
         },
         {
           "file": "src/data/forage.ts",
@@ -4211,17 +4278,20 @@
           "exportName": "ForageItemDef",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:forage",
           "persistentIds": false,
           "consumers": [
             "src/data/forage.ts",
             "src/domain/mods/contentAccess.ts",
-            "src/tests/domain/forageRegistryPilot.test.ts"
+            "src/tests/domain/forageRegistryPilot.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "ForageItemDef is the legacy TypeScript compatibility shape projected into ForageDefSchema. forageRegistryPilot.test.ts proves every field and ordered taoyuan:forage projection, while phase6InventoryClosure.test.ts keeps the old type surface. It remains exported so existing data and tests compile without changing the public TypeBox contract."
         },
         {
           "file": "src/data/forageDefinitions.ts",
@@ -5988,21 +6058,21 @@
           "file": "src/data/hatDefinitions.ts",
           "exportName": "BOSS_DROP_HATS",
           "syntaxKind": "const",
-          "classification": "derived",
-          "targetRegistry": "engine/domain/mining-boss-reward",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
+          "persistentIds": false,
           "consumers": [
             "src/data/hats.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "BOSS first-kill hat reward mapping remains in the existing mining reward path; the Phase 6 hat slice does not migrate boss reward settlement."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_HATS maps main-mine progression floors to guaranteed first-kill equipment and is not a random taoyuan:drop_table. useMiningStore owns grant and duplicate behavior; mining.test.ts and phase6InventoryClosure.test.ts verify every mapping and reward path. Boss progression rewards remain framework-owned pending a complete reward mechanism plugin."
         },
         {
           "file": "src/data/hatDefinitions.ts",
@@ -6134,6 +6204,7 @@
           "consumers": [
             "src/data/hatDefinitions.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
@@ -7187,28 +7258,30 @@
           "file": "src/data/items.ts",
           "exportName": "getItemSource",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "ui",
+          "targetRegistry": "engine/domain/inventory-presentation",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ForageView.vue",
             "src/views/game/InventoryView.vue"
           ],
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getItemSource controls chest progression/order or item-source presentation and is outside taoyuan:item catalog ownership. Inventory/GameLayout owns it; inventory and phase6InventoryClosure.test.ts preserve the compatibility behavior. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/items.ts",
           "exportName": "CHEST_DEFS",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "ui",
+          "targetRegistry": "engine/domain/inventory-presentation",
           "persistentIds": false,
           "consumers": [
             "src/stores/useWarehouseStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/GameLayout.vue",
             "src/views/game/HomeView.vue",
             "src/views/game/ProcessingView.vue"
@@ -7216,25 +7289,26 @@
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "CHEST_DEFS controls chest progression/order or item-source presentation and is outside taoyuan:item catalog ownership. Inventory/GameLayout owns it; inventory and phase6InventoryClosure.test.ts preserve the compatibility behavior. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/items.ts",
           "exportName": "CHEST_TIER_ORDER",
           "syntaxKind": "const",
-          "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "classification": "ui",
+          "targetRegistry": "engine/domain/inventory-presentation",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/HomeView.vue",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
             2
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "CHEST_TIER_ORDER controls chest progression/order or item-source presentation and is outside taoyuan:item catalog ownership. Inventory/GameLayout owns it; inventory and phase6InventoryClosure.test.ts preserve the compatibility behavior. It is finalized here because src/data/index.ts re-exports the source module."
         }
       ]
     },
@@ -7688,16 +7762,18 @@
           "file": "src/data/mine.ts",
           "exportName": "MAX_MINE_FLOOR",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MAX_MINE_FLOOR belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
@@ -7717,14 +7793,17 @@
           "file": "src/data/mine.ts",
           "exportName": "getDarkFloorOres",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getDarkFloorOres belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
@@ -7760,47 +7839,53 @@
           "file": "src/data/mine.ts",
           "exportName": "getRewardNames",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getRewardNames belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "BOSS_MONEY_REWARDS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "BOSS_MONEY_REWARDS belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "BOSS_ORE_REWARDS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
             "src/stores/useMiningStore.ts",
-            "src/tests/data/gameDataValidation.test.ts"
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "BOSS_ORE_REWARDS belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
@@ -7870,15 +7955,17 @@
           "exportName": "SkullCavernFloorDef",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "SkullCavernFloorDef is the runtime floor-generation shape for the unbounded skull cavern, not a content registry contract. Mining domain owns it; mining floor tests and phase6InventoryClosure.test.ts type-check the boundary. It is finalized because the compatibility barrel re-exports mine.ts."
         },
         {
           "file": "src/data/mine.ts",
@@ -7934,70 +8021,83 @@
           "file": "src/data/mine.ts",
           "exportName": "getEdgeIndices",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getEdgeIndices belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "getAdjacentIndices",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getAdjacentIndices belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "manhattanDistance",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "manhattanDistance belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "getBombIndices",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useMiningStore.ts"
+            "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getBombIndices belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
           "exportName": "getFloorDistribution",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             5
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getFloorDistribution belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module."
         },
         {
           "file": "src/data/mine.ts",
@@ -8517,132 +8617,152 @@
           "file": "src/data/npcTips.ts",
           "exportName": "WEATHER_TIPS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useNpcStore.ts"
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "WEATHER_TIPS is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "FORTUNE_TIERS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "FORTUNE_TIERS is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "getFortuneTip",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useNpcStore.ts"
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getFortuneTip is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "LIVING_TIPS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "LIVING_TIPS is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "getLivingTip",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useNpcStore.ts"
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getLivingTip is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "getRecipeTipMessage",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useNpcStore.ts"
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getRecipeTipMessage is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "NO_RECIPE_TIP",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useNpcStore.ts"
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "NO_RECIPE_TIP is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "TIP_NPC_IDS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useNpcStore.ts"
+            "src/stores/useNpcStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "TIP_NPC_IDS is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
           "exportName": "TipNpcId",
           "syntaxKind": "type",
-          "classification": "adapter",
+          "classification": "ui",
+          "targetRegistry": "ui/npc-daily-tips",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/NpcView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "TipNpcId is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin."
         },
         {
           "file": "src/data/npcTips.ts",
@@ -8898,6 +9018,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useProcessingStore.ts",
             "src/stores/useShopStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
@@ -8942,6 +9063,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useProcessingStore.ts",
             "src/stores/useShopStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
             "src/views/game/ProcessingView.vue"
@@ -8986,6 +9108,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useProcessingStore.ts",
             "src/stores/useShopStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
@@ -9148,7 +9271,7 @@
           "exportName": "getFertilizerById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
             "src/composables/farm/useFarmPlotActions.ts",
@@ -9159,129 +9282,137 @@
             "src/stores/useFarmStore.ts",
             "src/tests/composables/useFarmSelection.test.ts",
             "src/tests/composables/useGreenhouseUi.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/FarmView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getFertilizerById is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "getBaitById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/FishingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getBaitById is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "getTackleById",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
             "src/stores/useFishingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/FishingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getTackleById is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "TAPPER",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
             "src/stores/useProcessingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "TAPPER is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "CRAB_POT_CRAFT",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
             "src/stores/useProcessingStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "CRAB_POT_CRAFT is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "LIGHTNING_ROD",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "LIGHTNING_ROD is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "SCARECROW",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "SCARECROW is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
           "exportName": "AUTO_PETTER",
           "syntaxKind": "const",
           "classification": "adapter",
-          "targetRegistry": "compatibility_adapter",
+          "targetRegistry": "engine/domain/processing-facilities",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "AUTO_PETTER is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates."
         },
         {
           "file": "src/data/processing.ts",
@@ -9361,6 +9492,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useProcessingStore.ts",
             "src/stores/useShopStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
             "src/views/game/ProcessingView.vue"
@@ -9386,6 +9518,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useProcessingStore.ts",
             "src/stores/useShopStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
@@ -9410,6 +9543,7 @@
             "src/domain/mods/staticAdapters.ts",
             "src/stores/useProcessingStore.ts",
             "src/stores/useShopStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopOfferRegistryPilot.test.ts",
             "src/views/game/ProcessingView.vue"
           ],
@@ -9963,21 +10097,21 @@
           "file": "src/data/ringDefinitions.ts",
           "exportName": "BOSS_DROP_RINGS",
           "syntaxKind": "const",
-          "classification": "derived",
-          "targetRegistry": "engine/domain/mining-boss-reward",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
+          "persistentIds": false,
           "consumers": [
             "src/data/rings.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "BOSS first-kill ring reward mapping remains in the existing mining reward path; the Phase 6 ring slice does not migrate boss reward settlement."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_RINGS maps main-mine progression floors to guaranteed first-kill equipment and is not a random taoyuan:drop_table. useMiningStore owns grant and duplicate behavior; mining.test.ts and phase6InventoryClosure.test.ts verify every mapping and reward path. Boss progression rewards remain framework-owned pending a complete reward mechanism plugin."
         },
         {
           "file": "src/data/ringDefinitions.ts",
@@ -10088,6 +10222,7 @@
           "consumers": [
             "src/data/ringDefinitions.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
@@ -10376,21 +10511,21 @@
           "file": "src/data/shoeDefinitions.ts",
           "exportName": "BOSS_DROP_SHOES",
           "syntaxKind": "const",
-          "classification": "content",
-          "targetRegistry": "engine/domain/mining-boss-reward",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
+          "persistentIds": false,
           "consumers": [
             "src/data/shoes.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Main-mine first-kill boss shoe reward mapping remains in the mining boss reward path; this equipment definition slice does not migrate boss settlement."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_SHOES maps main-mine progression floors to guaranteed first-kill equipment and is not a random taoyuan:drop_table. useMiningStore owns grant and duplicate behavior; mining.test.ts and phase6InventoryClosure.test.ts verify every mapping and reward path. Boss progression rewards remain framework-owned pending a complete reward mechanism plugin."
         },
         {
           "file": "src/data/shoeDefinitions.ts",
@@ -10517,19 +10652,20 @@
           "file": "src/data/shoes.ts",
           "exportName": "BOSS_DROP_SHOES",
           "syntaxKind": "re-export",
-          "classification": "adapter",
-          "targetRegistry": "engine/domain/mining-boss-reward",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
+          "persistentIds": false,
           "consumers": [
             "src/data/shoeDefinitions.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Original-name re-export preserves boss shoe reward imports; boss reward settlement remains outside this equipment definition slice."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_SHOES maps main-mine progression floors to guaranteed first-kill equipment and is not a random taoyuan:drop_table. useMiningStore owns grant and duplicate behavior; mining.test.ts and phase6InventoryClosure.test.ts verify every mapping and reward path. Boss progression rewards remain framework-owned pending a complete reward mechanism plugin."
         },
         {
           "file": "src/data/shoes.ts",
@@ -10602,19 +10738,22 @@
           "exportName": "ShopDef",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:shop",
           "persistentIds": false,
           "consumers": [
             "src/domain/mods/contentAccess.ts",
             "src/domain/mods/schemas.ts",
             "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/ShopView.vue"
           ],
           "migrationPhase": [
             3
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "ShopDef is the legacy local-ID compatibility shape represented publicly by ShopDefSchema. shopRegistryPilot.test.ts proves the full taoyuan:shop projection and phase6InventoryClosure.test.ts keeps the old type usable. It remains exported for legacy callers and the data barrel."
         },
         {
           "file": "src/data/shops.ts",
@@ -10625,6 +10764,7 @@
           "persistentIds": true,
           "consumers": [
             "src/domain/mods/staticAdapters.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopDefinitionConsumers.test.ts",
             "src/tests/domain/shopRegistryPilot.test.ts"
           ],
@@ -10655,9 +10795,11 @@
           "file": "src/data/shops.ts",
           "exportName": "isShopAvailable",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/shop-schedule",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopDefinitionConsumers.test.ts",
             "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
@@ -10666,16 +10808,18 @@
           "migrationPhase": [
             3
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "isShopAvailable evaluates calendar, weather, season and hour rules over a ShopDef rather than owning shop content. ShopView owns the decision flow; shopRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve boundary results. It remains framework-owned even though definitions resolve through taoyuan:shop."
         },
         {
           "file": "src/data/shops.ts",
           "exportName": "getShopClosedReason",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/shop-schedule",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/domain/shopDefinitionConsumers.test.ts",
             "src/tests/domain/shopRegistryPilot.test.ts",
             "src/views/game/FarmView.vue",
@@ -10684,8 +10828,8 @@
           "migrationPhase": [
             3
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getShopClosedReason evaluates calendar, weather, season and hour rules over a ShopDef rather than owning shop content. ShopView owns the decision flow; shopRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve boundary results. It remains framework-owned even though definitions resolve through taoyuan:shop."
         }
       ]
     },
@@ -10713,53 +10857,60 @@
           "exportName": "MOMO_FUMO_ITEM_ID",
           "syntaxKind": "const",
           "classification": "adapter",
-          "persistentIds": false,
+          "targetRegistry": "taoyuan:item",
+          "persistentIds": true,
           "consumers": [
             "src/data/items.ts",
-            "src/tests/data/gameDataValidation.test.ts"
+            "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             2,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "MOMO_FUMO_ITEM_ID is the stable local ID of the registered taoyuan:item entry. contentRegistryEquivalence.test.ts and gameDataValidation.test.ts verify the item and its references, while phase6InventoryClosure.test.ts pins the compatibility constant. It remains exported for inventory and save-compatible item checks."
         },
         {
           "file": "src/data/specialItems.ts",
           "exportName": "MOMO_FUMO_EXCHANGE",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/special-item-exchange",
           "persistentIds": false,
           "consumers": [
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/CookingView.vue"
           ],
           "migrationPhase": [
             2,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MOMO_FUMO_EXCHANGE defines the one-step stove exchange and identity check, including quantities and fixed quality, rather than item catalog content. Cooking/validation logic owns the rule; gameDataValidation.test.ts and phase6InventoryClosure.test.ts pin it. A configurable exchange would require a complete mechanism contract, not a Phase 6 singleton registry."
         },
         {
           "file": "src/data/specialItems.ts",
           "exportName": "isMomoFumo",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/special-item-exchange",
           "persistentIds": false,
           "consumers": [
             "src/stores/useHiddenNpcStore.ts",
             "src/stores/useNpcStore.ts",
             "src/tests/data/gameDataValidation.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/NpcView.vue"
           ],
           "migrationPhase": [
             2,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "isMomoFumo defines the one-step stove exchange and identity check, including quantities and fixed quality, rather than item catalog content. Cooking/validation logic owns the rule; gameDataValidation.test.ts and phase6InventoryClosure.test.ts pin it. A configurable exchange would require a complete mechanism contract, not a Phase 6 singleton registry."
         }
       ]
     },
@@ -11111,82 +11262,92 @@
           "file": "src/data/timeConstants.ts",
           "exportName": "DAY_START_HOUR",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/components/game/StatusBar.vue",
-            "src/stores/useGameStore.ts"
+            "src/stores/useGameStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "DAY_START_HOUR participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "DAY_END_HOUR",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
-            "src/components/game/StatusBar.vue"
+            "src/components/game/StatusBar.vue",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "DAY_END_HOUR participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "MIDNIGHT_HOUR",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/useGameClock.ts",
             "src/stores/useGameStore.ts",
-            "src/tests/composables/useGameClock.test.ts"
+            "src/tests/composables/useGameClock.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MIDNIGHT_HOUR participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "PASSOUT_HOUR",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/layout/useSleepFlow.ts",
             "src/composables/useGameClock.ts",
             "src/stores/useGameStore.ts",
-            "src/tests/composables/useGameClock.test.ts"
+            "src/tests/composables/useGameClock.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "PASSOUT_HOUR participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "WEEKDAYS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/CottageView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "WEEKDAYS participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
@@ -11209,34 +11370,38 @@
           "file": "src/data/timeConstants.ts",
           "exportName": "getWeekday",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/data/shops.ts",
             "src/data/travelingMerchant.ts",
-            "src/stores/useGameStore.ts"
+            "src/stores/useGameStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getWeekday participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "getTimePeriod",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/useAudio.ts",
-            "src/stores/useGameStore.ts"
+            "src/stores/useGameStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getTimePeriod participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
@@ -11273,7 +11438,8 @@
           "file": "src/data/timeConstants.ts",
           "exportName": "ACTION_TIME_COSTS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/farm/useFarmPlotActions.ts",
@@ -11281,6 +11447,7 @@
             "src/composables/useFarmActions.ts",
             "src/tests/composables/useFarmPlotActions.test.ts",
             "src/tests/composables/useTreeActions.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/AnimalView.vue",
             "src/views/game/BreedingView.vue",
             "src/views/game/CookingView.vue",
@@ -11297,156 +11464,175 @@
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "ACTION_TIME_COSTS participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "TOOL_TIME_SAVINGS",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/FishingView.vue",
             "src/views/game/ForageView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "TOOL_TIME_SAVINGS participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "SKILL_TIME_REDUCTION_PER_LEVEL",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/FishingView.vue",
             "src/views/game/ForageView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "SKILL_TIME_REDUCTION_PER_LEVEL participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "MIN_ACTION_MINUTES",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/FishingView.vue",
             "src/views/game/ForageView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "MIN_ACTION_MINUTES participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "TAB_TO_LOCATION_GROUP",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/useEndDay.ts",
             "src/composables/useNavigation.ts",
             "src/stores/useGameStore.ts",
-            "src/tests/composables/useNavigation.test.ts"
+            "src/tests/composables/useNavigation.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "TAB_TO_LOCATION_GROUP participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "TRAVEL_TIME",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useGameStore.ts"
+            "src/stores/useGameStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "TRAVEL_TIME participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "TRAVEL_STAMINA",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useGameStore.ts"
+            "src/stores/useGameStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "TRAVEL_STAMINA participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "getLocationGroupName",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/layout/useRestActions.ts",
             "src/composables/layout/useSleepFlow.ts",
             "src/composables/useEndDay.ts",
-            "src/stores/useGameStore.ts"
+            "src/stores/useGameStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getLocationGroupName participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "ShopSchedule",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "ShopSchedule is a TypeScript-only shape for framework-owned NPC/shop schedule rules, not a public TypeBox content contract. phase6InventoryClosure.test.ts type-checks the compatibility surface; a future schedule mechanism plugin must introduce any public replacement deliberately."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "SHOP_SCHEDULES",
           "syntaxKind": "const",
-          "classification": "derived",
-          "targetRegistry": "taoyuan:travel_route",
-          "persistentIds": true,
-          "consumers": [],
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
+          "persistentIds": false,
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "Derived lookup, filtered list, generated table, or aggregate built from static content."
+          "status": "framework-retained",
+          "rationale": "SHOP_SCHEDULES participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "isShopOpen",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/components/game/farm/FarmBatchPlantDialog.vue",
@@ -11456,115 +11642,133 @@
             "src/tests/components/FarmBatchPlantDialog.test.ts",
             "src/tests/components/FarmPlotDetailDialog.test.ts",
             "src/tests/components/GreenhousePlotDialog.test.ts",
-            "src/tests/composables/useNavigation.test.ts"
+            "src/tests/composables/useNavigation.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "isShopOpen participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "NpcScheduleEntry",
           "syntaxKind": "interface",
           "classification": "adapter",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "NpcScheduleEntry is a TypeScript-only shape for framework-owned NPC/shop schedule rules, not a public TypeBox content contract. phase6InventoryClosure.test.ts type-checks the compatibility surface; a future schedule mechanism plugin must introduce any public replacement deliberately."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "NPC_SCHEDULES",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "NPC_SCHEDULES participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "isNpcAvailable",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/NpcView.vue"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "isNpcAvailable participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "getNpcUnavailableReason",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getNpcUnavailableReason participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "LATE_NIGHT_RECOVERY_MAX",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/layout/useSleepFlow.ts",
-            "src/stores/usePlayerStore.ts"
+            "src/stores/usePlayerStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "LATE_NIGHT_RECOVERY_MAX participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "LATE_NIGHT_RECOVERY_MIN",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/layout/useSleepFlow.ts",
-            "src/stores/usePlayerStore.ts"
+            "src/stores/usePlayerStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "LATE_NIGHT_RECOVERY_MIN participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
           "exportName": "PASSOUT_STAMINA_RECOVERY",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/time-navigation-schedules",
           "persistentIds": false,
           "consumers": [
             "src/composables/layout/useSleepFlow.ts",
-            "src/stores/usePlayerStore.ts"
+            "src/stores/usePlayerStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "PASSOUT_STAMINA_RECOVERY participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin."
         },
         {
           "file": "src/data/timeConstants.ts",
@@ -12261,12 +12465,13 @@
           "file": "src/data/weaponDefinitions.ts",
           "exportName": "BOSS_DROP_WEAPONS",
           "syntaxKind": "const",
-          "classification": "derived",
-          "targetRegistry": "engine/domain/mining-boss-reward",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
+          "persistentIds": false,
           "consumers": [
             "src/data/weapons.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
@@ -12274,9 +12479,8 @@
             4,
             6
           ],
-          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
-          "status": "baselined",
-          "rationale": "BOSS first-kill weapon reward mapping remains in the existing mining reward path; the Phase 6 weapon definition slice does not migrate boss reward settlement."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_WEAPONS maps main-mine progression floors to guaranteed first-kill equipment and is not a random taoyuan:drop_table. useMiningStore owns grant and duplicate behavior; mining.test.ts and phase6InventoryClosure.test.ts verify every mapping and reward path. Boss progression rewards remain framework-owned pending a complete reward mechanism plugin."
         },
         {
           "file": "src/data/weaponDefinitions.ts",
@@ -12354,7 +12558,8 @@
             "src/data/enchantmentDefinitions.ts",
             "src/domain/mods/staticAdapters.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
-            "src/tests/domain/equipmentDisplayConsumers.test.ts"
+            "src/tests/domain/equipmentDisplayConsumers.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             4,
@@ -12428,20 +12633,21 @@
           "file": "src/data/weapons.ts",
           "exportName": "BOSS_DROP_WEAPONS",
           "syntaxKind": "re-export",
-          "classification": "adapter",
-          "targetRegistry": "engine/domain/mining-boss-reward",
-          "persistentIds": true,
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/mining-boss-rewards",
+          "persistentIds": false,
           "consumers": [
             "src/data/weaponDefinitions.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/GuildView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Original-name re-export preserves boss weapon reward imports; boss reward settlement remains outside this equipment definition slice."
+          "status": "framework-retained",
+          "rationale": "BOSS_DROP_WEAPONS maps main-mine progression floors to guaranteed first-kill equipment and is not a random taoyuan:drop_table. useMiningStore owns grant and duplicate behavior; mining.test.ts and phase6InventoryClosure.test.ts verify every mapping and reward path. Boss progression rewards remain framework-owned pending a complete reward mechanism plugin."
         },
         {
           "file": "src/data/weapons.ts",
@@ -12555,14 +12761,17 @@
           "exportName": "WeaponEnchantInput",
           "syntaxKind": "type",
           "classification": "adapter",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "TypeScript-only compatibility shape; public contracts move to TypeBox schemas."
+          "status": "framework-retained",
+          "rationale": "WeaponEnchantInput is the TypeScript compatibility union for legacy single and modern multiple enchantment instance fields, not a content definition. Inventory and equipment code own it; phase6InventoryClosure.test.ts type-checks the exact union. Save compatibility requires retaining both shapes."
         },
         {
           "file": "src/data/weapons.ts",
@@ -12587,42 +12796,49 @@
           "file": "src/data/weapons.ts",
           "exportName": "getWeaponEnchantmentIds",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
           "consumers": [
             "src/stores/useInventoryStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/InventoryView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getWeaponEnchantmentIds computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "getWeaponEnchantments",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
-          "consumers": [],
+          "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts"
+          ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getWeaponEnchantments computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "getOwnedWeaponEnchantments",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
           "consumers": [
             "src/stores/useInventoryStore.ts",
             "src/stores/useMiningStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/ForageView.vue",
             "src/views/game/MiningView.vue"
           ],
@@ -12630,34 +12846,38 @@
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getOwnedWeaponEnchantments computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "getOwnedEquipmentEnchantments",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
           "consumers": [
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/InventoryView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getOwnedEquipmentEnchantments computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "summarizeEnchantments",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
           "consumers": [
             "src/domain/enchantments/summarizeEnchantments.ts",
             "src/tests/domain/enchantments.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/CharInfoView.vue",
             "src/views/game/InventoryView.vue",
             "src/views/game/MiningView.vue"
@@ -12666,8 +12886,8 @@
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "summarizeEnchantments computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
@@ -12694,43 +12914,49 @@
           "file": "src/data/weapons.ts",
           "exportName": "getEnchantmentEffects",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
           "consumers": [
-            "src/stores/useInventoryStore.ts"
+            "src/stores/useInventoryStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getEnchantmentEffects computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "getEnchantmentCost",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
           "consumers": [
             "src/stores/useInventoryStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/InventoryView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getEnchantmentCost computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
           "exportName": "getCustomEnchantmentCost",
           "syntaxKind": "const",
-          "classification": "adapter",
+          "classification": "algorithm",
+          "targetRegistry": "engine/domain/equipment",
           "persistentIds": false,
           "consumers": [
             "src/stores/useInventoryStore.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/tests/stores/inventory.test.ts",
             "src/views/game/InventoryView.vue"
           ],
@@ -12738,8 +12964,8 @@
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "status": "framework-retained",
+          "rationale": "getCustomEnchantmentCost computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries."
         },
         {
           "file": "src/data/weapons.ts",
@@ -12806,18 +13032,21 @@
           "exportName": "getEnchantmentById",
           "syntaxKind": "const",
           "classification": "adapter",
+          "targetRegistry": "taoyuan:enchantment",
           "persistentIds": false,
           "consumers": [
             "src/stores/useInventoryStore.ts",
             "src/tests/domain/enchantmentDropRegistryPilot.test.ts",
+            "src/tests/domain/phase6InventoryClosure.test.ts",
             "src/views/game/CharInfoView.vue"
           ],
           "migrationPhase": [
             4,
             6
           ],
-          "status": "baselined",
-          "rationale": "Compatibility query or lookup facade preserved while registries are introduced."
+          "snapshotFixture": "src/tests/fixtures/mods/official-content-snapshot.json",
+          "status": "verified",
+          "rationale": "getEnchantmentById retains the static legacy signature to avoid a contentAccess/staticAdapters cycle; enchantmentDropRegistryPilot.test.ts proves it equals every taoyuan:enchantment query and phase6InventoryClosure.test.ts pins known and missing IDs. The old lookup remains as the explicit compatibility and rollback entry."
         },
         {
           "file": "src/data/weapons.ts",

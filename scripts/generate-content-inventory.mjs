@@ -3856,6 +3856,311 @@ const symbolReviewOverrides = new Map(Object.entries({
   }
 }))
 
+const registerInventoryClosureReviews = (file, exportNames, review) => {
+  for (const exportName of exportNames) {
+    const key = `${file}:${exportName}`
+    const existingReview = symbolReviewOverrides.get(key)
+    if (existingReview && !['baselined', 'inventoried'].includes(existingReview.status)) {
+      throw new Error(`Duplicate content inventory review: ${key}`)
+    }
+    symbolReviewOverrides.set(key, {
+      classification: review.classification,
+      targetRegistry: review.targetRegistry,
+      persistentIds: review.persistentIds ?? false,
+      snapshotFixture: review.snapshotFixture,
+      status: review.status,
+      rationale: review.rationale(exportName)
+    })
+  }
+}
+
+registerInventoryClosureReviews('src/data/animalDefinitions.ts', [
+  'HAY_ITEM_ID',
+  'NOURISHING_FEED_ID',
+  'PREMIUM_FEED_ID',
+  'VITALITY_FEED_ID'
+], {
+  classification: 'adapter',
+  targetRegistry: 'taoyuan:animal_feed',
+  persistentIds: true,
+  snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+  status: 'verified',
+  rationale: exportName => `${exportName} is a stable local feed/item ID consumed by animalFeedDefinitions and AnimalStore; animalFeedRegistryPilot.test.ts proves the complete taoyuan:animal_feed legacy projection and phase6InventoryClosure.test.ts pins the four IDs. The named constant remains for legacy Store and save-compatible item references.`
+})
+
+registerInventoryClosureReviews('src/data/breeding.ts', [
+  'BASE_BREEDING_BOX',
+  'BASE_MUTATION_MAGNITUDE',
+  'GENERATIONAL_STABILITY_GAIN',
+  'getDefaultGenetics',
+  'getSeedMakerGeneticChance',
+  'getStarRating',
+  'getTotalStats',
+  'MAX_BREEDING_STATIONS',
+  'MAX_STABILITY',
+  'MUTATION_JUMP_MAX',
+  'MUTATION_JUMP_MIN',
+  'MUTATION_RATE_DRIFT',
+  'SEED_BOX_UPGRADE_INCREMENT',
+  'SEED_BOX_UPGRADES'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/breeding',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} controls breeding capacity, genetics, mutation, star rating or seed-machine behavior rather than taoyuan:breeding_hybrid content. useBreedingStore owns the runtime rule; breeding.test.ts and phase6InventoryClosure.test.ts preserve results. A future breeding mechanism plugin may replace this rule, but Phase 6 keeps it in the framework.`
+})
+
+registerInventoryClosureReviews('src/data/buildings.ts', [
+  'CAVE_QUALITY_THRESHOLDS',
+  'CAVE_UNLOCK_EARNINGS',
+  'getCaveQuality',
+  'GREENHOUSE_UPGRADES',
+  'WAREHOUSE_UNLOCK_MATERIALS'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/facilities',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} belongs to cave progression or greenhouse/warehouse facility rules explicitly excluded from taoyuan:building_upgrade. HomeStore and facility views own the behavior; buildingUpgradeRegistryPilot.test.ts and phase6InventoryClosure.test.ts pin the existing boundary and values. It remains framework-owned until a complete facility mechanism contract exists.`
+})
+
+registerInventoryClosureReviews('src/data/buildings.ts', ['GreenhouseUpgradeDef'], {
+  classification: 'adapter',
+  targetRegistry: 'engine/domain/facilities',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is the TypeScript-only shape for the currently empty greenhouse upgrade framework list, not an official content contract. FarmView owns the compatibility surface and phase6InventoryClosure.test.ts type-checks it. A future facility mechanism plugin must define any public replacement.`
+})
+
+registerInventoryClosureReviews('src/data/fishPond.ts', [
+  'DISEASE_CHANCE_BASE',
+  'FEED_WATER_RESTORE',
+  'GENETICS_FLUCTUATION_BASE',
+  'POND_MUTATION_JUMP_MAX',
+  'POND_MUTATION_JUMP_MIN',
+  'PURIFIER_WATER_RESTORE',
+  'WATER_QUALITY_DECAY_BASE',
+  'WATER_QUALITY_DECAY_CROWDED',
+  'WATER_QUALITY_DECAY_HALF',
+  'WATER_QUALITY_DECAY_HUNGRY'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/fish-pond',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} governs fish-pond water, disease or genetics simulation and is outside taoyuan:pondable_fish, taoyuan:pond_breed and taoyuan:fish_pond_facility. FishPond Store owns settlement; fishPondEndDay.test.ts and phase6InventoryClosure.test.ts preserve the rule. It is a future fish-pond mechanism plugin candidate.`
+})
+
+registerInventoryClosureReviews('src/data/forageDefinitions.ts', ['ForageItemDef'], {
+  classification: 'adapter',
+  targetRegistry: 'taoyuan:forage',
+  snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+  status: 'verified',
+  rationale: exportName => `${exportName} is the legacy TypeScript compatibility shape projected into ForageDefSchema. forageRegistryPilot.test.ts proves every field and ordered taoyuan:forage projection, while phase6InventoryClosure.test.ts keeps the old type surface. It remains exported so existing data and tests compile without changing the public TypeBox contract.`
+})
+
+registerInventoryClosureReviews('src/data/forage.ts', [
+  'FRIENDLY_ANIMALS',
+  'FriendlyAnimalDef',
+  'HOSTILE_ANIMALS'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/forage-encounters',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is coupled to weighted forest encounters, combat and defeat settlement rather than taoyuan:forage item content. Forage runtime owns the rule; gameDataValidation.test.ts and phase6InventoryClosure.test.ts verify IDs, weights and item references. The complete encounter flow is a future mechanism plugin candidate.`
+})
+
+registerInventoryClosureReviews('src/data/npcTips.ts', [
+  'FORTUNE_TIERS',
+  'getFortuneTip',
+  'getLivingTip',
+  'getRecipeTipMessage',
+  'LIVING_TIPS',
+  'NO_RECIPE_TIP',
+  'TIP_NPC_IDS',
+  'TipNpcId',
+  'WEATHER_TIPS'
+], {
+  classification: 'ui',
+  targetRegistry: 'ui/npc-daily-tips',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is NPC daily-tip presentation or deterministic formatting, not an independently replaceable NPC content definition. useNpcStore owns selection and phase6InventoryClosure.test.ts pins thresholds, cycling, text formatting and IDs. Localization may move it later; it is not a Phase 6 registry or mechanism plugin.`
+})
+
+registerInventoryClosureReviews('src/data/processing.ts', [
+  'AUTO_PETTER',
+  'CRAB_POT_CRAFT',
+  'getBaitById',
+  'getFertilizerById',
+  'getTackleById',
+  'LIGHTNING_ROD',
+  'SCARECROW',
+  'TAPPER'
+], {
+  classification: 'adapter',
+  targetRegistry: 'engine/domain/processing-facilities',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is bound to fertilizer, fishing tackle or farm-facility mechanics that Phase 6 explicitly does not split into isolated registries. Processing/Farm/Fishing runtime owns the behavior; processing tests, shopOfferRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve lookups and craft descriptors. Complete facility effects remain future mechanism plugin candidates.`
+})
+
+registerInventoryClosureReviews('src/data/specialItems.ts', ['MOMO_FUMO_ITEM_ID'], {
+  classification: 'adapter',
+  targetRegistry: 'taoyuan:item',
+  persistentIds: true,
+  snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+  status: 'verified',
+  rationale: exportName => `${exportName} is the stable local ID of the registered taoyuan:item entry. contentRegistryEquivalence.test.ts and gameDataValidation.test.ts verify the item and its references, while phase6InventoryClosure.test.ts pins the compatibility constant. It remains exported for inventory and save-compatible item checks.`
+})
+
+registerInventoryClosureReviews('src/data/specialItems.ts', [
+  'isMomoFumo',
+  'MOMO_FUMO_EXCHANGE'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/special-item-exchange',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} defines the one-step stove exchange and identity check, including quantities and fixed quality, rather than item catalog content. Cooking/validation logic owns the rule; gameDataValidation.test.ts and phase6InventoryClosure.test.ts pin it. A configurable exchange would require a complete mechanism contract, not a Phase 6 singleton registry.`
+})
+
+registerInventoryClosureReviews('src/data/timeConstants.ts', [
+  'ACTION_TIME_COSTS',
+  'DAY_END_HOUR',
+  'DAY_START_HOUR',
+  'getLocationGroupName',
+  'getNpcUnavailableReason',
+  'getTimePeriod',
+  'getWeekday',
+  'isNpcAvailable',
+  'isShopOpen',
+  'LATE_NIGHT_RECOVERY_MAX',
+  'LATE_NIGHT_RECOVERY_MIN',
+  'MIDNIGHT_HOUR',
+  'MIN_ACTION_MINUTES',
+  'NPC_SCHEDULES',
+  'PASSOUT_HOUR',
+  'PASSOUT_STAMINA_RECOVERY',
+  'SHOP_SCHEDULES',
+  'SKILL_TIME_REDUCTION_PER_LEVEL',
+  'TAB_TO_LOCATION_GROUP',
+  'TOOL_TIME_SAVINGS',
+  'TRAVEL_STAMINA',
+  'TRAVEL_TIME',
+  'WEEKDAYS'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/time-navigation-schedules',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} participates in clock, travel, action-cost, shop-hours or NPC-availability rules and is not standalone official content. Game clock/navigation/NPC framework code owns it; time-related composable tests and phase6InventoryClosure.test.ts preserve values and boundary behavior. Any override requires a coherent time or schedule mechanism plugin.`
+})
+
+registerInventoryClosureReviews('src/data/timeConstants.ts', [
+  'NpcScheduleEntry',
+  'ShopSchedule'
+], {
+  classification: 'adapter',
+  targetRegistry: 'engine/domain/time-navigation-schedules',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is a TypeScript-only shape for framework-owned NPC/shop schedule rules, not a public TypeBox content contract. phase6InventoryClosure.test.ts type-checks the compatibility surface; a future schedule mechanism plugin must introduce any public replacement deliberately.`
+})
+
+for (const [file, exportName] of [
+  ['src/data/hatDefinitions.ts', 'BOSS_DROP_HATS'],
+  ['src/data/ringDefinitions.ts', 'BOSS_DROP_RINGS'],
+  ['src/data/shoeDefinitions.ts', 'BOSS_DROP_SHOES'],
+  ['src/data/shoes.ts', 'BOSS_DROP_SHOES'],
+  ['src/data/weaponDefinitions.ts', 'BOSS_DROP_WEAPONS'],
+  ['src/data/weapons.ts', 'BOSS_DROP_WEAPONS']
+]) {
+  registerInventoryClosureReviews(file, [exportName], {
+    classification: 'algorithm',
+    targetRegistry: 'engine/domain/mining-boss-rewards',
+    status: 'framework-retained',
+    rationale: name => `${name} maps main-mine progression floors to guaranteed first-kill equipment and is not a random taoyuan:drop_table. useMiningStore owns grant and duplicate behavior; mining.test.ts and phase6InventoryClosure.test.ts verify every mapping and reward path. Boss progression rewards remain framework-owned pending a complete reward mechanism plugin.`
+  })
+}
+
+registerInventoryClosureReviews('src/data/weapons.ts', ['getEnchantmentById'], {
+  classification: 'adapter',
+  targetRegistry: 'taoyuan:enchantment',
+  snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+  status: 'verified',
+  rationale: exportName => `${exportName} retains the static legacy signature to avoid a contentAccess/staticAdapters cycle; enchantmentDropRegistryPilot.test.ts proves it equals every taoyuan:enchantment query and phase6InventoryClosure.test.ts pins known and missing IDs. The old lookup remains as the explicit compatibility and rollback entry.`
+})
+
+registerInventoryClosureReviews('src/data/weapons.ts', [
+  'getCustomEnchantmentCost',
+  'getEnchantmentCost',
+  'getEnchantmentEffects',
+  'getOwnedEquipmentEnchantments',
+  'getOwnedWeaponEnchantments',
+  'getWeaponEnchantmentIds',
+  'getWeaponEnchantments',
+  'summarizeEnchantments'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/equipment',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} computes equipment-instance enchantment selection, aggregation, effects or pricing rather than defining taoyuan:enchantment content. Equipment domain/UI owns the behavior; enchantments.test.ts, inventory.test.ts and phase6InventoryClosure.test.ts preserve results. These helpers remain framework mechanics even when definitions come from registries.`
+})
+
+registerInventoryClosureReviews('src/data/weapons.ts', ['WeaponEnchantInput'], {
+  classification: 'adapter',
+  targetRegistry: 'engine/domain/equipment',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is the TypeScript compatibility union for legacy single and modern multiple enchantment instance fields, not a content definition. Inventory and equipment code own it; phase6InventoryClosure.test.ts type-checks the exact union. Save compatibility requires retaining both shapes.`
+})
+
+registerInventoryClosureReviews('src/data/items.ts', [
+  'CHEST_DEFS',
+  'CHEST_TIER_ORDER',
+  'getItemSource'
+], {
+  classification: 'ui',
+  targetRegistry: 'engine/domain/inventory-presentation',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} controls chest progression/order or item-source presentation and is outside taoyuan:item catalog ownership. Inventory/GameLayout owns it; inventory and phase6InventoryClosure.test.ts preserve the compatibility behavior. It is finalized here because src/data/index.ts re-exports the source module.`
+})
+
+registerInventoryClosureReviews('src/data/mine.ts', [
+  'BOSS_MONEY_REWARDS',
+  'BOSS_ORE_REWARDS',
+  'getAdjacentIndices',
+  'getBombIndices',
+  'getDarkFloorOres',
+  'getEdgeIndices',
+  'getFloorDistribution',
+  'getRewardNames',
+  'manhattanDistance',
+  'MAX_MINE_FLOOR'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/mining',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} belongs to mine geometry, floor generation, progression or reward settlement rather than monster/monster-pool content. Mining domain/Store owns it; mining domain tests, gameDataValidation.test.ts and phase6InventoryClosure.test.ts preserve results. It is finalized here because src/data/index.ts re-exports the source module.`
+})
+
+registerInventoryClosureReviews('src/data/mine.ts', ['SkullCavernFloorDef'], {
+  classification: 'adapter',
+  targetRegistry: 'engine/domain/mining',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} is the runtime floor-generation shape for the unbounded skull cavern, not a content registry contract. Mining domain owns it; mining floor tests and phase6InventoryClosure.test.ts type-check the boundary. It is finalized because the compatibility barrel re-exports mine.ts.`
+})
+
+registerInventoryClosureReviews('src/data/shops.ts', ['ShopDef'], {
+  classification: 'adapter',
+  targetRegistry: 'taoyuan:shop',
+  snapshotFixture: 'src/tests/fixtures/mods/official-content-snapshot.json',
+  status: 'verified',
+  rationale: exportName => `${exportName} is the legacy local-ID compatibility shape represented publicly by ShopDefSchema. shopRegistryPilot.test.ts proves the full taoyuan:shop projection and phase6InventoryClosure.test.ts keeps the old type usable. It remains exported for legacy callers and the data barrel.`
+})
+
+registerInventoryClosureReviews('src/data/shops.ts', [
+  'getShopClosedReason',
+  'isShopAvailable'
+], {
+  classification: 'algorithm',
+  targetRegistry: 'engine/domain/shop-schedule',
+  status: 'framework-retained',
+  rationale: exportName => `${exportName} evaluates calendar, weather, season and hour rules over a ShopDef rather than owning shop content. ShopView owns the decision flow; shopRegistryPilot.test.ts and phase6InventoryClosure.test.ts preserve boundary results. It remains framework-owned even though definitions resolve through taoyuan:shop.`
+})
+
 const reviewedArtifacts = [
   {
     file: 'src/domain/mods/contentAccess.ts',
