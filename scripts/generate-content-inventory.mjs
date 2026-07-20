@@ -6105,13 +6105,13 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/domain/mods/officialContentBootstrap.ts',
-    exportName: 'bootstrapOfficialContent/getOfficialRegistrySet/createOfficialContentBootstrap/validateOfficialRegistryStructure',
+    exportName: 'bootstrapOfficialContent/getOfficialRegistrySet/getOfficialContentBootstrapReport/createOfficialContentBootstrap/validateOfficialRegistryStructure',
     classification: 'adapter',
     targetRegistry: 'engine/lifecycle/official-content-bootstrap',
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Builds all 54 official registries, validates every TypeBox contract and cross-registry reference, freezes the candidate, then atomically publishes one stable registry set.'
+    rationale: 'Restores the bound official precompile when valid or performs one complete static fallback, then validates structure and semantics, freezes the candidate and atomically publishes one stable registry set with a diagnostic report.'
   },
   {
     file: 'src/bootstrap.ts',
@@ -6152,6 +6152,76 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Uses a bounded one-way preload IPC channel to record fatal renderer startup details in userdata/startup.log even when production console calls are removed.'
+  },
+  {
+    file: 'src/domain/mods/environmentHash.ts',
+    exportName: 'normalizeCacheEnvironmentIdentity/createEnvironmentHash',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/environment-hash',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Validates unknown cache identities through the TypeBox contract, normalizes package and dependency order by Unicode code point, rejects duplicate identities and hashes only stable environment inputs.'
+  },
+  {
+    file: 'src/domain/mods/precompiledRegistrySchema.ts',
+    exportName: 'CacheEnvironmentIdentitySchema/OfficialPrecompiledRegistryArtifactSchema/OfficialPrecompiledRegistryMetadataSchema',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Provides the TypeBox sources of truth for the cache environment, versioned official precompiled artifact and generated metadata contracts.'
+  },
+  {
+    file: 'src/domain/mods/officialPrecompiled.ts',
+    exportName: 'createOfficialPrecompiledRegistryArtifact/parseOfficialPrecompiledRegistryArtifact/restoreOfficialPrecompiledRegistryArtifact/createExpectedOfficialEnvironmentHash',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Builds and restores the formatVersion 2 official snapshot envelope after pure-JSON, TypeBox, content hash, environment hash, snapshot hash and registry-set validation.'
+  },
+  {
+    file: 'src/domain/mods/officialPrecompiledRuntime.ts',
+    exportName: 'loadBundledOfficialPrecompiledArtifact/restoreBundledOfficialPrecompiledArtifact',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Loads the committed artifact as raw JSON and binds restoration to metadata-derived expectations for the current official environment.'
+  },
+  {
+    file: 'scripts/official-precompiled.mjs',
+    exportName: 'mod:precompile/mod:check-precompile/mod:probe-hashes',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Deterministically generates the official artifact and metadata, validates restoration equivalence, checks committed bytes and reports platform hash evidence.'
+  },
+  {
+    file: 'src/generated/mods/official-precompiled-registry.json + src/generated/mods/official-precompiled-metadata.json',
+    exportName: 'official-precompiled-artifacts',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Commits the reproducible 54-registry, 4242-entry formatVersion 2 snapshot and its environment-bound metadata; generated-file checks reject drift.'
+  },
+  {
+    file: '.github/workflows/mod-precompile-determinism.yml',
+    exportName: 'windows-linux-macos-precompile-probe',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Runs the same byte-for-byte committed-artifact check and hash probe on Windows, Linux and macOS without platform-specific expected hashes.'
   }
 ]
 
