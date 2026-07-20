@@ -4458,7 +4458,8 @@
             },
             "parentCropA": "taoyuan:garlic",
             "parentCropB": "taoyuan:chives",
-            "resultCropId": "taoyuan:allium_king"
+            "resultCropId": "taoyuan:allium_king",
+            "tier": 1
           }
         },
         {
@@ -4486,7 +4487,8 @@
             },
             "parentCropA": "taoyuan:yam",
             "parentCropB": "taoyuan:sweet_potato",
-            "resultCropId": "taoyuan:amber_yam"
+            "resultCropId": "taoyuan:amber_yam",
+            "tier": 1
           }
         },
         {
@@ -4514,7 +4516,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:fairy_grace6_bloom",
-            "resultCropId": "taoyuan:ancient_apex9_bloom"
+            "resultCropId": "taoyuan:ancient_apex9_bloom",
+            "tier": 9
           }
         },
         {
@@ -4542,7 +4545,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:fairy_dream_bud",
-            "resultCropId": "taoyuan:ancient_empyrean_bud"
+            "resultCropId": "taoyuan:ancient_empyrean_bud",
+            "tier": 9
           }
         },
         {
@@ -4570,7 +4574,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:fairy_wonder_bean",
-            "resultCropId": "taoyuan:ancient_meng_bean"
+            "resultCropId": "taoyuan:ancient_meng_bean",
+            "tier": 9
           }
         },
         {
@@ -4598,7 +4603,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:fairy_zen_apricot",
-            "resultCropId": "taoyuan:ancient_spirit9_apricot"
+            "resultCropId": "taoyuan:ancient_spirit9_apricot",
+            "tier": 9
           }
         },
         {
@@ -4626,7 +4632,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:fairy_phantom_sesame",
-            "resultCropId": "taoyuan:ancient_wilder_sesame"
+            "resultCropId": "taoyuan:ancient_wilder_sesame",
+            "tier": 9
           }
         },
         {
@@ -4654,7 +4661,8 @@
             },
             "parentCropA": "taoyuan:broad_bean",
             "parentCropB": "taoyuan:jujube",
-            "resultCropId": "taoyuan:autumn_bean"
+            "resultCropId": "taoyuan:autumn_bean",
+            "tier": 1
           }
         },
         {
@@ -4682,7 +4690,8 @@
             },
             "parentCropA": "taoyuan:pumpkin",
             "parentCropB": "taoyuan:osmanthus",
-            "resultCropId": "taoyuan:autumn_gem"
+            "resultCropId": "taoyuan:autumn_gem",
+            "tier": 1
           }
         },
         {
@@ -4710,7 +4719,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:ginger_blossom",
-            "resultCropId": "taoyuan:azure_fortune_green"
+            "resultCropId": "taoyuan:azure_fortune_green",
+            "tier": 4
           }
         },
         {
@@ -4738,7 +4748,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:purple_melon",
-            "resultCropId": "taoyuan:azure_glory_sprout"
+            "resultCropId": "taoyuan:azure_glory_sprout",
+            "tier": 4
           }
         },
         {
@@ -4766,7 +4777,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:ruby_bean",
-            "resultCropId": "taoyuan:azure_hua_lotus"
+            "resultCropId": "taoyuan:azure_hua_lotus",
+            "tier": 4
           }
         },
         {
@@ -4794,7 +4806,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:sweet_gourd",
-            "resultCropId": "taoyuan:azure_prism4_peach_t"
+            "resultCropId": "taoyuan:azure_prism4_peach_t",
+            "tier": 4
           }
         },
         {
@@ -4822,7 +4835,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:double_oil_seed",
-            "resultCropId": "taoyuan:azure_shine_herb"
+            "resultCropId": "taoyuan:azure_shine_herb",
+            "tier": 4
           }
         },
         {
@@ -4850,7 +4864,8 @@
             },
             "parentCropA": "taoyuan:green_bean",
             "parentCropB": "taoyuan:eggplant",
-            "resultCropId": "taoyuan:bean_eggplant"
+            "resultCropId": "taoyuan:bean_eggplant",
+            "tier": 1
           }
         },
         {
@@ -4878,7 +4893,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:osmanthus",
-            "resultCropId": "taoyuan:celestial_rice"
+            "resultCropId": "taoyuan:celestial_rice",
+            "tier": 2
           }
         },
         {
@@ -4906,7 +4922,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:lustrous_silk5_peach_t",
-            "resultCropId": "taoyuan:chaos_core_peach_t"
+            "resultCropId": "taoyuan:chaos_core_peach_t",
+            "tier": 8
           }
         },
         {
@@ -4934,7 +4951,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:lustrous_dewdrop_sprout",
-            "resultCropId": "taoyuan:chaos_glory8_sprout"
+            "resultCropId": "taoyuan:chaos_glory8_sprout",
+            "tier": 8
           }
         },
         {
@@ -4962,7 +4980,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:lustrous_light5_green",
-            "resultCropId": "taoyuan:chaos_origin_green"
+            "resultCropId": "taoyuan:chaos_origin_green",
+            "tier": 8
           }
         },
         {
@@ -4990,7 +5009,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:lustrous_hua5_lotus",
-            "resultCropId": "taoyuan:chaos_vital8_lotus"
+            "resultCropId": "taoyuan:chaos_vital8_lotus",
+            "tier": 8
           }
         },
         {
@@ -5018,7 +5038,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:lustrous_soul_herb",
-            "resultCropId": "taoyuan:chaos_zenith_herb"
+            "resultCropId": "taoyuan:chaos_zenith_herb",
+            "tier": 8
           }
         },
         {
@@ -5046,7 +5067,8 @@
             },
             "parentCropA": "taoyuan:loofah",
             "parentCropB": "taoyuan:chives",
-            "resultCropId": "taoyuan:chive_gourd"
+            "resultCropId": "taoyuan:chive_gourd",
+            "tier": 1
           }
         },
         {
@@ -5074,7 +5096,8 @@
             },
             "parentCropA": "taoyuan:chives",
             "parentCropB": "taoyuan:mustard_green",
-            "resultCropId": "taoyuan:chive_mustard"
+            "resultCropId": "taoyuan:chive_mustard",
+            "tier": 1
           }
         },
         {
@@ -5102,7 +5125,8 @@
             },
             "parentCropA": "taoyuan:persimmon",
             "parentCropB": "taoyuan:chives",
-            "resultCropId": "taoyuan:chive_persimmon"
+            "resultCropId": "taoyuan:chive_persimmon",
+            "tier": 1
           }
         },
         {
@@ -5130,7 +5154,8 @@
             },
             "parentCropA": "taoyuan:chrysanthemum",
             "parentCropB": "taoyuan:jujube",
-            "resultCropId": "taoyuan:chrysanthemum_jujube"
+            "resultCropId": "taoyuan:chrysanthemum_jujube",
+            "tier": 1
           }
         },
         {
@@ -5158,7 +5183,8 @@
             },
             "parentCropA": "taoyuan:watermelon",
             "parentCropB": "taoyuan:chrysanthemum",
-            "resultCropId": "taoyuan:chrysanthemum_melon"
+            "resultCropId": "taoyuan:chrysanthemum_melon",
+            "tier": 1
           }
         },
         {
@@ -5186,7 +5212,8 @@
             },
             "parentCropA": "taoyuan:persimmon",
             "parentCropB": "taoyuan:chrysanthemum",
-            "resultCropId": "taoyuan:chrysanthemum_persimmon"
+            "resultCropId": "taoyuan:chrysanthemum_persimmon",
+            "tier": 1
           }
         },
         {
@@ -5214,7 +5241,8 @@
             },
             "parentCropA": "taoyuan:rice",
             "parentCropB": "taoyuan:chrysanthemum",
-            "resultCropId": "taoyuan:chrysanthemum_rice"
+            "resultCropId": "taoyuan:chrysanthemum_rice",
+            "tier": 1
           }
         },
         {
@@ -5242,7 +5270,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:spicy_radish",
-            "resultCropId": "taoyuan:cloud_aura_bloom"
+            "resultCropId": "taoyuan:cloud_aura_bloom",
+            "tier": 3
           }
         },
         {
@@ -5270,7 +5299,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:phoenix_pepper",
-            "resultCropId": "taoyuan:cloud_bean"
+            "resultCropId": "taoyuan:cloud_bean",
+            "tier": 3
           }
         },
         {
@@ -5298,7 +5328,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:fire_sesame",
-            "resultCropId": "taoyuan:cloud_glow_bud"
+            "resultCropId": "taoyuan:cloud_glow_bud",
+            "tier": 3
           }
         },
         {
@@ -5326,7 +5357,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:crystal_yam",
-            "resultCropId": "taoyuan:cloud_jade3_apricot"
+            "resultCropId": "taoyuan:cloud_jade3_apricot",
+            "tier": 3
           }
         },
         {
@@ -5354,7 +5386,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:pearl_grain",
-            "resultCropId": "taoyuan:cloud_splendor_sesame"
+            "resultCropId": "taoyuan:cloud_splendor_sesame",
+            "tier": 3
           }
         },
         {
@@ -5382,7 +5415,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:scarlet_hua_shoot",
-            "resultCropId": "taoyuan:crane_dance_shoot"
+            "resultCropId": "taoyuan:crane_dance_shoot",
+            "tier": 7
           }
         },
         {
@@ -5410,7 +5444,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:gem_shine_root",
-            "resultCropId": "taoyuan:crane_gleam7_root"
+            "resultCropId": "taoyuan:crane_gleam7_root",
+            "tier": 7
           }
         },
         {
@@ -5438,7 +5473,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:gem_fortune_berry",
-            "resultCropId": "taoyuan:crane_roar_berry"
+            "resultCropId": "taoyuan:crane_roar_berry",
+            "tier": 7
           }
         },
         {
@@ -5466,7 +5502,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:scarlet_shine_gourd",
-            "resultCropId": "taoyuan:crane_shadow_gourd"
+            "resultCropId": "taoyuan:crane_shadow_gourd",
+            "tier": 7
           }
         },
         {
@@ -5494,7 +5531,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:gem_hua_tuber",
-            "resultCropId": "taoyuan:crane_song_tuber"
+            "resultCropId": "taoyuan:crane_song_tuber",
+            "tier": 7
           }
         },
         {
@@ -5522,7 +5560,8 @@
             },
             "parentCropA": "taoyuan:peanut",
             "parentCropB": "taoyuan:napa_cabbage",
-            "resultCropId": "taoyuan:cream_peanut"
+            "resultCropId": "taoyuan:cream_peanut",
+            "tier": 1
           }
         },
         {
@@ -5550,7 +5589,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:draco_song_melon",
-            "resultCropId": "taoyuan:creation_change_melon"
+            "resultCropId": "taoyuan:creation_change_melon",
+            "tier": 10
           }
         },
         {
@@ -5578,7 +5618,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:draco_shadow_vine",
-            "resultCropId": "taoyuan:creation_destiny_vine"
+            "resultCropId": "taoyuan:creation_destiny_vine",
+            "tier": 10
           }
         },
         {
@@ -5606,7 +5647,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:draco_roar_chestnut",
-            "resultCropId": "taoyuan:creation_form_chestnut"
+            "resultCropId": "taoyuan:creation_form_chestnut",
+            "tier": 10
           }
         },
         {
@@ -5634,7 +5676,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:draco_dance_fruit",
-            "resultCropId": "taoyuan:creation_lasting_fruit"
+            "resultCropId": "taoyuan:creation_lasting_fruit",
+            "tier": 10
           }
         },
         {
@@ -5662,7 +5705,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:draco_gleam7_wheat",
-            "resultCropId": "taoyuan:creation_timeless_wheat"
+            "resultCropId": "taoyuan:creation_timeless_wheat",
+            "tier": 10
           }
         },
         {
@@ -5690,7 +5734,8 @@
             },
             "parentCropA": "taoyuan:bamboo_shoot",
             "parentCropB": "taoyuan:yam",
-            "resultCropId": "taoyuan:crystal_yam"
+            "resultCropId": "taoyuan:crystal_yam",
+            "tier": 1
           }
         },
         {
@@ -5718,7 +5763,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:frost_rapeseed",
-            "resultCropId": "taoyuan:dawn_aura_pepper"
+            "resultCropId": "taoyuan:dawn_aura_pepper",
+            "tier": 3
           }
         },
         {
@@ -5746,7 +5792,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:double_nut",
-            "resultCropId": "taoyuan:dawn_glow_pear"
+            "resultCropId": "taoyuan:dawn_glow_pear",
+            "tier": 3
           }
         },
         {
@@ -5774,7 +5821,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:jujube_blossom",
-            "resultCropId": "taoyuan:dawn_jade3_rice"
+            "resultCropId": "taoyuan:dawn_jade3_rice",
+            "tier": 3
           }
         },
         {
@@ -5802,7 +5850,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:silk_bean",
-            "resultCropId": "taoyuan:dawn_splendor_orchid"
+            "resultCropId": "taoyuan:dawn_splendor_orchid",
+            "tier": 3
           }
         },
         {
@@ -5830,7 +5879,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:peach_blossom_tea",
-            "resultCropId": "taoyuan:dawn_tea"
+            "resultCropId": "taoyuan:dawn_tea",
+            "tier": 3
           }
         },
         {
@@ -5858,7 +5908,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:mustard_bean",
-            "resultCropId": "taoyuan:dew_aura_sesame"
+            "resultCropId": "taoyuan:dew_aura_sesame",
+            "tier": 3
           }
         },
         {
@@ -5886,7 +5937,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:golden_tuber",
-            "resultCropId": "taoyuan:dew_bloom"
+            "resultCropId": "taoyuan:dew_bloom",
+            "tier": 3
           }
         },
         {
@@ -5914,7 +5966,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:mountain_lotus",
-            "resultCropId": "taoyuan:dew_glow_apricot"
+            "resultCropId": "taoyuan:dew_glow_apricot",
+            "tier": 3
           }
         },
         {
@@ -5942,7 +5995,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:autumn_bean",
-            "resultCropId": "taoyuan:dew_jade3_bean"
+            "resultCropId": "taoyuan:dew_jade3_bean",
+            "tier": 3
           }
         },
         {
@@ -5970,7 +6024,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:fire_bean",
-            "resultCropId": "taoyuan:dew_splendor_bud"
+            "resultCropId": "taoyuan:dew_splendor_bud",
+            "tier": 3
           }
         },
         {
@@ -5998,7 +6053,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:dusk_splendor_gourd",
-            "resultCropId": "taoyuan:divine_dream_gourd"
+            "resultCropId": "taoyuan:divine_dream_gourd",
+            "tier": 6
           }
         },
         {
@@ -6026,7 +6082,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:dusk_shoot",
-            "resultCropId": "taoyuan:divine_grace6_shoot"
+            "resultCropId": "taoyuan:divine_grace6_shoot",
+            "tier": 6
           }
         },
         {
@@ -6054,7 +6111,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:hoar_splendor_root",
-            "resultCropId": "taoyuan:divine_phantom_root"
+            "resultCropId": "taoyuan:divine_phantom_root",
+            "tier": 6
           }
         },
         {
@@ -6082,7 +6140,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:hoar_tuber",
-            "resultCropId": "taoyuan:divine_wonder_tuber"
+            "resultCropId": "taoyuan:divine_wonder_tuber",
+            "tier": 6
           }
         },
         {
@@ -6110,7 +6169,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:hoar_jade3_berry",
-            "resultCropId": "taoyuan:divine_zen_berry"
+            "resultCropId": "taoyuan:divine_zen_berry",
+            "tier": 6
           }
         },
         {
@@ -6138,7 +6198,8 @@
             },
             "parentCropA": "taoyuan:lotus_root",
             "parentCropB": "taoyuan:lotus_seed",
-            "resultCropId": "taoyuan:double_lotus"
+            "resultCropId": "taoyuan:double_lotus",
+            "tier": 1
           }
         },
         {
@@ -6166,7 +6227,8 @@
             },
             "parentCropA": "taoyuan:peanut",
             "parentCropB": "taoyuan:sesame",
-            "resultCropId": "taoyuan:double_nut"
+            "resultCropId": "taoyuan:double_nut",
+            "tier": 1
           }
         },
         {
@@ -6194,7 +6256,8 @@
             },
             "parentCropA": "taoyuan:rapeseed",
             "parentCropB": "taoyuan:sesame",
-            "resultCropId": "taoyuan:double_oil_seed"
+            "resultCropId": "taoyuan:double_oil_seed",
+            "tier": 1
           }
         },
         {
@@ -6222,7 +6285,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:silver_hua_fruit",
-            "resultCropId": "taoyuan:draco_dance_fruit"
+            "resultCropId": "taoyuan:draco_dance_fruit",
+            "tier": 7
           }
         },
         {
@@ -6250,7 +6314,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:moon_shine_wheat",
-            "resultCropId": "taoyuan:draco_gleam7_wheat"
+            "resultCropId": "taoyuan:draco_gleam7_wheat",
+            "tier": 7
           }
         },
         {
@@ -6278,7 +6343,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:moon_fortune_chestnut",
-            "resultCropId": "taoyuan:draco_roar_chestnut"
+            "resultCropId": "taoyuan:draco_roar_chestnut",
+            "tier": 7
           }
         },
         {
@@ -6306,7 +6372,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:silver_shine_vine",
-            "resultCropId": "taoyuan:draco_shadow_vine"
+            "resultCropId": "taoyuan:draco_shadow_vine",
+            "tier": 7
           }
         },
         {
@@ -6334,7 +6401,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:moon_hua_melon",
-            "resultCropId": "taoyuan:draco_song_melon"
+            "resultCropId": "taoyuan:draco_song_melon",
+            "tier": 7
           }
         },
         {
@@ -6362,7 +6430,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:ginger",
-            "resultCropId": "taoyuan:dragon_fire"
+            "resultCropId": "taoyuan:dragon_fire",
+            "tier": 2
           }
         },
         {
@@ -6390,7 +6459,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:moonlight_rice",
-            "resultCropId": "taoyuan:dragon_pearl"
+            "resultCropId": "taoyuan:dragon_pearl",
+            "tier": 2
           }
         },
         {
@@ -6418,7 +6488,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:purple_melon",
-            "resultCropId": "taoyuan:dusk_aura_root"
+            "resultCropId": "taoyuan:dusk_aura_root",
+            "tier": 3
           }
         },
         {
@@ -6446,7 +6517,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:sweet_gourd",
-            "resultCropId": "taoyuan:dusk_glow_berry"
+            "resultCropId": "taoyuan:dusk_glow_berry",
+            "tier": 3
           }
         },
         {
@@ -6474,7 +6546,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:ginger_blossom",
-            "resultCropId": "taoyuan:dusk_jade3_tuber"
+            "resultCropId": "taoyuan:dusk_jade3_tuber",
+            "tier": 3
           }
         },
         {
@@ -6502,7 +6575,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:ruby_bean",
-            "resultCropId": "taoyuan:dusk_shoot"
+            "resultCropId": "taoyuan:dusk_shoot",
+            "tier": 3
           }
         },
         {
@@ -6530,7 +6604,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:double_oil_seed",
-            "resultCropId": "taoyuan:dusk_splendor_gourd"
+            "resultCropId": "taoyuan:dusk_splendor_gourd",
+            "tier": 3
           }
         },
         {
@@ -6558,7 +6633,8 @@
             },
             "parentCropA": "taoyuan:emerald_radish",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:emerald_jade_tea"
+            "resultCropId": "taoyuan:emerald_jade_tea",
+            "tier": 2
           }
         },
         {
@@ -6586,7 +6662,8 @@
             },
             "parentCropA": "taoyuan:cabbage",
             "parentCropB": "taoyuan:radish",
-            "resultCropId": "taoyuan:emerald_radish"
+            "resultCropId": "taoyuan:emerald_radish",
+            "tier": 1
           }
         },
         {
@@ -6614,7 +6691,8 @@
             },
             "parentCropA": "taoyuan:emerald_radish",
             "parentCropB": "taoyuan:rice",
-            "resultCropId": "taoyuan:emerald_rice"
+            "resultCropId": "taoyuan:emerald_rice",
+            "tier": 2
           }
         },
         {
@@ -6642,7 +6720,8 @@
             },
             "parentCropA": "taoyuan:yam",
             "parentCropB": "taoyuan:spinach",
-            "resultCropId": "taoyuan:emerald_yam"
+            "resultCropId": "taoyuan:emerald_yam",
+            "tier": 1
           }
         },
         {
@@ -6670,7 +6749,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:fenghuang_song_bean",
-            "resultCropId": "taoyuan:eternal_change_bean"
+            "resultCropId": "taoyuan:eternal_change_bean",
+            "tier": 10
           }
         },
         {
@@ -6698,7 +6778,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:fenghuang_shadow_bud",
-            "resultCropId": "taoyuan:eternal_destiny_bud"
+            "resultCropId": "taoyuan:eternal_destiny_bud",
+            "tier": 10
           }
         },
         {
@@ -6726,7 +6807,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:fenghuang_roar_apricot",
-            "resultCropId": "taoyuan:eternal_form_apricot"
+            "resultCropId": "taoyuan:eternal_form_apricot",
+            "tier": 10
           }
         },
         {
@@ -6754,7 +6836,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:fenghuang_dance_bloom",
-            "resultCropId": "taoyuan:eternal_lasting_bloom"
+            "resultCropId": "taoyuan:eternal_lasting_bloom",
+            "tier": 10
           }
         },
         {
@@ -6782,7 +6865,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:fenghuang_gleam7_sesame",
-            "resultCropId": "taoyuan:eternal_timeless_sesame"
+            "resultCropId": "taoyuan:eternal_timeless_sesame",
+            "tier": 10
           }
         },
         {
@@ -6810,7 +6894,8 @@
             },
             "parentCropA": "taoyuan:spinach",
             "parentCropB": "taoyuan:mustard_green",
-            "resultCropId": "taoyuan:evergreen_herb"
+            "resultCropId": "taoyuan:evergreen_herb",
+            "tier": 1
           }
         },
         {
@@ -6838,7 +6923,8 @@
             },
             "parentCropA": "taoyuan:cabbage",
             "parentCropB": "taoyuan:chrysanthemum",
-            "resultCropId": "taoyuan:fairy_chrysanthemum"
+            "resultCropId": "taoyuan:fairy_chrysanthemum",
+            "tier": 1
           }
         },
         {
@@ -6866,7 +6952,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:dew_splendor_bud",
-            "resultCropId": "taoyuan:fairy_dream_bud"
+            "resultCropId": "taoyuan:fairy_dream_bud",
+            "tier": 6
           }
         },
         {
@@ -6894,7 +6981,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:dew_bloom",
-            "resultCropId": "taoyuan:fairy_grace6_bloom"
+            "resultCropId": "taoyuan:fairy_grace6_bloom",
+            "tier": 6
           }
         },
         {
@@ -6922,7 +7010,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:cloud_splendor_sesame",
-            "resultCropId": "taoyuan:fairy_phantom_sesame"
+            "resultCropId": "taoyuan:fairy_phantom_sesame",
+            "tier": 6
           }
         },
         {
@@ -6950,7 +7039,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:cloud_bean",
-            "resultCropId": "taoyuan:fairy_wonder_bean"
+            "resultCropId": "taoyuan:fairy_wonder_bean",
+            "tier": 6
           }
         },
         {
@@ -6978,7 +7068,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:cloud_jade3_apricot",
-            "resultCropId": "taoyuan:fairy_zen_apricot"
+            "resultCropId": "taoyuan:fairy_zen_apricot",
+            "tier": 6
           }
         },
         {
@@ -7006,7 +7097,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:verdant_hua_bloom",
-            "resultCropId": "taoyuan:fenghuang_dance_bloom"
+            "resultCropId": "taoyuan:fenghuang_dance_bloom",
+            "tier": 7
           }
         },
         {
@@ -7034,7 +7126,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:sun_shine_sesame",
-            "resultCropId": "taoyuan:fenghuang_gleam7_sesame"
+            "resultCropId": "taoyuan:fenghuang_gleam7_sesame",
+            "tier": 7
           }
         },
         {
@@ -7062,7 +7155,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:sun_fortune_apricot",
-            "resultCropId": "taoyuan:fenghuang_roar_apricot"
+            "resultCropId": "taoyuan:fenghuang_roar_apricot",
+            "tier": 7
           }
         },
         {
@@ -7090,7 +7184,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:verdant_shine_bud",
-            "resultCropId": "taoyuan:fenghuang_shadow_bud"
+            "resultCropId": "taoyuan:fenghuang_shadow_bud",
+            "tier": 7
           }
         },
         {
@@ -7118,7 +7213,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:sun_hua_bean",
-            "resultCropId": "taoyuan:fenghuang_song_bean"
+            "resultCropId": "taoyuan:fenghuang_song_bean",
+            "tier": 7
           }
         },
         {
@@ -7146,7 +7242,8 @@
             },
             "parentCropA": "taoyuan:broad_bean",
             "parentCropB": "taoyuan:chili",
-            "resultCropId": "taoyuan:fire_bean"
+            "resultCropId": "taoyuan:fire_bean",
+            "tier": 1
           }
         },
         {
@@ -7174,7 +7271,8 @@
             },
             "parentCropA": "taoyuan:chili",
             "parentCropB": "taoyuan:ginger",
-            "resultCropId": "taoyuan:fire_ginger"
+            "resultCropId": "taoyuan:fire_ginger",
+            "tier": 1
           }
         },
         {
@@ -7202,7 +7300,8 @@
             },
             "parentCropA": "taoyuan:chili",
             "parentCropB": "taoyuan:sesame",
-            "resultCropId": "taoyuan:fire_sesame"
+            "resultCropId": "taoyuan:fire_sesame",
+            "tier": 1
           }
         },
         {
@@ -7230,7 +7329,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:rare_silk5_apricot",
-            "resultCropId": "taoyuan:firmament_core_apricot"
+            "resultCropId": "taoyuan:firmament_core_apricot",
+            "tier": 8
           }
         },
         {
@@ -7258,7 +7358,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:rare_dewdrop_sesame",
-            "resultCropId": "taoyuan:firmament_glory8_sesame"
+            "resultCropId": "taoyuan:firmament_glory8_sesame",
+            "tier": 8
           }
         },
         {
@@ -7286,7 +7387,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:rare_light5_bean",
-            "resultCropId": "taoyuan:firmament_origin_bean"
+            "resultCropId": "taoyuan:firmament_origin_bean",
+            "tier": 8
           }
         },
         {
@@ -7314,7 +7416,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:rare_hua5_bloom",
-            "resultCropId": "taoyuan:firmament_vital8_bloom"
+            "resultCropId": "taoyuan:firmament_vital8_bloom",
+            "tier": 8
           }
         },
         {
@@ -7342,7 +7445,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:rare_soul_bud",
-            "resultCropId": "taoyuan:firmament_zenith_bud"
+            "resultCropId": "taoyuan:firmament_zenith_bud",
+            "tier": 8
           }
         },
         {
@@ -7370,7 +7474,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:bamboo_shoot",
-            "resultCropId": "taoyuan:frost_bamboo"
+            "resultCropId": "taoyuan:frost_bamboo",
+            "tier": 2
           }
         },
         {
@@ -7398,7 +7503,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:chrysanthemum",
-            "resultCropId": "taoyuan:frost_chrysanthemum"
+            "resultCropId": "taoyuan:frost_chrysanthemum",
+            "tier": 2
           }
         },
         {
@@ -7426,7 +7532,8 @@
             },
             "parentCropA": "taoyuan:snow_lotus",
             "parentCropB": "taoyuan:garlic",
-            "resultCropId": "taoyuan:frost_garlic"
+            "resultCropId": "taoyuan:frost_garlic",
+            "tier": 1
           }
         },
         {
@@ -7454,7 +7561,8 @@
             },
             "parentCropA": "taoyuan:watermelon",
             "parentCropB": "taoyuan:napa_cabbage",
-            "resultCropId": "taoyuan:frost_melon"
+            "resultCropId": "taoyuan:frost_melon",
+            "tier": 1
           }
         },
         {
@@ -7482,7 +7590,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:pumpkin",
-            "resultCropId": "taoyuan:frost_pumpkin"
+            "resultCropId": "taoyuan:frost_pumpkin",
+            "tier": 2
           }
         },
         {
@@ -7510,7 +7619,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:radish",
-            "resultCropId": "taoyuan:frost_radish"
+            "resultCropId": "taoyuan:frost_radish",
+            "tier": 2
           }
         },
         {
@@ -7538,7 +7648,8 @@
             },
             "parentCropA": "taoyuan:rapeseed",
             "parentCropB": "taoyuan:spinach",
-            "resultCropId": "taoyuan:frost_rapeseed"
+            "resultCropId": "taoyuan:frost_rapeseed",
+            "tier": 1
           }
         },
         {
@@ -7566,7 +7677,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:winter_wheat",
-            "resultCropId": "taoyuan:frost_winter_wheat"
+            "resultCropId": "taoyuan:frost_winter_wheat",
+            "tier": 2
           }
         },
         {
@@ -7594,7 +7706,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:yam",
-            "resultCropId": "taoyuan:frost_yam"
+            "resultCropId": "taoyuan:frost_yam",
+            "tier": 2
           }
         },
         {
@@ -7622,7 +7735,8 @@
             },
             "parentCropA": "taoyuan:garlic",
             "parentCropB": "taoyuan:napa_cabbage",
-            "resultCropId": "taoyuan:garlic_cabbage"
+            "resultCropId": "taoyuan:garlic_cabbage",
+            "tier": 1
           }
         },
         {
@@ -7650,7 +7764,8 @@
             },
             "parentCropA": "taoyuan:jujube",
             "parentCropB": "taoyuan:garlic",
-            "resultCropId": "taoyuan:garlic_jujube"
+            "resultCropId": "taoyuan:garlic_jujube",
+            "tier": 1
           }
         },
         {
@@ -7678,7 +7793,8 @@
             },
             "parentCropA": "taoyuan:sesame",
             "parentCropB": "taoyuan:garlic",
-            "resultCropId": "taoyuan:garlic_sesame"
+            "resultCropId": "taoyuan:garlic_sesame",
+            "tier": 1
           }
         },
         {
@@ -7706,7 +7822,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:osmanthus_tea",
-            "resultCropId": "taoyuan:gem_fortune_berry"
+            "resultCropId": "taoyuan:gem_fortune_berry",
+            "tier": 4
           }
         },
         {
@@ -7734,7 +7851,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:snow_tea",
-            "resultCropId": "taoyuan:gem_glory_shoot"
+            "resultCropId": "taoyuan:gem_glory_shoot",
+            "tier": 4
           }
         },
         {
@@ -7762,7 +7880,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:moonlight_rice",
-            "resultCropId": "taoyuan:gem_hua_tuber"
+            "resultCropId": "taoyuan:gem_hua_tuber",
+            "tier": 4
           }
         },
         {
@@ -7790,7 +7909,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:silk_corn",
-            "resultCropId": "taoyuan:gem_prism4_gourd"
+            "resultCropId": "taoyuan:gem_prism4_gourd",
+            "tier": 4
           }
         },
         {
@@ -7818,7 +7938,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:golden_corn",
-            "resultCropId": "taoyuan:gem_shine_root"
+            "resultCropId": "taoyuan:gem_shine_root",
+            "tier": 4
           }
         },
         {
@@ -7846,7 +7967,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:trueth_grace6_lotus",
-            "resultCropId": "taoyuan:genesis_apex9_lotus"
+            "resultCropId": "taoyuan:genesis_apex9_lotus",
+            "tier": 9
           }
         },
         {
@@ -7874,7 +7996,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:trueth_dream_herb",
-            "resultCropId": "taoyuan:genesis_empyrean_herb"
+            "resultCropId": "taoyuan:genesis_empyrean_herb",
+            "tier": 9
           }
         },
         {
@@ -7902,7 +8025,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:trueth_wonder_green",
-            "resultCropId": "taoyuan:genesis_meng_green"
+            "resultCropId": "taoyuan:genesis_meng_green",
+            "tier": 9
           }
         },
         {
@@ -7930,7 +8054,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:trueth_zen_peach_t",
-            "resultCropId": "taoyuan:genesis_spirit9_peach_t"
+            "resultCropId": "taoyuan:genesis_spirit9_peach_t",
+            "tier": 9
           }
         },
         {
@@ -7958,7 +8083,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:trueth_phantom_sprout",
-            "resultCropId": "taoyuan:genesis_wilder_sprout"
+            "resultCropId": "taoyuan:genesis_wilder_sprout",
+            "tier": 9
           }
         },
         {
@@ -7986,7 +8112,8 @@
             },
             "parentCropA": "taoyuan:rapeseed",
             "parentCropB": "taoyuan:ginger",
-            "resultCropId": "taoyuan:ginger_blossom"
+            "resultCropId": "taoyuan:ginger_blossom",
+            "tier": 1
           }
         },
         {
@@ -8014,7 +8141,8 @@
             },
             "parentCropA": "taoyuan:cabbage",
             "parentCropB": "taoyuan:ginger",
-            "resultCropId": "taoyuan:ginger_jade_green"
+            "resultCropId": "taoyuan:ginger_jade_green",
+            "tier": 1
           }
         },
         {
@@ -8042,7 +8170,8 @@
             },
             "parentCropA": "taoyuan:ginger",
             "parentCropB": "taoyuan:yam",
-            "resultCropId": "taoyuan:ginger_yam"
+            "resultCropId": "taoyuan:ginger_yam",
+            "tier": 1
           }
         },
         {
@@ -8070,7 +8199,8 @@
             },
             "parentCropA": "taoyuan:corn",
             "parentCropB": "taoyuan:rapeseed",
-            "resultCropId": "taoyuan:golden_corn"
+            "resultCropId": "taoyuan:golden_corn",
+            "tier": 1
           }
         },
         {
@@ -8098,7 +8228,8 @@
             },
             "parentCropA": "taoyuan:golden_corn",
             "parentCropB": "taoyuan:rice",
-            "resultCropId": "taoyuan:golden_corn_king"
+            "resultCropId": "taoyuan:golden_corn_king",
+            "tier": 2
           }
         },
         {
@@ -8126,7 +8257,8 @@
             },
             "parentCropA": "taoyuan:golden_melon",
             "parentCropB": "taoyuan:phoenix_pepper",
-            "resultCropId": "taoyuan:golden_dragon"
+            "resultCropId": "taoyuan:golden_dragon",
+            "tier": 2
           }
         },
         {
@@ -8154,7 +8286,8 @@
             },
             "parentCropA": "taoyuan:peach",
             "parentCropB": "taoyuan:persimmon",
-            "resultCropId": "taoyuan:golden_fruit"
+            "resultCropId": "taoyuan:golden_fruit",
+            "tier": 1
           }
         },
         {
@@ -8182,7 +8315,8 @@
             },
             "parentCropA": "taoyuan:golden_melon",
             "parentCropB": "taoyuan:jujube",
-            "resultCropId": "taoyuan:golden_jujube"
+            "resultCropId": "taoyuan:golden_jujube",
+            "tier": 2
           }
         },
         {
@@ -8210,7 +8344,8 @@
             },
             "parentCropA": "taoyuan:golden_melon",
             "parentCropB": "taoyuan:lotus_seed",
-            "resultCropId": "taoyuan:golden_lotus"
+            "resultCropId": "taoyuan:golden_lotus",
+            "tier": 2
           }
         },
         {
@@ -8238,7 +8373,8 @@
             },
             "parentCropA": "taoyuan:watermelon",
             "parentCropB": "taoyuan:lotus_root",
-            "resultCropId": "taoyuan:golden_melon"
+            "resultCropId": "taoyuan:golden_melon",
+            "tier": 1
           }
         },
         {
@@ -8266,7 +8402,8 @@
             },
             "parentCropA": "taoyuan:peanut",
             "parentCropB": "taoyuan:sweet_potato",
-            "resultCropId": "taoyuan:golden_peanut_yam"
+            "resultCropId": "taoyuan:golden_peanut_yam",
+            "tier": 1
           }
         },
         {
@@ -8294,7 +8431,8 @@
             },
             "parentCropA": "taoyuan:persimmon",
             "parentCropB": "taoyuan:pumpkin",
-            "resultCropId": "taoyuan:golden_persimmon"
+            "resultCropId": "taoyuan:golden_persimmon",
+            "tier": 1
           }
         },
         {
@@ -8322,7 +8460,8 @@
             },
             "parentCropA": "taoyuan:golden_melon",
             "parentCropB": "taoyuan:pumpkin",
-            "resultCropId": "taoyuan:golden_pumpkin"
+            "resultCropId": "taoyuan:golden_pumpkin",
+            "tier": 2
           }
         },
         {
@@ -8350,7 +8489,8 @@
             },
             "parentCropA": "taoyuan:rice",
             "parentCropB": "taoyuan:sesame",
-            "resultCropId": "taoyuan:golden_rice"
+            "resultCropId": "taoyuan:golden_rice",
+            "tier": 1
           }
         },
         {
@@ -8378,7 +8518,8 @@
             },
             "parentCropA": "taoyuan:golden_melon",
             "parentCropB": "taoyuan:sesame",
-            "resultCropId": "taoyuan:golden_sesame"
+            "resultCropId": "taoyuan:golden_sesame",
+            "tier": 2
           }
         },
         {
@@ -8406,7 +8547,8 @@
             },
             "parentCropA": "taoyuan:corn",
             "parentCropB": "taoyuan:sweet_potato",
-            "resultCropId": "taoyuan:golden_sweet"
+            "resultCropId": "taoyuan:golden_sweet",
+            "tier": 1
           }
         },
         {
@@ -8434,7 +8576,8 @@
             },
             "parentCropA": "taoyuan:potato",
             "parentCropB": "taoyuan:rapeseed",
-            "resultCropId": "taoyuan:golden_tuber"
+            "resultCropId": "taoyuan:golden_tuber",
+            "tier": 1
           }
         },
         {
@@ -8462,7 +8605,8 @@
             },
             "parentCropA": "taoyuan:golden_tuber",
             "parentCropB": "taoyuan:lotus_root",
-            "resultCropId": "taoyuan:golden_tuber_lotus"
+            "resultCropId": "taoyuan:golden_tuber_lotus",
+            "tier": 2
           }
         },
         {
@@ -8490,7 +8634,8 @@
             },
             "parentCropA": "taoyuan:golden_melon",
             "parentCropB": "taoyuan:watermelon",
-            "resultCropId": "taoyuan:golden_watermelon"
+            "resultCropId": "taoyuan:golden_watermelon",
+            "tier": 2
           }
         },
         {
@@ -8518,7 +8663,8 @@
             },
             "parentCropA": "taoyuan:spinach",
             "parentCropB": "taoyuan:winter_wheat",
-            "resultCropId": "taoyuan:green_wheat"
+            "resultCropId": "taoyuan:green_wheat",
+            "tier": 1
           }
         },
         {
@@ -8546,7 +8692,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:crane_song_tuber",
-            "resultCropId": "taoyuan:heavenly_change_tuber"
+            "resultCropId": "taoyuan:heavenly_change_tuber",
+            "tier": 10
           }
         },
         {
@@ -8574,7 +8721,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:crane_shadow_gourd",
-            "resultCropId": "taoyuan:heavenly_destiny_gourd"
+            "resultCropId": "taoyuan:heavenly_destiny_gourd",
+            "tier": 10
           }
         },
         {
@@ -8602,7 +8750,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:crane_roar_berry",
-            "resultCropId": "taoyuan:heavenly_form_berry"
+            "resultCropId": "taoyuan:heavenly_form_berry",
+            "tier": 10
           }
         },
         {
@@ -8630,7 +8779,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:crane_dance_shoot",
-            "resultCropId": "taoyuan:heavenly_lasting_shoot"
+            "resultCropId": "taoyuan:heavenly_lasting_shoot",
+            "tier": 10
           }
         },
         {
@@ -8658,7 +8808,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:crane_gleam7_root",
-            "resultCropId": "taoyuan:heavenly_timeless_root"
+            "resultCropId": "taoyuan:heavenly_timeless_root",
+            "tier": 10
           }
         },
         {
@@ -8686,7 +8837,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:spring_chive",
-            "resultCropId": "taoyuan:hoar_aura_shoot"
+            "resultCropId": "taoyuan:hoar_aura_shoot",
+            "tier": 3
           }
         },
         {
@@ -8714,7 +8866,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:purple_lotus",
-            "resultCropId": "taoyuan:hoar_glow_gourd"
+            "resultCropId": "taoyuan:hoar_glow_gourd",
+            "tier": 3
           }
         },
         {
@@ -8742,7 +8895,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:mountain_bamboo",
-            "resultCropId": "taoyuan:hoar_jade3_berry"
+            "resultCropId": "taoyuan:hoar_jade3_berry",
+            "tier": 3
           }
         },
         {
@@ -8770,7 +8924,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:lotus_tea",
-            "resultCropId": "taoyuan:hoar_splendor_root"
+            "resultCropId": "taoyuan:hoar_splendor_root",
+            "tier": 3
           }
         },
         {
@@ -8798,7 +8953,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:frost_garlic",
-            "resultCropId": "taoyuan:hoar_tuber"
+            "resultCropId": "taoyuan:hoar_tuber",
+            "tier": 3
           }
         },
         {
@@ -8826,7 +8982,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:dawn_splendor_orchid",
-            "resultCropId": "taoyuan:holy_dream_orchid"
+            "resultCropId": "taoyuan:holy_dream_orchid",
+            "tier": 6
           }
         },
         {
@@ -8854,7 +9011,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:dawn_tea",
-            "resultCropId": "taoyuan:holy_grace6_tea"
+            "resultCropId": "taoyuan:holy_grace6_tea",
+            "tier": 6
           }
         },
         {
@@ -8882,7 +9040,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:rain_splendor_pepper",
-            "resultCropId": "taoyuan:holy_phantom_pepper"
+            "resultCropId": "taoyuan:holy_phantom_pepper",
+            "tier": 6
           }
         },
         {
@@ -8910,7 +9069,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:rain_rice",
-            "resultCropId": "taoyuan:holy_wonder_rice"
+            "resultCropId": "taoyuan:holy_wonder_rice",
+            "tier": 6
           }
         },
         {
@@ -8938,7 +9098,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:rain_jade3_pear",
-            "resultCropId": "taoyuan:holy_zen_pear"
+            "resultCropId": "taoyuan:holy_zen_pear",
+            "tier": 6
           }
         },
         {
@@ -8966,7 +9127,8 @@
             },
             "parentCropA": "taoyuan:loofah",
             "parentCropB": "taoyuan:peanut",
-            "resultCropId": "taoyuan:honey_gourd"
+            "resultCropId": "taoyuan:honey_gourd",
+            "tier": 1
           }
         },
         {
@@ -8994,7 +9156,8 @@
             },
             "parentCropA": "taoyuan:peach",
             "parentCropB": "taoyuan:watermelon",
-            "resultCropId": "taoyuan:honey_peach_melon"
+            "resultCropId": "taoyuan:honey_peach_melon",
+            "tier": 1
           }
         },
         {
@@ -9022,7 +9185,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:lotus_seed",
-            "resultCropId": "taoyuan:ice_lotus"
+            "resultCropId": "taoyuan:ice_lotus",
+            "tier": 2
           }
         },
         {
@@ -9050,7 +9214,8 @@
             },
             "parentCropA": "taoyuan:frost_garlic",
             "parentCropB": "taoyuan:jade_tea",
-            "resultCropId": "taoyuan:immortal_flower"
+            "resultCropId": "taoyuan:immortal_flower",
+            "tier": 2
           }
         },
         {
@@ -9078,7 +9243,8 @@
             },
             "parentCropA": "taoyuan:cabbage",
             "parentCropB": "taoyuan:napa_cabbage",
-            "resultCropId": "taoyuan:imperial_cabbage"
+            "resultCropId": "taoyuan:imperial_cabbage",
+            "tier": 1
           }
         },
         {
@@ -9106,7 +9272,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:holy_grace6_tea",
-            "resultCropId": "taoyuan:infinite_apex9_tea"
+            "resultCropId": "taoyuan:infinite_apex9_tea",
+            "tier": 9
           }
         },
         {
@@ -9134,7 +9301,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:holy_dream_orchid",
-            "resultCropId": "taoyuan:infinite_empyrean_orchid"
+            "resultCropId": "taoyuan:infinite_empyrean_orchid",
+            "tier": 9
           }
         },
         {
@@ -9162,7 +9330,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:holy_wonder_rice",
-            "resultCropId": "taoyuan:infinite_meng_rice"
+            "resultCropId": "taoyuan:infinite_meng_rice",
+            "tier": 9
           }
         },
         {
@@ -9190,7 +9359,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:holy_zen_pear",
-            "resultCropId": "taoyuan:infinite_spirit9_pear"
+            "resultCropId": "taoyuan:infinite_spirit9_pear",
+            "tier": 9
           }
         },
         {
@@ -9218,7 +9388,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:holy_phantom_pepper",
-            "resultCropId": "taoyuan:infinite_wilder_pepper"
+            "resultCropId": "taoyuan:infinite_wilder_pepper",
+            "tier": 9
           }
         },
         {
@@ -9246,7 +9417,8 @@
             },
             "parentCropA": "taoyuan:bamboo_shoot",
             "parentCropB": "taoyuan:corn",
-            "resultCropId": "taoyuan:jade_bamboo_corn"
+            "resultCropId": "taoyuan:jade_bamboo_corn",
+            "tier": 1
           }
         },
         {
@@ -9274,7 +9446,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:chives",
-            "resultCropId": "taoyuan:jade_chive"
+            "resultCropId": "taoyuan:jade_chive",
+            "tier": 2
           }
         },
         {
@@ -9302,7 +9475,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:golden_melon",
-            "resultCropId": "taoyuan:jade_golden_melon"
+            "resultCropId": "taoyuan:jade_golden_melon",
+            "tier": 2
           }
         },
         {
@@ -9330,7 +9504,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:loofah",
-            "resultCropId": "taoyuan:jade_loofah"
+            "resultCropId": "taoyuan:jade_loofah",
+            "tier": 2
           }
         },
         {
@@ -9358,7 +9533,8 @@
             },
             "parentCropA": "taoyuan:watermelon",
             "parentCropB": "taoyuan:potato",
-            "resultCropId": "taoyuan:jade_melon"
+            "resultCropId": "taoyuan:jade_melon",
+            "tier": 1
           }
         },
         {
@@ -9386,7 +9562,8 @@
             },
             "parentCropA": "taoyuan:jade_melon",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:jade_melon_tea"
+            "resultCropId": "taoyuan:jade_melon_tea",
+            "tier": 2
           }
         },
         {
@@ -9414,7 +9591,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:peach",
-            "resultCropId": "taoyuan:jade_peach_tea"
+            "resultCropId": "taoyuan:jade_peach_tea",
+            "tier": 2
           }
         },
         {
@@ -9442,7 +9620,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:peanut",
-            "resultCropId": "taoyuan:jade_peanut"
+            "resultCropId": "taoyuan:jade_peanut",
+            "tier": 2
           }
         },
         {
@@ -9470,7 +9649,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:persimmon",
-            "resultCropId": "taoyuan:jade_persimmon"
+            "resultCropId": "taoyuan:jade_persimmon",
+            "tier": 2
           }
         },
         {
@@ -9498,7 +9678,8 @@
             },
             "parentCropA": "taoyuan:potato",
             "parentCropB": "taoyuan:pumpkin",
-            "resultCropId": "taoyuan:jade_pumpkin"
+            "resultCropId": "taoyuan:jade_pumpkin",
+            "tier": 1
           }
         },
         {
@@ -9526,7 +9707,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:rapeseed",
-            "resultCropId": "taoyuan:jade_rapeseed"
+            "resultCropId": "taoyuan:jade_rapeseed",
+            "tier": 2
           }
         },
         {
@@ -9554,7 +9736,8 @@
             },
             "parentCropA": "taoyuan:bamboo_shoot",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:jade_shoot"
+            "resultCropId": "taoyuan:jade_shoot",
+            "tier": 1
           }
         },
         {
@@ -9582,7 +9765,8 @@
             },
             "parentCropA": "taoyuan:jade_shoot",
             "parentCropB": "taoyuan:ginger",
-            "resultCropId": "taoyuan:jade_shoot_ginger"
+            "resultCropId": "taoyuan:jade_shoot_ginger",
+            "tier": 2
           }
         },
         {
@@ -9610,7 +9794,8 @@
             },
             "parentCropA": "taoyuan:jade_tea",
             "parentCropB": "taoyuan:snow_lotus",
-            "resultCropId": "taoyuan:jade_snow"
+            "resultCropId": "taoyuan:jade_snow",
+            "tier": 2
           }
         },
         {
@@ -9638,7 +9823,8 @@
             },
             "parentCropA": "taoyuan:tea",
             "parentCropB": "taoyuan:chrysanthemum",
-            "resultCropId": "taoyuan:jade_tea"
+            "resultCropId": "taoyuan:jade_tea",
+            "tier": 1
           }
         },
         {
@@ -9666,7 +9852,8 @@
             },
             "parentCropA": "taoyuan:napa_cabbage",
             "parentCropB": "taoyuan:spinach",
-            "resultCropId": "taoyuan:jade_white"
+            "resultCropId": "taoyuan:jade_white",
+            "tier": 1
           }
         },
         {
@@ -9694,7 +9881,8 @@
             },
             "parentCropA": "taoyuan:peach",
             "parentCropB": "taoyuan:jujube",
-            "resultCropId": "taoyuan:jujube_blossom"
+            "resultCropId": "taoyuan:jujube_blossom",
+            "tier": 1
           }
         },
         {
@@ -9722,7 +9910,8 @@
             },
             "parentCropA": "taoyuan:lotus_root",
             "parentCropB": "taoyuan:napa_cabbage",
-            "resultCropId": "taoyuan:lotus_cabbage"
+            "resultCropId": "taoyuan:lotus_cabbage",
+            "tier": 1
           }
         },
         {
@@ -9750,7 +9939,8 @@
             },
             "parentCropA": "taoyuan:potato",
             "parentCropB": "taoyuan:lotus_seed",
-            "resultCropId": "taoyuan:lotus_potato"
+            "resultCropId": "taoyuan:lotus_potato",
+            "tier": 1
           }
         },
         {
@@ -9778,7 +9968,8 @@
             },
             "parentCropA": "taoyuan:lotus_root",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:lotus_tea"
+            "resultCropId": "taoyuan:lotus_tea",
+            "tier": 1
           }
         },
         {
@@ -9806,7 +9997,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:jade_golden_melon",
-            "resultCropId": "taoyuan:lustrous_dewdrop_sprout"
+            "resultCropId": "taoyuan:lustrous_dewdrop_sprout",
+            "tier": 5
           }
         },
         {
@@ -9834,7 +10026,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:dragon_pearl",
-            "resultCropId": "taoyuan:lustrous_hua5_lotus"
+            "resultCropId": "taoyuan:lustrous_hua5_lotus",
+            "tier": 5
           }
         },
         {
@@ -9862,7 +10055,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:jade_peach_tea",
-            "resultCropId": "taoyuan:lustrous_light5_green"
+            "resultCropId": "taoyuan:lustrous_light5_green",
+            "tier": 5
           }
         },
         {
@@ -9890,7 +10084,8 @@
             },
             "parentCropA": "taoyuan:sky_hua_rice",
             "parentCropB": "taoyuan:melon_tea_fruit",
-            "resultCropId": "taoyuan:lustrous_silk5_peach_t"
+            "resultCropId": "taoyuan:lustrous_silk5_peach_t",
+            "tier": 5
           }
         },
         {
@@ -9918,7 +10113,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:celestial_rice",
-            "resultCropId": "taoyuan:lustrous_soul_herb"
+            "resultCropId": "taoyuan:lustrous_soul_herb",
+            "tier": 5
           }
         },
         {
@@ -9946,7 +10142,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:golden_dragon",
-            "resultCropId": "taoyuan:magnif_dewdrop_pepper"
+            "resultCropId": "taoyuan:magnif_dewdrop_pepper",
+            "tier": 5
           }
         },
         {
@@ -9974,7 +10171,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:jade_golden_melon",
-            "resultCropId": "taoyuan:magnif_hua5_tea"
+            "resultCropId": "taoyuan:magnif_hua5_tea",
+            "tier": 5
           }
         },
         {
@@ -10002,7 +10200,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:celestial_rice",
-            "resultCropId": "taoyuan:magnif_light5_rice"
+            "resultCropId": "taoyuan:magnif_light5_rice",
+            "tier": 5
           }
         },
         {
@@ -10030,7 +10229,8 @@
             },
             "parentCropA": "taoyuan:sky_hua_rice",
             "parentCropB": "taoyuan:immortal_flower",
-            "resultCropId": "taoyuan:magnif_silk5_pear"
+            "resultCropId": "taoyuan:magnif_silk5_pear",
+            "tier": 5
           }
         },
         {
@@ -10058,7 +10258,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:melon_tea_fruit",
-            "resultCropId": "taoyuan:magnif_soul_orchid"
+            "resultCropId": "taoyuan:magnif_soul_orchid",
+            "tier": 5
           }
         },
         {
@@ -10086,7 +10287,8 @@
             },
             "parentCropA": "taoyuan:golden_melon",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:melon_tea_fruit"
+            "resultCropId": "taoyuan:melon_tea_fruit",
+            "tier": 2
           }
         },
         {
@@ -10114,7 +10316,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:lotus_potato",
-            "resultCropId": "taoyuan:moon_fortune_chestnut"
+            "resultCropId": "taoyuan:moon_fortune_chestnut",
+            "tier": 4
           }
         },
         {
@@ -10142,7 +10345,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:fairy_chrysanthemum",
-            "resultCropId": "taoyuan:moon_glory_fruit"
+            "resultCropId": "taoyuan:moon_glory_fruit",
+            "tier": 4
           }
         },
         {
@@ -10170,7 +10374,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:golden_melon",
-            "resultCropId": "taoyuan:moon_hua_melon"
+            "resultCropId": "taoyuan:moon_hua_melon",
+            "tier": 4
           }
         },
         {
@@ -10198,7 +10403,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:golden_rice",
-            "resultCropId": "taoyuan:moon_prism4_vine"
+            "resultCropId": "taoyuan:moon_prism4_vine",
+            "tier": 4
           }
         },
         {
@@ -10226,7 +10432,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:twin_bean",
-            "resultCropId": "taoyuan:moon_shine_wheat"
+            "resultCropId": "taoyuan:moon_shine_wheat",
+            "tier": 4
           }
         },
         {
@@ -10254,7 +10461,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:napa_cabbage",
-            "resultCropId": "taoyuan:moonlight_cabbage"
+            "resultCropId": "taoyuan:moonlight_cabbage",
+            "tier": 2
           }
         },
         {
@@ -10282,7 +10490,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:corn",
-            "resultCropId": "taoyuan:moonlight_corn"
+            "resultCropId": "taoyuan:moonlight_corn",
+            "tier": 2
           }
         },
         {
@@ -10310,7 +10519,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:frost_garlic",
-            "resultCropId": "taoyuan:moonlight_frost"
+            "resultCropId": "taoyuan:moonlight_frost",
+            "tier": 2
           }
         },
         {
@@ -10338,7 +10548,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:lotus_seed",
-            "resultCropId": "taoyuan:moonlight_lotus"
+            "resultCropId": "taoyuan:moonlight_lotus",
+            "tier": 2
           }
         },
         {
@@ -10366,7 +10577,8 @@
             },
             "parentCropA": "taoyuan:rice",
             "parentCropB": "taoyuan:bamboo_shoot",
-            "resultCropId": "taoyuan:moonlight_rice"
+            "resultCropId": "taoyuan:moonlight_rice",
+            "tier": 1
           }
         },
         {
@@ -10394,7 +10606,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:spinach",
-            "resultCropId": "taoyuan:moonlight_spinach"
+            "resultCropId": "taoyuan:moonlight_spinach",
+            "tier": 2
           }
         },
         {
@@ -10422,7 +10635,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:moonlight_tea"
+            "resultCropId": "taoyuan:moonlight_tea",
+            "tier": 2
           }
         },
         {
@@ -10450,7 +10664,8 @@
             },
             "parentCropA": "taoyuan:moonlight_rice",
             "parentCropB": "taoyuan:sweet_potato",
-            "resultCropId": "taoyuan:moonlight_yam"
+            "resultCropId": "taoyuan:moonlight_yam",
+            "tier": 2
           }
         },
         {
@@ -10478,7 +10693,8 @@
             },
             "parentCropA": "taoyuan:bamboo_shoot",
             "parentCropB": "taoyuan:sweet_potato",
-            "resultCropId": "taoyuan:mountain_bamboo"
+            "resultCropId": "taoyuan:mountain_bamboo",
+            "tier": 1
           }
         },
         {
@@ -10506,7 +10722,8 @@
             },
             "parentCropA": "taoyuan:lotus_root",
             "parentCropB": "taoyuan:yam",
-            "resultCropId": "taoyuan:mountain_lotus"
+            "resultCropId": "taoyuan:mountain_lotus",
+            "tier": 1
           }
         },
         {
@@ -10534,7 +10751,8 @@
             },
             "parentCropA": "taoyuan:yam",
             "parentCropB": "taoyuan:peanut",
-            "resultCropId": "taoyuan:mountain_nut"
+            "resultCropId": "taoyuan:mountain_nut",
+            "tier": 1
           }
         },
         {
@@ -10562,7 +10780,8 @@
             },
             "parentCropA": "taoyuan:broad_bean",
             "parentCropB": "taoyuan:mustard_green",
-            "resultCropId": "taoyuan:mustard_bean"
+            "resultCropId": "taoyuan:mustard_bean",
+            "tier": 1
           }
         },
         {
@@ -10590,7 +10809,8 @@
             },
             "parentCropA": "taoyuan:eggplant",
             "parentCropB": "taoyuan:mustard_green",
-            "resultCropId": "taoyuan:mustard_eggplant"
+            "resultCropId": "taoyuan:mustard_eggplant",
+            "tier": 1
           }
         },
         {
@@ -10618,7 +10838,8 @@
             },
             "parentCropA": "taoyuan:ginger",
             "parentCropB": "taoyuan:mustard_green",
-            "resultCropId": "taoyuan:mustard_ginger"
+            "resultCropId": "taoyuan:mustard_ginger",
+            "tier": 1
           }
         },
         {
@@ -10646,7 +10867,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:tiger_song_green",
-            "resultCropId": "taoyuan:myriad_change_green"
+            "resultCropId": "taoyuan:myriad_change_green",
+            "tier": 10
           }
         },
         {
@@ -10674,7 +10896,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:tiger_shadow_herb",
-            "resultCropId": "taoyuan:myriad_destiny_herb"
+            "resultCropId": "taoyuan:myriad_destiny_herb",
+            "tier": 10
           }
         },
         {
@@ -10702,7 +10925,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:tiger_roar_peach_t",
-            "resultCropId": "taoyuan:myriad_form_peach_t"
+            "resultCropId": "taoyuan:myriad_form_peach_t",
+            "tier": 10
           }
         },
         {
@@ -10730,7 +10954,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:tiger_dance_lotus",
-            "resultCropId": "taoyuan:myriad_lasting_lotus"
+            "resultCropId": "taoyuan:myriad_lasting_lotus",
+            "tier": 10
           }
         },
         {
@@ -10758,7 +10983,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:tiger_gleam7_sprout",
-            "resultCropId": "taoyuan:myriad_timeless_sprout"
+            "resultCropId": "taoyuan:myriad_timeless_sprout",
+            "tier": 10
           }
         },
         {
@@ -10786,7 +11012,8 @@
             },
             "parentCropA": "taoyuan:corn",
             "parentCropB": "taoyuan:peanut",
-            "resultCropId": "taoyuan:nut_corn"
+            "resultCropId": "taoyuan:nut_corn",
+            "tier": 1
           }
         },
         {
@@ -10814,7 +11041,8 @@
             },
             "parentCropA": "taoyuan:potato",
             "parentCropB": "taoyuan:peanut",
-            "resultCropId": "taoyuan:nut_potato"
+            "resultCropId": "taoyuan:nut_potato",
+            "tier": 1
           }
         },
         {
@@ -10842,7 +11070,8 @@
             },
             "parentCropA": "taoyuan:osmanthus",
             "parentCropB": "taoyuan:garlic",
-            "resultCropId": "taoyuan:osmanthus_garlic"
+            "resultCropId": "taoyuan:osmanthus_garlic",
+            "tier": 1
           }
         },
         {
@@ -10870,7 +11099,8 @@
             },
             "parentCropA": "taoyuan:lotus_seed",
             "parentCropB": "taoyuan:osmanthus",
-            "resultCropId": "taoyuan:osmanthus_lotus"
+            "resultCropId": "taoyuan:osmanthus_lotus",
+            "tier": 1
           }
         },
         {
@@ -10898,7 +11128,8 @@
             },
             "parentCropA": "taoyuan:tea",
             "parentCropB": "taoyuan:osmanthus",
-            "resultCropId": "taoyuan:osmanthus_tea"
+            "resultCropId": "taoyuan:osmanthus_tea",
+            "tier": 1
           }
         },
         {
@@ -10926,7 +11157,8 @@
             },
             "parentCropA": "taoyuan:osmanthus",
             "parentCropB": "taoyuan:sweet_potato",
-            "resultCropId": "taoyuan:osmanthus_yam"
+            "resultCropId": "taoyuan:osmanthus_yam",
+            "tier": 1
           }
         },
         {
@@ -10954,7 +11186,8 @@
             },
             "parentCropA": "taoyuan:peach",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:peach_blossom_tea"
+            "resultCropId": "taoyuan:peach_blossom_tea",
+            "tier": 1
           }
         },
         {
@@ -10982,7 +11215,8 @@
             },
             "parentCropA": "taoyuan:peach_blossom_tea",
             "parentCropB": "taoyuan:rice",
-            "resultCropId": "taoyuan:peach_rice"
+            "resultCropId": "taoyuan:peach_rice",
+            "tier": 2
           }
         },
         {
@@ -11010,7 +11244,8 @@
             },
             "parentCropA": "taoyuan:rice",
             "parentCropB": "taoyuan:tea",
-            "resultCropId": "taoyuan:pearl_grain"
+            "resultCropId": "taoyuan:pearl_grain",
+            "tier": 1
           }
         },
         {
@@ -11038,7 +11273,8 @@
             },
             "parentCropA": "taoyuan:pearl_grain",
             "parentCropB": "taoyuan:osmanthus",
-            "resultCropId": "taoyuan:pearl_osmanthus"
+            "resultCropId": "taoyuan:pearl_osmanthus",
+            "tier": 2
           }
         },
         {
@@ -11066,7 +11302,8 @@
             },
             "parentCropA": "taoyuan:pearl_grain",
             "parentCropB": "taoyuan:peach",
-            "resultCropId": "taoyuan:pearl_peach"
+            "resultCropId": "taoyuan:pearl_peach",
+            "tier": 2
           }
         },
         {
@@ -11094,7 +11331,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:broad_bean",
-            "resultCropId": "taoyuan:phoenix_broad_bean"
+            "resultCropId": "taoyuan:phoenix_broad_bean",
+            "tier": 2
           }
         },
         {
@@ -11122,7 +11360,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:corn",
-            "resultCropId": "taoyuan:phoenix_corn"
+            "resultCropId": "taoyuan:phoenix_corn",
+            "tier": 2
           }
         },
         {
@@ -11150,7 +11389,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:eggplant",
-            "resultCropId": "taoyuan:phoenix_eggplant"
+            "resultCropId": "taoyuan:phoenix_eggplant",
+            "tier": 2
           }
         },
         {
@@ -11178,7 +11418,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:garlic",
-            "resultCropId": "taoyuan:phoenix_garlic"
+            "resultCropId": "taoyuan:phoenix_garlic",
+            "tier": 2
           }
         },
         {
@@ -11206,7 +11447,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:peach",
-            "resultCropId": "taoyuan:phoenix_peach"
+            "resultCropId": "taoyuan:phoenix_peach",
+            "tier": 2
           }
         },
         {
@@ -11234,7 +11476,8 @@
             },
             "parentCropA": "taoyuan:chili",
             "parentCropB": "taoyuan:pumpkin",
-            "resultCropId": "taoyuan:phoenix_pepper"
+            "resultCropId": "taoyuan:phoenix_pepper",
+            "tier": 1
           }
         },
         {
@@ -11262,7 +11505,8 @@
             },
             "parentCropA": "taoyuan:phoenix_pepper",
             "parentCropB": "taoyuan:sesame",
-            "resultCropId": "taoyuan:phoenix_sesame"
+            "resultCropId": "taoyuan:phoenix_sesame",
+            "tier": 2
           }
         },
         {
@@ -11290,7 +11534,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:ice_lotus",
-            "resultCropId": "taoyuan:precious_dewdrop_wheat"
+            "resultCropId": "taoyuan:precious_dewdrop_wheat",
+            "tier": 5
           }
         },
         {
@@ -11318,7 +11563,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:golden_dragon",
-            "resultCropId": "taoyuan:precious_hua5_fruit"
+            "resultCropId": "taoyuan:precious_hua5_fruit",
+            "tier": 5
           }
         },
         {
@@ -11346,7 +11592,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:melon_tea_fruit",
-            "resultCropId": "taoyuan:precious_light5_melon"
+            "resultCropId": "taoyuan:precious_light5_melon",
+            "tier": 5
           }
         },
         {
@@ -11374,7 +11621,8 @@
             },
             "parentCropA": "taoyuan:sky_hua_rice",
             "parentCropB": "taoyuan:moonlight_frost",
-            "resultCropId": "taoyuan:precious_silk5_chestnut"
+            "resultCropId": "taoyuan:precious_silk5_chestnut",
+            "tier": 5
           }
         },
         {
@@ -11402,7 +11650,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:immortal_flower",
-            "resultCropId": "taoyuan:precious_soul_vine"
+            "resultCropId": "taoyuan:precious_soul_vine",
+            "tier": 5
           }
         },
         {
@@ -11430,7 +11679,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:radiant_silk5_berry",
-            "resultCropId": "taoyuan:primal_core_berry"
+            "resultCropId": "taoyuan:primal_core_berry",
+            "tier": 8
           }
         },
         {
@@ -11458,7 +11708,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:radiant_dewdrop_root",
-            "resultCropId": "taoyuan:primal_glory8_root"
+            "resultCropId": "taoyuan:primal_glory8_root",
+            "tier": 8
           }
         },
         {
@@ -11486,7 +11737,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:radiant_light5_tuber",
-            "resultCropId": "taoyuan:primal_origin_tuber"
+            "resultCropId": "taoyuan:primal_origin_tuber",
+            "tier": 8
           }
         },
         {
@@ -11514,7 +11766,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:radiant_hua5_shoot",
-            "resultCropId": "taoyuan:primal_vital8_shoot"
+            "resultCropId": "taoyuan:primal_vital8_shoot",
+            "tier": 8
           }
         },
         {
@@ -11542,7 +11795,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:radiant_soul_gourd",
-            "resultCropId": "taoyuan:primal_zenith_gourd"
+            "resultCropId": "taoyuan:primal_zenith_gourd",
+            "tier": 8
           }
         },
         {
@@ -11570,7 +11824,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:divine_grace6_shoot",
-            "resultCropId": "taoyuan:primeval_apex9_shoot"
+            "resultCropId": "taoyuan:primeval_apex9_shoot",
+            "tier": 9
           }
         },
         {
@@ -11598,7 +11853,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:divine_dream_gourd",
-            "resultCropId": "taoyuan:primeval_empyrean_gourd"
+            "resultCropId": "taoyuan:primeval_empyrean_gourd",
+            "tier": 9
           }
         },
         {
@@ -11626,7 +11882,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:divine_wonder_tuber",
-            "resultCropId": "taoyuan:primeval_meng_tuber"
+            "resultCropId": "taoyuan:primeval_meng_tuber",
+            "tier": 9
           }
         },
         {
@@ -11654,7 +11911,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:divine_zen_berry",
-            "resultCropId": "taoyuan:primeval_spirit9_berry"
+            "resultCropId": "taoyuan:primeval_spirit9_berry",
+            "tier": 9
           }
         },
         {
@@ -11682,7 +11940,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:divine_phantom_root",
-            "resultCropId": "taoyuan:primeval_wilder_root"
+            "resultCropId": "taoyuan:primeval_wilder_root",
+            "tier": 9
           }
         },
         {
@@ -11710,7 +11969,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:mountain_bamboo",
-            "resultCropId": "taoyuan:prism_fortune_peach_t"
+            "resultCropId": "taoyuan:prism_fortune_peach_t",
+            "tier": 4
           }
         },
         {
@@ -11738,7 +11998,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:spring_chive",
-            "resultCropId": "taoyuan:prism_glory_lotus"
+            "resultCropId": "taoyuan:prism_glory_lotus",
+            "tier": 4
           }
         },
         {
@@ -11766,7 +12027,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:frost_garlic",
-            "resultCropId": "taoyuan:prism_hua_green"
+            "resultCropId": "taoyuan:prism_hua_green",
+            "tier": 4
           }
         },
         {
@@ -11794,7 +12056,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:purple_lotus",
-            "resultCropId": "taoyuan:prism_prism4_herb"
+            "resultCropId": "taoyuan:prism_prism4_herb",
+            "tier": 4
           }
         },
         {
@@ -11822,7 +12085,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:lotus_tea",
-            "resultCropId": "taoyuan:prism_shine_sprout"
+            "resultCropId": "taoyuan:prism_shine_sprout",
+            "tier": 4
           }
         },
         {
@@ -11850,7 +12114,8 @@
             },
             "parentCropA": "taoyuan:rice",
             "parentCropB": "taoyuan:pumpkin",
-            "resultCropId": "taoyuan:pumpkin_rice"
+            "resultCropId": "taoyuan:pumpkin_rice",
+            "tier": 1
           }
         },
         {
@@ -11878,7 +12143,8 @@
             },
             "parentCropA": "taoyuan:bamboo_shoot",
             "parentCropB": "taoyuan:eggplant",
-            "resultCropId": "taoyuan:purple_bamboo"
+            "resultCropId": "taoyuan:purple_bamboo",
+            "tier": 1
           }
         },
         {
@@ -11906,7 +12172,8 @@
             },
             "parentCropA": "taoyuan:eggplant",
             "parentCropB": "taoyuan:lotus_root",
-            "resultCropId": "taoyuan:purple_lotus"
+            "resultCropId": "taoyuan:purple_lotus",
+            "tier": 1
           }
         },
         {
@@ -11934,7 +12201,8 @@
             },
             "parentCropA": "taoyuan:watermelon",
             "parentCropB": "taoyuan:eggplant",
-            "resultCropId": "taoyuan:purple_melon"
+            "resultCropId": "taoyuan:purple_melon",
+            "tier": 1
           }
         },
         {
@@ -11962,7 +12230,8 @@
             },
             "parentCropA": "taoyuan:eggplant",
             "parentCropB": "taoyuan:persimmon",
-            "resultCropId": "taoyuan:purple_persimmon"
+            "resultCropId": "taoyuan:purple_persimmon",
+            "tier": 1
           }
         },
         {
@@ -11990,7 +12259,8 @@
             },
             "parentCropA": "taoyuan:yam",
             "parentCropB": "taoyuan:eggplant",
-            "resultCropId": "taoyuan:purple_yam"
+            "resultCropId": "taoyuan:purple_yam",
+            "tier": 1
           }
         },
         {
@@ -12018,7 +12288,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:violet_hua_tea",
-            "resultCropId": "taoyuan:qilin_dance_tea"
+            "resultCropId": "taoyuan:qilin_dance_tea",
+            "tier": 7
           }
         },
         {
@@ -12046,7 +12317,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:sky_shine_pepper",
-            "resultCropId": "taoyuan:qilin_gleam7_pepper"
+            "resultCropId": "taoyuan:qilin_gleam7_pepper",
+            "tier": 7
           }
         },
         {
@@ -12074,7 +12346,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:sky_fortune_pear",
-            "resultCropId": "taoyuan:qilin_roar_pear"
+            "resultCropId": "taoyuan:qilin_roar_pear",
+            "tier": 7
           }
         },
         {
@@ -12102,7 +12375,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:violet_shine_orchid",
-            "resultCropId": "taoyuan:qilin_shadow_orchid"
+            "resultCropId": "taoyuan:qilin_shadow_orchid",
+            "tier": 7
           }
         },
         {
@@ -12130,7 +12404,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:sky_hua_rice",
-            "resultCropId": "taoyuan:qilin_song_rice"
+            "resultCropId": "taoyuan:qilin_song_rice",
+            "tier": 7
           }
         },
         {
@@ -12158,7 +12433,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:moonlight_frost",
-            "resultCropId": "taoyuan:radiant_dewdrop_root"
+            "resultCropId": "taoyuan:radiant_dewdrop_root",
+            "tier": 5
           }
         },
         {
@@ -12186,7 +12462,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:immortal_flower",
-            "resultCropId": "taoyuan:radiant_hua5_shoot"
+            "resultCropId": "taoyuan:radiant_hua5_shoot",
+            "tier": 5
           }
         },
         {
@@ -12214,7 +12491,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:ice_lotus",
-            "resultCropId": "taoyuan:radiant_light5_tuber"
+            "resultCropId": "taoyuan:radiant_light5_tuber",
+            "tier": 5
           }
         },
         {
@@ -12242,7 +12520,8 @@
             },
             "parentCropA": "taoyuan:sky_hua_rice",
             "parentCropB": "taoyuan:dragon_pearl",
-            "resultCropId": "taoyuan:radiant_silk5_berry"
+            "resultCropId": "taoyuan:radiant_silk5_berry",
+            "tier": 5
           }
         },
         {
@@ -12270,7 +12549,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:dragon_fire",
-            "resultCropId": "taoyuan:radiant_soul_gourd"
+            "resultCropId": "taoyuan:radiant_soul_gourd",
+            "tier": 5
           }
         },
         {
@@ -12298,7 +12578,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:snow_tea",
-            "resultCropId": "taoyuan:rain_aura_tea"
+            "resultCropId": "taoyuan:rain_aura_tea",
+            "tier": 3
           }
         },
         {
@@ -12326,7 +12607,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:silk_corn",
-            "resultCropId": "taoyuan:rain_glow_orchid"
+            "resultCropId": "taoyuan:rain_glow_orchid",
+            "tier": 3
           }
         },
         {
@@ -12354,7 +12636,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:osmanthus_tea",
-            "resultCropId": "taoyuan:rain_jade3_pear"
+            "resultCropId": "taoyuan:rain_jade3_pear",
+            "tier": 3
           }
         },
         {
@@ -12382,7 +12665,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:moonlight_rice",
-            "resultCropId": "taoyuan:rain_rice"
+            "resultCropId": "taoyuan:rain_rice",
+            "tier": 3
           }
         },
         {
@@ -12410,7 +12694,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:golden_corn",
-            "resultCropId": "taoyuan:rain_splendor_pepper"
+            "resultCropId": "taoyuan:rain_splendor_pepper",
+            "tier": 3
           }
         },
         {
@@ -12438,7 +12723,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:spring_green_peach",
-            "resultCropId": "taoyuan:rainbow_aura_wheat"
+            "resultCropId": "taoyuan:rainbow_aura_wheat",
+            "tier": 3
           }
         },
         {
@@ -12466,7 +12752,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:jade_shoot",
-            "resultCropId": "taoyuan:rainbow_fruit"
+            "resultCropId": "taoyuan:rainbow_fruit",
+            "tier": 3
           }
         },
         {
@@ -12494,7 +12781,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:pumpkin_rice",
-            "resultCropId": "taoyuan:rainbow_glow_chestnut"
+            "resultCropId": "taoyuan:rainbow_glow_chestnut",
+            "tier": 3
           }
         },
         {
@@ -12522,7 +12810,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:nut_potato",
-            "resultCropId": "taoyuan:rainbow_jade3_melon"
+            "resultCropId": "taoyuan:rainbow_jade3_melon",
+            "tier": 3
           }
         },
         {
@@ -12550,7 +12839,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:honey_peach_melon",
-            "resultCropId": "taoyuan:rainbow_splendor_vine"
+            "resultCropId": "taoyuan:rainbow_splendor_vine",
+            "tier": 3
           }
         },
         {
@@ -12578,7 +12868,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:jade_peach_tea",
-            "resultCropId": "taoyuan:rare_dewdrop_sesame"
+            "resultCropId": "taoyuan:rare_dewdrop_sesame",
+            "tier": 5
           }
         },
         {
@@ -12606,7 +12897,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:moonlight_frost",
-            "resultCropId": "taoyuan:rare_hua5_bloom"
+            "resultCropId": "taoyuan:rare_hua5_bloom",
+            "tier": 5
           }
         },
         {
@@ -12634,7 +12926,8 @@
             },
             "parentCropA": "taoyuan:moon_hua_melon",
             "parentCropB": "taoyuan:dragon_fire",
-            "resultCropId": "taoyuan:rare_light5_bean"
+            "resultCropId": "taoyuan:rare_light5_bean",
+            "tier": 5
           }
         },
         {
@@ -12662,7 +12955,8 @@
             },
             "parentCropA": "taoyuan:sky_hua_rice",
             "parentCropB": "taoyuan:jade_golden_melon",
-            "resultCropId": "taoyuan:rare_silk5_apricot"
+            "resultCropId": "taoyuan:rare_silk5_apricot",
+            "tier": 5
           }
         },
         {
@@ -12690,7 +12984,8 @@
             },
             "parentCropA": "taoyuan:sun_hua_bean",
             "parentCropB": "taoyuan:dragon_pearl",
-            "resultCropId": "taoyuan:rare_soul_bud"
+            "resultCropId": "taoyuan:rare_soul_bud",
+            "tier": 5
           }
         },
         {
@@ -12718,7 +13013,8 @@
             },
             "parentCropA": "taoyuan:broad_bean",
             "parentCropB": "taoyuan:peach",
-            "resultCropId": "taoyuan:ruby_bean"
+            "resultCropId": "taoyuan:ruby_bean",
+            "tier": 1
           }
         },
         {
@@ -12746,7 +13042,8 @@
             },
             "parentCropA": "taoyuan:ruby_bean",
             "parentCropB": "taoyuan:chili",
-            "resultCropId": "taoyuan:ruby_fire"
+            "resultCropId": "taoyuan:ruby_fire",
+            "tier": 2
           }
         },
         {
@@ -12774,7 +13071,8 @@
             },
             "parentCropA": "taoyuan:watermelon",
             "parentCropB": "taoyuan:jujube",
-            "resultCropId": "taoyuan:ruby_melon"
+            "resultCropId": "taoyuan:ruby_melon",
+            "tier": 1
           }
         },
         {
@@ -12802,7 +13100,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:jujube_blossom",
-            "resultCropId": "taoyuan:scarlet_fortune_tuber"
+            "resultCropId": "taoyuan:scarlet_fortune_tuber",
+            "tier": 4
           }
         },
         {
@@ -12830,7 +13129,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:frost_rapeseed",
-            "resultCropId": "taoyuan:scarlet_glory_root"
+            "resultCropId": "taoyuan:scarlet_glory_root",
+            "tier": 4
           }
         },
         {
@@ -12858,7 +13158,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:peach_blossom_tea",
-            "resultCropId": "taoyuan:scarlet_hua_shoot"
+            "resultCropId": "taoyuan:scarlet_hua_shoot",
+            "tier": 4
           }
         },
         {
@@ -12886,7 +13187,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:double_nut",
-            "resultCropId": "taoyuan:scarlet_prism4_berry"
+            "resultCropId": "taoyuan:scarlet_prism4_berry",
+            "tier": 4
           }
         },
         {
@@ -12914,7 +13216,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:silk_bean",
-            "resultCropId": "taoyuan:scarlet_shine_gourd"
+            "resultCropId": "taoyuan:scarlet_shine_gourd",
+            "tier": 4
           }
         },
         {
@@ -12942,7 +13245,8 @@
             },
             "parentCropA": "taoyuan:green_bean",
             "parentCropB": "taoyuan:loofah",
-            "resultCropId": "taoyuan:silk_bean"
+            "resultCropId": "taoyuan:silk_bean",
+            "tier": 1
           }
         },
         {
@@ -12970,7 +13274,8 @@
             },
             "parentCropA": "taoyuan:loofah",
             "parentCropB": "taoyuan:corn",
-            "resultCropId": "taoyuan:silk_corn"
+            "resultCropId": "taoyuan:silk_corn",
+            "tier": 1
           }
         },
         {
@@ -12998,7 +13303,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:golden_fruit",
-            "resultCropId": "taoyuan:silver_fortune_melon"
+            "resultCropId": "taoyuan:silver_fortune_melon",
+            "tier": 4
           }
         },
         {
@@ -13026,7 +13332,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:wheat_potato",
-            "resultCropId": "taoyuan:silver_glory_wheat"
+            "resultCropId": "taoyuan:silver_glory_wheat",
+            "tier": 4
           }
         },
         {
@@ -13054,7 +13361,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:emerald_radish",
-            "resultCropId": "taoyuan:silver_hua_fruit"
+            "resultCropId": "taoyuan:silver_hua_fruit",
+            "tier": 4
           }
         },
         {
@@ -13082,7 +13390,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:chrysanthemum_melon",
-            "resultCropId": "taoyuan:silver_prism4_chestnut"
+            "resultCropId": "taoyuan:silver_prism4_chestnut",
+            "tier": 4
           }
         },
         {
@@ -13110,7 +13419,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:purple_bamboo",
-            "resultCropId": "taoyuan:silver_shine_vine"
+            "resultCropId": "taoyuan:silver_shine_vine",
+            "tier": 4
           }
         },
         {
@@ -13138,7 +13448,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:crystal_yam",
-            "resultCropId": "taoyuan:sky_fortune_pear"
+            "resultCropId": "taoyuan:sky_fortune_pear",
+            "tier": 4
           }
         },
         {
@@ -13166,7 +13477,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:spicy_radish",
-            "resultCropId": "taoyuan:sky_glory_tea"
+            "resultCropId": "taoyuan:sky_glory_tea",
+            "tier": 4
           }
         },
         {
@@ -13194,7 +13506,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:phoenix_pepper",
-            "resultCropId": "taoyuan:sky_hua_rice"
+            "resultCropId": "taoyuan:sky_hua_rice",
+            "tier": 4
           }
         },
         {
@@ -13222,7 +13535,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:fire_sesame",
-            "resultCropId": "taoyuan:sky_prism4_orchid"
+            "resultCropId": "taoyuan:sky_prism4_orchid",
+            "tier": 4
           }
         },
         {
@@ -13250,7 +13564,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:pearl_grain",
-            "resultCropId": "taoyuan:sky_shine_pepper"
+            "resultCropId": "taoyuan:sky_shine_pepper",
+            "tier": 4
           }
         },
         {
@@ -13278,7 +13593,8 @@
             },
             "parentCropA": "taoyuan:chrysanthemum",
             "parentCropB": "taoyuan:snow_lotus",
-            "resultCropId": "taoyuan:snow_chrysanthemum"
+            "resultCropId": "taoyuan:snow_chrysanthemum",
+            "tier": 1
           }
         },
         {
@@ -13306,7 +13622,8 @@
             },
             "parentCropA": "taoyuan:chili",
             "parentCropB": "taoyuan:snow_lotus",
-            "resultCropId": "taoyuan:snow_fire_pepper"
+            "resultCropId": "taoyuan:snow_fire_pepper",
+            "tier": 1
           }
         },
         {
@@ -13334,7 +13651,8 @@
             },
             "parentCropA": "taoyuan:lotus_seed",
             "parentCropB": "taoyuan:snow_lotus",
-            "resultCropId": "taoyuan:snow_lotus_pearl"
+            "resultCropId": "taoyuan:snow_lotus_pearl",
+            "tier": 1
           }
         },
         {
@@ -13362,7 +13680,8 @@
             },
             "parentCropA": "taoyuan:pumpkin",
             "parentCropB": "taoyuan:snow_lotus",
-            "resultCropId": "taoyuan:snow_pumpkin"
+            "resultCropId": "taoyuan:snow_pumpkin",
+            "tier": 1
           }
         },
         {
@@ -13390,7 +13709,8 @@
             },
             "parentCropA": "taoyuan:tea",
             "parentCropB": "taoyuan:snow_lotus",
-            "resultCropId": "taoyuan:snow_tea"
+            "resultCropId": "taoyuan:snow_tea",
+            "tier": 1
           }
         },
         {
@@ -13418,7 +13738,8 @@
             },
             "parentCropA": "taoyuan:jujube",
             "parentCropB": "taoyuan:ginger",
-            "resultCropId": "taoyuan:spice_jujube"
+            "resultCropId": "taoyuan:spice_jujube",
+            "tier": 1
           }
         },
         {
@@ -13446,7 +13767,8 @@
             },
             "parentCropA": "taoyuan:radish",
             "parentCropB": "taoyuan:garlic",
-            "resultCropId": "taoyuan:spicy_radish"
+            "resultCropId": "taoyuan:spicy_radish",
+            "tier": 1
           }
         },
         {
@@ -13474,7 +13796,8 @@
             },
             "parentCropA": "taoyuan:chili",
             "parentCropB": "taoyuan:peanut",
-            "resultCropId": "taoyuan:spicy_sesame"
+            "resultCropId": "taoyuan:spicy_sesame",
+            "tier": 1
           }
         },
         {
@@ -13502,7 +13825,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:rainbow_splendor_vine",
-            "resultCropId": "taoyuan:spirit_dream_vine"
+            "resultCropId": "taoyuan:spirit_dream_vine",
+            "tier": 6
           }
         },
         {
@@ -13530,7 +13854,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:rainbow_fruit",
-            "resultCropId": "taoyuan:spirit_grace6_fruit"
+            "resultCropId": "taoyuan:spirit_grace6_fruit",
+            "tier": 6
           }
         },
         {
@@ -13558,7 +13883,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:wind_splendor_wheat",
-            "resultCropId": "taoyuan:spirit_phantom_wheat"
+            "resultCropId": "taoyuan:spirit_phantom_wheat",
+            "tier": 6
           }
         },
         {
@@ -13586,7 +13912,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:wind_melon",
-            "resultCropId": "taoyuan:spirit_wonder_melon"
+            "resultCropId": "taoyuan:spirit_wonder_melon",
+            "tier": 6
           }
         },
         {
@@ -13614,7 +13941,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:wind_jade3_chestnut",
-            "resultCropId": "taoyuan:spirit_zen_chestnut"
+            "resultCropId": "taoyuan:spirit_zen_chestnut",
+            "tier": 6
           }
         },
         {
@@ -13642,7 +13970,8 @@
             },
             "parentCropA": "taoyuan:cabbage",
             "parentCropB": "taoyuan:chives",
-            "resultCropId": "taoyuan:spring_chive"
+            "resultCropId": "taoyuan:spring_chive",
+            "tier": 1
           }
         },
         {
@@ -13670,7 +13999,8 @@
             },
             "parentCropA": "taoyuan:peach",
             "parentCropB": "taoyuan:spinach",
-            "resultCropId": "taoyuan:spring_green_peach"
+            "resultCropId": "taoyuan:spring_green_peach",
+            "tier": 1
           }
         },
         {
@@ -13698,7 +14028,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:golden_rice",
-            "resultCropId": "taoyuan:star_aura_sprout"
+            "resultCropId": "taoyuan:star_aura_sprout",
+            "tier": 3
           }
         },
         {
@@ -13726,7 +14057,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:purple_persimmon",
-            "resultCropId": "taoyuan:star_glow_peach_t"
+            "resultCropId": "taoyuan:star_glow_peach_t",
+            "tier": 3
           }
         },
         {
@@ -13754,7 +14086,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:fairy_chrysanthemum",
-            "resultCropId": "taoyuan:star_jade3_green"
+            "resultCropId": "taoyuan:star_jade3_green",
+            "tier": 3
           }
         },
         {
@@ -13782,7 +14115,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:twin_bean",
-            "resultCropId": "taoyuan:star_lotus"
+            "resultCropId": "taoyuan:star_lotus",
+            "tier": 3
           }
         },
         {
@@ -13810,7 +14144,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:lotus_potato",
-            "resultCropId": "taoyuan:star_splendor_herb"
+            "resultCropId": "taoyuan:star_splendor_herb",
+            "tier": 3
           }
         },
         {
@@ -13838,7 +14173,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:jade_pumpkin",
-            "resultCropId": "taoyuan:sun_fortune_apricot"
+            "resultCropId": "taoyuan:sun_fortune_apricot",
+            "tier": 4
           }
         },
         {
@@ -13866,7 +14202,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:imperial_cabbage",
-            "resultCropId": "taoyuan:sun_glory_bloom"
+            "resultCropId": "taoyuan:sun_glory_bloom",
+            "tier": 4
           }
         },
         {
@@ -13894,7 +14231,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:jade_tea",
-            "resultCropId": "taoyuan:sun_hua_bean"
+            "resultCropId": "taoyuan:sun_hua_bean",
+            "tier": 4
           }
         },
         {
@@ -13922,7 +14260,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:double_lotus",
-            "resultCropId": "taoyuan:sun_prism4_bud"
+            "resultCropId": "taoyuan:sun_prism4_bud",
+            "tier": 4
           }
         },
         {
@@ -13950,7 +14289,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:jade_melon",
-            "resultCropId": "taoyuan:sun_shine_sesame"
+            "resultCropId": "taoyuan:sun_shine_sesame",
+            "tier": 4
           }
         },
         {
@@ -13978,7 +14318,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:precious_silk5_chestnut",
-            "resultCropId": "taoyuan:supreme_core_chestnut"
+            "resultCropId": "taoyuan:supreme_core_chestnut",
+            "tier": 8
           }
         },
         {
@@ -14006,7 +14347,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:precious_dewdrop_wheat",
-            "resultCropId": "taoyuan:supreme_glory8_wheat"
+            "resultCropId": "taoyuan:supreme_glory8_wheat",
+            "tier": 8
           }
         },
         {
@@ -14034,7 +14376,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:precious_light5_melon",
-            "resultCropId": "taoyuan:supreme_origin_melon"
+            "resultCropId": "taoyuan:supreme_origin_melon",
+            "tier": 8
           }
         },
         {
@@ -14062,7 +14405,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:precious_hua5_fruit",
-            "resultCropId": "taoyuan:supreme_vital8_fruit"
+            "resultCropId": "taoyuan:supreme_vital8_fruit",
+            "tier": 8
           }
         },
         {
@@ -14090,7 +14434,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:precious_soul_vine",
-            "resultCropId": "taoyuan:supreme_zenith_vine"
+            "resultCropId": "taoyuan:supreme_zenith_vine",
+            "tier": 8
           }
         },
         {
@@ -14118,7 +14463,8 @@
             },
             "parentCropA": "taoyuan:loofah",
             "parentCropB": "taoyuan:sweet_potato",
-            "resultCropId": "taoyuan:sweet_gourd"
+            "resultCropId": "taoyuan:sweet_gourd",
+            "tier": 1
           }
         },
         {
@@ -14146,7 +14492,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:magnif_silk5_pear",
-            "resultCropId": "taoyuan:terra_core_pear"
+            "resultCropId": "taoyuan:terra_core_pear",
+            "tier": 8
           }
         },
         {
@@ -14174,7 +14521,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:magnif_dewdrop_pepper",
-            "resultCropId": "taoyuan:terra_glory8_pepper"
+            "resultCropId": "taoyuan:terra_glory8_pepper",
+            "tier": 8
           }
         },
         {
@@ -14202,7 +14550,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:magnif_light5_rice",
-            "resultCropId": "taoyuan:terra_origin_rice"
+            "resultCropId": "taoyuan:terra_origin_rice",
+            "tier": 8
           }
         },
         {
@@ -14230,7 +14579,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:magnif_hua5_tea",
-            "resultCropId": "taoyuan:terra_vital8_tea"
+            "resultCropId": "taoyuan:terra_vital8_tea",
+            "tier": 8
           }
         },
         {
@@ -14258,7 +14608,8 @@
             },
             "parentCropA": "taoyuan:draco_song_melon",
             "parentCropB": "taoyuan:magnif_soul_orchid",
-            "resultCropId": "taoyuan:terra_zenith_orchid"
+            "resultCropId": "taoyuan:terra_zenith_orchid",
+            "tier": 8
           }
         },
         {
@@ -14286,7 +14637,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:wheat_potato",
-            "resultCropId": "taoyuan:thunder_aura_lotus"
+            "resultCropId": "taoyuan:thunder_aura_lotus",
+            "tier": 3
           }
         },
         {
@@ -14314,7 +14666,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:chrysanthemum_melon",
-            "resultCropId": "taoyuan:thunder_glow_herb"
+            "resultCropId": "taoyuan:thunder_glow_herb",
+            "tier": 3
           }
         },
         {
@@ -14342,7 +14695,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:emerald_radish",
-            "resultCropId": "taoyuan:thunder_green"
+            "resultCropId": "taoyuan:thunder_green",
+            "tier": 3
           }
         },
         {
@@ -14370,7 +14724,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:golden_fruit",
-            "resultCropId": "taoyuan:thunder_jade3_peach_t"
+            "resultCropId": "taoyuan:thunder_jade3_peach_t",
+            "tier": 3
           }
         },
         {
@@ -14398,7 +14753,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:purple_bamboo",
-            "resultCropId": "taoyuan:thunder_splendor_sprout"
+            "resultCropId": "taoyuan:thunder_splendor_sprout",
+            "tier": 3
           }
         },
         {
@@ -14426,7 +14782,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:azure_hua_lotus",
-            "resultCropId": "taoyuan:tiger_dance_lotus"
+            "resultCropId": "taoyuan:tiger_dance_lotus",
+            "tier": 7
           }
         },
         {
@@ -14454,7 +14811,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:prism_shine_sprout",
-            "resultCropId": "taoyuan:tiger_gleam7_sprout"
+            "resultCropId": "taoyuan:tiger_gleam7_sprout",
+            "tier": 7
           }
         },
         {
@@ -14482,7 +14840,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:prism_fortune_peach_t",
-            "resultCropId": "taoyuan:tiger_roar_peach_t"
+            "resultCropId": "taoyuan:tiger_roar_peach_t",
+            "tier": 7
           }
         },
         {
@@ -14510,7 +14869,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:azure_shine_herb",
-            "resultCropId": "taoyuan:tiger_shadow_herb"
+            "resultCropId": "taoyuan:tiger_shadow_herb",
+            "tier": 7
           }
         },
         {
@@ -14538,7 +14898,8 @@
             },
             "parentCropA": "taoyuan:spirit_wonder_melon",
             "parentCropB": "taoyuan:prism_hua_green",
-            "resultCropId": "taoyuan:tiger_song_green"
+            "resultCropId": "taoyuan:tiger_song_green",
+            "tier": 7
           }
         },
         {
@@ -14566,7 +14927,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:star_splendor_herb",
-            "resultCropId": "taoyuan:trueth_dream_herb"
+            "resultCropId": "taoyuan:trueth_dream_herb",
+            "tier": 6
           }
         },
         {
@@ -14594,7 +14956,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:star_lotus",
-            "resultCropId": "taoyuan:trueth_grace6_lotus"
+            "resultCropId": "taoyuan:trueth_grace6_lotus",
+            "tier": 6
           }
         },
         {
@@ -14622,7 +14985,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:thunder_splendor_sprout",
-            "resultCropId": "taoyuan:trueth_phantom_sprout"
+            "resultCropId": "taoyuan:trueth_phantom_sprout",
+            "tier": 6
           }
         },
         {
@@ -14650,7 +15014,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:thunder_green",
-            "resultCropId": "taoyuan:trueth_wonder_green"
+            "resultCropId": "taoyuan:trueth_wonder_green",
+            "tier": 6
           }
         },
         {
@@ -14678,7 +15043,8 @@
             },
             "parentCropA": "taoyuan:precious_light5_melon",
             "parentCropB": "taoyuan:thunder_jade3_peach_t",
-            "resultCropId": "taoyuan:trueth_zen_peach_t"
+            "resultCropId": "taoyuan:trueth_zen_peach_t",
+            "tier": 6
           }
         },
         {
@@ -14706,7 +15072,8 @@
             },
             "parentCropA": "taoyuan:broad_bean",
             "parentCropB": "taoyuan:rapeseed",
-            "resultCropId": "taoyuan:twin_bean"
+            "resultCropId": "taoyuan:twin_bean",
+            "tier": 1
           }
         },
         {
@@ -14734,7 +15101,8 @@
             },
             "parentCropA": "taoyuan:chrysanthemum",
             "parentCropB": "taoyuan:osmanthus",
-            "resultCropId": "taoyuan:twin_blossom"
+            "resultCropId": "taoyuan:twin_blossom",
+            "tier": 1
           }
         },
         {
@@ -14762,7 +15130,8 @@
             },
             "parentCropA": "taoyuan:twin_bean",
             "parentCropB": "taoyuan:peanut",
-            "resultCropId": "taoyuan:twin_golden_bean"
+            "resultCropId": "taoyuan:twin_golden_bean",
+            "tier": 2
           }
         },
         {
@@ -14790,7 +15159,8 @@
             },
             "parentCropA": "taoyuan:rice",
             "parentCropB": "taoyuan:winter_wheat",
-            "resultCropId": "taoyuan:twin_grain"
+            "resultCropId": "taoyuan:twin_grain",
+            "tier": 1
           }
         },
         {
@@ -14818,7 +15188,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:qilin_song_rice",
-            "resultCropId": "taoyuan:undying_change_rice"
+            "resultCropId": "taoyuan:undying_change_rice",
+            "tier": 10
           }
         },
         {
@@ -14846,7 +15217,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:qilin_shadow_orchid",
-            "resultCropId": "taoyuan:undying_destiny_orchid"
+            "resultCropId": "taoyuan:undying_destiny_orchid",
+            "tier": 10
           }
         },
         {
@@ -14874,7 +15246,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:qilin_roar_pear",
-            "resultCropId": "taoyuan:undying_form_pear"
+            "resultCropId": "taoyuan:undying_form_pear",
+            "tier": 10
           }
         },
         {
@@ -14902,7 +15275,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:qilin_dance_tea",
-            "resultCropId": "taoyuan:undying_lasting_tea"
+            "resultCropId": "taoyuan:undying_lasting_tea",
+            "tier": 10
           }
         },
         {
@@ -14930,7 +15304,8 @@
             },
             "parentCropA": "taoyuan:vast_meng_melon",
             "parentCropB": "taoyuan:qilin_gleam7_pepper",
-            "resultCropId": "taoyuan:undying_timeless_pepper"
+            "resultCropId": "taoyuan:undying_timeless_pepper",
+            "tier": 10
           }
         },
         {
@@ -14958,7 +15333,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:spirit_grace6_fruit",
-            "resultCropId": "taoyuan:vast_apex9_fruit"
+            "resultCropId": "taoyuan:vast_apex9_fruit",
+            "tier": 9
           }
         },
         {
@@ -14986,7 +15362,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:spirit_dream_vine",
-            "resultCropId": "taoyuan:vast_empyrean_vine"
+            "resultCropId": "taoyuan:vast_empyrean_vine",
+            "tier": 9
           }
         },
         {
@@ -15014,7 +15391,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:spirit_wonder_melon",
-            "resultCropId": "taoyuan:vast_meng_melon"
+            "resultCropId": "taoyuan:vast_meng_melon",
+            "tier": 9
           }
         },
         {
@@ -15042,7 +15420,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:spirit_zen_chestnut",
-            "resultCropId": "taoyuan:vast_spirit9_chestnut"
+            "resultCropId": "taoyuan:vast_spirit9_chestnut",
+            "tier": 9
           }
         },
         {
@@ -15070,7 +15449,8 @@
             },
             "parentCropA": "taoyuan:supreme_origin_melon",
             "parentCropB": "taoyuan:spirit_phantom_wheat",
-            "resultCropId": "taoyuan:vast_wilder_wheat"
+            "resultCropId": "taoyuan:vast_wilder_wheat",
+            "tier": 9
           }
         },
         {
@@ -15098,7 +15478,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:nut_potato",
-            "resultCropId": "taoyuan:verdant_fortune_bean"
+            "resultCropId": "taoyuan:verdant_fortune_bean",
+            "tier": 4
           }
         },
         {
@@ -15126,7 +15507,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:spring_green_peach",
-            "resultCropId": "taoyuan:verdant_glory_sesame"
+            "resultCropId": "taoyuan:verdant_glory_sesame",
+            "tier": 4
           }
         },
         {
@@ -15154,7 +15536,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:jade_shoot",
-            "resultCropId": "taoyuan:verdant_hua_bloom"
+            "resultCropId": "taoyuan:verdant_hua_bloom",
+            "tier": 4
           }
         },
         {
@@ -15182,7 +15565,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:pumpkin_rice",
-            "resultCropId": "taoyuan:verdant_prism4_apricot"
+            "resultCropId": "taoyuan:verdant_prism4_apricot",
+            "tier": 4
           }
         },
         {
@@ -15210,7 +15594,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:honey_peach_melon",
-            "resultCropId": "taoyuan:verdant_shine_bud"
+            "resultCropId": "taoyuan:verdant_shine_bud",
+            "tier": 4
           }
         },
         {
@@ -15238,7 +15623,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:autumn_bean",
-            "resultCropId": "taoyuan:violet_fortune_rice"
+            "resultCropId": "taoyuan:violet_fortune_rice",
+            "tier": 4
           }
         },
         {
@@ -15266,7 +15652,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:mustard_bean",
-            "resultCropId": "taoyuan:violet_glory_pepper"
+            "resultCropId": "taoyuan:violet_glory_pepper",
+            "tier": 4
           }
         },
         {
@@ -15294,7 +15681,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:golden_tuber",
-            "resultCropId": "taoyuan:violet_hua_tea"
+            "resultCropId": "taoyuan:violet_hua_tea",
+            "tier": 4
           }
         },
         {
@@ -15322,7 +15710,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:mountain_lotus",
-            "resultCropId": "taoyuan:violet_prism4_pear"
+            "resultCropId": "taoyuan:violet_prism4_pear",
+            "tier": 4
           }
         },
         {
@@ -15350,7 +15739,8 @@
             },
             "parentCropA": "taoyuan:wind_melon",
             "parentCropB": "taoyuan:fire_bean",
-            "resultCropId": "taoyuan:violet_shine_orchid"
+            "resultCropId": "taoyuan:violet_shine_orchid",
+            "tier": 4
           }
         },
         {
@@ -15378,7 +15768,8 @@
             },
             "parentCropA": "taoyuan:winter_wheat",
             "parentCropB": "taoyuan:mustard_green",
-            "resultCropId": "taoyuan:wheat_mustard"
+            "resultCropId": "taoyuan:wheat_mustard",
+            "tier": 1
           }
         },
         {
@@ -15406,7 +15797,8 @@
             },
             "parentCropA": "taoyuan:potato",
             "parentCropB": "taoyuan:winter_wheat",
-            "resultCropId": "taoyuan:wheat_potato"
+            "resultCropId": "taoyuan:wheat_potato",
+            "tier": 1
           }
         },
         {
@@ -15434,7 +15826,8 @@
             },
             "parentCropA": "taoyuan:yam",
             "parentCropB": "taoyuan:winter_wheat",
-            "resultCropId": "taoyuan:wheat_yam"
+            "resultCropId": "taoyuan:wheat_yam",
+            "tier": 1
           }
         },
         {
@@ -15462,7 +15855,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:imperial_cabbage",
-            "resultCropId": "taoyuan:wind_aura_fruit"
+            "resultCropId": "taoyuan:wind_aura_fruit",
+            "tier": 3
           }
         },
         {
@@ -15490,7 +15884,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:double_lotus",
-            "resultCropId": "taoyuan:wind_glow_vine"
+            "resultCropId": "taoyuan:wind_glow_vine",
+            "tier": 3
           }
         },
         {
@@ -15518,7 +15913,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:jade_pumpkin",
-            "resultCropId": "taoyuan:wind_jade3_chestnut"
+            "resultCropId": "taoyuan:wind_jade3_chestnut",
+            "tier": 3
           }
         },
         {
@@ -15546,7 +15942,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:jade_tea",
-            "resultCropId": "taoyuan:wind_melon"
+            "resultCropId": "taoyuan:wind_melon",
+            "tier": 3
           }
         },
         {
@@ -15574,7 +15971,8 @@
             },
             "parentCropA": "taoyuan:melon_tea_fruit",
             "parentCropB": "taoyuan:jade_melon",
-            "resultCropId": "taoyuan:wind_splendor_wheat"
+            "resultCropId": "taoyuan:wind_splendor_wheat",
+            "tier": 3
           }
         },
         {
@@ -15602,7 +16000,8 @@
             },
             "parentCropA": "taoyuan:corn",
             "parentCropB": "taoyuan:spinach",
-            "resultCropId": "taoyuan:winter_corn"
+            "resultCropId": "taoyuan:winter_corn",
+            "tier": 1
           }
         },
         {
@@ -15630,7 +16029,8 @@
             },
             "parentCropA": "taoyuan:pumpkin",
             "parentCropB": "taoyuan:napa_cabbage",
-            "resultCropId": "taoyuan:winter_pumpkin"
+            "resultCropId": "taoyuan:winter_pumpkin",
+            "tier": 1
           }
         }
       ]
@@ -117957,5 +118357,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:6fa556c65520a948606b1e11bd5e67b7e2cb35fed47d2850477b0fd5803fcfc2"
+  "snapshotHash": "sha256:31f5e59b53c8f1d49d99d5da18dbeccad5ac12b09b5367982496dbeecc53ff21"
 }

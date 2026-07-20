@@ -1109,6 +1109,7 @@ export const BreedingHybridDefSchema = Type.Object(
     parentCropB: ContentIdSchema,
     minSweetness: Type.Integer({ minimum: 0, maximum: 100 }),
     minYield: Type.Integer({ minimum: 0, maximum: 100 }),
+    tier: Type.Integer({ minimum: 1, maximum: 10 }),
     resultCropId: ContentIdSchema,
     baseGenetics: BreedingHybridBaseGeneticsSchema,
     discoveryText: LocalizedTextRefSchema

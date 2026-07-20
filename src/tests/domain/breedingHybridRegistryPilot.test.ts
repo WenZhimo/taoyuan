@@ -42,13 +42,14 @@ const normalizeLegacyHybrid = (hybrid: HybridDef): HybridDef => ({
   ...hybrid,
   baseGenetics: { ...hybrid.baseGenetics }
 })
-const expectedBreedingHybridContentDef = (hybrid: HybridDef): BreedingHybridContentDef => ({
+const expectedBreedingHybridContentDef = (hybrid: HybridDef, tier: number): BreedingHybridContentDef => ({
   id: toOfficialContentId(`breeding_hybrid/${hybrid.id}`),
   name: { key: `taoyuan.breeding_hybrid.${hybrid.id}.name`, fallback: hybrid.name },
   parentCropA: toOfficialContentId(hybrid.parentCropA),
   parentCropB: toOfficialContentId(hybrid.parentCropB),
   minSweetness: hybrid.minSweetness,
   minYield: hybrid.minYield,
+  tier,
   resultCropId: toOfficialContentId(hybrid.resultCropId),
   baseGenetics: { ...hybrid.baseGenetics },
   discoveryText: { key: `taoyuan.breeding_hybrid.${hybrid.id}.discovery`, fallback: hybrid.discoveryText }
@@ -112,6 +113,8 @@ describe('breeding hybrid registry pilot', () => {
       { ...base, parentCropB: 'missing_namespace' },
       { ...base, minSweetness: -1 },
       { ...base, minYield: 101 },
+      { ...base, tier: 0 },
+      { ...base, tier: 11 },
       { ...base, resultCropId: 'missing_namespace' },
       { ...base, baseGenetics: { ...base.baseGenetics, sweetness: 101 } },
       { ...base, discoveryText: 'plain text' },
@@ -129,10 +132,12 @@ describe('breeding hybrid registry pilot', () => {
         '/2/parentCropB',
         '/3/minSweetness',
         '/4/minYield',
-        '/5/resultCropId',
-        '/6/baseGenetics/sweetness',
-        '/7/discoveryText',
-        '/8/extra'
+        '/5/tier',
+        '/6/tier',
+        '/7/resultCropId',
+        '/8/baseGenetics/sweetness',
+        '/9/discoveryText',
+        '/10/extra'
       ]))
     }
   })
@@ -147,8 +152,10 @@ describe('breeding hybrid registry pilot', () => {
     )
     expect(HYBRID_DEFS.map(normalizeLegacyHybrid)).toEqual(HYBRID_DEFINITIONS.map(normalizeLegacyHybrid))
 
-    for (const hybrid of HYBRID_DEFINITIONS.slice(0, 20)) {
-      expect(getOfficialBreedingHybridDef(hybrid.id)).toEqual(expectedBreedingHybridContentDef(hybrid))
+    for (const [index, hybrid] of HYBRID_DEFINITIONS.slice(0, 20).entries()) {
+      expect(getOfficialBreedingHybridDef(hybrid.id)).toEqual(
+        expectedBreedingHybridContentDef(hybrid, expectedTierForIndex(index))
+      )
       expect(getOfficialBreedingHybridDef(`breeding_hybrid/${hybrid.id}`)).toBe(
         getOfficialBreedingHybridDef(hybrid.id)
       )
@@ -163,6 +170,7 @@ describe('breeding hybrid registry pilot', () => {
   it('keeps parent matching and tier calculations equivalent', () => {
     for (const [index, hybrid] of HYBRID_DEFINITIONS.entries()) {
       const expectedTier = expectedTierForIndex(index)
+      expect(getOfficialBreedingHybridDefs()[index]?.tier).toBe(expectedTier)
       expect(getOfficialBreedingHybridTier(hybrid.id)).toBe(expectedTier)
       expect(getHybridTier(hybrid.id)).toBe(expectedTier)
     }
@@ -195,7 +203,7 @@ describe('breeding hybrid registry pilot', () => {
     expect(Object.isFrozen(first?.baseGenetics)).toBe(true)
     expect(() => registry.register(
       OFFICIAL_PACKAGE_ID,
-      adaptLegacyBreedingHybrid(HYBRID_DEFINITIONS[0]!)
+      adaptLegacyBreedingHybrid(HYBRID_DEFINITIONS[0]!, 1)
     )).toThrow(RegistryError)
   })
 
@@ -212,6 +220,7 @@ describe('breeding hybrid registry pilot', () => {
       parentCropB: missingParentB,
       minSweetness: 1,
       minYield: 1,
+      tier: 1,
       resultCropId: missingResult,
       baseGenetics: { sweetness: 1, yield: 1, resistance: 1 },
       discoveryText: { key: 'test.breeding-hybrid.missing.discovery', fallback: 'Missing refs' }

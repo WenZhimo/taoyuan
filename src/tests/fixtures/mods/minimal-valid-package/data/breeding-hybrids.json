@@ -9,6 +9,7 @@
     "parentCropB": "taoyuan:radish",
     "minSweetness": 10,
     "minYield": 10,
+    "tier": 1,
     "resultCropId": "taoyuan:emerald_radish",
     "baseGenetics": {
       "sweetness": 40,

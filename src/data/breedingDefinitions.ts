@@ -4414,3 +4414,17 @@ export const HYBRID_DEFINITIONS: HybridDef[] = [
 
 /** Hybrid tier counts in HYBRID_DEFINITIONS order. */
 export const HYBRID_TIER_COUNTS = [100, 50, 50, 50, 25, 25, 25, 25, 25, 25] as const
+
+const HYBRID_TIERS_BY_INDEX = HYBRID_TIER_COUNTS.flatMap((count, tierIndex) =>
+  Array.from({ length: count }, () => tierIndex + 1)
+)
+
+export const getTieredHybridDefinitions = () => {
+  if (HYBRID_TIERS_BY_INDEX.length !== HYBRID_DEFINITIONS.length) {
+    throw new Error('Hybrid tier counts must cover every hybrid definition')
+  }
+  return HYBRID_DEFINITIONS.map((definition, index) => ({
+    definition,
+    tier: HYBRID_TIERS_BY_INDEX[index]!
+  }))
+}

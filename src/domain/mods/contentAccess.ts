@@ -76,7 +76,6 @@ import type {
   CellarUpgradeDef as LegacyCellarUpgradeDef,
   FarmhouseUpgradeDef as LegacyFarmhouseUpgradeDef
 } from '@/data/buildingUpgradeDefinitions'
-import { HYBRID_TIER_COUNTS } from '@/data/breedingDefinitions'
 import type { ShopDef as LegacyShopDef } from '@/data/shops'
 import type { TravelingMerchantItem as LegacyTravelingMerchantItem } from '@/data/travelingMerchant'
 import type { MarketCategory as LegacyMarketCategory } from '@/data/marketDefinitions'
@@ -2336,18 +2335,7 @@ export const findOfficialBreedingHybridByParents = (
 }
 
 export const getOfficialBreedingHybridTier = (hybridId: string): number => {
-  const target = toBreedingHybridQueryContentId(hybridId)
-  if (!target) return 1
-  let offset = 0
-  const hybrids = getOfficialBreedingHybridDefs()
-  for (let tier = 0; tier < HYBRID_TIER_COUNTS.length; tier++) {
-    const count = HYBRID_TIER_COUNTS[tier]!
-    for (let index = 0; index < count; index++) {
-      if (hybrids[offset + index]?.id === target) return tier + 1
-    }
-    offset += count
-  }
-  return 1
+  return getOfficialBreedingHybridDef(hybridId)?.tier ?? 1
 }
 
 export const getOfficialProcessingMachineDef = (id: string): Readonly<ProcessingMachineContentDef> | undefined => {

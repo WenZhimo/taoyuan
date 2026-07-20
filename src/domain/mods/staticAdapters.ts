@@ -84,7 +84,7 @@ import {
   FISH_POND_FACILITY,
   type FishPondFacilityDef as LegacyFishPondFacilityDef
 } from '@/data/fishPondFacilityDefinitions'
-import { HYBRID_DEFINITIONS } from '@/data/breedingDefinitions'
+import { getTieredHybridDefinitions } from '@/data/breedingDefinitions'
 import {
   CAVE_UPGRADES,
   CELLAR_UPGRADES,
@@ -1526,20 +1526,21 @@ export const adaptLegacyAnimalIncubation = (incubation: (typeof ANIMAL_INCUBATIO
 export const createOfficialAnimalIncubations = (): AnimalIncubationDef[] =>
   ANIMAL_INCUBATIONS.map(adaptLegacyAnimalIncubation)
 
-export const adaptLegacyBreedingHybrid = (hybrid: LegacyHybridDef): BreedingHybridDef => ({
+export const adaptLegacyBreedingHybrid = (hybrid: LegacyHybridDef, tier: number): BreedingHybridDef => ({
   id: toOfficialContentId(`breeding_hybrid/${hybrid.id}`),
   name: text(`taoyuan.breeding_hybrid.${hybrid.id}.name`, hybrid.name),
   parentCropA: toOfficialContentId(hybrid.parentCropA),
   parentCropB: toOfficialContentId(hybrid.parentCropB),
   minSweetness: hybrid.minSweetness,
   minYield: hybrid.minYield,
+  tier,
   resultCropId: toOfficialContentId(hybrid.resultCropId),
   baseGenetics: { ...hybrid.baseGenetics },
   discoveryText: text(`taoyuan.breeding_hybrid.${hybrid.id}.discovery`, hybrid.discoveryText)
 })
 
 export const createOfficialBreedingHybrids = (): BreedingHybridDef[] =>
-  HYBRID_DEFINITIONS.map(adaptLegacyBreedingHybrid)
+  getTieredHybridDefinitions().map(({ definition, tier }) => adaptLegacyBreedingHybrid(definition, tier))
 
 export const adaptLegacyProcessingMachine = (machine: LegacyProcessingMachineDef): ProcessingMachineDef => ({
   id: toOfficialContentId(machine.id),

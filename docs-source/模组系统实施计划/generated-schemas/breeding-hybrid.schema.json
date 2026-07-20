@@ -9,6 +9,7 @@
     "parentCropB",
     "minSweetness",
     "minYield",
+    "tier",
     "resultCropId",
     "baseGenetics",
     "discoveryText"
@@ -52,6 +53,11 @@
     "minYield": {
       "minimum": 0,
       "maximum": 100,
+      "type": "integer"
+    },
+    "tier": {
+      "minimum": 1,
+      "maximum": 10,
       "type": "integer"
     },
     "resultCropId": {

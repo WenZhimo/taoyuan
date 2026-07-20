@@ -2998,6 +2998,13 @@ const symbolReviewOverrides = new Map(Object.entries({
     status: 'verified',
     rationale: 'Derived tier boundary summary retained for legacy getHybridTier() compatibility and verified against official breeding hybrid registry order.'
   },
+  'src/data/breedingDefinitions.ts:getTieredHybridDefinitions': {
+    classification: 'derived',
+    targetRegistry: 'taoyuan:breeding_hybrid',
+    persistentIds: false,
+    status: 'verified',
+    rationale: 'Combines the legacy hybrid catalog and tier boundaries for the official adapter so every taoyuan:breeding_hybrid entry carries explicit tier semantics.'
+  },
   'src/data/breeding.ts:HYBRID_DEFS': {
     classification: 'adapter',
     targetRegistry: 'taoyuan:breeding_hybrid',
