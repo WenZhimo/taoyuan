@@ -74,12 +74,12 @@
 
 ## 当前执行状态
 
-阶段 0 至阶段 5 已完成当前范围的实现与自动化验收；阶段 6 的低耦合纯数据候选、业务静态读取违规和机器盘点暂定状态均已清零，并已完成总验收差距审计与官方内容启动门禁。六项验收当前为 3 项 `PASS`、1 项 `FAIL`、1 项 `PARTIAL`、1 项 `BLOCKED`，因此阶段 6 仍为进行中，不能宣布“官方内容包完全接管”。各阶段切片、审计矩阵、验证证据和提交详见 [执行状态](./执行状态.md)：
+阶段 0 至阶段 5 已完成当前范围的实现与自动化验收；阶段 6 的低耦合纯数据候选、业务静态读取违规、机器盘点暂定状态和快照恢复顺序差异均已清零，并已完成总验收差距审计与官方内容启动门禁。六项验收当前为 3 项 `PASS`、2 项 `PARTIAL`、1 项 `BLOCKED`，因此阶段 6 仍为进行中，不能宣布“官方内容包完全接管”。各阶段切片、审计矩阵、验证证据和提交详见 [执行状态](./执行状态.md)：
 
 1. 已固定首批规范编号、错误码、ID 规则、哈希算法和生成式公开 Schema 流程。
 2. 已将 `content-inventory.json` 扩展到 `src/data/` 导出符号级，并建立官方内容快照、哈希黄金向量和旧存档夹具。
 3. 已实现 `ContentId`、`PackageId`、`RegistryTypeId`、通用 `Registry<T>` / `RegistrySet`、冻结生命周期、结构校验和语义校验。
-4. 已建立 53 类内容注册表 Schema、最小合法/非法包夹具、旧静态数组兼容适配器和可序列化注册表快照 codec。
+4. 已建立 53 类内容注册表 Schema、最小合法/非法包夹具、旧静态数组兼容适配器和可序列化注册表快照 codec；`registry-snapshot.schema.json` 公开 v2 保序快照契约。
 5. 阶段 2 至阶段 5 已依次完成物品/作物/配方、商店、附魔/掉落表和怪物/怪物池迁移闭环；矿洞运行时已通过注册表解析 15 个官方怪物池。
 6. 阶段 6 首切片建立怪物池资源预算和 `taoyuan:tree`，鱼类切片建立 `taoyuan:fish`，可养殖鱼切片建立 `taoyuan:pondable_fish`，鱼塘品种切片建立 `taoyuan:pond_breed`，鱼塘设施切片建立 `taoyuan:fish_pond_facility`，建筑升级切片建立 `taoyuan:building_upgrade`，采集物切片建立 `taoyuan:forage`，动物定义切片建立 `taoyuan:animal`，动物饲料切片建立 `taoyuan:animal_feed`，钱袋物品切片建立 `taoyuan:wallet_item`，农场地图切片建立 `taoyuan:farm_map`，动物建筑切片建立 `taoyuan:animal_building`，动物孵化映射切片建立 `taoyuan:animal_incubation`，育种杂交定义切片建立 `taoyuan:breeding_hybrid` 官方读取路径，工具升级切片建立 `taoyuan:tool_upgrade`，装备套装切片建立 `taoyuan:equipment_set`，戒指、帽子、鞋子和武器定义切片建立 `taoyuan:equipment` 的 `kind: "ring"` / `kind: "hat"` / `kind: "shoe"` / `kind: "weapon"` 官方读取路径，加工机器制造定义切片建立 `taoyuan:processing_machine` 官方读取路径，加工配方定义切片建立 `taoyuan:processing_recipe` 官方读取路径，洒水器与炸弹制造定义切片分别建立 `taoyuan:sprinkler` 和 `taoyuan:bomb` 官方读取路径，秘密纸条定义切片建立 `taoyuan:secret_note` 官方读取路径，教程提示定义切片建立 `taoyuan:tutorial` 官方读取路径，博物馆切片建立 `taoyuan:museum_category`、`taoyuan:museum_item` 和 `taoyuan:museum_milestone` 官方读取路径，行会切片建立 `taoyuan:guild_goal`、`taoyuan:guild_donation` 和 `taoyuan:guild_level` 官方读取路径，成就/祠堂任务切片建立 `taoyuan:achievement` 和 `taoyuan:community_bundle` 官方读取路径，普通 NPC 定义切片建立 `taoyuan:npc` 官方读取路径，隐藏 NPC 定义切片建立 `taoyuan:hidden_npc` 官方读取路径，剧情任务定义切片建立 `taoyuan:story_quest` 官方读取路径，好感事件切片建立 `taoyuan:heart_event` 官方读取路径，季节节日事件切片建立 `taoyuan:season_event` 官方读取路径，普通任务模板切片建立 `taoyuan:quest_template` 官方读取路径，晨间随机事件切片建立 `taoyuan:morning_event` 官方读取路径，市场行情分类切片建立 `taoyuan:market_category` 官方读取路径，瀚海通商兑换定义切片建立 `taoyuan:hanhai_trade_exchange` 官方读取路径，瀚海驿站商品池切片复用 `taoyuan:shop_offer` 官方读取路径，瀚海通商店铺升级切片建立 `taoyuan:hanhai_trade_shop_upgrade` 官方读取路径，瀚海藏宝图奖励切片建立 `taoyuan:hanhai_treasure_reward` 官方读取路径，瀚海幸运轮盘固定配置切片建立 `taoyuan:hanhai_roulette` 官方读取路径，瀚海赌坊固定投注配置切片建立 `taoyuan:hanhai_casino_wager` 官方读取路径；旧导出和存档结构保持不变。
 7. 旅行商人商品池切片复用既有 `taoyuan:shop_offer`，`generateMerchantStock()` 和隐藏 NPC 额外商品通过注册表兼容门面读取旧形状商品池；出摊日、库存随机、价格浮动、反季种子、购买流程和旧存档结构保持不变。
@@ -90,7 +90,7 @@
 12. 瀚海藏宝图奖励切片建立 `taoyuan:hanhai_treasure_reward`，`useHanhaiStore.useTreasureMap()` 通过注册表兼容门面读取旧奖励档位、阈值、金钱和物品；藏宝图消耗、单次随机调用、奖励文本、日志、物品发放失败忽略语义和旧存档结构保持不变。
 13. 瀚海幸运轮盘固定配置切片建立 `taoyuan:hanhai_roulette`，瀚海赌坊固定投注配置切片建立 `taoyuan:hanhai_casino_wager`；轮盘、骰子和猜杯的结果/投注配置通过注册表兼容门面读取，结果标签、倍率、概率、下注档位、固定投注、单次随机、派奖、日志和旧存档结构保持不变。
 14. 鱼塘切片当前迁移可养殖鱼物种定义、品种图鉴定义和建造/升级/容量定义，水质、疾病、育苗塘任务、自然繁衍、遗传随机和鱼塘存档结构仍属框架/后续范围；育种切片当前迁移杂交品种定义，育种台数量、种子箱容量、加工天数、变异随机、属性波动、图鉴状态、种子实例和旧存档结构仍属框架范围；建筑升级切片当前迁移农舍、山洞和酒窖升级定义，温室/仓库解锁、山洞品质阈值、酒窖增值周期和日更算法仍属框架范围；动物切片当前迁移物种定义、饲料定义、畜舍建造/升级定义和孵化映射，饲料效果、放牧、疾病/死亡和每日结算仍属框架/后续范围；加工切片当前迁移机器制造定义、加工配方定义、洒水器制造定义和炸弹制造定义，运行队列、自动收取、多任务酒坊/种子制造机、配方解锁、爆炸范围算法、矿洞结算和存档结构仍属框架/后续范围；叙事/收藏/节日切片当前迁移秘密纸条定义、教程提示定义、博物馆分类/条目/里程碑定义、行会讨伐/捐献/等级定义、成就定义、祠堂任务定义、普通 NPC 定义、隐藏 NPC 定义、剧情任务定义、好感事件定义、季节节日事件定义、普通任务模板和晨间随机事件，任务生成、提交副作用、任务进度和其他世界活动仍未完成；NPC 好感状态、隐藏 NPC 亲密状态、行会商店、贡献点状态、被动加成、成就进度统计、主线任务进度状态、普通任务状态、节日奖励结算副作用和旧存档结构仍按既有 Store/框架规则保留；瀚海售货槽、通商积分结算、藏宝图使用流程、幸运轮盘转动动画、掷骰/猜杯随机算法和斗蛐蛐、翻牌、瀚海扑克、恶魔轮盘完整玩法仍属框架/后续机制插件范围；尚未进入外载数据包加载器、模组管理界面、安装/卸载事务、存档环境绑定或机制插件。炸弹试点处理完收敛审计建议的最后一个低耦合纯数据候选，但本轮不直接宣布阶段 6 完成。
-15. 阶段 6 总验收差距审计新增 `pnpm run mod:audit-phase6` 和全注册表快照恢复测试；完成消费者与机器盘点收口后，477 条业务运行时数据导入已逐项归为 87 条官方适配器叶子、150 条兼容回退、190 条框架算法和 50 条合法派生，待迁移违规为 0，`businessStaticReads` 为 `PASS`。629 个导出符号均已有最终状态，其中阶段 6 的 574 个符号为 384 个 `verified` 和 190 个 `framework-retained`，暂定状态为 0；仍有 50 个注册表的完整构建/快照恢复顺序差异，三端运行时哈希和完整人工回归尚未闭合。
+15. 阶段 6 总验收差距审计新增 `pnpm run mod:audit-phase6` 和全注册表快照恢复测试；完成消费者、机器盘点和 v2 快照 codec 收口后，477 条业务运行时数据导入已逐项归为 87 条官方适配器叶子、150 条兼容回退、190 条框架算法和 50 条合法派生，待迁移违规为 0，`businessStaticReads` 为 `PASS`。629 个导出符号均已有最终状态，其中阶段 6 的 574 个符号为 384 个 `verified` 和 190 个 `framework-retained`，暂定状态为 0；完整构建/快照恢复顺序差异由 50 降为 0，三端运行时哈希和完整人工回归尚未闭合。
 16. 阶段 6 首个收尾实现切片建立 `taoyuan-core` 启动门禁：54 个官方注册表、4242 条目完成 TypeBox 结构校验、跨注册表语义校验和冻结后才原子发布；Vue、Pinia、路由、存档读取和界面挂载均在门禁成功后发生。失败不发布候选注册表、不创建 Store、不读取存档，并通过 Web 最小错误状态和 Electron `userdata/startup.log` 提供诊断。
 17. 阶段 6 第二个收尾切片选择完整的 `taoyuan:bomb` 消费者组：`useProcessingStore.ts`、`MiningView.vue` 和 `ProcessingView.vue` 已停止直接导入旧 `BOMBS`，统一通过已发布注册表的公开查询入口读取；旧导出、制造签名、顺序、名称、材料、金钱、矿洞效果和存档结构保持不变，业务静态读取违规由 33 条降为 30 条。
 18. 行会商品消费者组完成 `taoyuan:shop_offer` 收口：Guild Store 与行会页面不再直接读取 `GUILD_SHOP_ITEMS`；24 件商品的顺序、分组、名称、货币、等级、限购、材料、装备发放、失败回滚和旧存档计数保持不变，违规由 30 条降为 28 条。
@@ -106,6 +106,7 @@
 28. 每日配方解锁消费者组改用完整官方配方旧形状投影：遍历顺序、NPC 好感、配偶、技能、特殊物品、重复解锁和日志行为保持不变；旧 `itemId + quantity` 材料继续兼容，违规由 2 条降为 1 条。
 29. `taoyuan:breeding_hybrid` 现显式携带 1 至 10 阶 `tier`，业务阶层查询不再读取 `HYBRID_TIER_COUNTS`；400 条定义的旧阶层分布、旧 `HybridDef`、查询签名、未知 ID 返回值和存档结构保持不变。业务静态读取违规由 1 条降为 0，但这只使对应验收项通过，不代表阶段 6 整体完成。
 30. 阶段 6 机器盘点结论已逐符号闭合：99 个 `baselined` 最终归为 7 个 `verified` 和 92 个 `framework-retained`，52 个 `inventoried` re-export 最终归为 46 个 `verified` 和 6 个 `framework-retained`。`pnpm run mod:audit-phase6 -- --strict` 现对暂定符号、未解析/命名空间运行时导入、业务静态读取和启动语义执行统一失败门禁，未来新增内容、适配器和 barrel 仍默认进入待审计状态。
+31. 注册表快照升级为 `formatVersion: 2`：注册表数组保持稳定 ID 顺序，每个 `entries` 数组直接保存真实注册顺序，`snapshotHash` 覆盖格式、内容、来源和顺序语义。完整构建、启动门禁构建和恢复结果的 54 个注册表、4242 条目、`entries()`、`values()`、来源、查询和冻结状态逐项相等，新哈希为 `sha256:4e87e4bc1d6310d4467335da77603006bf769fdb5c4da45ad927f7ed85a5c4b3`。v1 只作为可失效重建的派生缓存处理，不涉及玩家存档。
 
 ## 变更规则
 
