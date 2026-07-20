@@ -1,6 +1,10 @@
 import { Type, type Static, type TSchema } from '@sinclair/typebox'
 import { NAMESPACED_ID_PATTERN, PACKAGE_ID_PATTERN } from './ids'
 import { SerializableRegistrySnapshotSchema } from './registrySnapshotSchema'
+import {
+  CacheEnvironmentIdentitySchema,
+  OfficialPrecompiledRegistryArtifactSchema
+} from './precompiledRegistrySchema'
 import { MONSTER_POOL_RESOURCE_LIMITS } from './resourceLimits'
 
 export const ContentIdSchema = Type.String({
@@ -2124,7 +2128,9 @@ export const OFFICIAL_REGISTRY_SCHEMAS = {
 } as const satisfies Record<string, TSchema>
 
 export const PUBLIC_JSON_SCHEMAS = {
+  'cache-environment-identity.schema.json': CacheEnvironmentIdentitySchema,
   'localized-text-ref.schema.json': LocalizedTextRefSchema,
+  'official-precompiled-registry.schema.json': OfficialPrecompiledRegistryArtifactSchema,
   'registry-snapshot.schema.json': SerializableRegistrySnapshotSchema,
   'package-manifest.schema.json': PackageManifestSchema,
   'package-setting-definition.schema.json': PackageSettingDefinitionSchema,

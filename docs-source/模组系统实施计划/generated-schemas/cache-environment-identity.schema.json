@@ -1,0 +1,96 @@
+{
+  "$id": "taoyuan.schema.CacheEnvironmentIdentityV1",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "gameVersion",
+    "engineApiVersion",
+    "contentSchemaVersion",
+    "loaderVersion",
+    "contentCompilerVersion",
+    "schemaSetHash",
+    "cacheFormatVersion",
+    "trustPolicyVersion",
+    "packages"
+  ],
+  "properties": {
+    "gameVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "engineApiVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "contentSchemaVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "loaderVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "contentCompilerVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "schemaSetHash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "cacheFormatVersion": {
+      "minimum": 1,
+      "type": "integer"
+    },
+    "trustPolicyVersion": {
+      "minLength": 1,
+      "type": "string"
+    },
+    "packages": {
+      "type": "array",
+      "items": {
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "version",
+          "contentHash",
+          "configurationHash",
+          "loadIndex",
+          "resolvedDependencies"
+        ],
+        "properties": {
+          "id": {
+            "pattern": "^[a-z0-9_.-]+$",
+            "type": "string"
+          },
+          "version": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "contentHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "configurationHash": {
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "type": "string"
+          },
+          "loadIndex": {
+            "minimum": 0,
+            "type": "integer"
+          },
+          "resolvedDependencies": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "pattern": "^[a-z0-9_.-]+$",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}

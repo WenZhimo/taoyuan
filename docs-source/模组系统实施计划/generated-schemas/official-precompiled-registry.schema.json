@@ -1,0 +1,239 @@
+{
+  "$id": "taoyuan.schema.OfficialPrecompiledRegistryArtifactV1",
+  "additionalProperties": false,
+  "type": "object",
+  "required": [
+    "artifactFormatVersion",
+    "environment",
+    "environmentHash",
+    "snapshot"
+  ],
+  "properties": {
+    "artifactFormatVersion": {
+      "const": 1,
+      "type": "number"
+    },
+    "environment": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "gameVersion",
+        "engineApiVersion",
+        "contentSchemaVersion",
+        "loaderVersion",
+        "contentCompilerVersion",
+        "schemaSetHash",
+        "cacheFormatVersion",
+        "trustPolicyVersion",
+        "packages"
+      ],
+      "properties": {
+        "gameVersion": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "engineApiVersion": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "contentSchemaVersion": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "loaderVersion": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "contentCompilerVersion": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "schemaSetHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "cacheFormatVersion": {
+          "minimum": 1,
+          "type": "integer"
+        },
+        "trustPolicyVersion": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "packages": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "id",
+              "version",
+              "contentHash",
+              "configurationHash",
+              "loadIndex",
+              "resolvedDependencies"
+            ],
+            "properties": {
+              "id": {
+                "pattern": "^[a-z0-9_.-]+$",
+                "type": "string"
+              },
+              "version": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "contentHash": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "configurationHash": {
+                "pattern": "^sha256:[0-9a-f]{64}$",
+                "type": "string"
+              },
+              "loadIndex": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "resolvedDependencies": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "pattern": "^[a-z0-9_.-]+$",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "environmentHash": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "snapshot": {
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+        "formatVersion",
+        "registries",
+        "snapshotHash"
+      ],
+      "properties": {
+        "formatVersion": {
+          "const": 2,
+          "type": "number"
+        },
+        "registries": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "registryId",
+              "schemaName",
+              "entries"
+            ],
+            "properties": {
+              "registryId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "schemaName": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "entries": {
+                "type": "array",
+                "items": {
+                  "additionalProperties": false,
+                  "type": "object",
+                  "required": [
+                    "owner",
+                    "source",
+                    "entry"
+                  ],
+                  "properties": {
+                    "owner": {
+                      "pattern": "^[a-z0-9_.-]+$",
+                      "type": "string"
+                    },
+                    "source": {
+                      "additionalProperties": false,
+                      "type": "object",
+                      "required": [
+                        "packageId"
+                      ],
+                      "properties": {
+                        "packageId": {
+                          "pattern": "^[a-z0-9_.-]+$",
+                          "type": "string"
+                        },
+                        "file": {
+                          "minLength": 1,
+                          "pattern": "^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*(?:^|/)\\.\\.(?:/|$)).+$",
+                          "type": "string"
+                        },
+                        "localId": {
+                          "minLength": 1,
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "entry": {
+                      "additionalProperties": {
+                        "$id": "taoyuan.schema.RegistrySnapshotJsonValue",
+                        "anyOf": [
+                          {
+                            "type": "null"
+                          },
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "$ref": "taoyuan.schema.RegistrySnapshotJsonValue"
+                            }
+                          },
+                          {
+                            "additionalProperties": {
+                              "$ref": "taoyuan.schema.RegistrySnapshotJsonValue"
+                            },
+                            "type": "object",
+                            "properties": {}
+                          }
+                        ]
+                      },
+                      "type": "object",
+                      "required": [
+                        "id"
+                      ],
+                      "properties": {
+                        "id": {
+                          "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "snapshotHash": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "type": "string"
+        }
+      }
+    }
+  },
+  "$comment": "Generated from src/domain/mods/schemas.ts. Do not edit by hand."
+}
