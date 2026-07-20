@@ -3,6 +3,10 @@ import path from 'node:path'
 import process from 'node:process'
 import { createRequire } from 'node:module'
 import ts from 'typescript'
+import {
+  PROVISIONAL_INVENTORY_STATUSES,
+  isProvisionalInventoryStatus
+} from './content-inventory-policy.mjs'
 
 const root = process.cwd()
 const inventoryPath = path.join(root, 'docs-source', '模组系统实施计划', 'content-inventory.json')
@@ -237,7 +241,7 @@ const statusCounts = Object.fromEntries(
     .sort()
     .map(status => [status, phase6Symbols.filter(symbol => symbol.status === status).length])
 )
-const provisionalSymbols = phase6Symbols.filter(symbol => ['baselined', 'inventoried'].includes(symbol.status))
+const provisionalSymbols = phase6Symbols.filter(symbol => isProvisionalInventoryStatus(symbol.status))
 const snapshotEntryCount = officialSnapshot.registries.reduce(
   (total, registry) => total + registry.entries.length,
   0
@@ -253,6 +257,24 @@ const dataImportCategoryCounts = Object.fromEntries(
     sortedRuntimeImports.filter(finding => finding.auditCategory === category).length
   ])
 )
+const strictRequested = process.argv.includes('--strict')
+const strictFailures = [
+  ...(provisionalSymbols.length > 0
+    ? [`inventory-provisional-symbols:${provisionalSymbols.length}`]
+    : []),
+  ...(unresolvedRuntimeImports.length > 0
+    ? [`unresolved-runtime-imports:${unresolvedRuntimeImports.length}`]
+    : []),
+  ...(namespaceImports.length > 0
+    ? [`namespace-runtime-imports:${namespaceImports.length}`]
+    : []),
+  ...(directReads.length > 0
+    ? [`business-static-reads:${directReads.length}`]
+    : []),
+  ...(officialStartupStatus !== 'PASS'
+    ? ['official-startup-semantics']
+    : [])
+]
 
 const report = {
   inventory: {
@@ -260,7 +282,7 @@ const report = {
     phase6Symbols: phase6Symbols.length,
     phase6StatusCounts: statusCounts,
     provisionalStatusCount: provisionalSymbols.length,
-    provisionalStatuses: ['baselined', 'inventoried']
+    provisionalStatuses: PROVISIONAL_INVENTORY_STATUSES
   },
   businessDataImports: {
     status: unresolvedRuntimeImports.length === 0 && namespaceImports.length === 0 ? 'PASS' : 'FAIL',
@@ -293,14 +315,16 @@ const report = {
     registryCount: officialSnapshot.registries.length,
     entryCount: snapshotEntryCount,
     snapshotHash: officialSnapshot.snapshotHash
+  },
+  strict: {
+    requested: strictRequested,
+    status: strictFailures.length === 0 ? 'PASS' : 'FAIL',
+    failures: strictFailures
   }
 }
 
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`)
 
-if (
-  process.argv.includes('--strict')
-  && (directReads.length > 0 || provisionalSymbols.length > 0 || officialStartupStatus !== 'PASS')
-) {
+if (strictRequested && strictFailures.length > 0) {
   process.exitCode = 1
 }

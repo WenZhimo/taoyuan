@@ -16,12 +16,19 @@ import { OFFICIAL_REGISTRY_DEFINITIONS, buildOfficialRegistrySetFromStaticData }
 import officialContentSnapshot from '../fixtures/mods/official-content-snapshot.json'
 
 describe('phase 6 official registry snapshot acceptance evidence', () => {
-  it('classifies every runtime src/data import used by non-test business code', () => {
+  it('closes the strict inventory and runtime audit without weakening future defaults', () => {
     const report = JSON.parse(execFileSync(
       process.execPath,
-      ['scripts/audit-mod-phase6.mjs'],
+      ['scripts/audit-mod-phase6.mjs', '--strict'],
       { cwd: process.cwd(), encoding: 'utf8' }
     )) as {
+      inventory: {
+        totalSymbols: number
+        phase6Symbols: number
+        phase6StatusCounts: Record<string, number>
+        provisionalStatusCount: number
+        provisionalStatuses: string[]
+      }
       businessDataImports: {
         status: string
         count: number
@@ -40,7 +47,34 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
         status: string
         checks: Array<{ id: string, pass: boolean, evidence: string }>
       }
+      officialSnapshot: {
+        formatVersion: number
+        registryCount: number
+        entryCount: number
+        snapshotHash: string
+      }
+      strict: {
+        requested: boolean
+        status: string
+        failures: string[]
+      }
     }
+
+    expect(report.inventory).toEqual({
+      totalSymbols: 629,
+      phase6Symbols: 574,
+      phase6StatusCounts: {
+        'framework-retained': 190,
+        verified: 384
+      },
+      provisionalStatusCount: 0,
+      provisionalStatuses: ['baselined', 'inventoried']
+    })
+    expect(report.inventory.phase6StatusCounts.baselined ?? 0).toBe(0)
+    expect(report.inventory.phase6StatusCounts.inventoried ?? 0).toBe(0)
+    expect((report.inventory.phase6StatusCounts.verified ?? 0)
+      + (report.inventory.phase6StatusCounts['framework-retained'] ?? 0))
+      .toBe(report.inventory.phase6Symbols)
 
     expect(report.businessDataImports.status).toBe('PASS')
     expect(report.businessDataImports.count).toBe(477)
@@ -53,9 +87,9 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     ])
     expect(report.businessDataImports.categoryCounts).toEqual({
       'official-adapter-leaf': 87,
-      'compatibility-fallback': 289,
-      'framework-algorithm': 82,
-      'legal-derived': 19,
+      'compatibility-fallback': 150,
+      'framework-algorithm': 190,
+      'legal-derived': 50,
       'pending-migration-violation': 0
     })
     expect(Object.values(report.businessDataImports.categoryCounts).reduce(
@@ -98,6 +132,37 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
       expect.objectContaining({ id: 'content-access-published-only', pass: true }),
       expect.objectContaining({ id: 'shared-renderer-entry', pass: true }),
       expect.objectContaining({ id: 'electron-startup-diagnostic', pass: true })
+    ])
+    expect(report.officialSnapshot).toEqual({
+      formatVersion: 1,
+      registryCount: 54,
+      entryCount: 4242,
+      snapshotHash: 'sha256:31f5e59b53c8f1d49d99d5da18dbeccad5ac12b09b5367982496dbeecc53ff21'
+    })
+    expect(report.strict).toEqual({
+      requested: true,
+      status: 'PASS',
+      failures: []
+    })
+
+    const defaultStatuses = JSON.parse(execFileSync(
+      process.execPath,
+      [
+        '--input-type=module',
+        '--eval',
+        "import { getDefaultInventoryStatus } from './scripts/content-inventory-policy.mjs'; process.stdout.write(JSON.stringify(['content', 'derived', 'adapter', 'algorithm', 'ui', 'barrel', 'unknown'].map(getDefaultInventoryStatus)))"
+      ],
+      { cwd: process.cwd(), encoding: 'utf8' }
+    )) as string[]
+
+    expect(defaultStatuses).toEqual([
+      'baselined',
+      'baselined',
+      'baselined',
+      'framework-retained',
+      'framework-retained',
+      'inventoried',
+      'inventoried'
     ])
   })
 

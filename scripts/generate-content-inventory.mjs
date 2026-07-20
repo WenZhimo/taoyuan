@@ -1,6 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
+import { getDefaultInventoryStatus } from './content-inventory-policy.mjs'
 
 const root = process.cwd()
 const dataRoot = path.join(root, 'src', 'data')
@@ -903,22 +904,6 @@ const getTargetRegistry = (fileEntry, classification) => {
   if (classification === 'ui') return fileEntry.candidateTargets?.find(target => target.startsWith('ui/') || target === 'locales')
   if (classification === 'adapter') return fileEntry.candidateTargets?.find(target => target.includes('adapter'))
   return undefined
-}
-
-const getStatus = classification => {
-  switch (classification) {
-    case 'content':
-    case 'derived':
-    case 'adapter':
-      return 'baselined'
-    case 'algorithm':
-    case 'ui':
-      return 'framework-retained'
-    case 'barrel':
-      return 'inventoried'
-    default:
-      return 'inventoried'
-  }
 }
 
 const getRationale = (classification, syntaxKind) => {
@@ -6199,7 +6184,7 @@ const entries = dataFiles.map(file => {
             ? 'src/tests/fixtures/mods/official-content-snapshot.json'
             : undefined
         ),
-      status: reviewOverride?.status ?? getStatus(classification),
+      status: reviewOverride?.status ?? getDefaultInventoryStatus(classification),
       rationale: reviewOverride?.rationale ?? getRationale(classification, symbol.syntaxKind)
     }
   })
