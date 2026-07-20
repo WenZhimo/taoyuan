@@ -368,10 +368,10 @@
   import { getCropById, getCropsBySeason, getItemById } from '@/data'
   import { getStarRating } from '@/data/breeding'
   import { GREENHOUSE_UPGRADES } from '@/data/buildings'
-  import { CROPS } from '@/data/crops'
   import { FERTILIZERS, getFertilizerById } from '@/data/processing'
   import { ACTION_TIME_COSTS } from '@/data/timeConstants'
   import { FARM_BATCH_LIMIT } from '@/domain/farm/batchLimits'
+  import { getOfficialCropDefs } from '@/domain/mods/contentAccess'
   import { addLog, showFloat } from '@/composables/useGameLog'
   import { navigateToPanel } from '@/composables/useNavigation'
   import { handleEndDay } from '@/composables/useEndDay'
@@ -995,6 +995,8 @@
 
   // === 温室 ===
 
+  const greenhouseCrops = getOfficialCropDefs()
+
   const {
     allSeeds,
     closeGreenhouseDialogs,
@@ -1018,7 +1020,7 @@
       cropId: seed.genetics.cropId,
       genetics: seed.genetics
     })),
-    crops: () => CROPS,
+    crops: () => greenhouseCrops,
     cropGrowthBonus: () => useWalletStore().getCropGrowthBonus(),
     getCropById,
     getFertilizerById,

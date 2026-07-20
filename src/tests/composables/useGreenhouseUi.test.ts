@@ -2,6 +2,8 @@ import { ref } from 'vue'
 import { describe, expect, it } from 'vitest'
 import { useGreenhouseUi } from '@/composables/farm/useGreenhouseUi'
 import type { GreenhouseUpgradeDef } from '@/data/buildings'
+import { CROPS } from '@/data/crops'
+import { getOfficialCropDefs } from '@/domain/mods/contentAccess'
 import type { CropDef, FarmPlot } from '@/types/farm'
 import type { SeedGenetics } from '@/types/breeding'
 
@@ -66,7 +68,12 @@ const upgrades: GreenhouseUpgradeDef[] = [
   }
 ]
 
-const createGreenhouseUi = () => {
+interface CreateGreenhouseUiOptions {
+  crops?: readonly CropDef[]
+  itemCounts?: Record<string, number>
+}
+
+const createGreenhouseUi = (options: CreateGreenhouseUiOptions = {}) => {
   const greenhouseUnlocked = ref(true)
   const greenhouseLevel = ref(0)
   const plots = ref<FarmPlot[]>([
@@ -75,11 +82,11 @@ const createGreenhouseUi = () => {
     makePlot({ id: 4, state: 'growing', cropId: 'cabbage', growthDays: 2, fertilizer: 'speed_gro' }),
     makePlot({ id: 5, state: 'planted', cropId: 'cabbage', growthDays: 1, seedGenetics: makeGenetics({ id: 'gen-plot', generation: 2 }) })
   ])
-  const crops = ref<CropDef[]>([
+  const crops = ref<CropDef[]>(options.crops ? [...options.crops] : [
     makeCrop({ id: 'cabbage', name: 'Cabbage', seedId: 'cabbage_seed', growthDays: 5, regrowth: false }),
     makeCrop({ id: 'tomato', name: 'Tomato', seedId: 'tomato_seed', growthDays: 6, regrowth: true })
   ])
-  const itemCounts = ref<Record<string, number>>({
+  const itemCounts = ref<Record<string, number>>(options.itemCounts ?? {
     cabbage_seed: 4,
     tomato_seed: 0,
     wood: 8
@@ -115,6 +122,21 @@ const createGreenhouseUi = () => {
 }
 
 describe('useGreenhouseUi', () => {
+  it('keeps the registry-backed greenhouse seed catalog equivalent to the legacy crop order', () => {
+    const itemCounts = Object.fromEntries(CROPS.map((crop, index) => [crop.seedId, index + 1]))
+    const { greenhouseUi } = createGreenhouseUi({
+      crops: getOfficialCropDefs(),
+      itemCounts
+    })
+
+    expect(greenhouseUi.allSeeds.value).toEqual(CROPS.map((crop, index) => ({
+      cropId: crop.id,
+      name: crop.name,
+      count: index + 1,
+      regrowth: crop.regrowth ?? false
+    })))
+  })
+
   it('derives greenhouse counts, state stats, and crop stats', () => {
     const { greenhouseUi } = createGreenhouseUi()
 
