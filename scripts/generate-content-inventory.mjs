@@ -6222,6 +6222,36 @@ const reviewedArtifacts = [
     migrationPhase: [6],
     status: 'verified',
     rationale: 'Runs the same byte-for-byte committed-artifact check and hash probe on Windows, Linux and macOS without platform-specific expected hashes.'
+  },
+  {
+    file: 'src/domain/mods/officialContentRuntimeReport.ts + src/runtime/contentRuntimeProbe.ts + src/main.ts',
+    exportName: 'createOfficialContentRuntimeReport/publishContentRuntimeProbe',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Recomputes the five official content hashes from the published frozen registry set and exposes a bounded, opt-in production report with registry order, counts and public item, recipe and crop query checks.'
+  },
+  {
+    file: 'scripts/probe-product-runtime.mjs + scripts/runtime-probe-web-host.cjs',
+    exportName: 'probe:web-product/probe:products',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Loads the real docs production output over a local HTTP server in Electron Chromium and proves the bundled precompile plus missing, corrupt and environment-mismatch static fallbacks reach the main menu with identical hashes and queries.'
+  },
+  {
+    file: 'electron/main.js + electron/preload.js + scripts/probe-product-runtime.mjs',
+    exportName: 'probe:electron-product',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-precompiled-registry',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Launches the packaged unpacked EXE, validates production hashes and fallback behavior through bounded IPC, verifies executable-local settings and Chromium storage, and isolates fault probes without changing formal userdata or startup.log.'
   }
 ]
 
