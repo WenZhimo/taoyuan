@@ -1,0 +1,11 @@
+[
+  {
+    "id": "discovery_valid:soft_gift",
+    "name": {
+      "key": "discovery_valid.tag.soft_gift.name",
+      "fallback": "柔软礼物"
+    },
+    "propagateToCraftedOutput": true,
+    "stackPolicy": "merge"
+  }
+]

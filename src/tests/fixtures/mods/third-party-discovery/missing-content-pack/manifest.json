@@ -1,0 +1,28 @@
+{
+  "id": "discovery_missing_content",
+  "name": {
+    "key": "discovery_missing_content.package.name",
+    "fallback": "发现测试缺内容包"
+  },
+  "version": "1.0.0",
+  "gameVersion": "2.4.0",
+  "engineApiVersion": "1",
+  "contentSchemaVersion": "1",
+  "defaultLocale": "zh-CN",
+  "locales": {
+    "zh-CN": "locales/zh-CN.json"
+  },
+  "authors": [
+    {
+      "name": "Discovery Tester",
+      "role": "developer"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": [],
+  "entrypoints": {
+    "taoyuan:item": [
+      "data/missing-items.json"
+    ]
+  }
+}

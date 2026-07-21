@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 204
+    "reviewedArtifactCount": 206
   },
   "entries": [
     {
@@ -15647,6 +15647,30 @@
       ],
       "status": "verified",
       "rationale": "Rebuilds the v2 derived official cache after the UI mount without delaying ordinary startup, skips writes on verified disk hits, and keeps bounded structured diagnostics and timings for failed writes."
+    },
+    {
+      "file": "src/domain/mods/thirdPartyDataPackDiscovery.ts",
+      "exportName": "discoverThirdPartyDataPacks",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-data-pack-discovery",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Provides the first read-only third-party data pack discovery entrypoint: scans only one directory level, reads manifest.json and manifest-declared JSON content, validates unknown input through TypeBox, rejects unsafe paths/symlinks, and returns structured diagnostics without publishing registry entries."
+    },
+    {
+      "file": "src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery",
+      "exportName": "third-party discovery fixture matrix",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-data-pack-discovery",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers legal, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON and unsafe-path data pack fixtures, proves invalid packages are not injected into official registries, and verifies player settings/save files and unrelated large files are not read or modified."
     }
   ]
 }

@@ -1,0 +1,19 @@
+[
+  {
+    "id": "discovery_valid:linen_ribbon",
+    "name": {
+      "key": "discovery_valid.item.linen_ribbon.name",
+      "fallback": "亚麻丝带"
+    },
+    "category": "gift",
+    "description": {
+      "key": "discovery_valid.item.linen_ribbon.description",
+      "fallback": "用于发现器测试的礼物。"
+    },
+    "sellPrice": 8,
+    "edible": false,
+    "tags": [
+      "discovery_valid:soft_gift"
+    ]
+  }
+]

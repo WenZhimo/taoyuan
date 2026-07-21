@@ -1,0 +1,31 @@
+{
+  "id": "discovery_valid",
+  "name": {
+    "key": "discovery_valid.package.name",
+    "fallback": "发现测试合法包"
+  },
+  "version": "1.0.0",
+  "gameVersion": "2.4.0",
+  "engineApiVersion": "1",
+  "contentSchemaVersion": "1",
+  "defaultLocale": "zh-CN",
+  "locales": {
+    "zh-CN": "locales/zh-CN.json"
+  },
+  "authors": [
+    {
+      "name": "Discovery Tester",
+      "role": "developer"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": [],
+  "entrypoints": {
+    "taoyuan:tag": [
+      "data/tags.json"
+    ],
+    "taoyuan:item": [
+      "data/items.json"
+    ]
+  }
+}

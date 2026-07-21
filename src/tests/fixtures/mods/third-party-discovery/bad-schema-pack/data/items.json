@@ -1,0 +1,16 @@
+[
+  {
+    "id": "discovery_bad_schema:bad_item",
+    "name": {
+      "key": "discovery_bad_schema.item.bad.name",
+      "fallback": "坏物品"
+    },
+    "category": "gift",
+    "description": {
+      "key": "discovery_bad_schema.item.bad.description",
+      "fallback": "售价非法。"
+    },
+    "sellPrice": -1,
+    "edible": false
+  }
+]
