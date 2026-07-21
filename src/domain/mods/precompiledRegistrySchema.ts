@@ -52,6 +52,7 @@ export const OfficialPrecompiledRegistryArtifactSchema = Type.Object(
 export const OfficialPrecompiledRegistryMetadataSchema = Type.Object(
   {
     artifactFormatVersion: Type.Literal(1),
+    artifactHash: Sha256HashSchema,
     contentHash: Sha256HashSchema,
     schemaSetHash: Sha256HashSchema,
     environmentHash: Sha256HashSchema,

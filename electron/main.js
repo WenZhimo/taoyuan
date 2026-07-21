@@ -3,6 +3,17 @@ import path from 'node:path'
 import fs from 'node:fs'
 import pkg from '../package.json'
 
+const runtimeProbeOutputPath = typeof process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT === 'string'
+  && path.isAbsolute(process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT)
+  ? process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT
+  : null
+const runtimeProbeEnabled = runtimeProbeOutputPath !== null
+const runtimeProbeFault = ['missing', 'corrupt', 'environment-mismatch']
+  .includes(process.env.TAOYUAN_RUNTIME_PROBE_FAULT)
+  ? process.env.TAOYUAN_RUNTIME_PROBE_FAULT
+  : null
+const runtimeProbeAutoExit = process.env.TAOYUAN_RUNTIME_PROBE_AUTO_EXIT === '1'
+
 const configurePackagedUserData = () => {
   if (!app.isPackaged) return
 
@@ -15,11 +26,13 @@ const configurePackagedUserData = () => {
   try {
     fs.mkdirSync(localUserDataPath, { recursive: true })
     fs.accessSync(localUserDataPath, fs.constants.W_OK)
-    for (const name of ['Local Storage', 'settings.json']) {
-      const source = path.join(defaultUserDataPath, name)
-      const target = path.join(localUserDataPath, name)
-      if (fs.existsSync(source) && !fs.existsSync(target)) {
-        fs.cpSync(source, target, { recursive: true })
+    if (!runtimeProbeEnabled) {
+      for (const name of ['Local Storage', 'settings.json']) {
+        const source = path.join(defaultUserDataPath, name)
+        const target = path.join(localUserDataPath, name)
+        if (fs.existsSync(source) && !fs.existsSync(target)) {
+          fs.cpSync(source, target, { recursive: true })
+        }
       }
     }
     app.setPath('userData', localUserDataPath)
@@ -45,6 +58,44 @@ const publicPath = path.join(appRoot, 'public')
 // 设置文件路径
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
 const startupLogPath = path.join(app.getPath('userData'), 'startup.log')
+const startupLogInitialStat = fs.existsSync(startupLogPath)
+  ? fs.statSync(startupLogPath)
+  : null
+
+const isPathInside = (parent, candidate) => {
+  const relative = path.relative(path.resolve(parent), path.resolve(candidate))
+  return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))
+}
+
+const writeRuntimeProbeOutput = (value, exitCode = 0) => {
+  if (!runtimeProbeOutputPath) return
+  try {
+    const serialized = JSON.stringify(value, null, 2) + '\n'
+    if (Buffer.byteLength(serialized, 'utf8') > 1_000_000) {
+      throw new Error('Runtime probe report exceeded the size limit')
+    }
+    fs.mkdirSync(path.dirname(runtimeProbeOutputPath), { recursive: true })
+    const temporaryPath = `${runtimeProbeOutputPath}.tmp-${process.pid}`
+    fs.writeFileSync(temporaryPath, serialized, 'utf8')
+    fs.renameSync(temporaryPath, runtimeProbeOutputPath)
+    process.exitCode = exitCode
+  } catch (error) {
+    console.error('Failed to write runtime probe output:', error)
+    process.exitCode = 1
+  }
+  if (runtimeProbeAutoExit) {
+    isQuitting = true
+    setImmediate(() => app.quit())
+  }
+}
+
+const writeRuntimeProbeFailure = code => {
+  writeRuntimeProbeOutput({
+    schemaVersion: 1,
+    target: 'electron',
+    probeError: code
+  }, 1)
+}
 
 const appendStartupLog = message => {
   try {
@@ -205,7 +256,18 @@ const createWindow = () => {
   })
 
   createAppMenu()
-  win.loadFile(path.join(docsPath, 'index.html'))
+  const loadOptions = runtimeProbeEnabled
+    ? {
+        query: {
+          taoyuanContentProbe: '1',
+          ...(runtimeProbeFault ? { taoyuanPrecompiledFault: runtimeProbeFault } : {})
+        }
+      }
+    : undefined
+  void win.loadFile(path.join(docsPath, 'index.html'), loadOptions)
+  if (runtimeProbeEnabled) {
+    win.webContents.once('did-fail-load', () => writeRuntimeProbeFailure('renderer-load-failed'))
+  }
 
   // WebDAV CORS 绕过：对所有非同源请求注入 CORS 响应头
   win.webContents.session.webRequest.onHeadersReceived((details, callback) => {
@@ -268,8 +330,57 @@ ipcMain.on('startup-failure', (_event, message) => {
   appendStartupLog(`[taoyuan-core] ${message.slice(0, 100_000)}`)
 })
 
+ipcMain.on('content-runtime-probe', (_event, report) => {
+  if (!runtimeProbeEnabled) return
+  if (
+    !report
+    || typeof report !== 'object'
+    || report.schemaVersion !== 1
+    || !report.runtime
+    || typeof report.runtime !== 'object'
+  ) {
+    writeRuntimeProbeFailure('invalid-renderer-report')
+    return
+  }
+
+  const userDataPath = app.getPath('userData')
+  const executableDir = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
+  const expectedUserDataPath = path.join(executableDir, 'userdata')
+  const storagePath = session.defaultSession.storagePath
+  const startupLogCurrentStat = fs.existsSync(startupLogPath)
+    ? fs.statSync(startupLogPath)
+    : null
+  const startupLogChanged = startupLogInitialStat === null
+    ? startupLogCurrentStat !== null
+    : startupLogCurrentStat === null
+      || startupLogInitialStat.size !== startupLogCurrentStat.size
+      || startupLogInitialStat.mtimeMs !== startupLogCurrentStat.mtimeMs
+
+  writeRuntimeProbeOutput({
+    schemaVersion: 1,
+    target: 'electron',
+    runtime: report,
+    electron: {
+      isPackaged: app.isPackaged,
+      userDataLocation: process.env.PORTABLE_EXECUTABLE_DIR
+        ? 'probe-isolated-directory'
+        : 'executable-directory',
+      userDataMatchesConfiguredDirectory:
+        path.resolve(userDataPath) === path.resolve(expectedUserDataPath),
+      settingsInsideUserData: isPathInside(userDataPath, settingsPath),
+      sessionStorageInsideUserData:
+        typeof storagePath === 'string' && isPathInside(userDataPath, storagePath),
+      startupLogChanged
+    }
+  })
+})
+
 app.whenReady().then(() => {
   createWindow()
+
+  if (runtimeProbeEnabled) {
+    setTimeout(() => writeRuntimeProbeFailure('runtime-report-timeout'), 120_000)
+  }
 
   // 如果启用了托盘功能，创建托盘
   if (settings.closeToTray) {

@@ -63,6 +63,7 @@ await esbuild.build({
       if (!officialPackage) throw new Error('Official precompiled artifact has no package identity')
       const metadata = {
         artifactFormatVersion: artifact.artifactFormatVersion,
+        artifactHash: sha256Utf8(serializedArtifact),
         contentHash: officialPackage.contentHash,
         schemaSetHash: artifact.environment.schemaSetHash,
         environmentHash: artifact.environmentHash,
@@ -91,7 +92,6 @@ await esbuild.build({
           platform: process.platform,
           artifactMatches: actualArtifact === serializedArtifact,
           metadataMatches: actualMetadata === serializedMetadata,
-          artifactHash: sha256Utf8(serializedArtifact),
           ...metadata
         }, null, 2) + '\\n')
       }

@@ -14,5 +14,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   quitApp: () => ipcRenderer.invoke('quit-app'),
 
   // Report fatal renderer startup failures without exposing filesystem access.
-  reportStartupFailure: message => ipcRenderer.send('startup-failure', message)
+  reportStartupFailure: message => ipcRenderer.send('startup-failure', message),
+
+  // Send a bounded structured report only when the main process enabled a probe run.
+  reportContentRuntimeProbe: report => ipcRenderer.send('content-runtime-probe', report)
 })

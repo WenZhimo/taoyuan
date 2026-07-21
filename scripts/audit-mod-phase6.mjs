@@ -104,7 +104,7 @@ const officialStartupChecks = [
   {
     id: 'shared-renderer-entry',
     pass: startupSources.webIndex.includes('src="/src/main.ts"')
-      && startupSources.electronMain.includes("loadFile(path.join(docsPath, 'index.html'))")
+      && startupSources.electronMain.includes("loadFile(path.join(docsPath, 'index.html')")
       && startupSources.capacitor.includes("webDir: 'docs'")
       && startupSources.main.includes('bootstrapOfficialContent'),
     evidence: 'index.html, src/main.ts, electron/main.js, capacitor.config.ts'

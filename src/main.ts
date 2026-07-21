@@ -8,6 +8,9 @@ import {
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
 import './app.css'
 
+const runtimeProbeRequested = typeof window !== 'undefined'
+  && new URLSearchParams(window.location.search).get('taoyuanContentProbe') === '1'
+
 void bootstrapApplication({
   bootstrapOfficialContent,
   createApp: async () => createApp((await import('./App.vue')).default),
@@ -27,6 +30,10 @@ void bootstrapApplication({
   getRouter: async () => (await import('@/router')).default,
   installRouter: (app, router) => app.use(router),
   mount: (app, router) => mountAfterRouterReady(app, router)
+}).then(async () => {
+  if (!runtimeProbeRequested) return
+  const { publishContentRuntimeProbe } = await import('@/runtime/contentRuntimeProbe')
+  publishContentRuntimeProbe()
 }).catch(error => {
   reportApplicationStartupFailure(error)
 })
