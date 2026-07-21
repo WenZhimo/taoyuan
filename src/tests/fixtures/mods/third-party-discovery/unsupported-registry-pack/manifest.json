@@ -1,0 +1,28 @@
+{
+  "id": "unsupported_registry",
+  "name": {
+    "key": "unsupported_registry.package.name",
+    "fallback": "Unsupported registry fixture"
+  },
+  "version": "1.0.0",
+  "gameVersion": "2.4.0",
+  "engineApiVersion": "1",
+  "contentSchemaVersion": "1",
+  "defaultLocale": "zh-CN",
+  "locales": {
+    "zh-CN": "locales/zh-CN.json"
+  },
+  "authors": [
+    {
+      "name": "Discovery Tester",
+      "role": "developer"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": [],
+  "entrypoints": {
+    "example_mod:unknown_registry": [
+      "data/unknown.json"
+    ]
+  }
+}

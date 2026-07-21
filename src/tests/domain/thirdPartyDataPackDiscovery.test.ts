@@ -103,10 +103,10 @@ describe('third-party data pack read-only discovery', () => {
 
     expect(report.status).toBe('completed')
     expect(report.summary).toMatchObject({
-      scannedEntries: 8,
-      candidateCount: 7,
+      scannedEntries: 9,
+      candidateCount: 8,
       validPackageCount: 1,
-      invalidPackageCount: 6
+      invalidPackageCount: 7
     })
     expect(report.issues.map(issue => issue.kind)).toEqual(expect.arrayContaining([
       'non-json-file',
@@ -114,7 +114,8 @@ describe('third-party data pack read-only discovery', () => {
       'json-parse-failed',
       'content-file-missing',
       'missing-manifest',
-      'path-unsafe'
+      'path-unsafe',
+      'unsupported-registry'
     ]))
 
     const valid = report.candidates.find(candidate => candidate.path === 'valid-gift-pack')
@@ -152,6 +153,13 @@ describe('third-party data pack read-only discovery', () => {
     expect(noManifest?.issues).toContainEqual(expect.objectContaining({
       kind: 'missing-manifest',
       path: 'no-manifest-pack/manifest.json'
+    }))
+
+    const unsupportedRegistry = report.candidates.find(candidate => candidate.path === 'unsupported-registry-pack')
+    expect(unsupportedRegistry?.issues).toContainEqual(expect.objectContaining({
+      kind: 'unsupported-registry',
+      path: 'unsupported-registry-pack/manifest.json',
+      registryId: 'example_mod:unknown_registry'
     }))
 
     for (const issue of report.issues) {

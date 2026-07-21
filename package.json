@@ -22,6 +22,7 @@
     "mod:audit-phase6": "node scripts/audit-mod-phase6.mjs",
     "mod:schemas": "node scripts/generate-mod-schemas.mjs",
     "mod:check-schemas": "node scripts/validate-mod-schemas.mjs",
+    "mod:check-packs": "node scripts/check-third-party-packs.mjs",
     "mod:fixtures": "node scripts/generate-mod-fixtures.mjs",
     "mod:precompile": "node scripts/official-precompiled.mjs --write",
     "mod:check-precompile": "node scripts/official-precompiled.mjs --check",

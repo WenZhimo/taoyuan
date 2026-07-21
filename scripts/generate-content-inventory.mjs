@@ -6311,7 +6311,27 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers legal, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON and unsafe-path data pack fixtures, proves invalid packages are not injected into official registries, and verifies player settings/save files and unrelated large files are not read or modified.'
+    rationale: 'Covers legal, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON, unsupported-registry and unsafe-path data pack fixtures, proves invalid packages are not injected into official registries, and verifies player settings/save files and unrelated large files are not read or modified.'
+  },
+  {
+    file: 'scripts/check-third-party-packs.mjs',
+    exportName: 'mod:check-packs/check-third-party-packs',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-data-pack-check-cli',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Provides the first read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discoverThirdPartyDataPacks(), prints human-readable diagnostics, and exits non-zero for invalid packages without writing files, userdata, cache, saves, settings or official registries.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackCheckCli.test.ts',
+    exportName: 'third-party data pack check CLI fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-data-pack-check-cli',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
   }
 ]
 
