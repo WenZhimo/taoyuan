@@ -35,7 +35,7 @@ const expectedHashes = {
   environmentHash: metadata.environmentHash,
   snapshotHash: metadata.snapshotHash
 }
-const scenarios = [
+const webScenarios = [
   { name: 'precompiled', fault: null, source: 'precompiled', status: 'official-precompiled-hit' },
   { name: 'missing', fault: 'missing', source: 'static-fallback', status: 'cache-miss-not-found' },
   { name: 'corrupt', fault: 'corrupt', source: 'static-fallback', status: 'cache-invalid-json' },
@@ -44,6 +44,56 @@ const scenarios = [
     fault: 'environment-mismatch',
     source: 'static-fallback',
     status: 'cache-miss-environment-changed'
+  }
+]
+
+const electronScenarios = [
+  { name: 'packaged-baseline', fault: null, source: null, status: null, isolated: false },
+  {
+    name: 'cache-miss-write',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    cacheStatus: 'cache-miss-not-found',
+    cacheWriteStatus: 'written',
+    dataRoot: 'cache-sequence'
+  },
+  {
+    name: 'cache-hit',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'cache-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'cache-sequence'
+  },
+  {
+    name: 'cache-corrupt-fallback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    cacheSeed: 'corrupt',
+    cacheStatus: 'cache-invalid-json',
+    cacheWriteStatus: 'written'
+  },
+  {
+    name: 'cache-environment-mismatch-fallback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    cacheSeed: 'environment-mismatch',
+    cacheStatus: 'cache-miss-environment-changed',
+    cacheWriteStatus: 'written'
+  },
+  {
+    name: 'cache-corrupt-static-fallback',
+    fault: 'corrupt',
+    source: 'static-fallback',
+    status: 'cache-invalid-json',
+    cacheSeed: 'corrupt',
+    cacheStatus: 'cache-invalid-json',
+    cacheWriteStatus: 'written'
   }
 ]
 
@@ -60,6 +110,53 @@ const assertInside = (parent, candidate, description) => {
 }
 
 const readJson = filePath => JSON.parse(fs.readFileSync(filePath, 'utf8'))
+
+const cacheFilePath = userDataPath => path.join(
+  userDataPath,
+  'mod-cache',
+  `sha256-${metadata.environmentHash.slice('sha256:'.length)}`,
+  'official-registry-cache-v1.json'
+)
+
+const createCacheText = identityOverrides => JSON.stringify({
+  cacheFormatVersion: 1,
+  identity: {
+    artifactHash: metadata.artifactHash,
+    contentHash: metadata.contentHash,
+    schemaSetHash: metadata.schemaSetHash,
+    environmentHash: metadata.environmentHash,
+    snapshotHash: metadata.snapshotHash,
+    ...identityOverrides
+  },
+  artifact
+}, null, 2) + '\n'
+
+const seedElectronCache = (userDataPath, seed) => {
+  if (!seed) return
+  const filePath = cacheFilePath(userDataPath)
+  fs.mkdirSync(path.dirname(filePath), { recursive: true })
+  const contents = seed === 'corrupt'
+    ? createCacheText().slice(0, 128)
+    : createCacheText({ environmentHash: `sha256:${'0'.repeat(64)}` })
+  fs.writeFileSync(filePath, contents, 'utf8')
+}
+
+const assertOfficialCacheFile = (userDataPath, scenarioName) => {
+  const filePath = cacheFilePath(userDataPath)
+  assert(fs.existsSync(filePath), `${scenarioName}: official cache file is missing`)
+  const envelope = readJson(filePath)
+  assert(envelope.cacheFormatVersion === 1, `${scenarioName}: wrong cache format version`)
+  assert(
+    JSON.stringify(envelope.identity) === JSON.stringify(expectedHashes),
+    `${scenarioName}: disk cache identity mismatch`
+  )
+  assert(envelope.artifact?.snapshot?.registries?.length === 54,
+    `${scenarioName}: disk cache registry count mismatch`)
+  assert(envelope.artifact.snapshot.registries.reduce(
+    (total, registry) => total + registry.entries.length,
+    0
+  ) === 4242, `${scenarioName}: disk cache entry count mismatch`)
+}
 
 const directoryFingerprint = directory => {
   if (!fs.existsSync(directory)) return []
@@ -111,8 +208,15 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   assert(envelope.ui?.startupFailureVisible === false, `${scenario.name}: startup failure visible`)
 
   const report = envelope.runtime
-  assert(report?.runtimeSource === scenario.source, `${scenario.name}: wrong runtime source`)
-  assert(report?.precompiledStatus === scenario.status, `${scenario.name}: wrong fallback status`)
+  if (scenario.source !== null) {
+    assert(report?.runtimeSource === scenario.source, `${scenario.name}: wrong runtime source`)
+    assert(report?.precompiledStatus === scenario.status, `${scenario.name}: wrong fallback status`)
+  } else {
+    assert(
+      ['disk-cache', 'precompiled', 'static-fallback'].includes(report?.runtimeSource),
+      `${scenario.name}: invalid runtime source`
+    )
+  }
   assert(report?.registryPhase === 'frozen', `${scenario.name}: registry set not frozen`)
   assert(report?.snapshotFormatVersion === 2, `${scenario.name}: wrong snapshot format`)
   assert(report?.registryCount === 54, `${scenario.name}: wrong registry count`)
@@ -126,25 +230,43 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     environmentHash: report.hashes?.environmentHash,
     snapshotHash: report.hashes?.snapshotHash
   }) === JSON.stringify(expectedHashes), `${scenario.name}: product hashes mismatch`)
-  assert(report.hashes?.artifactHashSource === 'loaded-product',
-    `${scenario.name}: artifact hash did not come from loaded product`)
+  if (scenario.artifactHashSource) {
+    assert(report.hashes?.artifactHashSource === scenario.artifactHashSource,
+      `${scenario.name}: artifact hash came from the wrong source`)
+  } else if (scenario.source !== null) {
+    assert(report.hashes?.artifactHashSource === 'loaded-product',
+      `${scenario.name}: artifact hash did not come from loaded product`)
+  }
   assert(JSON.stringify(report.queryChecks) === JSON.stringify({
     itemName: '青菜',
     recipeName: '炒青菜',
     cropName: '青菜'
   }), `${scenario.name}: public query checks failed`)
-  assert(
-    scenario.source === 'precompiled'
-      ? report.diagnostics.length === 0
-      : report.diagnostics.length > 0,
-    `${scenario.name}: unexpected diagnostics`
-  )
+  if (scenario.source !== null) {
+    const shouldHaveDiagnostics = scenario.source === 'static-fallback'
+      || (
+        scenario.cacheStatus?.startsWith('cache-')
+        && scenario.cacheStatus !== 'cache-hit'
+      )
+    assert(
+      shouldHaveDiagnostics ? report.diagnostics.length > 0 : report.diagnostics.length === 0,
+      `${scenario.name}: unexpected diagnostics`
+    )
+  }
   for (const diagnostic of report.diagnostics) {
     assert(
       JSON.stringify(Object.keys(diagnostic).sort())
         === JSON.stringify(['code', 'recovery', 'severity', 'stage']),
       `${scenario.name}: diagnostic leaked unsupported fields`
     )
+  }
+  if (scenario.cacheStatus) {
+    assert(report.diskCache?.status === scenario.cacheStatus,
+      `${scenario.name}: wrong disk cache status`)
+  }
+  if (scenario.cacheWriteStatus) {
+    assert(report.diskCache?.writeStatus === scenario.cacheWriteStatus,
+      `${scenario.name}: wrong disk cache write status`)
   }
   assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(envelope)),
     `${scenario.name}: report leaked an absolute path`)
@@ -196,7 +318,7 @@ const runWebProbe = async () => {
   const { server, baseUrl } = await startWebServer()
   const reports = []
   try {
-    for (const scenario of scenarios) {
+    for (const scenario of webScenarios) {
       const scenarioRoot = path.join(runRoot, `web-${scenario.name}`)
       const outputPath = path.join(scenarioRoot, 'report.json')
       fs.mkdirSync(scenarioRoot, { recursive: true })
@@ -219,9 +341,10 @@ const runWebProbe = async () => {
 }
 
 const runPackagedScenario = async (scenario, isolated) => {
-  const scenarioRoot = path.join(runRoot, `electron-${scenario.name}`)
-  const outputPath = path.join(scenarioRoot, 'report.json')
+  const scenarioRoot = path.join(runRoot, `electron-${scenario.dataRoot ?? scenario.name}`)
+  const outputPath = path.join(runRoot, 'electron-reports', `${scenario.name}.json`)
   fs.mkdirSync(scenarioRoot, { recursive: true })
+  seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
   await runProcess(packagedExecutable, [], {
     TAOYUAN_RUNTIME_PROBE_OUTPUT: outputPath,
     TAOYUAN_RUNTIME_PROBE_AUTO_EXIT: '1',
@@ -241,8 +364,16 @@ const runPackagedScenario = async (scenario, isolated) => {
     `${scenario.name}: settings escaped userData`)
   assert(productReport.electron?.sessionStorageInsideUserData === true,
     `${scenario.name}: save storage escaped userData`)
+  assert(productReport.electron?.officialCacheInsideUserData === true,
+    `${scenario.name}: official cache escaped userData`)
+  assert(productReport.electron?.officialCacheExists === true,
+    `${scenario.name}: official cache was not written`)
   assert(productReport.electron?.startupLogChanged === false,
     `${scenario.name}: startup error log changed`)
+  assertOfficialCacheFile(
+    isolated ? path.join(scenarioRoot, 'userdata') : path.join(packagedRoot, 'userdata'),
+    scenario.name
+  )
   assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(productReport)),
     `${scenario.name}: Electron report leaked an absolute path`)
   return { scenario: scenario.name, runtime: productReport.runtime, electron: productReport.electron }
@@ -252,13 +383,13 @@ const runElectronProbe = async () => {
   assert(fs.existsSync(packagedExecutable),
     'Electron product is missing; run pnpm build:electron')
   const reports = []
-  reports.push(await runPackagedScenario(scenarios[0], false))
+  reports.push(await runPackagedScenario(electronScenarios[0], false))
 
   const formalUserData = path.join(packagedRoot, 'userdata')
   assert(fs.existsSync(formalUserData), 'Packaged app did not create program-local userdata')
   const formalFingerprint = directoryFingerprint(formalUserData)
-  for (const scenario of scenarios.slice(1)) {
-    reports.push(await runPackagedScenario(scenario, true))
+  for (const scenario of electronScenarios.slice(1)) {
+    reports.push(await runPackagedScenario(scenario, scenario.isolated !== false))
   }
   assert(
     JSON.stringify(directoryFingerprint(formalUserData)) === JSON.stringify(formalFingerprint),

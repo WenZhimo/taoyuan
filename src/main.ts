@@ -6,6 +6,7 @@ import {
   reportApplicationStartupFailure
 } from '@/bootstrap'
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
+import { refreshOfficialRegistryDiskCache } from '@/domain/mods/officialRegistryCacheRefresh'
 import './app.css'
 
 const runtimeProbeRequested = typeof window !== 'undefined'
@@ -31,7 +32,12 @@ void bootstrapApplication({
   installRouter: (app, router) => app.use(router),
   mount: (app, router) => mountAfterRouterReady(app, router)
 }).then(async () => {
-  if (!runtimeProbeRequested) return
+  const cacheRefresh = refreshOfficialRegistryDiskCache()
+  if (!runtimeProbeRequested) {
+    void cacheRefresh
+    return
+  }
+  await cacheRefresh
   const { publishContentRuntimeProbe } = await import('@/runtime/contentRuntimeProbe')
   publishContentRuntimeProbe()
 }).catch(error => {

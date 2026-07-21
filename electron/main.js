@@ -2,6 +2,12 @@ import { app, BrowserWindow, Tray, Menu, ipcMain, nativeImage, session } from 'e
 import path from 'node:path'
 import fs from 'node:fs'
 import pkg from '../package.json'
+import officialCacheMetadata from '../src/generated/mods/official-precompiled-metadata.json'
+import {
+  getOfficialRegistryCacheFilePaths,
+  readOfficialRegistryCacheFile,
+  writeOfficialRegistryCacheFile
+} from '../src/domain/mods/officialRegistryCacheFile'
 
 const runtimeProbeOutputPath = typeof process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT === 'string'
   && path.isAbsolute(process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT)
@@ -14,12 +20,16 @@ const runtimeProbeFault = ['missing', 'corrupt', 'environment-mismatch']
   : null
 const runtimeProbeAutoExit = process.env.TAOYUAN_RUNTIME_PROBE_AUTO_EXIT === '1'
 
+const getExecutableUserDataPath = () => path.join(
+  process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath),
+  'userdata'
+)
+
 const configurePackagedUserData = () => {
   if (!app.isPackaged) return
 
   const defaultUserDataPath = app.getPath('userData')
-  const executableDir = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
-  const localUserDataPath = path.join(executableDir, 'userdata')
+  const localUserDataPath = getExecutableUserDataPath()
 
   if (path.resolve(defaultUserDataPath) === path.resolve(localUserDataPath)) return
 
@@ -58,6 +68,14 @@ const publicPath = path.join(appRoot, 'public')
 // 设置文件路径
 const settingsPath = path.join(app.getPath('userData'), 'settings.json')
 const startupLogPath = path.join(app.getPath('userData'), 'startup.log')
+const officialCachePaths = getOfficialRegistryCacheFilePaths(
+  app.getPath('userData'),
+  officialCacheMetadata.environmentHash
+)
+const isOfficialRegistryDiskCacheAvailable = () => {
+  if (!app.isPackaged) return false
+  return path.resolve(app.getPath('userData')) === path.resolve(getExecutableUserDataPath())
+}
 const startupLogInitialStat = fs.existsSync(startupLogPath)
   ? fs.statSync(startupLogPath)
   : null
@@ -325,6 +343,26 @@ ipcMain.handle('quit-app', () => {
   app.quit()
 })
 
+ipcMain.handle('official-registry-cache-read', async () => {
+  if (!isOfficialRegistryDiskCacheAvailable()) return null
+  return await readOfficialRegistryCacheFile(officialCachePaths)
+})
+
+ipcMain.handle('official-registry-cache-write', async (_event, contents) => {
+  if (!isOfficialRegistryDiskCacheAvailable()) {
+    throw new Error('Official registry disk cache is unavailable outside executable userdata')
+  }
+  if (typeof contents !== 'string') {
+    throw new TypeError('Official registry disk cache contents must be JSON text')
+  }
+  await writeOfficialRegistryCacheFile(
+    officialCachePaths,
+    contents,
+    officialCacheMetadata
+  )
+  return { status: 'written' }
+})
+
 ipcMain.on('startup-failure', (_event, message) => {
   if (typeof message !== 'string') return
   appendStartupLog(`[taoyuan-core] ${message.slice(0, 100_000)}`)
@@ -344,8 +382,7 @@ ipcMain.on('content-runtime-probe', (_event, report) => {
   }
 
   const userDataPath = app.getPath('userData')
-  const executableDir = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
-  const expectedUserDataPath = path.join(executableDir, 'userdata')
+  const expectedUserDataPath = getExecutableUserDataPath()
   const storagePath = session.defaultSession.storagePath
   const startupLogCurrentStat = fs.existsSync(startupLogPath)
     ? fs.statSync(startupLogPath)
@@ -370,6 +407,8 @@ ipcMain.on('content-runtime-probe', (_event, report) => {
       settingsInsideUserData: isPathInside(userDataPath, settingsPath),
       sessionStorageInsideUserData:
         typeof storagePath === 'string' && isPathInside(userDataPath, storagePath),
+      officialCacheInsideUserData: isPathInside(userDataPath, officialCachePaths.filePath),
+      officialCacheExists: fs.existsSync(officialCachePaths.filePath),
       startupLogChanged
     }
   })

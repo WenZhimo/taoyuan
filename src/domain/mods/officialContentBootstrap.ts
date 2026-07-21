@@ -4,10 +4,16 @@ import { requireRegistryTypeId } from './ids'
 import {
   OfficialPrecompiledArtifactError
 } from './officialPrecompiled'
+import { OfficialRegistryCacheError } from './officialRegistryCache'
 import {
   loadBundledOfficialPrecompiledArtifact,
   restoreBundledOfficialPrecompiledArtifact
 } from './officialPrecompiledRuntime'
+import {
+  isOfficialRegistryDiskCacheAvailable,
+  loadOfficialRegistryDiskCache,
+  restoreOfficialRegistryDiskCache
+} from './officialRegistryCacheRuntime'
 import type { RegistryEntry, RegistrySet } from './registry'
 import { validateUnknown } from './schemaValidation'
 import { OFFICIAL_REGISTRY_SCHEMAS, type OfficialRegistryId } from './schemas'
@@ -62,10 +68,16 @@ export interface OfficialContentBootstrapDependencies {
     load: () => Promise<unknown | null>
     restore: (value: unknown) => RegistrySet
   }
+  diskCache?: {
+    isAvailable: () => boolean
+    load: () => Promise<unknown | null>
+    restore: (value: unknown) => RegistrySet
+  }
 }
 
 export type OfficialPrecompiledBootstrapStatus =
   | 'not-configured'
+  | 'not-attempted'
   | 'official-precompiled-hit'
   | 'cache-miss-not-found'
   | 'cache-miss-environment-changed'
@@ -75,10 +87,27 @@ export type OfficialPrecompiledBootstrapStatus =
   | 'cache-invalid-hash'
   | 'cache-restore-failed'
 
+export type OfficialRegistryDiskCacheStatus =
+  | 'cache-hit'
+  | 'cache-miss-not-found'
+  | 'cache-miss-environment-changed'
+  | 'cache-miss-format-changed'
+  | 'cache-invalid-json'
+  | 'cache-invalid-structure'
+  | 'cache-invalid-hash'
+  | 'cache-read-failed'
+  | 'cache-restore-failed'
+
 export interface OfficialContentBootstrapReport {
-  source: 'precompiled' | 'static'
+  source: 'disk-cache' | 'precompiled' | 'static'
   precompiledStatus: OfficialPrecompiledBootstrapStatus
   diagnostics: readonly ModDiagnostic[]
+  diskCacheStatus?: OfficialRegistryDiskCacheStatus
+  timings?: {
+    diskCacheMs?: number
+    precompiledMs?: number
+    staticBuildMs?: number
+  }
 }
 
 export interface OfficialContentBootstrap {
@@ -172,16 +201,10 @@ export const createOfficialContentBootstrap = (
     return candidate
   }
 
-  const fallbackReport = (
-    status: OfficialPrecompiledBootstrapStatus,
+  const classifyPrecompiledFailure = (error: unknown): {
+    status: OfficialPrecompiledBootstrapStatus
     diagnostics: readonly ModDiagnostic[]
-  ): OfficialContentBootstrapReport => ({
-    source: 'static',
-    precompiledStatus: status,
-    diagnostics
-  })
-
-  const classifyPrecompiledFailure = (error: unknown): OfficialContentBootstrapReport => {
+  } => {
     if (error instanceof OfficialPrecompiledArtifactError) {
       const snapshotKind = error.cause && typeof error.cause === 'object' && 'kind' in error.cause
         ? String((error.cause as { kind?: unknown }).kind)
@@ -197,16 +220,51 @@ export const createOfficialContentBootstrap = (
               : error.kind === 'structure' || snapshotKind === 'structure'
                 ? 'cache-invalid-structure'
                 : 'cache-restore-failed'
-      return fallbackReport(status, error.diagnostics)
+      return { status, diagnostics: error.diagnostics }
     }
 
     const message = error instanceof Error ? error.message : String(error)
-    return fallbackReport('cache-restore-failed', [createDiagnostic('CACHE-RESTORE-001', {
-      stage: 'official-content.precompiled',
-      details: { message },
-      recovery: 'retry'
-    })])
+    return {
+      status: 'cache-restore-failed',
+      diagnostics: [createDiagnostic('CACHE-RESTORE-001', {
+        stage: 'official-content.precompiled',
+        details: { message },
+        recovery: 'retry'
+      })]
+    }
   }
+
+  const classifyDiskCacheFailure = (error: unknown): {
+    status: OfficialRegistryDiskCacheStatus
+    diagnostics: readonly ModDiagnostic[]
+  } => {
+    if (error instanceof OfficialRegistryCacheError) {
+      const stage = error.diagnostics[0]?.stage ?? ''
+      const status: OfficialRegistryDiskCacheStatus = error.kind === 'invalid-json'
+        ? 'cache-invalid-json'
+        : error.kind === 'format-version'
+          ? 'cache-miss-format-changed'
+          : error.kind === 'structure'
+            ? 'cache-invalid-structure'
+            : error.kind === 'identity-mismatch'
+              ? stage.endsWith('.environmentHash')
+                ? 'cache-miss-environment-changed'
+                : 'cache-invalid-hash'
+              : 'cache-restore-failed'
+      return { status, diagnostics: error.diagnostics }
+    }
+
+    return {
+      status: 'cache-read-failed',
+      diagnostics: [createDiagnostic('CACHE-RESTORE-001', {
+        stage: 'official-content.disk-cache',
+        details: { message: error instanceof Error ? error.message : String(error) },
+        recovery: 'retry'
+      })]
+    }
+  }
+
+  const now = (): number => globalThis.performance?.now() ?? Date.now()
 
   const bootstrap = (): Promise<RegistrySet> => {
     if (publishedRegistrySet) return Promise.resolve(publishedRegistrySet)
@@ -214,37 +272,85 @@ export const createOfficialContentBootstrap = (
 
     const attempt = Promise.resolve().then(async () => {
       let candidate: RegistrySet | null = null
-      if (dependencies.precompiled) {
+      const diagnostics: ModDiagnostic[] = []
+      const timings: NonNullable<OfficialContentBootstrapReport['timings']> = {}
+      let source: OfficialContentBootstrapReport['source'] = 'static'
+      let precompiledStatus: OfficialPrecompiledBootstrapStatus = dependencies.precompiled
+        ? 'cache-miss-not-found'
+        : 'not-configured'
+      let diskCacheStatus: OfficialRegistryDiskCacheStatus | undefined
+      const diskCacheAvailable = dependencies.diskCache?.isAvailable() ?? false
+      const updateLastReport = (): void => {
+        lastReport = {
+          source,
+          precompiledStatus,
+          diagnostics,
+          ...(diskCacheStatus ? { diskCacheStatus } : {}),
+          ...(diskCacheAvailable && Object.keys(timings).length > 0 ? { timings } : {})
+        }
+      }
+
+      if (diskCacheAvailable && dependencies.diskCache) {
+        const startedAt = now()
+        try {
+          const value = await dependencies.diskCache.load()
+          if (value === null) {
+            diskCacheStatus = 'cache-miss-not-found'
+            diagnostics.push(createDiagnostic('CACHE-NOT-FOUND-001', {
+              stage: 'official-content.disk-cache',
+              recovery: 'retry'
+            }))
+          } else {
+            candidate = prepareCandidate(dependencies.diskCache.restore(value))
+            source = 'disk-cache'
+            diskCacheStatus = 'cache-hit'
+            precompiledStatus = 'not-attempted'
+          }
+        } catch (error) {
+          const failure = classifyDiskCacheFailure(error)
+          diskCacheStatus = failure.status
+          diagnostics.push(...failure.diagnostics)
+        } finally {
+          timings.diskCacheMs = now() - startedAt
+        }
+      }
+
+      if (!candidate && dependencies.precompiled) {
+        const startedAt = now()
         try {
           const value = await dependencies.precompiled.load()
           if (value === null) {
-            lastReport = fallbackReport('cache-miss-not-found', [
-              createDiagnostic('CACHE-NOT-FOUND-001', {
-                stage: 'official-content.precompiled',
-                recovery: 'retry'
-              })
-            ])
+            precompiledStatus = 'cache-miss-not-found'
+            diagnostics.push(createDiagnostic('CACHE-NOT-FOUND-001', {
+              stage: 'official-content.precompiled',
+              recovery: 'retry'
+            }))
           } else {
             candidate = prepareCandidate(dependencies.precompiled.restore(value))
-            lastReport = {
-              source: 'precompiled',
-              precompiledStatus: 'official-precompiled-hit',
-              diagnostics: []
-            }
+            source = 'precompiled'
+            precompiledStatus = 'official-precompiled-hit'
           }
         } catch (error) {
-          lastReport = classifyPrecompiledFailure(error)
+          const failure = classifyPrecompiledFailure(error)
+          precompiledStatus = failure.status
+          diagnostics.push(...failure.diagnostics)
+        } finally {
+          timings.precompiledMs = now() - startedAt
         }
-        if (!candidate) candidate = prepareCandidate(runStage('build', dependencies.buildRegistrySet))
-      } else {
-        candidate = prepareCandidate(runStage('build', dependencies.buildRegistrySet))
-        lastReport = {
-          source: 'static',
-          precompiledStatus: 'not-configured',
-          diagnostics: []
+      }
+
+      if (!candidate) {
+        const startedAt = now()
+        source = 'static'
+        try {
+          candidate = prepareCandidate(runStage('build', dependencies.buildRegistrySet))
+        } finally {
+          timings.staticBuildMs = now() - startedAt
+          updateLastReport()
         }
       }
       if (!candidate) throw new OfficialContentBootstrapError('build')
+      updateLastReport()
       publishedRegistrySet = candidate
       return candidate
     })
@@ -279,6 +385,11 @@ const officialContentBootstrap = createOfficialContentBootstrap({
   precompiled: {
     load: loadBundledOfficialPrecompiledArtifact,
     restore: restoreBundledOfficialPrecompiledArtifact
+  },
+  diskCache: {
+    isAvailable: isOfficialRegistryDiskCacheAvailable,
+    load: loadOfficialRegistryDiskCache,
+    restore: restoreOfficialRegistryDiskCache
   }
 })
 

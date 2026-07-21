@@ -130,6 +130,7 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     expect(report.officialStartupSemantics.status).toBe('PASS')
     expect(report.officialStartupSemantics.checks).toEqual([
       expect.objectContaining({ id: 'official-registry-lifecycle', pass: true }),
+      expect.objectContaining({ id: 'official-disk-cache-fallback', pass: true }),
       expect.objectContaining({ id: 'official-precompiled-fallback', pass: true }),
       expect.objectContaining({ id: 'application-gate-order', pass: true }),
       expect.objectContaining({ id: 'content-access-published-only', pass: true }),

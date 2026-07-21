@@ -284,6 +284,13 @@ export const restoreOfficialPrecompiledRegistryArtifact = (
   expectedEnvironmentHash?: Sha256Hash
 ): RegistrySet => {
   const artifact = parseOfficialPrecompiledRegistryArtifact(value, expectedEnvironmentHash)
+  return restoreParsedOfficialPrecompiledRegistryArtifact(definitions, artifact)
+}
+
+export const restoreParsedOfficialPrecompiledRegistryArtifact = (
+  definitions: readonly RegistryDefinition<RegistryEntry>[],
+  artifact: OfficialPrecompiledRegistryArtifact
+): RegistrySet => {
   try {
     return restoreRegistrySetFromSnapshot(definitions, artifact.snapshot as unknown)
   } catch (error) {

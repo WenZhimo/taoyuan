@@ -6251,7 +6251,47 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Launches the packaged unpacked EXE, validates production hashes and fallback behavior through bounded IPC, verifies executable-local settings and Chromium storage, and isolates fault probes without changing formal userdata or startup.log.'
+    rationale: 'Launches the packaged unpacked EXE, validates production hashes, disk-cache miss/hit and fallback behavior through bounded IPC, verifies executable-local settings, Chromium storage and cache identity, and isolates fault probes without changing formal userdata or startup.log.'
+  },
+  {
+    file: 'src/domain/mods/officialRegistryCache.ts',
+    exportName: 'createOfficialRegistryCacheText/parseOfficialRegistryCacheText',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-registry-disk-cache',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Validates disk cache JSON as unknown, checks the internal TypeBox envelope, cache format and all five official identity hashes, then reuses artifact, snapshot and registry validation before a candidate can be published.'
+  },
+  {
+    file: 'src/domain/mods/officialRegistryCacheFile.ts',
+    exportName: 'getOfficialRegistryCacheFilePaths/readOfficialRegistryCacheFile/writeOfficialRegistryCacheFile/cleanupOfficialRegistryCacheTempFiles',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-registry-disk-cache',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Restricts derived cache files to userdata/mod-cache, writes to a unique temporary file with flush and close, rereads and validates it, then atomically replaces the formal file while preserving the previous cache on failure.'
+  },
+  {
+    file: 'src/domain/mods/officialRegistryCacheRuntime.ts',
+    exportName: 'loadOfficialRegistryDiskCache/restoreOfficialRegistryDiskCache/writeOfficialRegistryDiskCache',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-registry-disk-cache',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Exposes only fixed-purpose Electron bridge operations to the renderer, keeps Web/development/test environments isolated or disabled, and restores the parsed artifact through the existing official definitions.'
+  },
+  {
+    file: 'src/domain/mods/officialRegistryCacheRefresh.ts',
+    exportName: 'refreshOfficialRegistryDiskCache/getOfficialRegistryCacheWriteReport',
+    classification: 'adapter',
+    targetRegistry: 'engine/cache/official-registry-disk-cache',
+    persistentIds: false,
+    migrationPhase: [6],
+    status: 'verified',
+    rationale: 'Rebuilds a derived official cache after the UI mount without delaying ordinary startup, skips writes on a verified hit, and keeps bounded structured diagnostics and timings for failed writes.'
   }
 ]
 

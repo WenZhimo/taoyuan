@@ -3,6 +3,7 @@ import { createEnvironmentHash } from '@/domain/mods/environmentHash'
 import {
   bootstrapOfficialContent
 } from '@/domain/mods/officialContentBootstrap'
+import { refreshOfficialRegistryDiskCache } from '@/domain/mods/officialRegistryCacheRefresh'
 import { createOfficialContentRuntimeReport } from '@/domain/mods/officialContentRuntimeReport'
 import {
   applyOfficialPrecompiledProbeFault,
@@ -122,4 +123,36 @@ describe('official content runtime report', () => {
       __TAOYUAN_CONTENT_RUNTIME_REPORT__?: unknown
     }).__TAOYUAN_CONTENT_RUNTIME_REPORT__).toBe(envelope)
   })
+
+  it('reports cache rebuild diagnostics without exposing filesystem details', async () => {
+    await bootstrapOfficialContent()
+    const reportContentRuntimeProbe = vi.fn()
+    Object.defineProperty(window, 'electronAPI', {
+      configurable: true,
+      value: {
+        readOfficialRegistryCache: vi.fn(async () => null),
+        writeOfficialRegistryCache: vi.fn(async () => {
+          throw new Error('simulated cache write failure at C:\\secret\\cache.json')
+        }),
+        reportContentRuntimeProbe
+      }
+    })
+
+    await expect(refreshOfficialRegistryDiskCache()).resolves.toMatchObject({
+      status: 'failed'
+    })
+
+    const report = createOfficialContentRuntimeReport()
+    expect(report.diskCache).toMatchObject({
+      status: 'not-configured',
+      writeStatus: 'failed',
+      diagnostics: [{
+        code: 'CACHE-WRITE-001',
+        stage: 'official-content.disk-cache.write',
+        severity: expect.any(String),
+        recovery: 'retry'
+      }]
+    })
+    expect(JSON.stringify(report)).not.toContain('C:\\secret')
+  }, 30_000)
 })

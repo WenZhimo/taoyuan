@@ -63,7 +63,31 @@ export const OfficialPrecompiledRegistryMetadataSchema = Type.Object(
   { additionalProperties: false }
 )
 
+// This is an internal rebuild cache envelope, not part of the public content
+// schema set. Adding it to PUBLIC_JSON_SCHEMAS would change schemaSetHash.
+export const OfficialRegistryCacheEnvelopeSchema = Type.Object(
+  {
+    cacheFormatVersion: Type.Literal(1),
+    identity: Type.Object(
+      {
+        artifactHash: Sha256HashSchema,
+        contentHash: Sha256HashSchema,
+        schemaSetHash: Sha256HashSchema,
+        environmentHash: Sha256HashSchema,
+        snapshotHash: Sha256HashSchema
+      },
+      { additionalProperties: false }
+    ),
+    artifact: Type.Unknown()
+  },
+  {
+    $id: 'taoyuan.internal.OfficialRegistryCacheEnvelopeV1',
+    additionalProperties: false
+  }
+)
+
 export type CacheEnvironmentPackage = Static<typeof CacheEnvironmentPackageSchema>
 export type CacheEnvironmentIdentity = Static<typeof CacheEnvironmentIdentitySchema>
 export type OfficialPrecompiledRegistryArtifact = Static<typeof OfficialPrecompiledRegistryArtifactSchema>
 export type OfficialPrecompiledRegistryMetadata = Static<typeof OfficialPrecompiledRegistryMetadataSchema>
+export type OfficialRegistryCacheEnvelope = Static<typeof OfficialRegistryCacheEnvelopeSchema>

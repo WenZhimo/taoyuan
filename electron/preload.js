@@ -17,5 +17,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   reportStartupFailure: message => ipcRenderer.send('startup-failure', message),
 
   // Send a bounded structured report only when the main process enabled a probe run.
-  reportContentRuntimeProbe: report => ipcRenderer.send('content-runtime-probe', report)
+  reportContentRuntimeProbe: report => ipcRenderer.send('content-runtime-probe', report),
+
+  // Cache access is restricted to fixed program-local paths in the main process.
+  readOfficialRegistryCache: () => ipcRenderer.invoke('official-registry-cache-read'),
+  writeOfficialRegistryCache: contents => ipcRenderer.invoke('official-registry-cache-write', contents)
 })

@@ -35,6 +35,9 @@ const startupSources = {
   main: readSource('src/main.ts'),
   officialContentBootstrap: readSource('src/domain/mods/officialContentBootstrap.ts'),
   officialPrecompiledRuntime: readSource('src/domain/mods/officialPrecompiledRuntime.ts'),
+  officialRegistryCache: readSource('src/domain/mods/officialRegistryCache.ts'),
+  officialRegistryCacheFile: readSource('src/domain/mods/officialRegistryCacheFile.ts'),
+  officialRegistryCacheRuntime: readSource('src/domain/mods/officialRegistryCacheRuntime.ts'),
   webIndex: readSource('index.html')
 }
 const dataImportCategories = [
@@ -67,10 +70,30 @@ const officialStartupChecks = [
       'dependencies.freezeRegistrySet',
       'const bootstrap'
     ]) && appearsInOrder(startupSources.officialContentBootstrap, [
-      "precompiledStatus: 'not-configured'",
+      'updateLastReport()',
       'publishedRegistrySet = candidate'
     ]),
     evidence: 'src/domain/mods/officialContentBootstrap.ts'
+  },
+  {
+    id: 'official-disk-cache-fallback',
+    pass: appearsInOrder(startupSources.officialContentBootstrap, [
+      'dependencies.diskCache.load()',
+      'dependencies.diskCache.restore(value)',
+      'dependencies.precompiled.load()',
+      'dependencies.precompiled.restore(value)',
+      "runStage('build', dependencies.buildRegistrySet)"
+    ])
+      && startupSources.officialRegistryCache.includes('assertPureJsonValue(value)')
+      && startupSources.officialRegistryCache.includes('validateUnknown(OfficialRegistryCacheEnvelopeSchema')
+      && startupSources.officialRegistryCache.includes('assertCacheIdentity(envelope.identity, identity)')
+      && startupSources.officialRegistryCacheRuntime.includes('parseOfficialRegistryCacheText')
+      && appearsInOrder(startupSources.officialRegistryCacheFile, [
+        'await handle.sync()',
+        'await handle.close()',
+        'await fs.rename(temporaryPath, paths.filePath)'
+      ]),
+    evidence: 'src/domain/mods/officialContentBootstrap.ts, src/domain/mods/officialRegistryCache.ts, src/domain/mods/officialRegistryCacheFile.ts, src/domain/mods/officialRegistryCacheRuntime.ts'
   },
   {
     id: 'official-precompiled-fallback',
