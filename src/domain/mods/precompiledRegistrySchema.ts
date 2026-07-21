@@ -67,7 +67,7 @@ export const OfficialPrecompiledRegistryMetadataSchema = Type.Object(
 // schema set. Adding it to PUBLIC_JSON_SCHEMAS would change schemaSetHash.
 export const OfficialRegistryCacheEnvelopeSchema = Type.Object(
   {
-    cacheFormatVersion: Type.Literal(1),
+    cacheFormatVersion: Type.Literal(2),
     identity: Type.Object(
       {
         artifactHash: Sha256HashSchema,
@@ -78,10 +78,11 @@ export const OfficialRegistryCacheEnvelopeSchema = Type.Object(
       },
       { additionalProperties: false }
     ),
+    payloadHash: Sha256HashSchema,
     artifact: Type.Unknown()
   },
   {
-    $id: 'taoyuan.internal.OfficialRegistryCacheEnvelopeV1',
+    $id: 'taoyuan.internal.OfficialRegistryCacheEnvelopeV2',
     additionalProperties: false
   }
 )

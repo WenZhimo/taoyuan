@@ -86,8 +86,13 @@ const officialStartupChecks = [
     ])
       && startupSources.officialRegistryCache.includes('assertPureJsonValue(value)')
       && startupSources.officialRegistryCache.includes('validateUnknown(OfficialRegistryCacheEnvelopeSchema')
+      && startupSources.officialRegistryCache.includes('payloadHash')
+      && startupSources.officialRegistryCache.includes('OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION = 2')
       && startupSources.officialRegistryCache.includes('assertCacheIdentity(envelope.identity, identity)')
+      && startupSources.officialRegistryCacheRuntime.includes("verification: 'fast'")
       && startupSources.officialRegistryCacheRuntime.includes('parseOfficialRegistryCacheText')
+      && startupSources.officialContentBootstrap.includes('prepareFastDiskCacheCandidate')
+      && startupSources.officialContentBootstrap.includes('disk-cache-fast-hit')
       && appearsInOrder(startupSources.officialRegistryCacheFile, [
         'await handle.sync()',
         'await handle.close()',

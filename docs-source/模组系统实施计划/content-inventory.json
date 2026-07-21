@@ -15610,7 +15610,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Validates disk cache JSON as unknown, checks the internal TypeBox envelope, cache format and all five official identity hashes, then reuses artifact, snapshot and registry validation before a candidate can be published."
+      "rationale": "Validates disk cache JSON as unknown, checks the internal v2 TypeBox envelope, all five official identity hashes, payloadHash and official count metadata, then restores through the snapshot codec so fast hits avoid repeated static parsing and semantic scans."
     },
     {
       "file": "src/domain/mods/officialRegistryCacheFile.ts",
@@ -15622,7 +15622,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Restricts derived cache files to userdata/mod-cache, writes to a unique temporary file with flush and close, rereads and validates it, then atomically replaces the formal file while preserving the previous cache on failure."
+      "rationale": "Restricts derived cache files to userdata/mod-cache, writes the v2 envelope to a unique temporary file with flush and close, rereads and fully validates it, then atomically replaces the formal cache while preserving the previous cache on failure."
     },
     {
       "file": "src/domain/mods/officialRegistryCacheRuntime.ts",
@@ -15634,7 +15634,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Exposes only fixed-purpose Electron bridge operations to the renderer, keeps Web/development/test environments isolated or disabled, and restores the parsed artifact through the existing official definitions."
+      "rationale": "Exposes only fixed-purpose Electron bridge operations to the renderer, keeps Web/development/test environments isolated or disabled, and marks verified v2 disk restores as fast candidates after snapshot codec recovery."
     },
     {
       "file": "src/domain/mods/officialRegistryCacheRefresh.ts",
@@ -15646,7 +15646,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Rebuilds a derived official cache after the UI mount without delaying ordinary startup, skips writes on a verified hit, and keeps bounded structured diagnostics and timings for failed writes."
+      "rationale": "Rebuilds the v2 derived official cache after the UI mount without delaying ordinary startup, skips writes on verified disk hits, and keeps bounded structured diagnostics and timings for failed writes."
     }
   ]
 }

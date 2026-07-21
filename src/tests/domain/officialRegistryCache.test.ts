@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createOfficialRegistryCacheText,
   OFFICIAL_REGISTRY_CACHE_FILE_NAME,
+  OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION,
   parseOfficialRegistryCacheText,
   OfficialRegistryCacheError
 } from '@/domain/mods/officialRegistryCache'
@@ -24,6 +25,11 @@ import {
   restoreOfficialPrecompiledRegistryArtifact,
   restoreParsedOfficialPrecompiledRegistryArtifact
 } from '@/domain/mods/officialPrecompiled'
+import {
+  createIngredientAllocationPlan,
+  getMaxIngredientCraftQuantity
+} from '@/domain/cooking/ingredientPlanner'
+import { toOfficialContentId, toOfficialRegistryTypeId } from '@/domain/mods/ids'
 import { validateRegistrySemantics } from '@/domain/mods/semanticValidation'
 import {
   OFFICIAL_REGISTRY_DEFINITIONS,
@@ -33,6 +39,8 @@ import committedArtifact from '@/generated/mods/official-precompiled-registry.js
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 import type { OfficialPrecompiledRegistryArtifact } from '@/domain/mods/precompiledRegistrySchema'
 import type { Sha256Hash } from '@/domain/mods/hash'
+import type { CropDef, ItemDef, RecipeDef } from '@/domain/mods/schemas'
+import type { RegistrySet } from '@/domain/mods/registry'
 
 const roots: string[] = []
 
@@ -53,6 +61,80 @@ const buildCacheText = (): string => createOfficialRegistryCacheText(
 const validCacheText = buildCacheText()
 const createCacheText = (): string => validCacheText
 
+const createLegacyV1CacheText = (): string => JSON.stringify({
+  cacheFormatVersion: 1,
+  identity: {
+    artifactHash: committedMetadata.artifactHash,
+    contentHash: committedMetadata.contentHash,
+    schemaSetHash: committedMetadata.schemaSetHash,
+    environmentHash: committedMetadata.environmentHash,
+    snapshotHash: committedMetadata.snapshotHash
+  },
+  artifact: committedArtifact
+}, null, 2) + '\n'
+
+const restoreCacheFast = (value: unknown) => {
+  const parsed = parseOfficialRegistryCacheText(value as string, committedMetadata as unknown)
+  return {
+    registrySet: restoreParsedOfficialPrecompiledRegistryArtifact(
+      OFFICIAL_REGISTRY_DEFINITIONS,
+      parsed.artifact
+    ),
+    verification: 'fast' as const
+  }
+}
+
+const summarizeRepresentativeBehavior = (registrySet: RegistrySet) => {
+  const itemRegistry = registrySet.get<ItemDef>(toOfficialRegistryTypeId('item'))
+  const recipeRegistry = registrySet.get<RecipeDef>(toOfficialRegistryTypeId('recipe'))
+  const cropRegistry = registrySet.get<CropDef>(toOfficialRegistryTypeId('crop'))
+  const items = itemRegistry.values()
+  const stirFriedCabbage = recipeRegistry.require(toOfficialContentId('stir_fried_cabbage'))
+  const steamedBun = recipeRegistry.require(toOfficialContentId('steamed_bun'))
+  const fixedInventory = [{ itemId: 'cabbage', quantity: 3, quality: 'normal' as const }]
+  const tagInventory = [
+    { itemId: 'flour', quantity: 2, quality: 'normal' as const },
+    { itemId: 'fish_carp', quantity: 2, quality: 'normal' as const },
+    { itemId: 'cabbage', quantity: 1, quality: 'fine' as const }
+  ]
+  const fixedPlan = createIngredientAllocationPlan({
+    ingredients: stirFriedCabbage.ingredients,
+    quantity: 3,
+    inventory: fixedInventory,
+    items
+  })
+  const tagPlan = createIngredientAllocationPlan({
+    ingredients: steamedBun.ingredients,
+    quantity: 1,
+    inventory: tagInventory,
+    items,
+    selectedItemIds: { 1: 'cabbage' }
+  })
+
+  return {
+    itemName: itemRegistry.require(toOfficialContentId('cabbage')).name.fallback,
+    recipeName: stirFriedCabbage.name.fallback,
+    cropName: cropRegistry.require(toOfficialContentId('cabbage')).name.fallback,
+    fixedCanCook: fixedPlan.success,
+    fixedMaxCookable: getMaxIngredientCraftQuantity({
+      ingredients: stirFriedCabbage.ingredients,
+      inventory: fixedInventory,
+      items
+    }),
+    fixedQuality: fixedPlan.success ? fixedPlan.resultQuality : null,
+    fixedRemovals: fixedPlan.success ? fixedPlan.removals : [],
+    tagCanCook: tagPlan.success,
+    tagMaxCookable: getMaxIngredientCraftQuantity({
+      ingredients: steamedBun.ingredients,
+      inventory: tagInventory,
+      items,
+      selectedItemIds: { 1: 'cabbage' }
+    }),
+    tagQuality: tagPlan.success ? tagPlan.resultQuality : null,
+    tagRemovals: tagPlan.success ? tagPlan.removals : []
+  }
+}
+
 const createPaths = (root: string) => getOfficialRegistryCacheFilePaths(
   path.join(root, 'userdata'),
   committedMetadata.environmentHash
@@ -65,6 +147,9 @@ describe('official registry disk cache envelope', () => {
 
     const parsed = parseOfficialRegistryCacheText(text, committedMetadata as unknown)
     expect(parsed.artifactHash).toBe(committedMetadata.artifactHash)
+    expect(parsed.validationMode).toBe('fast')
+    expect(parsed.envelope.cacheFormatVersion).toBe(OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION)
+    expect(parsed.envelope.payloadHash).toBe(committedMetadata.artifactHash)
     expect(parsed.envelope.identity).toEqual({
       artifactHash: committedMetadata.artifactHash,
       contentHash: committedMetadata.contentHash,
@@ -98,14 +183,17 @@ describe('official registry disk cache envelope', () => {
   it.each([
     ['truncated JSON', createCacheText().slice(0, 200), 'invalid-json'],
     ['illegal JSON', 'not-json', 'invalid-json'],
-    ['format version', JSON.stringify({
-      cacheFormatVersion: 2,
+    ['legacy v1 format version', createLegacyV1CacheText(), 'format-version'],
+    ['future format version', JSON.stringify({
+      cacheFormatVersion: 3,
       identity: JSON.parse(createCacheText()).identity,
+      payloadHash: JSON.parse(createCacheText()).payloadHash,
       artifact: JSON.parse(createCacheText()).artifact
     }), 'format-version'],
     ['schema error', JSON.stringify({
-      cacheFormatVersion: 1,
+      cacheFormatVersion: 2,
       identity: { ...JSON.parse(createCacheText()).identity, artifactHash: undefined },
+      payloadHash: JSON.parse(createCacheText()).payloadHash,
       artifact: JSON.parse(createCacheText()).artifact
     }), 'structure']
   ] as const)('rejects %s cache input', (_label, value, kind) => {
@@ -124,6 +212,31 @@ describe('official registry disk cache envelope', () => {
 
     expect(() => parseOfficialRegistryCacheText(JSON.stringify(value), committedMetadata as unknown))
       .toThrowError(expect.objectContaining({ kind: 'identity-mismatch' }))
+  })
+
+  it('rejects a payload mutation when the envelope payload hash is unchanged', () => {
+    const value = JSON.parse(createCacheText()) as Record<string, unknown>
+    const artifact = value.artifact as Record<string, unknown>
+    const snapshot = artifact.snapshot as Record<string, unknown>
+    const registries = snapshot.registries as Array<Record<string, unknown>>
+    const entries = registries[0]!.entries as Array<Record<string, unknown>>
+    const entry = entries[0]!.entry as Record<string, unknown>
+    entry.id = 'taoyuan:cache-tampered'
+
+    expect(() => parseOfficialRegistryCacheText(JSON.stringify(value), committedMetadata as unknown))
+      .toThrowError(expect.objectContaining({ kind: 'identity-mismatch' }))
+  })
+
+  it('rejects a structurally valid payload with the wrong official entry count', () => {
+    const value = JSON.parse(createCacheText()) as Record<string, unknown>
+    const artifact = value.artifact as Record<string, unknown>
+    const snapshot = artifact.snapshot as Record<string, unknown>
+    const registries = snapshot.registries as Array<Record<string, unknown>>
+    const entries = registries[0]!.entries as unknown[]
+    entries.pop()
+
+    expect(() => parseOfficialRegistryCacheText(JSON.stringify(value), committedMetadata as unknown))
+      .toThrowError(expect.objectContaining({ kind: 'structure' }))
   })
 })
 
@@ -275,18 +388,18 @@ describe('official registry disk cache performance', () => {
   it('hits the disk cache without invoking the static content build', async () => {
     const cacheText = createCacheText()
     const buildRegistrySet = vi.fn(buildOfficialRegistrySetFromStaticData)
+    const validateStructure = vi.fn(validateOfficialRegistryStructure)
+    const validateSemantics = vi.fn(validateRegistrySemantics)
+    const freezeRegistrySet = vi.fn((registrySet: RegistrySet) => registrySet.freezeEntries())
     const bootstrap = createOfficialContentBootstrap({
       buildRegistrySet,
-      validateStructure: validateOfficialRegistryStructure,
-      validateSemantics: validateRegistrySemantics,
-      freezeRegistrySet: registrySet => registrySet.freezeEntries(),
+      validateStructure,
+      validateSemantics,
+      freezeRegistrySet,
       diskCache: {
         isAvailable: () => true,
         load: async () => cacheText,
-        restore: value => restoreParsedOfficialPrecompiledRegistryArtifact(
-          OFFICIAL_REGISTRY_DEFINITIONS,
-          parseOfficialRegistryCacheText(value as string, committedMetadata as unknown).artifact
-        )
+        restore: restoreCacheFast
       },
       precompiled: {
         load: async () => {
@@ -300,13 +413,63 @@ describe('official registry disk cache performance', () => {
     const restored = await bootstrap.bootstrap()
     const durationMs = performance.now() - startedAt
     expect(buildRegistrySet).not.toHaveBeenCalled()
+    expect(validateStructure).not.toHaveBeenCalled()
+    expect(validateSemantics).not.toHaveBeenCalled()
+    expect(freezeRegistrySet).not.toHaveBeenCalled()
     expect(restored.currentPhase).toBe('frozen')
     expect(bootstrap.getLastReport()).toMatchObject({
       source: 'disk-cache',
-      diskCacheStatus: 'cache-hit'
+      loadPath: 'disk-cache-fast-hit',
+      diskCacheStatus: 'disk-cache-fast-hit'
     })
-    expect(durationMs).toBeLessThan(5_000)
-    console.info(`official registry disk cache hit: ${durationMs.toFixed(2)}ms`)
+    expect(durationMs).toBeLessThan(1_500)
+    console.info(`official registry disk cache fast hit: ${durationMs.toFixed(2)}ms`)
+  }, 30_000)
+
+  it('can still report a full-verified disk cache hit and matches fast public behavior', async () => {
+    const cacheText = createCacheText()
+    const fastSet = restoreCacheFast(cacheText).registrySet
+    const fullSet = restoreParsedOfficialPrecompiledRegistryArtifact(
+      OFFICIAL_REGISTRY_DEFINITIONS,
+      parseOfficialRegistryCacheText(
+        cacheText,
+        committedMetadata as unknown,
+        { validationMode: 'full' }
+      ).artifact
+    )
+    const bootstrap = createOfficialContentBootstrap({
+      buildRegistrySet: vi.fn(buildOfficialRegistrySetFromStaticData),
+      validateStructure: validateOfficialRegistryStructure,
+      validateSemantics: validateRegistrySemantics,
+      freezeRegistrySet: registrySet => registrySet.freezeEntries(),
+      diskCache: {
+        isAvailable: () => true,
+        load: async () => cacheText,
+        restore: value => restoreParsedOfficialPrecompiledRegistryArtifact(
+          OFFICIAL_REGISTRY_DEFINITIONS,
+          parseOfficialRegistryCacheText(
+            value as string,
+            committedMetadata as unknown,
+            { validationMode: 'full' }
+          ).artifact
+        )
+      }
+    })
+
+    await bootstrap.bootstrap()
+
+    expect(bootstrap.getLastReport()).toMatchObject({
+      source: 'disk-cache',
+      loadPath: 'disk-cache-full-verified-hit',
+      diskCacheStatus: 'disk-cache-full-verified-hit'
+    })
+    expect(summarizeRepresentativeBehavior(fastSet))
+      .toEqual(summarizeRepresentativeBehavior(fullSet))
+    expect(fastSet.registryIds()).toHaveLength(54)
+    expect(fastSet.registryIds().reduce(
+      (total, registryId) => total + fastSet.get(registryId).entries().length,
+      0
+    )).toBe(4242)
   }, 30_000)
 
   it('measures invalid-cache fallback to the bundled official artifact', async () => {
@@ -341,6 +504,7 @@ describe('official registry disk cache performance', () => {
     expect(restored.registryIds()).toHaveLength(54)
     expect(bootstrap.getLastReport()).toMatchObject({
       source: 'precompiled',
+      loadPath: 'disk-cache-invalid-fallback',
       diskCacheStatus: 'cache-invalid-json',
       precompiledStatus: 'official-precompiled-hit'
     })
@@ -381,6 +545,7 @@ describe('official registry disk cache performance', () => {
     expect(entryCount).toBe(4242)
     expect(bootstrap.getLastReport()).toMatchObject({
       source: 'static',
+      loadPath: 'static-fallback',
       diskCacheStatus: 'cache-invalid-json',
       precompiledStatus: 'cache-miss-not-found'
     })

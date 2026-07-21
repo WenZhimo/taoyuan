@@ -15,8 +15,8 @@ import { validateUnknown } from './schemaValidation'
 import { assertPureJsonValue } from './canonicalJson'
 import { sha256Utf8, type Sha256Hash } from './hash'
 
-export const OFFICIAL_REGISTRY_CACHE_FILE_NAME = 'official-registry-cache-v1.json'
-export const OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION = 1 as const
+export const OFFICIAL_REGISTRY_CACHE_FILE_NAME = 'official-registry-cache-v2.json'
+export const OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION = 2 as const
 export const OFFICIAL_REGISTRY_CACHE_MAX_BYTES = 16 * 1024 * 1024
 
 export type OfficialRegistryCacheErrorKind =
@@ -57,7 +57,10 @@ export interface ParsedOfficialRegistryCache {
   envelope: OfficialRegistryCacheEnvelope
   artifact: OfficialPrecompiledRegistryArtifact
   artifactHash: Sha256Hash
+  validationMode: OfficialRegistryCacheValidationMode
 }
+
+export type OfficialRegistryCacheValidationMode = 'fast' | 'full'
 
 const serializeJson = (value: unknown): string => JSON.stringify(value, null, 2) + '\n'
 
@@ -187,41 +190,104 @@ const mapArtifactError = (error: OfficialPrecompiledArtifactError): OfficialRegi
 
 const parseArtifact = (
   envelope: OfficialRegistryCacheEnvelope,
-  identity: OfficialRegistryCacheIdentity
+  identity: OfficialRegistryCacheIdentity,
+  metadata: OfficialPrecompiledRegistryMetadata,
+  mode: OfficialRegistryCacheValidationMode
 ): OfficialPrecompiledRegistryArtifact => {
   try {
     const artifactText = serializeJson(envelope.artifact)
-    if (sha256Utf8(artifactText) !== identity.artifactHash) {
+    const actualPayloadHash = sha256Utf8(artifactText)
+    const candidate = envelope.artifact as Partial<OfficialPrecompiledRegistryArtifact>
+    const packages = Array.isArray(candidate.environment?.packages)
+      ? candidate.environment.packages
+      : []
+    const officialPackage = packages[0]
+    const registries = Array.isArray(candidate.snapshot?.registries)
+      ? candidate.snapshot.registries
+      : []
+    const entryCount = registries.reduce(
+      (total, registry) => total + (
+        Array.isArray(registry.entries) ? registry.entries.length : 0
+      ),
+      0
+    )
+
+    if (
+      candidate.artifactFormatVersion !== 1
+      || typeof candidate.environmentHash !== 'string'
+      || typeof candidate.environment?.schemaSetHash !== 'string'
+      || packages.length !== 1
+      || !officialPackage
+      || typeof officialPackage.contentHash !== 'string'
+      || typeof candidate.snapshot?.snapshotHash !== 'string'
+      || !Array.isArray(candidate.snapshot.registries)
+    ) {
+      return throwCacheError(
+        'structure',
+        'Official registry disk cache payload structure is invalid',
+        'official-registry-cache.payload.structure',
+        {
+          hasEnvironment: Boolean(candidate.environment),
+          hasSnapshot: Boolean(candidate.snapshot),
+          packageCount: packages.length,
+          registryCount: registries.length
+        }
+      )
+    }
+    if (
+      registries.length !== metadata.registryCount
+      || entryCount !== metadata.entryCount
+    ) {
+      return throwCacheError(
+        'structure',
+        'Official registry disk cache payload count does not match metadata',
+        'official-registry-cache.payload.count',
+        {
+          expectedRegistryCount: metadata.registryCount,
+          actualRegistryCount: registries.length,
+          expectedEntryCount: metadata.entryCount,
+          actualEntryCount: entryCount
+        }
+      )
+    }
+    if (envelope.payloadHash !== actualPayloadHash) {
+      return throwCacheError(
+        'identity-mismatch',
+        'Official registry disk cache payload hash does not match the artifact bytes',
+        'official-registry-cache.identity.payloadHash',
+        { expected: envelope.payloadHash, actual: actualPayloadHash }
+      )
+    }
+    if (actualPayloadHash !== identity.artifactHash) {
       return throwCacheError(
         'identity-mismatch',
         'Official registry disk cache artifact hash does not match the current product',
         'official-registry-cache.identity.artifactHash',
-        { expected: identity.artifactHash, actual: sha256Utf8(artifactText) }
+        { expected: identity.artifactHash, actual: actualPayloadHash }
       )
     }
 
-    const artifact = parseOfficialPrecompiledRegistryArtifact(
-      envelope.artifact,
-      identity.environmentHash
-    )
-    const officialPackage = artifact.environment.packages[0]
-    const entryCount = artifact.snapshot.registries.reduce(
-      (total, registry) => total + registry.entries.length,
-      0
-    )
+    const artifact = mode === 'full'
+      ? parseOfficialPrecompiledRegistryArtifact(
+        envelope.artifact,
+        identity.environmentHash
+      )
+      : envelope.artifact as OfficialPrecompiledRegistryArtifact
     if (
-      officialPackage?.contentHash !== identity.contentHash
-      || artifact.environment.schemaSetHash !== identity.schemaSetHash
-      || artifact.snapshot.snapshotHash !== identity.snapshotHash
+      artifact.environmentHash !== identity.environmentHash
+      || officialPackage.contentHash !== identity.contentHash
+      || candidate.environment?.schemaSetHash !== identity.schemaSetHash
+      || candidate.snapshot?.snapshotHash !== identity.snapshotHash
     ) {
       return throwCacheError(
         'identity-mismatch',
         'Official registry disk cache artifact metadata does not match its cache identity',
         'official-registry-cache.identity',
         {
-          contentHash: officialPackage?.contentHash === identity.contentHash,
-          schemaSetHash: artifact.environment.schemaSetHash === identity.schemaSetHash,
-          snapshotHash: artifact.snapshot.snapshotHash === identity.snapshotHash,
+          environmentHash: artifact.environmentHash === identity.environmentHash,
+          contentHash: officialPackage.contentHash === identity.contentHash,
+          schemaSetHash: candidate.environment?.schemaSetHash === identity.schemaSetHash,
+          snapshotHash: candidate.snapshot?.snapshotHash === identity.snapshotHash,
           registryCount: artifact.snapshot.registries.length,
           entryCount
         }
@@ -241,33 +307,38 @@ export const createOfficialRegistryCacheText = (
   artifact: OfficialPrecompiledRegistryArtifact,
   metadataValue: unknown
 ): string => {
-  const { identity } = expectedIdentityFromMetadata(metadataValue)
+  const { metadata, identity } = expectedIdentityFromMetadata(metadataValue)
   const artifactText = serializeJson(artifact)
-  if (sha256Utf8(artifactText) !== identity.artifactHash) {
+  const payloadHash = sha256Utf8(artifactText)
+  if (payloadHash !== identity.artifactHash) {
     return throwCacheError(
       'identity-mismatch',
       'Cannot write an official registry cache for a different artifact',
       'official-registry-cache.identity.artifactHash',
-      { expected: identity.artifactHash, actual: sha256Utf8(artifactText) }
+      { expected: identity.artifactHash, actual: payloadHash }
     )
   }
   const parsedArtifact = parseArtifact({
     cacheFormatVersion: OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION,
     identity,
+    payloadHash,
     artifact
-  }, identity)
+  }, identity, metadata, 'full')
   return serializeJson({
     cacheFormatVersion: OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION,
     identity,
+    payloadHash,
     artifact: parsedArtifact
   })
 }
 
 export const parseOfficialRegistryCacheText = (
   text: string,
-  metadataValue: unknown
+  metadataValue: unknown,
+  options?: { validationMode?: OfficialRegistryCacheValidationMode }
 ): ParsedOfficialRegistryCache => {
-  const { identity } = expectedIdentityFromMetadata(metadataValue)
+  const validationMode = options?.validationMode ?? 'fast'
+  const { metadata, identity } = expectedIdentityFromMetadata(metadataValue)
   const envelope = parseEnvelope(text)
   if (envelope.cacheFormatVersion !== OFFICIAL_REGISTRY_CACHE_FORMAT_VERSION) {
     return throwCacheError(
@@ -278,11 +349,12 @@ export const parseOfficialRegistryCacheText = (
     )
   }
   assertCacheIdentity(envelope.identity, identity)
-  const artifact = parseArtifact(envelope, identity)
+  const artifact = parseArtifact(envelope, identity, metadata, validationMode)
   return {
     envelope,
     artifact,
-    artifactHash: identity.artifactHash
+    artifactHash: identity.artifactHash,
+    validationMode
   }
 }
 

@@ -131,7 +131,7 @@ export const writeOfficialRegistryCacheFile = async (
   if (Buffer.byteLength(contents, 'utf8') > OFFICIAL_REGISTRY_CACHE_MAX_BYTES) {
     throw new Error('Official registry cache exceeds the size limit')
   }
-  parseOfficialRegistryCacheText(contents, metadataValue)
+  parseOfficialRegistryCacheText(contents, metadataValue, { validationMode: 'full' })
   await fs.mkdir(paths.directory, { recursive: true })
 
   const temporaryPath = path.join(
@@ -149,7 +149,7 @@ export const writeOfficialRegistryCacheFile = async (
 
     const reread = await fs.readFile(temporaryPath, 'utf8')
     if (reread !== contents) throw new Error('Official registry cache temporary file changed')
-    parseOfficialRegistryCacheText(reread, metadataValue)
+    parseOfficialRegistryCacheText(reread, metadataValue, { validationMode: 'full' })
     await options?.beforeReplace?.()
     await fs.rename(temporaryPath, paths.filePath)
   } catch (error) {

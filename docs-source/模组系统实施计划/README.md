@@ -120,8 +120,8 @@
 - 重大变更同步更新 `../refactor-plan.md`；存档变化同步更新 `../save-compatibility.md`。
 ## 阶段 6 官方预编译磁盘缓存切片
 
-官方预编译注册表现支持版本为 `1` 的通用磁盘缓存。缓存只保存已验证的官方注册表产物和五个身份哈希，Electron 路径固定为程序目录 `userdata/mod-cache/sha256-<environmentHash>/official-registry-cache-v1.json`；Web、开发和测试环境没有默认的持久化桥接，也不与玩家存档或设置共用目录。
+官方预编译注册表现支持版本为 `2` 的通用磁盘缓存封套。缓存只保存已验证的官方注册表产物、五个身份哈希和产物 `payloadHash`，Electron 路径固定为程序目录 `userdata/mod-cache/sha256-<environmentHash>/official-registry-cache-v2.json`；Web、开发和测试环境没有默认的持久化桥接，也不与玩家存档或设置共用目录。
 
-启动顺序为磁盘缓存、内置官方预编译产物、静态构建。任一缓存格式、JSON、TypeBox、artifact、`artifactHash`、`contentHash`、`schemaSetHash`、`environmentHash` 或 `snapshotHash` 校验失败，都只丢弃派生缓存并继续现有回退链；缓存写入在界面挂载后异步执行，不改变普通启动 UI。缓存写入使用临时文件、`sync`、关闭、回读校验和原子替换，失败时保留旧缓存或直接回退。
+启动顺序为磁盘缓存、内置官方预编译产物、静态构建。任一缓存格式、JSON、TypeBox 封套、`payloadHash`、artifact、`artifactHash`、`contentHash`、`schemaSetHash`、`environmentHash` 或 `snapshotHash` 校验失败，都只丢弃派生缓存并继续现有回退链；缓存命中走已验证 v2 载荷的快路径，仍保留快照 codec 校验和冻结状态检查，但不重复执行完整官方静态构建、结构扫描和语义扫描。缓存写入在界面挂载后异步执行，不改变普通启动 UI；写入使用临时文件、`sync`、关闭、回读完整校验和原子替换，失败时保留旧缓存或直接回退。
 
 本切片不改变 54 个注册表、4242 条目、五个基线哈希、玩法数值、公开查询签名、存档结构、设置路径或旧静态数据路径。详细格式与验证结果见 [执行状态](./执行状态.md) 和 [注册表快照缓存](./15-注册表快照缓存.md)。

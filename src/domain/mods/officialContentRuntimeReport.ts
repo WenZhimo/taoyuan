@@ -15,6 +15,7 @@ import {
 import {
   getOfficialContentBootstrapReport,
   getOfficialRegistrySet,
+  type OfficialContentBootstrapLoadPath,
   type OfficialPrecompiledBootstrapStatus
 } from './officialContentBootstrap'
 import {
@@ -36,6 +37,7 @@ export interface SanitizedOfficialContentDiagnostic {
 export interface OfficialContentRuntimeReport {
   schemaVersion: 1
   runtimeSource: 'disk-cache' | 'precompiled' | 'static-fallback'
+  loadPath: OfficialContentBootstrapLoadPath
   precompiledStatus: OfficialPrecompiledBootstrapStatus
   diagnostics: readonly SanitizedOfficialContentDiagnostic[]
   registryPhase: 'frozen'
@@ -99,6 +101,7 @@ export const createOfficialContentRuntimeReport = (): OfficialContentRuntimeRepo
   return {
     schemaVersion: 1,
     runtimeSource,
+    loadPath: bootstrapReport.loadPath,
     precompiledStatus: bootstrapReport.precompiledStatus,
     diagnostics: bootstrapReport.diagnostics.map(diagnostic => ({
       code: diagnostic.code,

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+﻿import { describe, expect, it, vi } from 'vitest'
 import { createEnvironmentHash } from '@/domain/mods/environmentHash'
 import {
   createOfficialContentBootstrap,
@@ -118,6 +118,7 @@ describe('official precompiled bootstrap fallback', () => {
     expect(createSerializableRegistrySnapshot(restored)).toEqual(committedArtifact.snapshot)
     expect(harness.bootstrap.getLastReport()).toEqual({
       source: 'precompiled',
+      loadPath: 'precompiled-hit',
       precompiledStatus: 'official-precompiled-hit',
       diagnostics: []
     })

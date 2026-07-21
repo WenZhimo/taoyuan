@@ -71,9 +71,21 @@ export interface OfficialContentBootstrapDependencies {
   diskCache?: {
     isAvailable: () => boolean
     load: () => Promise<unknown | null>
-    restore: (value: unknown) => RegistrySet
+    restore: (value: unknown) => RegistrySet | OfficialRegistryDiskCacheRestoreResult
   }
 }
+
+export interface OfficialRegistryDiskCacheRestoreResult {
+  registrySet: RegistrySet
+  verification: 'fast' | 'full'
+}
+
+export type OfficialContentBootstrapLoadPath =
+  | 'disk-cache-fast-hit'
+  | 'disk-cache-full-verified-hit'
+  | 'disk-cache-invalid-fallback'
+  | 'precompiled-hit'
+  | 'static-fallback'
 
 export type OfficialPrecompiledBootstrapStatus =
   | 'not-configured'
@@ -88,7 +100,8 @@ export type OfficialPrecompiledBootstrapStatus =
   | 'cache-restore-failed'
 
 export type OfficialRegistryDiskCacheStatus =
-  | 'cache-hit'
+  | 'disk-cache-fast-hit'
+  | 'disk-cache-full-verified-hit'
   | 'cache-miss-not-found'
   | 'cache-miss-environment-changed'
   | 'cache-miss-format-changed'
@@ -100,6 +113,7 @@ export type OfficialRegistryDiskCacheStatus =
 
 export interface OfficialContentBootstrapReport {
   source: 'disk-cache' | 'precompiled' | 'static'
+  loadPath: OfficialContentBootstrapLoadPath
   precompiledStatus: OfficialPrecompiledBootstrapStatus
   diagnostics: readonly ModDiagnostic[]
   diskCacheStatus?: OfficialRegistryDiskCacheStatus
@@ -119,6 +133,14 @@ export interface OfficialContentBootstrap {
 const schemaEntries = Object.entries(OFFICIAL_REGISTRY_SCHEMAS) as Array<
   [OfficialRegistryId, TSchema]
 >
+
+const isDiskCacheRestoreResult = (
+  value: RegistrySet | OfficialRegistryDiskCacheRestoreResult
+): value is OfficialRegistryDiskCacheRestoreResult =>
+  typeof value === 'object'
+  && value !== null
+  && 'registrySet' in value
+  && 'verification' in value
 
 export const validateOfficialRegistryStructure = (registrySet: RegistrySet): ModDiagnostic[] => {
   const diagnostics: ModDiagnostic[] = []
@@ -201,6 +223,15 @@ export const createOfficialContentBootstrap = (
     return candidate
   }
 
+  const prepareFastDiskCacheCandidate = (candidate: RegistrySet): RegistrySet => {
+    if (candidate.currentPhase !== 'frozen') {
+      throw new OfficialContentBootstrapError('freeze', {
+        cause: new Error('Fast disk cache restore did not enter the frozen phase.')
+      })
+    }
+    return candidate
+  }
+
   const classifyPrecompiledFailure = (error: unknown): {
     status: OfficialPrecompiledBootstrapStatus
     diagnostics: readonly ModDiagnostic[]
@@ -275,6 +306,7 @@ export const createOfficialContentBootstrap = (
       const diagnostics: ModDiagnostic[] = []
       const timings: NonNullable<OfficialContentBootstrapReport['timings']> = {}
       let source: OfficialContentBootstrapReport['source'] = 'static'
+      let loadPath: OfficialContentBootstrapLoadPath = 'static-fallback'
       let precompiledStatus: OfficialPrecompiledBootstrapStatus = dependencies.precompiled
         ? 'cache-miss-not-found'
         : 'not-configured'
@@ -283,6 +315,7 @@ export const createOfficialContentBootstrap = (
       const updateLastReport = (): void => {
         lastReport = {
           source,
+          loadPath,
           precompiledStatus,
           diagnostics,
           ...(diskCacheStatus ? { diskCacheStatus } : {}),
@@ -301,9 +334,18 @@ export const createOfficialContentBootstrap = (
               recovery: 'retry'
             }))
           } else {
-            candidate = prepareCandidate(dependencies.diskCache.restore(value))
+            const restored = dependencies.diskCache.restore(value)
+            const restoreResult = isDiskCacheRestoreResult(restored)
+              ? restored
+              : { registrySet: restored, verification: 'full' as const }
+            candidate = restoreResult.verification === 'fast'
+              ? prepareFastDiskCacheCandidate(restoreResult.registrySet)
+              : prepareCandidate(restoreResult.registrySet)
             source = 'disk-cache'
-            diskCacheStatus = 'cache-hit'
+            diskCacheStatus = restoreResult.verification === 'fast'
+              ? 'disk-cache-fast-hit'
+              : 'disk-cache-full-verified-hit'
+            loadPath = diskCacheStatus
             precompiledStatus = 'not-attempted'
           }
         } catch (error) {
@@ -328,6 +370,9 @@ export const createOfficialContentBootstrap = (
           } else {
             candidate = prepareCandidate(dependencies.precompiled.restore(value))
             source = 'precompiled'
+            loadPath = diskCacheStatus && diskCacheStatus !== 'cache-miss-not-found'
+              ? 'disk-cache-invalid-fallback'
+              : 'precompiled-hit'
             precompiledStatus = 'official-precompiled-hit'
           }
         } catch (error) {
@@ -342,6 +387,7 @@ export const createOfficialContentBootstrap = (
       if (!candidate) {
         const startedAt = now()
         source = 'static'
+        loadPath = 'static-fallback'
         try {
           candidate = prepareCandidate(runStage('build', dependencies.buildRegistrySet))
         } finally {

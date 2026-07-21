@@ -34,6 +34,7 @@ describe('official content runtime report', () => {
     expect(report).toMatchObject({
       schemaVersion: 1,
       runtimeSource: 'precompiled',
+      loadPath: 'precompiled-hit',
       precompiledStatus: 'official-precompiled-hit',
       diagnostics: [],
       registryPhase: 'frozen',

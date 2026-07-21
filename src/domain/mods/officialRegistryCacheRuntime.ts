@@ -6,6 +6,7 @@ import {
 } from './officialRegistryCache'
 import { restoreParsedOfficialPrecompiledRegistryArtifact } from './officialPrecompiled'
 import { OFFICIAL_REGISTRY_DEFINITIONS } from './staticAdapters'
+import type { RegistrySet } from './registry'
 
 interface OfficialRegistryCacheElectronBridge {
   readOfficialRegistryCache?: () => Promise<unknown>
@@ -15,6 +16,11 @@ interface OfficialRegistryCacheElectronBridge {
 type CacheWindow = Window & { electronAPI?: OfficialRegistryCacheElectronBridge }
 
 let lastDiskCacheArtifactHash: Sha256Hash | null = null
+
+export interface OfficialRegistryDiskCacheRestoreResult {
+  registrySet: RegistrySet
+  verification: 'fast'
+}
 
 const getBridge = (): OfficialRegistryCacheElectronBridge | null => {
   if (typeof window === 'undefined') return null
@@ -39,10 +45,13 @@ export const restoreOfficialRegistryDiskCache = (value: unknown) => {
   }
   const parsed = parseOfficialRegistryCacheText(value, metadataJson as unknown)
   lastDiskCacheArtifactHash = parsed.artifactHash
-  return restoreParsedOfficialPrecompiledRegistryArtifact(
-    OFFICIAL_REGISTRY_DEFINITIONS,
-    parsed.artifact
-  )
+  return {
+    registrySet: restoreParsedOfficialPrecompiledRegistryArtifact(
+      OFFICIAL_REGISTRY_DEFINITIONS,
+      parsed.artifact
+    ),
+    verification: 'fast'
+  } satisfies OfficialRegistryDiskCacheRestoreResult
 }
 
 export const writeOfficialRegistryDiskCache = async (contents: string): Promise<void> => {
@@ -50,7 +59,7 @@ export const writeOfficialRegistryDiskCache = async (contents: string): Promise<
   if (typeof bridge?.writeOfficialRegistryCache !== 'function') {
     throw new Error('Official registry disk cache bridge is unavailable')
   }
-  parseOfficialRegistryCacheText(contents, metadataJson as unknown)
+  parseOfficialRegistryCacheText(contents, metadataJson as unknown, { validationMode: 'full' })
   await bridge.writeOfficialRegistryCache(contents)
 }
 

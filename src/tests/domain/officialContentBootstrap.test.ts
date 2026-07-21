@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+﻿import { describe, expect, it, vi } from 'vitest'
 import { createDiagnostic } from '@/domain/mods/diagnostics'
 import { requirePackageId, toOfficialContentId, toOfficialRegistryTypeId } from '@/domain/mods/ids'
 import {
@@ -106,6 +106,7 @@ describe('official content bootstrap', () => {
     expect(harness.dependencies.buildRegistrySet).not.toHaveBeenCalled()
     expect(harness.bootstrap.getLastReport()).toEqual({
       source: 'precompiled',
+      loadPath: 'precompiled-hit',
       precompiledStatus: 'official-precompiled-hit',
       diagnostics: []
     })

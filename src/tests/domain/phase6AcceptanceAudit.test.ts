@@ -1,4 +1,4 @@
-/// <reference types="node" />
+﻿/// <reference types="node" />
 
 import { execFileSync } from 'node:child_process'
 import process from 'node:process'
@@ -184,6 +184,7 @@ describe('phase 6 official registry snapshot acceptance evidence', () => {
     expect(builtSnapshot).toEqual(officialContentSnapshot)
     expect(getOfficialContentBootstrapReport()).toEqual({
       source: 'precompiled',
+      loadPath: 'precompiled-hit',
       precompiledStatus: 'official-precompiled-hit',
       diagnostics: []
     })

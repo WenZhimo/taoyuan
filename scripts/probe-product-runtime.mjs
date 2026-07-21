@@ -1,4 +1,5 @@
 import { spawn } from 'node:child_process'
+import crypto from 'node:crypto'
 import { createRequire } from 'node:module'
 import fs from 'node:fs'
 import http from 'node:http'
@@ -59,12 +60,12 @@ const electronScenarios = [
     dataRoot: 'cache-sequence'
   },
   {
-    name: 'cache-hit',
+    name: 'disk-cache-fast-hit',
     fault: null,
     source: 'disk-cache',
     status: 'not-attempted',
     artifactHashSource: 'disk-cache',
-    cacheStatus: 'cache-hit',
+    cacheStatus: 'disk-cache-fast-hit',
     cacheWriteStatus: 'not-needed',
     dataRoot: 'cache-sequence'
   },
@@ -115,21 +116,27 @@ const cacheFilePath = userDataPath => path.join(
   userDataPath,
   'mod-cache',
   `sha256-${metadata.environmentHash.slice('sha256:'.length)}`,
-  'official-registry-cache-v1.json'
+  'official-registry-cache-v2.json'
 )
 
-const createCacheText = identityOverrides => JSON.stringify({
-  cacheFormatVersion: 1,
-  identity: {
+const sha256Utf8 = text => `sha256:${crypto.createHash('sha256').update(text, 'utf8').digest('hex')}`
+
+const createCacheText = identityOverrides => {
+  const artifactText = JSON.stringify(artifact, null, 2) + '\n'
+  return JSON.stringify({
+    cacheFormatVersion: 2,
+    identity: {
     artifactHash: metadata.artifactHash,
     contentHash: metadata.contentHash,
     schemaSetHash: metadata.schemaSetHash,
     environmentHash: metadata.environmentHash,
     snapshotHash: metadata.snapshotHash,
     ...identityOverrides
-  },
-  artifact
-}, null, 2) + '\n'
+    },
+    payloadHash: sha256Utf8(artifactText),
+    artifact
+  }, null, 2) + '\n'
+}
 
 const seedElectronCache = (userDataPath, seed) => {
   if (!seed) return
@@ -145,7 +152,9 @@ const assertOfficialCacheFile = (userDataPath, scenarioName) => {
   const filePath = cacheFilePath(userDataPath)
   assert(fs.existsSync(filePath), `${scenarioName}: official cache file is missing`)
   const envelope = readJson(filePath)
-  assert(envelope.cacheFormatVersion === 1, `${scenarioName}: wrong cache format version`)
+  assert(envelope.cacheFormatVersion === 2, `${scenarioName}: wrong cache format version`)
+  assert(envelope.payloadHash === expectedHashes.artifactHash,
+    `${scenarioName}: disk cache payload hash mismatch`)
   assert(
     JSON.stringify(envelope.identity) === JSON.stringify(expectedHashes),
     `${scenarioName}: disk cache identity mismatch`
@@ -246,7 +255,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     const shouldHaveDiagnostics = scenario.source === 'static-fallback'
       || (
         scenario.cacheStatus?.startsWith('cache-')
-        && scenario.cacheStatus !== 'cache-hit'
+        && scenario.cacheStatus !== 'disk-cache-fast-hit'
       )
     assert(
       shouldHaveDiagnostics ? report.diagnostics.length > 0 : report.diagnostics.length === 0,
