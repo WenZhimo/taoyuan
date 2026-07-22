@@ -142,6 +142,7 @@ const loadDiscoveryModule = async() => {
           "export { buildThirdPartyDataPackMountInput } from './src/domain/mods/thirdPartyDataPackMountInput.ts'",
           "export { buildThirdPartyDataPackRuntimeMountGate } from './src/domain/mods/thirdPartyDataPackRuntimeMountGate.ts'",
           "export { buildThirdPartyDataPackTransactionPreflight } from './src/domain/mods/thirdPartyDataPackTransactionPreflight.ts'",
+          "export { buildThirdPartyDataPackRuntimeAdapterGate } from './src/domain/mods/thirdPartyDataPackRuntimeAdapterGate.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
@@ -271,7 +272,8 @@ const reportHasFailure = (
   mountPreflightReport,
   mountInputReport,
   runtimeMountGateReport,
-  transactionPreflightReport
+  transactionPreflightReport,
+  runtimeAdapterGateReport
 ) =>
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
@@ -306,6 +308,10 @@ const reportHasFailure = (
   ))
   || transactionPreflightReport?.status === 'blocked'
   || Boolean(transactionPreflightReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || runtimeAdapterGateReport?.status === 'blocked'
+  || Boolean(runtimeAdapterGateReport?.diagnostics.some(diagnostic =>
     diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
   ))
 
@@ -723,6 +729,60 @@ const formatTransactionPreflightReport = transactionPreflightReport => {
   return lines.join('\n')
 }
 
+const formatRuntimeAdapterGateReport = runtimeAdapterGateReport => {
+  const lines = [
+    'Runtime Adapter Gate:',
+    `  status: ${runtimeAdapterGateReport.status}`,
+    `  transactionPreflightStatus: ${runtimeAdapterGateReport.transactionPreflightStatus}`,
+    `  reason: ${runtimeAdapterGateReport.reason}`,
+    `  registryCount: ${runtimeAdapterGateReport.registryCount}`,
+    `  entryCount: ${runtimeAdapterGateReport.entryCount}`,
+    `  selectedPackageIds: ${runtimeAdapterGateReport.selectedPackageIds.length > 0 ? runtimeAdapterGateReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${runtimeAdapterGateReport.blockedPackageIds.length > 0 ? runtimeAdapterGateReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${runtimeAdapterGateReport.loadOrder.length > 0 ? runtimeAdapterGateReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${runtimeAdapterGateReport.packageCount}`,
+    `  adapterReadiness: ${runtimeAdapterGateReport.adapterReadiness}`,
+    `  runtimeEnablementAllowed: ${runtimeAdapterGateReport.runtimeEnablementAllowed}`,
+    `  requiredAdapters: ${runtimeAdapterGateReport.requiredAdapters.length}`,
+    `  candidatePublished: ${runtimeAdapterGateReport.effects.thirdPartyRegistryPublished}`,
+    `  electronIpcExposed: ${runtimeAdapterGateReport.effects.electronIpcExposed}`,
+    `  webImportPersisted: ${runtimeAdapterGateReport.effects.webImportPersisted}`,
+    `  androidImportPersisted: ${runtimeAdapterGateReport.effects.androidImportPersisted}`,
+    `  packageFilesWritten: ${runtimeAdapterGateReport.effects.packageFilesWritten}`,
+    `  lockfileWritten: ${runtimeAdapterGateReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${runtimeAdapterGateReport.effects.settingsWritten}`,
+    `  savesWritten: ${runtimeAdapterGateReport.effects.savesWritten}`,
+    `  cacheWritten: ${runtimeAdapterGateReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${runtimeAdapterGateReport.effects.transactionLogWritten}`
+  ]
+  if (runtimeAdapterGateReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${runtimeAdapterGateReport.candidateIdentity.candidateHash}`)
+  }
+  if (runtimeAdapterGateReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${runtimeAdapterGateReport.lockfileHash}`)
+  }
+  if (runtimeAdapterGateReport.requiredAdapters.length > 0) {
+    lines.push('  adapters:')
+    for (const requirement of runtimeAdapterGateReport.requiredAdapters) {
+      lines.push(`    - ${requirement.id}: ${requirement.status}`)
+      lines.push(`      reason: ${requirement.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = runtimeAdapterGateReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
 export const formatDiscoveryReport = (
   scanRoot,
   report,
@@ -733,7 +793,8 @@ export const formatDiscoveryReport = (
   mountPreflightReport,
   mountInputReport,
   runtimeMountGateReport,
-  transactionPreflightReport
+  transactionPreflightReport,
+  runtimeAdapterGateReport
 ) => {
   const lines = [
     'Taoyuan third-party data pack check',
@@ -791,7 +852,11 @@ export const formatDiscoveryReport = (
     lines.push('', formatTransactionPreflightReport(transactionPreflightReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport) ? 'FAILED' : 'OK'}`)
+  if (runtimeAdapterGateReport) {
+    lines.push('', formatRuntimeAdapterGateReport(runtimeAdapterGateReport))
+  }
+
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
@@ -805,9 +870,10 @@ export const exitCodeForReport = (
   mountPreflightReport,
   mountInputReport,
   runtimeMountGateReport,
-  transactionPreflightReport
+  transactionPreflightReport,
+  runtimeAdapterGateReport
 ) =>
-  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport) ? 1 : 0
+  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -859,6 +925,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       buildThirdPartyDataPackMountInput,
       buildThirdPartyDataPackRuntimeMountGate,
       buildThirdPartyDataPackTransactionPreflight,
+      buildThirdPartyDataPackRuntimeAdapterGate,
       buildOfficialRegistrySetFromStaticData
     } = await loadDiscoveryModule()
     const discoveryInput = await resolveDiscoveryInput(scanRoot)
@@ -921,6 +988,18 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       mountInput: mountInputReport,
       runtimeGate: runtimeMountGateReport
     })
+    const runtimeAdapterGateReport = buildThirdPartyDataPackRuntimeAdapterGate({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport
+    })
     stdout.write(formatDiscoveryReport(
       scanRoot,
       report,
@@ -931,7 +1010,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       mountPreflightReport,
       mountInputReport,
       runtimeMountGateReport,
-      transactionPreflightReport
+      transactionPreflightReport,
+      runtimeAdapterGateReport
     ))
     return exitCodeForReport(
       report,
@@ -942,7 +1022,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       mountPreflightReport,
       mountInputReport,
       runtimeMountGateReport,
-      transactionPreflightReport
+      transactionPreflightReport,
+      runtimeAdapterGateReport
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
