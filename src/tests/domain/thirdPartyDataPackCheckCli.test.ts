@@ -202,6 +202,15 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('selectedPackages: 1')
     expect(result.stdout).toContain('loadOrder:')
     expect(result.stdout).toContain('1. discovery_valid@1.0.0 (valid-gift-pack)')
+    expect(result.stdout).toContain('Candidate Snapshot:')
+    expect(result.stdout).toContain('status: valid')
+    expect(result.stdout).toContain('registryCount: 54')
+    expect(result.stdout).toContain('entryCount: 4244')
+    expect(result.stdout).toContain('selectedPackageIds: discovery_valid')
+    expect(result.stdout).toContain('blockedPackageIds: (empty)')
+    expect(result.stdout).toContain('loadOrder: discovery_valid')
+    expect(result.stdout).toContain(`officialSnapshotHash: ${committedMetadata.snapshotHash}`)
+    expect(result.stdout).toContain('candidateSnapshotHash: sha256:')
     expect(result.stdout).toContain('Result: OK')
   })
 
@@ -212,6 +221,10 @@ describe('third-party data pack check CLI', () => {
     expect(missing.code).toBe(1)
     expect(missing.stdout).toContain('Discovery status: directory-not-found')
     expect(missing.stdout).toContain('[directory-not-found]')
+    expect(missing.stdout).toContain('Candidate Snapshot:')
+    expect(missing.stdout).toContain('status: invalid')
+    expect(missing.stdout).toContain('registryCount: 54')
+    expect(missing.stdout).toContain('entryCount: 4242')
     expect(missing.stdout).toContain('Result: FAILED')
     expect(missing.stderr).toBe('')
 
@@ -237,6 +250,9 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('fieldPath: /0/sellPrice')
     expect(result.stdout).toContain('category: json')
     expect(result.stdout).toContain('category: schema')
+    expect(result.stdout).toContain('Candidate Snapshot:')
+    expect(result.stdout).toContain('status: invalid')
+    expect(result.stdout).toContain('entryCount: 4242')
   })
 
   it('reports unsafe paths, missing entrypoints, non-JSON entrypoints and unsupported registries', async() => {
@@ -257,6 +273,9 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('[unsupported-registry] unsupported-registry-pack/manifest.json')
     expect(result.stdout).toContain('registryId: example_mod:unknown_registry')
     expect(result.stdout).toContain('category: entrypoint')
+    expect(result.stdout).toContain('Candidate Snapshot:')
+    expect(result.stdout).toContain('status: invalid')
+    expect(result.stdout).toContain('entryCount: 4242')
   })
 
   it('returns non-zero and prints dependency diagnostics for missing required dependencies', async() => {
@@ -279,6 +298,11 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Selection:')
     expect(result.stdout).toContain('blockedPackages: 1')
     expect(result.stdout).toContain('reasons: discovery-blocked')
+    expect(result.stdout).toContain('Candidate Snapshot:')
+    expect(result.stdout).toContain('status: invalid')
+    expect(result.stdout).toContain('selectedPackageIds: (empty)')
+    expect(result.stdout).toContain('blockedPackageIds: missing_dependent')
+    expect(result.stdout).toContain('entryCount: 4242')
     expect(result.stdout).toContain('Result: FAILED')
   })
 
@@ -296,6 +320,11 @@ describe('third-party data pack check CLI', () => {
     expect(ordered.code).toBe(0)
     expect(ordered.stdout).toContain('1. a_library@1.0.0 (a-library)')
     expect(ordered.stdout).toContain('2. z_app@1.0.0 (z-app)')
+    expect(ordered.stdout).toContain('Candidate Snapshot:')
+    expect(ordered.stdout).toContain('status: valid')
+    expect(ordered.stdout).toContain('selectedPackageIds: a_library, z_app')
+    expect(ordered.stdout).toContain('loadOrder: a_library, z_app')
+    expect(ordered.stdout).toContain('entryCount: 4244')
 
     const cycleRoot = await createTempRoot()
     const cyclePacksRoot = path.join(cycleRoot, 'packs')
@@ -316,6 +345,10 @@ describe('third-party data pack check CLI', () => {
     expect(cycle.stdout).toContain('reasons: dependency-cycle')
     expect(cycle.stdout).toContain('[dependency-cycle] a-cycle/manifest.json')
     expect(cycle.stdout).toContain('diagnostic: PKG-DEPENDENCY-003')
+    expect(cycle.stdout).toContain('Candidate Snapshot:')
+    expect(cycle.stdout).toContain('status: invalid')
+    expect(cycle.stdout).toContain('blockedPackageIds: a_cycle, b_cycle')
+    expect(cycle.stdout).toContain('entryCount: 4242')
     expect(cycle.stdout).toContain('Result: FAILED')
   })
 
@@ -339,6 +372,10 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Selection:')
     expect(result.stdout).toContain('status: completed')
     expect(result.stdout).toContain('1. optional_warning@1.0.0 (optional-warning)')
+    expect(result.stdout).toContain('Candidate Snapshot:')
+    expect(result.stdout).toContain('status: valid')
+    expect(result.stdout).toContain('selectedPackageIds: optional_warning')
+    expect(result.stdout).toContain('entryCount: 4243')
     expect(result.stdout).toContain('Result: OK')
   })
 
@@ -356,6 +393,9 @@ describe('third-party data pack check CLI', () => {
     const result = await runCli([packsRoot])
 
     expect(result.code).toBe(0)
+    expect(result.stdout).toContain('Candidate Snapshot:')
+    expect(result.stdout).toContain('status: valid')
+    expect(result.stdout).toContain('entryCount: 4244')
     expect(await collectFileContents(root)).toEqual(filesBefore)
     expect(countOfficialEntries()).toEqual(officialBefore)
     expect(officialBefore).toEqual({
@@ -375,6 +415,9 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain(`Valid packages: ${directReport.summary.validPackageCount}`)
     expect(result.stdout).toContain(`Invalid packages: ${directReport.summary.invalidPackageCount}`)
     expect(result.stdout).toContain(`Issues: ${directReport.summary.issueCount}`)
+    expect(result.stdout).toContain('Candidate Snapshot:')
+    expect(result.stdout).toContain('status: invalid')
+    expect(result.stdout).toContain('entryCount: 4242')
     for (const kind of new Set(directReport.issues.map(issue => issue.kind))) {
       expect(result.stdout).toContain(`[${kind}]`)
     }

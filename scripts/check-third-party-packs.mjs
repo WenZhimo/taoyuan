@@ -3,6 +3,7 @@ import { lstat, readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
+import { createTaoyuanAliasPlugin } from './esbuild-taoyuan-alias.mjs'
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(scriptDirectory, '..')
@@ -133,7 +134,9 @@ const loadDiscoveryModule = async() => {
       stdin: {
         contents: [
           "export { discoverThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackDiscovery.ts'",
-          "export { selectThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackSelection.ts'"
+          "export { selectThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackSelection.ts'",
+          "export { buildThirdPartyCandidateRegistrySnapshot } from './src/domain/mods/thirdPartyCandidateRegistrySnapshot.ts'",
+          "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
         resolveDir: projectRoot,
@@ -144,6 +147,7 @@ const loadDiscoveryModule = async() => {
       logLevel: 'silent',
       platform: 'node',
       target: 'node20',
+      plugins: [createTaoyuanAliasPlugin(projectRoot)],
       write: false
     })
     const output = bundled.outputFiles[0]
@@ -252,10 +256,14 @@ const formatSelectionIssue = issue => {
   return lines.join('\n')
 }
 
-const reportHasFailure = (report, selectionReport) =>
+const reportHasFailure = (report, selectionReport, candidateSnapshotReport) =>
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
   || Boolean(selectionReport?.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal'))
+  || candidateSnapshotReport?.status === 'invalid'
+  || Boolean(candidateSnapshotReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
 
 const formatCandidate = candidate => {
   const manifest = candidate.manifest
@@ -331,7 +339,57 @@ const formatSelectionReport = selectionReport => {
   return lines.join('\n')
 }
 
-export const formatDiscoveryReport = (scanRoot, report, selectionReport) => {
+const formatDiagnostic = diagnostic => {
+  const lines = [
+    `  - ${diagnostic.code} (${diagnostic.stage})`,
+    `    severity: ${diagnostic.severity}`
+  ]
+  if (diagnostic.packageId) lines.push(`    packageId: ${diagnostic.packageId}`)
+  if (diagnostic.file) lines.push(`    file: ${diagnostic.file}`)
+  if (diagnostic.registryId) lines.push(`    registryId: ${diagnostic.registryId}`)
+  if (diagnostic.contentId) lines.push(`    contentId: ${diagnostic.contentId}`)
+  if (diagnostic.relatedPackageIds?.length) lines.push(`    relatedPackageIds: ${diagnostic.relatedPackageIds.join(', ')}`)
+  if (diagnostic.fieldPath) lines.push(`    fieldPath: ${diagnostic.fieldPath}`)
+  if (diagnostic.details) lines.push(`    details: ${JSON.stringify(diagnostic.details)}`)
+  return lines.join('\n')
+}
+
+const formatCandidateSnapshotReport = candidateSnapshotReport => {
+  const lines = [
+    'Candidate Snapshot:',
+    `  status: ${candidateSnapshotReport.status}`,
+    `  registryCount: ${candidateSnapshotReport.registryCount}`,
+    `  entryCount: ${candidateSnapshotReport.entryCount}`,
+    `  selectedPackageIds: ${candidateSnapshotReport.selectedPackageIds.length > 0 ? candidateSnapshotReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${candidateSnapshotReport.blockedPackageIds.length > 0 ? candidateSnapshotReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${candidateSnapshotReport.loadOrder.length > 0 ? candidateSnapshotReport.loadOrder.join(', ') : '(empty)'}`,
+    `  officialSnapshotHash: ${candidateSnapshotReport.officialIdentity.snapshotHash}`
+  ]
+  if (candidateSnapshotReport.candidateIdentity) {
+    lines.push(`  candidateSnapshotHash: ${candidateSnapshotReport.candidateIdentity.snapshotHash}`)
+    lines.push(`  candidateContentHash: ${candidateSnapshotReport.candidateIdentity.contentHash}`)
+    lines.push(`  candidateHash: ${candidateSnapshotReport.candidateIdentity.candidateHash}`)
+  }
+
+  const blockingDiagnostics = candidateSnapshotReport.diagnostics.filter(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  )
+  const visibleDiagnostics = blockingDiagnostics.length > 0
+    ? blockingDiagnostics
+    : candidateSnapshotReport.diagnostics.filter(diagnostic => diagnostic.severity === 'warning')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
+export const formatDiscoveryReport = (scanRoot, report, selectionReport, candidateSnapshotReport) => {
   const lines = [
     'Taoyuan third-party data pack check',
     `Scan root: ${scanRoot}`,
@@ -360,13 +418,17 @@ export const formatDiscoveryReport = (scanRoot, report, selectionReport) => {
     lines.push('', formatSelectionReport(selectionReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport) ? 'FAILED' : 'OK'}`)
+  if (candidateSnapshotReport) {
+    lines.push('', formatCandidateSnapshotReport(candidateSnapshotReport))
+  }
+
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, candidateSnapshotReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
 
-export const exitCodeForReport = (report, selectionReport) =>
-  reportHasFailure(report, selectionReport) ? 1 : 0
+export const exitCodeForReport = (report, selectionReport, candidateSnapshotReport) =>
+  reportHasFailure(report, selectionReport, candidateSnapshotReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -407,12 +469,22 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
 
   const scanRoot = path.resolve(process.cwd(), parsed.directory)
   try {
-    const { discoverThirdPartyDataPacks, selectThirdPartyDataPacks } = await loadDiscoveryModule()
+    const {
+      discoverThirdPartyDataPacks,
+      selectThirdPartyDataPacks,
+      buildThirdPartyCandidateRegistrySnapshot,
+      buildOfficialRegistrySetFromStaticData
+    } = await loadDiscoveryModule()
     const discoveryInput = await resolveDiscoveryInput(scanRoot)
     const report = await discoverThirdPartyDataPacks(discoveryInput.rootDirectory, discoveryInput.fileSystem)
     const selectionReport = selectThirdPartyDataPacks(report)
-    stdout.write(formatDiscoveryReport(scanRoot, report, selectionReport))
-    return exitCodeForReport(report, selectionReport)
+    const candidateSnapshotReport = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      discoveryReport: report,
+      selectionReport
+    })
+    stdout.write(formatDiscoveryReport(scanRoot, report, selectionReport, candidateSnapshotReport))
+    return exitCodeForReport(report, selectionReport, candidateSnapshotReport)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     stderr.write(`Failed to check third-party data packs: ${message}\n`)

@@ -11,6 +11,7 @@ import {
   type RegistryTypeId
 } from './ids'
 import { validateUnknown } from './schemaValidation'
+import type { RegistryEntry } from './registry'
 import {
   OFFICIAL_REGISTRY_SCHEMAS,
   PackageManifestSchema,
@@ -57,6 +58,7 @@ export interface ThirdPartyDataPackContentFile {
   readonly path: string
   readonly entryCount: number
   readonly entries: readonly ThirdPartyDataPackContentEntry[]
+  readonly validatedEntries: readonly RegistryEntry[]
 }
 
 export interface ThirdPartyDataPackContentEntry {
@@ -482,7 +484,11 @@ const validateContentFile = (
     path: string
     candidatePath: string
   }
-): { ok: true; entries: readonly ThirdPartyDataPackContentEntry[] } | { ok: false; issues: ThirdPartyDataPackDiscoveryIssue[] } => {
+): {
+  ok: true
+  entries: readonly ThirdPartyDataPackContentEntry[]
+  validatedEntries: readonly RegistryEntry[]
+} | { ok: false; issues: ThirdPartyDataPackDiscoveryIssue[] } => {
   const schema = registrySchemas[context.registryId]
   if (!schema) {
     return {
@@ -550,7 +556,11 @@ const validateContentFile = (
     })
   }
 
-  return { ok: true, entries }
+  return {
+    ok: true,
+    entries,
+    validatedEntries: validatedEntries as readonly RegistryEntry[]
+  }
 }
 
 const issueAtPath = (
@@ -948,7 +958,8 @@ const scanCandidateDirectory = async (
         registryId,
         path: resolved.normalizedPath,
         entryCount: contentResult.entries.length,
-        entries: contentResult.entries
+        entries: contentResult.entries,
+        validatedEntries: contentResult.validatedEntries
       })
     }
   }

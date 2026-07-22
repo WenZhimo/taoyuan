@@ -6314,6 +6314,16 @@ const reviewedArtifacts = [
     rationale: 'Provides the read-only package selection summary for discovered third-party data pack candidates: blocks invalid candidates and duplicate package ids, propagates blocked required dependencies including duplicate-id targets, treats compatible optional dependencies as ordering edges, diagnoses cycles and returns a stable packageId-sorted topological load order without loading or writing third-party content.'
   },
   {
+    file: 'src/domain/mods/thirdPartyCandidateRegistrySnapshot.ts',
+    exportName: 'buildThirdPartyCandidateRegistrySnapshot',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-candidate-registry-snapshot',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Builds a read-only in-memory candidate RegistrySet from the selected third-party load order by cloning the official frozen baseline, registering already TypeBox-validated third-party entries into the clone, rejecting official content conflicts and selected third-party duplicates, rerunning structure/semantic/freeze gates, and returning skipped/invalid/valid summaries without publishing a runtime registry, lockfile, cache, save or settings write.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery',
     exportName: 'third-party discovery fixture matrix',
     classification: 'adapter',
@@ -6331,7 +6341,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discoverThirdPartyDataPacks() and selectThirdPartyDataPacks(), prints human-readable dependency/conflict diagnostics plus load order and blocking causes, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings or official registries.'
+    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discoverThirdPartyDataPacks(), selectThirdPartyDataPacks() and buildThirdPartyCandidateRegistrySnapshot(), prints human-readable dependency/conflict diagnostics, load order, blocking causes and candidate snapshot status, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings or official registries.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackCheckCli.test.ts',
@@ -6341,7 +6351,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
+    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Candidate Snapshot CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackSelection.test.ts',
@@ -6352,6 +6362,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, required and optional dependency cycle diagnostics, input immutability, repeated result stability and unchanged official registry counts and hashes.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyCandidateRegistrySnapshot.test.ts',
+    exportName: 'third-party candidate registry snapshot fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-candidate-registry-snapshot',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers valid frozen candidate snapshots, empty-root skipped results, repeated deterministic candidate identity, schema-blocked dependencies, official content id conflicts, selected third-party duplicate entries, dependency-cycle all-or-nothing invalidation, cross-registry semantic failures and immutability of official registries plus discovery and selection reports.'
   }
 ]
 
