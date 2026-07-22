@@ -1,4 +1,4 @@
-import { Buffer } from 'node:buffer'
+﻿import { Buffer } from 'node:buffer'
 import { lstat, readFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -143,6 +143,7 @@ const loadDiscoveryModule = async() => {
           "export { buildThirdPartyDataPackRuntimeMountGate } from './src/domain/mods/thirdPartyDataPackRuntimeMountGate.ts'",
           "export { buildThirdPartyDataPackTransactionPreflight } from './src/domain/mods/thirdPartyDataPackTransactionPreflight.ts'",
           "export { buildThirdPartyDataPackRuntimeAdapterGate } from './src/domain/mods/thirdPartyDataPackRuntimeAdapterGate.ts'",
+          "export { buildThirdPartyDataPackSourceAdapterGate } from './src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
@@ -273,7 +274,8 @@ const reportHasFailure = (
   mountInputReport,
   runtimeMountGateReport,
   transactionPreflightReport,
-  runtimeAdapterGateReport
+  runtimeAdapterGateReport,
+  sourceAdapterGateReport
 ) =>
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
@@ -312,6 +314,10 @@ const reportHasFailure = (
   ))
   || runtimeAdapterGateReport?.status === 'blocked'
   || Boolean(runtimeAdapterGateReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || sourceAdapterGateReport?.status === 'blocked'
+  || Boolean(sourceAdapterGateReport?.diagnostics.some(diagnostic =>
     diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
   ))
 
@@ -783,6 +789,62 @@ const formatRuntimeAdapterGateReport = runtimeAdapterGateReport => {
   return lines.join('\n')
 }
 
+const formatSourceAdapterGateReport = sourceAdapterGateReport => {
+  const lines = [
+    'Source Adapter Gate:',
+    `  status: ${sourceAdapterGateReport.status}`,
+    `  runtimeAdapterGateStatus: ${sourceAdapterGateReport.runtimeAdapterGateStatus}`,
+    `  reason: ${sourceAdapterGateReport.reason}`,
+    `  registryCount: ${sourceAdapterGateReport.registryCount}`,
+    `  entryCount: ${sourceAdapterGateReport.entryCount}`,
+    `  selectedPackageIds: ${sourceAdapterGateReport.selectedPackageIds.length > 0 ? sourceAdapterGateReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${sourceAdapterGateReport.blockedPackageIds.length > 0 ? sourceAdapterGateReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${sourceAdapterGateReport.loadOrder.length > 0 ? sourceAdapterGateReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${sourceAdapterGateReport.packageCount}`,
+    `  sourceContractReadiness: ${sourceAdapterGateReport.sourceContractReadiness}`,
+    `  contentPackageSourceContractStable: ${sourceAdapterGateReport.contentPackageSourceContractStable}`,
+    `  runtimeEnablementAllowed: ${sourceAdapterGateReport.runtimeEnablementAllowed}`,
+    `  requiredSourceContracts: ${sourceAdapterGateReport.requiredSourceContracts.length}`,
+    `  candidatePublished: ${sourceAdapterGateReport.effects.thirdPartyRegistryPublished}`,
+    `  electronIpcExposed: ${sourceAdapterGateReport.effects.electronIpcExposed}`,
+    `  webImportPersisted: ${sourceAdapterGateReport.effects.webImportPersisted}`,
+    `  androidImportPersisted: ${sourceAdapterGateReport.effects.androidImportPersisted}`,
+    `  platformSourceOpened: ${sourceAdapterGateReport.effects.platformSourceOpened}`,
+    `  sourceHandlesRetained: ${sourceAdapterGateReport.effects.sourceHandlesRetained}`,
+    `  packageFilesWritten: ${sourceAdapterGateReport.effects.packageFilesWritten}`,
+    `  lockfileWritten: ${sourceAdapterGateReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${sourceAdapterGateReport.effects.settingsWritten}`,
+    `  savesWritten: ${sourceAdapterGateReport.effects.savesWritten}`,
+    `  cacheWritten: ${sourceAdapterGateReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${sourceAdapterGateReport.effects.transactionLogWritten}`
+  ]
+  if (sourceAdapterGateReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${sourceAdapterGateReport.candidateIdentity.candidateHash}`)
+  }
+  if (sourceAdapterGateReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${sourceAdapterGateReport.lockfileHash}`)
+  }
+  if (sourceAdapterGateReport.requiredSourceContracts.length > 0) {
+    lines.push('  sourceContracts:')
+    for (const requirement of sourceAdapterGateReport.requiredSourceContracts) {
+      lines.push(`    - ${requirement.id}: ${requirement.status}`)
+      lines.push(`      reason: ${requirement.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = sourceAdapterGateReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
 export const formatDiscoveryReport = (
   scanRoot,
   report,
@@ -794,7 +856,8 @@ export const formatDiscoveryReport = (
   mountInputReport,
   runtimeMountGateReport,
   transactionPreflightReport,
-  runtimeAdapterGateReport
+  runtimeAdapterGateReport,
+  sourceAdapterGateReport
 ) => {
   const lines = [
     'Taoyuan third-party data pack check',
@@ -856,7 +919,11 @@ export const formatDiscoveryReport = (
     lines.push('', formatRuntimeAdapterGateReport(runtimeAdapterGateReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport) ? 'FAILED' : 'OK'}`)
+  if (sourceAdapterGateReport) {
+    lines.push('', formatSourceAdapterGateReport(sourceAdapterGateReport))
+  }
+
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport, sourceAdapterGateReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
@@ -871,9 +938,10 @@ export const exitCodeForReport = (
   mountInputReport,
   runtimeMountGateReport,
   transactionPreflightReport,
-  runtimeAdapterGateReport
+  runtimeAdapterGateReport,
+  sourceAdapterGateReport
 ) =>
-  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport) ? 1 : 0
+  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport, sourceAdapterGateReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -926,6 +994,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       buildThirdPartyDataPackRuntimeMountGate,
       buildThirdPartyDataPackTransactionPreflight,
       buildThirdPartyDataPackRuntimeAdapterGate,
+      buildThirdPartyDataPackSourceAdapterGate,
       buildOfficialRegistrySetFromStaticData
     } = await loadDiscoveryModule()
     const discoveryInput = await resolveDiscoveryInput(scanRoot)
@@ -1000,6 +1069,19 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       runtimeGate: runtimeMountGateReport,
       transactionPreflight: transactionPreflightReport
     })
+    const sourceAdapterGateReport = buildThirdPartyDataPackSourceAdapterGate({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport,
+      runtimeAdapterGate: runtimeAdapterGateReport
+    })
     stdout.write(formatDiscoveryReport(
       scanRoot,
       report,
@@ -1011,7 +1093,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       mountInputReport,
       runtimeMountGateReport,
       transactionPreflightReport,
-      runtimeAdapterGateReport
+      runtimeAdapterGateReport,
+      sourceAdapterGateReport
     ))
     return exitCodeForReport(
       report,
@@ -1023,7 +1106,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       mountInputReport,
       runtimeMountGateReport,
       transactionPreflightReport,
-      runtimeAdapterGateReport
+      runtimeAdapterGateReport,
+      sourceAdapterGateReport
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)

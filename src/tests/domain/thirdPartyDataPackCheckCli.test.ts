@@ -184,6 +184,49 @@ const createPack = async(
   return packRoot
 }
 
+const expectDeferredSourceAdapterGate = (stdout: string): void => {
+  expect(stdout).toContain('Source Adapter Gate:')
+  expect(stdout).toContain('runtimeAdapterGateStatus: deferred')
+  expect(stdout).toContain('sourceContractReadiness: deferred')
+  expect(stdout).toContain('contentPackageSourceContractStable: false')
+  expect(stdout).toContain('runtimeEnablementAllowed: false')
+  expect(stdout).toContain('requiredSourceContracts: 5')
+  expect(stdout).toContain('content-package-source-identity: required')
+  expect(stdout).toContain('pure-json-read-boundary: required')
+  expect(stdout).toContain('normalized-relative-source-paths: required')
+  expect(stdout).toContain('permission-revocation-recovery: required')
+  expect(stdout).toContain('source-lifetime-disposal: required')
+  expect(stdout).toContain('candidatePublished: false')
+  expect(stdout).toContain('electronIpcExposed: false')
+  expect(stdout).toContain('webImportPersisted: false')
+  expect(stdout).toContain('androidImportPersisted: false')
+  expect(stdout).toContain('platformSourceOpened: false')
+  expect(stdout).toContain('sourceHandlesRetained: false')
+  expect(stdout).toContain('packageFilesWritten: false')
+  expect(stdout).toContain('lockfileWritten: false')
+  expect(stdout).toContain('settingsWritten: false')
+  expect(stdout).toContain('savesWritten: false')
+  expect(stdout).toContain('cacheWritten: false')
+  expect(stdout).toContain('transactionLogWritten: false')
+}
+
+const expectBlockedSourceAdapterGate = (stdout: string): void => {
+  expect(stdout).toContain('Source Adapter Gate:')
+  expect(stdout).toContain('runtimeAdapterGateStatus: blocked')
+  expect(stdout).toContain('sourceContractReadiness: deferred')
+  expect(stdout).toContain('contentPackageSourceContractStable: false')
+  expect(stdout).toContain('runtimeEnablementAllowed: false')
+  expect(stdout).toContain('requiredSourceContracts: 0')
+  expect(stdout).toContain('platformSourceOpened: false')
+  expect(stdout).toContain('sourceHandlesRetained: false')
+  expect(stdout).toContain('packageFilesWritten: false')
+  expect(stdout).toContain('lockfileWritten: false')
+  expect(stdout).toContain('settingsWritten: false')
+  expect(stdout).toContain('savesWritten: false')
+  expect(stdout).toContain('cacheWritten: false')
+  expect(stdout).toContain('transactionLogWritten: false')
+}
+
 describe('third-party data pack check CLI', () => {
   it('prints a successful report and exits 0 for valid packages', async() => {
     const root = await createTempRoot()
@@ -278,6 +321,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('electronIpcExposed: false')
     expect(result.stdout).toContain('webImportPersisted: false')
     expect(result.stdout).toContain('androidImportPersisted: false')
+    expectDeferredSourceAdapterGate(result.stdout)
     expect(result.stdout).toContain('Result: OK')
   })
 
@@ -322,6 +366,7 @@ describe('third-party data pack check CLI', () => {
     expect(missing.stdout).toContain('transactionPreflightStatus: blocked')
     expect(missing.stdout).toContain('requiredAdapters: 0')
     expect(missing.stdout).toContain('runtimeEnablementAllowed: false')
+    expectBlockedSourceAdapterGate(missing.stdout)
     expect(missing.stdout).toContain('Repair Report:')
     expect(missing.stdout).toContain('blockedActions: 1')
     expect(missing.stdout).toContain('PKG-REPAIR-NOT-WHITELISTED')
@@ -358,6 +403,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Candidate Snapshot:')
     expect(result.stdout).toContain('status: invalid')
     expect(result.stdout).toContain('entryCount: 4242')
+    expectBlockedSourceAdapterGate(result.stdout)
   })
 
   it('reports unsafe paths, missing entrypoints, non-JSON entrypoints and unsupported registries', async() => {
@@ -381,6 +427,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Candidate Snapshot:')
     expect(result.stdout).toContain('status: invalid')
     expect(result.stdout).toContain('entryCount: 4242')
+    expectBlockedSourceAdapterGate(result.stdout)
   })
 
   it('returns non-zero and prints dependency diagnostics for missing required dependencies', async() => {
@@ -417,6 +464,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Runtime Adapter Gate:')
     expect(result.stdout).toContain('transactionPreflightStatus: blocked')
     expect(result.stdout).toContain('requiredAdapters: 0')
+    expectBlockedSourceAdapterGate(result.stdout)
     expect(result.stdout).toContain('Result: FAILED')
   })
 
@@ -464,6 +512,7 @@ describe('third-party data pack check CLI', () => {
     expect(ordered.stdout).toContain('transactionPreflightStatus: deferred')
     expect(ordered.stdout).toContain('loadOrder: a_library, z_app')
     expect(ordered.stdout).toContain('requiredAdapters: 5')
+    expectDeferredSourceAdapterGate(ordered.stdout)
 
     const cycleRoot = await createTempRoot()
     const cyclePacksRoot = path.join(cycleRoot, 'packs')
@@ -506,6 +555,7 @@ describe('third-party data pack check CLI', () => {
     expect(cycle.stdout).toContain('Runtime Adapter Gate:')
     expect(cycle.stdout).toContain('transactionPreflightStatus: blocked')
     expect(cycle.stdout).toContain('requiredAdapters: 0')
+    expectBlockedSourceAdapterGate(cycle.stdout)
     expect(cycle.stdout).toContain('Result: FAILED')
   })
 
@@ -542,6 +592,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Runtime Adapter Gate:')
     expect(result.stdout).toContain('transactionPreflightStatus: deferred')
     expect(result.stdout).toContain('requiredAdapters: 5')
+    expectDeferredSourceAdapterGate(result.stdout)
     expect(result.stdout).toContain('Result: OK')
   })
 
@@ -569,6 +620,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('packageFilesWritten: false')
     expect(result.stdout).toContain('settingsWritten: false')
     expect(result.stdout).toContain('savesWritten: false')
+    expectDeferredSourceAdapterGate(result.stdout)
     expect(result.stdout).toContain('Result: OK')
   })
 
@@ -617,6 +669,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('electronIpcExposed: false')
     expect(result.stdout).toContain('webImportPersisted: false')
     expect(result.stdout).toContain('androidImportPersisted: false')
+    expectDeferredSourceAdapterGate(result.stdout)
     expect(await collectFileContents(root)).toEqual(filesBefore)
     expect(countOfficialEntries()).toEqual(officialBefore)
     expect(officialBefore).toEqual({
@@ -652,6 +705,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Runtime Adapter Gate:')
     expect(result.stdout).toContain('transactionPreflightStatus: blocked')
     expect(result.stdout).toContain('requiredAdapters: 0')
+    expectBlockedSourceAdapterGate(result.stdout)
     for (const kind of new Set(directReport.issues.map(issue => issue.kind))) {
       expect(result.stdout).toContain(`[${kind}]`)
     }
