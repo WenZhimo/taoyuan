@@ -14,7 +14,7 @@
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.vue",
     "type-check": "vue-tsc -b",
-    "test": "vitest run --no-file-parallelism",
+    "test": "vitest run --no-file-parallelism --reporter=dot",
     "test:watch": "vitest",
     "validate:data": "vitest run src/tests/data/gameDataValidation.test.ts --no-file-parallelism",
     "validate:docs": "vitest run src/tests/data/documentationValidation.test.ts --no-file-parallelism",

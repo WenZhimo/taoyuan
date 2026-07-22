@@ -10,7 +10,7 @@
 | `pnpm run lint` | ESLint 检查 |
 | `pnpm run validate:data` | 游戏数据 ID、引用、数值和特殊契约校验 |
 | `pnpm run validate:docs` | 阶段 10 文档、必需章节、相对链接和扫描性能校验 |
-| `pnpm run test` | 单进程文件调度运行全部测试 |
+| `pnpm run test` | 单进程文件调度运行全部测试，并用进度点持续输出当前状态 |
 | `pnpm run test:watch` | 开发时监听测试 |
 | `pnpm exec vitest run <file>` | 运行指定测试文件 |
 | `pnpm exec vitest run --reporter=dot --maxWorkers=2` | 推荐的稳定全量测试命令 |
@@ -24,7 +24,7 @@ pnpm run type-check
 pnpm run lint
 pnpm run validate:data
 pnpm run validate:docs
-pnpm exec vitest run --reporter=dot --maxWorkers=2
+pnpm run test
 pnpm run build
 git diff --check
 ```
@@ -34,6 +34,8 @@ git diff --check
 ```bash
 pnpm run build:electron
 ```
+
+`pnpm run test` 使用 dot reporter：长时间运行时会持续打印进度点，避免误以为进程卡死；单个用例超时为 15 秒，仍可捕获真正挂起的测试。
 
 不要并行运行全量测试、性能测试和生产构建。CPU 竞争会让组件挂载微基准产生无意义抖动。
 

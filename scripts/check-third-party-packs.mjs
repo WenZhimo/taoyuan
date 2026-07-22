@@ -136,6 +136,7 @@ const loadDiscoveryModule = async() => {
           "export { discoverThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackDiscovery.ts'",
           "export { selectThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackSelection.ts'",
           "export { buildThirdPartyCandidateRegistrySnapshot } from './src/domain/mods/thirdPartyCandidateRegistrySnapshot.ts'",
+          "export { createThirdPartyDataPackLockfileDraft, validateThirdPartyDataPackLockfileDraft } from './src/domain/mods/thirdPartyDataPackLockfileDraft.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
@@ -256,12 +257,20 @@ const formatSelectionIssue = issue => {
   return lines.join('\n')
 }
 
-const reportHasFailure = (report, selectionReport, candidateSnapshotReport) =>
+const reportHasFailure = (report, selectionReport, candidateSnapshotReport, lockfileDraftReport) =>
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
   || Boolean(selectionReport?.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal'))
   || candidateSnapshotReport?.status === 'invalid'
   || Boolean(candidateSnapshotReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || lockfileDraftReport?.draftResult.status === 'invalid'
+  || lockfileDraftReport?.validationResult.status === 'invalid'
+  || Boolean(lockfileDraftReport?.draftResult.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || Boolean(lockfileDraftReport?.validationResult.diagnostics.some(diagnostic =>
     diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
   ))
 
@@ -389,7 +398,66 @@ const formatCandidateSnapshotReport = candidateSnapshotReport => {
   return lines.join('\n')
 }
 
-export const formatDiscoveryReport = (scanRoot, report, selectionReport, candidateSnapshotReport) => {
+const formatLockfileDraftReport = lockfileDraftReport => {
+  const { draftResult, validationResult } = lockfileDraftReport
+  const lines = [
+    'Lockfile Draft:',
+    `  status: ${draftResult.status}`,
+    `  validationStatus: ${validationResult.status}`,
+    `  registryCount: ${draftResult.registryCount}`,
+    `  entryCount: ${draftResult.entryCount}`,
+    `  selectedPackageIds: ${draftResult.selectedPackageIds.length > 0 ? draftResult.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${draftResult.loadOrder.length > 0 ? draftResult.loadOrder.join(', ') : '(empty)'}`,
+    `  officialSnapshotHash: ${draftResult.officialIdentity.snapshotHash}`
+  ]
+  if (draftResult.draft) {
+    lines.push(`  formatVersion: ${draftResult.draft.formatVersion}`)
+    lines.push(`  packageCount: ${draftResult.draft.packages.length}`)
+    lines.push(`  lockfileHash: ${draftResult.draft.lockfileHash}`)
+    lines.push(`  candidateHash: ${draftResult.draft.candidateIdentity.candidateHash}`)
+    lines.push('  packages:')
+    for (const pkg of draftResult.draft.packages) {
+      lines.push(`    - ${pkg.packageId}@${pkg.version}`)
+      lines.push(`      loadIndex: ${pkg.loadIndex}`)
+      lines.push(`      sourcePath: ${pkg.source.candidatePath}`)
+      lines.push(`      manifestHash: ${pkg.manifestHash}`)
+      lines.push(`      contentHash: ${pkg.contentHash}`)
+      lines.push(`      resolvedDependencies: ${pkg.resolvedDependencies.length > 0 ? pkg.resolvedDependencies.join(', ') : '(empty)'}`)
+    }
+  }
+
+  const visibleDiagnostics = [
+    ...draftResult.diagnostics,
+    ...validationResult.diagnostics
+  ].filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  const uniqueVisibleDiagnostics = []
+  const visibleDiagnosticKeys = new Set()
+  for (const diagnostic of visibleDiagnostics) {
+    const key = JSON.stringify({
+      code: diagnostic.code,
+      stage: diagnostic.stage,
+      packageId: diagnostic.packageId,
+      file: diagnostic.file,
+      fieldPath: diagnostic.fieldPath,
+      details: diagnostic.details
+    })
+    if (visibleDiagnosticKeys.has(key)) continue
+    visibleDiagnosticKeys.add(key)
+    uniqueVisibleDiagnostics.push(diagnostic)
+  }
+  if (uniqueVisibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of uniqueVisibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (uniqueVisibleDiagnostics.length > 20) {
+      lines.push(`    ... ${uniqueVisibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
+export const formatDiscoveryReport = (scanRoot, report, selectionReport, candidateSnapshotReport, lockfileDraftReport) => {
   const lines = [
     'Taoyuan third-party data pack check',
     `Scan root: ${scanRoot}`,
@@ -422,13 +490,17 @@ export const formatDiscoveryReport = (scanRoot, report, selectionReport, candida
     lines.push('', formatCandidateSnapshotReport(candidateSnapshotReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport, candidateSnapshotReport) ? 'FAILED' : 'OK'}`)
+  if (lockfileDraftReport) {
+    lines.push('', formatLockfileDraftReport(lockfileDraftReport))
+  }
+
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
 
-export const exitCodeForReport = (report, selectionReport, candidateSnapshotReport) =>
-  reportHasFailure(report, selectionReport, candidateSnapshotReport) ? 1 : 0
+export const exitCodeForReport = (report, selectionReport, candidateSnapshotReport, lockfileDraftReport) =>
+  reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -473,6 +545,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       discoverThirdPartyDataPacks,
       selectThirdPartyDataPacks,
       buildThirdPartyCandidateRegistrySnapshot,
+      createThirdPartyDataPackLockfileDraft,
+      validateThirdPartyDataPackLockfileDraft,
       buildOfficialRegistrySetFromStaticData
     } = await loadDiscoveryModule()
     const discoveryInput = await resolveDiscoveryInput(scanRoot)
@@ -483,8 +557,20 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       discoveryReport: report,
       selectionReport
     })
-    stdout.write(formatDiscoveryReport(scanRoot, report, selectionReport, candidateSnapshotReport))
-    return exitCodeForReport(report, selectionReport, candidateSnapshotReport)
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport
+    })
+    const validationResult = validateThirdPartyDataPackLockfileDraft({
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      draft: draftResult.draft
+    })
+    const lockfileDraftReport = { draftResult, validationResult }
+    stdout.write(formatDiscoveryReport(scanRoot, report, selectionReport, candidateSnapshotReport, lockfileDraftReport))
+    return exitCodeForReport(report, selectionReport, candidateSnapshotReport, lockfileDraftReport)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     stderr.write(`Failed to check third-party data packs: ${message}\n`)
