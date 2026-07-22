@@ -162,6 +162,21 @@ const localizedLabel = value => {
 
 const issueCategory = issue => {
   if (
+    issue.kind === 'dependency-missing'
+    || issue.kind === 'dependency-version-mismatch'
+    || issue.kind === 'optional-dependency-missing'
+  ) {
+    return 'dependency'
+  }
+  if (
+    issue.kind === 'package-conflict'
+    || issue.kind === 'registry-entry-duplicate'
+    || issue.kind === 'registry-entry-conflict'
+    || issue.kind === 'registry-entry-duplicate-identical'
+  ) {
+    return 'conflict'
+  }
+  if (
     issue.kind === 'content-file-missing'
     || issue.kind === 'non-json-file'
     || issue.kind === 'unsupported-registry'
@@ -186,6 +201,8 @@ const formatIssue = issue => {
   if (issue.candidatePath) lines.push(`    packagePath: ${issue.candidatePath}`)
   if (issue.packageId) lines.push(`    packageId: ${issue.packageId}`)
   if (issue.registryId) lines.push(`    registryId: ${issue.registryId}`)
+  if (issue.contentId) lines.push(`    contentId: ${issue.contentId}`)
+  if (issue.relatedPackageIds?.length) lines.push(`    relatedPackageIds: ${issue.relatedPackageIds.join(', ')}`)
   if (issue.fieldPath) lines.push(`    fieldPath: ${issue.fieldPath}`)
   if (issue.diagnostics.length > 0) {
     for (const diagnostic of issue.diagnostics) {
@@ -193,10 +210,17 @@ const formatIssue = issue => {
       if (diagnostic.fieldPath && diagnostic.fieldPath !== issue.fieldPath) {
         lines.push(`      diagnosticFieldPath: ${diagnostic.fieldPath}`)
       }
+      if (diagnostic.details) {
+        lines.push(`      details: ${JSON.stringify(diagnostic.details)}`)
+      }
     }
   }
   return lines.join('\n')
 }
+
+const reportHasFailure = report =>
+  report.status !== 'completed'
+  || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
 
 const formatCandidate = candidate => {
   const manifest = candidate.manifest
@@ -254,17 +278,13 @@ export const formatDiscoveryReport = (scanRoot, report) => {
     }
   }
 
-  if (report.summary.issueCount === 0) {
-    lines.push('', 'Result: OK')
-  } else {
-    lines.push('', 'Result: FAILED')
-  }
+  lines.push('', `Result: ${reportHasFailure(report) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
 
 export const exitCodeForReport = report =>
-  report.summary.invalidPackageCount === 0 && report.summary.issueCount === 0 ? 0 : 1
+  reportHasFailure(report) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',

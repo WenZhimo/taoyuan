@@ -6301,7 +6301,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the first read-only third-party data pack discovery entrypoint: scans only one directory level, reads manifest.json and manifest-declared JSON content, validates unknown input through TypeBox, rejects unsafe paths/symlinks, and returns structured diagnostics without publishing registry entries.'
+    rationale: 'Provides the read-only third-party data pack discovery entrypoint: scans only one directory level, reads manifest.json and manifest-declared JSON content, validates unknown input through TypeBox, rejects unsafe paths/symlinks, reports dependency/version/conflict and registry entry duplicate diagnostics, and never publishes registry entries.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery',
@@ -6311,7 +6311,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers legal, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON, unsupported-registry and unsafe-path data pack fixtures, proves invalid packages are not injected into official registries, and verifies player settings/save files and unrelated large files are not read or modified.'
+    rationale: 'Covers legal, legacy-manifest, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON, unsupported-registry, unsafe-path, dependency, optional dependency, manifest conflict, same-package duplicate, cross-package conflict and identical duplicate fixtures; proves invalid packages are not injected into official registries and verifies player settings/save files and unrelated large files are not read or modified.'
   },
   {
     file: 'scripts/check-third-party-packs.mjs',
@@ -6321,7 +6321,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the first read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discoverThirdPartyDataPacks(), prints human-readable diagnostics, and exits non-zero for invalid packages without writing files, userdata, cache, saves, settings or official registries.'
+    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discoverThirdPartyDataPacks(), prints human-readable dependency/conflict diagnostics, exits non-zero only for blocking errors or fatal discovery failures, and never writes files, userdata, cache, saves, settings or official registries.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackCheckCli.test.ts',
@@ -6331,7 +6331,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
+    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, warning-only optional dependency success, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
   }
 ]
 

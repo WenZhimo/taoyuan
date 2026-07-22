@@ -1,4 +1,5 @@
 import packageMetadata from '../../../package.json'
+import { Type } from '@sinclair/typebox'
 import { assertPureJsonValue, canonicalizeJson, compareCodePoints } from './canonicalJson'
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import { createEnvironmentHash } from './environmentHash'
@@ -27,7 +28,10 @@ import {
   type RegistrySet,
   type SerializableRegistrySnapshot
 } from './registry'
-import { PUBLIC_JSON_SCHEMAS } from './schemas'
+import {
+  PUBLIC_JSON_SCHEMAS,
+  PackageManifestSchema
+} from './schemas'
 import { validateUnknown } from './schemaValidation'
 
 export const OFFICIAL_PRECOMPILED_ARTIFACT_FORMAT_VERSION = 1 as const
@@ -40,6 +44,38 @@ export const OFFICIAL_TRUST_POLICY_VERSION = 'builtin-official-1'
 export const OFFICIAL_PACKAGE_ID = requirePackageId('taoyuan-core')
 
 const EMPTY_CONFIGURATION_HASH = hashCanonicalJson({ schemaVersion: '1', values: {} })
+
+const OfficialIdentityPackageManifestSchema = Type.Object(
+  {
+    id: PackageManifestSchema.properties.id,
+    name: PackageManifestSchema.properties.name,
+    version: PackageManifestSchema.properties.version,
+    gameVersion: PackageManifestSchema.properties.gameVersion,
+    engineApiVersion: PackageManifestSchema.properties.engineApiVersion,
+    contentSchemaVersion: PackageManifestSchema.properties.contentSchemaVersion,
+    defaultLocale: PackageManifestSchema.properties.defaultLocale,
+    locales: PackageManifestSchema.properties.locales,
+    authors: PackageManifestSchema.properties.authors,
+    contributors: PackageManifestSchema.properties.contributors,
+    license: PackageManifestSchema.properties.license,
+    homepage: PackageManifestSchema.properties.homepage,
+    source: PackageManifestSchema.properties.source,
+    issues: PackageManifestSchema.properties.issues,
+    dependencies: PackageManifestSchema.properties.dependencies,
+    entrypoints: PackageManifestSchema.properties.entrypoints,
+    settings: PackageManifestSchema.properties.settings,
+    attributions: PackageManifestSchema.properties.attributions,
+    assets: PackageManifestSchema.properties.assets
+  },
+  { $id: 'taoyuan.schema.PackageManifest', additionalProperties: false }
+)
+
+const OFFICIAL_IDENTITY_JSON_SCHEMAS = {
+  ...PUBLIC_JSON_SCHEMAS,
+  // Third-party relationship fields are developer-tooling contract, not official
+  // content payload shape; keep the committed official precompile identity stable.
+  'package-manifest.schema.json': OfficialIdentityPackageManifestSchema
+} as const
 
 export type OfficialPrecompiledArtifactErrorKind =
   | 'invalid-json'
@@ -93,7 +129,7 @@ const throwArtifactError = (
 }
 
 export const createOfficialSchemaSetHash = (): Sha256Hash => hashCanonicalJson(
-  Object.entries(PUBLIC_JSON_SCHEMAS)
+  Object.entries(OFFICIAL_IDENTITY_JSON_SCHEMAS)
     .sort(([left], [right]) => compareCodePoints(left, right))
     .map(([fileName, schema]) => ({ fileName, schema: createPublicJsonSchema(schema) }))
 )

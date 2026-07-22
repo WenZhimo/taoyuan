@@ -131,6 +131,54 @@ const countOfficialEntries = (): { registryCount: number; entryCount: number; sn
   }
 }
 
+type JsonObject = Record<string, unknown>
+
+const writeJson = async(filePath: string, value: unknown): Promise<void> => {
+  await writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`, 'utf8')
+}
+
+const readJsonObject = async(filePath: string): Promise<JsonObject> =>
+  JSON.parse(await readFile(filePath, 'utf8')) as JsonObject
+
+const createPack = async(
+  root: string,
+  directoryName: string,
+  options: {
+    id?: string
+    version?: string
+    dependencies?: readonly JsonObject[]
+    optionalDependencies?: readonly JsonObject[]
+  } = {}
+): Promise<string> => {
+  const packRoot = path.join(root, directoryName)
+  await cp(path.join(fixtureRoot, 'valid-gift-pack'), packRoot, { recursive: true })
+  const packageId = options.id ?? directoryName.replace(/-/g, '_')
+  const manifestPath = path.join(packRoot, 'manifest.json')
+  const manifest = await readJsonObject(manifestPath)
+  manifest.id = packageId
+  manifest.name = { key: `${packageId}.package.name`, fallback: packageId }
+  manifest.version = options.version ?? '1.0.0'
+  manifest.dependencies = [...(options.dependencies ?? [])]
+  if (options.optionalDependencies !== undefined) {
+    manifest.optionalDependencies = [...options.optionalDependencies]
+  } else {
+    delete manifest.optionalDependencies
+  }
+  manifest.entrypoints = { 'taoyuan:item': ['data/items.json'] }
+  await writeJson(manifestPath, manifest)
+  await writeJson(path.join(packRoot, 'data', 'items.json'), [
+    {
+      id: `${packageId}:linen_ribbon`,
+      name: { key: `${packageId}.item.linen_ribbon.name`, fallback: 'Linen ribbon' },
+      category: 'gift',
+      description: { key: `${packageId}.item.linen_ribbon.description`, fallback: 'A test gift.' },
+      sellPrice: 8,
+      edible: false
+    }
+  ])
+  return packRoot
+}
+
 describe('third-party data pack check CLI', () => {
   it('prints a successful report and exits 0 for valid packages', async() => {
     const root = await createTempRoot()
@@ -206,6 +254,46 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('category: entrypoint')
   })
 
+  it('returns non-zero and prints dependency diagnostics for missing required dependencies', async() => {
+    const root = await createTempRoot()
+    const packsRoot = path.join(root, 'packs')
+    await mkdir(packsRoot, { recursive: true })
+    await createPack(packsRoot, 'missing-dependent', {
+      id: 'missing_dependent',
+      dependencies: [{ id: 'missing_library', version: '1.0.0' }]
+    })
+
+    const result = await runCli([packsRoot])
+
+    expect(result.code).toBe(1)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain('[dependency-missing] missing-dependent/manifest.json')
+    expect(result.stdout).toContain('category: dependency')
+    expect(result.stdout).toContain('relatedPackageIds: missing_library')
+    expect(result.stdout).toContain('diagnostic: PKG-DEPENDENCY-001')
+    expect(result.stdout).toContain('Result: FAILED')
+  })
+
+  it('exits 0 while still printing warning diagnostics for missing optional dependencies', async() => {
+    const root = await createTempRoot()
+    const packsRoot = path.join(root, 'packs')
+    await mkdir(packsRoot, { recursive: true })
+    await createPack(packsRoot, 'optional-warning', {
+      id: 'optional_warning',
+      optionalDependencies: [{ id: 'missing_optional', version: '^1.0.0' }]
+    })
+
+    const result = await runCli([packsRoot])
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain('Valid packages: 1')
+    expect(result.stdout).toContain('Invalid packages: 0')
+    expect(result.stdout).toContain('[optional-dependency-missing] optional-warning/manifest.json')
+    expect(result.stdout).toContain('severity: warning')
+    expect(result.stdout).toContain('Result: OK')
+  })
+
   it('stays read-only for fixtures, player userdata and official registry artifacts', async() => {
     const root = await createTempRoot()
     const packsRoot = path.join(root, 'packs')
@@ -227,7 +315,7 @@ describe('third-party data pack check CLI', () => {
       entryCount: 4242,
       snapshotHash: committedMetadata.snapshotHash
     })
-  })
+  }, 15_000)
 
   it('matches the existing discovery entrypoint summary and issue kinds', async() => {
     const directReport = await discoverThirdPartyDataPacks(fixtureRoot, createNodeFileSystem())

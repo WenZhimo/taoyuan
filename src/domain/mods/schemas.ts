@@ -68,6 +68,8 @@ export const PackageManifestSchema = Type.Object(
     source: Type.Optional(Type.String({ minLength: 1 })),
     issues: Type.Optional(Type.String({ minLength: 1 })),
     dependencies: Type.Optional(Type.Array(PackageDependencySchema)),
+    optionalDependencies: Type.Optional(Type.Array(PackageDependencySchema)),
+    conflicts: Type.Optional(Type.Array(PackageDependencySchema)),
     entrypoints: Type.Record(RegistryTypeIdSchema, Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })),
     settings: Type.Optional(Type.String({ minLength: 1 })),
     attributions: Type.Optional(Type.String({ minLength: 1 })),
@@ -2193,6 +2195,7 @@ export const PUBLIC_JSON_SCHEMAS = {
 
 export type LocalizedTextRef = Static<typeof LocalizedTextRefSchema>
 export type AuthorMetadata = Static<typeof AuthorMetadataSchema>
+export type PackageDependency = Static<typeof PackageDependencySchema>
 export type PackageManifest = Static<typeof PackageManifestSchema>
 export type PackageSettingDefinition = Static<typeof PackageSettingDefinitionSchema>
 export type ResourceAttribution = Static<typeof ResourceAttributionSchema>
