@@ -6364,6 +6364,16 @@ const reviewedArtifacts = [
     rationale: 'Consumes the read-only Mount Input and produces a runtime publication gate report that summarizes selected packages, candidate identity and missing write/transaction prerequisites while keeping runtime publication deferred and performing no registry, lockfile, settings, save, package, cache or transaction-log writes.'
   },
   {
+    file: 'src/domain/mods/thirdPartyDataPackTransactionPreflight.ts',
+    exportName: 'buildThirdPartyDataPackTransactionPreflight',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-transaction-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Consumes the read-only Runtime Mount Gate and produces a lifecycle transaction preflight report that keeps commits deferred, enumerates missing staged package, settings, lockfile, recovery log and rollback verification primitives, and performs no package, backup, registry, lockfile, settings, save, cache or transaction-log writes.'
+  },
+  {
     file: 'src/domain/mods/thirdPartyDataPackRepairReport.ts',
     exportName: 'buildThirdPartyDataPackRepairReport',
     classification: 'adapter',
@@ -6391,7 +6401,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discovery, selection, repair report, candidate snapshot, lockfile draft, mount preflight, mount input and runtime mount gate validators, prints human-readable dependency/conflict diagnostics, repair actions, load order, candidate snapshot, lockfile draft, preflight and runtime gate status, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings or official registries.'
+    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discovery, selection, repair report, candidate snapshot, lockfile draft, mount preflight, mount input, runtime mount gate and transaction preflight validators, prints human-readable dependency/conflict diagnostics, repair actions, load order, candidate snapshot, lockfile draft, preflight, runtime gate and transaction preflight status, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings, lockfiles, transaction logs or official registries.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackCheckCli.test.ts',
@@ -6401,7 +6411,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Repair Report, Candidate Snapshot, Lockfile Draft, Mount Preflight, Mount Input and Runtime Mount Gate CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
+    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Repair Report, Candidate Snapshot, Lockfile Draft, Mount Preflight, Mount Input, Runtime Mount Gate and Transaction Preflight CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackSelection.test.ts',
@@ -6462,6 +6472,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers deferred, skipped and blocked runtime gate outcomes, required write/transaction gate enumeration, absence of candidate artifact exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
+    exportName: 'third-party transaction preflight fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-transaction-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers deferred, skipped and blocked transaction preflight outcomes, required lifecycle transaction primitive enumeration, absence of candidate artifact exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackRepairReport.test.ts',

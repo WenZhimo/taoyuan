@@ -141,6 +141,7 @@ const loadDiscoveryModule = async() => {
           "export { buildThirdPartyDataPackMountPreflight } from './src/domain/mods/thirdPartyDataPackMountPreflight.ts'",
           "export { buildThirdPartyDataPackMountInput } from './src/domain/mods/thirdPartyDataPackMountInput.ts'",
           "export { buildThirdPartyDataPackRuntimeMountGate } from './src/domain/mods/thirdPartyDataPackRuntimeMountGate.ts'",
+          "export { buildThirdPartyDataPackTransactionPreflight } from './src/domain/mods/thirdPartyDataPackTransactionPreflight.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
@@ -269,7 +270,8 @@ const reportHasFailure = (
   lockfileDraftReport,
   mountPreflightReport,
   mountInputReport,
-  runtimeMountGateReport
+  runtimeMountGateReport,
+  transactionPreflightReport
 ) =>
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
@@ -300,6 +302,10 @@ const reportHasFailure = (
   ))
   || runtimeMountGateReport?.status === 'blocked'
   || Boolean(runtimeMountGateReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || transactionPreflightReport?.status === 'blocked'
+  || Boolean(transactionPreflightReport?.diagnostics.some(diagnostic =>
     diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
   ))
 
@@ -663,6 +669,60 @@ const formatRuntimeMountGateReport = runtimeMountGateReport => {
   return lines.join('\n')
 }
 
+const formatTransactionPreflightReport = transactionPreflightReport => {
+  const lines = [
+    'Transaction Preflight:',
+    `  status: ${transactionPreflightReport.status}`,
+    `  runtimeGateStatus: ${transactionPreflightReport.runtimeGateStatus}`,
+    `  reason: ${transactionPreflightReport.reason}`,
+    `  registryCount: ${transactionPreflightReport.registryCount}`,
+    `  entryCount: ${transactionPreflightReport.entryCount}`,
+    `  selectedPackageIds: ${transactionPreflightReport.selectedPackageIds.length > 0 ? transactionPreflightReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${transactionPreflightReport.blockedPackageIds.length > 0 ? transactionPreflightReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${transactionPreflightReport.loadOrder.length > 0 ? transactionPreflightReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${transactionPreflightReport.packageCount}`,
+    `  transactionCommit: ${transactionPreflightReport.transactionCommit}`,
+    `  commitAllowed: ${transactionPreflightReport.commitAllowed}`,
+    `  recoveryRequired: ${transactionPreflightReport.recoveryRequired}`,
+    `  rollbackRequired: ${transactionPreflightReport.rollbackRequired}`,
+    `  requiredTransactions: ${transactionPreflightReport.requiredTransactions.length}`,
+    `  candidatePublished: ${transactionPreflightReport.effects.thirdPartyRegistryPublished}`,
+    `  packageFilesWritten: ${transactionPreflightReport.effects.packageFilesWritten}`,
+    `  packageBackupsWritten: ${transactionPreflightReport.effects.packageBackupsWritten}`,
+    `  lockfileWritten: ${transactionPreflightReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${transactionPreflightReport.effects.settingsWritten}`,
+    `  savesWritten: ${transactionPreflightReport.effects.savesWritten}`,
+    `  cacheWritten: ${transactionPreflightReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${transactionPreflightReport.effects.transactionLogWritten}`
+  ]
+  if (transactionPreflightReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${transactionPreflightReport.candidateIdentity.candidateHash}`)
+  }
+  if (transactionPreflightReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${transactionPreflightReport.lockfileHash}`)
+  }
+  if (transactionPreflightReport.requiredTransactions.length > 0) {
+    lines.push('  transactions:')
+    for (const requirement of transactionPreflightReport.requiredTransactions) {
+      lines.push(`    - ${requirement.id}: ${requirement.status}`)
+      lines.push(`      reason: ${requirement.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = transactionPreflightReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
 export const formatDiscoveryReport = (
   scanRoot,
   report,
@@ -672,7 +732,8 @@ export const formatDiscoveryReport = (
   lockfileDraftReport,
   mountPreflightReport,
   mountInputReport,
-  runtimeMountGateReport
+  runtimeMountGateReport,
+  transactionPreflightReport
 ) => {
   const lines = [
     'Taoyuan third-party data pack check',
@@ -726,7 +787,11 @@ export const formatDiscoveryReport = (
     lines.push('', formatRuntimeMountGateReport(runtimeMountGateReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport) ? 'FAILED' : 'OK'}`)
+  if (transactionPreflightReport) {
+    lines.push('', formatTransactionPreflightReport(transactionPreflightReport))
+  }
+
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
@@ -739,9 +804,10 @@ export const exitCodeForReport = (
   lockfileDraftReport,
   mountPreflightReport,
   mountInputReport,
-  runtimeMountGateReport
+  runtimeMountGateReport,
+  transactionPreflightReport
 ) =>
-  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport) ? 1 : 0
+  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -792,6 +858,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       buildThirdPartyDataPackMountPreflight,
       buildThirdPartyDataPackMountInput,
       buildThirdPartyDataPackRuntimeMountGate,
+      buildThirdPartyDataPackTransactionPreflight,
       buildOfficialRegistrySetFromStaticData
     } = await loadDiscoveryModule()
     const discoveryInput = await resolveDiscoveryInput(scanRoot)
@@ -843,6 +910,17 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       preflight: mountPreflightReport,
       mountInput: mountInputReport
     })
+    const transactionPreflightReport = buildThirdPartyDataPackTransactionPreflight({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport
+    })
     stdout.write(formatDiscoveryReport(
       scanRoot,
       report,
@@ -852,7 +930,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       lockfileDraftReport,
       mountPreflightReport,
       mountInputReport,
-      runtimeMountGateReport
+      runtimeMountGateReport,
+      transactionPreflightReport
     ))
     return exitCodeForReport(
       report,
@@ -862,7 +941,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       lockfileDraftReport,
       mountPreflightReport,
       mountInputReport,
-      runtimeMountGateReport
+      runtimeMountGateReport,
+      transactionPreflightReport
     )
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
