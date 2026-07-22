@@ -159,7 +159,7 @@ const nextCaretUpperBound = (version: SemVerCore): SemVerCore => {
   return { major: 0, minor: 0, patch: version.patch + 1 }
 }
 
-const satisfiesVersionRange = (
+export const satisfiesPackageVersionRange = (
   actualVersion: string,
   expectedRange: string
 ): { ok: true } | { ok: false; reason: string } => {
@@ -650,7 +650,7 @@ const analyzePackageRelationships = (
         ))
         return
       }
-      const match = satisfiesVersionRange(target.manifest.version, dependency.version)
+      const match = satisfiesPackageVersionRange(target.manifest.version, dependency.version)
       if (!match.ok) {
         issueAtPath(issuesByCandidatePath, candidate.path, issueForDependency(
           'dependency-version-mismatch',
@@ -681,7 +681,7 @@ const analyzePackageRelationships = (
         ))
         return
       }
-      const match = satisfiesVersionRange(target.manifest.version, dependency.version)
+      const match = satisfiesPackageVersionRange(target.manifest.version, dependency.version)
       if (!match.ok) {
         issueAtPath(issuesByCandidatePath, candidate.path, issueForDependency(
           'dependency-version-mismatch',
@@ -703,7 +703,7 @@ const analyzePackageRelationships = (
     candidate.manifest.conflicts?.forEach((conflict, index) => {
       const target = firstCandidateByPackageId.get(conflict.id as PackageId)
       if (!target) return
-      const match = satisfiesVersionRange(target.manifest.version, conflict.version)
+      const match = satisfiesPackageVersionRange(target.manifest.version, conflict.version)
       if (!match.ok) return
       issueAtPath(issuesByCandidatePath, candidate.path, createIssue('package-conflict', {
         path: `${candidate.path}/manifest.json`,

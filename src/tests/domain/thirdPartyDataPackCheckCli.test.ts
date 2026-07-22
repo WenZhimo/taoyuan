@@ -197,6 +197,11 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Package: valid-gift-pack')
     expect(result.stdout).toContain('id: discovery_valid')
     expect(result.stdout).toContain('version: 1.0.0')
+    expect(result.stdout).toContain('Selection:')
+    expect(result.stdout).toContain('status: completed')
+    expect(result.stdout).toContain('selectedPackages: 1')
+    expect(result.stdout).toContain('loadOrder:')
+    expect(result.stdout).toContain('1. discovery_valid@1.0.0 (valid-gift-pack)')
     expect(result.stdout).toContain('Result: OK')
   })
 
@@ -271,7 +276,47 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('category: dependency')
     expect(result.stdout).toContain('relatedPackageIds: missing_library')
     expect(result.stdout).toContain('diagnostic: PKG-DEPENDENCY-001')
+    expect(result.stdout).toContain('Selection:')
+    expect(result.stdout).toContain('blockedPackages: 1')
+    expect(result.stdout).toContain('reasons: discovery-blocked')
     expect(result.stdout).toContain('Result: FAILED')
+  })
+
+  it('prints stable load order and selection cycle diagnostics', async() => {
+    const root = await createTempRoot()
+    const packsRoot = path.join(root, 'packs')
+    await mkdir(packsRoot, { recursive: true })
+    await createPack(packsRoot, 'z-app', {
+      id: 'z_app',
+      dependencies: [{ id: 'a_library', version: '1.0.0' }]
+    })
+    await createPack(packsRoot, 'a-library', { id: 'a_library' })
+
+    const ordered = await runCli([packsRoot])
+    expect(ordered.code).toBe(0)
+    expect(ordered.stdout).toContain('1. a_library@1.0.0 (a-library)')
+    expect(ordered.stdout).toContain('2. z_app@1.0.0 (z-app)')
+
+    const cycleRoot = await createTempRoot()
+    const cyclePacksRoot = path.join(cycleRoot, 'packs')
+    await mkdir(cyclePacksRoot, { recursive: true })
+    await createPack(cyclePacksRoot, 'a-cycle', {
+      id: 'a_cycle',
+      dependencies: [{ id: 'b_cycle', version: '1.0.0' }]
+    })
+    await createPack(cyclePacksRoot, 'b-cycle', {
+      id: 'b_cycle',
+      dependencies: [{ id: 'a_cycle', version: '1.0.0' }]
+    })
+
+    const cycle = await runCli([cyclePacksRoot])
+    expect(cycle.code).toBe(1)
+    expect(cycle.stdout).toContain('Selection:')
+    expect(cycle.stdout).toContain('status: blocked')
+    expect(cycle.stdout).toContain('reasons: dependency-cycle')
+    expect(cycle.stdout).toContain('[dependency-cycle] a-cycle/manifest.json')
+    expect(cycle.stdout).toContain('diagnostic: PKG-DEPENDENCY-003')
+    expect(cycle.stdout).toContain('Result: FAILED')
   })
 
   it('exits 0 while still printing warning diagnostics for missing optional dependencies', async() => {
@@ -291,6 +336,9 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Invalid packages: 0')
     expect(result.stdout).toContain('[optional-dependency-missing] optional-warning/manifest.json')
     expect(result.stdout).toContain('severity: warning')
+    expect(result.stdout).toContain('Selection:')
+    expect(result.stdout).toContain('status: completed')
+    expect(result.stdout).toContain('1. optional_warning@1.0.0 (optional-warning)')
     expect(result.stdout).toContain('Result: OK')
   })
 

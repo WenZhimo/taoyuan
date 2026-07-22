@@ -131,7 +131,10 @@ const loadDiscoveryModule = async() => {
   discoveryModulePromise ??= (async() => {
     const bundled = await build({
       stdin: {
-        contents: "export { discoverThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackDiscovery.ts'\n",
+        contents: [
+          "export { discoverThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackDiscovery.ts'",
+          "export { selectThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackSelection.ts'"
+        ].join('\n'),
         loader: 'ts',
         resolveDir: projectRoot,
         sourcefile: 'check-third-party-packs-entry.ts'
@@ -218,9 +221,41 @@ const formatIssue = issue => {
   return lines.join('\n')
 }
 
-const reportHasFailure = report =>
+const selectionIssueCategory = issue => {
+  if (issue.kind === 'dependency-cycle' || issue.kind === 'required-dependency-blocked') return 'dependency'
+  if (issue.kind === 'duplicate-package-id') return 'conflict'
+  return 'selection'
+}
+
+const formatSelectionIssue = issue => {
+  const lines = [
+    `  - [${issue.kind}] ${issue.path}`,
+    `    category: ${selectionIssueCategory(issue)}`,
+    `    severity: ${issue.severity}`,
+    `    reason: ${issue.reason}`,
+    `    packagePath: ${issue.candidatePath}`,
+    `    packageId: ${issue.packageId}`
+  ]
+  if (issue.relatedPackageIds?.length) lines.push(`    relatedPackageIds: ${issue.relatedPackageIds.join(', ')}`)
+  if (issue.fieldPath) lines.push(`    fieldPath: ${issue.fieldPath}`)
+  if (issue.diagnostics.length > 0) {
+    for (const diagnostic of issue.diagnostics) {
+      lines.push(`    diagnostic: ${diagnostic.code} (${diagnostic.stage})`)
+      if (diagnostic.fieldPath && diagnostic.fieldPath !== issue.fieldPath) {
+        lines.push(`      diagnosticFieldPath: ${diagnostic.fieldPath}`)
+      }
+      if (diagnostic.details) {
+        lines.push(`      details: ${JSON.stringify(diagnostic.details)}`)
+      }
+    }
+  }
+  return lines.join('\n')
+}
+
+const reportHasFailure = (report, selectionReport) =>
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
+  || Boolean(selectionReport?.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal'))
 
 const formatCandidate = candidate => {
   const manifest = candidate.manifest
@@ -253,7 +288,50 @@ const formatCandidate = candidate => {
   return lines.join('\n')
 }
 
-export const formatDiscoveryReport = (scanRoot, report) => {
+const formatSelectionReport = selectionReport => {
+  const lines = [
+    'Selection:',
+    `  status: ${selectionReport.status}`,
+    `  selectedPackages: ${selectionReport.summary.selectedPackageCount}`,
+    `  blockedPackages: ${selectionReport.summary.blockedPackageCount}`,
+    `  selectionIssues: ${selectionReport.summary.issueCount}`
+  ]
+
+  if (selectionReport.selectedPackages.length > 0) {
+    lines.push('  loadOrder:')
+    selectionReport.selectedPackages.forEach((selectedPackage, index) => {
+      lines.push(`    ${index + 1}. ${selectedPackage.packageId}@${selectedPackage.version} (${selectedPackage.path})`)
+    })
+  } else {
+    lines.push('  loadOrder: (empty)')
+  }
+
+  if (selectionReport.blockedPackages.length > 0) {
+    lines.push('  blocked:')
+    for (const blockedPackage of selectionReport.blockedPackages) {
+      lines.push(`    - ${blockedPackage.packageId ?? '(unavailable)'} (${blockedPackage.path})`)
+      if (blockedPackage.version) lines.push(`      version: ${blockedPackage.version}`)
+      lines.push(`      reasons: ${blockedPackage.reasons.join(', ')}`)
+      if (blockedPackage.discoveryIssues.length > 0) {
+        lines.push(`      discoveryIssues: ${blockedPackage.discoveryIssues.map(issue => issue.kind).join(', ')}`)
+      }
+      if (blockedPackage.selectionIssues.length > 0) {
+        lines.push(`      selectionIssues: ${blockedPackage.selectionIssues.map(issue => issue.kind).join(', ')}`)
+      }
+    }
+  }
+
+  if (selectionReport.issues.length > 0) {
+    lines.push('  issues:')
+    for (const issue of selectionReport.issues) {
+      lines.push(formatSelectionIssue(issue).replace(/^/gm, '  '))
+    }
+  }
+
+  return lines.join('\n')
+}
+
+export const formatDiscoveryReport = (scanRoot, report, selectionReport) => {
   const lines = [
     'Taoyuan third-party data pack check',
     `Scan root: ${scanRoot}`,
@@ -278,13 +356,17 @@ export const formatDiscoveryReport = (scanRoot, report) => {
     }
   }
 
-  lines.push('', `Result: ${reportHasFailure(report) ? 'FAILED' : 'OK'}`)
+  if (selectionReport) {
+    lines.push('', formatSelectionReport(selectionReport))
+  }
+
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
 
-export const exitCodeForReport = report =>
-  reportHasFailure(report) ? 1 : 0
+export const exitCodeForReport = (report, selectionReport) =>
+  reportHasFailure(report, selectionReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -325,11 +407,12 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
 
   const scanRoot = path.resolve(process.cwd(), parsed.directory)
   try {
-    const { discoverThirdPartyDataPacks } = await loadDiscoveryModule()
+    const { discoverThirdPartyDataPacks, selectThirdPartyDataPacks } = await loadDiscoveryModule()
     const discoveryInput = await resolveDiscoveryInput(scanRoot)
     const report = await discoverThirdPartyDataPacks(discoveryInput.rootDirectory, discoveryInput.fileSystem)
-    stdout.write(formatDiscoveryReport(scanRoot, report))
-    return exitCodeForReport(report)
+    const selectionReport = selectThirdPartyDataPacks(report)
+    stdout.write(formatDiscoveryReport(scanRoot, report, selectionReport))
+    return exitCodeForReport(report, selectionReport)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     stderr.write(`Failed to check third-party data packs: ${message}\n`)
