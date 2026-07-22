@@ -6354,6 +6354,16 @@ const reviewedArtifacts = [
     rationale: 'Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, serializable candidate snapshot and lockfile draft, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes.'
   },
   {
+    file: 'src/domain/mods/thirdPartyDataPackRepairReport.ts',
+    exportName: 'buildThirdPartyDataPackRepairReport',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-repair-report',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Builds the first strict-whitelist, read-only Repair Report over discovery results: reports legacy manifest dependency defaults as staged normalization opportunities, blocks non-whitelisted errors, records before/after summaries and diagnostics, and performs no package, registry, lockfile, settings, save or cache writes.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery',
     exportName: 'third-party discovery fixture matrix',
     classification: 'adapter',
@@ -6371,7 +6381,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discovery, selection, candidate snapshot, lockfile draft and mount preflight validators, prints human-readable dependency/conflict diagnostics, load order, candidate snapshot, lockfile draft and preflight status, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings or official registries.'
+    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discovery, selection, repair report, candidate snapshot, lockfile draft and mount preflight validators, prints human-readable dependency/conflict diagnostics, repair actions, load order, candidate snapshot, lockfile draft and preflight status, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings or official registries.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackCheckCli.test.ts',
@@ -6381,7 +6391,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Candidate Snapshot, Lockfile Draft and Mount Preflight CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
+    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Repair Report, Candidate Snapshot, Lockfile Draft and Mount Preflight CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackSelection.test.ts',
@@ -6432,6 +6442,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, candidate snapshot and lockfile draft availability only for ready preflights, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackRepairReport.test.ts',
+    exportName: 'third-party repair report fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-repair-report',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers clean, repairable and blocked repair report outcomes, whitelisted legacy dependencies default reporting, non-whitelisted schema error blocking, deterministic repeated output, read-only protection for package files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   }
 ]
 

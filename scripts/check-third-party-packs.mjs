@@ -137,6 +137,7 @@ const loadDiscoveryModule = async() => {
           "export { selectThirdPartyDataPacks } from './src/domain/mods/thirdPartyDataPackSelection.ts'",
           "export { buildThirdPartyCandidateRegistrySnapshot } from './src/domain/mods/thirdPartyCandidateRegistrySnapshot.ts'",
           "export { createThirdPartyDataPackLockfileDraft, validateThirdPartyDataPackLockfileDraft } from './src/domain/mods/thirdPartyDataPackLockfileDraft.ts'",
+          "export { buildThirdPartyDataPackRepairReport } from './src/domain/mods/thirdPartyDataPackRepairReport.ts'",
           "export { buildThirdPartyDataPackMountPreflight } from './src/domain/mods/thirdPartyDataPackMountPreflight.ts'",
           "export { buildThirdPartyDataPackMountInput } from './src/domain/mods/thirdPartyDataPackMountInput.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
@@ -262,6 +263,7 @@ const formatSelectionIssue = issue => {
 const reportHasFailure = (
   report,
   selectionReport,
+  repairReport,
   candidateSnapshotReport,
   lockfileDraftReport,
   mountPreflightReport,
@@ -270,6 +272,10 @@ const reportHasFailure = (
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
   || Boolean(selectionReport?.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal'))
+  || repairReport?.status === 'blocked'
+  || Boolean(repairReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
   || candidateSnapshotReport?.status === 'invalid'
   || Boolean(candidateSnapshotReport?.diagnostics.some(diagnostic =>
     diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
@@ -359,6 +365,46 @@ const formatSelectionReport = selectionReport => {
     lines.push('  issues:')
     for (const issue of selectionReport.issues) {
       lines.push(formatSelectionIssue(issue).replace(/^/gm, '  '))
+    }
+  }
+
+  return lines.join('\n')
+}
+
+const formatRepairReport = repairReport => {
+  const lines = [
+    'Repair Report:',
+    `  status: ${repairReport.status}`,
+    `  candidateCount: ${repairReport.summary.candidateCount}`,
+    `  whitelistedActions: ${repairReport.summary.whitelistedActionCount}`,
+    `  blockedActions: ${repairReport.summary.blockedActionCount}`,
+    `  stagedNormalizedResultMutated: ${repairReport.effects.stagedNormalizedResultMutated}`,
+    `  packageFilesWritten: ${repairReport.effects.packageFilesWritten}`,
+    `  registryPublished: ${repairReport.effects.registryPublished}`,
+    `  lockfileWritten: ${repairReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${repairReport.effects.settingsWritten}`,
+    `  savesWritten: ${repairReport.effects.savesWritten}`,
+    `  cacheWritten: ${repairReport.effects.cacheWritten}`
+  ]
+
+  if (repairReport.actions.length > 0) {
+    lines.push('  actions:')
+    for (const action of repairReport.actions.slice(0, 20)) {
+      lines.push(`    - ${action.ruleId}`)
+      lines.push(`      decision: ${action.decision}`)
+      if (action.packagePath) lines.push(`      packagePath: ${action.packagePath}`)
+      if (action.packageId) lines.push(`      packageId: ${action.packageId}`)
+      lines.push(`      file: ${action.file}`)
+      lines.push(`      fieldPath: ${action.fieldPath}`)
+      lines.push(`      before: ${action.beforeSummary}`)
+      lines.push(`      after: ${action.afterSummary}`)
+      lines.push(`      reason: ${action.reason}`)
+      if (action.diagnostics.length > 0) {
+        lines.push(`      diagnostics: ${action.diagnostics.map(diagnostic => diagnostic.code).join(', ')}`)
+      }
+    }
+    if (repairReport.actions.length > 20) {
+      lines.push(`    ... ${repairReport.actions.length - 20} more action(s)`)
     }
   }
 
@@ -567,6 +613,7 @@ export const formatDiscoveryReport = (
   scanRoot,
   report,
   selectionReport,
+  repairReport,
   candidateSnapshotReport,
   lockfileDraftReport,
   mountPreflightReport,
@@ -600,6 +647,10 @@ export const formatDiscoveryReport = (
     lines.push('', formatSelectionReport(selectionReport))
   }
 
+  if (repairReport) {
+    lines.push('', formatRepairReport(repairReport))
+  }
+
   if (candidateSnapshotReport) {
     lines.push('', formatCandidateSnapshotReport(candidateSnapshotReport))
   }
@@ -616,7 +667,7 @@ export const formatDiscoveryReport = (
     lines.push('', formatMountInputReport(mountInputReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport) ? 'FAILED' : 'OK'}`)
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
@@ -624,12 +675,13 @@ export const formatDiscoveryReport = (
 export const exitCodeForReport = (
   report,
   selectionReport,
+  repairReport,
   candidateSnapshotReport,
   lockfileDraftReport,
   mountPreflightReport,
   mountInputReport
 ) =>
-  reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport) ? 1 : 0
+  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -676,6 +728,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       buildThirdPartyCandidateRegistrySnapshot,
       createThirdPartyDataPackLockfileDraft,
       validateThirdPartyDataPackLockfileDraft,
+      buildThirdPartyDataPackRepairReport,
       buildThirdPartyDataPackMountPreflight,
       buildThirdPartyDataPackMountInput,
       buildOfficialRegistrySetFromStaticData
@@ -684,6 +737,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     const report = await discoverThirdPartyDataPacks(discoveryInput.rootDirectory, discoveryInput.fileSystem)
     const selectionReport = selectThirdPartyDataPacks(report)
+    const repairReport = buildThirdPartyDataPackRepairReport(report)
     const candidateSnapshotReport = buildThirdPartyCandidateRegistrySnapshot({
       officialRegistrySet,
       discoveryReport: report,
@@ -722,6 +776,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       scanRoot,
       report,
       selectionReport,
+      repairReport,
       candidateSnapshotReport,
       lockfileDraftReport,
       mountPreflightReport,
@@ -730,6 +785,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
     return exitCodeForReport(
       report,
       selectionReport,
+      repairReport,
       candidateSnapshotReport,
       lockfileDraftReport,
       mountPreflightReport,

@@ -146,6 +146,7 @@ const createPack = async(
   options: {
     id?: string
     version?: string
+    omitDependencies?: boolean
     dependencies?: readonly JsonObject[]
     optionalDependencies?: readonly JsonObject[]
   } = {}
@@ -158,7 +159,11 @@ const createPack = async(
   manifest.id = packageId
   manifest.name = { key: `${packageId}.package.name`, fallback: packageId }
   manifest.version = options.version ?? '1.0.0'
-  manifest.dependencies = [...(options.dependencies ?? [])]
+  if (options.omitDependencies) {
+    delete manifest.dependencies
+  } else {
+    manifest.dependencies = [...(options.dependencies ?? [])]
+  }
   if (options.optionalDependencies !== undefined) {
     manifest.optionalDependencies = [...options.optionalDependencies]
   } else {
@@ -202,6 +207,12 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('selectedPackages: 1')
     expect(result.stdout).toContain('loadOrder:')
     expect(result.stdout).toContain('1. discovery_valid@1.0.0 (valid-gift-pack)')
+    expect(result.stdout).toContain('Repair Report:')
+    expect(result.stdout).toContain('status: clean')
+    expect(result.stdout).toContain('whitelistedActions: 0')
+    expect(result.stdout).toContain('blockedActions: 0')
+    expect(result.stdout).toContain('stagedNormalizedResultMutated: false')
+    expect(result.stdout).toContain('packageFilesWritten: false')
     expect(result.stdout).toContain('Candidate Snapshot:')
     expect(result.stdout).toContain('status: valid')
     expect(result.stdout).toContain('registryCount: 54')
@@ -264,6 +275,10 @@ describe('third-party data pack check CLI', () => {
     expect(missing.stdout).toContain('candidateRegistryAvailable: false')
     expect(missing.stdout).toContain('candidateSnapshotAvailable: false')
     expect(missing.stdout).toContain('lockfileDraftAvailable: false')
+    expect(missing.stdout).toContain('Repair Report:')
+    expect(missing.stdout).toContain('blockedActions: 1')
+    expect(missing.stdout).toContain('PKG-REPAIR-NOT-WHITELISTED')
+    expect(missing.stdout).toContain('registryPublished: false')
     expect(missing.stdout).toContain('Result: FAILED')
     expect(missing.stderr).toBe('')
 
@@ -289,6 +304,10 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('fieldPath: /0/sellPrice')
     expect(result.stdout).toContain('category: json')
     expect(result.stdout).toContain('category: schema')
+    expect(result.stdout).toContain('Repair Report:')
+    expect(result.stdout).toContain('status: blocked')
+    expect(result.stdout).toContain('PKG-REPAIR-NOT-WHITELISTED')
+    expect(result.stdout).toContain('fieldPath: /0/sellPrice')
     expect(result.stdout).toContain('Candidate Snapshot:')
     expect(result.stdout).toContain('status: invalid')
     expect(result.stdout).toContain('entryCount: 4242')
@@ -437,6 +456,33 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('status: valid')
     expect(result.stdout).toContain('selectedPackageIds: optional_warning')
     expect(result.stdout).toContain('entryCount: 4243')
+    expect(result.stdout).toContain('Result: OK')
+  })
+
+  it('prints a read-only repair report for legacy manifests that omit dependencies', async() => {
+    const root = await createTempRoot()
+    const packsRoot = path.join(root, 'packs')
+    await mkdir(packsRoot, { recursive: true })
+    await createPack(packsRoot, 'legacy-manifest', {
+      id: 'legacy_manifest',
+      omitDependencies: true
+    })
+
+    const result = await runCli([packsRoot])
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(result.stdout).toContain('Repair Report:')
+    expect(result.stdout).toContain('status: repairable')
+    expect(result.stdout).toContain('whitelistedActions: 1')
+    expect(result.stdout).toContain('blockedActions: 0')
+    expect(result.stdout).toContain('PKG-REPAIR-MANIFEST-DEPENDENCIES-DEFAULT')
+    expect(result.stdout).toContain('fieldPath: /dependencies')
+    expect(result.stdout).toContain('before: missing')
+    expect(result.stdout).toContain('after: []')
+    expect(result.stdout).toContain('packageFilesWritten: false')
+    expect(result.stdout).toContain('settingsWritten: false')
+    expect(result.stdout).toContain('savesWritten: false')
     expect(result.stdout).toContain('Result: OK')
   })
 
