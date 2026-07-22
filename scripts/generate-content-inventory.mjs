@@ -6334,6 +6334,16 @@ const reviewedArtifacts = [
     rationale: 'Creates a read-only, in-memory third-party lockfile draft only from valid candidate snapshots and validates reproducibility of selected package ids, versions, stable load order, relative source paths, manifest/content hashes, official five-hash baseline and candidate identity without writing a real lockfile, enabling runtime packs, changing settings or touching saves.'
   },
   {
+    file: 'src/domain/mods/thirdPartyDataPackMountPreflight.ts',
+    exportName: 'buildThirdPartyDataPackMountPreflight',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-mount-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence and explicit no-write effects; it does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery',
     exportName: 'third-party discovery fixture matrix',
     classification: 'adapter',
@@ -6351,7 +6361,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discoverThirdPartyDataPacks(), selectThirdPartyDataPacks(), buildThirdPartyCandidateRegistrySnapshot() and the lockfile draft validator, prints human-readable dependency/conflict diagnostics, load order, candidate snapshot and lockfile draft status, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings or official registries.'
+    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discovery, selection, candidate snapshot, lockfile draft and mount preflight validators, prints human-readable dependency/conflict diagnostics, load order, candidate snapshot, lockfile draft and preflight status, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings or official registries.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackCheckCli.test.ts',
@@ -6361,7 +6371,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Candidate Snapshot and Lockfile Draft CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
+    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Candidate Snapshot, Lockfile Draft and Mount Preflight CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackSelection.test.ts',
@@ -6392,6 +6402,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers deterministic draft generation, repeated identical output, matching validator success, package id/version/load-order/content-hash and official-baseline mismatch diagnostics, invalid candidate rejection, empty-root skipped handling, read-only protection for registries/reports/userdata/files and unchanged official 54/4242 five-hash baseline.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackMountPreflight.test.ts',
+    exportName: 'third-party mount preflight fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-mount-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers ready, skipped and rolled-back preflight outcomes, stage status summaries, deterministic repeated output, no runtime publication, no lockfile/settings/save/package/cache writes, official registry immutability and unchanged 54/4242 five-hash baseline.'
   }
 ]
 

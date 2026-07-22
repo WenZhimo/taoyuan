@@ -218,6 +218,14 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('candidateHash: sha256:')
     expect(result.stdout).toContain('sourcePath: valid-gift-pack')
     expect(result.stdout).toContain('contentHash: sha256:')
+    expect(result.stdout).toContain('Mount Preflight:')
+    expect(result.stdout).toContain('status: ready')
+    expect(result.stdout).toContain('rollbackRequired: false')
+    expect(result.stdout).toContain('candidatePublished: false')
+    expect(result.stdout).toContain('lockfileWritten: false')
+    expect(result.stdout).toContain('settingsWritten: false')
+    expect(result.stdout).toContain('savesWritten: false')
+    expect(result.stdout).toContain('- runtime-publish: deferred')
     expect(result.stdout).toContain('Result: OK')
   })
 
@@ -236,6 +244,12 @@ describe('third-party data pack check CLI', () => {
     expect(missing.stdout).toContain('status: invalid')
     expect(missing.stdout).toContain('validationStatus: invalid')
     expect(missing.stdout).toContain('third-party.lockfile-draft.candidate')
+    expect(missing.stdout).toContain('Mount Preflight:')
+    expect(missing.stdout).toContain('status: rolled-back')
+    expect(missing.stdout).toContain('rollbackRequired: true')
+    expect(missing.stdout).toContain('rollbackReason: discovery failed')
+    expect(missing.stdout).toContain('candidatePublished: false')
+    expect(missing.stdout).toContain('lockfileWritten: false')
     expect(missing.stdout).toContain('Result: FAILED')
     expect(missing.stderr).toBe('')
 
@@ -340,6 +354,10 @@ describe('third-party data pack check CLI', () => {
     expect(ordered.stdout).toContain('validationStatus: valid')
     expect(ordered.stdout).toContain('packageCount: 2')
     expect(ordered.stdout).toContain('resolvedDependencies: a_library')
+    expect(ordered.stdout).toContain('Mount Preflight:')
+    expect(ordered.stdout).toContain('status: ready')
+    expect(ordered.stdout).toContain('loadOrder: a_library, z_app')
+    expect(ordered.stdout).toContain('packageCount: 2')
 
     const cycleRoot = await createTempRoot()
     const cyclePacksRoot = path.join(cycleRoot, 'packs')
@@ -364,6 +382,10 @@ describe('third-party data pack check CLI', () => {
     expect(cycle.stdout).toContain('status: invalid')
     expect(cycle.stdout).toContain('blockedPackageIds: a_cycle, b_cycle')
     expect(cycle.stdout).toContain('entryCount: 4242')
+    expect(cycle.stdout).toContain('Mount Preflight:')
+    expect(cycle.stdout).toContain('status: rolled-back')
+    expect(cycle.stdout).toContain('rollbackRequired: true')
+    expect(cycle.stdout).toContain('rollbackReason: selection failed')
     expect(cycle.stdout).toContain('Result: FAILED')
   })
 
@@ -414,6 +436,12 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Lockfile Draft:')
     expect(result.stdout).toContain('validationStatus: valid')
     expect(result.stdout).toContain('lockfileHash: sha256:')
+    expect(result.stdout).toContain('Mount Preflight:')
+    expect(result.stdout).toContain('status: ready')
+    expect(result.stdout).toContain('candidatePublished: false')
+    expect(result.stdout).toContain('lockfileWritten: false')
+    expect(result.stdout).toContain('settingsWritten: false')
+    expect(result.stdout).toContain('savesWritten: false')
     expect(await collectFileContents(root)).toEqual(filesBefore)
     expect(countOfficialEntries()).toEqual(officialBefore)
     expect(officialBefore).toEqual({
@@ -421,7 +449,7 @@ describe('third-party data pack check CLI', () => {
       entryCount: 4242,
       snapshotHash: committedMetadata.snapshotHash
     })
-  }, 15_000)
+  }, 30_000)
 
   it('matches the existing discovery entrypoint summary and issue kinds', async() => {
     const directReport = await discoverThirdPartyDataPacks(fixtureRoot, createNodeFileSystem())
@@ -436,6 +464,8 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('Candidate Snapshot:')
     expect(result.stdout).toContain('status: invalid')
     expect(result.stdout).toContain('entryCount: 4242')
+    expect(result.stdout).toContain('Mount Preflight:')
+    expect(result.stdout).toContain('status: rolled-back')
     for (const kind of new Set(directReport.issues.map(issue => issue.kind))) {
       expect(result.stdout).toContain(`[${kind}]`)
     }
