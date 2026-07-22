@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 216
+    "reviewedArtifactCount": 218
   },
   "entries": [
     {
@@ -15709,6 +15709,18 @@
       "rationale": "Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence and explicit no-write effects; it does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches."
     },
     {
+      "file": "src/domain/mods/thirdPartyDataPackMountInput.ts",
+      "exportName": "buildThirdPartyDataPackMountInput",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-mount-input",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, serializable candidate snapshot and lockfile draft, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
+    },
+    {
       "file": "src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery",
       "exportName": "third-party discovery fixture matrix",
       "classification": "adapter",
@@ -15791,6 +15803,18 @@
       ],
       "status": "verified",
       "rationale": "Covers ready, skipped and rolled-back preflight outcomes, stage status summaries, deterministic repeated output, no runtime publication, no lockfile/settings/save/package/cache writes, official registry immutability and unchanged 54/4242 five-hash baseline."
+    },
+    {
+      "file": "src/tests/domain/thirdPartyDataPackMountInput.test.ts",
+      "exportName": "third-party mount input fixture matrix",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-mount-input",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, candidate snapshot and lockfile draft availability only for ready preflights, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     }
   ]
 }

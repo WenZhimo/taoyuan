@@ -138,6 +138,7 @@ const loadDiscoveryModule = async() => {
           "export { buildThirdPartyCandidateRegistrySnapshot } from './src/domain/mods/thirdPartyCandidateRegistrySnapshot.ts'",
           "export { createThirdPartyDataPackLockfileDraft, validateThirdPartyDataPackLockfileDraft } from './src/domain/mods/thirdPartyDataPackLockfileDraft.ts'",
           "export { buildThirdPartyDataPackMountPreflight } from './src/domain/mods/thirdPartyDataPackMountPreflight.ts'",
+          "export { buildThirdPartyDataPackMountInput } from './src/domain/mods/thirdPartyDataPackMountInput.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
@@ -258,7 +259,14 @@ const formatSelectionIssue = issue => {
   return lines.join('\n')
 }
 
-const reportHasFailure = (report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport) =>
+const reportHasFailure = (
+  report,
+  selectionReport,
+  candidateSnapshotReport,
+  lockfileDraftReport,
+  mountPreflightReport,
+  mountInputReport
+) =>
   report.status !== 'completed'
   || report.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal')
   || Boolean(selectionReport?.issues.some(issue => issue.severity === 'error' || issue.severity === 'fatal'))
@@ -276,6 +284,10 @@ const reportHasFailure = (report, selectionReport, candidateSnapshotReport, lock
   ))
   || mountPreflightReport?.status === 'rolled-back'
   || Boolean(mountPreflightReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || mountInputReport?.status === 'blocked'
+  || Boolean(mountInputReport?.diagnostics.some(diagnostic =>
     diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
   ))
 
@@ -509,13 +521,56 @@ const formatMountPreflightReport = mountPreflightReport => {
   return lines.join('\n')
 }
 
+const formatMountInputReport = mountInputReport => {
+  const lines = [
+    'Mount Input:',
+    `  status: ${mountInputReport.status}`,
+    `  preflightStatus: ${mountInputReport.preflightStatus}`,
+    `  reason: ${mountInputReport.reason}`,
+    `  registryCount: ${mountInputReport.registryCount}`,
+    `  entryCount: ${mountInputReport.entryCount}`,
+    `  selectedPackageIds: ${mountInputReport.selectedPackageIds.length > 0 ? mountInputReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${mountInputReport.blockedPackageIds.length > 0 ? mountInputReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${mountInputReport.loadOrder.length > 0 ? mountInputReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${mountInputReport.packageCount}`,
+    `  runtimePublication: ${mountInputReport.runtimePublication}`,
+    `  candidateRegistryAvailable: ${Boolean(mountInputReport.candidateRegistrySet)}`,
+    `  candidateSnapshotAvailable: ${Boolean(mountInputReport.candidateSnapshot)}`,
+    `  lockfileDraftAvailable: ${Boolean(mountInputReport.lockfileDraft)}`,
+    `  candidatePublished: ${mountInputReport.effects.thirdPartyRegistryPublished}`,
+    `  lockfileWritten: ${mountInputReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${mountInputReport.effects.settingsWritten}`,
+    `  savesWritten: ${mountInputReport.effects.savesWritten}`
+  ]
+  if (mountInputReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${mountInputReport.candidateIdentity.candidateHash}`)
+  }
+  if (mountInputReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${mountInputReport.lockfileHash}`)
+  }
+
+  const visibleDiagnostics = mountInputReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
 export const formatDiscoveryReport = (
   scanRoot,
   report,
   selectionReport,
   candidateSnapshotReport,
   lockfileDraftReport,
-  mountPreflightReport
+  mountPreflightReport,
+  mountInputReport
 ) => {
   const lines = [
     'Taoyuan third-party data pack check',
@@ -557,13 +612,24 @@ export const formatDiscoveryReport = (
     lines.push('', formatMountPreflightReport(mountPreflightReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport) ? 'FAILED' : 'OK'}`)
+  if (mountInputReport) {
+    lines.push('', formatMountInputReport(mountInputReport))
+  }
+
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
 
-export const exitCodeForReport = (report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport) =>
-  reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport) ? 1 : 0
+export const exitCodeForReport = (
+  report,
+  selectionReport,
+  candidateSnapshotReport,
+  lockfileDraftReport,
+  mountPreflightReport,
+  mountInputReport
+) =>
+  reportHasFailure(report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -611,6 +677,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       createThirdPartyDataPackLockfileDraft,
       validateThirdPartyDataPackLockfileDraft,
       buildThirdPartyDataPackMountPreflight,
+      buildThirdPartyDataPackMountInput,
       buildOfficialRegistrySetFromStaticData
     } = await loadDiscoveryModule()
     const discoveryInput = await resolveDiscoveryInput(scanRoot)
@@ -642,15 +709,32 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       lockfileDraftResult: draftResult,
       lockfileValidationResult: validationResult
     })
+    const mountInputReport = buildThirdPartyDataPackMountInput({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport
+    })
     stdout.write(formatDiscoveryReport(
       scanRoot,
       report,
       selectionReport,
       candidateSnapshotReport,
       lockfileDraftReport,
-      mountPreflightReport
+      mountPreflightReport,
+      mountInputReport
     ))
-    return exitCodeForReport(report, selectionReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport)
+    return exitCodeForReport(
+      report,
+      selectionReport,
+      candidateSnapshotReport,
+      lockfileDraftReport,
+      mountPreflightReport,
+      mountInputReport
+    )
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     stderr.write(`Failed to check third-party data packs: ${message}\n`)
