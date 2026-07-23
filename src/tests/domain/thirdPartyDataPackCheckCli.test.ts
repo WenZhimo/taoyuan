@@ -190,7 +190,7 @@ const expectDeferredSourceAdapterGate = (stdout: string): void => {
   expect(stdout).toContain('sourceContractReadiness: defined')
   expect(stdout).toContain('contentPackageSourceContractStable: true')
   expect(stdout).toContain('runtimeEnablementAllowed: false')
-  expect(stdout).toContain('requiredSourceContracts: 0')
+  expectSatisfiedSourceContracts(stdout)
   expect(stdout).toContain('candidatePublished: false')
   expect(stdout).toContain('electronIpcExposed: false')
   expect(stdout).toContain('webImportPersisted: false')
@@ -211,7 +211,7 @@ const expectBlockedSourceAdapterGate = (stdout: string): void => {
   expect(stdout).toContain('sourceContractReadiness: defined')
   expect(stdout).toContain('contentPackageSourceContractStable: true')
   expect(stdout).toContain('runtimeEnablementAllowed: false')
-  expect(stdout).toContain('requiredSourceContracts: 0')
+  expectSatisfiedSourceContracts(stdout)
   expect(stdout).toContain('platformSourceOpened: false')
   expect(stdout).toContain('sourceHandlesRetained: false')
   expect(stdout).toContain('packageFilesWritten: false')
@@ -220,6 +220,16 @@ const expectBlockedSourceAdapterGate = (stdout: string): void => {
   expect(stdout).toContain('savesWritten: false')
   expect(stdout).toContain('cacheWritten: false')
   expect(stdout).toContain('transactionLogWritten: false')
+}
+
+const expectSatisfiedSourceContracts = (stdout: string): void => {
+  expect(stdout).toContain('requiredSourceContracts: 5')
+  expect(stdout).toContain('sourceContracts:')
+  expect(stdout).toContain('source-identity-validation: satisfied')
+  expect(stdout).toContain('pure-json-read-boundary: satisfied')
+  expect(stdout).toContain('normalized-relative-paths: satisfied')
+  expect(stdout).toContain('permission-revocation-diagnostics: satisfied')
+  expect(stdout).toContain('source-lifecycle-release: satisfied')
 }
 
 const sourceContractSection = (stdout: string): string => {

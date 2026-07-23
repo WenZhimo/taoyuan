@@ -15,11 +15,16 @@ import {
 export type ThirdPartyDataPackSourceAdapterGateStatus = 'deferred' | 'skipped' | 'blocked'
 
 export type ThirdPartyDataPackSourceContractReadiness = 'defined'
-export type ThirdPartyDataPackSourceContractRequirementId = never
+export type ThirdPartyDataPackSourceContractRequirementId =
+  | 'source-identity-validation'
+  | 'pure-json-read-boundary'
+  | 'normalized-relative-paths'
+  | 'permission-revocation-diagnostics'
+  | 'source-lifecycle-release'
 
 export interface ThirdPartyDataPackSourceContractRequirement {
   readonly id: ThirdPartyDataPackSourceContractRequirementId
-  readonly status: 'required'
+  readonly status: 'satisfied'
   readonly reason: string
 }
 
@@ -82,11 +87,38 @@ const createEffectSummary = (): ThirdPartyDataPackSourceAdapterGateEffectSummary
   transactionLogWritten: false
 })
 
+const satisfiedSourceContracts = (): readonly ThirdPartyDataPackSourceContractRequirement[] => [
+  {
+    id: 'source-identity-validation',
+    status: 'satisfied',
+    reason: 'ContentPackageSource identities are validated for contract version, kind, sourceId and rootPath before discovery mapping.'
+  },
+  {
+    id: 'pure-json-read-boundary',
+    status: 'satisfied',
+    reason: 'Source text payloads are parsed as unknown JSON and checked for pure JSON before downstream TypeBox validation.'
+  },
+  {
+    id: 'normalized-relative-paths',
+    status: 'satisfied',
+    reason: 'Source paths and discovery paths use normalized relative identifiers and reject absolute or escaping paths.'
+  },
+  {
+    id: 'permission-revocation-diagnostics',
+    status: 'satisfied',
+    reason: 'Revoked, disposed, unsafe or unreadable sources are surfaced as structured discovery diagnostics with source error codes.'
+  },
+  {
+    id: 'source-lifecycle-release',
+    status: 'satisfied',
+    reason: 'ContentPackageSource exposes an explicit dispose lifecycle and the developer CLI releases its source after each check.'
+  }
+]
+
 const baseResult = (
   status: ThirdPartyDataPackSourceAdapterGateStatus,
   reason: string,
-  runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult,
-  requiredSourceContracts: readonly ThirdPartyDataPackSourceContractRequirement[]
+  runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult
 ): ThirdPartyDataPackSourceAdapterGateResult => ({
   status,
   runtimeAdapterGateStatus: runtimeAdapterGate.status,
@@ -105,7 +137,7 @@ const baseResult = (
   sourceContractReadiness: 'defined',
   contentPackageSourceContractStable: true,
   runtimeEnablementAllowed: false,
-  requiredSourceContracts,
+  requiredSourceContracts: satisfiedSourceContracts(),
   effects: createEffectSummary()
 })
 
@@ -118,8 +150,7 @@ export const buildThirdPartyDataPackSourceAdapterGate = (
     return baseResult(
       'skipped',
       'no selected third-party data packs',
-      runtimeAdapterGate,
-      []
+      runtimeAdapterGate
     )
   }
 
@@ -127,15 +158,13 @@ export const buildThirdPartyDataPackSourceAdapterGate = (
     return baseResult(
       'blocked',
       runtimeAdapterGate.reason,
-      runtimeAdapterGate,
-      []
+      runtimeAdapterGate
     )
   }
 
   return baseResult(
     'deferred',
     'content package source contract is defined; runtime platform source adapters remain intentionally deferred',
-    runtimeAdapterGate,
-    []
+    runtimeAdapterGate
   )
 }

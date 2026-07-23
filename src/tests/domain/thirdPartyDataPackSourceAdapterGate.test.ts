@@ -260,6 +260,22 @@ const expectNoWriteEffects = (gate: ReturnType<typeof buildThirdPartyDataPackSou
   })
 }
 
+const expectSatisfiedSourceContracts = (
+  gate: ReturnType<typeof buildThirdPartyDataPackSourceAdapterGate>
+): void => {
+  expect(gate.requiredSourceContracts.map(contract => ({
+    id: contract.id,
+    status: contract.status
+  }))).toEqual([
+    { id: 'source-identity-validation', status: 'satisfied' },
+    { id: 'pure-json-read-boundary', status: 'satisfied' },
+    { id: 'normalized-relative-paths', status: 'satisfied' },
+    { id: 'permission-revocation-diagnostics', status: 'satisfied' },
+    { id: 'source-lifecycle-release', status: 'satisfied' }
+  ])
+  expect(gate.requiredSourceContracts.every(contract => contract.reason.length > 0)).toBe(true)
+}
+
 const expectOfficialBaseline = (): void => {
   const registrySet = buildOfficialRegistrySetFromStaticData()
   const snapshot = createSerializableRegistrySnapshot(registrySet)
@@ -300,7 +316,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.packageCount).toBe(1)
     expect(sourceAdapterGate.candidateIdentity?.candidateHash).toBe(candidateSnapshot.candidateIdentity?.candidateHash)
     expect(sourceAdapterGate.lockfileHash).toBe(lockfileDraftResult.draft?.lockfileHash)
-    expect(sourceAdapterGate.requiredSourceContracts).toEqual([])
+    expectSatisfiedSourceContracts(sourceAdapterGate)
     expect('candidateRegistrySet' in sourceAdapterGate).toBe(false)
     expect('candidateSnapshot' in sourceAdapterGate).toBe(false)
     expect('lockfileDraft' in sourceAdapterGate).toBe(false)
@@ -324,7 +340,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.packageCount).toBe(0)
     expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
     expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
-    expect(sourceAdapterGate.requiredSourceContracts).toEqual([])
+    expectSatisfiedSourceContracts(sourceAdapterGate)
     expectNoWriteEffects(sourceAdapterGate)
     expectOfficialBaseline()
   }, 15_000)
@@ -345,7 +361,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.entryCount).toBe(4242)
     expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
     expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
-    expect(sourceAdapterGate.requiredSourceContracts).toEqual([])
+    expectSatisfiedSourceContracts(sourceAdapterGate)
     expect(sourceAdapterGate.diagnostics).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'SCHEMA-VALIDATE-001' }),
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })
