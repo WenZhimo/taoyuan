@@ -1,5 +1,5 @@
 import { assertPureJsonValue, compareCodePoints } from './canonicalJson'
-import { normalizePackagePath } from './hash'
+import { normalizePackagePath, utf8ByteLength } from './hash'
 import type { ThirdPartyDiscoveryFileSystem, ThirdPartyDiscoveryDirectoryEntry } from './thirdPartyDataPackDiscovery'
 
 export const CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION = 1
@@ -13,11 +13,13 @@ export type ContentPackageSourceEntryKind = 'file' | 'directory' | 'other'
 export type ContentPackageSourceErrorCode =
   | 'SOURCE_IDENTITY_INVALID'
   | 'SOURCE_DUPLICATE_PATH'
+  | 'SOURCE_ENTRY_UNSAFE'
   | 'SOURCE_ENTRY_NOT_DIRECTORY'
   | 'SOURCE_ENTRY_NOT_FILE'
   | 'SOURCE_ENTRY_NOT_FOUND'
   | 'SOURCE_JSON_NOT_PURE'
   | 'SOURCE_JSON_PARSE_FAILED'
+  | 'SOURCE_LIMIT_EXCEEDED'
   | 'SOURCE_PATH_OUTSIDE_ROOT'
   | 'SOURCE_PATH_UNSAFE'
   | 'SOURCE_PERMISSION_REVOKED'
@@ -56,6 +58,27 @@ export interface ContentPackageSource {
   dispose(): Promise<void>
 }
 
+export interface ContentPackageSourceSafeReadPolicy {
+  readonly maxPackageFileCount: number
+  readonly maxPackageUncompressedBytes: number
+  readonly maxSingleFileBytes: number
+  readonly maxCompressedRatio: number
+  readonly maxPathUtf8Bytes: number
+  readonly maxPathDepth: number
+}
+
+export interface ContentPackageSourceArchiveEntry {
+  readonly path: string
+  readonly uncompressedSizeBytes: number
+  readonly compressedSizeBytes?: number
+}
+
+export interface ContentPackageSourceValidatedArchiveEntry {
+  readonly path: string
+  readonly uncompressedSizeBytes: number
+  readonly compressedSizeBytes?: number
+}
+
 export interface RevocableContentPackageSource extends ContentPackageSource {
   revoke(): void
 }
@@ -76,18 +99,229 @@ export type ContentPackageSourceJsonReadResult =
   | { readonly ok: false; readonly code: ContentPackageSourceErrorCode; readonly message: string }
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
+export const CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS: ContentPackageSourceSafeReadPolicy = Object.freeze({
+  maxPackageFileCount: 20_000,
+  maxPackageUncompressedBytes: 1024 * 1024 * 1024,
+  maxSingleFileBytes: 256 * 1024 * 1024,
+  maxCompressedRatio: 100,
+  maxPathUtf8Bytes: 512,
+  maxPathDepth: 32
+})
 const supportedSourceKinds = new Set<ContentPackageSourceKind>([
   'memory',
   'developer-cli-directory',
   'electron-readonly-directory-probe'
 ])
+const supportedEntryKinds = new Set<ContentPackageSourceEntryKind>(['file', 'directory', 'other'])
 
-export const normalizeContentPackageSourcePath = (path: string): string => {
+const throwLimitExceeded = (message: string, sourcePath?: string): never => {
+  throw new ContentPackageSourceError('SOURCE_LIMIT_EXCEEDED', message, sourcePath)
+}
+
+const assertNormalizedPathWithinLimits = (
+  normalizedPath: string,
+  originalPath: string,
+  policy: ContentPackageSourceSafeReadPolicy
+): void => {
+  if (normalizedPath === '') return
+  const pathBytes = utf8ByteLength(normalizedPath)
+  if (pathBytes > policy.maxPathUtf8Bytes) {
+    throwLimitExceeded(
+      `Package path exceeds ${policy.maxPathUtf8Bytes} UTF-8 bytes: ${pathBytes}`,
+      originalPath
+    )
+  }
+  const depth = normalizedPath.split('/').length
+  if (depth > policy.maxPathDepth) {
+    throwLimitExceeded(`Package path exceeds ${policy.maxPathDepth} segments: ${depth}`, originalPath)
+  }
+}
+
+export const normalizeContentPackageSourcePath = (
+  path: string,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): string => {
   if (path === '') return ''
   try {
-    return normalizePackagePath(path)
+    const normalizedPath = normalizePackagePath(path)
+    assertNormalizedPathWithinLimits(normalizedPath, path, policy)
+    return normalizedPath
   } catch (error) {
+    if (error instanceof ContentPackageSourceError) throw error
     throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', errorMessage(error), path)
+  }
+}
+
+export const normalizeContentPackageSourceEntryName = (
+  name: string,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): string => {
+  let normalizedName: string
+  try {
+    normalizedName = normalizeContentPackageSourcePath(name, policy)
+  } catch (error) {
+    if (error instanceof ContentPackageSourceError) throw error
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      `Content package source entry name is unsafe: ${errorMessage(error)}`,
+      name
+    )
+  }
+  if (normalizedName === '' || normalizedName !== name || normalizedName.includes('/')) {
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      'Content package source entry names must be single normalized path segments',
+      name
+    )
+  }
+  return normalizedName
+}
+
+export const normalizeContentPackageSourceDirectoryEntry = (
+  entry: ContentPackageSourceDirectoryEntry,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): ContentPackageSourceDirectoryEntry => {
+  const kind = entry.kind
+  if (!supportedEntryKinds.has(kind)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      `Unsupported content package source entry kind: ${String(kind)}`,
+      entry.name
+    )
+  }
+  if (typeof entry.isSymbolicLink !== 'boolean') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Content package source entry must expose an explicit symbolic-link flag',
+      entry.name
+    )
+  }
+  return {
+    name: normalizeContentPackageSourceEntryName(entry.name, policy),
+    kind,
+    isSymbolicLink: entry.isSymbolicLink
+  }
+}
+
+export const normalizeContentPackageSourceDirectoryEntries = (
+  entries: readonly ContentPackageSourceDirectoryEntry[],
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): readonly ContentPackageSourceDirectoryEntry[] => {
+  if (entries.length > policy.maxPackageFileCount) {
+    throwLimitExceeded(
+      `Directory listing exceeds ${policy.maxPackageFileCount} entries: ${entries.length}`
+    )
+  }
+
+  const seenNames = new Set<string>()
+  const normalizedEntries = entries.map(entry => {
+    const normalizedEntry = normalizeContentPackageSourceDirectoryEntry(entry, policy)
+    if (seenNames.has(normalizedEntry.name)) {
+      throw new ContentPackageSourceError(
+        'SOURCE_DUPLICATE_PATH',
+        `Duplicate source directory entry: ${normalizedEntry.name}`,
+        normalizedEntry.name
+      )
+    }
+    seenNames.add(normalizedEntry.name)
+    return normalizedEntry
+  })
+  return normalizedEntries.sort((a, b) => compareCodePoints(a.name, b.name))
+}
+
+export const normalizeContentPackageSourceArchiveEntryPath = (
+  path: string,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): string => {
+  if (path === '' || path.includes('\\')) {
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      'Archive entry paths must be non-empty normalized POSIX paths',
+      path
+    )
+  }
+
+  const normalizedPath = normalizeContentPackageSourcePath(path, policy)
+  if (normalizedPath === '' || normalizedPath !== path) {
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      'Archive entry paths must already be normalized before validation',
+      path
+    )
+  }
+  return normalizedPath
+}
+
+const assertNonNegativeSafeInteger = (value: number, fieldName: string, sourcePath: string): number => {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new ContentPackageSourceError(
+      'SOURCE_LIMIT_EXCEEDED',
+      `${fieldName} must be a non-negative safe integer`,
+      sourcePath
+    )
+  }
+  return value
+}
+
+export const validateContentPackageSourceArchiveEntries = (
+  entries: readonly ContentPackageSourceArchiveEntry[],
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): readonly ContentPackageSourceValidatedArchiveEntry[] => {
+  if (entries.length > policy.maxPackageFileCount) {
+    throwLimitExceeded(`Archive exceeds ${policy.maxPackageFileCount} entries: ${entries.length}`)
+  }
+
+  const seenPaths = new Set<string>()
+  let totalUncompressedBytes = 0
+  return entries.map(entry => {
+    const path = normalizeContentPackageSourceArchiveEntryPath(entry.path, policy)
+    if (seenPaths.has(path)) {
+      throw new ContentPackageSourceError('SOURCE_DUPLICATE_PATH', `Duplicate archive entry path: ${path}`, path)
+    }
+    seenPaths.add(path)
+
+    const uncompressedSizeBytes = assertNonNegativeSafeInteger(
+      entry.uncompressedSizeBytes,
+      'uncompressedSizeBytes',
+      path
+    )
+    if (uncompressedSizeBytes > policy.maxSingleFileBytes) {
+      throwLimitExceeded(
+        `Archive entry exceeds ${policy.maxSingleFileBytes} bytes: ${uncompressedSizeBytes}`,
+        path
+      )
+    }
+    totalUncompressedBytes += uncompressedSizeBytes
+    if (totalUncompressedBytes > policy.maxPackageUncompressedBytes) {
+      throwLimitExceeded(
+        `Archive exceeds ${policy.maxPackageUncompressedBytes} total uncompressed bytes: ${totalUncompressedBytes}`,
+        path
+      )
+    }
+
+    if (entry.compressedSizeBytes === undefined) {
+      return { path, uncompressedSizeBytes }
+    }
+
+    const compressedSizeBytes = assertNonNegativeSafeInteger(entry.compressedSizeBytes, 'compressedSizeBytes', path)
+    if (
+      (compressedSizeBytes === 0 && uncompressedSizeBytes > 0)
+      || (compressedSizeBytes > 0 && uncompressedSizeBytes / compressedSizeBytes > policy.maxCompressedRatio)
+    ) {
+      throwLimitExceeded(`Archive entry exceeds ${policy.maxCompressedRatio}:1 compression ratio`, path)
+    }
+    return { path, uncompressedSizeBytes, compressedSizeBytes }
+  })
+}
+
+export const assertContentPackageSourceTextWithinLimits = (
+  text: string,
+  sourcePath: string,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): void => {
+  const textBytes = utf8ByteLength(text)
+  if (textBytes > policy.maxSingleFileBytes) {
+    throwLimitExceeded(`Source text file exceeds ${policy.maxSingleFileBytes} bytes: ${textBytes}`, sourcePath)
   }
 }
 
@@ -104,7 +338,7 @@ const entryName = (path: string, fallback: string): string => {
 
 const normalizeIdentityPart = (value: string, fieldName: string): string => {
   try {
-    return normalizePackagePath(value)
+    return normalizeContentPackageSourcePath(value)
   } catch (error) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
@@ -158,10 +392,23 @@ export const createMemoryContentPackageSource = (
   let revoked = false
   let disposed = false
 
+  if (options.files.length > CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount) {
+    throwLimitExceeded(
+      `Memory source exceeds ${CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount} files: ${options.files.length}`
+    )
+  }
+
   for (const file of options.files) {
     const normalizedPath = normalizeContentPackageSourcePath(file.path)
     if (normalizedPath === '') {
       throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', 'File path cannot be the source root', file.path)
+    }
+    if (directories.has(normalizedPath)) {
+      throw new ContentPackageSourceError(
+        'SOURCE_DUPLICATE_PATH',
+        `Source file path conflicts with a directory path: ${normalizedPath}`,
+        normalizedPath
+      )
     }
     if (files.has(normalizedPath)) {
       throw new ContentPackageSourceError(
@@ -174,6 +421,13 @@ export const createMemoryContentPackageSource = (
 
     let directory = parentPath(normalizedPath)
     while (directory !== '') {
+      if (files.has(directory)) {
+        throw new ContentPackageSourceError(
+          'SOURCE_DUPLICATE_PATH',
+          `Source directory path conflicts with a file path: ${directory}`,
+          directory
+        )
+      }
       directories.add(directory)
       directory = parentPath(directory)
     }
@@ -235,7 +489,7 @@ export const createMemoryContentPackageSource = (
       })
     }
 
-    return [...entries.values()].sort((a, b) => compareCodePoints(a.name, b.name))
+    return normalizeContentPackageSourceDirectoryEntries([...entries.values()])
   }
 
   return {
@@ -278,11 +532,13 @@ export const createMemoryContentPackageSource = (
 
 export const readContentPackageSourceJson = async (
   source: ContentPackageSource,
-  path: string
+  path: string,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): Promise<ContentPackageSourceJsonReadResult> => {
   let text: string
   try {
     text = await source.readTextFile(path)
+    assertContentPackageSourceTextWithinLimits(text, path, policy)
   } catch (error) {
     if (error instanceof ContentPackageSourceError) {
       return { ok: false, code: error.code, message: error.message }
@@ -330,7 +586,8 @@ const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string 
 
 const toDiscoveryEntry = (
   entry: ContentPackageSourceDirectoryEntry | null
-): ThirdPartyDiscoveryDirectoryEntry | null => entry
+): ThirdPartyDiscoveryDirectoryEntry | null =>
+  entry === null ? null : normalizeContentPackageSourceDirectoryEntry(entry)
 
 export const createDiscoveryFileSystemFromContentPackageSource = (
   source: ContentPackageSource
@@ -339,9 +596,12 @@ export const createDiscoveryFileSystemFromContentPackageSource = (
     return toDiscoveryEntry(await source.getEntry(stripDiscoveryRoot(source, path)))
   },
   async readDirectory(path) {
-    return source.readDirectory(stripDiscoveryRoot(source, path))
+    return normalizeContentPackageSourceDirectoryEntries(await source.readDirectory(stripDiscoveryRoot(source, path)))
   },
   async readTextFile(path) {
-    return source.readTextFile(stripDiscoveryRoot(source, path))
+    const sourcePath = stripDiscoveryRoot(source, path)
+    const text = await source.readTextFile(sourcePath)
+    assertContentPackageSourceTextWithinLimits(text, sourcePath)
+    return text
   }
 })

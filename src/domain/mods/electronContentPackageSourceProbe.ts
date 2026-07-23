@@ -1,7 +1,8 @@
-import { compareCodePoints } from './canonicalJson'
 import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   ContentPackageSourceError,
+  normalizeContentPackageSourceDirectoryEntries,
+  normalizeContentPackageSourceDirectoryEntry,
   normalizeContentPackageSourcePath,
   validateContentPackageSourceIdentity,
   type ContentPackageSource,
@@ -82,36 +83,11 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
   return normalized
 }
 
-const normalizeEntryName = (name: string): string => {
-  let normalized: string
-  try {
-    normalized = normalizeContentPackageSourcePath(name)
-  } catch (error) {
-    throw new ContentPackageSourceError(
-      'SOURCE_PATH_UNSAFE',
-      `Electron probe source entry name is unsafe: ${errorMessage(error)}`,
-      name
-    )
-  }
-  if (normalized === '' || normalized !== name || normalized.includes('/')) {
-    throw new ContentPackageSourceError(
-      'SOURCE_PATH_UNSAFE',
-      'Electron probe source entry names must be single normalized path segments',
-      name
-    )
-  }
-  return normalized
-}
-
 const normalizeEntry = (
   entry: ContentPackageSourceDirectoryEntry | null
 ): ContentPackageSourceDirectoryEntry | null => {
   if (entry === null) return null
-  return {
-    name: normalizeEntryName(entry.name),
-    kind: entry.kind,
-    isSymbolicLink: entry.isSymbolicLink
-  }
+  return normalizeContentPackageSourceDirectoryEntry(entry)
 }
 
 export const createElectronReadonlySourceAdapterProbeEffects =
@@ -168,9 +144,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
     async readDirectory(sourcePath) {
       assertAvailable()
       const entries = await options.host.readDirectory(normalizePath(sourcePath))
-      return entries
-        .map(entry => normalizeEntry(entry)!)
-        .sort((a, b) => compareCodePoints(a.name, b.name))
+      return normalizeContentPackageSourceDirectoryEntries(entries)
     },
     async readTextFile(sourcePath) {
       assertAvailable()

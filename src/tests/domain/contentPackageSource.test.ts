@@ -2,12 +2,17 @@ import { cwd } from 'node:process'
 import { describe, expect, it } from 'vitest'
 import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+  CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
   type ContentPackageSource,
   ContentPackageSourceError,
   createDiscoveryFileSystemFromContentPackageSource,
   createMemoryContentPackageSource,
+  normalizeContentPackageSourceArchiveEntryPath,
+  normalizeContentPackageSourceDirectoryEntries,
+  normalizeContentPackageSourceEntryName,
   normalizeContentPackageSourcePath,
   readContentPackageSourceJson,
+  validateContentPackageSourceArchiveEntries,
   validateContentPackageSourceIdentity
 } from '@/domain/mods/contentPackageSource'
 import { discoverThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackDiscovery'
@@ -85,6 +90,16 @@ const createManifestInspectionFailureSource = (): ContentPackageSource => ({
   async dispose() {}
 })
 
+const captureSourceError = (fn: () => unknown): ContentPackageSourceError => {
+  try {
+    fn()
+  } catch (error) {
+    expect(error).toBeInstanceOf(ContentPackageSourceError)
+    return error as ContentPackageSourceError
+  }
+  throw new Error('Expected ContentPackageSourceError')
+}
+
 describe('content package source contract', () => {
   it('bridges a normalized in-memory source into the shared third-party discovery pipeline', async() => {
     const source = createValidSource()
@@ -144,6 +159,160 @@ describe('content package source contract', () => {
     })).toThrow(ContentPackageSourceError)
   })
 
+  it('validates directory entry names, duplicate listings and non-file metadata before discovery', async() => {
+    expect(normalizeContentPackageSourceEntryName('manifest.json')).toBe('manifest.json')
+    expect(normalizeContentPackageSourceDirectoryEntries([
+      { name: 'z-pack', kind: 'directory', isSymbolicLink: false },
+      { name: 'pipe-pack', kind: 'other', isSymbolicLink: false },
+      { name: 'a-pack', kind: 'file', isSymbolicLink: false }
+    ])).toEqual([
+      { name: 'a-pack', kind: 'file', isSymbolicLink: false },
+      { name: 'pipe-pack', kind: 'other', isSymbolicLink: false },
+      { name: 'z-pack', kind: 'directory', isSymbolicLink: false }
+    ])
+
+    for (const unsafeName of ['', '.', '..', '../manifest.json', '/manifest.json', 'C:/pack', 'pack/name', 'pack\\name']) {
+      expect(() => normalizeContentPackageSourceEntryName(unsafeName)).toThrow(ContentPackageSourceError)
+    }
+    expect(captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      { name: 'pack', kind: 'directory', isSymbolicLink: false },
+      { name: 'pack', kind: 'file', isSymbolicLink: false }
+    ])).code).toBe('SOURCE_DUPLICATE_PATH')
+    expect(captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      { name: 'pipe', kind: 'socket', isSymbolicLink: false } as never
+    ])).code).toBe('SOURCE_ENTRY_UNSAFE')
+
+    let readAttempted = false
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/other-entry-source',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        return path === ''
+          ? { name: 'packs', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [{ name: 'pipe-pack', kind: 'other', isSymbolicLink: false }]
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('non-file entries must not be read')
+      },
+      async dispose() {}
+    }
+
+    const report = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+
+    expect(readAttempted).toBe(false)
+    expect(report.status).toBe('completed')
+    expect(report.candidates).toEqual([])
+    expect(report.issues).toEqual([
+      expect.objectContaining({
+        kind: 'missing-manifest',
+        path: 'pipe-pack',
+        severity: 'warning'
+      })
+    ])
+  })
+
+  it('turns hostile source directory entry names into structured unsafe-path diagnostics', async() => {
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/hostile-entry-source',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        return path === ''
+          ? { name: 'packs', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [{ name: '../userdata', kind: 'directory', isSymbolicLink: false }]
+      },
+      async readTextFile() {
+        throw new Error('unsafe entries must not be read')
+      },
+      async dispose() {}
+    }
+
+    const report = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+
+    expect(report.status).toBe('directory-not-found')
+    expect(report.issues[0]).toMatchObject({
+      kind: 'path-unsafe',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_PATH_UNSAFE'
+    })
+  })
+
+  it('validates archive entry paths and resource guardrails without extracting archives', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+
+    expect(normalizeContentPackageSourceArchiveEntryPath('pack/data/items.json')).toBe('pack/data/items.json')
+    for (const unsafePath of [
+      '',
+      '../outside.json',
+      '/absolute.json',
+      'C:/Users/LENOVO/mod.json',
+      'pack\\data\\items.json',
+      'pack/./items.json'
+    ]) {
+      expect(() => normalizeContentPackageSourceArchiveEntryPath(unsafePath)).toThrow(ContentPackageSourceError)
+    }
+    expect(captureSourceError(() => normalizeContentPackageSourceArchiveEntryPath(
+      'a/'.repeat(limits.maxPathDepth) + 'manifest.json'
+    )).code).toBe('SOURCE_LIMIT_EXCEEDED')
+    expect(captureSourceError(() => normalizeContentPackageSourceArchiveEntryPath(
+      `${'a'.repeat(limits.maxPathUtf8Bytes + 1)}.json`
+    )).code).toBe('SOURCE_LIMIT_EXCEEDED')
+
+    expect(validateContentPackageSourceArchiveEntries([
+      { path: 'manifest.json', uncompressedSizeBytes: 1, compressedSizeBytes: 1 },
+      { path: 'data/items.json', uncompressedSizeBytes: 100, compressedSizeBytes: 1 }
+    ])).toEqual([
+      { path: 'manifest.json', uncompressedSizeBytes: 1, compressedSizeBytes: 1 },
+      { path: 'data/items.json', uncompressedSizeBytes: 100, compressedSizeBytes: 1 }
+    ])
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'manifest.json', uncompressedSizeBytes: 1 },
+      { path: 'manifest.json', uncompressedSizeBytes: 1 }
+    ])).code).toBe('SOURCE_DUPLICATE_PATH')
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      Array.from({ length: limits.maxPackageFileCount + 1 }, (_, index) => ({
+        path: `data/${index}.json`,
+        uncompressedSizeBytes: 0
+      }))
+    )).code).toBe('SOURCE_LIMIT_EXCEEDED')
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'large.bin', uncompressedSizeBytes: limits.maxSingleFileBytes + 1 }
+    ])).code).toBe('SOURCE_LIMIT_EXCEEDED')
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      Array.from({ length: 5 }, (_, index) => ({
+        path: `data/${index}.bin`,
+        uncompressedSizeBytes: limits.maxSingleFileBytes
+      }))
+    )).code).toBe('SOURCE_LIMIT_EXCEEDED')
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'ratio.bin', uncompressedSizeBytes: limits.maxCompressedRatio + 1, compressedSizeBytes: 1 }
+    ])).code).toBe('SOURCE_LIMIT_EXCEEDED')
+  })
+
   it('validates source identity before a platform source can enter discovery', async() => {
     const source = createValidSource()
 
@@ -191,6 +360,10 @@ describe('content package source contract', () => {
 
     const valid = await readContentPackageSourceJson(source, 'pack/manifest.json')
     const invalid = await readContentPackageSourceJson(source, 'pack/broken.json')
+    const oversized = await readContentPackageSourceJson(source, 'pack/manifest.json', {
+      ...CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      maxSingleFileBytes: 1
+    })
 
     expect(valid.ok).toBe(true)
     if (valid.ok) {
@@ -200,6 +373,10 @@ describe('content package source contract', () => {
     expect(invalid).toMatchObject({
       ok: false,
       code: 'SOURCE_JSON_PARSE_FAILED'
+    })
+    expect(oversized).toMatchObject({
+      ok: false,
+      code: 'SOURCE_LIMIT_EXCEEDED'
     })
   })
 
