@@ -13,7 +13,8 @@ import {
   type ThirdPartyDataPackDiscoveryReport
 } from './thirdPartyDataPackDiscovery'
 import type { ThirdPartyDataPackSelectionReport } from './thirdPartyDataPackSelection'
-import type { PackageDependency, PackageManifest } from './schemas'
+import { ThirdPartyDataPackLockfileDraftSchema, type PackageDependency, type PackageManifest } from './schemas'
+import { validateUnknown } from './schemaValidation'
 
 export type ThirdPartyDataPackLockfileDraftStatus = 'valid' | 'invalid' | 'skipped'
 export type ThirdPartyDataPackLockfileDraftValidationStatus = 'valid' | 'invalid'
@@ -89,7 +90,7 @@ export interface CreateThirdPartyDataPackLockfileDraftOptions {
 }
 
 export interface ValidateThirdPartyDataPackLockfileDraftOptions extends CreateThirdPartyDataPackLockfileDraftOptions {
-  readonly draft?: ThirdPartyDataPackLockfileDraft
+  readonly draft?: unknown
 }
 
 const EMPTY_CONFIGURATION_HASH = hashCanonicalJson({ schemaVersion: '1', values: {} })
@@ -478,8 +479,23 @@ export const validateThirdPartyDataPackLockfileDraft = (
   options: ValidateThirdPartyDataPackLockfileDraftOptions
 ): ThirdPartyDataPackLockfileDraftValidationResult => {
   const created = createThirdPartyDataPackLockfileDraft(options)
+  const draftSchemaResult = options.draft === undefined
+    ? undefined
+    : validateUnknown(ThirdPartyDataPackLockfileDraftSchema, options.draft, {
+        stage: 'third-party.lockfile-draft.schema',
+        file: 'third-party-data-pack-lockfile-draft.schema.json'
+      })
+  if (draftSchemaResult && !draftSchemaResult.ok) {
+    return {
+      status: 'invalid',
+      diagnostics: draftSchemaResult.diagnostics,
+      expectedDraft: created.status === 'valid' ? created.draft : undefined
+    }
+  }
+  const draft = draftSchemaResult?.data as ThirdPartyDataPackLockfileDraft | undefined
+
   if (created.status === 'skipped') {
-    return options.draft
+    return draft
       ? {
           status: 'invalid',
           diagnostics: [
@@ -503,7 +519,7 @@ export const validateThirdPartyDataPackLockfileDraft = (
     }
   }
 
-  if (!options.draft) {
+  if (!draft) {
     return {
       status: 'invalid',
       expectedDraft: created.draft,
@@ -518,69 +534,69 @@ export const validateThirdPartyDataPackLockfileDraft = (
   }
 
   const diagnostics: ModDiagnostic[] = []
-  if (options.draft.formatVersion !== created.draft.formatVersion) {
+  if (draft.formatVersion !== created.draft.formatVersion) {
     diagnostics.push(createLockfileDiagnostic('third-party.lockfile-draft.format', {
       fieldPath: '/formatVersion',
       details: {
         reason: 'Lockfile draft format version does not match.',
         expected: created.draft.formatVersion,
-        actual: options.draft.formatVersion
+        actual: draft.formatVersion
       }
     }))
   }
 
-  if (!arraysEqual(options.draft.selectedPackageIds, created.draft.selectedPackageIds)) {
+  if (!arraysEqual(draft.selectedPackageIds, created.draft.selectedPackageIds)) {
     diagnostics.push(createLockfileDiagnostic('third-party.lockfile-draft.package-set', {
       fieldPath: '/selectedPackageIds',
       relatedPackageIds: sortPackageIds(new Set([
-        ...options.draft.selectedPackageIds,
+        ...draft.selectedPackageIds,
         ...created.draft.selectedPackageIds
       ])),
       details: {
         reason: 'Selected package ids do not match the current candidate.',
         expected: created.draft.selectedPackageIds.join(', '),
-        actual: options.draft.selectedPackageIds.join(', ')
+        actual: draft.selectedPackageIds.join(', ')
       }
     }))
   }
 
-  if (!arraysEqual(options.draft.loadOrder, created.draft.loadOrder)) {
+  if (!arraysEqual(draft.loadOrder, created.draft.loadOrder)) {
     diagnostics.push(createLockfileDiagnostic('third-party.lockfile-draft.load-order', {
       fieldPath: '/loadOrder',
       relatedPackageIds: sortPackageIds(new Set([
-        ...options.draft.loadOrder,
+        ...draft.loadOrder,
         ...created.draft.loadOrder
       ])),
       details: {
         reason: 'Load order does not match the current candidate.',
         expected: created.draft.loadOrder.join(', '),
-        actual: options.draft.loadOrder.join(', ')
+        actual: draft.loadOrder.join(', ')
       }
     }))
   }
 
-  diagnostics.push(...compareOfficialIdentity(options.draft.officialIdentity, created.draft.officialIdentity))
-  diagnostics.push(...comparePackageDrafts(options.draft, created.draft))
+  diagnostics.push(...compareOfficialIdentity(draft.officialIdentity, created.draft.officialIdentity))
+  diagnostics.push(...comparePackageDrafts(draft, created.draft))
 
-  const expectedHash = hashCanonicalJson(createDraftBody(options.draft))
-  if (options.draft.lockfileHash !== expectedHash) {
+  const expectedHash = hashCanonicalJson(createDraftBody(draft))
+  if (draft.lockfileHash !== expectedHash) {
     diagnostics.push(createLockfileDiagnostic('third-party.lockfile-draft.self-hash', {
       fieldPath: '/lockfileHash',
       details: {
         reason: 'Lockfile draft self hash does not match its canonical body.',
         expected: expectedHash,
-        actual: options.draft.lockfileHash
+        actual: draft.lockfileHash
       }
     }))
   }
 
-  if (options.draft.lockfileHash !== created.draft.lockfileHash) {
+  if (draft.lockfileHash !== created.draft.lockfileHash) {
     diagnostics.push(createLockfileDiagnostic('third-party.lockfile-draft.hash', {
       fieldPath: '/lockfileHash',
       details: {
         reason: 'Lockfile draft hash does not match the current candidate.',
         expected: created.draft.lockfileHash,
-        actual: options.draft.lockfileHash
+        actual: draft.lockfileHash
       }
     }))
   }

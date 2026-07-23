@@ -22,9 +22,106 @@ export const PackageIdSchema = Type.String({
   pattern: PACKAGE_ID_PATTERN
 })
 
+export const Sha256HashSchema = Type.String({
+  pattern: '^sha256:[0-9a-f]{64}$'
+})
+
+export const ThirdPartyDataPackLockfileDraftRelativePathSchema = Type.String({
+  minLength: 1,
+  pattern: '^(?!/)(?![A-Za-z]:)(?!.*\\\\)(?!.*//)(?!.*(?:^|/)\\.(?:/|$))(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\u0000).+$'
+})
+
 export const SemVerSchema = Type.String({
   pattern: '^(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$'
 })
+
+export const ThirdPartyDataPackLockfileDraftOfficialIdentitySchema = Type.Object(
+  {
+    artifactHash: Sha256HashSchema,
+    contentHash: Sha256HashSchema,
+    schemaSetHash: Sha256HashSchema,
+    environmentHash: Sha256HashSchema,
+    snapshotHash: Sha256HashSchema,
+    registryCount: Type.Integer({ minimum: 0 }),
+    entryCount: Type.Integer({ minimum: 0 })
+  },
+  { additionalProperties: false }
+)
+
+export const ThirdPartyDataPackLockfileDraftCandidateIdentitySchema = Type.Object(
+  {
+    formatVersion: Type.Literal(1),
+    contentHash: Sha256HashSchema,
+    snapshotHash: Sha256HashSchema,
+    candidateHash: Sha256HashSchema
+  },
+  { additionalProperties: false }
+)
+
+export const ThirdPartyDataPackLockfileDraftPackageContentEntrySchema = Type.Object(
+  {
+    registryId: RegistryTypeIdSchema,
+    contentId: ContentIdSchema,
+    index: Type.Integer({ minimum: 0 }),
+    canonicalHash: Sha256HashSchema
+  },
+  { additionalProperties: false }
+)
+
+export const ThirdPartyDataPackLockfileDraftPackageContentFileSchema = Type.Object(
+  {
+    registryId: RegistryTypeIdSchema,
+    path: ThirdPartyDataPackLockfileDraftRelativePathSchema,
+    entryCount: Type.Integer({ minimum: 0 }),
+    entries: Type.Array(ThirdPartyDataPackLockfileDraftPackageContentEntrySchema)
+  },
+  { additionalProperties: false }
+)
+
+export const ThirdPartyDataPackLockfileDraftPackageSourceSchema = Type.Object(
+  {
+    candidatePath: ThirdPartyDataPackLockfileDraftRelativePathSchema,
+    manifestPath: ThirdPartyDataPackLockfileDraftRelativePathSchema,
+    contentFiles: Type.Array(ThirdPartyDataPackLockfileDraftRelativePathSchema, { uniqueItems: true })
+  },
+  { additionalProperties: false }
+)
+
+export const ThirdPartyDataPackLockfileDraftPackageSchema = Type.Object(
+  {
+    packageId: PackageIdSchema,
+    version: SemVerSchema,
+    loadIndex: Type.Integer({ minimum: 0 }),
+    source: ThirdPartyDataPackLockfileDraftPackageSourceSchema,
+    manifestHash: Sha256HashSchema,
+    contentHash: Sha256HashSchema,
+    configurationHash: Sha256HashSchema,
+    resolvedDependencies: Type.Array(PackageIdSchema, { uniqueItems: true }),
+    contentFiles: Type.Array(ThirdPartyDataPackLockfileDraftPackageContentFileSchema)
+  },
+  { additionalProperties: false }
+)
+
+// Internal draft candidate only: do not add this to PUBLIC_JSON_SCHEMAS until
+// mod-lock.json compatibility is deliberately frozen.
+export const ThirdPartyDataPackLockfileDraftSchema = Type.Object(
+  {
+    formatVersion: Type.Literal(1),
+    kind: Type.Literal('third-party-data-pack-lockfile-draft'),
+    officialIdentity: ThirdPartyDataPackLockfileDraftOfficialIdentitySchema,
+    candidateIdentity: ThirdPartyDataPackLockfileDraftCandidateIdentitySchema,
+    registryCount: Type.Integer({ minimum: 0 }),
+    entryCount: Type.Integer({ minimum: 0 }),
+    selectedPackageIds: Type.Array(PackageIdSchema, { uniqueItems: true }),
+    loadOrder: Type.Array(PackageIdSchema, { uniqueItems: true }),
+    packages: Type.Array(ThirdPartyDataPackLockfileDraftPackageSchema),
+    lockfileHash: Sha256HashSchema
+  },
+  {
+    $id: 'taoyuan.internal.ThirdPartyDataPackLockfileDraftV1',
+    additionalProperties: false
+  }
+)
 
 export const LocalizedTextRefSchema = Type.Object(
   {
@@ -2197,6 +2294,7 @@ export type LocalizedTextRef = Static<typeof LocalizedTextRefSchema>
 export type AuthorMetadata = Static<typeof AuthorMetadataSchema>
 export type PackageDependency = Static<typeof PackageDependencySchema>
 export type PackageManifest = Static<typeof PackageManifestSchema>
+export type ThirdPartyDataPackLockfileDraftContract = Static<typeof ThirdPartyDataPackLockfileDraftSchema>
 export type PackageSettingDefinition = Static<typeof PackageSettingDefinitionSchema>
 export type ResourceAttribution = Static<typeof ResourceAttributionSchema>
 export type TagDef = Static<typeof TagDefSchema>

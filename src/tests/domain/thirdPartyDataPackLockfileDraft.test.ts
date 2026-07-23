@@ -8,6 +8,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { requirePackageId } from '@/domain/mods/ids'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
+import { validateUnknown } from '@/domain/mods/schemaValidation'
+import { ThirdPartyDataPackLockfileDraftSchema } from '@/domain/mods/schemas'
 import {
   discoverThirdPartyDataPacks,
   type ThirdPartyDiscoveryDirectoryEntry,
@@ -163,6 +165,9 @@ const mutateDraft = (
 ): ThirdPartyDataPackLockfileDraft =>
   mutation(JSON.parse(JSON.stringify(draft)) as ThirdPartyDataPackLockfileDraft)
 
+const cloneDraftAsJson = (draft: ThirdPartyDataPackLockfileDraft): JsonObject =>
+  JSON.parse(JSON.stringify(draft)) as JsonObject
+
 const expectOfficialBaseline = (): void => {
   const registrySet = buildOfficialRegistrySetFromStaticData()
   const snapshot = createSerializableRegistrySnapshot(registrySet)
@@ -218,6 +223,97 @@ describe('third-party data pack lockfile draft', () => {
     expect(first.draftResult.draft!.packages[0]!.source.manifestPath).not.toMatch(/^[A-Za-z]:/)
     expect(first.draftResult.draft!.packages[0]!.contentHash).toMatch(/^sha256:/)
     expect(first.draftResult.draft!.lockfileHash).toMatch(/^sha256:/)
+  }, 15_000)
+
+  it('validates generated drafts through the internal TypeBox schema candidate', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+    const reports = await buildReportsFromRoot(root)
+
+    const schemaResult = validateUnknown(ThirdPartyDataPackLockfileDraftSchema, reports.draftResult.draft, {
+      stage: 'test.lockfile-draft.schema',
+      file: 'third-party-data-pack-lockfile-draft.schema.json'
+    })
+
+    expect(reports.draftResult.status).toBe('valid')
+    expect(schemaResult.ok).toBe(true)
+  }, 15_000)
+
+  it('rejects non-object draft input before semantic validation', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+    const reports = await buildReportsFromRoot(root)
+
+    const validation = validateThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot: reports.candidateSnapshot,
+      draft: 'not a lockfile draft'
+    })
+
+    expect(validation.status).toBe('invalid')
+    expect(validation.expectedDraft).toEqual(reports.draftResult.draft)
+    expect(validation.diagnostics).toContainEqual(expect.objectContaining({
+      code: 'SCHEMA-VALIDATE-001',
+      stage: 'third-party.lockfile-draft.schema',
+      fieldPath: '/'
+    }))
+  }, 15_000)
+
+  it('rejects malformed draft shapes before comparing lockfile semantics', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+    const reports = await buildReportsFromRoot(root)
+    const draft = reports.draftResult.draft!
+
+    const withExtraProperty = cloneDraftAsJson(draft)
+    withExtraProperty.unexpected = true
+
+    const withInvalidPackageId = cloneDraftAsJson(draft)
+    withInvalidPackageId.selectedPackageIds = ['Invalid Package!']
+
+    const withInvalidHash = cloneDraftAsJson(draft)
+    withInvalidHash.lockfileHash = 'sha256:not-a-real-hash'
+
+    const withUnsafeDotDotPath = cloneDraftAsJson(draft)
+    const dotDotPackages = withUnsafeDotDotPath.packages as JsonObject[]
+    const dotDotSource = dotDotPackages[0]!.source as JsonObject
+    dotDotSource.candidatePath = '../valid-gift-pack'
+
+    const withUnsafeDrivePath = cloneDraftAsJson(draft)
+    const drivePackages = withUnsafeDrivePath.packages as JsonObject[]
+    const driveSource = drivePackages[0]!.source as JsonObject
+    driveSource.manifestPath = 'C:/mods/valid-gift-pack/manifest.json'
+
+    const withUnsafeBackslashPath = cloneDraftAsJson(draft)
+    const backslashPackages = withUnsafeBackslashPath.packages as JsonObject[]
+    const backslashSource = backslashPackages[0]!.source as JsonObject
+    backslashSource.contentFiles = ['valid-gift-pack\\data\\items.json']
+
+    const cases: Array<{ readonly value: unknown; readonly fieldPath: string }> = [
+      { value: withExtraProperty, fieldPath: '/unexpected' },
+      { value: withInvalidPackageId, fieldPath: '/selectedPackageIds/0' },
+      { value: withInvalidHash, fieldPath: '/lockfileHash' },
+      { value: withUnsafeDotDotPath, fieldPath: '/packages/0/source/candidatePath' },
+      { value: withUnsafeDrivePath, fieldPath: '/packages/0/source/manifestPath' },
+      { value: withUnsafeBackslashPath, fieldPath: '/packages/0/source/contentFiles/0' }
+    ]
+
+    for (const testCase of cases) {
+      const validation = validateThirdPartyDataPackLockfileDraft({
+        discoveryReport: reports.discoveryReport,
+        selectionReport: reports.selectionReport,
+        candidateSnapshot: reports.candidateSnapshot,
+        draft: testCase.value
+      })
+
+      expect(validation.status).toBe('invalid')
+      expect(validation.diagnostics).toContainEqual(expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: testCase.fieldPath
+      }))
+    }
   }, 15_000)
 
   it('validates matching drafts against the current package set and official baseline', async() => {

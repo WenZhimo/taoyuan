@@ -6324,6 +6324,16 @@ const reviewedArtifacts = [
     rationale: 'Builds a read-only in-memory candidate RegistrySet from the selected third-party load order by cloning the official frozen baseline, registering already TypeBox-validated third-party entries into the clone, rejecting official content conflicts and selected third-party duplicates, rerunning structure/semantic/freeze gates, and returning skipped/invalid/valid summaries without publishing a runtime registry, lockfile, cache, save or settings write.'
   },
   {
+    file: 'src/domain/mods/schemas.ts',
+    exportName: 'ThirdPartyDataPackLockfileDraftSchema',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-lockfile-draft',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Defines the internal TypeBox draft candidate for third-party lockfile metadata, including official/candidate identity hashes, package ids, stable load order, relative source paths, package content file summaries and self hash. It is intentionally not added to PUBLIC_JSON_SCHEMAS, so the current public schemaSetHash remains unchanged until mod-lock.json compatibility is deliberately frozen.'
+  },
+  {
     file: 'src/domain/mods/thirdPartyDataPackLockfileDraft.ts',
     exportName: 'createThirdPartyDataPackLockfileDraft/validateThirdPartyDataPackLockfileDraft',
     classification: 'adapter',
@@ -6331,7 +6341,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Creates a read-only, in-memory third-party lockfile draft only from valid candidate snapshots and validates reproducibility of selected package ids, versions, stable load order, relative source paths, manifest/content hashes, official five-hash baseline and candidate identity without writing a real lockfile, enabling runtime packs, changing settings or touching saves.'
+    rationale: 'Creates a read-only, in-memory third-party lockfile draft only from valid candidate snapshots and validates unknown draft input through the internal TypeBox draft schema before semantic comparison, then checks reproducibility of selected package ids, versions, stable load order, relative source paths, manifest/content hashes, official five-hash baseline and candidate identity without writing a real lockfile, enabling runtime packs, changing settings or touching saves.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackMountPreflight.ts',
@@ -6481,7 +6491,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers deterministic draft generation, repeated identical output, matching validator success, package id/version/load-order/content-hash and official-baseline mismatch diagnostics, invalid candidate rejection, empty-root skipped handling, read-only protection for registries/reports/userdata/files and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers deterministic draft generation, the internal TypeBox draft schema accepting generated output, unknown/non-object input rejection before semantic comparison, malformed package id/hash/extra-property/unsafe-path schema diagnostics, repeated identical output, matching validator success, package id/version/load-order/content-hash and official-baseline mismatch diagnostics, invalid candidate rejection, empty-root skipped handling, read-only protection for registries/reports/userdata/files and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackMountPreflight.test.ts',
