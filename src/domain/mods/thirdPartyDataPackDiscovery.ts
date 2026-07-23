@@ -258,6 +258,98 @@ const createIssue = (
   }
 }
 
+const sourceErrorCode = (error: unknown): string | undefined =>
+  typeof error === 'object'
+  && error !== null
+  && 'code' in error
+  && typeof (error as { code?: unknown }).code === 'string'
+    ? (error as { code: string }).code
+    : undefined
+
+const isSourcePathError = (error: unknown): boolean => {
+  const code = sourceErrorCode(error)
+  return code === 'SOURCE_PATH_OUTSIDE_ROOT' || code === 'SOURCE_PATH_UNSAFE'
+}
+
+const fileSystemFailureIssue = (
+  operation: 'inspect' | 'list' | 'read',
+  options: {
+    path: string
+    candidatePath?: string
+    packageId?: PackageId
+    registryId?: RegistryTypeId
+    severity?: ModDiagnosticSeverity
+    error: unknown
+  }
+): ThirdPartyDataPackDiscoveryIssue => {
+  const code = sourceErrorCode(options.error)
+  return createIssue(isSourcePathError(options.error) ? 'path-unsafe' : 'file-read-failed', {
+    path: options.path,
+    candidatePath: options.candidatePath,
+    packageId: options.packageId,
+    registryId: options.registryId,
+    severity: options.severity,
+    reason: `Package source ${operation} operation failed`,
+    details: {
+      message: errorMessage(options.error),
+      ...(code ? { sourceCode: code } : {})
+    }
+  })
+}
+
+const getFileSystemEntry = async (
+  fileSystem: ThirdPartyDiscoveryFileSystem,
+  filePath: string,
+  displayPath: string,
+  context: {
+    candidatePath?: string
+    packageId?: PackageId
+    registryId?: RegistryTypeId
+    severity?: ModDiagnosticSeverity
+  } = {}
+): Promise<
+  | { ok: true; entry: ThirdPartyDiscoveryDirectoryEntry | null }
+  | { ok: false; issue: ThirdPartyDataPackDiscoveryIssue }
+> => {
+  try {
+    return { ok: true, entry: await fileSystem.getEntry(filePath) }
+  } catch (error) {
+    return {
+      ok: false,
+      issue: fileSystemFailureIssue('inspect', {
+        path: displayPath,
+        candidatePath: context.candidatePath,
+        packageId: context.packageId,
+        registryId: context.registryId,
+        severity: context.severity,
+        error
+      })
+    }
+  }
+}
+
+const readFileSystemDirectory = async (
+  fileSystem: ThirdPartyDiscoveryFileSystem,
+  directoryPath: string,
+  displayPath: string
+): Promise<
+  | { ok: true; entries: readonly ThirdPartyDiscoveryDirectoryEntry[] }
+  | { ok: false; issue: ThirdPartyDataPackDiscoveryIssue }
+> => {
+  try {
+    return { ok: true, entries: await fileSystem.readDirectory(directoryPath) }
+  } catch (error) {
+    return {
+      ok: false,
+      issue: fileSystemFailureIssue('list', {
+        path: displayPath,
+        severity: 'fatal',
+        error
+      })
+    }
+  }
+}
+
 const parseJsonText = (
   text: string,
   context: {
@@ -324,13 +416,12 @@ const readJsonFile = async (
   } catch (error) {
     return {
       ok: false,
-      issue: createIssue('file-read-failed', {
+      issue: fileSystemFailureIssue('read', {
         path: displayPath,
         candidatePath: context.candidatePath,
         packageId: context.packageId,
         registryId: context.registryId,
-        reason: 'File could not be read',
-        details: { message: errorMessage(error) }
+        error
       })
     }
   }
@@ -385,7 +476,14 @@ const resolveSafePackageFile = async (
   let currentPath = packageRoot
   for (let index = 0; index < segments.length; index += 1) {
     currentPath = joinFilePath(currentPath, segments[index]!)
-    const entry = await fileSystem.getEntry(currentPath)
+    const entryResult = await getFileSystemEntry(fileSystem, currentPath, `${packageDisplayPath}/${normalizedPath}`, {
+      packageId: context.packageId,
+      registryId: context.registryId
+    })
+    if (!entryResult.ok) {
+      return { ok: false, issue: entryResult.issue }
+    }
+    const entry = entryResult.entry
     const isFinal = index === segments.length - 1
     if (!entry) {
       return {
@@ -865,7 +963,19 @@ const scanCandidateDirectory = async (
   const manifestDisplayPath = `${candidatePath}/manifest.json`
   const manifestFilePath = joinFilePath(candidateRoot, 'manifest.json')
 
-  const manifestEntry = await fileSystem.getEntry(manifestFilePath)
+  const manifestEntryResult = await getFileSystemEntry(fileSystem, manifestFilePath, manifestDisplayPath, {
+    candidatePath
+  })
+  if (!manifestEntryResult.ok) {
+    return {
+      path: candidatePath,
+      status: 'invalid',
+      contentFiles,
+      issues: [manifestEntryResult.issue]
+    }
+  }
+
+  const manifestEntry = manifestEntryResult.entry
   if (!manifestEntry || manifestEntry.kind !== 'file' || manifestEntry.isSymbolicLink) {
     const kind = manifestEntry?.isSymbolicLink ? 'path-unsafe' : 'missing-manifest'
     issues.push(createIssue(kind, {
@@ -978,7 +1088,24 @@ export const discoverThirdPartyDataPacks = async (
   rootDirectory: string,
   fileSystem: ThirdPartyDiscoveryFileSystem
 ): Promise<ThirdPartyDataPackDiscoveryReport> => {
-  const rootEntry = await fileSystem.getEntry(rootDirectory)
+  const rootEntryResult = await getFileSystemEntry(fileSystem, rootDirectory, '.', { severity: 'fatal' })
+  if (!rootEntryResult.ok) {
+    const issue = rootEntryResult.issue
+    return {
+      status: 'directory-not-found',
+      candidates: [],
+      issues: [issue],
+      summary: {
+        scannedEntries: 0,
+        candidateCount: 0,
+        validPackageCount: 0,
+        invalidPackageCount: 0,
+        issueCount: 1
+      }
+    }
+  }
+
+  const rootEntry = rootEntryResult.entry
   if (!rootEntry || rootEntry.kind !== 'directory' || rootEntry.isSymbolicLink) {
     const issue = createIssue(rootEntry?.isSymbolicLink ? 'path-unsafe' : 'directory-not-found', {
       path: '.',
@@ -1001,7 +1128,24 @@ export const discoverThirdPartyDataPacks = async (
     }
   }
 
-  const entries = sortEntries(await fileSystem.readDirectory(rootDirectory))
+  const rootEntriesResult = await readFileSystemDirectory(fileSystem, rootDirectory, '.')
+  if (!rootEntriesResult.ok) {
+    const issue = rootEntriesResult.issue
+    return {
+      status: 'directory-not-found',
+      candidates: [],
+      issues: [issue],
+      summary: {
+        scannedEntries: 0,
+        candidateCount: 0,
+        validPackageCount: 0,
+        invalidPackageCount: 0,
+        issueCount: 1
+      }
+    }
+  }
+
+  const entries = sortEntries(rootEntriesResult.entries)
   if (entries.length === 0) {
     const issue = createIssue('empty-directory', {
       path: '.',

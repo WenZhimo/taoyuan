@@ -2,6 +2,7 @@ import { cwd } from 'node:process'
 import { describe, expect, it } from 'vitest'
 import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+  type ContentPackageSource,
   ContentPackageSourceError,
   createDiscoveryFileSystemFromContentPackageSource,
   createMemoryContentPackageSource,
@@ -46,6 +47,41 @@ const createValidSource = () => createMemoryContentPackageSource({
     { path: 'valid-gift-pack/locales/zh-CN.json', text: '{}\n' },
     { path: 'valid-gift-pack/data/items.json', text: toJson([createItem()]) }
   ]
+})
+
+const createManifestInspectionFailureSource = (): ContentPackageSource => ({
+  identity: {
+    contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+    kind: 'memory',
+    sourceId: 'memory/manifest-inspection-failure',
+    rootPath: 'packs'
+  },
+  async getEntry(path) {
+    if (path === '') {
+      return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+    }
+    if (path === 'blocked-pack') {
+      return { name: 'blocked-pack', kind: 'directory', isSymbolicLink: false }
+    }
+    if (path === 'blocked-pack/manifest.json') {
+      throw new ContentPackageSourceError(
+        'SOURCE_PERMISSION_REVOKED',
+        'Source permission was revoked while inspecting manifest',
+        path
+      )
+    }
+    return null
+  },
+  async readDirectory(path) {
+    if (path === '') {
+      return [{ name: 'blocked-pack', kind: 'directory', isSymbolicLink: false }]
+    }
+    throw new ContentPackageSourceError('SOURCE_ENTRY_NOT_DIRECTORY', 'Only root can be listed', path)
+  },
+  async readTextFile(path) {
+    throw new ContentPackageSourceError('SOURCE_ENTRY_NOT_FOUND', 'No files can be read', path)
+  },
+  async dispose() {}
 })
 
 describe('content package source contract', () => {
@@ -151,6 +187,74 @@ describe('content package source contract', () => {
     expect(await readContentPackageSourceJson(disposed, 'valid-gift-pack/manifest.json')).toMatchObject({
       ok: false,
       code: 'SOURCE_DISPOSED'
+    })
+  })
+
+  it('turns unavailable package sources into structured discovery diagnostics', async() => {
+    const revoked = createValidSource()
+    revoked.revoke()
+
+    const revokedReport = await discoverThirdPartyDataPacks(
+      revoked.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(revoked)
+    )
+    const outsideRootReport = await discoverThirdPartyDataPacks(
+      'outside-root',
+      createDiscoveryFileSystemFromContentPackageSource(createValidSource())
+    )
+
+    expect(revokedReport.status).toBe('directory-not-found')
+    expect(revokedReport.summary.issueCount).toBe(1)
+    expect(revokedReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(revokedReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+
+    expect(outsideRootReport.status).toBe('directory-not-found')
+    expect(outsideRootReport.issues[0]).toMatchObject({
+      kind: 'path-unsafe',
+      severity: 'fatal',
+      path: '.'
+    })
+    expect(outsideRootReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_PATH_OUTSIDE_ROOT'
+    })
+  })
+
+  it('keeps candidate-level source inspection failures inside the discovery report', async() => {
+    const source = createManifestInspectionFailureSource()
+
+    const report = await discoverThirdPartyDataPacks(
+      source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+
+    expect(report.status).toBe('completed')
+    expect(report.summary).toMatchObject({
+      scannedEntries: 1,
+      candidateCount: 1,
+      validPackageCount: 0,
+      invalidPackageCount: 1,
+      issueCount: 1
+    })
+    expect(report.candidates[0]).toMatchObject({
+      path: 'blocked-pack',
+      status: 'invalid'
+    })
+    expect(report.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'error',
+      path: 'blocked-pack/manifest.json',
+      candidatePath: 'blocked-pack',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(report.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
     })
   })
 })
