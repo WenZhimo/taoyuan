@@ -227,6 +227,49 @@ const expectNoWriteEffects = (preflight: ReturnType<typeof buildThirdPartyDataPa
   })
 }
 
+const expectLifecycleOperations = (
+  preflight: ReturnType<typeof buildThirdPartyDataPackTransactionPreflight>,
+  status: 'deferred' | 'skipped' | 'blocked'
+): void => {
+  expect(preflight.lifecycleOperations.map(operation => operation.operation)).toEqual([
+    'install',
+    'upgrade',
+    'disable',
+    'uninstall'
+  ])
+
+  for (const operation of preflight.lifecycleOperations) {
+    expect(operation.status).toBe(status)
+    expect(operation.currentStage).toBe('discovered')
+    expect(operation.commitAllowed).toBe(false)
+    expect(operation.reason.length).toBeGreaterThan(0)
+    expect(operation.stages.map(stage => stage.id)).toEqual([
+      'discovered',
+      'staged',
+      'verified',
+      'resolved',
+      'mounted',
+      'committed'
+    ])
+    expect(operation.stages.every(stage => stage.reason.length > 0)).toBe(true)
+
+    if (status === 'deferred') {
+      expect(operation.nextStage).toBe('staged')
+      expect(operation.stages.map(stage => stage.status)).toEqual([
+        'satisfied',
+        'deferred',
+        'deferred',
+        'deferred',
+        'deferred',
+        'deferred'
+      ])
+    } else {
+      expect(operation.nextStage).toBeUndefined()
+      expect(operation.stages.every(stage => stage.status === status)).toBe(true)
+    }
+  }
+}
+
 const expectOfficialBaseline = (): void => {
   const registrySet = buildOfficialRegistrySetFromStaticData()
   const snapshot = createSerializableRegistrySnapshot(registrySet)
@@ -275,6 +318,7 @@ describe('third-party data pack transaction preflight', () => {
       'transaction-recovery-log',
       'rollback-verification'
     ])
+    expectLifecycleOperations(transactionPreflight, 'deferred')
     expect('candidateRegistrySet' in transactionPreflight).toBe(false)
     expect('candidateSnapshot' in transactionPreflight).toBe(false)
     expect('lockfileDraft' in transactionPreflight).toBe(false)
@@ -295,6 +339,7 @@ describe('third-party data pack transaction preflight', () => {
     expect(transactionPreflight.entryCount).toBe(4242)
     expect(transactionPreflight.packageCount).toBe(0)
     expect(transactionPreflight.requiredTransactions).toEqual([])
+    expectLifecycleOperations(transactionPreflight, 'skipped')
     expectNoWriteEffects(transactionPreflight)
     expectOfficialBaseline()
   }, 15_000)
@@ -318,6 +363,7 @@ describe('third-party data pack transaction preflight', () => {
       expect.objectContaining({ code: 'SCHEMA-VALIDATE-001' }),
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })
     ]))
+    expectLifecycleOperations(transactionPreflight, 'blocked')
     expectNoWriteEffects(transactionPreflight)
     expectOfficialBaseline()
   }, 15_000)

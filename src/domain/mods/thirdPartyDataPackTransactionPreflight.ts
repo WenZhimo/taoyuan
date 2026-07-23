@@ -13,6 +13,19 @@ import {
 } from './thirdPartyDataPackRuntimeMountGate'
 
 export type ThirdPartyDataPackTransactionPreflightStatus = 'deferred' | 'skipped' | 'blocked'
+export type ThirdPartyDataPackTransactionOperation = 'install' | 'upgrade' | 'disable' | 'uninstall'
+export type ThirdPartyDataPackTransactionLifecycleStage =
+  | 'discovered'
+  | 'staged'
+  | 'verified'
+  | 'resolved'
+  | 'mounted'
+  | 'committed'
+export type ThirdPartyDataPackTransactionLifecycleStageStatus =
+  | 'satisfied'
+  | 'deferred'
+  | 'skipped'
+  | 'blocked'
 
 export type ThirdPartyDataPackTransactionRequirementId =
   | 'staged-package-file-transaction'
@@ -24,6 +37,22 @@ export type ThirdPartyDataPackTransactionRequirementId =
 export interface ThirdPartyDataPackTransactionRequirement {
   readonly id: ThirdPartyDataPackTransactionRequirementId
   readonly status: 'required'
+  readonly reason: string
+}
+
+export interface ThirdPartyDataPackTransactionLifecycleStageSummary {
+  readonly id: ThirdPartyDataPackTransactionLifecycleStage
+  readonly status: ThirdPartyDataPackTransactionLifecycleStageStatus
+  readonly reason: string
+}
+
+export interface ThirdPartyDataPackTransactionLifecycleOperationSummary {
+  readonly operation: ThirdPartyDataPackTransactionOperation
+  readonly status: ThirdPartyDataPackTransactionPreflightStatus
+  readonly currentStage: ThirdPartyDataPackTransactionLifecycleStage
+  readonly nextStage?: ThirdPartyDataPackTransactionLifecycleStage
+  readonly commitAllowed: false
+  readonly stages: readonly ThirdPartyDataPackTransactionLifecycleStageSummary[]
   readonly reason: string
 }
 
@@ -59,6 +88,7 @@ export interface ThirdPartyDataPackTransactionPreflightResult {
   readonly recoveryRequired: false
   readonly rollbackRequired: false
   readonly requiredTransactions: readonly ThirdPartyDataPackTransactionRequirement[]
+  readonly lifecycleOperations: readonly ThirdPartyDataPackTransactionLifecycleOperationSummary[]
   readonly effects: ThirdPartyDataPackTransactionPreflightEffectSummary
 }
 
@@ -107,6 +137,83 @@ const transactionRequirements = (): readonly ThirdPartyDataPackTransactionRequir
   }
 ]
 
+const transactionLifecycleStages: readonly ThirdPartyDataPackTransactionLifecycleStage[] = [
+  'discovered',
+  'staged',
+  'verified',
+  'resolved',
+  'mounted',
+  'committed'
+]
+
+const transactionOperations: readonly ThirdPartyDataPackTransactionOperation[] = [
+  'install',
+  'upgrade',
+  'disable',
+  'uninstall'
+]
+
+const operationReasons: Record<ThirdPartyDataPackTransactionOperation, string> = {
+  install: 'Install remains deferred until staged package writes, lockfile commit and recovery primitives exist.',
+  upgrade: 'Upgrade remains deferred until previous package retention, staged replacement and rollback verification exist.',
+  disable: 'Disable remains deferred until dependency re-resolution and installation settings commits exist.',
+  uninstall: 'Uninstall remains deferred until a successful disable transaction, package backup policy and rollback verification exist.'
+}
+
+const createDeferredStageSummaries = (): readonly ThirdPartyDataPackTransactionLifecycleStageSummary[] =>
+  transactionLifecycleStages.map(stage => {
+    if (stage === 'discovered') {
+      return {
+        id: stage,
+        status: 'satisfied',
+        reason: 'Discovery, selection and candidate identity were already evaluated by the read-only upstream gates.'
+      }
+    }
+
+    return {
+      id: stage,
+      status: 'deferred',
+      reason: 'Lifecycle transaction writes and recovery primitives are not implemented in this no-write slice.'
+    }
+  })
+
+const createTerminalStageSummaries = (
+  status: Exclude<ThirdPartyDataPackTransactionPreflightStatus, 'deferred'>,
+  reason: string
+): readonly ThirdPartyDataPackTransactionLifecycleStageSummary[] =>
+  transactionLifecycleStages.map(stage => ({
+    id: stage,
+    status,
+    reason
+  }))
+
+const createLifecycleOperations = (
+  status: ThirdPartyDataPackTransactionPreflightStatus,
+  reason: string
+): readonly ThirdPartyDataPackTransactionLifecycleOperationSummary[] =>
+  transactionOperations.map(operation => {
+    if (status === 'deferred') {
+      return {
+        operation,
+        status,
+        currentStage: 'discovered',
+        nextStage: 'staged',
+        commitAllowed: false,
+        stages: createDeferredStageSummaries(),
+        reason: operationReasons[operation]
+      }
+    }
+
+    return {
+      operation,
+      status,
+      currentStage: 'discovered',
+      commitAllowed: false,
+      stages: createTerminalStageSummaries(status, reason),
+      reason
+    }
+  })
+
 const baseResult = (
   status: ThirdPartyDataPackTransactionPreflightStatus,
   reason: string,
@@ -132,6 +239,7 @@ const baseResult = (
   recoveryRequired: false,
   rollbackRequired: false,
   requiredTransactions,
+  lifecycleOperations: createLifecycleOperations(status, reason),
   effects: createEffectSummary()
 })
 

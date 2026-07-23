@@ -828,6 +828,7 @@ const formatTransactionPreflightReport = transactionPreflightReport => {
     `  recoveryRequired: ${transactionPreflightReport.recoveryRequired}`,
     `  rollbackRequired: ${transactionPreflightReport.rollbackRequired}`,
     `  requiredTransactions: ${transactionPreflightReport.requiredTransactions.length}`,
+    `  lifecycleOperations: ${transactionPreflightReport.lifecycleOperations.length}`,
     `  candidatePublished: ${transactionPreflightReport.effects.thirdPartyRegistryPublished}`,
     `  packageFilesWritten: ${transactionPreflightReport.effects.packageFilesWritten}`,
     `  packageBackupsWritten: ${transactionPreflightReport.effects.packageBackupsWritten}`,
@@ -848,6 +849,19 @@ const formatTransactionPreflightReport = transactionPreflightReport => {
     for (const requirement of transactionPreflightReport.requiredTransactions) {
       lines.push(`    - ${requirement.id}: ${requirement.status}`)
       lines.push(`      reason: ${requirement.reason}`)
+    }
+  }
+  if (transactionPreflightReport.lifecycleOperations.length > 0) {
+    lines.push('  lifecycle operations:')
+    for (const operation of transactionPreflightReport.lifecycleOperations) {
+      lines.push(`    - ${operation.operation}: ${operation.status}`)
+      lines.push(`      currentStage: ${operation.currentStage}`)
+      if (operation.nextStage) {
+        lines.push(`      nextStage: ${operation.nextStage}`)
+      }
+      lines.push(`      commitAllowed: ${operation.commitAllowed}`)
+      lines.push(`      stages: ${operation.stages.map(stage => `${stage.id}:${stage.status}`).join(', ')}`)
+      lines.push(`      reason: ${operation.reason}`)
     }
   }
 

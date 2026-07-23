@@ -15754,7 +15754,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Consumes the read-only Runtime Mount Gate and produces a lifecycle transaction preflight report that keeps commits deferred, enumerates missing staged package, settings, lockfile, recovery log and rollback verification primitives, and performs no package, backup, registry, lockfile, settings, save, cache or transaction-log writes."
+      "rationale": "Consumes the read-only Runtime Mount Gate and produces a lifecycle transaction preflight report that keeps commits deferred, enumerates missing staged package, settings, lockfile, recovery log and rollback verification primitives, exposes the install/upgrade/disable/uninstall discovered-to-committed no-write state matrix, and performs no package, backup, registry, lockfile, settings, save, cache or transaction-log writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRuntimeAdapterGate.ts",
@@ -15934,7 +15934,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers deferred, skipped and blocked transaction preflight outcomes, required lifecycle transaction primitive enumeration, absence of candidate artifact exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers deferred, skipped and blocked transaction preflight outcomes, required lifecycle transaction primitive enumeration, install/upgrade/disable/uninstall stage summaries, absence of candidate artifact exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackRuntimeAdapterGate.test.ts",
