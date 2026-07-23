@@ -6364,6 +6364,16 @@ const reviewedArtifacts = [
     rationale: 'Defines the second 7E internal mod-lock storage boundary: resolves an injected absolute program directory to program-directory userdata/mod-lock.json, delegates validated read/write work to the existing atomic file primitive, returns structured inspect/read/write reports, and keeps runtime enablement, Electron IPC, registry publication, package files, backups, settings, saves, official cache and transaction logs out of scope.'
   },
   {
+    file: 'src/domain/mods/electronModLockStorageProbe.ts',
+    exportName: 'resolveElectronThirdPartyDataPackModLockProgramDirectoryPath/createElectronThirdPartyDataPackModLockStorageProbe',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-mod-lock-storage-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Defines the third 7E Electron main-process mod-lock storage path probe: resolves a packaged process executable directory or PORTABLE_EXECUTABLE_DIR-style override to program-directory userdata/mod-lock.json, explicitly observes but does not use configured app userData, delegates inspect/read/write to the pure storage adapter, and keeps runtime enablement, renderer IPC, desktop startup changes, package files, backups, settings, saves, official cache and transaction logs out of scope.'
+  },
+  {
     file: 'src/domain/mods/thirdPartyDataPackMountPreflight.ts',
     exportName: 'buildThirdPartyDataPackMountPreflight',
     classification: 'adapter',
@@ -6532,6 +6542,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers program-directory userdata path resolution without creating directories, missing and invalid path reports, successful adapter write/read through the atomic file primitive, interruption and replace-failure rollback, temporary-file cleanup, no runtime enablement or IPC exposure, and protection for settings, save-like files, official cache, package files, transaction logs and official 54/4242 five-hash baseline.'
+  },
+  {
+    file: 'src/tests/domain/electronModLockStorageProbe.test.ts',
+    exportName: 'electron mod-lock storage path probe fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-mod-lock-storage-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers packaged executable-directory and PORTABLE_EXECUTABLE_DIR-style program-directory resolution, no fallback to configured app userData, missing and invalid path reports without unrelated directory creation, successful probe write/read through the existing storage adapter, interruption and replace-failure rollback, temporary-file cleanup, no renderer IPC/runtime enablement/desktop startup changes, and protection for settings, save-like files, official cache, package files, transaction logs and official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackMountPreflight.test.ts',
