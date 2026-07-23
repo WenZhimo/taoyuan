@@ -279,7 +279,7 @@ const expectOfficialBaseline = (): void => {
 }
 
 describe('third-party data pack source adapter gate', () => {
-  it('defers source contracts for ready runtime adapter gates until stable source boundaries exist', async() => {
+  it('keeps runtime adapters deferred after the shared source contract is defined', async() => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
 
@@ -288,10 +288,10 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.status).toBe('deferred')
     expect(sourceAdapterGate.runtimeAdapterGateStatus).toBe('deferred')
     expect(sourceAdapterGate.reason).toBe(
-      'content package source contract is intentionally deferred until stable platform source boundaries are implemented'
+      'content package source contract is defined; runtime platform source adapters remain intentionally deferred'
     )
-    expect(sourceAdapterGate.sourceContractReadiness).toBe('deferred')
-    expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(false)
+    expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
+    expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
     expect(sourceAdapterGate.runtimeEnablementAllowed).toBe(false)
     expect(sourceAdapterGate.selectedPackageIds).toEqual(['discovery_valid'])
     expect(sourceAdapterGate.loadOrder).toEqual(['discovery_valid'])
@@ -300,13 +300,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.packageCount).toBe(1)
     expect(sourceAdapterGate.candidateIdentity?.candidateHash).toBe(candidateSnapshot.candidateIdentity?.candidateHash)
     expect(sourceAdapterGate.lockfileHash).toBe(lockfileDraftResult.draft?.lockfileHash)
-    expect(sourceAdapterGate.requiredSourceContracts.map(requirement => requirement.id)).toEqual([
-      'content-package-source-identity',
-      'pure-json-read-boundary',
-      'normalized-relative-source-paths',
-      'permission-revocation-recovery',
-      'source-lifetime-disposal'
-    ])
+    expect(sourceAdapterGate.requiredSourceContracts).toEqual([])
     expect('candidateRegistrySet' in sourceAdapterGate).toBe(false)
     expect('candidateSnapshot' in sourceAdapterGate).toBe(false)
     expect('lockfileDraft' in sourceAdapterGate).toBe(false)
@@ -328,6 +322,8 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.registryCount).toBe(54)
     expect(sourceAdapterGate.entryCount).toBe(4242)
     expect(sourceAdapterGate.packageCount).toBe(0)
+    expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
+    expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
     expect(sourceAdapterGate.requiredSourceContracts).toEqual([])
     expectNoWriteEffects(sourceAdapterGate)
     expectOfficialBaseline()
@@ -347,6 +343,8 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.reason).toBe('discovery failed')
     expect(sourceAdapterGate.registryCount).toBe(54)
     expect(sourceAdapterGate.entryCount).toBe(4242)
+    expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
+    expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
     expect(sourceAdapterGate.requiredSourceContracts).toEqual([])
     expect(sourceAdapterGate.diagnostics).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'SCHEMA-VALIDATE-001' }),

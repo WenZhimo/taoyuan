@@ -6384,6 +6384,16 @@ const reviewedArtifacts = [
     rationale: 'Consumes the read-only Transaction Preflight and produces a runtime platform adapter gate report that keeps runtime enablement deferred, enumerates missing Electron, Web, Android, shared core and storage-isolation adapters, and performs no IPC exposure, import persistence, registry, package, lockfile, settings, save, cache or transaction-log writes.'
   },
   {
+    file: 'src/domain/mods/contentPackageSource.ts',
+    exportName: 'ContentPackageSource/createMemoryContentPackageSource/createDiscoveryFileSystemFromContentPackageSource/readContentPackageSourceJson',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Defines the first shared, platform-neutral ContentPackageSource contract with stable relative identity, normalized source paths, unknown JSON read boundary, permission revocation, disposal and a read-only bridge into the existing discovery pipeline; the memory adapter performs no platform source opening, handle retention, IPC exposure, persistence, package, lockfile, settings, save, cache or transaction-log writes.'
+  },
+  {
     file: 'src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts',
     exportName: 'buildThirdPartyDataPackSourceAdapterGate',
     classification: 'adapter',
@@ -6391,7 +6401,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Consumes the read-only Runtime Adapter Gate and produces a content package source contract gate report that keeps runtime enablement deferred, enumerates missing stable source identity, pure JSON read, normalized relative path, permission revocation and source disposal contracts, and performs no platform source opening, source-handle retention, IPC exposure, import persistence, registry, package, lockfile, settings, save, cache or transaction-log writes.'
+    rationale: 'Consumes the read-only Runtime Adapter Gate and reports that the shared ContentPackageSource contract is defined while keeping runtime enablement deferred until real Electron, Web and Android source adapters implement it; it performs no platform source opening, source-handle retention, IPC exposure, import persistence, registry, package, lockfile, settings, save, cache or transaction-log writes.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackRepairReport.ts',
@@ -6514,6 +6524,16 @@ const reviewedArtifacts = [
     rationale: 'Covers deferred, skipped and blocked runtime adapter gate outcomes, required Electron/Web/Android/shared adapter enumeration, absence of candidate artifact exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'content package source contract fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers the platform-neutral memory ContentPackageSource contract, discovery bridge parity, stable relative identity without absolute paths, path normalization and rejection, unknown JSON parsing boundary, permission revocation, disposal and no source-handle persistence.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackSourceAdapterGate.test.ts',
     exportName: 'third-party source adapter gate fixture matrix',
     classification: 'adapter',
@@ -6521,7 +6541,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers deferred, skipped and blocked source adapter gate outcomes, required content source contract enumeration, absence of candidate artifact and platform source exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers deferred, skipped and blocked source adapter gate outcomes after the shared source contract is defined, absence of candidate artifact and platform source exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackRepairReport.test.ts',

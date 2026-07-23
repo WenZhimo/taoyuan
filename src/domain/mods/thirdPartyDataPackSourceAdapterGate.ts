@@ -14,12 +14,8 @@ import {
 
 export type ThirdPartyDataPackSourceAdapterGateStatus = 'deferred' | 'skipped' | 'blocked'
 
-export type ThirdPartyDataPackSourceContractRequirementId =
-  | 'content-package-source-identity'
-  | 'pure-json-read-boundary'
-  | 'normalized-relative-source-paths'
-  | 'permission-revocation-recovery'
-  | 'source-lifetime-disposal'
+export type ThirdPartyDataPackSourceContractReadiness = 'defined'
+export type ThirdPartyDataPackSourceContractRequirementId = never
 
 export interface ThirdPartyDataPackSourceContractRequirement {
   readonly id: ThirdPartyDataPackSourceContractRequirementId
@@ -58,8 +54,8 @@ export interface ThirdPartyDataPackSourceAdapterGateResult {
   readonly officialIdentity: ThirdPartyCandidateOfficialIdentitySummary
   readonly candidateIdentity?: ThirdPartyCandidateIdentitySummary
   readonly lockfileHash?: Sha256Hash
-  readonly sourceContractReadiness: 'deferred'
-  readonly contentPackageSourceContractStable: false
+  readonly sourceContractReadiness: ThirdPartyDataPackSourceContractReadiness
+  readonly contentPackageSourceContractStable: true
   readonly runtimeEnablementAllowed: false
   readonly requiredSourceContracts: readonly ThirdPartyDataPackSourceContractRequirement[]
   readonly effects: ThirdPartyDataPackSourceAdapterGateEffectSummary
@@ -86,34 +82,6 @@ const createEffectSummary = (): ThirdPartyDataPackSourceAdapterGateEffectSummary
   transactionLogWritten: false
 })
 
-const sourceContractRequirements = (): readonly ThirdPartyDataPackSourceContractRequirement[] => [
-  {
-    id: 'content-package-source-identity',
-    status: 'required',
-    reason: 'Define the stable ContentPackageSource identity fields before platform adapters can pass package sources into shared core validation.'
-  },
-  {
-    id: 'pure-json-read-boundary',
-    status: 'required',
-    reason: 'Define a read boundary that treats every platform file payload as unknown pure JSON before TypeBox validation.'
-  },
-  {
-    id: 'normalized-relative-source-paths',
-    status: 'required',
-    reason: 'Define normalized relative package paths that exclude absolute paths, platform separators, time, locale and permission handles from source identity.'
-  },
-  {
-    id: 'permission-revocation-recovery',
-    status: 'required',
-    reason: 'Define how Electron, Web and Android adapters recover when a source permission is revoked before mount completion.'
-  },
-  {
-    id: 'source-lifetime-disposal',
-    status: 'required',
-    reason: 'Define when temporary source handles must be released so validation reports do not retain platform file handles after the read-only pass.'
-  }
-]
-
 const baseResult = (
   status: ThirdPartyDataPackSourceAdapterGateStatus,
   reason: string,
@@ -134,8 +102,8 @@ const baseResult = (
   officialIdentity: runtimeAdapterGate.officialIdentity,
   candidateIdentity: runtimeAdapterGate.candidateIdentity,
   lockfileHash: runtimeAdapterGate.lockfileHash,
-  sourceContractReadiness: 'deferred',
-  contentPackageSourceContractStable: false,
+  sourceContractReadiness: 'defined',
+  contentPackageSourceContractStable: true,
   runtimeEnablementAllowed: false,
   requiredSourceContracts,
   effects: createEffectSummary()
@@ -166,8 +134,8 @@ export const buildThirdPartyDataPackSourceAdapterGate = (
 
   return baseResult(
     'deferred',
-    'content package source contract is intentionally deferred until stable platform source boundaries are implemented',
+    'content package source contract is defined; runtime platform source adapters remain intentionally deferred',
     runtimeAdapterGate,
-    sourceContractRequirements()
+    []
   )
 }
