@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 230
+    "reviewedArtifactCount": 232
   },
   "entries": [
     {
@@ -15769,6 +15769,18 @@
       "rationale": "Defines the shared, platform-neutral ContentPackageSource contract with stable relative identity, normalized source paths, file/directory/other entry metadata, symbolic-link flags, unknown JSON read boundary, permission revocation, disposal, runtime source identity validation and a read-only bridge into the existing discovery pipeline; malformed identities, revoked, disposed, unsafe or otherwise unavailable sources are surfaced as structured discovery diagnostics with source error codes, and the memory adapter and developer-cli-directory identity perform no platform source opening, handle retention, IPC exposure, persistence, package, lockfile, settings, save, cache or transaction-log writes."
     },
     {
+      "file": "src/domain/mods/electronContentPackageSourceProbe.ts",
+      "exportName": "createElectronReadonlyDirectoryProbeSource/buildElectronReadonlySourceAdapterProbeReport",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/electron-source-adapter-probe",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Defines the first 7A Electron read-only source adapter probe behind the shared ContentPackageSource contract: uses stable relative identity kind electron-readonly-directory-probe, sourceId electron/mods-readonly-probe and rootPath mods, accepts a controlled main-process host boundary, inspects package sources without exposing IPC or UI, keeps runtime enablement false, releases the source lifecycle and performs no package, lockfile, settings, save, cache or transaction-log writes."
+    },
+    {
       "file": "src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts",
       "exportName": "buildThirdPartyDataPackSourceAdapterGate",
       "classification": "adapter",
@@ -15935,6 +15947,18 @@
       ],
       "status": "verified",
       "rationale": "Covers the platform-neutral memory ContentPackageSource contract, discovery bridge parity, stable relative identity without absolute paths, runtime identity validation, path normalization and rejection, unknown JSON parsing boundary, permission revocation, disposal, structured discovery diagnostics for unavailable or malformed sources, candidate-level source failure containment and no source-handle persistence."
+    },
+    {
+      "file": "src/tests/domain/electronContentPackageSourceProbe.test.ts",
+      "exportName": "electron read-only source adapter probe fixture matrix",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/electron-source-adapter-probe",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers Electron read-only source probe identity without absolute paths, discovery of a controlled mods directory through the shared ContentPackageSource bridge, unknown JSON reading, no runtime enablement, no IPC exposure, no lockfile/settings/save/cache/package/transaction-log writes, unsafe path rejection, disposal diagnostics, source read failure containment and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackSourceAdapterGate.test.ts",

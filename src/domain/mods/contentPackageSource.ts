@@ -4,7 +4,10 @@ import type { ThirdPartyDiscoveryFileSystem, ThirdPartyDiscoveryDirectoryEntry }
 
 export const CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION = 1
 
-export type ContentPackageSourceKind = 'memory' | 'developer-cli-directory'
+export type ContentPackageSourceKind =
+  | 'memory'
+  | 'developer-cli-directory'
+  | 'electron-readonly-directory-probe'
 export type ContentPackageSourceEntryKind = 'file' | 'directory' | 'other'
 
 export type ContentPackageSourceErrorCode =
@@ -73,7 +76,11 @@ export type ContentPackageSourceJsonReadResult =
   | { readonly ok: false; readonly code: ContentPackageSourceErrorCode; readonly message: string }
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
-const supportedSourceKinds = new Set<ContentPackageSourceKind>(['memory', 'developer-cli-directory'])
+const supportedSourceKinds = new Set<ContentPackageSourceKind>([
+  'memory',
+  'developer-cli-directory',
+  'electron-readonly-directory-probe'
+])
 
 export const normalizeContentPackageSourcePath = (path: string): string => {
   if (path === '') return ''
