@@ -8,6 +8,7 @@ export type ContentPackageSourceKind = 'memory' | 'developer-cli-directory'
 export type ContentPackageSourceEntryKind = 'file' | 'directory' | 'other'
 
 export type ContentPackageSourceErrorCode =
+  | 'SOURCE_IDENTITY_INVALID'
   | 'SOURCE_DUPLICATE_PATH'
   | 'SOURCE_ENTRY_NOT_DIRECTORY'
   | 'SOURCE_ENTRY_NOT_FILE'
@@ -72,6 +73,7 @@ export type ContentPackageSourceJsonReadResult =
   | { readonly ok: false; readonly code: ContentPackageSourceErrorCode; readonly message: string }
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
+const supportedSourceKinds = new Set<ContentPackageSourceKind>(['memory', 'developer-cli-directory'])
 
 export const normalizeContentPackageSourcePath = (path: string): string => {
   if (path === '') return ''
@@ -102,6 +104,39 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
       `${fieldName} must be a normalized relative identifier: ${errorMessage(error)}`,
       value
     )
+  }
+}
+
+export const validateContentPackageSourceIdentity = (
+  identity: ContentPackageSourceIdentity
+): ContentPackageSourceIdentity => {
+  if (identity.contractVersion !== CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION) {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      `Unsupported content package source contract version: ${String(identity.contractVersion)}`
+    )
+  }
+  if (!supportedSourceKinds.has(identity.kind)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      `Unsupported content package source kind: ${String(identity.kind)}`
+    )
+  }
+
+  const sourceId = normalizeIdentityPart(identity.sourceId, 'sourceId')
+  const rootPath = normalizeIdentityPart(identity.rootPath, 'rootPath')
+  if (sourceId !== identity.sourceId || rootPath !== identity.rootPath) {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      'Content package source identity must already use normalized relative sourceId and rootPath'
+    )
+  }
+
+  return {
+    contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+    kind: identity.kind,
+    sourceId,
+    rootPath
   }
 }
 
@@ -265,6 +300,7 @@ export const readContentPackageSourceJson = async (
 }
 
 const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string => {
+  const identity = validateContentPackageSourceIdentity(source.identity)
   let normalizedPath: string
   try {
     normalizedPath = normalizePackagePath(path)
@@ -272,7 +308,7 @@ const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string 
     throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', errorMessage(error), path)
   }
 
-  const rootPath = source.identity.rootPath
+  const rootPath = identity.rootPath
   if (normalizedPath === rootPath) return ''
   const rootPrefix = `${rootPath}/`
   if (!normalizedPath.startsWith(rootPrefix)) {

@@ -7,7 +7,8 @@ import {
   createDiscoveryFileSystemFromContentPackageSource,
   createMemoryContentPackageSource,
   normalizeContentPackageSourcePath,
-  readContentPackageSourceJson
+  readContentPackageSourceJson,
+  validateContentPackageSourceIdentity
 } from '@/domain/mods/contentPackageSource'
 import { discoverThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackDiscovery'
 
@@ -141,6 +142,41 @@ describe('content package source contract', () => {
         { path: 'pack\\manifest.json', text: '{}\n' }
       ]
     })).toThrow(ContentPackageSourceError)
+  })
+
+  it('validates source identity before a platform source can enter discovery', async() => {
+    const source = createValidSource()
+
+    expect(validateContentPackageSourceIdentity(source.identity)).toEqual(source.identity)
+    expect(() => validateContentPackageSourceIdentity({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory\\not-normalized',
+      rootPath: 'packs'
+    } as never)).toThrow(ContentPackageSourceError)
+
+    const invalidVersionSource: ContentPackageSource = {
+      ...source,
+      identity: {
+        ...source.identity,
+        contractVersion: 999
+      } as never
+    }
+    const report = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(invalidVersionSource)
+    )
+
+    expect(report.status).toBe('directory-not-found')
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_IDENTITY_INVALID'
+    })
   })
 
   it('keeps file payloads as unknown pure JSON before TypeBox validation', async() => {

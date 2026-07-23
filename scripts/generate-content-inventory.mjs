@@ -6385,13 +6385,13 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/domain/mods/contentPackageSource.ts',
-    exportName: 'ContentPackageSource/createMemoryContentPackageSource/createDiscoveryFileSystemFromContentPackageSource/readContentPackageSourceJson',
+    exportName: 'ContentPackageSource/createMemoryContentPackageSource/createDiscoveryFileSystemFromContentPackageSource/readContentPackageSourceJson/validateContentPackageSourceIdentity',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Defines the shared, platform-neutral ContentPackageSource contract with stable relative identity, normalized source paths, file/directory/other entry metadata, symbolic-link flags, unknown JSON read boundary, permission revocation, disposal and a read-only bridge into the existing discovery pipeline; revoked, disposed, unsafe or otherwise unavailable sources are surfaced as structured discovery diagnostics with source error codes, and the memory adapter and developer-cli-directory identity perform no platform source opening, handle retention, IPC exposure, persistence, package, lockfile, settings, save, cache or transaction-log writes.'
+    rationale: 'Defines the shared, platform-neutral ContentPackageSource contract with stable relative identity, normalized source paths, file/directory/other entry metadata, symbolic-link flags, unknown JSON read boundary, permission revocation, disposal, runtime source identity validation and a read-only bridge into the existing discovery pipeline; malformed identities, revoked, disposed, unsafe or otherwise unavailable sources are surfaced as structured discovery diagnostics with source error codes, and the memory adapter and developer-cli-directory identity perform no platform source opening, handle retention, IPC exposure, persistence, package, lockfile, settings, save, cache or transaction-log writes.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts',
@@ -6531,7 +6531,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers the platform-neutral memory ContentPackageSource contract, discovery bridge parity, stable relative identity without absolute paths, path normalization and rejection, unknown JSON parsing boundary, permission revocation, disposal, structured discovery diagnostics for unavailable sources, candidate-level source failure containment and no source-handle persistence.'
+    rationale: 'Covers the platform-neutral memory ContentPackageSource contract, discovery bridge parity, stable relative identity without absolute paths, runtime identity validation, path normalization and rejection, unknown JSON parsing boundary, permission revocation, disposal, structured discovery diagnostics for unavailable or malformed sources, candidate-level source failure containment and no source-handle persistence.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackSourceAdapterGate.test.ts',
