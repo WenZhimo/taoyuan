@@ -6354,6 +6354,16 @@ const reviewedArtifacts = [
     rationale: 'Defines the first 7E internal mod-lock atomic file boundary for the current third-party lockfile draft shape: targets only an explicit userdata/mod-lock.json path, treats disk bytes as unknown JSON before pure JSON, TypeBox draft and self-hash validation, writes via unique temporary file with sync, close, reread validation and atomic replace, removes stale own temp files, and preserves the previous valid lockfile on interruption or replace failure without touching player saves, settings, official cache, package files, transaction logs, Electron IPC, UI or runtime enablement.'
   },
   {
+    file: 'src/domain/mods/thirdPartyDataPackModLockStorage.ts',
+    exportName: 'resolveThirdPartyDataPackModLockStoragePaths/createThirdPartyDataPackModLockStorageAdapter',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-mod-lock-storage-adapter',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Defines the second 7E internal mod-lock storage boundary: resolves an injected absolute program directory to program-directory userdata/mod-lock.json, delegates validated read/write work to the existing atomic file primitive, returns structured inspect/read/write reports, and keeps runtime enablement, Electron IPC, registry publication, package files, backups, settings, saves, official cache and transaction logs out of scope.'
+  },
+  {
     file: 'src/domain/mods/thirdPartyDataPackMountPreflight.ts',
     exportName: 'buildThirdPartyDataPackMountPreflight',
     classification: 'adapter',
@@ -6512,6 +6522,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers successful write/read of a validated internal draft at userdata/mod-lock.json, deterministic repeated bytes, missing lockfile handling, stale own-temp cleanup without deleting unrelated files, interruption and replacement failure rollback to the previous valid lockfile, concurrent reads seeing only the old or new complete file, invalid JSON, schema errors and self-hash rejection, and protection for settings, save-like files and official cache files.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackModLockStorage.test.ts',
+    exportName: 'third-party mod-lock storage adapter fixture matrix',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-mod-lock-storage-adapter',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers program-directory userdata path resolution without creating directories, missing and invalid path reports, successful adapter write/read through the atomic file primitive, interruption and replace-failure rollback, temporary-file cleanup, no runtime enablement or IPC exposure, and protection for settings, save-like files, official cache, package files, transaction logs and official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackMountPreflight.test.ts',
