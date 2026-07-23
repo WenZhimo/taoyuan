@@ -7,6 +7,7 @@ import { createTaoyuanAliasPlugin } from './esbuild-taoyuan-alias.mjs'
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(scriptDirectory, '..')
+const cliContentSourceRootPath = 'packs'
 
 let discoveryModulePromise
 
@@ -21,6 +22,30 @@ const toEntryKind = stats => {
   if (stats.isDirectory()) return 'directory'
   return 'other'
 }
+
+const normalizeNodeSourcePath = sourcePath => {
+  const normalizedPath = sourcePath.replace(/\\/g, '/')
+  if (normalizedPath === '') return ''
+  if (
+    path.isAbsolute(sourcePath)
+    || normalizedPath.startsWith('/')
+    || normalizedPath.split('/').includes('..')
+  ) {
+    throw new Error(`Unsafe content package source path: ${sourcePath}`)
+  }
+  return normalizedPath
+}
+
+const joinResolvedSourcePath = (rootDirectory, sourcePath) =>
+  sourcePath === ''
+    ? rootDirectory
+    : path.join(rootDirectory, ...sourcePath.split('/'))
+
+const toContentPackageSourceEntry = (name, stats) => ({
+  name,
+  kind: toEntryKind(stats),
+  isSymbolicLink: stats.isSymbolicLink()
+})
 
 export const createNodeDiscoveryFileSystem = () => ({
   async getEntry(filePath) {
@@ -106,25 +131,129 @@ export const createSinglePackageDiscoveryFileSystem = (
   }
 }
 
-const resolveDiscoveryInput = async scanRoot => {
+export const createNodeContentPackageSource = ({
+  contractVersion,
+  rootDirectory,
+  sourceId,
+  rootPath = cliContentSourceRootPath,
+  packageName
+}) => {
+  const resolvedRoot = path.resolve(rootDirectory)
+  const virtualPackageName = packageName || 'package'
+  const virtualPackagePrefix = `${virtualPackageName}/`
+  let disposed = false
+
+  const assertAvailable = () => {
+    if (disposed) {
+      throw new Error('Content package source has been disposed')
+    }
+  }
+
+  const mapSourcePath = sourcePath => {
+    const normalizedPath = normalizeNodeSourcePath(sourcePath)
+    if (!packageName) return joinResolvedSourcePath(resolvedRoot, normalizedPath)
+    if (normalizedPath === '' || normalizedPath === virtualPackageName) return resolvedRoot
+    if (normalizedPath.startsWith(virtualPackagePrefix)) {
+      return joinResolvedSourcePath(resolvedRoot, normalizedPath.slice(virtualPackagePrefix.length))
+    }
+    return joinResolvedSourcePath(resolvedRoot, normalizedPath)
+  }
+
+  return {
+    identity: {
+      contractVersion,
+      kind: 'developer-cli-directory',
+      sourceId,
+      rootPath
+    },
+
+    async getEntry(sourcePath) {
+      assertAvailable()
+      const normalizedPath = normalizeNodeSourcePath(sourcePath)
+      if (packageName && normalizedPath === '') {
+        return {
+          name: rootPath,
+          kind: 'directory',
+          isSymbolicLink: false
+        }
+      }
+      try {
+        const filePath = mapSourcePath(normalizedPath)
+        const stats = await lstat(filePath)
+        const name = packageName && normalizedPath === virtualPackageName
+          ? virtualPackageName
+          : path.basename(filePath)
+        return toContentPackageSourceEntry(name, stats)
+      } catch (error) {
+        if (isMissing(error)) return null
+        throw error
+      }
+    },
+
+    async readDirectory(sourcePath) {
+      assertAvailable()
+      const normalizedPath = normalizeNodeSourcePath(sourcePath)
+      if (packageName && normalizedPath === '') {
+        return [
+          {
+            name: virtualPackageName,
+            kind: 'directory',
+            isSymbolicLink: false
+          }
+        ]
+      }
+
+      const directoryPath = mapSourcePath(normalizedPath)
+      const entries = await readdir(directoryPath, { withFileTypes: true })
+      return entries.map(entry => ({
+        name: entry.name,
+        kind: entry.isFile() ? 'file' : entry.isDirectory() ? 'directory' : 'other',
+        isSymbolicLink: entry.isSymbolicLink()
+      }))
+    },
+
+    async readTextFile(sourcePath) {
+      assertAvailable()
+      return readFile(mapSourcePath(sourcePath), 'utf8')
+    },
+
+    async dispose() {
+      disposed = true
+    }
+  }
+}
+
+const resolveDiscoveryInput = async(scanRoot, sourceContract) => {
   const baseFileSystem = createNodeDiscoveryFileSystem()
   const rootEntry = await baseFileSystem.getEntry(scanRoot)
+  const sourceOptions = {
+    contractVersion: sourceContract.CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+    rootDirectory: scanRoot,
+    sourceId: 'developer-cli/discovery-root',
+    rootPath: cliContentSourceRootPath
+  }
+
   if (rootEntry?.kind === 'directory' && !rootEntry.isSymbolicLink) {
     const manifestEntry = await baseFileSystem.getEntry(path.join(scanRoot, 'manifest.json'))
     if (manifestEntry) {
+      const source = createNodeContentPackageSource({
+        ...sourceOptions,
+        sourceId: 'developer-cli/single-package',
+        packageName: path.basename(scanRoot)
+      })
       return {
-        rootDirectory: scanRoot,
-        fileSystem: createSinglePackageDiscoveryFileSystem(
-          scanRoot,
-          path.basename(scanRoot),
-          baseFileSystem
-        )
+        rootDirectory: source.identity.rootPath,
+        fileSystem: sourceContract.createDiscoveryFileSystemFromContentPackageSource(source),
+        source
       }
     }
   }
+
+  const source = createNodeContentPackageSource(sourceOptions)
   return {
-    rootDirectory: scanRoot,
-    fileSystem: baseFileSystem
+    rootDirectory: source.identity.rootPath,
+    fileSystem: sourceContract.createDiscoveryFileSystemFromContentPackageSource(source),
+    source
   }
 }
 
@@ -144,6 +273,7 @@ const loadDiscoveryModule = async() => {
           "export { buildThirdPartyDataPackTransactionPreflight } from './src/domain/mods/thirdPartyDataPackTransactionPreflight.ts'",
           "export { buildThirdPartyDataPackRuntimeAdapterGate } from './src/domain/mods/thirdPartyDataPackRuntimeAdapterGate.ts'",
           "export { buildThirdPartyDataPackSourceAdapterGate } from './src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts'",
+          "export { CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION, createDiscoveryFileSystemFromContentPackageSource } from './src/domain/mods/contentPackageSource.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
@@ -847,6 +977,7 @@ const formatSourceAdapterGateReport = sourceAdapterGateReport => {
 }
 export const formatDiscoveryReport = (
   scanRoot,
+  sourceIdentity,
   report,
   selectionReport,
   repairReport,
@@ -862,6 +993,11 @@ export const formatDiscoveryReport = (
   const lines = [
     'Taoyuan third-party data pack check',
     `Scan root: ${scanRoot}`,
+    'Source Contract:',
+    `  contractVersion: ${sourceIdentity.contractVersion}`,
+    `  kind: ${sourceIdentity.kind}`,
+    `  sourceId: ${sourceIdentity.sourceId}`,
+    `  rootPath: ${sourceIdentity.rootPath}`,
     `Discovery status: ${report.status}`,
     `Scanned entries: ${report.summary.scannedEntries}`,
     `Discovered packages: ${report.summary.candidateCount}`,
@@ -981,6 +1117,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
   }
 
   const scanRoot = path.resolve(process.cwd(), parsed.directory)
+  let discoveryInput
   try {
     const {
       discoverThirdPartyDataPacks,
@@ -995,9 +1132,14 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       buildThirdPartyDataPackTransactionPreflight,
       buildThirdPartyDataPackRuntimeAdapterGate,
       buildThirdPartyDataPackSourceAdapterGate,
+      CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      createDiscoveryFileSystemFromContentPackageSource,
       buildOfficialRegistrySetFromStaticData
     } = await loadDiscoveryModule()
-    const discoveryInput = await resolveDiscoveryInput(scanRoot)
+    discoveryInput = await resolveDiscoveryInput(scanRoot, {
+      CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      createDiscoveryFileSystemFromContentPackageSource
+    })
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     const report = await discoverThirdPartyDataPacks(discoveryInput.rootDirectory, discoveryInput.fileSystem)
     const selectionReport = selectThirdPartyDataPacks(report)
@@ -1084,6 +1226,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
     })
     stdout.write(formatDiscoveryReport(
       scanRoot,
+      discoveryInput.source.identity,
       report,
       selectionReport,
       repairReport,
@@ -1113,6 +1256,8 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
     const message = error instanceof Error ? error.message : String(error)
     stderr.write(`Failed to check third-party data packs: ${message}\n`)
     return 1
+  } finally {
+    await discoveryInput?.source.dispose()
   }
 }
 

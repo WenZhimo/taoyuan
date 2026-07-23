@@ -6391,7 +6391,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Defines the first shared, platform-neutral ContentPackageSource contract with stable relative identity, normalized source paths, unknown JSON read boundary, permission revocation, disposal and a read-only bridge into the existing discovery pipeline; the memory adapter performs no platform source opening, handle retention, IPC exposure, persistence, package, lockfile, settings, save, cache or transaction-log writes.'
+    rationale: 'Defines the shared, platform-neutral ContentPackageSource contract with stable relative identity, normalized source paths, file/directory/other entry metadata, symbolic-link flags, unknown JSON read boundary, permission revocation, disposal and a read-only bridge into the existing discovery pipeline; the memory adapter and developer-cli-directory identity perform no platform source opening, handle retention, IPC exposure, persistence, package, lockfile, settings, save, cache or transaction-log writes.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts',
@@ -6431,7 +6431,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node fs into the injectable discovery file system, reuses discovery, selection, repair report, candidate snapshot, lockfile draft, mount preflight, mount input, runtime mount gate, transaction preflight, runtime adapter gate and source adapter gate validators, prints human-readable dependency/conflict diagnostics, repair actions, load order, candidate snapshot, lockfile draft, preflight, runtime gate, transaction preflight, runtime adapter and source adapter statuses, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings, lockfiles, transaction logs, source handles or official registries.'
+    rationale: 'Provides the read-only developer CLI for third-party data pack validation: accepts a package directory or discovery root, adapts Node directory scans through the shared ContentPackageSource contract before the injectable discovery file system, reports stable developer-cli-directory identity without absolute paths, reuses discovery, selection, repair report, candidate snapshot, lockfile draft, mount preflight, mount input, runtime mount gate, transaction preflight, runtime adapter gate and source adapter gate validators, prints human-readable dependency/conflict diagnostics, repair actions, load order, candidate snapshot, lockfile draft, preflight, runtime gate, transaction preflight, runtime adapter and source adapter statuses, exits non-zero only for blocking errors or fatal failures, and never writes files, userdata, cache, saves, settings, lockfiles, transaction logs, source handles or official registries.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackCheckCli.test.ts',
@@ -6441,7 +6441,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Repair Report, Candidate Snapshot, Lockfile Draft, Mount Preflight, Mount Input, Runtime Mount Gate, Transaction Preflight, Runtime Adapter Gate and Source Adapter Gate CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
+    rationale: 'Covers valid package success, missing roots and bad arguments, JSON parse diagnostics, TypeBox schema diagnostics, unsafe paths, missing entrypoints, non-JSON entrypoints, unsupported registries, missing required dependency failures, stable selection load order, dependency-cycle blocking output, warning-only optional dependency success, Source Contract identity output without absolute paths, Repair Report, Candidate Snapshot, Lockfile Draft, Mount Preflight, Mount Input, Runtime Mount Gate, Transaction Preflight, Runtime Adapter Gate and Source Adapter Gate CLI output, read-only protection for fixtures/userdata/official registries and parity with the shared discovery entrypoint.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackSelection.test.ts',

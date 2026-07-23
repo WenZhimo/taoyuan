@@ -222,6 +222,28 @@ const expectBlockedSourceAdapterGate = (stdout: string): void => {
   expect(stdout).toContain('transactionLogWritten: false')
 }
 
+const sourceContractSection = (stdout: string): string => {
+  const start = stdout.indexOf('Source Contract:\n')
+  const end = stdout.indexOf('\nDiscovery status:', start)
+  expect(start).toBeGreaterThanOrEqual(0)
+  expect(end).toBeGreaterThan(start)
+  return stdout.slice(start, end)
+}
+
+const expectSourceContractIdentity = (
+  stdout: string,
+  sourceId: string,
+  absoluteRoot: string
+): void => {
+  const section = sourceContractSection(stdout)
+  expect(section).toContain('contractVersion: 1')
+  expect(section).toContain('kind: developer-cli-directory')
+  expect(section).toContain(`sourceId: ${sourceId}`)
+  expect(section).toContain('rootPath: packs')
+  expect(section).not.toContain(absoluteRoot)
+  expect(section).not.toContain(path.dirname(absoluteRoot))
+}
+
 describe('third-party data pack check CLI', () => {
   it('prints a successful report and exits 0 for valid packages', async() => {
     const root = await createTempRoot()
@@ -234,6 +256,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stderr).toBe('')
     expect(result.stdout).toContain('Taoyuan third-party data pack check')
     expect(result.stdout).toContain(`Scan root: ${packRoot}`)
+    expectSourceContractIdentity(result.stdout, 'developer-cli/single-package', packRoot)
     expect(result.stdout).toContain('Discovered packages: 1')
     expect(result.stdout).toContain('Valid packages: 1')
     expect(result.stdout).toContain('Invalid packages: 0')
@@ -680,6 +703,7 @@ describe('third-party data pack check CLI', () => {
     const result = await runCli([fixtureRoot])
 
     expect(result.code).toBe(1)
+    expectSourceContractIdentity(result.stdout, 'developer-cli/discovery-root', fixtureRoot)
     expect(result.stdout).toContain(`Discovered packages: ${directReport.summary.candidateCount}`)
     expect(result.stdout).toContain(`Valid packages: ${directReport.summary.validPackageCount}`)
     expect(result.stdout).toContain(`Invalid packages: ${directReport.summary.invalidPackageCount}`)

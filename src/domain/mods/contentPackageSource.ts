@@ -4,7 +4,8 @@ import type { ThirdPartyDiscoveryFileSystem, ThirdPartyDiscoveryDirectoryEntry }
 
 export const CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION = 1
 
-export type ContentPackageSourceKind = 'memory'
+export type ContentPackageSourceKind = 'memory' | 'developer-cli-directory'
+export type ContentPackageSourceEntryKind = 'file' | 'directory' | 'other'
 
 export type ContentPackageSourceErrorCode =
   | 'SOURCE_DUPLICATE_PATH'
@@ -39,8 +40,8 @@ export interface ContentPackageSourceIdentity {
 
 export interface ContentPackageSourceDirectoryEntry {
   readonly name: string
-  readonly kind: 'file' | 'directory'
-  readonly isSymbolicLink: false
+  readonly kind: ContentPackageSourceEntryKind
+  readonly isSymbolicLink: boolean
 }
 
 export interface ContentPackageSource {
