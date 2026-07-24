@@ -6475,13 +6475,13 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/domain/mods/electronContentPackageSourceProbe.ts',
-    exportName: 'createElectronReadonlyDirectoryProbeSource/buildElectronReadonlySourceAdapterProbeReport',
+    exportName: 'createElectronReadonlyDirectoryProbeSource/buildElectronReadonlySourceAdapterProbeReport/buildElectronReadonlyRuntimeReadinessProbeReport',
     classification: 'adapter',
     targetRegistry: 'engine/loader/electron-source-adapter-probe',
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Defines the first 7A Electron read-only source adapter probe behind the shared ContentPackageSource contract: uses stable relative identity kind electron-readonly-directory-probe, sourceId electron/mods-readonly-probe and rootPath mods, accepts a controlled main-process host boundary, inspects package sources without exposing IPC or UI, keeps runtime enablement false, releases the source lifecycle and performs no package, lockfile, settings, save, cache or transaction-log writes.'
+    rationale: 'Defines the first 7A Electron read-only source adapter probe behind the shared ContentPackageSource contract and the first 7F no-write readiness probe over that source: uses stable relative identity kind electron-readonly-directory-probe, sourceId electron/mods-readonly-probe and rootPath mods, accepts a controlled main-process host boundary, can carry a sample third-party pack through discovery, selection, candidate snapshot, lockfile draft, Mount Input, Runtime Mount Gate, Transaction Preflight, Runtime Adapter Gate and Source Adapter Gate, reports only path-free status/hash/count summaries, keeps runtime enablement and publication deferred, releases the source lifecycle and performs no package, lockfile, settings, save, cache or transaction-log writes.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts',
@@ -6661,7 +6661,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers Electron read-only source probe identity without absolute paths, discovery of a controlled mods directory through the shared ContentPackageSource bridge, unknown JSON reading, no runtime enablement, no IPC exposure, no lockfile/settings/save/cache/package/transaction-log writes, unsafe path rejection, disposal diagnostics, source read failure containment and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers Electron read-only source probe identity without absolute paths, discovery of a controlled mods directory through the shared ContentPackageSource bridge, unknown JSON reading, sample-pack readiness through Mount Input, Runtime Mount Gate, Transaction Preflight, Runtime Adapter Gate and Source Adapter Gate with runtime publication still deferred, no runtime enablement, no IPC exposure, no lockfile/settings/save/cache/package/transaction-log writes, unsafe path rejection, disposal diagnostics, source read failure containment and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackSourceAdapterGate.test.ts',

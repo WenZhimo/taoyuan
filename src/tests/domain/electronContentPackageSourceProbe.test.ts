@@ -13,7 +13,9 @@ import {
 } from '@/domain/mods/contentPackageSource'
 import {
   buildElectronReadonlySourceAdapterProbeReport,
+  buildElectronReadonlyRuntimeReadinessProbeReport,
   createElectronReadonlyDirectoryProbeSource,
+  createElectronReadonlyRuntimeReadinessProbeEffects,
   createElectronReadonlySourceAdapterProbeEffects,
   type ElectronReadonlyDirectoryProbeHost
 } from '@/domain/mods/electronContentPackageSourceProbe'
@@ -238,6 +240,75 @@ describe('electron content package source read-only probe', () => {
       platformSourceInspected: true,
       sourceHandlesRetained: false
     })
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('carries a sample pack to the deferred runtime boundary without exposing paths or writing data', async() => {
+    const root = await createRoot()
+    const modsRoot = path.join(root, 'mods')
+    const userDataRoot = path.join(root, 'userdata')
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(modsRoot, 'valid-gift-pack'), { recursive: true })
+    await mkdir(path.join(userDataRoot, 'Local Storage', 'leveldb'), { recursive: true })
+    await mkdir(path.join(userDataRoot, 'mod-cache'), { recursive: true })
+    await mkdir(path.join(userDataRoot, 'mod-transactions'), { recursive: true })
+    await writeFile(path.join(userDataRoot, 'settings.json'), '{"closeToTray":false}\n', 'utf8')
+    await writeFile(path.join(userDataRoot, 'Local Storage', 'leveldb', 'save.ldb'), 'player-save-data', 'utf8')
+    await writeFile(path.join(userDataRoot, 'sample.tyx'), 'exported-save-data', 'utf8')
+    await writeFile(path.join(userDataRoot, 'mod-cache', 'official.txt'), 'official-cache-data', 'utf8')
+    await writeFile(path.join(userDataRoot, 'mod-transactions', 'pending.txt'), 'transaction-log-data', 'utf8')
+    const before = await collectFileContents(root)
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: createNodeProbeHost(modsRoot)
+    })
+
+    const report = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await source.dispose()
+
+    expect(report).toMatchObject({
+      status: 'deferred',
+      reason: 'content package source contract is defined; runtime platform source adapters remain intentionally deferred',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'completed',
+      mountInputStatus: 'ready',
+      runtimeMountGateStatus: 'deferred',
+      transactionPreflightStatus: 'deferred',
+      runtimeAdapterGateStatus: 'deferred',
+      sourceAdapterGateStatus: 'deferred',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      },
+      selectedPackageIds: ['discovery_valid'],
+      loadOrder: ['discovery_valid'],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      diagnosticCount: 0,
+      runtimePublication: 'deferred',
+      sourceContractReadiness: 'defined',
+      contentPackageSourceContractStable: true,
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(report.officialIdentity).toMatchObject({
+      registryCount: 54,
+      entryCount: 4242,
+      contentHash: committedMetadata.contentHash,
+      snapshotHash: committedMetadata.snapshotHash
+    })
+    expect(report.candidateIdentity?.candidateHash).toMatch(/^sha256:/)
+    expect(report.lockfileHash).toMatch(/^sha256:/)
+    expect('candidateRegistrySet' in report).toBe(false)
+    expect('candidateSnapshot' in report).toBe(false)
+    expect('lockfileDraft' in report).toBe(false)
+    expect('sourceAdapterGate' in report).toBe(false)
+    expect(JSON.stringify(report)).not.toContain(root)
+    expect(JSON.stringify(report)).not.toContain(path.sep)
     expect(await collectFileContents(root)).toEqual(before)
     expectOfficialBaseline()
   }, 15_000)

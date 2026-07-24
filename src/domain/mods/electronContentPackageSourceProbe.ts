@@ -1,6 +1,7 @@
 import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   ContentPackageSourceError,
+  createDiscoveryFileSystemFromContentPackageSource,
   normalizeContentPackageSourceDirectoryEntries,
   normalizeContentPackageSourceDirectoryEntry,
   normalizeContentPackageSourcePath,
@@ -12,6 +13,33 @@ import {
   type ContentPackageSourceIdentity,
   type ContentPackageSourceKind
 } from './contentPackageSource'
+import type { Sha256Hash } from './hash'
+import type { PackageId } from './ids'
+import type { RegistrySet } from './registry'
+import {
+  buildThirdPartyCandidateRegistrySnapshot,
+  type ThirdPartyCandidateIdentitySummary,
+  type ThirdPartyCandidateOfficialIdentitySummary
+} from './thirdPartyCandidateRegistrySnapshot'
+import {
+  discoverThirdPartyDataPacks,
+  type ThirdPartyDataPackDiscoveryReport,
+  type ThirdPartyDataPackDiscoveryStatus
+} from './thirdPartyDataPackDiscovery'
+import {
+  createThirdPartyDataPackLockfileDraft,
+  validateThirdPartyDataPackLockfileDraft
+} from './thirdPartyDataPackLockfileDraft'
+import { buildThirdPartyDataPackMountInput } from './thirdPartyDataPackMountInput'
+import { buildThirdPartyDataPackMountPreflight } from './thirdPartyDataPackMountPreflight'
+import { buildThirdPartyDataPackRuntimeAdapterGate } from './thirdPartyDataPackRuntimeAdapterGate'
+import { buildThirdPartyDataPackRuntimeMountGate } from './thirdPartyDataPackRuntimeMountGate'
+import {
+  buildThirdPartyDataPackSourceAdapterGate,
+  type ThirdPartyDataPackSourceAdapterGateStatus
+} from './thirdPartyDataPackSourceAdapterGate'
+import { buildThirdPartyDataPackTransactionPreflight } from './thirdPartyDataPackTransactionPreflight'
+import { selectThirdPartyDataPacks } from './thirdPartyDataPackSelection'
 
 export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND =
   'electron-readonly-directory-probe' satisfies ContentPackageSourceKind
@@ -55,6 +83,60 @@ export interface ElectronReadonlySourceAdapterProbeReport {
   readonly inspectedEntryKind: ContentPackageSourceEntryKind | null
   readonly sourceErrorCode?: ContentPackageSourceErrorCode
   readonly effects: ElectronReadonlySourceAdapterProbeEffectSummary
+}
+
+export interface ElectronReadonlyRuntimeReadinessProbeEffectSummary {
+  readonly officialRegistryPublished: false
+  readonly thirdPartyRegistryPublished: false
+  readonly runtimeEnablementAllowed: false
+  readonly electronIpcExposed: false
+  readonly webImportPersisted: false
+  readonly androidImportPersisted: false
+  readonly platformSourceInspected: true
+  readonly platformSourceOpened: false
+  readonly sourceHandlesRetained: false
+  readonly packageFilesWritten: false
+  readonly lockfileWritten: false
+  readonly settingsWritten: false
+  readonly savesWritten: false
+  readonly cacheWritten: false
+  readonly transactionLogWritten: false
+}
+
+export type ElectronReadonlyRuntimeReadinessProbeDiscoveryStatus =
+  | ThirdPartyDataPackDiscoveryStatus
+  | 'not-run'
+  | 'failed'
+
+export interface ElectronReadonlyRuntimeReadinessProbeReport {
+  readonly status: ThirdPartyDataPackSourceAdapterGateStatus
+  readonly reason: string
+  readonly sourceProbeStatus: ElectronReadonlySourceAdapterProbeReport['status']
+  readonly discoveryStatus: ElectronReadonlyRuntimeReadinessProbeDiscoveryStatus
+  readonly mountInputStatus?: string
+  readonly runtimeMountGateStatus?: string
+  readonly transactionPreflightStatus?: string
+  readonly runtimeAdapterGateStatus?: string
+  readonly sourceAdapterGateStatus?: ThirdPartyDataPackSourceAdapterGateStatus
+  readonly sourceIdentity: ContentPackageSourceIdentity
+  readonly selectedPackageIds: readonly PackageId[]
+  readonly loadOrder: readonly PackageId[]
+  readonly registryCount: number
+  readonly entryCount: number
+  readonly packageCount: number
+  readonly diagnosticCount: number
+  readonly officialIdentity?: ThirdPartyCandidateOfficialIdentitySummary
+  readonly candidateIdentity?: ThirdPartyCandidateIdentitySummary
+  readonly lockfileHash?: Sha256Hash
+  readonly runtimePublication: 'deferred'
+  readonly sourceContractReadiness?: 'defined'
+  readonly contentPackageSourceContractStable?: true
+  readonly effects: ElectronReadonlyRuntimeReadinessProbeEffectSummary
+}
+
+export interface BuildElectronReadonlyRuntimeReadinessProbeReportOptions {
+  readonly source: ContentPackageSource
+  readonly officialRegistrySet: RegistrySet
 }
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
@@ -106,6 +188,54 @@ export const createElectronReadonlySourceAdapterProbeEffects =
     sourceHandlesRetained: false
   })
 
+export const createElectronReadonlyRuntimeReadinessProbeEffects =
+  (): ElectronReadonlyRuntimeReadinessProbeEffectSummary => ({
+    officialRegistryPublished: false,
+    thirdPartyRegistryPublished: false,
+    runtimeEnablementAllowed: false,
+    electronIpcExposed: false,
+    webImportPersisted: false,
+    androidImportPersisted: false,
+    platformSourceInspected: true,
+    platformSourceOpened: false,
+    sourceHandlesRetained: false,
+    packageFilesWritten: false,
+    lockfileWritten: false,
+    settingsWritten: false,
+    savesWritten: false,
+    cacheWritten: false,
+    transactionLogWritten: false
+  })
+
+const countRegistryEntries = (registrySet: RegistrySet): number =>
+  registrySet.registryIds().reduce(
+    (total, registryId) => total + registrySet.get(registryId).entries().length,
+    0
+  )
+
+const createBlockedReadinessReport = (
+  reason: string,
+  sourceProbeStatus: ElectronReadonlySourceAdapterProbeReport['status'],
+  sourceIdentity: ContentPackageSourceIdentity,
+  officialRegistrySet: RegistrySet,
+  discoveryStatus: ElectronReadonlyRuntimeReadinessProbeDiscoveryStatus,
+  diagnosticCount: number
+): ElectronReadonlyRuntimeReadinessProbeReport => ({
+  status: 'blocked',
+  reason,
+  sourceProbeStatus,
+  discoveryStatus,
+  sourceIdentity,
+  selectedPackageIds: [],
+  loadOrder: [],
+  registryCount: officialRegistrySet.registryIds().length,
+  entryCount: countRegistryEntries(officialRegistrySet),
+  packageCount: 0,
+  diagnosticCount,
+  runtimePublication: 'deferred',
+  effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+})
+
 export const createElectronReadonlyDirectoryProbeSource = (
   options: CreateElectronReadonlyDirectoryProbeSourceOptions
 ): ContentPackageSource => {
@@ -154,6 +284,146 @@ export const createElectronReadonlyDirectoryProbeSource = (
       disposed = true
       await options.host.dispose?.()
     }
+  }
+}
+
+export const buildElectronReadonlyRuntimeReadinessProbeReport = async(
+  options: BuildElectronReadonlyRuntimeReadinessProbeReportOptions
+): Promise<ElectronReadonlyRuntimeReadinessProbeReport> => {
+  const sourceProbe = await buildElectronReadonlySourceAdapterProbeReport(options.source)
+  if (sourceProbe.status !== 'ready') {
+    return createBlockedReadinessReport(
+      sourceProbe.reason,
+      sourceProbe.status,
+      sourceProbe.sourceIdentity,
+      options.officialRegistrySet,
+      'not-run',
+      sourceProbe.sourceErrorCode ? 1 : 0
+    )
+  }
+
+  let discoveryReport: ThirdPartyDataPackDiscoveryReport
+  try {
+    discoveryReport = await discoverThirdPartyDataPacks(
+      options.source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(options.source)
+    )
+  } catch (error) {
+    return createBlockedReadinessReport(
+      errorMessage(error),
+      sourceProbe.status,
+      sourceProbe.sourceIdentity,
+      options.officialRegistrySet,
+      'failed',
+      1
+    )
+  }
+
+  const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+  const candidateSnapshot = buildThirdPartyCandidateRegistrySnapshot({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport,
+    selectionReport
+  })
+  const lockfileDraftResult = createThirdPartyDataPackLockfileDraft({
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot
+  })
+  const lockfileValidationResult = validateThirdPartyDataPackLockfileDraft({
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot,
+    draft: lockfileDraftResult.draft
+  })
+  const preflight = buildThirdPartyDataPackMountPreflight({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot,
+    lockfileDraftResult,
+    lockfileValidationResult
+  })
+  const mountInput = buildThirdPartyDataPackMountInput({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot,
+    lockfileDraftResult,
+    lockfileValidationResult,
+    preflight
+  })
+  const runtimeGate = buildThirdPartyDataPackRuntimeMountGate({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot,
+    lockfileDraftResult,
+    lockfileValidationResult,
+    preflight,
+    mountInput
+  })
+  const transactionPreflight = buildThirdPartyDataPackTransactionPreflight({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot,
+    lockfileDraftResult,
+    lockfileValidationResult,
+    preflight,
+    mountInput,
+    runtimeGate
+  })
+  const runtimeAdapterGate = buildThirdPartyDataPackRuntimeAdapterGate({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot,
+    lockfileDraftResult,
+    lockfileValidationResult,
+    preflight,
+    mountInput,
+    runtimeGate,
+    transactionPreflight
+  })
+  const sourceAdapterGate = buildThirdPartyDataPackSourceAdapterGate({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport,
+    selectionReport,
+    candidateSnapshot,
+    lockfileDraftResult,
+    lockfileValidationResult,
+    preflight,
+    mountInput,
+    runtimeGate,
+    transactionPreflight,
+    runtimeAdapterGate
+  })
+
+  return {
+    status: sourceAdapterGate.status,
+    reason: sourceAdapterGate.reason,
+    sourceProbeStatus: sourceProbe.status,
+    discoveryStatus: discoveryReport.status,
+    mountInputStatus: mountInput.status,
+    runtimeMountGateStatus: runtimeGate.status,
+    transactionPreflightStatus: transactionPreflight.status,
+    runtimeAdapterGateStatus: runtimeAdapterGate.status,
+    sourceAdapterGateStatus: sourceAdapterGate.status,
+    sourceIdentity: sourceProbe.sourceIdentity,
+    selectedPackageIds: [...sourceAdapterGate.selectedPackageIds],
+    loadOrder: [...sourceAdapterGate.loadOrder],
+    registryCount: sourceAdapterGate.registryCount,
+    entryCount: sourceAdapterGate.entryCount,
+    packageCount: sourceAdapterGate.packageCount,
+    diagnosticCount: sourceAdapterGate.diagnostics.length,
+    officialIdentity: sourceAdapterGate.officialIdentity,
+    candidateIdentity: sourceAdapterGate.candidateIdentity,
+    lockfileHash: sourceAdapterGate.lockfileHash,
+    runtimePublication: 'deferred',
+    sourceContractReadiness: sourceAdapterGate.sourceContractReadiness,
+    contentPackageSourceContractStable: sourceAdapterGate.contentPackageSourceContractStable,
+    effects: createElectronReadonlyRuntimeReadinessProbeEffects()
   }
 }
 
