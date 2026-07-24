@@ -172,6 +172,27 @@ const normalizeEntry = (
   return normalizeContentPackageSourceDirectoryEntry(entry)
 }
 
+const assertDirectoryProbeRoot = (
+  entry: ContentPackageSourceDirectoryEntry | null,
+  sourcePath: string
+): ContentPackageSourceDirectoryEntry => {
+  if (entry === null) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_NOT_FOUND',
+      'Electron read-only source adapter probe root was not found',
+      sourcePath
+    )
+  }
+  if (entry.kind !== 'directory') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_NOT_DIRECTORY',
+      'Electron read-only source adapter probe root must be a directory',
+      sourcePath
+    )
+  }
+  return entry
+}
+
 export const createElectronReadonlySourceAdapterProbeEffects =
   (): ElectronReadonlySourceAdapterProbeEffectSummary => ({
     officialRegistryPublished: false,
@@ -436,13 +457,16 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
   try {
     normalizedInspectedPath = normalizeContentPackageSourcePath(inspectedPath)
     const sourceIdentity = validateContentPackageSourceIdentity(source.identity)
-    const entry = await source.getEntry(normalizedInspectedPath)
+    const entry = assertDirectoryProbeRoot(
+      await source.getEntry(normalizedInspectedPath),
+      normalizedInspectedPath
+    )
     return {
       status: 'ready',
       reason: 'electron read-only source adapter probe inspected the source without enabling runtime mounting',
       sourceIdentity,
       inspectedPath: normalizedInspectedPath,
-      inspectedEntryKind: entry?.kind ?? null,
+      inspectedEntryKind: entry.kind,
       effects
     }
   } catch (error) {
