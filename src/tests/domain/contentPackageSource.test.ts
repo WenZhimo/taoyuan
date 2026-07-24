@@ -90,6 +90,35 @@ const createManifestInspectionFailureSource = (): ContentPackageSource => ({
   async dispose() {}
 })
 
+const createMetadataGuardSource = (
+  entries: Record<string, { readonly kind: 'file' | 'directory' | 'other'; readonly isSymbolicLink: boolean } | null>,
+  hooks?: { readAttempted?: (path: string) => void }
+): ContentPackageSource => ({
+  identity: {
+    contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+    kind: 'memory',
+    sourceId: 'memory/json-metadata-guard',
+    rootPath: 'packs'
+  },
+  async getEntry(path) {
+    const entry = entries[path]
+    if (entry === undefined || entry === null) return null
+    return {
+      name: path.split('/').pop() ?? 'packs',
+      kind: entry.kind,
+      isSymbolicLink: entry.isSymbolicLink
+    }
+  },
+  async readDirectory() {
+    return []
+  },
+  async readTextFile(path) {
+    hooks?.readAttempted?.(path)
+    return toJson(createManifest('should_not_be_read'))
+  },
+  async dispose() {}
+})
+
 const captureSourceError = (fn: () => unknown): ContentPackageSourceError => {
   try {
     fn()
@@ -402,6 +431,42 @@ describe('content package source contract', () => {
       ok: false,
       code: 'SOURCE_LIMIT_EXCEEDED'
     })
+  })
+
+  it('checks file metadata before direct JSON reads expose payload text', async() => {
+    const readAttempts: string[] = []
+    const source = createMetadataGuardSource({
+      'pack/missing.json': null,
+      'pack/directory.json': { kind: 'directory', isSymbolicLink: false },
+      'pack/symlink.json': { kind: 'file', isSymbolicLink: true },
+      'pack/valid.json': { kind: 'file', isSymbolicLink: false }
+    }, {
+      readAttempted: path => {
+        readAttempts.push(path)
+      }
+    })
+
+    await expect(readContentPackageSourceJson(source, '../userdata/settings.json')).resolves.toMatchObject({
+      ok: false,
+      code: 'SOURCE_PATH_UNSAFE'
+    })
+    await expect(readContentPackageSourceJson(source, 'pack/missing.json')).resolves.toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    await expect(readContentPackageSourceJson(source, 'pack/directory.json')).resolves.toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FILE'
+    })
+    await expect(readContentPackageSourceJson(source, 'pack/symlink.json')).resolves.toMatchObject({
+      ok: false,
+      code: 'SOURCE_PATH_UNSAFE'
+    })
+    await expect(readContentPackageSourceJson(source, 'pack/valid.json')).resolves.toMatchObject({
+      ok: true
+    })
+
+    expect(readAttempts).toEqual(['pack/valid.json'])
   })
 
   it('reports permission revocation and disposal without retaining platform handles', async() => {

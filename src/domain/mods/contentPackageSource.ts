@@ -535,10 +535,35 @@ export const readContentPackageSourceJson = async (
   path: string,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): Promise<ContentPackageSourceJsonReadResult> => {
+  let normalizedPath: string
   let text: string
   try {
-    text = await source.readTextFile(path)
-    assertContentPackageSourceTextWithinLimits(text, path, policy)
+    normalizedPath = normalizeContentPackageSourcePath(path, policy)
+    const inspectedEntry = await source.getEntry(normalizedPath)
+    if (inspectedEntry === null) {
+      throw new ContentPackageSourceError(
+        'SOURCE_ENTRY_NOT_FOUND',
+        `Source path was not found: ${normalizedPath}`,
+        normalizedPath
+      )
+    }
+    const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
+    if (entry.isSymbolicLink) {
+      throw new ContentPackageSourceError(
+        'SOURCE_PATH_UNSAFE',
+        `Source path must not be a symbolic link: ${normalizedPath}`,
+        normalizedPath
+      )
+    }
+    if (entry.kind !== 'file') {
+      throw new ContentPackageSourceError(
+        'SOURCE_ENTRY_NOT_FILE',
+        `Source path is not a file: ${normalizedPath}`,
+        normalizedPath
+      )
+    }
+    text = await source.readTextFile(normalizedPath)
+    assertContentPackageSourceTextWithinLimits(text, normalizedPath, policy)
   } catch (error) {
     if (error instanceof ContentPackageSourceError) {
       return { ok: false, code: error.code, message: error.message }
