@@ -6384,6 +6384,16 @@ const reviewedArtifacts = [
     rationale: 'Wires the actual packaged Electron main-process path provider into the existing opt-in runtime probe report in inspect-only mode. The report is path-free, exposes only storage status, program-directory source, containment booleans and explicit no-write effects, and does not read or write real mod-lock.json, expose renderer IPC, change desktop startup, publish third-party registries, or modify settings, saves, official cache, package files or transaction logs.'
   },
   {
+    file: 'electron/main.js',
+    exportName: 'content-runtime-probe isolated modLockStorageProbe write/read',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-mod-lock-runtime-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Adds a product-probe-only 7E branch guarded by TAOYUAN_RUNTIME_PROBE_OUTPUT, TAOYUAN_RUNTIME_PROBE_MOD_LOCK_WRITE_READ and PORTABLE_EXECUTABLE_DIR. It writes and reads a synthetic internal draft through the existing atomic mod-lock storage path only in the isolated probe userdata directory, keeps the report path-free, and still leaves runtime enablement, IPC, third-party registry publication, settings, saves, official cache, package files and transaction logs disabled.'
+  },
+  {
     file: 'scripts/probe-product-runtime.mjs',
     exportName: 'probe:electron-product mod-lock runtime assertions',
     classification: 'adapter',
@@ -6392,6 +6402,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Extends the real packaged EXE runtime probe to assert the Electron mod-lock bridge remains inspect-only, uses executable-directory or PORTABLE_EXECUTABLE_DIR program userdata as expected, reports no writes or runtime enablement, preserves any pre-existing mod-lock file and temp-file set, and does not leak absolute paths.'
+  },
+  {
+    file: 'scripts/probe-product-runtime.mjs',
+    exportName: 'probe:electron-product isolated mod-lock write/read assertions',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-mod-lock-runtime-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Adds a real packaged EXE scenario that enables the synthetic mod-lock write/read branch only under a temporary PORTABLE_EXECUTABLE_DIR root after a disk-cache fast hit. The probe asserts isolated userdata/mod-lock.json is written and read, no temp files remain, protected settings, save-like files, official cache, package files and transaction logs keep identical content hashes, formal pkg/win-unpacked/userdata remains unchanged, and reports do not leak absolute paths.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackMountPreflight.ts',

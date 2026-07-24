@@ -9,6 +9,7 @@ import {
   writeOfficialRegistryCacheFile
 } from '../src/domain/mods/officialRegistryCacheFile'
 import { createElectronThirdPartyDataPackModLockStorageProbe } from '../src/domain/mods/electronModLockStorageProbe'
+import { hashCanonicalJson } from '../src/domain/mods/hash'
 
 const runtimeProbeOutputPath = typeof process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT === 'string'
   && path.isAbsolute(process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT)
@@ -20,6 +21,7 @@ const runtimeProbeFault = ['missing', 'corrupt', 'environment-mismatch']
   ? process.env.TAOYUAN_RUNTIME_PROBE_FAULT
   : null
 const runtimeProbeAutoExit = process.env.TAOYUAN_RUNTIME_PROBE_AUTO_EXIT === '1'
+const runtimeProbeModLockWriteRead = process.env.TAOYUAN_RUNTIME_PROBE_MOD_LOCK_WRITE_READ === '1'
 
 const getExecutableUserDataPath = () => path.join(
   process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath),
@@ -86,15 +88,82 @@ const isPathInside = (parent, candidate) => {
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))
 }
 
-const createModLockStorageProbeReport = async () => {
-  const report = await createElectronThirdPartyDataPackModLockStorageProbe({
-    host: {
-      isPackaged: app.isPackaged,
-      executablePath: process.execPath,
-      portableExecutableDirectory: process.env.PORTABLE_EXECUTABLE_DIR || null,
-      configuredUserDataPath: app.getPath('userData')
-    }
-  }).inspect()
+const probeSha = fill => `sha256:${fill.repeat(64)}`
+
+const createSyntheticModLockDraft = () => {
+  const packageId = 'product_probe_pack'
+  const itemId = `${packageId}:linen_ribbon`
+  const body = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: officialCacheMetadata.artifactHash,
+      contentHash: officialCacheMetadata.contentHash,
+      schemaSetHash: officialCacheMetadata.schemaSetHash,
+      environmentHash: officialCacheMetadata.environmentHash,
+      snapshotHash: officialCacheMetadata.snapshotHash,
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity: {
+      formatVersion: 1,
+      contentHash: probeSha('a'),
+      snapshotHash: probeSha('b'),
+      candidateHash: probeSha('c')
+    },
+    registryCount: 55,
+    entryCount: 4243,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId],
+    packages: [
+      {
+        packageId,
+        version: '1.0.0',
+        loadIndex: 0,
+        source: {
+          candidatePath: 'product-probe-pack',
+          manifestPath: 'product-probe-pack/manifest.json',
+          contentFiles: ['product-probe-pack/data/items.json']
+        },
+        manifestHash: probeSha('d'),
+        contentHash: probeSha('e'),
+        configurationHash: probeSha('f'),
+        resolvedDependencies: [],
+        contentFiles: [
+          {
+            registryId: 'taoyuan:item',
+            path: 'data/items.json',
+            entryCount: 1,
+            entries: [
+              {
+                registryId: 'taoyuan:item',
+                contentId: itemId,
+                index: 0,
+                canonicalHash: probeSha('1')
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body)
+  }
+}
+
+const createModLockProbe = () => createElectronThirdPartyDataPackModLockStorageProbe({
+  host: {
+    isPackaged: app.isPackaged,
+    executablePath: process.execPath,
+    portableExecutableDirectory: process.env.PORTABLE_EXECUTABLE_DIR || null,
+    configuredUserDataPath: app.getPath('userData')
+  }
+})
+
+const createPathFreeModLockProbeReport = (report, options = {}) => {
   const userDataPath = app.getPath('userData')
   const paths = report.paths
   const modLockUserDataPath = paths?.userDataPath
@@ -102,7 +171,7 @@ const createModLockStorageProbeReport = async () => {
 
   return {
     status: report.status,
-    operation: report.operation,
+    operation: options.operation ?? report.operation,
     storageKind: report.storageKind,
     programDirectorySource: report.programDirectorySource ?? null,
     diagnosticsCount: report.diagnostics.length,
@@ -124,7 +193,7 @@ const createModLockStorageProbeReport = async () => {
       electronIpcExposed: report.effects.electronIpcExposed,
       packageFilesWritten: report.effects.packageFilesWritten,
       packageBackupsWritten: report.effects.packageBackupsWritten,
-      lockfileWritten: report.effects.lockfileWritten,
+      lockfileWritten: options.lockfileWritten ?? report.effects.lockfileWritten,
       settingsWritten: report.effects.settingsWritten,
       savesWritten: report.effects.savesWritten,
       cacheWritten: report.effects.cacheWritten,
@@ -133,8 +202,35 @@ const createModLockStorageProbeReport = async () => {
       configuredUserDataPathUsed: report.effects.configuredUserDataPathUsed,
       systemUserDataFallbackAllowed: report.effects.systemUserDataFallbackAllowed,
       desktopStartupChanged: report.effects.desktopStartupChanged
-    }
+    },
+    ...options.extra
   }
+}
+
+const createModLockStorageProbeReport = async () => {
+  const probe = createModLockProbe()
+  const shouldExerciseWriteRead = runtimeProbeModLockWriteRead && !!process.env.PORTABLE_EXECUTABLE_DIR
+
+  if (!shouldExerciseWriteRead) {
+    return createPathFreeModLockProbeReport(await probe.inspect())
+  }
+
+  const draft = createSyntheticModLockDraft()
+  const writeResult = await probe.write(draft)
+  const readResult = await probe.read()
+  const report = writeResult.report.status === 'written'
+    ? readResult.report
+    : writeResult.report
+
+  return createPathFreeModLockProbeReport(report, {
+    operation: 'write-read',
+    lockfileWritten: writeResult.report.effects.lockfileWritten,
+    extra: {
+      writeStatus: writeResult.report.status,
+      readStatus: readResult.report.status,
+      draftRoundTripMatched: JSON.stringify(readResult.draft) === JSON.stringify(draft)
+    }
+  })
 }
 
 const writeRuntimeProbeOutput = (value, exitCode = 0) => {

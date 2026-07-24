@@ -70,6 +70,17 @@ const electronScenarios = [
     dataRoot: 'cache-sequence'
   },
   {
+    name: 'mod-lock-write-read',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'cache-sequence',
+    modLockWriteRead: true
+  },
+  {
     name: 'cache-corrupt-fallback',
     fault: null,
     source: 'precompiled',
@@ -190,6 +201,16 @@ const fileFingerprint = filePath => {
   }
 }
 
+const fileContentFingerprint = filePath => {
+  if (!fs.existsSync(filePath)) return { exists: false }
+  const contents = fs.readFileSync(filePath)
+  return {
+    exists: true,
+    size: contents.length,
+    sha256: crypto.createHash('sha256').update(contents).digest('hex')
+  }
+}
+
 const modLockFilePath = userDataPath => path.join(userDataPath, 'mod-lock.json')
 
 const modLockTemporaryNames = userDataPath => {
@@ -199,6 +220,31 @@ const modLockTemporaryNames = userDataPath => {
     .map(entry => entry.name)
     .sort()
 }
+
+const modLockProtectedPaths = (programDirectoryPath, userDataPath) => ({
+  settings: path.join(userDataPath, 'settings.json'),
+  save: path.join(userDataPath, 'saves', 'probe-save.tyx'),
+  officialCache: cacheFilePath(userDataPath),
+  packageFile: path.join(programDirectoryPath, 'mods', 'probe-pack', 'manifest.json'),
+  transactionLog: path.join(userDataPath, 'mod-transactions', 'pending.json')
+})
+
+const writeModLockProtectionSentinels = (programDirectoryPath, userDataPath) => {
+  const paths = modLockProtectedPaths(programDirectoryPath, userDataPath)
+  assert(fs.existsSync(paths.officialCache), 'mod-lock write/read probe requires a pre-existing official cache')
+  fs.mkdirSync(path.dirname(paths.settings), { recursive: true })
+  fs.mkdirSync(path.dirname(paths.save), { recursive: true })
+  fs.mkdirSync(path.dirname(paths.packageFile), { recursive: true })
+  fs.mkdirSync(path.dirname(paths.transactionLog), { recursive: true })
+  fs.writeFileSync(paths.settings, '{"closeToTray":false,"autoLaunch":false}\n', 'utf8')
+  fs.writeFileSync(paths.save, 'player-save-sentinel', 'utf8')
+  fs.writeFileSync(paths.packageFile, '{"id":"probe_pack","version":"1.0.0"}\n', 'utf8')
+  fs.writeFileSync(paths.transactionLog, '{"status":"pending"}\n', 'utf8')
+}
+
+const modLockProtectedFingerprints = (programDirectoryPath, userDataPath) =>
+  Object.fromEntries(Object.entries(modLockProtectedPaths(programDirectoryPath, userDataPath))
+    .map(([name, filePath]) => [name, fileContentFingerprint(filePath)]))
 
 const runProcess = (command, args, env, timeoutMs = 180_000) => new Promise((resolve, reject) => {
   const childEnv = { ...process.env, ...env }
@@ -302,8 +348,12 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
 }
 
 const assertElectronModLockStorageProbe = (probe, scenario, isolated) => {
-  assert(probe?.status === 'ready', `${scenario.name}: mod-lock probe was not ready`)
-  assert(probe?.operation === 'inspect', `${scenario.name}: mod-lock probe did not stay inspect-only`)
+  assert(probe?.status === (
+    scenario.modLockWriteRead ? 'loaded' : 'ready'
+  ), `${scenario.name}: mod-lock probe had the wrong status`)
+  assert(probe?.operation === (
+    scenario.modLockWriteRead ? 'write-read' : 'inspect'
+  ), `${scenario.name}: mod-lock probe used the wrong operation`)
   assert(probe?.storageKind === 'electron-program-directory-userdata',
     `${scenario.name}: mod-lock probe used the wrong storage kind`)
   assert(probe?.programDirectorySource === (
@@ -329,7 +379,6 @@ const assertElectronModLockStorageProbe = (probe, scenario, isolated) => {
     'electronIpcExposed',
     'packageFilesWritten',
     'packageBackupsWritten',
-    'lockfileWritten',
     'settingsWritten',
     'savesWritten',
     'cacheWritten',
@@ -340,6 +389,15 @@ const assertElectronModLockStorageProbe = (probe, scenario, isolated) => {
   ]) {
     assert(probe.effects?.[effectName] === false,
       `${scenario.name}: mod-lock probe effect ${effectName} was not false`)
+  }
+  assert(probe.effects?.lockfileWritten === !!scenario.modLockWriteRead,
+    `${scenario.name}: mod-lock probe reported the wrong lockfile write effect`)
+  if (scenario.modLockWriteRead) {
+    assert(isolated, `${scenario.name}: mod-lock write/read probe did not use an isolated directory`)
+    assert(probe.writeStatus === 'written', `${scenario.name}: mod-lock write did not succeed`)
+    assert(probe.readStatus === 'loaded', `${scenario.name}: mod-lock read did not succeed`)
+    assert(probe.draftRoundTripMatched === true,
+      `${scenario.name}: mod-lock draft did not round-trip`)
   }
 }
 
@@ -420,10 +478,18 @@ const runPackagedScenario = async (scenario, isolated) => {
   const lockfileBefore = fileFingerprint(lockfilePath)
   const lockfileTempsBefore = modLockTemporaryNames(userDataPath)
   seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
+  if (scenario.modLockWriteRead) {
+    assert(isolated, `${scenario.name}: mod-lock write/read scenario must be isolated`)
+    writeModLockProtectionSentinels(scenarioRoot, userDataPath)
+  }
+  const protectedBefore = scenario.modLockWriteRead
+    ? modLockProtectedFingerprints(scenarioRoot, userDataPath)
+    : null
   await runProcess(packagedExecutable, [], {
     TAOYUAN_RUNTIME_PROBE_OUTPUT: outputPath,
     TAOYUAN_RUNTIME_PROBE_AUTO_EXIT: '1',
     ...(scenario.fault ? { TAOYUAN_RUNTIME_PROBE_FAULT: scenario.fault } : {}),
+    ...(scenario.modLockWriteRead ? { TAOYUAN_RUNTIME_PROBE_MOD_LOCK_WRITE_READ: '1' } : {}),
     ...(isolated ? { PORTABLE_EXECUTABLE_DIR: scenarioRoot } : {})
   })
   const productReport = readJson(outputPath)
@@ -447,10 +513,27 @@ const runPackagedScenario = async (scenario, isolated) => {
     `${scenario.name}: startup error log changed`)
   assertElectronModLockStorageProbe(productReport.electron?.modLockStorageProbe, scenario, isolated)
   assertOfficialCacheFile(userDataPath, scenario.name)
-  assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
-    `${scenario.name}: mod-lock file changed during inspect-only probe`)
+  if (scenario.modLockWriteRead) {
+    const lockfileAfter = fileFingerprint(lockfilePath)
+    assert(lockfileBefore.exists === false, `${scenario.name}: mod-lock file existed before write/read probe`)
+    assert(lockfileAfter.exists === true && lockfileAfter.size > 0,
+      `${scenario.name}: mod-lock file was not written in the isolated directory`)
+    const lockfileJson = readJson(lockfilePath)
+    assert(lockfileJson.kind === 'third-party-data-pack-lockfile-draft',
+      `${scenario.name}: mod-lock file has the wrong kind`)
+    assert(lockfileJson.packages?.[0]?.source?.candidatePath === 'product-probe-pack',
+      `${scenario.name}: mod-lock draft did not use the synthetic product probe package`)
+    assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(lockfileJson)),
+      `${scenario.name}: mod-lock file leaked an absolute path`)
+    assert(JSON.stringify(modLockProtectedFingerprints(scenarioRoot, userDataPath))
+      === JSON.stringify(protectedBefore),
+    `${scenario.name}: mod-lock write/read probe modified protected player or package files`)
+  } else {
+    assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
+      `${scenario.name}: mod-lock file changed during inspect-only probe`)
+  }
   assert(JSON.stringify(modLockTemporaryNames(userDataPath)) === JSON.stringify(lockfileTempsBefore),
-    `${scenario.name}: mod-lock temporary files changed during inspect-only probe`)
+    `${scenario.name}: mod-lock temporary files changed unexpectedly`)
   assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(productReport)),
     `${scenario.name}: Electron report leaked an absolute path`)
   return { scenario: scenario.name, runtime: productReport.runtime, electron: productReport.electron }
