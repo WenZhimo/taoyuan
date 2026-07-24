@@ -1,4 +1,3 @@
-import packageMetadata from '../../../package.json'
 import { Type } from '@sinclair/typebox'
 import { assertPureJsonValue, canonicalizeJson, compareCodePoints } from './canonicalJson'
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
@@ -33,11 +32,14 @@ import {
   PackageManifestSchema
 } from './schemas'
 import { validateUnknown } from './schemaValidation'
+import {
+  CURRENT_GAME_VERSION,
+  OFFICIAL_CONTENT_SCHEMA_VERSION,
+  OFFICIAL_ENGINE_API_VERSION
+} from './officialContentVersions'
 
 export const OFFICIAL_PRECOMPILED_ARTIFACT_FORMAT_VERSION = 1 as const
 export const OFFICIAL_CACHE_FORMAT_VERSION = 1 as const
-export const OFFICIAL_ENGINE_API_VERSION = '1'
-export const OFFICIAL_CONTENT_SCHEMA_VERSION = '1'
 export const OFFICIAL_LOADER_VERSION = '1'
 export const OFFICIAL_CONTENT_COMPILER_VERSION = '1'
 export const OFFICIAL_TRUST_POLICY_VERSION = 'builtin-official-1'
@@ -151,7 +153,7 @@ export const createOfficialContentHash = (
 export const createOfficialCacheEnvironmentIdentityFromContentHash = (
   contentHash: Sha256Hash
 ): CacheEnvironmentIdentity => ({
-  gameVersion: packageMetadata.version,
+  gameVersion: CURRENT_GAME_VERSION,
   engineApiVersion: OFFICIAL_ENGINE_API_VERSION,
   contentSchemaVersion: OFFICIAL_CONTENT_SCHEMA_VERSION,
   loaderVersion: OFFICIAL_LOADER_VERSION,
@@ -161,7 +163,7 @@ export const createOfficialCacheEnvironmentIdentityFromContentHash = (
   trustPolicyVersion: OFFICIAL_TRUST_POLICY_VERSION,
   packages: [{
     id: OFFICIAL_PACKAGE_ID,
-    version: packageMetadata.version,
+    version: CURRENT_GAME_VERSION,
     contentHash,
     configurationHash: EMPTY_CONFIGURATION_HASH,
     loadIndex: 0,

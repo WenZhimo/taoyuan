@@ -6304,6 +6304,16 @@ const reviewedArtifacts = [
     rationale: 'Provides the read-only third-party data pack discovery entrypoint and shared SemVer range helper: scans only one directory level, reads manifest.json and manifest-declared JSON content, validates unknown input through TypeBox, rejects unsafe paths/symlinks, reports dependency/version/conflict and registry entry duplicate diagnostics, converts package source inspect/list/read failures into structured diagnostics without crashing, and never publishes registry entries.'
   },
   {
+    file: 'src/domain/mods/officialContentVersions.ts',
+    exportName: 'CURRENT_GAME_VERSION/OFFICIAL_ENGINE_API_VERSION/OFFICIAL_CONTENT_SCHEMA_VERSION',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/host-version-identity',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Exposes the lightweight current host game, engine API and content Schema version identity used by official precompile environment construction and third-party read-only selection diagnostics; it avoids importing the heavier official precompiled module into CLI selection checks and performs no registry, cache, package, lockfile, settings, save or transaction-log writes.'
+  },
+  {
     file: 'src/domain/mods/thirdPartyDataPackSelection.ts',
     exportName: 'selectThirdPartyDataPacks',
     classification: 'adapter',
@@ -6311,7 +6321,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only package selection summary for discovered third-party data pack candidates: blocks invalid candidates and duplicate package ids, propagates blocked required dependencies including duplicate-id targets, treats compatible optional dependencies as ordering edges, diagnoses cycles and returns a stable packageId-sorted topological load order without loading or writing third-party content.'
+    rationale: 'Provides the read-only package selection summary for discovered third-party data pack candidates: blocks invalid candidates, duplicate package ids and forward-incompatible host version targets, allows lower gameVersion packages to continue into the staged compatibility attempt, propagates blocked required dependencies including duplicate-id or host-version targets, treats compatible optional dependencies as ordering edges, diagnoses cycles and returns a stable packageId-sorted topological load order without loading or writing third-party content.'
   },
   {
     file: 'src/domain/mods/thirdPartyCandidateRegistrySnapshot.ts',
@@ -6541,7 +6551,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, required and optional dependency cycle diagnostics, input immutability, repeated result stability and unchanged official registry counts and hashes.'
+    rationale: 'Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, lower gameVersion staged compatibility selection, newer game/engine/schema version blocking and dependent propagation, required and optional dependency cycle diagnostics, input immutability, repeated result stability and unchanged official registry counts and hashes.'
   },
   {
     file: 'src/tests/domain/thirdPartyCandidateRegistrySnapshot.test.ts',

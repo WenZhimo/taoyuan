@@ -83,6 +83,9 @@ const createPack = async(
   options: {
     id?: string
     version?: string
+    gameVersion?: string
+    engineApiVersion?: string
+    contentSchemaVersion?: string
     dependencies?: readonly JsonObject[]
     optionalDependencies?: readonly JsonObject[]
     itemEntries?: readonly JsonObject[]
@@ -96,6 +99,9 @@ const createPack = async(
   manifest.id = packageId
   manifest.name = { key: `${packageId}.package.name`, fallback: packageId }
   manifest.version = options.version ?? '1.0.0'
+  manifest.gameVersion = options.gameVersion ?? manifest.gameVersion
+  manifest.engineApiVersion = options.engineApiVersion ?? manifest.engineApiVersion
+  manifest.contentSchemaVersion = options.contentSchemaVersion ?? manifest.contentSchemaVersion
   manifest.dependencies = [...(options.dependencies ?? [])]
   if (options.optionalDependencies !== undefined) {
     manifest.optionalDependencies = [...options.optionalDependencies]
@@ -272,6 +278,91 @@ describe('third-party data pack read-only selection', () => {
         kind: 'required-dependency-blocked',
         packageId: 'dependent_app',
         relatedPackageIds: ['duplicate_library']
+      })
+    ]))
+  })
+
+  it('allows older game-version packages to continue into the staged selection attempt', async() => {
+    const root = await createRoot()
+    await createPack(root, 'legacy-library', {
+      id: 'legacy_library',
+      gameVersion: '2.3.0'
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'legacy_library', version: '1.0.0' }]
+    })
+
+    const selectionReport = selectThirdPartyDataPacks(await discover(root))
+
+    expect(selectionReport.status).toBe('completed')
+    expect(selectionReport.loadOrder).toEqual(['legacy_library', 'dependent_app'])
+    expect(selectionReport.blockedPackages).toEqual([])
+    expect(selectionReport.issues).toEqual([])
+  })
+
+  it('blocks forward-version packages and their required dependents before publication', async() => {
+    const root = await createRoot()
+    await createPack(root, 'future-game', {
+      id: 'future_game',
+      gameVersion: '3.0.0'
+    })
+    await createPack(root, 'future-engine', {
+      id: 'future_engine',
+      engineApiVersion: '2'
+    })
+    await createPack(root, 'future-schema', {
+      id: 'future_schema',
+      contentSchemaVersion: '2'
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'future_game', version: '1.0.0' }]
+    })
+
+    const selectionReport = selectThirdPartyDataPacks(await discover(root))
+
+    expect(selectionReport.status).toBe('blocked')
+    expect(selectionReport.loadOrder).toEqual([])
+    expect(selectionReport.blockedPackages).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        packageId: 'future_game',
+        reasons: ['host-version-incompatible']
+      }),
+      expect.objectContaining({
+        packageId: 'future_engine',
+        reasons: ['host-version-incompatible']
+      }),
+      expect.objectContaining({
+        packageId: 'future_schema',
+        reasons: ['host-version-incompatible']
+      }),
+      expect.objectContaining({
+        packageId: 'dependent_app',
+        reasons: ['required-dependency-blocked']
+      })
+    ]))
+    expect(selectionReport.issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'host-version-incompatible',
+        packageId: 'future_game',
+        fieldPath: '/gameVersion',
+        diagnostics: [expect.objectContaining({ code: 'PKG-VERSION-001' })]
+      }),
+      expect.objectContaining({
+        kind: 'host-version-incompatible',
+        packageId: 'future_engine',
+        fieldPath: '/engineApiVersion'
+      }),
+      expect.objectContaining({
+        kind: 'host-version-incompatible',
+        packageId: 'future_schema',
+        fieldPath: '/contentSchemaVersion'
+      }),
+      expect.objectContaining({
+        kind: 'required-dependency-blocked',
+        packageId: 'dependent_app',
+        relatedPackageIds: ['future_game']
       })
     ]))
   })

@@ -1,5 +1,10 @@
 import { compareCodePoints, type JsonValue } from './canonicalJson'
 import { createDiagnostic, type ModDiagnostic, type ModDiagnosticSeverity } from './diagnostics'
+import {
+  CURRENT_GAME_VERSION,
+  OFFICIAL_CONTENT_SCHEMA_VERSION,
+  OFFICIAL_ENGINE_API_VERSION
+} from './officialContentVersions'
 import type { PackageDependency, PackageManifest } from './schemas'
 import {
   satisfiesPackageVersionRange,
@@ -11,12 +16,14 @@ import type { PackageId } from './ids'
 
 export type ThirdPartyDataPackSelectionIssueKind =
   | 'duplicate-package-id'
+  | 'host-version-incompatible'
   | 'required-dependency-blocked'
   | 'dependency-cycle'
 
 export type ThirdPartyDataPackBlockedReason =
   | 'discovery-blocked'
   | 'duplicate-package-id'
+  | 'host-version-incompatible'
   | 'required-dependency-blocked'
   | 'dependency-cycle'
 
@@ -95,6 +102,8 @@ const createSelectionIssue = (
 ): ThirdPartyDataPackSelectionIssue => {
   const code = kind === 'duplicate-package-id'
     ? 'PKG-VERSION-002'
+    : kind === 'host-version-incompatible'
+      ? 'PKG-VERSION-001'
     : kind === 'dependency-cycle'
       ? 'PKG-DEPENDENCY-003'
       : 'PKG-DEPENDENCY-001'
@@ -173,6 +182,91 @@ const groupCandidatesByPackageId = (
   return groupsByPackageId
 }
 
+interface VersionComparisonIssue {
+  readonly fieldPath: '/gameVersion' | '/engineApiVersion' | '/contentSchemaVersion'
+  readonly packageVersion: string
+  readonly hostVersion: string
+  readonly reason: string
+}
+
+const parseSemVerCore = (value: string): readonly [number, number, number] | null => {
+  const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(value)
+  if (!match) return null
+  return [Number(match[1]), Number(match[2]), Number(match[3])]
+}
+
+const parseNumericVersion = (value: string): readonly number[] | null => {
+  if (!/^(0|[1-9]\d*)(?:\.(0|[1-9]\d*))*$/.test(value)) return null
+  return value.split('.').map(part => Number(part))
+}
+
+const compareVersionParts = (
+  left: readonly number[],
+  right: readonly number[]
+): number => {
+  const length = Math.max(left.length, right.length)
+  for (let index = 0; index < length; index += 1) {
+    const difference = (left[index] ?? 0) - (right[index] ?? 0)
+    if (difference !== 0) return difference
+  }
+  return 0
+}
+
+const compareSemVerStrings = (left: string, right: string): number | null => {
+  const leftParts = parseSemVerCore(left)
+  const rightParts = parseSemVerCore(right)
+  return leftParts && rightParts ? compareVersionParts(leftParts, rightParts) : null
+}
+
+const compareNumericVersionStrings = (left: string, right: string): number | null => {
+  const leftParts = parseNumericVersion(left)
+  const rightParts = parseNumericVersion(right)
+  return leftParts && rightParts ? compareVersionParts(leftParts, rightParts) : null
+}
+
+const hostVersionCompatibilityIssues = (
+  candidate: SelectableCandidate
+): VersionComparisonIssue[] => {
+  const issues: VersionComparisonIssue[] = []
+  const gameVersionComparison = compareSemVerStrings(candidate.manifest.gameVersion, CURRENT_GAME_VERSION)
+  if (gameVersionComparison !== null && gameVersionComparison > 0) {
+    issues.push({
+      fieldPath: '/gameVersion',
+      packageVersion: candidate.manifest.gameVersion,
+      hostVersion: CURRENT_GAME_VERSION,
+      reason: 'Package targets a newer game version than the current host'
+    })
+  }
+
+  const engineApiComparison = compareNumericVersionStrings(
+    candidate.manifest.engineApiVersion,
+    OFFICIAL_ENGINE_API_VERSION
+  )
+  if (engineApiComparison !== null && engineApiComparison > 0) {
+    issues.push({
+      fieldPath: '/engineApiVersion',
+      packageVersion: candidate.manifest.engineApiVersion,
+      hostVersion: OFFICIAL_ENGINE_API_VERSION,
+      reason: 'Package targets a newer engine API version than the current host'
+    })
+  }
+
+  const contentSchemaComparison = compareNumericVersionStrings(
+    candidate.manifest.contentSchemaVersion,
+    OFFICIAL_CONTENT_SCHEMA_VERSION
+  )
+  if (contentSchemaComparison !== null && contentSchemaComparison > 0) {
+    issues.push({
+      fieldPath: '/contentSchemaVersion',
+      packageVersion: candidate.manifest.contentSchemaVersion,
+      hostVersion: OFFICIAL_CONTENT_SCHEMA_VERSION,
+      reason: 'Package targets a newer content Schema version than the current host'
+    })
+  }
+
+  return issues
+}
+
 const detectInitialBlocks = (
   candidates: readonly SelectableCandidate[],
   issuesByPath: Map<string, ThirdPartyDataPackSelectionIssue[]>,
@@ -201,6 +295,25 @@ const detectInitialBlocks = (
         details: {
           packageId,
           candidatePaths
+        }
+      }))
+    }
+  }
+
+  for (const candidate of candidates) {
+    const compatibilityIssues = hostVersionCompatibilityIssues(candidate)
+    if (compatibilityIssues.length === 0) continue
+    addReason(reasonsByPath, candidate.path, 'host-version-incompatible')
+    for (const issue of compatibilityIssues) {
+      addIssue(issuesByPath, candidate.path, createSelectionIssue('host-version-incompatible', {
+        path: `${candidate.path}/manifest.json`,
+        candidatePath: candidate.path,
+        packageId: candidate.packageId,
+        fieldPath: issue.fieldPath,
+        reason: issue.reason,
+        details: {
+          packageVersion: issue.packageVersion,
+          hostVersion: issue.hostVersion
         }
       }))
     }
