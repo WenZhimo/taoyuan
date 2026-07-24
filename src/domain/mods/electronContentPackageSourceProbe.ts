@@ -190,6 +190,13 @@ const assertDirectoryProbeRoot = (
       sourcePath
     )
   }
+  if (entry.isSymbolicLink) {
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      'Electron read-only source adapter probe root must not be a symbolic link',
+      sourcePath
+    )
+  }
   return entry
 }
 

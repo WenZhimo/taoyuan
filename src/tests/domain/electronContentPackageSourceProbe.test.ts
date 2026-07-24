@@ -112,7 +112,7 @@ const createPermissionFailureHost = (): ElectronReadonlyDirectoryProbeHost => ({
 })
 
 const createInvalidRootHost = (
-  entry: { readonly name: string; readonly kind: 'file' | 'other'; readonly isSymbolicLink: false } | null,
+  entry: { readonly name: string; readonly kind: 'file' | 'directory' | 'other'; readonly isSymbolicLink: boolean } | null,
   hooks?: { readDirectoryAttempted?: () => void }
 ): ElectronReadonlyDirectoryProbeHost => ({
   async getEntry(sourcePath) {
@@ -522,6 +522,64 @@ describe('electron content package source read-only probe', () => {
       runtimePublication: 'deferred',
       effects: createElectronReadonlyRuntimeReadinessProbeEffects()
     })
+    expect(readDirectoryAttempted).toBe(false)
+    expect(JSON.stringify(readinessReport)).not.toContain(root)
+    expect(JSON.stringify(readinessReport)).not.toContain(path.sep)
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('blocks symbolic-link Electron source roots before discovery', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    let readDirectoryAttempted = false
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: createInvalidRootHost(
+        { name: 'mods', kind: 'directory', isSymbolicLink: true },
+        { readDirectoryAttempted: () => { readDirectoryAttempted = true } }
+      )
+    })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await source.dispose()
+
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      inspectedPath: '',
+      inspectedEntryKind: null,
+      sourceErrorCode: 'SOURCE_PATH_UNSAFE',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false,
+        packageFilesWritten: false,
+        platformSourceInspected: true,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(sourceReport.reason).toContain('symbolic link')
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(readinessReport.reason).toContain('symbolic link')
     expect(readDirectoryAttempted).toBe(false)
     expect(JSON.stringify(readinessReport)).not.toContain(root)
     expect(JSON.stringify(readinessReport)).not.toContain(path.sep)
