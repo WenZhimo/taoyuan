@@ -8,6 +8,7 @@ import {
   readOfficialRegistryCacheFile,
   writeOfficialRegistryCacheFile
 } from '../src/domain/mods/officialRegistryCacheFile'
+import { createElectronThirdPartyDataPackModLockStorageProbe } from '../src/domain/mods/electronModLockStorageProbe'
 
 const runtimeProbeOutputPath = typeof process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT === 'string'
   && path.isAbsolute(process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT)
@@ -83,6 +84,57 @@ const startupLogInitialStat = fs.existsSync(startupLogPath)
 const isPathInside = (parent, candidate) => {
   const relative = path.relative(path.resolve(parent), path.resolve(candidate))
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative))
+}
+
+const createModLockStorageProbeReport = async () => {
+  const report = await createElectronThirdPartyDataPackModLockStorageProbe({
+    host: {
+      isPackaged: app.isPackaged,
+      executablePath: process.execPath,
+      portableExecutableDirectory: process.env.PORTABLE_EXECUTABLE_DIR || null,
+      configuredUserDataPath: app.getPath('userData')
+    }
+  }).inspect()
+  const userDataPath = app.getPath('userData')
+  const paths = report.paths
+  const modLockUserDataPath = paths?.userDataPath
+  const modLockPath = paths?.filePath
+
+  return {
+    status: report.status,
+    operation: report.operation,
+    storageKind: report.storageKind,
+    programDirectorySource: report.programDirectorySource ?? null,
+    diagnosticsCount: report.diagnostics.length,
+    configuredUserDataObserved: typeof report.configuredUserDataPath === 'string',
+    programDirectoryUserDataResolved: typeof modLockUserDataPath === 'string',
+    programDirectoryUserDataMatchesConfiguredUserData:
+      typeof modLockUserDataPath === 'string'
+        && path.resolve(modLockUserDataPath) === path.resolve(userDataPath),
+    modLockInsideProgramUserData:
+      typeof modLockUserDataPath === 'string'
+        && typeof modLockPath === 'string'
+        && isPathInside(modLockUserDataPath, modLockPath),
+    modLockInsideConfiguredUserData:
+      typeof modLockPath === 'string' && isPathInside(userDataPath, modLockPath),
+    effects: {
+      officialRegistryPublished: report.effects.officialRegistryPublished,
+      thirdPartyRegistryPublished: report.effects.thirdPartyRegistryPublished,
+      runtimeEnablementAllowed: report.effects.runtimeEnablementAllowed,
+      electronIpcExposed: report.effects.electronIpcExposed,
+      packageFilesWritten: report.effects.packageFilesWritten,
+      packageBackupsWritten: report.effects.packageBackupsWritten,
+      lockfileWritten: report.effects.lockfileWritten,
+      settingsWritten: report.effects.settingsWritten,
+      savesWritten: report.effects.savesWritten,
+      cacheWritten: report.effects.cacheWritten,
+      transactionLogWritten: report.effects.transactionLogWritten,
+      electronMainProcessBoundaryInspected: report.effects.electronMainProcessBoundaryInspected,
+      configuredUserDataPathUsed: report.effects.configuredUserDataPathUsed,
+      systemUserDataFallbackAllowed: report.effects.systemUserDataFallbackAllowed,
+      desktopStartupChanged: report.effects.desktopStartupChanged
+    }
+  }
 }
 
 const writeRuntimeProbeOutput = (value, exitCode = 0) => {
@@ -381,36 +433,43 @@ ipcMain.on('content-runtime-probe', (_event, report) => {
     return
   }
 
-  const userDataPath = app.getPath('userData')
-  const expectedUserDataPath = getExecutableUserDataPath()
-  const storagePath = session.defaultSession.storagePath
-  const startupLogCurrentStat = fs.existsSync(startupLogPath)
-    ? fs.statSync(startupLogPath)
-    : null
-  const startupLogChanged = startupLogInitialStat === null
-    ? startupLogCurrentStat !== null
-    : startupLogCurrentStat === null
-      || startupLogInitialStat.size !== startupLogCurrentStat.size
-      || startupLogInitialStat.mtimeMs !== startupLogCurrentStat.mtimeMs
+  void (async() => {
+    const userDataPath = app.getPath('userData')
+    const expectedUserDataPath = getExecutableUserDataPath()
+    const storagePath = session.defaultSession.storagePath
+    const startupLogCurrentStat = fs.existsSync(startupLogPath)
+      ? fs.statSync(startupLogPath)
+      : null
+    const startupLogChanged = startupLogInitialStat === null
+      ? startupLogCurrentStat !== null
+      : startupLogCurrentStat === null
+        || startupLogInitialStat.size !== startupLogCurrentStat.size
+        || startupLogInitialStat.mtimeMs !== startupLogCurrentStat.mtimeMs
+    const modLockStorageProbe = await createModLockStorageProbeReport()
 
-  writeRuntimeProbeOutput({
-    schemaVersion: 1,
-    target: 'electron',
-    runtime: report,
-    electron: {
-      isPackaged: app.isPackaged,
-      userDataLocation: process.env.PORTABLE_EXECUTABLE_DIR
-        ? 'probe-isolated-directory'
-        : 'executable-directory',
-      userDataMatchesConfiguredDirectory:
-        path.resolve(userDataPath) === path.resolve(expectedUserDataPath),
-      settingsInsideUserData: isPathInside(userDataPath, settingsPath),
-      sessionStorageInsideUserData:
-        typeof storagePath === 'string' && isPathInside(userDataPath, storagePath),
-      officialCacheInsideUserData: isPathInside(userDataPath, officialCachePaths.filePath),
-      officialCacheExists: fs.existsSync(officialCachePaths.filePath),
-      startupLogChanged
-    }
+    writeRuntimeProbeOutput({
+      schemaVersion: 1,
+      target: 'electron',
+      runtime: report,
+      electron: {
+        isPackaged: app.isPackaged,
+        userDataLocation: process.env.PORTABLE_EXECUTABLE_DIR
+          ? 'probe-isolated-directory'
+          : 'executable-directory',
+        userDataMatchesConfiguredDirectory:
+          path.resolve(userDataPath) === path.resolve(expectedUserDataPath),
+        settingsInsideUserData: isPathInside(userDataPath, settingsPath),
+        sessionStorageInsideUserData:
+          typeof storagePath === 'string' && isPathInside(userDataPath, storagePath),
+        officialCacheInsideUserData: isPathInside(userDataPath, officialCachePaths.filePath),
+        officialCacheExists: fs.existsSync(officialCachePaths.filePath),
+        startupLogChanged,
+        modLockStorageProbe
+      }
+    })
+  })().catch(error => {
+    console.error('Failed to create Electron runtime probe report:', error)
+    writeRuntimeProbeFailure('electron-runtime-probe-failed')
   })
 })
 

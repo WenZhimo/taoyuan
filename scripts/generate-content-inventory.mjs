@@ -6374,6 +6374,26 @@ const reviewedArtifacts = [
     rationale: 'Defines the third 7E Electron main-process mod-lock storage path probe: resolves a packaged process executable directory or PORTABLE_EXECUTABLE_DIR-style override to program-directory userdata/mod-lock.json, explicitly observes but does not use configured app userData, delegates inspect/read/write to the pure storage adapter, and keeps runtime enablement, renderer IPC, desktop startup changes, package files, backups, settings, saves, official cache and transaction logs out of scope.'
   },
   {
+    file: 'electron/main.js',
+    exportName: 'content-runtime-probe modLockStorageProbe',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-mod-lock-runtime-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Wires the actual packaged Electron main-process path provider into the existing opt-in runtime probe report in inspect-only mode. The report is path-free, exposes only storage status, program-directory source, containment booleans and explicit no-write effects, and does not read or write real mod-lock.json, expose renderer IPC, change desktop startup, publish third-party registries, or modify settings, saves, official cache, package files or transaction logs.'
+  },
+  {
+    file: 'scripts/probe-product-runtime.mjs',
+    exportName: 'probe:electron-product mod-lock runtime assertions',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-mod-lock-runtime-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Extends the real packaged EXE runtime probe to assert the Electron mod-lock bridge remains inspect-only, uses executable-directory or PORTABLE_EXECUTABLE_DIR program userdata as expected, reports no writes or runtime enablement, preserves any pre-existing mod-lock file and temp-file set, and does not leak absolute paths.'
+  },
+  {
     file: 'src/domain/mods/thirdPartyDataPackMountPreflight.ts',
     exportName: 'buildThirdPartyDataPackMountPreflight',
     classification: 'adapter',

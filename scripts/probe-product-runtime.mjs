@@ -180,6 +180,26 @@ const directoryFingerprint = directory => {
     .sort((left, right) => left[0].localeCompare(right[0]))
 }
 
+const fileFingerprint = filePath => {
+  if (!fs.existsSync(filePath)) return { exists: false }
+  const fileStat = fs.statSync(filePath)
+  return {
+    exists: true,
+    size: fileStat.size,
+    mtimeMs: Math.trunc(fileStat.mtimeMs)
+  }
+}
+
+const modLockFilePath = userDataPath => path.join(userDataPath, 'mod-lock.json')
+
+const modLockTemporaryNames = userDataPath => {
+  if (!fs.existsSync(userDataPath)) return []
+  return fs.readdirSync(userDataPath, { withFileTypes: true })
+    .filter(entry => entry.isFile() && entry.name.startsWith('.mod-lock.json.tmp-'))
+    .map(entry => entry.name)
+    .sort()
+}
+
 const runProcess = (command, args, env, timeoutMs = 180_000) => new Promise((resolve, reject) => {
   const childEnv = { ...process.env, ...env }
   delete childEnv.ELECTRON_RUN_AS_NODE
@@ -281,6 +301,48 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     `${scenario.name}: report leaked an absolute path`)
 }
 
+const assertElectronModLockStorageProbe = (probe, scenario, isolated) => {
+  assert(probe?.status === 'ready', `${scenario.name}: mod-lock probe was not ready`)
+  assert(probe?.operation === 'inspect', `${scenario.name}: mod-lock probe did not stay inspect-only`)
+  assert(probe?.storageKind === 'electron-program-directory-userdata',
+    `${scenario.name}: mod-lock probe used the wrong storage kind`)
+  assert(probe?.programDirectorySource === (
+    isolated ? 'portable-executable-directory' : 'executable-path-directory'
+  ), `${scenario.name}: mod-lock probe used the wrong program directory source`)
+  assert(probe?.diagnosticsCount === 0, `${scenario.name}: mod-lock probe reported diagnostics`)
+  assert(probe?.configuredUserDataObserved === true,
+    `${scenario.name}: mod-lock probe did not observe configured userData`)
+  assert(probe?.programDirectoryUserDataResolved === true,
+    `${scenario.name}: mod-lock probe did not resolve program userdata`)
+  assert(probe?.programDirectoryUserDataMatchesConfiguredUserData === true,
+    `${scenario.name}: mod-lock probe userdata did not match the configured program directory`)
+  assert(probe?.modLockInsideProgramUserData === true,
+    `${scenario.name}: mod-lock path escaped program userdata`)
+  assert(probe?.modLockInsideConfiguredUserData === true,
+    `${scenario.name}: mod-lock path escaped configured userdata`)
+  assert(probe?.effects?.electronMainProcessBoundaryInspected === true,
+    `${scenario.name}: mod-lock probe did not inspect the main-process boundary`)
+  for (const effectName of [
+    'officialRegistryPublished',
+    'thirdPartyRegistryPublished',
+    'runtimeEnablementAllowed',
+    'electronIpcExposed',
+    'packageFilesWritten',
+    'packageBackupsWritten',
+    'lockfileWritten',
+    'settingsWritten',
+    'savesWritten',
+    'cacheWritten',
+    'transactionLogWritten',
+    'configuredUserDataPathUsed',
+    'systemUserDataFallbackAllowed',
+    'desktopStartupChanged'
+  ]) {
+    assert(probe.effects?.[effectName] === false,
+      `${scenario.name}: mod-lock probe effect ${effectName} was not false`)
+  }
+}
+
 const mimeTypes = new Map([
   ['.css', 'text/css; charset=utf-8'],
   ['.html', 'text/html; charset=utf-8'],
@@ -353,6 +415,10 @@ const runPackagedScenario = async (scenario, isolated) => {
   const scenarioRoot = path.join(runRoot, `electron-${scenario.dataRoot ?? scenario.name}`)
   const outputPath = path.join(runRoot, 'electron-reports', `${scenario.name}.json`)
   fs.mkdirSync(scenarioRoot, { recursive: true })
+  const userDataPath = isolated ? path.join(scenarioRoot, 'userdata') : path.join(packagedRoot, 'userdata')
+  const lockfilePath = modLockFilePath(userDataPath)
+  const lockfileBefore = fileFingerprint(lockfilePath)
+  const lockfileTempsBefore = modLockTemporaryNames(userDataPath)
   seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
   await runProcess(packagedExecutable, [], {
     TAOYUAN_RUNTIME_PROBE_OUTPUT: outputPath,
@@ -379,10 +445,12 @@ const runPackagedScenario = async (scenario, isolated) => {
     `${scenario.name}: official cache was not written`)
   assert(productReport.electron?.startupLogChanged === false,
     `${scenario.name}: startup error log changed`)
-  assertOfficialCacheFile(
-    isolated ? path.join(scenarioRoot, 'userdata') : path.join(packagedRoot, 'userdata'),
-    scenario.name
-  )
+  assertElectronModLockStorageProbe(productReport.electron?.modLockStorageProbe, scenario, isolated)
+  assertOfficialCacheFile(userDataPath, scenario.name)
+  assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
+    `${scenario.name}: mod-lock file changed during inspect-only probe`)
+  assert(JSON.stringify(modLockTemporaryNames(userDataPath)) === JSON.stringify(lockfileTempsBefore),
+    `${scenario.name}: mod-lock temporary files changed during inspect-only probe`)
   assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(productReport)),
     `${scenario.name}: Electron report leaked an absolute path`)
   return { scenario: scenario.name, runtime: productReport.runtime, electron: productReport.electron }
