@@ -516,4 +516,61 @@ describe('third-party data pack read-only discovery', () => {
       })
     ])
   })
+
+  it('rejects symbolic links in entrypoint parent directories before reading payload files', async() => {
+    const readPaths: string[] = []
+    const manifest = {
+      id: 'symlink_parent_pack',
+      name: { key: 'symlink_parent_pack.package.name', fallback: 'Symlink parent pack' },
+      version: '1.0.0',
+      gameVersion: '2.4.0',
+      engineApiVersion: '1',
+      contentSchemaVersion: '1',
+      defaultLocale: 'zh-CN',
+      locales: { 'zh-CN': 'locales/zh-CN.json' },
+      authors: [{ name: 'Safety Tester', role: 'developer' }],
+      license: 'MIT',
+      dependencies: [],
+      entrypoints: { 'taoyuan:item': ['data/items.json'] }
+    }
+    const fileSystem: ThirdPartyDiscoveryFileSystem = {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/symlink-parent-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/symlink-parent-pack/data') {
+          return { name: 'data', kind: 'directory', isSymbolicLink: true }
+        }
+        return null
+      },
+      async readDirectory(directoryPath) {
+        if (directoryPath === 'mods') {
+          return [{ name: 'symlink-parent-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        throw new Error(`Unexpected directory read: ${directoryPath}`)
+      },
+      async readTextFile(filePath) {
+        readPaths.push(filePath)
+        if (filePath === 'mods/symlink-parent-pack/manifest.json') {
+          return `${JSON.stringify(manifest, null, 2)}\n`
+        }
+        throw new Error('symlinked content payload must not be read')
+      }
+    }
+
+    const report = await discoverThirdPartyDataPacks('mods', fileSystem)
+
+    expect(readPaths).toEqual(['mods/symlink-parent-pack/manifest.json'])
+    expect(report.summary).toMatchObject({
+      candidateCount: 1,
+      validPackageCount: 0,
+      invalidPackageCount: 1
+    })
+    expect(report.candidates[0]?.issues).toContainEqual(expect.objectContaining({
+      kind: 'path-unsafe',
+      path: 'symlink-parent-pack/data/items.json',
+      reason: 'Package content path crosses a symbolic link'
+    }))
+  })
 })

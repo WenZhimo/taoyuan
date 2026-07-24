@@ -313,6 +313,30 @@ describe('content package source contract', () => {
     ])).code).toBe('SOURCE_LIMIT_EXCEEDED')
   })
 
+  it('rejects unsafe archive size metadata before ZIP payloads can become sources', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+
+    expect(validateContentPackageSourceArchiveEntries([
+      { path: 'empty.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 },
+      { path: 'ratio-edge.bin', uncompressedSizeBytes: limits.maxCompressedRatio, compressedSizeBytes: 1 }
+    ])).toEqual([
+      { path: 'empty.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 },
+      { path: 'ratio-edge.bin', uncompressedSizeBytes: limits.maxCompressedRatio, compressedSizeBytes: 1 }
+    ])
+
+    for (const entry of [
+      { path: 'negative.bin', uncompressedSizeBytes: -1 },
+      { path: 'fraction.bin', uncompressedSizeBytes: 1.5 },
+      { path: 'infinite.bin', uncompressedSizeBytes: Number.POSITIVE_INFINITY },
+      { path: 'compressed-negative.bin', uncompressedSizeBytes: 0, compressedSizeBytes: -1 },
+      { path: 'compressed-fraction.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 1.5 },
+      { path: 'zip-bomb.bin', uncompressedSizeBytes: 1, compressedSizeBytes: 0 }
+    ]) {
+      expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([entry])).code)
+        .toBe('SOURCE_LIMIT_EXCEEDED')
+    }
+  })
+
   it('validates source identity before a platform source can enter discovery', async() => {
     const source = createValidSource()
 

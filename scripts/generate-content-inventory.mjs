@@ -6511,7 +6511,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers legal, legacy-manifest, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON, unsupported-registry, unsafe-path, dependency, optional dependency, manifest conflict, same-package duplicate, cross-package conflict and identical duplicate fixtures; proves invalid packages are not injected into official registries and verifies player settings/save files and unrelated large files are not read or modified.'
+    rationale: 'Covers legal, legacy-manifest, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON, unsupported-registry, unsafe-path, dependency, optional dependency, manifest conflict, same-package duplicate, cross-package conflict and identical duplicate fixtures; proves symlinked candidate roots and symlinked entrypoint parents are rejected before payload reads, invalid packages are not injected into official registries, and player settings/save files and unrelated large files are not read or modified.'
   },
   {
     file: 'scripts/check-third-party-packs.mjs',
@@ -6651,7 +6651,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers the platform-neutral memory ContentPackageSource contract, discovery bridge parity, stable relative identity without absolute paths, runtime identity validation, source path normalization and rejection, directory entry name/kind/duplicate validation, archive-entry traversal and resource guardrails, unknown JSON parsing and text-size boundary, permission revocation, disposal, structured discovery diagnostics for unavailable, malformed or over-limit sources, candidate-level source failure containment and no source-handle persistence.'
+    rationale: 'Covers the platform-neutral memory ContentPackageSource contract, discovery bridge parity, stable relative identity without absolute paths, runtime identity validation, source path normalization and rejection, directory entry name/kind/duplicate validation, archive-entry traversal and resource guardrails including unsafe size metadata and zip-bomb ratios before payload exposure, unknown JSON parsing and text-size boundary, permission revocation, disposal, structured discovery diagnostics for unavailable, malformed or over-limit sources, candidate-level source failure containment and no source-handle persistence.'
   },
   {
     file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
