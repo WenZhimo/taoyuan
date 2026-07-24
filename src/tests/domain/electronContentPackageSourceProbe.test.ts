@@ -128,6 +128,19 @@ const collectFileContents = async(root: string): Promise<Record<string, string>>
   return result
 }
 
+const writeReadinessSentinels = async(root: string): Promise<Record<string, string>> => {
+  const userDataRoot = path.join(root, 'userdata')
+  await mkdir(path.join(userDataRoot, 'Local Storage', 'leveldb'), { recursive: true })
+  await mkdir(path.join(userDataRoot, 'mod-cache'), { recursive: true })
+  await mkdir(path.join(userDataRoot, 'mod-transactions'), { recursive: true })
+  await writeFile(path.join(userDataRoot, 'settings.json'), '{"closeToTray":false}\n', 'utf8')
+  await writeFile(path.join(userDataRoot, 'Local Storage', 'leveldb', 'save.ldb'), 'player-save-data', 'utf8')
+  await writeFile(path.join(userDataRoot, 'sample.tyx'), 'exported-save-data', 'utf8')
+  await writeFile(path.join(userDataRoot, 'mod-cache', 'official.txt'), 'official-cache-data', 'utf8')
+  await writeFile(path.join(userDataRoot, 'mod-transactions', 'pending.txt'), 'transaction-log-data', 'utf8')
+  return collectFileContents(root)
+}
+
 const expectOfficialBaseline = (): void => {
   const registrySet = buildOfficialRegistrySetFromStaticData()
   const snapshot = createSerializableRegistrySnapshot(registrySet)
@@ -247,17 +260,8 @@ describe('electron content package source read-only probe', () => {
   it('carries a sample pack to the deferred runtime boundary without exposing paths or writing data', async() => {
     const root = await createRoot()
     const modsRoot = path.join(root, 'mods')
-    const userDataRoot = path.join(root, 'userdata')
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(modsRoot, 'valid-gift-pack'), { recursive: true })
-    await mkdir(path.join(userDataRoot, 'Local Storage', 'leveldb'), { recursive: true })
-    await mkdir(path.join(userDataRoot, 'mod-cache'), { recursive: true })
-    await mkdir(path.join(userDataRoot, 'mod-transactions'), { recursive: true })
-    await writeFile(path.join(userDataRoot, 'settings.json'), '{"closeToTray":false}\n', 'utf8')
-    await writeFile(path.join(userDataRoot, 'Local Storage', 'leveldb', 'save.ldb'), 'player-save-data', 'utf8')
-    await writeFile(path.join(userDataRoot, 'sample.tyx'), 'exported-save-data', 'utf8')
-    await writeFile(path.join(userDataRoot, 'mod-cache', 'official.txt'), 'official-cache-data', 'utf8')
-    await writeFile(path.join(userDataRoot, 'mod-transactions', 'pending.txt'), 'transaction-log-data', 'utf8')
-    const before = await collectFileContents(root)
+    const before = await writeReadinessSentinels(root)
     const source = createElectronReadonlyDirectoryProbeSource({
       host: createNodeProbeHost(modsRoot)
     })
@@ -303,6 +307,114 @@ describe('electron content package source read-only probe', () => {
     })
     expect(report.candidateIdentity?.candidateHash).toMatch(/^sha256:/)
     expect(report.lockfileHash).toMatch(/^sha256:/)
+    expect('candidateRegistrySet' in report).toBe(false)
+    expect('candidateSnapshot' in report).toBe(false)
+    expect('lockfileDraft' in report).toBe(false)
+    expect('sourceAdapterGate' in report).toBe(false)
+    expect(JSON.stringify(report)).not.toContain(root)
+    expect(JSON.stringify(report)).not.toContain(path.sep)
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('skips runtime readiness when the Electron read-only source has no packages', async() => {
+    const root = await createRoot()
+    const modsRoot = path.join(root, 'mods')
+    await mkdir(modsRoot, { recursive: true })
+    const before = await writeReadinessSentinels(root)
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: createNodeProbeHost(modsRoot)
+    })
+
+    const report = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await source.dispose()
+
+    expect(report).toMatchObject({
+      status: 'skipped',
+      reason: 'no selected third-party data packs',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'empty',
+      mountInputStatus: 'skipped',
+      runtimeMountGateStatus: 'skipped',
+      transactionPreflightStatus: 'skipped',
+      runtimeAdapterGateStatus: 'skipped',
+      sourceAdapterGateStatus: 'skipped',
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      sourceContractReadiness: 'defined',
+      contentPackageSourceContractStable: true,
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(report.officialIdentity).toMatchObject({
+      registryCount: 54,
+      entryCount: 4242,
+      contentHash: committedMetadata.contentHash,
+      snapshotHash: committedMetadata.snapshotHash
+    })
+    expect(report.candidateIdentity).toBeUndefined()
+    expect(report.lockfileHash).toBeUndefined()
+    expect('candidateRegistrySet' in report).toBe(false)
+    expect('candidateSnapshot' in report).toBe(false)
+    expect('lockfileDraft' in report).toBe(false)
+    expect('sourceAdapterGate' in report).toBe(false)
+    expect(JSON.stringify(report)).not.toContain(root)
+    expect(JSON.stringify(report)).not.toContain(path.sep)
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('blocks runtime readiness for invalid packages without exposing candidate artifacts or writing data', async() => {
+    const root = await createRoot()
+    const modsRoot = path.join(root, 'mods')
+    await cp(path.join(fixtureRoot, 'bad-schema-pack'), path.join(modsRoot, 'bad-schema-pack'), { recursive: true })
+    const before = await writeReadinessSentinels(root)
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: createNodeProbeHost(modsRoot)
+    })
+
+    const report = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await source.dispose()
+
+    expect(report).toMatchObject({
+      status: 'blocked',
+      reason: 'discovery failed',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'completed',
+      mountInputStatus: 'blocked',
+      runtimeMountGateStatus: 'blocked',
+      transactionPreflightStatus: 'blocked',
+      runtimeAdapterGateStatus: 'blocked',
+      sourceAdapterGateStatus: 'blocked',
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      runtimePublication: 'deferred',
+      sourceContractReadiness: 'defined',
+      contentPackageSourceContractStable: true,
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(report.diagnosticCount).toBeGreaterThan(0)
+    expect(report.officialIdentity).toMatchObject({
+      registryCount: 54,
+      entryCount: 4242,
+      contentHash: committedMetadata.contentHash,
+      snapshotHash: committedMetadata.snapshotHash
+    })
+    expect(report.candidateIdentity).toBeUndefined()
+    expect(report.lockfileHash).toBeUndefined()
     expect('candidateRegistrySet' in report).toBe(false)
     expect('candidateSnapshot' in report).toBe(false)
     expect('lockfileDraft' in report).toBe(false)
