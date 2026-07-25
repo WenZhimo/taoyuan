@@ -1010,6 +1010,86 @@ describe('content package source contract', () => {
     expect(JSON.stringify(inspectFailureReport)).not.toContain('LENOVO')
   })
 
+  it('redacts host path messages even when host failures use source errors', async() => {
+    const sourceErrorReadFailureSource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/source-error-host-path-read-failure',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          `EACCES: scandir C:/Users/LENOVO/mods/${path}`,
+          path
+        )
+      },
+      async readTextFile(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          `EACCES: open C:/Users/LENOVO/mods/${path}`,
+          path
+        )
+      },
+      async dispose() {}
+    }
+    const sourceErrorInspectFailureSource: ContentPackageSource = {
+      ...sourceErrorReadFailureSource,
+      identity: {
+        ...sourceErrorReadFailureSource.identity,
+        sourceId: 'memory/source-error-host-path-inspect-failure'
+      },
+      async getEntry(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          `EACCES: lstat C:/Users/LENOVO/mods/${path}`,
+          path
+        )
+      }
+    }
+
+    const directJson = await readContentPackageSourceJson(
+      sourceErrorReadFailureSource,
+      'pack/manifest.json'
+    )
+    const readFailureReport = await discoverThirdPartyDataPacks(
+      sourceErrorReadFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(sourceErrorReadFailureSource)
+    )
+    const inspectFailureReport = await discoverThirdPartyDataPacks(
+      sourceErrorInspectFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(sourceErrorInspectFailureSource)
+    )
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(JSON.stringify(directJson)).not.toContain('C:/Users')
+    expect(JSON.stringify(directJson)).not.toContain('LENOVO')
+    expect(JSON.stringify(readFailureReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(readFailureReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(inspectFailureReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(inspectFailureReport)).not.toContain('LENOVO')
+  })
+
   it('keeps candidate-level source inspection failures inside the discovery report', async() => {
     const source = createManifestInspectionFailureSource()
 

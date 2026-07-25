@@ -113,15 +113,19 @@ export type ContentPackageSourceJsonReadResult =
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
 export type ContentPackageSourceHostOperation = 'inspect' | 'list' | 'read'
 
+const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[\s"'`])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
+
+const mayContainHostPath = (message: string): boolean => hostPathHintPattern.test(message)
+
 export const toContentPackageSourceHostOperationError = (
   operation: ContentPackageSourceHostOperation,
   error: unknown,
   sourcePath: string,
   fallbackCode: ContentPackageSourceErrorCode = 'SOURCE_ENTRY_NOT_FOUND'
 ): ContentPackageSourceError => {
-  if (error instanceof ContentPackageSourceError) return error
+  if (error instanceof ContentPackageSourceError && !mayContainHostPath(error.message)) return error
   return new ContentPackageSourceError(
-    fallbackCode,
+    error instanceof ContentPackageSourceError ? error.code : fallbackCode,
     `Content package source ${operation} operation failed`,
     sourcePath
   )
