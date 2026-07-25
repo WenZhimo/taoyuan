@@ -625,6 +625,60 @@ describe('electron content package source read-only probe', () => {
     expect(JSON.stringify(malformedSourceReport)).not.toContain('LENOVO')
     expect(JSON.stringify(malformedReadinessReport)).not.toContain('C:/Users')
     expect(JSON.stringify(malformedReadinessReport)).not.toContain('LENOVO')
+
+    let hostileIdentityInspected = false
+    const hostileIdentityGetterSource: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        throw new Error('EACCES: lstat C:/Users/LENOVO/mods/hostile-identity')
+      },
+      async getEntry() {
+        hostileIdentityInspected = true
+        throw new Error('hostile identity getters must be rejected before source inspection')
+      },
+      async readDirectory() {
+        throw new Error('hostile identity getters must be rejected before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('hostile identity getters must be rejected before file reads')
+      },
+      async dispose() {}
+    }
+    const hostileIdentitySourceReport = await buildElectronReadonlySourceAdapterProbeReport(
+      hostileIdentityGetterSource
+    )
+    const hostileIdentityReadinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source: hostileIdentityGetterSource,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(hostileIdentityInspected).toBe(false)
+    expect(hostileIdentitySourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source identity operation failed',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/invalid-readonly-probe-source',
+        rootPath: 'mods'
+      },
+      sourceErrorCode: 'SOURCE_IDENTITY_INVALID'
+    })
+    expect(hostileIdentityReadinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source identity operation failed',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      sourceIdentity: hostileIdentitySourceReport.sourceIdentity,
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(JSON.stringify(hostileIdentitySourceReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(hostileIdentitySourceReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(hostileIdentityReadinessReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(hostileIdentityReadinessReport)).not.toContain('LENOVO')
     expectOfficialBaseline()
   })
 

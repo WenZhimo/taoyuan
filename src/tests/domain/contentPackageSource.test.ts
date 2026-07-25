@@ -646,6 +646,37 @@ describe('content package source contract', () => {
     })
     expect(JSON.stringify(malformedReport)).not.toContain('C:/Users')
     expect(JSON.stringify(malformedReport)).not.toContain('LENOVO')
+
+    let hostileIdentityInspected = false
+    const hostileIdentityGetterSource: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        throw new Error('EACCES: lstat C:/Users/LENOVO/mods/hostile-identity')
+      },
+      async getEntry() {
+        hostileIdentityInspected = true
+        throw new Error('hostile identity getters must be rejected before source inspection')
+      },
+      async readDirectory() {
+        throw new Error('hostile identity getters must be rejected before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('hostile identity getters must be rejected before file reads')
+      },
+      async dispose() {}
+    }
+    const hostileIdentityReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(hostileIdentityGetterSource)
+    )
+
+    expect(hostileIdentityInspected).toBe(false)
+    expect(hostileIdentityReport.status).toBe('directory-not-found')
+    expect(hostileIdentityReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity operation failed'
+    })
+    expect(JSON.stringify(hostileIdentityReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(hostileIdentityReport)).not.toContain('LENOVO')
   })
 
   it('keeps file payloads as unknown pure JSON before TypeBox validation', async() => {

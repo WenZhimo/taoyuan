@@ -111,7 +111,7 @@ export type ContentPackageSourceJsonReadResult =
   | { readonly ok: false; readonly code: ContentPackageSourceErrorCode; readonly message: string }
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
-export type ContentPackageSourceHostOperation = 'inspect' | 'list' | 'read'
+export type ContentPackageSourceHostOperation = 'identity' | 'inspect' | 'list' | 'read'
 
 const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
 
@@ -618,13 +618,31 @@ export const validateContentPackageSourceIdentity = (
   }
 }
 
+export const readContentPackageSourceIdentity = (
+  source: ContentPackageSource,
+  sourcePath = ''
+): ContentPackageSourceIdentity => {
+  let identity: unknown
+  try {
+    identity = source.identity
+  } catch (error) {
+    throw toContentPackageSourceHostOperationError(
+      'identity',
+      error,
+      sourcePath,
+      'SOURCE_IDENTITY_INVALID'
+    )
+  }
+  return validateContentPackageSourceIdentity(identity)
+}
+
 const normalizeInspectedContentPackageSourceEntry = (
   source: ContentPackageSource,
   path: string,
   inspectedEntry: ContentPackageSourceDirectoryEntry,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): ContentPackageSourceDirectoryEntry => {
-  const identity = validateContentPackageSourceIdentity(source.identity)
+  const identity = readContentPackageSourceIdentity(source, path)
   const expectedName = entryName(path, entryName(identity.rootPath, identity.rootPath))
   const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
   if (entry.name !== expectedName) {
@@ -823,7 +841,7 @@ export const readContentPackageSourceJson = async (
 }
 
 const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string => {
-  const identity = validateContentPackageSourceIdentity(source.identity)
+  const identity = readContentPackageSourceIdentity(source, path)
   let normalizedPath: string
   try {
     normalizedPath = normalizePackagePath(path)

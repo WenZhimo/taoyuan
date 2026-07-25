@@ -6,8 +6,8 @@ import {
   normalizeContentPackageSourceDirectoryEntry,
   normalizeContentPackageSourcePath,
   normalizeContentPackageSourceTextPayload,
+  readContentPackageSourceIdentity,
   toContentPackageSourceHostOperationError,
-  validateContentPackageSourceIdentity,
   type ContentPackageSource,
   type ContentPackageSourceDirectoryEntry,
   type ContentPackageSourceEntryKind,
@@ -180,10 +180,10 @@ const createRedactedElectronReadonlySourceIdentity = (): ContentPackageSourceIde
 })
 
 const safeProbeReportSourceIdentity = (
-  identity: ContentPackageSourceIdentity
+  source: ContentPackageSource
 ): ContentPackageSourceIdentity => {
   try {
-    return validateContentPackageSourceIdentity(identity)
+    return readContentPackageSourceIdentity(source)
   } catch {
     return createRedactedElectronReadonlySourceIdentity()
   }
@@ -515,7 +515,7 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
   let normalizedInspectedPath = inspectedPath
   try {
     normalizedInspectedPath = normalizeContentPackageSourcePath(inspectedPath)
-    const sourceIdentity = validateContentPackageSourceIdentity(source.identity)
+    const sourceIdentity = readContentPackageSourceIdentity(source, normalizedInspectedPath)
     let inspectedEntry: ContentPackageSourceDirectoryEntry | null
     try {
       inspectedEntry = await source.getEntry(normalizedInspectedPath)
@@ -538,7 +538,7 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
     return {
       status: 'blocked',
       reason: errorMessage(error),
-      sourceIdentity: safeProbeReportSourceIdentity(source.identity),
+      sourceIdentity: safeProbeReportSourceIdentity(source),
       inspectedPath: normalizedInspectedPath,
       inspectedEntryKind: null,
       sourceErrorCode: sourceErrorCode(error),
