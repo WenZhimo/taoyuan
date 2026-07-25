@@ -682,6 +682,70 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('reuses the validated source identity for readiness discovery roots', async() => {
+    let identityReads = 0
+    let rootInspected = false
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        identityReads += 1
+        if (identityReads === 1) {
+          return {
+            contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+            kind: 'electron-readonly-directory-probe',
+            sourceId: 'electron/mods-readonly-probe',
+            rootPath: 'mods'
+          }
+        }
+        throw new Error('EACCES: lstat C:/Users/LENOVO/mods/identity-after-probe')
+      },
+      async getEntry(sourcePath) {
+        if (sourcePath === '') {
+          rootInspected = true
+          return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory() {
+        return []
+      },
+      async readTextFile() {
+        throw new Error('readiness should not read file payloads for an unavailable identity')
+      },
+      async dispose() {}
+    }
+
+    const report = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(rootInspected).toBe(true)
+    expect(identityReads).toBeGreaterThan(1)
+    expect(report).toMatchObject({
+      status: 'blocked',
+      reason: 'discovery failed',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'directory-not-found',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      },
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(report.diagnosticCount).toBeGreaterThan(0)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expectOfficialBaseline()
+  })
+
   it('redacts raw Electron host failures before probe or discovery diagnostics expose paths', async() => {
     const inspectFailureSource = createElectronReadonlyDirectoryProbeSource({
       host: {

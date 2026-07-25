@@ -385,7 +385,7 @@ export const buildElectronReadonlyRuntimeReadinessProbeReport = async(
   let discoveryReport: ThirdPartyDataPackDiscoveryReport
   try {
     discoveryReport = await discoverThirdPartyDataPacks(
-      options.source.identity.rootPath,
+      sourceProbe.sourceIdentity.rootPath,
       createDiscoveryFileSystemFromContentPackageSource(options.source)
     )
   } catch (error) {
