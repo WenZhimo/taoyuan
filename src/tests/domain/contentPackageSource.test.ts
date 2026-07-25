@@ -261,6 +261,7 @@ describe('content package source contract', () => {
     ])).code).toBe('SOURCE_ENTRY_UNSAFE')
     for (const unsafeMetadataEntry of [
       { name: 'C:/Users/LENOVO/mods/pack', kind: 'socket', isSymbolicLink: false } as never,
+      { name: 'pack', kind: 'C:/Users/LENOVO/mods/socket', isSymbolicLink: false } as never,
       { name: 'C:/Users/LENOVO/mods/pack', kind: 'directory' } as never
     ]) {
       const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([unsafeMetadataEntry]))

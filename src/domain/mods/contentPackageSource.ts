@@ -200,7 +200,7 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   if (!supportedEntryKinds.has(kind)) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
-      `Unsupported content package source entry kind: ${String(kind)}`
+      'Unsupported content package source entry kind'
     )
   }
   if (typeof entry.isSymbolicLink !== 'boolean') {
