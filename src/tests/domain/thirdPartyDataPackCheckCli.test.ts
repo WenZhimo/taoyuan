@@ -27,6 +27,12 @@ interface CliResult {
   readonly stderr: string
 }
 
+interface NodeAdapterProbeMessage {
+  readonly operation: string
+  readonly unsafePath: string
+  readonly message: string
+}
+
 afterEach(async() => {
   await Promise.all(tempRoots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
@@ -42,6 +48,26 @@ const runCli = async(args: readonly string[]): Promise<CliResult> =>
     const child = spawn(
       execPath,
       ['scripts/check-third-party-packs.mjs', ...args],
+      { cwd: projectRoot, stdio: ['ignore', 'pipe', 'pipe'] }
+    )
+    const stdoutChunks: Buffer[] = []
+    const stderrChunks: Buffer[] = []
+    child.stdout.on('data', chunk => stdoutChunks.push(Buffer.from(chunk)))
+    child.stderr.on('data', chunk => stderrChunks.push(Buffer.from(chunk)))
+    child.on('close', code => {
+      resolve({
+        code,
+        stdout: Buffer.concat(stdoutChunks).toString('utf8'),
+        stderr: Buffer.concat(stderrChunks).toString('utf8')
+      })
+    })
+  })
+
+const runNodeModuleSnippet = async(source: string): Promise<CliResult> =>
+  new Promise(resolve => {
+    const child = spawn(
+      execPath,
+      ['--input-type=module', '-e', source],
       { cwd: projectRoot, stdio: ['ignore', 'pipe', 'pipe'] }
     )
     const stdoutChunks: Buffer[] = []
@@ -457,6 +483,53 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('status: invalid')
     expect(result.stdout).toContain('entryCount: 4242')
     expectBlockedSourceAdapterGate(result.stdout)
+  }, CLI_TEST_TIMEOUT_MS)
+
+  it('redacts unsafe Node source paths before direct adapter errors expose host paths', async() => {
+    const root = await createTempRoot()
+    const result = await runNodeModuleSnippet(`
+      import { createNodeContentPackageSource } from './scripts/check-third-party-packs.mjs'
+
+      const source = createNodeContentPackageSource({
+        contractVersion: 1,
+        rootDirectory: ${JSON.stringify(root)},
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs'
+      })
+      const unsafePaths = ['/Users/LENOVO/private-pack/manifest.json', '../LENOVO/private-pack/manifest.json']
+      const messages = []
+      for (const unsafePath of unsafePaths) {
+        for (const [operation, fn] of [
+          ['getEntry', () => source.getEntry(unsafePath)],
+          ['readDirectory', () => source.readDirectory(unsafePath)],
+          ['readTextFile', () => source.readTextFile(unsafePath)]
+        ]) {
+          try {
+            await fn()
+            messages.push({ operation, unsafePath, message: 'resolved' })
+          } catch (error) {
+            messages.push({
+              operation,
+              unsafePath,
+              message: error instanceof Error ? error.message : String(error)
+            })
+          }
+        }
+      }
+      await source.dispose()
+      process.stdout.write(JSON.stringify(messages))
+    `)
+    const messages = JSON.parse(result.stdout) as readonly NodeAdapterProbeMessage[]
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(messages).toHaveLength(6)
+    for (const message of messages) {
+      expect(message.message).toBe('Content package source path is unsafe')
+      expect(message.message).not.toContain('LENOVO')
+      expect(message.message).not.toContain('private-pack')
+      expect(message.message).not.toContain('Users')
+    }
   }, CLI_TEST_TIMEOUT_MS)
 
   it('returns non-zero and prints dependency diagnostics for missing required dependencies', async() => {

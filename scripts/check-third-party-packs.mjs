@@ -31,7 +31,7 @@ const normalizeNodeSourcePath = sourcePath => {
     || normalizedPath.startsWith('/')
     || normalizedPath.split('/').includes('..')
   ) {
-    throw new Error(`Unsafe content package source path: ${sourcePath}`)
+    throw new Error('Content package source path is unsafe')
   }
   return normalizedPath
 }
