@@ -281,11 +281,17 @@ export const validateContentPackageSourceArchiveEntries = (
     throwLimitExceeded(`Archive exceeds ${policy.maxPackageFileCount} entries: ${entries.length}`)
   }
 
+  const normalizedEntries = entries
+    .map(entry => ({
+      entry,
+      path: normalizeContentPackageSourceArchiveEntryPath(entry.path, policy)
+    }))
+    .sort((a, b) => compareCodePoints(a.path, b.path))
+
   const seenPaths = new Set<string>()
   const seenAncestorPaths = new Set<string>()
   let totalUncompressedBytes = 0
-  return entries.map(entry => {
-    const path = normalizeContentPackageSourceArchiveEntryPath(entry.path, policy)
+  return normalizedEntries.map(({ entry, path }) => {
     if (seenPaths.has(path)) {
       throw new ContentPackageSourceError('SOURCE_DUPLICATE_PATH', `Duplicate archive entry path: ${path}`, path)
     }

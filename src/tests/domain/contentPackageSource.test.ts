@@ -328,8 +328,8 @@ describe('content package source contract', () => {
       { path: 'manifest.json', uncompressedSizeBytes: 1, compressedSizeBytes: 1 },
       { path: 'data/items.json', uncompressedSizeBytes: 100, compressedSizeBytes: 1 }
     ])).toEqual([
-      { path: 'manifest.json', uncompressedSizeBytes: 1, compressedSizeBytes: 1 },
-      { path: 'data/items.json', uncompressedSizeBytes: 100, compressedSizeBytes: 1 }
+      { path: 'data/items.json', uncompressedSizeBytes: 100, compressedSizeBytes: 1 },
+      { path: 'manifest.json', uncompressedSizeBytes: 1, compressedSizeBytes: 1 }
     ])
     expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
       { path: 'manifest.json', uncompressedSizeBytes: 1 },
@@ -367,8 +367,8 @@ describe('content package source contract', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 
     expect(validateContentPackageSourceArchiveEntries([
-      { path: 'empty.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 },
-      { path: 'ratio-edge.bin', uncompressedSizeBytes: limits.maxCompressedRatio, compressedSizeBytes: 1 }
+      { path: 'ratio-edge.bin', uncompressedSizeBytes: limits.maxCompressedRatio, compressedSizeBytes: 1 },
+      { path: 'empty.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
     ])).toEqual([
       { path: 'empty.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 },
       { path: 'ratio-edge.bin', uncompressedSizeBytes: limits.maxCompressedRatio, compressedSizeBytes: 1 }
