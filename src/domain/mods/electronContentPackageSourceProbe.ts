@@ -46,6 +46,7 @@ export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND =
 
 export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID = 'electron/mods-readonly-probe'
 export const ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH = 'mods'
+const ELECTRON_READONLY_DIRECTORY_PROBE_INVALID_SOURCE_ID = 'electron/invalid-readonly-probe-source'
 
 export interface ElectronReadonlyDirectoryProbeHost {
   getEntry(path: string): Promise<ContentPackageSourceDirectoryEntry | null>
@@ -148,21 +149,36 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
   let normalized: string
   try {
     normalized = normalizeContentPackageSourcePath(value)
-  } catch (error) {
+  } catch {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
-      `${fieldName} must be a normalized relative identifier: ${errorMessage(error)}`,
-      value
+      `${fieldName} must be a normalized relative identifier`
     )
   }
   if (normalized === '' || normalized !== value) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
-      `${fieldName} must be non-empty and already normalized`,
-      value
+      `${fieldName} must be non-empty and already normalized`
     )
   }
   return normalized
+}
+
+const createRedactedElectronReadonlySourceIdentity = (): ContentPackageSourceIdentity => ({
+  contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+  kind: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND,
+  sourceId: ELECTRON_READONLY_DIRECTORY_PROBE_INVALID_SOURCE_ID,
+  rootPath: ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH
+})
+
+const safeProbeReportSourceIdentity = (
+  identity: ContentPackageSourceIdentity
+): ContentPackageSourceIdentity => {
+  try {
+    return validateContentPackageSourceIdentity(identity)
+  } catch {
+    return createRedactedElectronReadonlySourceIdentity()
+  }
 }
 
 const normalizeEntry = (
@@ -480,7 +496,7 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
     return {
       status: 'blocked',
       reason: errorMessage(error),
-      sourceIdentity: source.identity,
+      sourceIdentity: safeProbeReportSourceIdentity(source.identity),
       inspectedPath: normalizedInspectedPath,
       inspectedEntryKind: null,
       sourceErrorCode: sourceErrorCode(error),

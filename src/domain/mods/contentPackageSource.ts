@@ -430,11 +430,10 @@ const entryName = (path: string, fallback: string): string => {
 const normalizeIdentityPart = (value: string, fieldName: string): string => {
   try {
     return normalizeContentPackageSourcePath(value)
-  } catch (error) {
+  } catch {
     throw new ContentPackageSourceError(
-      'SOURCE_PATH_UNSAFE',
-      `${fieldName} must be a normalized relative identifier: ${errorMessage(error)}`,
-      value
+      'SOURCE_IDENTITY_INVALID',
+      `${fieldName} must be a normalized relative identifier`
     )
   }
 }

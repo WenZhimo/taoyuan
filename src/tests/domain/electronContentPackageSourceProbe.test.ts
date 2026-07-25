@@ -9,7 +9,8 @@ import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   ContentPackageSourceError,
   createDiscoveryFileSystemFromContentPackageSource,
-  readContentPackageSourceJson
+  readContentPackageSourceJson,
+  type ContentPackageSource
 } from '@/domain/mods/contentPackageSource'
 import {
   buildElectronReadonlySourceAdapterProbeReport,
@@ -471,6 +472,67 @@ describe('electron content package source read-only probe', () => {
         sourceHandlesRetained: false
       }
     })
+  })
+
+  it('redacts invalid Electron source identities in blocked probe reports', async() => {
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'C:/Users/LENOVO/mods',
+        rootPath: 'mods'
+      },
+      async getEntry() {
+        throw new Error('invalid identities must be rejected before source inspection')
+      },
+      async readDirectory() {
+        throw new Error('invalid identities must be rejected before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('invalid identities must be rejected before file reads')
+      },
+      async dispose() {}
+    }
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'sourceId must be a normalized relative identifier',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/invalid-readonly-probe-source',
+        rootPath: 'mods'
+      },
+      sourceErrorCode: 'SOURCE_IDENTITY_INVALID',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'sourceId must be a normalized relative identifier',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      sourceIdentity: sourceReport.sourceIdentity,
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(JSON.stringify(sourceReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(sourceReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(readinessReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(readinessReport)).not.toContain('LENOVO')
+    expectOfficialBaseline()
   })
 
   it('blocks non-directory Electron source roots before discovery', async() => {

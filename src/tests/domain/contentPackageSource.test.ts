@@ -420,6 +420,26 @@ describe('content package source contract', () => {
     expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
       sourceCode: 'SOURCE_IDENTITY_INVALID'
     })
+
+    const absoluteIdentitySource: ContentPackageSource = {
+      ...source,
+      identity: {
+        ...source.identity,
+        sourceId: 'C:/Users/LENOVO/mods'
+      }
+    }
+    const redactedReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(absoluteIdentitySource)
+    )
+
+    expect(redactedReport.status).toBe('directory-not-found')
+    expect(redactedReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_IDENTITY_INVALID',
+      message: 'sourceId must be a normalized relative identifier'
+    })
+    expect(JSON.stringify(redactedReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(redactedReport)).not.toContain('LENOVO')
   })
 
   it('keeps file payloads as unknown pure JSON before TypeBox validation', async() => {
