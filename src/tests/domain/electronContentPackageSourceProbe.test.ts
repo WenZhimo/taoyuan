@@ -532,6 +532,50 @@ describe('electron content package source read-only probe', () => {
     expect(JSON.stringify(sourceReport)).not.toContain('LENOVO')
     expect(JSON.stringify(readinessReport)).not.toContain('C:/Users')
     expect(JSON.stringify(readinessReport)).not.toContain('LENOVO')
+
+    let inspected = false
+    const malformedIdentitySource: ContentPackageSource = {
+      ...source,
+      identity: null as unknown as ContentPackageSource['identity'],
+      async getEntry() {
+        inspected = true
+        throw new Error('malformed identities must be rejected before source inspection')
+      }
+    }
+    const malformedSourceReport = await buildElectronReadonlySourceAdapterProbeReport(malformedIdentitySource)
+    const malformedReadinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source: malformedIdentitySource,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(inspected).toBe(false)
+    expect(malformedSourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source identity must be an object',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/invalid-readonly-probe-source',
+        rootPath: 'mods'
+      },
+      sourceErrorCode: 'SOURCE_IDENTITY_INVALID'
+    })
+    expect(malformedReadinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source identity must be an object',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      sourceIdentity: malformedSourceReport.sourceIdentity,
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(JSON.stringify(malformedSourceReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(malformedSourceReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(malformedReadinessReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(malformedReadinessReport)).not.toContain('LENOVO')
     expectOfficialBaseline()
   })
 

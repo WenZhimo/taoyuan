@@ -488,6 +488,16 @@ const entryName = (path: string, fallback: string): string => {
   return separatorIndex === -1 ? path : path.slice(separatorIndex + 1)
 }
 
+const asIdentityObject = (identity: unknown): Record<string, unknown> => {
+  if (typeof identity !== 'object' || identity === null || Array.isArray(identity)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      'Content package source identity must be an object'
+    )
+  }
+  return identity as Record<string, unknown>
+}
+
 const normalizeIdentityPart = (value: string, fieldName: string): string => {
   try {
     return normalizeContentPackageSourcePath(value)
@@ -500,24 +510,43 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
 }
 
 export const validateContentPackageSourceIdentity = (
-  identity: ContentPackageSourceIdentity
+  identity: unknown
 ): ContentPackageSourceIdentity => {
-  if (identity.contractVersion !== CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION) {
+  const identityObject = asIdentityObject(identity)
+  const contractVersion = identityObject.contractVersion
+  const kind = identityObject.kind
+  const sourceIdInput = identityObject.sourceId
+  const rootPathInput = identityObject.rootPath
+
+  if (contractVersion !== CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
       'Unsupported content package source contract version'
     )
   }
-  if (!supportedSourceKinds.has(identity.kind)) {
+  if (typeof kind !== 'string' || !supportedSourceKinds.has(kind as ContentPackageSourceKind)) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
       'Unsupported content package source kind'
     )
   }
+  const sourceKind = kind as ContentPackageSourceKind
+  if (typeof sourceIdInput !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      'sourceId must be a normalized relative identifier'
+    )
+  }
+  if (typeof rootPathInput !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      'rootPath must be a normalized relative identifier'
+    )
+  }
 
-  const sourceId = normalizeIdentityPart(identity.sourceId, 'sourceId')
-  const rootPath = normalizeIdentityPart(identity.rootPath, 'rootPath')
-  if (sourceId !== identity.sourceId || rootPath !== identity.rootPath) {
+  const sourceId = normalizeIdentityPart(sourceIdInput, 'sourceId')
+  const rootPath = normalizeIdentityPart(rootPathInput, 'rootPath')
+  if (sourceId !== sourceIdInput || rootPath !== rootPathInput) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
       'Content package source identity must already use normalized relative sourceId and rootPath'
@@ -526,7 +555,7 @@ export const validateContentPackageSourceIdentity = (
 
   return {
     contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
-    kind: identity.kind,
+    kind: sourceKind,
     sourceId,
     rootPath
   }

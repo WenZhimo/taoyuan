@@ -516,13 +516,29 @@ describe('content package source contract', () => {
 
     for (const hostileIdentityPatch of [
       { contractVersion: 'C:/Users/LENOVO/mods/source-version' },
-      { kind: 'C:/Users/LENOVO/mods/source-kind' }
+      { kind: 'C:/Users/LENOVO/mods/source-kind' },
+      { sourceId: 'C:/Users/LENOVO/mods/source-id' },
+      { rootPath: 'C:/Users/LENOVO/mods/root' },
+      { sourceId: 1 },
+      { rootPath: 1 }
     ]) {
       const hostileIdentity = {
         ...source.identity,
         ...hostileIdentityPatch
       } as never
       const error = captureSourceError(() => validateContentPackageSourceIdentity(hostileIdentity))
+
+      expect(error.code).toBe('SOURCE_IDENTITY_INVALID')
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    for (const malformedIdentity of [
+      null,
+      'C:/Users/LENOVO/mods/source',
+      ['C:/Users/LENOVO/mods/source']
+    ]) {
+      const error = captureSourceError(() => validateContentPackageSourceIdentity(malformedIdentity))
 
       expect(error.code).toBe('SOURCE_IDENTITY_INVALID')
       expect(JSON.stringify(error)).not.toContain('C:/Users')
@@ -548,6 +564,29 @@ describe('content package source contract', () => {
     })
     expect(JSON.stringify(redactedReport)).not.toContain('C:/Users')
     expect(JSON.stringify(redactedReport)).not.toContain('LENOVO')
+
+    let inspected = false
+    const malformedIdentitySource: ContentPackageSource = {
+      ...source,
+      identity: null as unknown as ContentPackageSource['identity'],
+      async getEntry() {
+        inspected = true
+        throw new Error('malformed identities must be rejected before source inspection')
+      }
+    }
+    const malformedReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(malformedIdentitySource)
+    )
+
+    expect(inspected).toBe(false)
+    expect(malformedReport.status).toBe('directory-not-found')
+    expect(malformedReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity must be an object'
+    })
+    expect(JSON.stringify(malformedReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(malformedReport)).not.toContain('LENOVO')
   })
 
   it('keeps file payloads as unknown pure JSON before TypeBox validation', async() => {
