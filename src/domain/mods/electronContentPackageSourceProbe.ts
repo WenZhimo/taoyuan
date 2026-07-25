@@ -506,8 +506,14 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
   try {
     normalizedInspectedPath = normalizeContentPackageSourcePath(inspectedPath)
     const sourceIdentity = validateContentPackageSourceIdentity(source.identity)
+    let inspectedEntry: ContentPackageSourceDirectoryEntry | null
+    try {
+      inspectedEntry = await source.getEntry(normalizedInspectedPath)
+    } catch (error) {
+      throw toContentPackageSourceHostOperationError('inspect', error, normalizedInspectedPath)
+    }
     const entry = assertDirectoryProbeRoot(
-      await source.getEntry(normalizedInspectedPath),
+      inspectedEntry,
       normalizedInspectedPath
     )
     return {

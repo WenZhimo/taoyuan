@@ -665,6 +665,61 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('redacts arbitrary source inspect failures before Electron probe reports expose host paths', async() => {
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      },
+      async getEntry(sourcePath) {
+        throw new Error(`EACCES: lstat C:/Users/LENOVO/mods/${sourcePath}`)
+      },
+      async readDirectory() {
+        throw new Error('probe must stop before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('probe must stop before file reads')
+      },
+      async dispose() {}
+    }
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source inspect operation failed',
+      sourceErrorCode: 'SOURCE_ENTRY_NOT_FOUND',
+      sourceIdentity: source.identity,
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source inspect operation failed',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(JSON.stringify(sourceReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(sourceReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(readinessReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(readinessReport)).not.toContain('LENOVO')
+    expectOfficialBaseline()
+  })
+
   it('narrows malformed Electron host text payloads before JSON or discovery parsing', async() => {
     const root = await createRoot()
     const before = await writeReadinessSentinels(root)
