@@ -5,6 +5,7 @@ import {
   normalizeContentPackageSourceDirectoryEntries,
   normalizeContentPackageSourceDirectoryEntry,
   normalizeContentPackageSourcePath,
+  normalizeContentPackageSourceTextPayload,
   toContentPackageSourceHostOperationError,
   validateContentPackageSourceIdentity,
   type ContentPackageSource,
@@ -341,7 +342,10 @@ export const createElectronReadonlyDirectoryProbeSource = (
       assertAvailable()
       const normalizedPath = normalizePath(sourcePath)
       try {
-        return await options.host.readTextFile(normalizedPath)
+        return normalizeContentPackageSourceTextPayload(
+          await options.host.readTextFile(normalizedPath),
+          normalizedPath
+        )
       } catch (error) {
         throw toContentPackageSourceHostOperationError('read', error, normalizedPath)
       }

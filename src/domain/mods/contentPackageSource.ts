@@ -430,14 +430,30 @@ export const validateContentPackageSourceArchiveEntries = (
 }
 
 export const assertContentPackageSourceTextWithinLimits = (
-  text: string,
+  text: unknown,
   sourcePath: string,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
-): void => {
-  const textBytes = utf8ByteLength(text)
+): string => {
+  const normalizedText = normalizeContentPackageSourceTextPayload(text, sourcePath)
+  const textBytes = utf8ByteLength(normalizedText)
   if (textBytes > policy.maxSingleFileBytes) {
     throwLimitExceeded(`Source text file exceeds ${policy.maxSingleFileBytes} bytes: ${textBytes}`, sourcePath)
   }
+  return normalizedText
+}
+
+export const normalizeContentPackageSourceTextPayload = (
+  text: unknown,
+  sourcePath: string
+): string => {
+  if (typeof text !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Content package source text payload must be a string',
+      sourcePath
+    )
+  }
+  return text
 }
 
 const inspectContentPackageSourceReadableFile = async(
@@ -775,11 +791,10 @@ export const readContentPackageSourceJson = async (
   try {
     const normalizedPath = await inspectContentPackageSourceReadableFile(source, path, policy)
     try {
-      text = await source.readTextFile(normalizedPath)
+      text = assertContentPackageSourceTextWithinLimits(await source.readTextFile(normalizedPath), normalizedPath, policy)
     } catch (error) {
       throw toContentPackageSourceHostOperationError('read', error, normalizedPath)
     }
-    assertContentPackageSourceTextWithinLimits(text, normalizedPath, policy)
   } catch (error) {
     if (error instanceof ContentPackageSourceError) {
       return { ok: false, code: error.code, message: error.message }
@@ -866,11 +881,10 @@ export const createDiscoveryFileSystemFromContentPackageSource = (
     const readableFilePath = await inspectContentPackageSourceReadableFile(source, sourcePath)
     let text: string
     try {
-      text = await source.readTextFile(readableFilePath)
+      text = assertContentPackageSourceTextWithinLimits(await source.readTextFile(readableFilePath), readableFilePath)
     } catch (error) {
       throw toContentPackageSourceHostOperationError('read', error, readableFilePath)
     }
-    assertContentPackageSourceTextWithinLimits(text, readableFilePath)
     return text
   }
 })

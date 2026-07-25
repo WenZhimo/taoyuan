@@ -665,6 +665,63 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('narrows malformed Electron host text payloads before JSON or discovery parsing', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack') return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack/manifest.json') {
+            return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+          }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          if (sourcePath === '') return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+          return []
+        },
+        async readTextFile() {
+          return { leaked: 'C:/Users/LENOVO/mods/private-pack/manifest.json' } as never
+        }
+      }
+    })
+
+    await expect(source.readTextFile('private-pack/manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source text payload must be a string'
+    })
+    const directJson = await readContentPackageSourceJson(source, 'private-pack/manifest.json')
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+    await source.dispose()
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source text payload must be a string'
+    })
+    expect(discoveryReport.status).toBe('completed')
+    expect(discoveryReport.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      path: 'private-pack/manifest.json',
+      reason: 'Package source read operation failed'
+    })
+    expect(discoveryReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source text payload must be a string',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(directJson)).not.toContain('C:/Users')
+    expect(JSON.stringify(directJson)).not.toContain('LENOVO')
+    expect(JSON.stringify(discoveryReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(discoveryReport)).not.toContain('LENOVO')
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('blocks non-directory Electron source roots before discovery', async() => {
     const root = await createRoot()
     const before = await writeReadinessSentinels(root)
