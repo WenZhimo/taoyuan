@@ -468,6 +468,21 @@ describe('content package source contract', () => {
       sourceCode: 'SOURCE_IDENTITY_INVALID'
     })
 
+    for (const hostileIdentityPatch of [
+      { contractVersion: 'C:/Users/LENOVO/mods/source-version' },
+      { kind: 'C:/Users/LENOVO/mods/source-kind' }
+    ]) {
+      const hostileIdentity = {
+        ...source.identity,
+        ...hostileIdentityPatch
+      } as never
+      const error = captureSourceError(() => validateContentPackageSourceIdentity(hostileIdentity))
+
+      expect(error.code).toBe('SOURCE_IDENTITY_INVALID')
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
     const absoluteIdentitySource: ContentPackageSource = {
       ...source,
       identity: {

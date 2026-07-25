@@ -465,13 +465,13 @@ export const validateContentPackageSourceIdentity = (
   if (identity.contractVersion !== CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
-      `Unsupported content package source contract version: ${String(identity.contractVersion)}`
+      'Unsupported content package source contract version'
     )
   }
   if (!supportedSourceKinds.has(identity.kind)) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
-      `Unsupported content package source kind: ${String(identity.kind)}`
+      'Unsupported content package source kind'
     )
   }
 
