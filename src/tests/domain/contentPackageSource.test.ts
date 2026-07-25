@@ -4,6 +4,7 @@ import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
   type ContentPackageSource,
+  type ContentPackageSourceDirectoryEntry,
   ContentPackageSourceError,
   createDiscoveryFileSystemFromContentPackageSource,
   createMemoryContentPackageSource,
@@ -92,7 +93,11 @@ const createManifestInspectionFailureSource = (): ContentPackageSource => ({
 
 const createMetadataGuardSource = (
   entries: Record<string, { readonly kind: 'file' | 'directory' | 'other'; readonly isSymbolicLink: boolean } | null>,
-  hooks?: { readAttempted?: (path: string) => void }
+  hooks?: {
+    readAttempted?: (path: string) => void
+    directoryReadAttempted?: (path: string) => void
+    directoryEntries?: readonly ContentPackageSourceDirectoryEntry[]
+  }
 ): ContentPackageSource => ({
   identity: {
     contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
@@ -109,8 +114,9 @@ const createMetadataGuardSource = (
       isSymbolicLink: entry.isSymbolicLink
     }
   },
-  async readDirectory() {
-    return []
+  async readDirectory(path) {
+    hooks?.directoryReadAttempted?.(path)
+    return hooks?.directoryEntries ?? []
   },
   async readTextFile(path) {
     hooks?.readAttempted?.(path)
@@ -506,6 +512,40 @@ describe('content package source contract', () => {
     await expect(fileSystem.readTextFile('packs/pack/valid.json')).resolves.toContain('should_not_be_read')
 
     expect(readAttempts).toEqual(['pack/valid.json'])
+  })
+
+  it('checks directory metadata before bridged discovery listings expose entries', async() => {
+    const directoryReadAttempts: string[] = []
+    const source = createMetadataGuardSource({
+      'pack/missing': null,
+      'pack/file.json': { kind: 'file', isSymbolicLink: false },
+      'pack/symlink-dir': { kind: 'directory', isSymbolicLink: true },
+      'pack/valid-dir': { kind: 'directory', isSymbolicLink: false }
+    }, {
+      directoryReadAttempted: path => {
+        directoryReadAttempts.push(path)
+      },
+      directoryEntries: [{ name: 'manifest.json', kind: 'file', isSymbolicLink: false }]
+    })
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    await expect(fileSystem.readDirectory('packs/../userdata')).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE'
+    })
+    await expect(fileSystem.readDirectory('packs/pack/missing')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    await expect(fileSystem.readDirectory('packs/pack/file.json')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_DIRECTORY'
+    })
+    await expect(fileSystem.readDirectory('packs/pack/symlink-dir')).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE'
+    })
+    await expect(fileSystem.readDirectory('packs/pack/valid-dir')).resolves.toEqual([
+      { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+    ])
+
+    expect(directoryReadAttempts).toEqual(['pack/valid-dir'])
   })
 
   it('reports permission revocation and disposal without retaining platform handles', async() => {

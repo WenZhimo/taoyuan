@@ -378,6 +378,38 @@ const inspectContentPackageSourceReadableFile = async(
   return normalizedPath
 }
 
+const inspectContentPackageSourceReadableDirectory = async(
+  source: ContentPackageSource,
+  path: string,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): Promise<string> => {
+  const normalizedPath = normalizeContentPackageSourcePath(path, policy)
+  const inspectedEntry = await source.getEntry(normalizedPath)
+  if (inspectedEntry === null) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_NOT_FOUND',
+      `Source path was not found: ${normalizedPath}`,
+      normalizedPath
+    )
+  }
+  const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
+  if (entry.isSymbolicLink) {
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      `Source path must not be a symbolic link: ${normalizedPath}`,
+      normalizedPath
+    )
+  }
+  if (entry.kind !== 'directory') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_NOT_DIRECTORY',
+      `Source path is not a directory: ${normalizedPath}`,
+      normalizedPath
+    )
+  }
+  return normalizedPath
+}
+
 const parentPath = (path: string): string => {
   const separatorIndex = path.lastIndexOf('/')
   return separatorIndex === -1 ? '' : path.slice(0, separatorIndex)
@@ -650,7 +682,9 @@ export const createDiscoveryFileSystemFromContentPackageSource = (
     return toDiscoveryEntry(await source.getEntry(stripDiscoveryRoot(source, path)))
   },
   async readDirectory(path) {
-    return normalizeContentPackageSourceDirectoryEntries(await source.readDirectory(stripDiscoveryRoot(source, path)))
+    const sourcePath = stripDiscoveryRoot(source, path)
+    const readableDirectoryPath = await inspectContentPackageSourceReadableDirectory(source, sourcePath)
+    return normalizeContentPackageSourceDirectoryEntries(await source.readDirectory(readableDirectoryPath))
   },
   async readTextFile(path) {
     const sourcePath = stripDiscoveryRoot(source, path)
