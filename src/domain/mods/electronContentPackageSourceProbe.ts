@@ -147,6 +147,12 @@ const errorMessage = (error: unknown): string => error instanceof Error ? error.
 const sourceErrorCode = (error: unknown): ContentPackageSourceErrorCode | undefined =>
   error instanceof ContentPackageSourceError ? error.code : undefined
 
+const toElectronReadonlySourceReleaseError = (error: unknown): ContentPackageSourceError =>
+  new ContentPackageSourceError(
+    sourceErrorCode(error) ?? 'SOURCE_DISPOSED',
+    'Content package source release operation failed'
+  )
+
 const normalizeIdentityPart = (value: string, fieldName: string): string => {
   let normalized: string
   try {
@@ -352,7 +358,11 @@ export const createElectronReadonlyDirectoryProbeSource = (
     },
     async dispose() {
       disposed = true
-      await options.host.dispose?.()
+      try {
+        await options.host.dispose?.()
+      } catch (error) {
+        throw toElectronReadonlySourceReleaseError(error)
+      }
     }
   }
 }

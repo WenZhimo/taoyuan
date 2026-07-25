@@ -474,6 +474,55 @@ describe('electron content package source read-only probe', () => {
     })
   })
 
+  it('redacts Electron host release failures before callers or reports expose paths', async() => {
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory() {
+          return []
+        },
+        async readTextFile() {
+          throw new Error('release failure test does not read package payloads')
+        },
+        async dispose() {
+          throw new Error('EBUSY: close C:/Users/LENOVO/mods/.probe-handle')
+        }
+      }
+    })
+
+    let releaseError: unknown
+    try {
+      await source.dispose()
+    } catch (error) {
+      releaseError = error
+    }
+    const report = await buildElectronReadonlySourceAdapterProbeReport(source)
+
+    expect(releaseError).toBeInstanceOf(ContentPackageSourceError)
+    expect(releaseError).toMatchObject({
+      code: 'SOURCE_DISPOSED',
+      message: 'Content package source release operation failed'
+    })
+    expect(report).toMatchObject({
+      status: 'blocked',
+      reason: 'Electron read-only source adapter probe has been disposed',
+      sourceErrorCode: 'SOURCE_DISPOSED',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(JSON.stringify(releaseError)).not.toContain('C:/Users')
+    expect(JSON.stringify(releaseError)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expectOfficialBaseline()
+  })
+
   it('redacts invalid Electron source identities in blocked probe reports', async() => {
     const source: ContentPackageSource = {
       identity: {
