@@ -469,6 +469,37 @@ describe('content package source contract', () => {
     expect(readAttempts).toEqual(['pack/valid.json'])
   })
 
+  it('checks file metadata before bridged discovery reads expose payload text', async() => {
+    const readAttempts: string[] = []
+    const source = createMetadataGuardSource({
+      'pack/missing.json': null,
+      'pack/directory.json': { kind: 'directory', isSymbolicLink: false },
+      'pack/symlink.json': { kind: 'file', isSymbolicLink: true },
+      'pack/valid.json': { kind: 'file', isSymbolicLink: false }
+    }, {
+      readAttempted: path => {
+        readAttempts.push(path)
+      }
+    })
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    await expect(fileSystem.readTextFile('packs/../userdata/settings.json')).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE'
+    })
+    await expect(fileSystem.readTextFile('packs/pack/missing.json')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    await expect(fileSystem.readTextFile('packs/pack/directory.json')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FILE'
+    })
+    await expect(fileSystem.readTextFile('packs/pack/symlink.json')).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE'
+    })
+    await expect(fileSystem.readTextFile('packs/pack/valid.json')).resolves.toContain('should_not_be_read')
+
+    expect(readAttempts).toEqual(['pack/valid.json'])
+  })
+
   it('reports permission revocation and disposal without retaining platform handles', async() => {
     const revoked = createValidSource()
     const disposed = createValidSource()

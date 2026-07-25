@@ -325,6 +325,38 @@ export const assertContentPackageSourceTextWithinLimits = (
   }
 }
 
+const inspectContentPackageSourceReadableFile = async(
+  source: ContentPackageSource,
+  path: string,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): Promise<string> => {
+  const normalizedPath = normalizeContentPackageSourcePath(path, policy)
+  const inspectedEntry = await source.getEntry(normalizedPath)
+  if (inspectedEntry === null) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_NOT_FOUND',
+      `Source path was not found: ${normalizedPath}`,
+      normalizedPath
+    )
+  }
+  const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
+  if (entry.isSymbolicLink) {
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      `Source path must not be a symbolic link: ${normalizedPath}`,
+      normalizedPath
+    )
+  }
+  if (entry.kind !== 'file') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_NOT_FILE',
+      `Source path is not a file: ${normalizedPath}`,
+      normalizedPath
+    )
+  }
+  return normalizedPath
+}
+
 const parentPath = (path: string): string => {
   const separatorIndex = path.lastIndexOf('/')
   return separatorIndex === -1 ? '' : path.slice(0, separatorIndex)
@@ -535,33 +567,9 @@ export const readContentPackageSourceJson = async (
   path: string,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): Promise<ContentPackageSourceJsonReadResult> => {
-  let normalizedPath: string
   let text: string
   try {
-    normalizedPath = normalizeContentPackageSourcePath(path, policy)
-    const inspectedEntry = await source.getEntry(normalizedPath)
-    if (inspectedEntry === null) {
-      throw new ContentPackageSourceError(
-        'SOURCE_ENTRY_NOT_FOUND',
-        `Source path was not found: ${normalizedPath}`,
-        normalizedPath
-      )
-    }
-    const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
-    if (entry.isSymbolicLink) {
-      throw new ContentPackageSourceError(
-        'SOURCE_PATH_UNSAFE',
-        `Source path must not be a symbolic link: ${normalizedPath}`,
-        normalizedPath
-      )
-    }
-    if (entry.kind !== 'file') {
-      throw new ContentPackageSourceError(
-        'SOURCE_ENTRY_NOT_FILE',
-        `Source path is not a file: ${normalizedPath}`,
-        normalizedPath
-      )
-    }
+    const normalizedPath = await inspectContentPackageSourceReadableFile(source, path, policy)
     text = await source.readTextFile(normalizedPath)
     assertContentPackageSourceTextWithinLimits(text, normalizedPath, policy)
   } catch (error) {
@@ -625,8 +633,9 @@ export const createDiscoveryFileSystemFromContentPackageSource = (
   },
   async readTextFile(path) {
     const sourcePath = stripDiscoveryRoot(source, path)
-    const text = await source.readTextFile(sourcePath)
-    assertContentPackageSourceTextWithinLimits(text, sourcePath)
+    const readableFilePath = await inspectContentPackageSourceReadableFile(source, sourcePath)
+    const text = await source.readTextFile(readableFilePath)
+    assertContentPackageSourceTextWithinLimits(text, readableFilePath)
     return text
   }
 })
