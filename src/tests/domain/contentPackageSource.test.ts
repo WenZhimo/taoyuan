@@ -259,6 +259,16 @@ describe('content package source contract', () => {
     expect(captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
       { name: 'pipe', kind: 'socket', isSymbolicLink: false } as never
     ])).code).toBe('SOURCE_ENTRY_UNSAFE')
+    for (const unsafeMetadataEntry of [
+      { name: 'C:/Users/LENOVO/mods/pack', kind: 'socket', isSymbolicLink: false } as never,
+      { name: 'C:/Users/LENOVO/mods/pack', kind: 'directory' } as never
+    ]) {
+      const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([unsafeMetadataEntry]))
+
+      expect(error.code).toBe('SOURCE_ENTRY_UNSAFE')
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
 
     let readAttempted = false
     const source: ContentPackageSource = {

@@ -200,15 +200,13 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   if (!supportedEntryKinds.has(kind)) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
-      `Unsupported content package source entry kind: ${String(kind)}`,
-      entry.name
+      `Unsupported content package source entry kind: ${String(kind)}`
     )
   }
   if (typeof entry.isSymbolicLink !== 'boolean') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
-      'Content package source entry must expose an explicit symbolic-link flag',
-      entry.name
+      'Content package source entry must expose an explicit symbolic-link flag'
     )
   }
   return {
