@@ -360,6 +360,65 @@ describe('content package source contract', () => {
     })
   })
 
+  it('narrows directory entry metadata from unknown before discovery can inspect packages', async() => {
+    for (const hostileEntries of [
+      'C:/Users/LENOVO/mods' as unknown,
+      [null],
+      ['C:/Users/LENOVO/mods/pack'],
+      [{ name: 1, kind: 'directory', isSymbolicLink: false }],
+      [{ name: 'pack', kind: 1, isSymbolicLink: false }],
+      [{ name: 'pack', kind: 'directory', isSymbolicLink: 'C:/Users/LENOVO/symlink' }]
+    ]) {
+      const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(hostileEntries))
+
+      expect(error.code).toBe('SOURCE_ENTRY_UNSAFE')
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    let readAttempted = false
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/unknown-entry-source',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        return path === ''
+          ? { name: 'packs', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [{ name: 'C:/Users/LENOVO/private-pack', kind: 1, isSymbolicLink: false } as never]
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('malformed entries must not be read')
+      },
+      async dispose() {}
+    }
+
+    const report = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+
+    expect(readAttempted).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+  })
+
   it('validates archive entry paths and resource guardrails without extracting archives', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 

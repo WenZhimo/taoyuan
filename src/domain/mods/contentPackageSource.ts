@@ -50,6 +50,12 @@ export interface ContentPackageSourceDirectoryEntry {
   readonly isSymbolicLink: boolean
 }
 
+interface ContentPackageSourceUnknownDirectoryEntry {
+  readonly name: string
+  readonly kind: string
+  readonly isSymbolicLink: boolean
+}
+
 export interface ContentPackageSource {
   readonly identity: ContentPackageSourceIdentity
   getEntry(path: string): Promise<ContentPackageSourceDirectoryEntry | null>
@@ -199,33 +205,64 @@ export const normalizeContentPackageSourceEntryName = (
 }
 
 export const normalizeContentPackageSourceDirectoryEntry = (
-  entry: ContentPackageSourceDirectoryEntry,
+  entry: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): ContentPackageSourceDirectoryEntry => {
-  const kind = entry.kind
-  if (!supportedEntryKinds.has(kind)) {
+  if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Content package source entry metadata must be an object'
+    )
+  }
+
+  const name = (entry as { readonly name?: unknown }).name
+  if (typeof name !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Content package source entry name metadata must be a string'
+    )
+  }
+
+  const kind = (entry as { readonly kind?: unknown }).kind
+  if (typeof kind !== 'string') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
       'Unsupported content package source entry kind'
     )
   }
-  if (typeof entry.isSymbolicLink !== 'boolean') {
+
+  const isSymbolicLink = (entry as { readonly isSymbolicLink?: unknown }).isSymbolicLink
+  if (typeof isSymbolicLink !== 'boolean') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
       'Content package source entry must expose an explicit symbolic-link flag'
     )
   }
+
+  const unknownEntry: ContentPackageSourceUnknownDirectoryEntry = { name, kind, isSymbolicLink }
+  if (!supportedEntryKinds.has(unknownEntry.kind as ContentPackageSourceEntryKind)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Unsupported content package source entry kind'
+    )
+  }
   return {
-    name: normalizeContentPackageSourceEntryName(entry.name, policy),
-    kind,
-    isSymbolicLink: entry.isSymbolicLink
+    name: normalizeContentPackageSourceEntryName(unknownEntry.name, policy),
+    kind: unknownEntry.kind as ContentPackageSourceEntryKind,
+    isSymbolicLink: unknownEntry.isSymbolicLink
   }
 }
 
 export const normalizeContentPackageSourceDirectoryEntries = (
-  entries: readonly ContentPackageSourceDirectoryEntry[],
+  entries: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): readonly ContentPackageSourceDirectoryEntry[] => {
+  if (!Array.isArray(entries)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Content package source directory entries metadata must be an array'
+    )
+  }
   if (entries.length > policy.maxPackageFileCount) {
     throwLimitExceeded(
       `Directory listing exceeds ${policy.maxPackageFileCount} entries: ${entries.length}`

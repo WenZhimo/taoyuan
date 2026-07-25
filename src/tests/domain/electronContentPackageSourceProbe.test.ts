@@ -816,6 +816,103 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('narrows malformed Electron directory entry metadata before discovery can read packages', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    let readDirectoryAttempted = false
+    const malformedRootSource = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry() {
+          return {
+            name: 'C:/Users/LENOVO/mods',
+            kind: 1,
+            isSymbolicLink: false
+          } as never
+        },
+        async readDirectory() {
+          readDirectoryAttempted = true
+          return []
+        },
+        async readTextFile() {
+          throw new Error('malformed root metadata must not be read')
+        }
+      }
+    })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(malformedRootSource)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source: malformedRootSource,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await malformedRootSource.dispose()
+
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      inspectedPath: '',
+      inspectedEntryKind: null,
+      sourceErrorCode: 'SOURCE_ENTRY_UNSAFE',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(readDirectoryAttempted).toBe(false)
+    expect(JSON.stringify(sourceReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(sourceReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(readinessReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(readinessReport)).not.toContain('LENOVO')
+
+    let readAttempted = false
+    const malformedListingSource = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory() {
+          return [{ name: 'private-pack', kind: 'C:/Users/LENOVO/socket', isSymbolicLink: false } as never]
+        },
+        async readTextFile() {
+          readAttempted = true
+          throw new Error('malformed listing metadata must not be read')
+        }
+      }
+    })
+
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      malformedListingSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(malformedListingSource)
+    )
+    await malformedListingSource.dispose()
+
+    expect(readAttempted).toBe(false)
+    expect(discoveryReport.status).toBe('directory-not-found')
+    expect(discoveryReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(discoveryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(discoveryReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(discoveryReport)).not.toContain('LENOVO')
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('keeps Electron probe read failures inside structured discovery diagnostics', async() => {
     const source = createElectronReadonlyDirectoryProbeSource({
       host: createPermissionFailureHost()
