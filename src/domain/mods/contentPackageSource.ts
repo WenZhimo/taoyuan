@@ -504,7 +504,7 @@ const normalizeInspectedContentPackageSourceEntry = (
   if (entry.name !== expectedName) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
-      `Source entry name does not match requested path: ${entry.name}`,
+      'Source entry name does not match requested path',
       path
     )
   }

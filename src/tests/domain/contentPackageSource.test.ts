@@ -142,6 +142,16 @@ const captureSourceError = (fn: () => unknown): ContentPackageSourceError => {
   throw new Error('Expected ContentPackageSourceError')
 }
 
+const captureAsyncSourceError = async(fn: () => Promise<unknown>): Promise<ContentPackageSourceError> => {
+  try {
+    await fn()
+  } catch (error) {
+    expect(error).toBeInstanceOf(ContentPackageSourceError)
+    return error as ContentPackageSourceError
+  }
+  throw new Error('Expected ContentPackageSourceError')
+}
+
 describe('content package source contract', () => {
   it('bridges a normalized in-memory source into the shared third-party discovery pipeline', async() => {
     const source = createValidSource()
@@ -641,9 +651,9 @@ describe('content package source contract', () => {
     const readAttempts: string[] = []
     const directoryReadAttempts: string[] = []
     const source = createMetadataGuardSource({
-      'pack/manifest.json': { name: 'different.json', kind: 'file', isSymbolicLink: false },
+      'pack/manifest.json': { name: 'LENOVO', kind: 'file', isSymbolicLink: false },
       'pack/valid.json': { kind: 'file', isSymbolicLink: false },
-      'pack/list': { name: 'other-list', kind: 'directory', isSymbolicLink: false }
+      'pack/list': { name: 'private-user-pack', kind: 'directory', isSymbolicLink: false }
     }, {
       readAttempted: path => {
         readAttempts.push(path)
@@ -654,19 +664,22 @@ describe('content package source contract', () => {
     })
     const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
 
-    await expect(readContentPackageSourceJson(source, 'pack/manifest.json')).resolves.toMatchObject({
+    const directJson = await readContentPackageSourceJson(source, 'pack/manifest.json')
+    const inspectError = await captureAsyncSourceError(() => fileSystem.getEntry('packs/pack/manifest.json'))
+    const readError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const listError = await captureAsyncSourceError(() => fileSystem.readDirectory('packs/pack/list'))
+
+    expect(directJson).toMatchObject({
       ok: false,
       code: 'SOURCE_ENTRY_UNSAFE'
     })
-    await expect(fileSystem.getEntry('packs/pack/manifest.json')).rejects.toMatchObject({
-      code: 'SOURCE_ENTRY_UNSAFE'
-    })
-    await expect(fileSystem.readTextFile('packs/pack/manifest.json')).rejects.toMatchObject({
-      code: 'SOURCE_ENTRY_UNSAFE'
-    })
-    await expect(fileSystem.readDirectory('packs/pack/list')).rejects.toMatchObject({
-      code: 'SOURCE_ENTRY_UNSAFE'
-    })
+    expect(inspectError.code).toBe('SOURCE_ENTRY_UNSAFE')
+    expect(readError.code).toBe('SOURCE_ENTRY_UNSAFE')
+    expect(listError.code).toBe('SOURCE_ENTRY_UNSAFE')
+    for (const result of [directJson, inspectError, readError, listError]) {
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('private-user-pack')
+    }
     await expect(fileSystem.readTextFile('packs/pack/valid.json')).resolves.toContain('should_not_be_read')
 
     expect(readAttempts).toEqual(['pack/valid.json'])
