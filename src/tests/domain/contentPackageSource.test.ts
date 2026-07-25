@@ -444,6 +444,42 @@ describe('content package source contract', () => {
     }
   })
 
+  it('narrows archive entry metadata from unknown before ZIP payloads can become sources', () => {
+    expect(validateContentPackageSourceArchiveEntries([
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0, compressedSizeBytes: undefined },
+      { path: 'pack/data/items.json', uncompressedSizeBytes: 10, compressedSizeBytes: 2 }
+    ] as unknown)).toEqual([
+      { path: 'pack/data/items.json', uncompressedSizeBytes: 10, compressedSizeBytes: 2 },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    ])
+
+    const hostileInputs: readonly unknown[] = [
+      null,
+      { path: 1, uncompressedSizeBytes: 0 },
+      { path: 'C:/Users/LENOVO/mods/pack/manifest.json', uncompressedSizeBytes: 0 },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 'C:/Users/LENOVO/size' },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0, compressedSizeBytes: 'C:/Users/LENOVO/size' }
+    ]
+
+    for (const input of hostileInputs) {
+      const error = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+        Array.isArray(input) ? input : [input]
+      ))
+
+      expect(error.code).toMatch(/^SOURCE_/)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    const nonArrayError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      'C:/Users/LENOVO/mods/archive.zip' as unknown
+    ))
+
+    expect(nonArrayError.code).toBe('SOURCE_ENTRY_UNSAFE')
+    expect(JSON.stringify(nonArrayError)).not.toContain('C:/Users')
+    expect(JSON.stringify(nonArrayError)).not.toContain('LENOVO')
+  })
+
   it('validates source identity before a platform source can enter discovery', async() => {
     const source = createValidSource()
 

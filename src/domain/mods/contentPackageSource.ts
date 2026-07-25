@@ -79,6 +79,12 @@ export interface ContentPackageSourceValidatedArchiveEntry {
   readonly compressedSizeBytes?: number
 }
 
+interface ContentPackageSourceUnknownArchiveEntry {
+  readonly path: string
+  readonly uncompressedSizeBytes: unknown
+  readonly compressedSizeBytes?: unknown
+}
+
 export interface RevocableContentPackageSource extends ContentPackageSource {
   revoke(): void
 }
@@ -263,8 +269,8 @@ export const normalizeContentPackageSourceArchiveEntryPath = (
   return normalizedPath
 }
 
-const assertNonNegativeSafeInteger = (value: number, fieldName: string, sourcePath: string): number => {
-  if (!Number.isSafeInteger(value) || value < 0) {
+const assertNonNegativeSafeInteger = (value: unknown, fieldName: string, sourcePath: string): number => {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 0) {
     throw new ContentPackageSourceError(
       'SOURCE_LIMIT_EXCEEDED',
       `${fieldName} must be a non-negative safe integer`,
@@ -272,6 +278,31 @@ const assertNonNegativeSafeInteger = (value: number, fieldName: string, sourcePa
     )
   }
   return value
+}
+
+const normalizeContentPackageSourceArchiveEntryMetadata = (
+  entry: unknown
+): ContentPackageSourceUnknownArchiveEntry => {
+  if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Archive entry metadata must be an object'
+    )
+  }
+
+  const path = (entry as { readonly path?: unknown }).path
+  if (typeof path !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Archive entry path metadata must be a string'
+    )
+  }
+
+  const uncompressedSizeBytes = (entry as { readonly uncompressedSizeBytes?: unknown }).uncompressedSizeBytes
+  const compressedSizeBytes = (entry as { readonly compressedSizeBytes?: unknown }).compressedSizeBytes
+  return compressedSizeBytes === undefined
+    ? { path, uncompressedSizeBytes }
+    : { path, uncompressedSizeBytes, compressedSizeBytes }
 }
 
 const collectAncestorPaths = (path: string): readonly string[] => {
@@ -285,18 +316,27 @@ const collectAncestorPaths = (path: string): readonly string[] => {
 }
 
 export const validateContentPackageSourceArchiveEntries = (
-  entries: readonly ContentPackageSourceArchiveEntry[],
+  entries: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): readonly ContentPackageSourceValidatedArchiveEntry[] => {
+  if (!Array.isArray(entries)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Archive entries metadata must be an array'
+    )
+  }
   if (entries.length > policy.maxPackageFileCount) {
     throwLimitExceeded(`Archive exceeds ${policy.maxPackageFileCount} entries: ${entries.length}`)
   }
 
   const normalizedEntries = entries
-    .map(entry => ({
-      entry,
-      path: normalizeContentPackageSourceArchiveEntryPath(entry.path, policy)
-    }))
+    .map(entry => {
+      const metadata = normalizeContentPackageSourceArchiveEntryMetadata(entry)
+      return {
+        entry: metadata,
+        path: normalizeContentPackageSourceArchiveEntryPath(metadata.path, policy)
+      }
+    })
     .sort((a, b) => compareCodePoints(a.path, b.path))
 
   const seenPaths = new Set<string>()
