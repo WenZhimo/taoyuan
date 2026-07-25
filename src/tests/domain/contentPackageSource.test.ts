@@ -190,7 +190,13 @@ describe('content package source contract', () => {
       isSymbolicLink: false
     })
     expect(() => normalizeContentPackageSourcePath('../outside.json')).toThrow(ContentPackageSourceError)
-    expect(() => normalizeContentPackageSourcePath('C:/Users/LENOVO/mod.json')).toThrow(ContentPackageSourceError)
+    const absolutePathError = captureSourceError(() => normalizeContentPackageSourcePath('C:/Users/LENOVO/mod.json'))
+    expect(absolutePathError).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    expect(JSON.stringify(absolutePathError)).not.toContain('C:/Users')
+    expect(JSON.stringify(absolutePathError)).not.toContain('LENOVO')
     expect(() => createMemoryContentPackageSource({
       sourceId: 'memory/duplicate-source',
       rootPath: 'packs',
@@ -199,6 +205,36 @@ describe('content package source contract', () => {
         { path: 'pack\\manifest.json', text: '{}\n' }
       ]
     })).toThrow(ContentPackageSourceError)
+  })
+
+  it('redacts unsafe platform paths before direct reads or discovery diagnostics expose them', async() => {
+    const source = createValidSource()
+
+    const directJson = await readContentPackageSourceJson(source, 'C:/Users/LENOVO/mods/manifest.json')
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      'C:/Users/LENOVO/mods',
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    expect(discoveryReport.status).toBe('directory-not-found')
+    expect(discoveryReport.issues[0]).toMatchObject({
+      kind: 'path-unsafe',
+      path: '.',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(discoveryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package discovery path is unsafe',
+      sourceCode: 'SOURCE_PATH_UNSAFE'
+    })
+    expect(JSON.stringify(directJson)).not.toContain('C:/Users')
+    expect(JSON.stringify(directJson)).not.toContain('LENOVO')
+    expect(JSON.stringify(discoveryReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(discoveryReport)).not.toContain('LENOVO')
   })
 
   it('validates directory entry names, duplicate listings and non-file metadata before discovery', async() => {

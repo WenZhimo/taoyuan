@@ -134,6 +134,10 @@ const throwLimitExceeded = (message: string, sourcePath?: string): never => {
   throw new ContentPackageSourceError('SOURCE_LIMIT_EXCEEDED', message, sourcePath)
 }
 
+const throwUnsafeSourcePath = (message = 'Content package source path is unsafe'): never => {
+  throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', message)
+}
+
 const assertNormalizedPathWithinLimits = (
   normalizedPath: string,
   originalPath: string,
@@ -164,7 +168,7 @@ export const normalizeContentPackageSourcePath = (
     return normalizedPath
   } catch (error) {
     if (error instanceof ContentPackageSourceError) throw error
-    throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', errorMessage(error), path)
+    return throwUnsafeSourcePath()
   }
 }
 
@@ -177,17 +181,12 @@ export const normalizeContentPackageSourceEntryName = (
     normalizedName = normalizeContentPackageSourcePath(name, policy)
   } catch (error) {
     if (error instanceof ContentPackageSourceError) throw error
-    throw new ContentPackageSourceError(
-      'SOURCE_PATH_UNSAFE',
-      `Content package source entry name is unsafe: ${errorMessage(error)}`,
-      name
-    )
+    return throwUnsafeSourcePath('Content package source entry name is unsafe')
   }
   if (normalizedName === '' || normalizedName !== name || normalizedName.includes('/')) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
-      'Content package source entry names must be single normalized path segments',
-      name
+      'Content package source entry names must be single normalized path segments'
     )
   }
   return normalizedName
@@ -252,8 +251,7 @@ export const normalizeContentPackageSourceArchiveEntryPath = (
   if (path === '' || path.includes('\\')) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
-      'Archive entry paths must be non-empty normalized POSIX paths',
-      path
+      'Archive entry paths must be non-empty normalized POSIX paths'
     )
   }
 
@@ -261,8 +259,7 @@ export const normalizeContentPackageSourceArchiveEntryPath = (
   if (normalizedPath === '' || normalizedPath !== path) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
-      'Archive entry paths must already be normalized before validation',
-      path
+      'Archive entry paths must already be normalized before validation'
     )
   }
   return normalizedPath
@@ -707,8 +704,8 @@ const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string 
   let normalizedPath: string
   try {
     normalizedPath = normalizePackagePath(path)
-  } catch (error) {
-    throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', errorMessage(error), path)
+  } catch {
+    return throwUnsafeSourcePath('Content package discovery path is unsafe')
   }
 
   const rootPath = identity.rootPath

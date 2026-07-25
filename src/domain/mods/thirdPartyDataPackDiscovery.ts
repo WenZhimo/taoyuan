@@ -104,7 +104,6 @@ export interface ThirdPartyDataPackDiscoveryReport {
     readonly issueCount: number
   }
 }
-
 const registrySchemas: Readonly<Record<string, TSchema>> = OFFICIAL_REGISTRY_SCHEMAS
 const blockingSeverities = new Set<ModDiagnosticSeverity>(['error', 'fatal'])
 
@@ -132,6 +131,8 @@ const sortEntries = (
   [...entries].sort((a, b) => compareCodePoints(a.name, b.name))
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
+const unsafePackagePathDiagnosticPath = (packageDisplayPath: string): string => `${packageDisplayPath}/<unsafe-path>`
+const unsafePackagePathDiagnosticMessage = 'Package path is absolute, empty, or escapes the package root'
 
 const isBlockingIssue = (issue: ThirdPartyDataPackDiscoveryIssue): boolean =>
   blockingSeverities.has(issue.severity)
@@ -445,16 +446,16 @@ const resolveSafePackageFile = async (
   let normalizedPath: string
   try {
     normalizedPath = normalizePackagePath(packageRelativePath)
-  } catch (error) {
+  } catch {
     return {
       ok: false,
       issue: createIssue('path-unsafe', {
-        path: `${packageDisplayPath}/${packageRelativePath}`,
+        path: unsafePackagePathDiagnosticPath(packageDisplayPath),
         candidatePath: packageDisplayPath,
         packageId: context.packageId,
         registryId: context.registryId,
-        reason: 'Package path is absolute, empty, or escapes the package root',
-        details: { message: errorMessage(error) }
+        reason: unsafePackagePathDiagnosticMessage,
+        details: { message: unsafePackagePathDiagnosticMessage }
       })
     }
   }
@@ -542,7 +543,6 @@ const resolveSafePackageFile = async (
     displayPath: `${packageDisplayPath}/${normalizedPath}`
   }
 }
-
 const validateManifest = (
   value: unknown,
   displayPath: string,

@@ -232,6 +232,36 @@ describe('third-party data pack read-only discovery', () => {
     }
   })
 
+  it('redacts unsafe absolute entrypoint paths from diagnostics', async() => {
+    const root = await createRoot()
+    const readPaths: string[] = []
+    const packRoot = await createPack(root, 'absolute-entrypoint-pack')
+    const manifestPath = path.join(packRoot, 'manifest.json')
+    const manifest = await readJsonObject(manifestPath)
+    manifest.entrypoints = { 'taoyuan:item': ['C:/Users/LENOVO/secrets/items.json'] }
+    await writeJson(manifestPath, manifest)
+
+    const report = await discoverThirdPartyDataPacks(root, createNodeFileSystem(readPaths))
+    const issue = report.issues.find(item => item.kind === 'path-unsafe')
+
+    expect(report.summary).toMatchObject({
+      candidateCount: 1,
+      validPackageCount: 0,
+      invalidPackageCount: 1
+    })
+    expect(issue).toMatchObject({
+      kind: 'path-unsafe',
+      path: 'absolute-entrypoint-pack/<unsafe-path>',
+      reason: 'Package path is absolute, empty, or escapes the package root'
+    })
+    expect(issue?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package path is absolute, empty, or escapes the package root'
+    })
+    expect(readPaths.some(item => item.includes('secrets'))).toBe(false)
+    expect(JSON.stringify(issue)).not.toContain('C:/Users')
+    expect(JSON.stringify(issue)).not.toContain('LENOVO')
+  })
+
   it('accepts legacy manifests that omit dependency fields', async() => {
     const root = await createRoot()
     await createPack(root, 'legacy-manifest-pack', {
