@@ -113,7 +113,7 @@ export type ContentPackageSourceJsonReadResult =
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
 export type ContentPackageSourceHostOperation = 'inspect' | 'list' | 'read'
 
-const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[\s"'`])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
+const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
 
 const mayContainHostPath = (message: string): boolean => hostPathHintPattern.test(message)
 

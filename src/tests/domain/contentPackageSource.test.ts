@@ -1088,6 +1088,68 @@ describe('content package source contract', () => {
     expect(JSON.stringify(readFailureReport)).not.toContain('LENOVO')
     expect(JSON.stringify(inspectFailureReport)).not.toContain('C:/Users')
     expect(JSON.stringify(inspectFailureReport)).not.toContain('LENOVO')
+
+    const posixSourceErrorReadFailureSource: ContentPackageSource = {
+      ...sourceErrorReadFailureSource,
+      identity: {
+        ...sourceErrorReadFailureSource.identity,
+        sourceId: 'memory/source-error-posix-host-path-read-failure'
+      },
+      async readTextFile(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          `EACCES:/Users/LENOVO/mods/${path}`,
+          path
+        )
+      }
+    }
+    const posixSourceErrorInspectFailureSource: ContentPackageSource = {
+      ...sourceErrorReadFailureSource,
+      identity: {
+        ...sourceErrorReadFailureSource.identity,
+        sourceId: 'memory/source-error-posix-host-path-inspect-failure'
+      },
+      async getEntry(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          `EACCES:/Users/LENOVO/mods/${path}`,
+          path
+        )
+      }
+    }
+
+    const posixDirectJson = await readContentPackageSourceJson(
+      posixSourceErrorReadFailureSource,
+      'pack/manifest.json'
+    )
+    const posixReadFailureReport = await discoverThirdPartyDataPacks(
+      posixSourceErrorReadFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(posixSourceErrorReadFailureSource)
+    )
+    const posixInspectFailureReport = await discoverThirdPartyDataPacks(
+      posixSourceErrorInspectFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(posixSourceErrorInspectFailureSource)
+    )
+
+    expect(posixDirectJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed'
+    })
+    expect(posixReadFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(posixInspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(JSON.stringify(posixDirectJson)).not.toContain('/Users')
+    expect(JSON.stringify(posixDirectJson)).not.toContain('LENOVO')
+    expect(JSON.stringify(posixReadFailureReport)).not.toContain('/Users')
+    expect(JSON.stringify(posixReadFailureReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(posixInspectFailureReport)).not.toContain('/Users')
+    expect(JSON.stringify(posixInspectFailureReport)).not.toContain('LENOVO')
   })
 
   it('keeps candidate-level source inspection failures inside the discovery report', async() => {
