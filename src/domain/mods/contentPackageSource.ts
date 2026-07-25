@@ -263,6 +263,16 @@ const assertNonNegativeSafeInteger = (value: number, fieldName: string, sourcePa
   return value
 }
 
+const collectAncestorPaths = (path: string): readonly string[] => {
+  const ancestors: string[] = []
+  let separatorIndex = path.indexOf('/')
+  while (separatorIndex !== -1) {
+    ancestors.push(path.slice(0, separatorIndex))
+    separatorIndex = path.indexOf('/', separatorIndex + 1)
+  }
+  return ancestors
+}
+
 export const validateContentPackageSourceArchiveEntries = (
   entries: readonly ContentPackageSourceArchiveEntry[],
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
@@ -272,13 +282,24 @@ export const validateContentPackageSourceArchiveEntries = (
   }
 
   const seenPaths = new Set<string>()
+  const seenAncestorPaths = new Set<string>()
   let totalUncompressedBytes = 0
   return entries.map(entry => {
     const path = normalizeContentPackageSourceArchiveEntryPath(entry.path, policy)
     if (seenPaths.has(path)) {
       throw new ContentPackageSourceError('SOURCE_DUPLICATE_PATH', `Duplicate archive entry path: ${path}`, path)
     }
+    if (seenAncestorPaths.has(path) || collectAncestorPaths(path).some(ancestorPath => seenPaths.has(ancestorPath))) {
+      throw new ContentPackageSourceError(
+        'SOURCE_DUPLICATE_PATH',
+        `Archive entry path conflicts with another entry directory prefix: ${path}`,
+        path
+      )
+    }
     seenPaths.add(path)
+    for (const ancestorPath of collectAncestorPaths(path)) {
+      seenAncestorPaths.add(ancestorPath)
+    }
 
     const uncompressedSizeBytes = assertNonNegativeSafeInteger(
       entry.uncompressedSizeBytes,

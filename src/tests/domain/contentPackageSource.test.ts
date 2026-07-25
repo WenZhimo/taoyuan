@@ -322,6 +322,14 @@ describe('content package source contract', () => {
       { path: 'manifest.json', uncompressedSizeBytes: 1 },
       { path: 'manifest.json', uncompressedSizeBytes: 1 }
     ])).code).toBe('SOURCE_DUPLICATE_PATH')
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'pack', uncompressedSizeBytes: 1 },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 1 }
+    ])).code).toBe('SOURCE_DUPLICATE_PATH')
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'pack/data/items.json', uncompressedSizeBytes: 1 },
+      { path: 'pack/data', uncompressedSizeBytes: 1 }
+    ])).code).toBe('SOURCE_DUPLICATE_PATH')
     expect(captureSourceError(() => validateContentPackageSourceArchiveEntries(
       Array.from({ length: limits.maxPackageFileCount + 1 }, (_, index) => ({
         path: `data/${index}.json`,
