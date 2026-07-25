@@ -535,6 +535,92 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('redacts raw Electron host failures before probe or discovery diagnostics expose paths', async() => {
+    const inspectFailureSource = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          throw new Error(`EACCES: lstat C:/Users/LENOVO/mods/${sourcePath}`)
+        },
+        async readDirectory(sourcePath) {
+          throw new Error(`EACCES: scandir C:/Users/LENOVO/mods/${sourcePath}`)
+        },
+        async readTextFile(sourcePath) {
+          throw new Error(`EACCES: open C:/Users/LENOVO/mods/${sourcePath}`)
+        }
+      }
+    })
+    const readFailureSource = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'broken-pack') {
+            return { name: 'broken-pack', kind: 'directory', isSymbolicLink: false }
+          }
+          if (sourcePath === 'broken-pack/manifest.json') {
+            return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+          }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          if (sourcePath === '') return [{ name: 'broken-pack', kind: 'directory', isSymbolicLink: false }]
+          throw new Error(`EACCES: scandir C:/Users/LENOVO/mods/${sourcePath}`)
+        },
+        async readTextFile(sourcePath) {
+          throw new Error(`EACCES: open C:/Users/LENOVO/mods/${sourcePath}`)
+        }
+      }
+    })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(inspectFailureSource)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source: inspectFailureSource,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      readFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(readFailureSource)
+    )
+    await inspectFailureSource.dispose()
+    await readFailureSource.dispose()
+
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source inspect operation failed',
+      sourceErrorCode: 'SOURCE_ENTRY_NOT_FOUND',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source inspect operation failed',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(discoveryReport.status).toBe('completed')
+    expect(discoveryReport.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      path: 'broken-pack/manifest.json',
+      reason: 'Package source read operation failed'
+    })
+    expect(discoveryReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    expect(JSON.stringify(sourceReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(sourceReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(readinessReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(readinessReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(discoveryReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(discoveryReport)).not.toContain('LENOVO')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('blocks non-directory Electron source roots before discovery', async() => {
     const root = await createRoot()
     const before = await writeReadinessSentinels(root)

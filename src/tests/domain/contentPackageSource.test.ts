@@ -670,6 +670,83 @@ describe('content package source contract', () => {
     })
   })
 
+  it('redacts raw host failures before direct reads or discovery diagnostics expose paths', async() => {
+    const rawReadFailureSource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/raw-host-read-failure',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+        throw new Error(`EACCES: scandir C:/Users/LENOVO/mods/${path}`)
+      },
+      async readTextFile(path) {
+        throw new Error(`EACCES: open C:/Users/LENOVO/mods/${path}`)
+      },
+      async dispose() {}
+    }
+    const rawInspectFailureSource: ContentPackageSource = {
+      ...rawReadFailureSource,
+      identity: {
+        ...rawReadFailureSource.identity,
+        sourceId: 'memory/raw-host-inspect-failure'
+      },
+      async getEntry(path) {
+        throw new Error(`EACCES: lstat C:/Users/LENOVO/mods/${path}`)
+      }
+    }
+
+    const directJson = await readContentPackageSourceJson(rawReadFailureSource, 'pack/manifest.json')
+    const readFailureReport = await discoverThirdPartyDataPacks(
+      rawReadFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(rawReadFailureSource)
+    )
+    const inspectFailureReport = await discoverThirdPartyDataPacks(
+      rawInspectFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(rawInspectFailureSource)
+    )
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Content package source read operation failed'
+    })
+    expect(readFailureReport.status).toBe('completed')
+    expect(readFailureReport.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      path: 'pack/manifest.json',
+      reason: 'Package source read operation failed'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    expect(inspectFailureReport.status).toBe('directory-not-found')
+    expect(inspectFailureReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      path: '.',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    expect(JSON.stringify(directJson)).not.toContain('C:/Users')
+    expect(JSON.stringify(directJson)).not.toContain('LENOVO')
+    expect(JSON.stringify(readFailureReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(readFailureReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(inspectFailureReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(inspectFailureReport)).not.toContain('LENOVO')
+  })
+
   it('keeps candidate-level source inspection failures inside the discovery report', async() => {
     const source = createManifestInspectionFailureSource()
 

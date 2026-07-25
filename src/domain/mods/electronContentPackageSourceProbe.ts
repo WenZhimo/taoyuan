@@ -5,6 +5,7 @@ import {
   normalizeContentPackageSourceDirectoryEntries,
   normalizeContentPackageSourceDirectoryEntry,
   normalizeContentPackageSourcePath,
+  toContentPackageSourceHostOperationError,
   validateContentPackageSourceIdentity,
   type ContentPackageSource,
   type ContentPackageSourceDirectoryEntry,
@@ -313,16 +314,37 @@ export const createElectronReadonlyDirectoryProbeSource = (
     },
     async getEntry(sourcePath) {
       assertAvailable()
-      return normalizeEntry(await options.host.getEntry(normalizePath(sourcePath)))
+      const normalizedPath = normalizePath(sourcePath)
+      try {
+        return normalizeEntry(await options.host.getEntry(normalizedPath))
+      } catch (error) {
+        throw toContentPackageSourceHostOperationError('inspect', error, normalizedPath)
+      }
     },
     async readDirectory(sourcePath) {
       assertAvailable()
-      const entries = await options.host.readDirectory(normalizePath(sourcePath))
+      const normalizedPath = normalizePath(sourcePath)
+      let entries: readonly ContentPackageSourceDirectoryEntry[]
+      try {
+        entries = await options.host.readDirectory(normalizedPath)
+      } catch (error) {
+        throw toContentPackageSourceHostOperationError(
+          'list',
+          error,
+          normalizedPath,
+          'SOURCE_ENTRY_NOT_DIRECTORY'
+        )
+      }
       return normalizeContentPackageSourceDirectoryEntries(entries)
     },
     async readTextFile(sourcePath) {
       assertAvailable()
-      return options.host.readTextFile(normalizePath(sourcePath))
+      const normalizedPath = normalizePath(sourcePath)
+      try {
+        return await options.host.readTextFile(normalizedPath)
+      } catch (error) {
+        throw toContentPackageSourceHostOperationError('read', error, normalizedPath)
+      }
     },
     async dispose() {
       disposed = true

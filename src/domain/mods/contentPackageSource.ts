@@ -99,6 +99,22 @@ export type ContentPackageSourceJsonReadResult =
   | { readonly ok: false; readonly code: ContentPackageSourceErrorCode; readonly message: string }
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
+export type ContentPackageSourceHostOperation = 'inspect' | 'list' | 'read'
+
+export const toContentPackageSourceHostOperationError = (
+  operation: ContentPackageSourceHostOperation,
+  error: unknown,
+  sourcePath: string,
+  fallbackCode: ContentPackageSourceErrorCode = 'SOURCE_ENTRY_NOT_FOUND'
+): ContentPackageSourceError => {
+  if (error instanceof ContentPackageSourceError) return error
+  return new ContentPackageSourceError(
+    fallbackCode,
+    `Content package source ${operation} operation failed`,
+    sourcePath
+  )
+}
+
 export const CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS: ContentPackageSourceSafeReadPolicy = Object.freeze({
   maxPackageFileCount: 20_000,
   maxPackageUncompressedBytes: 1024 * 1024 * 1024,
@@ -358,7 +374,12 @@ const inspectContentPackageSourceReadableFile = async(
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): Promise<string> => {
   const normalizedPath = normalizeContentPackageSourcePath(path, policy)
-  const inspectedEntry = await source.getEntry(normalizedPath)
+  let inspectedEntry: ContentPackageSourceDirectoryEntry | null
+  try {
+    inspectedEntry = await source.getEntry(normalizedPath)
+  } catch (error) {
+    throw toContentPackageSourceHostOperationError('inspect', error, normalizedPath)
+  }
   if (inspectedEntry === null) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_NOT_FOUND',
@@ -390,7 +411,12 @@ const inspectContentPackageSourceReadableDirectory = async(
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): Promise<string> => {
   const normalizedPath = normalizeContentPackageSourcePath(path, policy)
-  const inspectedEntry = await source.getEntry(normalizedPath)
+  let inspectedEntry: ContentPackageSourceDirectoryEntry | null
+  try {
+    inspectedEntry = await source.getEntry(normalizedPath)
+  } catch (error) {
+    throw toContentPackageSourceHostOperationError('inspect', error, normalizedPath)
+  }
   if (inspectedEntry === null) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_NOT_FOUND',
@@ -647,7 +673,11 @@ export const readContentPackageSourceJson = async (
   let text: string
   try {
     const normalizedPath = await inspectContentPackageSourceReadableFile(source, path, policy)
-    text = await source.readTextFile(normalizedPath)
+    try {
+      text = await source.readTextFile(normalizedPath)
+    } catch (error) {
+      throw toContentPackageSourceHostOperationError('read', error, normalizedPath)
+    }
     assertContentPackageSourceTextWithinLimits(text, normalizedPath, policy)
   } catch (error) {
     if (error instanceof ContentPackageSourceError) {
@@ -706,17 +736,39 @@ export const createDiscoveryFileSystemFromContentPackageSource = (
 ): ThirdPartyDiscoveryFileSystem => ({
   async getEntry(path) {
     const sourcePath = stripDiscoveryRoot(source, path)
-    return toDiscoveryEntry(source, sourcePath, await source.getEntry(sourcePath))
+    let entry: ContentPackageSourceDirectoryEntry | null
+    try {
+      entry = await source.getEntry(sourcePath)
+    } catch (error) {
+      throw toContentPackageSourceHostOperationError('inspect', error, sourcePath)
+    }
+    return toDiscoveryEntry(source, sourcePath, entry)
   },
   async readDirectory(path) {
     const sourcePath = stripDiscoveryRoot(source, path)
     const readableDirectoryPath = await inspectContentPackageSourceReadableDirectory(source, sourcePath)
-    return normalizeContentPackageSourceDirectoryEntries(await source.readDirectory(readableDirectoryPath))
+    let entries: readonly ContentPackageSourceDirectoryEntry[]
+    try {
+      entries = await source.readDirectory(readableDirectoryPath)
+    } catch (error) {
+      throw toContentPackageSourceHostOperationError(
+        'list',
+        error,
+        readableDirectoryPath,
+        'SOURCE_ENTRY_NOT_DIRECTORY'
+      )
+    }
+    return normalizeContentPackageSourceDirectoryEntries(entries)
   },
   async readTextFile(path) {
     const sourcePath = stripDiscoveryRoot(source, path)
     const readableFilePath = await inspectContentPackageSourceReadableFile(source, sourcePath)
-    const text = await source.readTextFile(readableFilePath)
+    let text: string
+    try {
+      text = await source.readTextFile(readableFilePath)
+    } catch (error) {
+      throw toContentPackageSourceHostOperationError('read', error, readableFilePath)
+    }
     assertContentPackageSourceTextWithinLimits(text, readableFilePath)
     return text
   }
