@@ -92,7 +92,14 @@ const createManifestInspectionFailureSource = (): ContentPackageSource => ({
 })
 
 const createMetadataGuardSource = (
-  entries: Record<string, { readonly kind: 'file' | 'directory' | 'other'; readonly isSymbolicLink: boolean } | null>,
+  entries: Record<
+    string,
+    {
+      readonly kind: 'file' | 'directory' | 'other'
+      readonly isSymbolicLink: boolean
+      readonly name?: string
+    } | null
+  >,
   hooks?: {
     readAttempted?: (path: string) => void
     directoryReadAttempted?: (path: string) => void
@@ -109,7 +116,7 @@ const createMetadataGuardSource = (
     const entry = entries[path]
     if (entry === undefined || entry === null) return null
     return {
-      name: path.split('/').pop() ?? 'packs',
+      name: entry.name ?? (path === '' ? 'packs' : path.split('/').pop() ?? 'packs'),
       kind: entry.kind,
       isSymbolicLink: entry.isSymbolicLink
     }
@@ -546,6 +553,42 @@ describe('content package source contract', () => {
     ])
 
     expect(directoryReadAttempts).toEqual(['pack/valid-dir'])
+  })
+
+  it('rejects mismatched source metadata names before reads and listings expose data', async() => {
+    const readAttempts: string[] = []
+    const directoryReadAttempts: string[] = []
+    const source = createMetadataGuardSource({
+      'pack/manifest.json': { name: 'different.json', kind: 'file', isSymbolicLink: false },
+      'pack/valid.json': { kind: 'file', isSymbolicLink: false },
+      'pack/list': { name: 'other-list', kind: 'directory', isSymbolicLink: false }
+    }, {
+      readAttempted: path => {
+        readAttempts.push(path)
+      },
+      directoryReadAttempted: path => {
+        directoryReadAttempts.push(path)
+      }
+    })
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    await expect(readContentPackageSourceJson(source, 'pack/manifest.json')).resolves.toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_UNSAFE'
+    })
+    await expect(fileSystem.getEntry('packs/pack/manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE'
+    })
+    await expect(fileSystem.readTextFile('packs/pack/manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE'
+    })
+    await expect(fileSystem.readDirectory('packs/pack/list')).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE'
+    })
+    await expect(fileSystem.readTextFile('packs/pack/valid.json')).resolves.toContain('should_not_be_read')
+
+    expect(readAttempts).toEqual(['pack/valid.json'])
+    expect(directoryReadAttempts).toEqual([])
   })
 
   it('reports permission revocation and disposal without retaining platform handles', async() => {

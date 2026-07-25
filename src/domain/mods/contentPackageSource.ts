@@ -360,7 +360,7 @@ const inspectContentPackageSourceReadableFile = async(
       normalizedPath
     )
   }
-  const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
+  const entry = normalizeInspectedContentPackageSourceEntry(source, normalizedPath, inspectedEntry, policy)
   if (entry.isSymbolicLink) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
@@ -392,7 +392,7 @@ const inspectContentPackageSourceReadableDirectory = async(
       normalizedPath
     )
   }
-  const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
+  const entry = normalizeInspectedContentPackageSourceEntry(source, normalizedPath, inspectedEntry, policy)
   if (entry.isSymbolicLink) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
@@ -464,6 +464,25 @@ export const validateContentPackageSourceIdentity = (
     sourceId,
     rootPath
   }
+}
+
+const normalizeInspectedContentPackageSourceEntry = (
+  source: ContentPackageSource,
+  path: string,
+  inspectedEntry: ContentPackageSourceDirectoryEntry,
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+): ContentPackageSourceDirectoryEntry => {
+  const identity = validateContentPackageSourceIdentity(source.identity)
+  const expectedName = entryName(path, entryName(identity.rootPath, identity.rootPath))
+  const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
+  if (entry.name !== expectedName) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      `Source entry name does not match requested path: ${entry.name}`,
+      path
+    )
+  }
+  return entry
 }
 
 export const createMemoryContentPackageSource = (
@@ -671,15 +690,18 @@ const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string 
 }
 
 const toDiscoveryEntry = (
+  source: ContentPackageSource,
+  sourcePath: string,
   entry: ContentPackageSourceDirectoryEntry | null
 ): ThirdPartyDiscoveryDirectoryEntry | null =>
-  entry === null ? null : normalizeContentPackageSourceDirectoryEntry(entry)
+  entry === null ? null : normalizeInspectedContentPackageSourceEntry(source, sourcePath, entry)
 
 export const createDiscoveryFileSystemFromContentPackageSource = (
   source: ContentPackageSource
 ): ThirdPartyDiscoveryFileSystem => ({
   async getEntry(path) {
-    return toDiscoveryEntry(await source.getEntry(stripDiscoveryRoot(source, path)))
+    const sourcePath = stripDiscoveryRoot(source, path)
+    return toDiscoveryEntry(source, sourcePath, await source.getEntry(sourcePath))
   },
   async readDirectory(path) {
     const sourcePath = stripDiscoveryRoot(source, path)

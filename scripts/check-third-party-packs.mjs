@@ -180,9 +180,11 @@ export const createNodeContentPackageSource = ({
       try {
         const filePath = mapSourcePath(normalizedPath)
         const stats = await lstat(filePath)
-        const name = packageName && normalizedPath === virtualPackageName
-          ? virtualPackageName
-          : path.basename(filePath)
+        const name = normalizedPath === ''
+          ? rootPath
+          : packageName && normalizedPath === virtualPackageName
+            ? virtualPackageName
+            : path.basename(filePath)
         return toContentPackageSourceEntry(name, stats)
       } catch (error) {
         if (isMissing(error)) return null

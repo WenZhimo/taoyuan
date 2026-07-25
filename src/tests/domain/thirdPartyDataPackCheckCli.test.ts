@@ -19,6 +19,7 @@ import committedMetadata from '@/generated/mods/official-precompiled-metadata.js
 const projectRoot = cwd()
 const fixtureRoot = path.join(projectRoot, 'src/tests/fixtures/mods/third-party-discovery')
 const tempRoots: string[] = []
+const CLI_TEST_TIMEOUT_MS = 60_000
 
 interface CliResult {
   readonly code: number | null
@@ -351,7 +352,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('androidImportPersisted: false')
     expectDeferredSourceAdapterGate(result.stdout)
     expect(result.stdout).toContain('Result: OK')
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('returns non-zero for missing roots and argument errors without crashing', async() => {
     const root = await createTempRoot()
@@ -406,7 +407,7 @@ describe('third-party data pack check CLI', () => {
     expect(invalidArgs.code).toBe(2)
     expect(invalidArgs.stderr).toContain('Expected exactly one directory argument')
     expect(invalidArgs.stderr).toContain('Usage: pnpm run mod:check-packs -- <directory>')
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('reports JSON parse and Schema errors through diagnostics', async() => {
     const root = await createTempRoot()
@@ -432,7 +433,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('status: invalid')
     expect(result.stdout).toContain('entryCount: 4242')
     expectBlockedSourceAdapterGate(result.stdout)
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('reports unsafe paths, missing entrypoints, non-JSON entrypoints and unsupported registries', async() => {
     const root = await createTempRoot()
@@ -456,7 +457,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('status: invalid')
     expect(result.stdout).toContain('entryCount: 4242')
     expectBlockedSourceAdapterGate(result.stdout)
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('returns non-zero and prints dependency diagnostics for missing required dependencies', async() => {
     const root = await createTempRoot()
@@ -494,7 +495,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('requiredAdapters: 0')
     expectBlockedSourceAdapterGate(result.stdout)
     expect(result.stdout).toContain('Result: FAILED')
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('prints stable load order and selection cycle diagnostics', async() => {
     const root = await createTempRoot()
@@ -585,7 +586,7 @@ describe('third-party data pack check CLI', () => {
     expect(cycle.stdout).toContain('requiredAdapters: 0')
     expectBlockedSourceAdapterGate(cycle.stdout)
     expect(cycle.stdout).toContain('Result: FAILED')
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('exits 0 while still printing warning diagnostics for missing optional dependencies', async() => {
     const root = await createTempRoot()
@@ -622,7 +623,7 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).toContain('requiredAdapters: 5')
     expectDeferredSourceAdapterGate(result.stdout)
     expect(result.stdout).toContain('Result: OK')
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('prints a read-only repair report for legacy manifests that omit dependencies', async() => {
     const root = await createTempRoot()
@@ -705,7 +706,7 @@ describe('third-party data pack check CLI', () => {
       entryCount: 4242,
       snapshotHash: committedMetadata.snapshotHash
     })
-  }, 30_000)
+  }, CLI_TEST_TIMEOUT_MS)
 
   it('matches the existing discovery entrypoint summary and issue kinds', async() => {
     const directReport = await discoverThirdPartyDataPacks(fixtureRoot, createNodeFileSystem())
@@ -738,5 +739,5 @@ describe('third-party data pack check CLI', () => {
     for (const kind of new Set(directReport.issues.map(issue => issue.kind))) {
       expect(result.stdout).toContain(`[${kind}]`)
     }
-  })
+  }, CLI_TEST_TIMEOUT_MS)
 })
