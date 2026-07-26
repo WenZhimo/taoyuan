@@ -560,14 +560,22 @@ const asIdentityObject = (identity: unknown): Record<string, unknown> => {
 }
 
 const normalizeIdentityPart = (value: string, fieldName: string): string => {
+  let normalized: string
   try {
-    return normalizeContentPackageSourcePath(value)
+    normalized = normalizeContentPackageSourcePath(value)
   } catch {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
       `${fieldName} must be a normalized relative identifier`
     )
   }
+  if (normalized === '') {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      `${fieldName} must be non-empty and already normalized`
+    )
+  }
+  return normalized
 }
 
 export const validateContentPackageSourceIdentity = (

@@ -549,6 +549,30 @@ describe('content package source contract', () => {
       sourceId: 'memory\\not-normalized',
       rootPath: 'packs'
     } as never)).toThrow(ContentPackageSourceError)
+    for (const { fieldName, patch } of [
+      { fieldName: 'sourceId', patch: { sourceId: '' } },
+      { fieldName: 'rootPath', patch: { rootPath: '' } }
+    ]) {
+      const error = captureSourceError(() => validateContentPackageSourceIdentity({
+        ...source.identity,
+        ...patch
+      }))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_IDENTITY_INVALID',
+        message: `${fieldName} must be non-empty and already normalized`
+      })
+    }
+    expect(() => createMemoryContentPackageSource({
+      sourceId: '',
+      rootPath: 'packs',
+      files: []
+    })).toThrow(ContentPackageSourceError)
+    expect(() => createMemoryContentPackageSource({
+      sourceId: 'memory/empty-root',
+      rootPath: '',
+      files: []
+    })).toThrow(ContentPackageSourceError)
 
     const invalidVersionSource: ContentPackageSource = {
       ...source,
@@ -623,6 +647,30 @@ describe('content package source contract', () => {
     })
     expect(JSON.stringify(redactedReport)).not.toContain('C:/Users')
     expect(JSON.stringify(redactedReport)).not.toContain('LENOVO')
+
+    let emptyIdentityInspected = false
+    const emptyIdentitySource: ContentPackageSource = {
+      ...source,
+      identity: {
+        ...source.identity,
+        rootPath: ''
+      },
+      async getEntry() {
+        emptyIdentityInspected = true
+        throw new Error('empty identities must be rejected before source inspection')
+      }
+    }
+    const emptyIdentityReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(emptyIdentitySource)
+    )
+
+    expect(emptyIdentityInspected).toBe(false)
+    expect(emptyIdentityReport.status).toBe('directory-not-found')
+    expect(emptyIdentityReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_IDENTITY_INVALID',
+      message: 'rootPath must be non-empty and already normalized'
+    })
 
     let inspected = false
     const malformedIdentitySource: ContentPackageSource = {
