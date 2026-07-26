@@ -229,7 +229,16 @@ const readUnknownMetadataArray = (
 
   const entries: unknown[] = []
   for (let index = 0; index < entryCount; index += 1) {
-    if (!(index in metadata)) {
+    let hasEntry: boolean
+    try {
+      hasEntry = index in metadata
+    } catch {
+      throw new ContentPackageSourceError(
+        'SOURCE_ENTRY_UNSAFE',
+        unreadableMessage
+      )
+    }
+    if (!hasEntry) {
       throw new ContentPackageSourceError(
         'SOURCE_ENTRY_UNSAFE',
         unsafeMessage
