@@ -1367,6 +1367,91 @@ describe('content package source contract', () => {
     }
   })
 
+  it('redacts control-character source errors before diagnostics expose hostile text', async() => {
+    const controlCharacterSourcePathFailureSource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/source-error-control-source-path',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          'Permission denied while listing package source',
+          `${path}\nhostile-fragment`
+        )
+      },
+      async readTextFile(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          'Permission denied while reading package source',
+          `${path}\nhostile-fragment`
+        )
+      },
+      async dispose() {}
+    }
+    const controlCharacterMessageFailureSource: ContentPackageSource = {
+      ...controlCharacterSourcePathFailureSource,
+      identity: {
+        ...controlCharacterSourcePathFailureSource.identity,
+        sourceId: 'memory/source-error-control-message'
+      },
+      async getEntry(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          `Permission denied while inspecting package source\nhostile-fragment`,
+          path
+        )
+      }
+    }
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(controlCharacterSourcePathFailureSource)
+
+    const directJson = await readContentPackageSourceJson(
+      controlCharacterSourcePathFailureSource,
+      'pack/manifest.json'
+    )
+    const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const readFailureReport = await discoverThirdPartyDataPacks(
+      controlCharacterSourcePathFailureSource.identity.rootPath,
+      fileSystem
+    )
+    const inspectFailureReport = await discoverThirdPartyDataPacks(
+      controlCharacterMessageFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(controlCharacterMessageFailureSource)
+    )
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed'
+    })
+    expect(bridgedReadError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    for (const result of [directJson, bridgedReadError, readFailureReport, inspectFailureReport]) {
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
+      expect(JSON.stringify(result)).not.toContain('\\n')
+    }
+  })
+
   it('keeps candidate-level source inspection failures inside the discovery report', async() => {
     const source = createManifestInspectionFailureSource()
 

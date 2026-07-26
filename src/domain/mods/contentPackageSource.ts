@@ -130,13 +130,18 @@ const sourceErrorMayContainHostPath = (error: ContentPackageSourceError): boolea
   mayContainHostPath(error.message)
   || (error.sourcePath !== undefined && mayContainHostPath(error.sourcePath))
 
+const sourceErrorMayContainUnsafeDiagnosticText = (error: ContentPackageSourceError): boolean =>
+  sourceErrorMayContainHostPath(error)
+  || hasUnsafePathControlCharacter(error.message)
+  || (error.sourcePath !== undefined && hasUnsafePathControlCharacter(error.sourcePath))
+
 export const toContentPackageSourceHostOperationError = (
   operation: ContentPackageSourceHostOperation,
   error: unknown,
   sourcePath: string,
   fallbackCode: ContentPackageSourceErrorCode = 'SOURCE_ENTRY_NOT_FOUND'
 ): ContentPackageSourceError => {
-  if (error instanceof ContentPackageSourceError && !sourceErrorMayContainHostPath(error)) return error
+  if (error instanceof ContentPackageSourceError && !sourceErrorMayContainUnsafeDiagnosticText(error)) return error
   return new ContentPackageSourceError(
     error instanceof ContentPackageSourceError ? error.code : fallbackCode,
     `Content package source ${operation} operation failed`,
