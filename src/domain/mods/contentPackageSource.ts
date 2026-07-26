@@ -117,6 +117,14 @@ const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:
 
 const mayContainHostPath = (message: string): boolean => hostPathHintPattern.test(message)
 
+const hasUnsafePathControlCharacter = (value: string): boolean => {
+  for (let index = 0; index < value.length; index += 1) {
+    const charCode = value.charCodeAt(index)
+    if (charCode <= 0x1F || charCode === 0x7F) return true
+  }
+  return false
+}
+
 const sourceErrorMayContainHostPath = (error: ContentPackageSourceError): boolean =>
   mayContainHostPath(error.message)
   || (error.sourcePath !== undefined && mayContainHostPath(error.sourcePath))
@@ -182,6 +190,7 @@ export const normalizeContentPackageSourcePath = (
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): string => {
   if (path === '') return ''
+  if (hasUnsafePathControlCharacter(path)) return throwUnsafeSourcePath()
   try {
     const normalizedPath = normalizePackagePath(path)
     assertNormalizedPathWithinLimits(normalizedPath, path, policy)

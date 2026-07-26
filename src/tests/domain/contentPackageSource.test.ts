@@ -207,6 +207,19 @@ describe('content package source contract', () => {
     })
     expect(JSON.stringify(absolutePathError)).not.toContain('C:/Users')
     expect(JSON.stringify(absolutePathError)).not.toContain('LENOVO')
+    for (const controlCharacterPath of [
+      'pack/manifest.json\nsecret',
+      'pack/manifest.json\u0000secret',
+      'pack/manifest.json\u007Fsecret'
+    ]) {
+      const error = captureSourceError(() => normalizeContentPackageSourcePath(controlCharacterPath))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_PATH_UNSAFE',
+        message: 'Content package source path is unsafe'
+      })
+      expect(JSON.stringify(error)).not.toContain('secret')
+    }
     expect(() => createMemoryContentPackageSource({
       sourceId: 'memory/duplicate-source',
       rootPath: 'packs',
@@ -259,7 +272,17 @@ describe('content package source contract', () => {
       { name: 'z-pack', kind: 'directory', isSymbolicLink: false }
     ])
 
-    for (const unsafeName of ['', '.', '..', '../manifest.json', '/manifest.json', 'C:/pack', 'pack/name', 'pack\\name']) {
+    for (const unsafeName of [
+      '',
+      '.',
+      '..',
+      '../manifest.json',
+      '/manifest.json',
+      'C:/pack',
+      'pack/name',
+      'pack\\name',
+      'pack\nname'
+    ]) {
       expect(() => normalizeContentPackageSourceEntryName(unsafeName)).toThrow(ContentPackageSourceError)
     }
     expect(captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
@@ -429,7 +452,8 @@ describe('content package source contract', () => {
       '/absolute.json',
       'C:/Users/LENOVO/mod.json',
       'pack\\data\\items.json',
-      'pack/./items.json'
+      'pack/./items.json',
+      'pack/data/items.json\nsecret'
     ]) {
       expect(() => normalizeContentPackageSourceArchiveEntryPath(unsafePath)).toThrow(ContentPackageSourceError)
     }
@@ -573,6 +597,15 @@ describe('content package source contract', () => {
       rootPath: '',
       files: []
     })).toThrow(ContentPackageSourceError)
+    const controlCharacterIdentityError = captureSourceError(() => validateContentPackageSourceIdentity({
+      ...source.identity,
+      sourceId: 'memory/source\nsecret'
+    }))
+    expect(controlCharacterIdentityError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'sourceId must be a normalized relative identifier'
+    })
+    expect(JSON.stringify(controlCharacterIdentityError)).not.toContain('secret')
 
     const invalidVersionSource: ContentPackageSource = {
       ...source,
