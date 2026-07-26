@@ -89,6 +89,15 @@ const writeJson = async(filePath: string, value: unknown): Promise<void> => {
 const readJsonObject = async(filePath: string): Promise<JsonObject> =>
   JSON.parse(await readFile(filePath, 'utf8')) as JsonObject
 
+const createHostFailure = (message: string, sourcePath?: string): Error & {
+  readonly code: 'EACCES'
+  readonly sourcePath?: string
+} =>
+  Object.assign(new Error(message), {
+    code: 'EACCES' as const,
+    ...(sourcePath === undefined ? {} : { sourcePath })
+  })
+
 const createPack = async(
   root: string,
   directoryName: string,
@@ -260,6 +269,77 @@ describe('third-party data pack read-only discovery', () => {
     expect(readPaths.some(item => item.includes('secrets'))).toBe(false)
     expect(JSON.stringify(issue)).not.toContain('C:/Users')
     expect(JSON.stringify(issue)).not.toContain('LENOVO')
+  })
+
+  it('redacts raw file system failures before discovery diagnostics expose host text', async() => {
+    const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw createHostFailure('EACCES: lstat C:/Users/LENOVO/mods\nhostile-fragment')
+      },
+      async readDirectory() {
+        throw new Error('inspect failure must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inspect failure must stop before reading')
+      }
+    })
+
+    const listFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        throw createHostFailure('EACCES: scandir C:/Users/LENOVO/mods\nhostile-fragment')
+      },
+      async readTextFile() {
+        throw new Error('list failure must stop before reading')
+      }
+    })
+
+    const readFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack') {
+          return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/private-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(filePath) {
+        if (filePath === 'mods') {
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        return []
+      },
+      async readTextFile() {
+        throw createHostFailure(
+          'EACCES: open \\\\LENOVO\\mods\\private-pack\\manifest.json',
+          'C:/Users/LENOVO/mods/private-pack/manifest.json'
+        )
+      }
+    })
+
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source inspect operation failed',
+      sourceCode: 'EACCES'
+    })
+    expect(listFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source list operation failed',
+      sourceCode: 'EACCES'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source read operation failed',
+      sourceCode: 'EACCES'
+    })
+    for (const report of [inspectFailureReport, listFailureReport, readFailureReport]) {
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+      expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    }
   })
 
   it('accepts legacy manifests that omit dependency fields', async() => {

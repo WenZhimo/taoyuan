@@ -133,6 +133,7 @@ const sortEntries = (
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
 const unsafePackagePathDiagnosticPath = (packageDisplayPath: string): string => `${packageDisplayPath}/<unsafe-path>`
 const unsafePackagePathDiagnosticMessage = 'Package path is absolute, empty, or escapes the package root'
+const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
 
 const isBlockingIssue = (issue: ThirdPartyDataPackDiscoveryIssue): boolean =>
   blockingSeverities.has(issue.severity)
@@ -267,6 +268,43 @@ const sourceErrorCode = (error: unknown): string | undefined =>
     ? (error as { code: string }).code
     : undefined
 
+const sourceErrorPath = (error: unknown): string | undefined =>
+  typeof error === 'object'
+  && error !== null
+  && 'sourcePath' in error
+  && typeof (error as { sourcePath?: unknown }).sourcePath === 'string'
+    ? (error as { sourcePath: string }).sourcePath
+    : undefined
+
+const hasUnsafeDiagnosticControlCharacter = (value: string): boolean => {
+  for (let index = 0; index < value.length; index += 1) {
+    const charCode = value.charCodeAt(index)
+    if (charCode <= 0x1F || charCode === 0x7F) return true
+  }
+  return false
+}
+
+const mayContainHostPath = (value: string): boolean => hostPathHintPattern.test(value)
+
+const errorMayContainUnsafeDiagnosticText = (error: unknown): boolean => {
+  const message = errorMessage(error)
+  const sourcePath = sourceErrorPath(error)
+  return mayContainHostPath(message)
+    || hasUnsafeDiagnosticControlCharacter(message)
+    || (sourcePath !== undefined && (
+      mayContainHostPath(sourcePath)
+      || hasUnsafeDiagnosticControlCharacter(sourcePath)
+    ))
+}
+
+const safeFileSystemFailureMessage = (
+  operation: 'inspect' | 'list' | 'read',
+  error: unknown
+): string =>
+  errorMayContainUnsafeDiagnosticText(error)
+    ? `Package source ${operation} operation failed`
+    : errorMessage(error)
+
 const isSourcePathError = (error: unknown): boolean => {
   const code = sourceErrorCode(error)
   return code === 'SOURCE_PATH_OUTSIDE_ROOT' || code === 'SOURCE_PATH_UNSAFE'
@@ -292,7 +330,7 @@ const fileSystemFailureIssue = (
     severity: options.severity,
     reason: `Package source ${operation} operation failed`,
     details: {
-      message: errorMessage(options.error),
+      message: safeFileSystemFailureMessage(operation, options.error),
       ...(code ? { sourceCode: code } : {})
     }
   })

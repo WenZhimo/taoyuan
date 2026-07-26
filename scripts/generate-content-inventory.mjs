@@ -6301,7 +6301,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only third-party data pack discovery entrypoint and shared SemVer range helper: scans only one directory level, reads manifest.json and manifest-declared JSON content, validates unknown input through TypeBox, rejects unsafe paths/symlinks, redacts unsafe platform path diagnostics, reports dependency/version/conflict and registry entry duplicate diagnostics, converts package source inspect/list/read failures into structured diagnostics without crashing, and never publishes registry entries.'
+    rationale: 'Provides the read-only third-party data pack discovery entrypoint and shared SemVer range helper: scans only one directory level, reads manifest.json and manifest-declared JSON content, validates unknown input through TypeBox, rejects unsafe paths/symlinks, redacts unsafe platform path diagnostics, reports dependency/version/conflict and registry entry duplicate diagnostics, converts package source inspect/list/read failures into structured diagnostics without crashing, redacts raw inspect/list/read failure messages that contain host paths or control characters, and never publishes registry entries.'
   },
   {
     file: 'src/domain/mods/officialContentVersions.ts',
@@ -6521,7 +6521,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers legal, legacy-manifest, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON, unsupported-registry, unsafe-path, unsafe absolute entrypoint redaction, dependency, optional dependency, manifest conflict, same-package duplicate, cross-package conflict and identical duplicate fixtures; proves symlinked candidate roots and symlinked entrypoint parents are rejected before payload reads, invalid packages are not injected into official registries, and player settings/save files and unrelated large files are not read or modified.'
+    rationale: 'Covers legal, legacy-manifest, schema-invalid, JSON-invalid, missing-manifest, missing-content, non-JSON, unsupported-registry, unsafe-path, unsafe absolute entrypoint redaction, raw inspect/list/read host failure redaction, dependency, optional dependency, manifest conflict, same-package duplicate, cross-package conflict and identical duplicate fixtures; proves symlinked candidate roots and symlinked entrypoint parents are rejected before payload reads, invalid packages are not injected into official registries, and player settings/save files and unrelated large files are not read or modified.'
   },
   {
     file: 'scripts/check-third-party-packs.mjs',
