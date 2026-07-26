@@ -117,13 +117,17 @@ const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:
 
 const mayContainHostPath = (message: string): boolean => hostPathHintPattern.test(message)
 
+const sourceErrorMayContainHostPath = (error: ContentPackageSourceError): boolean =>
+  mayContainHostPath(error.message)
+  || (error.sourcePath !== undefined && mayContainHostPath(error.sourcePath))
+
 export const toContentPackageSourceHostOperationError = (
   operation: ContentPackageSourceHostOperation,
   error: unknown,
   sourcePath: string,
   fallbackCode: ContentPackageSourceErrorCode = 'SOURCE_ENTRY_NOT_FOUND'
 ): ContentPackageSourceError => {
-  if (error instanceof ContentPackageSourceError && !mayContainHostPath(error.message)) return error
+  if (error instanceof ContentPackageSourceError && !sourceErrorMayContainHostPath(error)) return error
   return new ContentPackageSourceError(
     error instanceof ContentPackageSourceError ? error.code : fallbackCode,
     `Content package source ${operation} operation failed`,
