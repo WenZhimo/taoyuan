@@ -238,6 +238,10 @@ describe('content package source contract', () => {
       'C:/Users/LENOVO/mods',
       createDiscoveryFileSystemFromContentPackageSource(source)
     )
+    const controlCharacterDiscoveryReport = await discoverThirdPartyDataPacks(
+      'packs\nsecret',
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
 
     expect(directJson).toMatchObject({
       ok: false,
@@ -254,10 +258,21 @@ describe('content package source contract', () => {
       message: 'Content package discovery path is unsafe',
       sourceCode: 'SOURCE_PATH_UNSAFE'
     })
+    expect(controlCharacterDiscoveryReport.status).toBe('directory-not-found')
+    expect(controlCharacterDiscoveryReport.issues[0]).toMatchObject({
+      kind: 'path-unsafe',
+      path: '.',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(controlCharacterDiscoveryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package discovery path is unsafe',
+      sourceCode: 'SOURCE_PATH_UNSAFE'
+    })
     expect(JSON.stringify(directJson)).not.toContain('C:/Users')
     expect(JSON.stringify(directJson)).not.toContain('LENOVO')
     expect(JSON.stringify(discoveryReport)).not.toContain('C:/Users')
     expect(JSON.stringify(discoveryReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(controlCharacterDiscoveryReport)).not.toContain('secret')
   })
 
   it('validates directory entry names, duplicate listings and non-file metadata before discovery', async() => {

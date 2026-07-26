@@ -865,8 +865,9 @@ const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string 
   const identity = readContentPackageSourceIdentity(source, path)
   let normalizedPath: string
   try {
-    normalizedPath = normalizePackagePath(path)
-  } catch {
+    normalizedPath = normalizeContentPackageSourcePath(path)
+  } catch (error) {
+    if (error instanceof ContentPackageSourceError && error.code !== 'SOURCE_PATH_UNSAFE') throw error
     return throwUnsafeSourcePath('Content package discovery path is unsafe')
   }
 
