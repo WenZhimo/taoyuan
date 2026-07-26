@@ -66,6 +66,7 @@ export interface ContentPackageSource {
 
 export interface ContentPackageSourceSafeReadPolicy {
   readonly maxPackageFileCount: number
+  readonly maxPackageCompressedBytes: number
   readonly maxPackageUncompressedBytes: number
   readonly maxSingleFileBytes: number
   readonly maxCompressedRatio: number
@@ -145,6 +146,7 @@ export const toContentPackageSourceHostOperationError = (
 
 export const CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS: ContentPackageSourceSafeReadPolicy = Object.freeze({
   maxPackageFileCount: 20_000,
+  maxPackageCompressedBytes: 256 * 1024 * 1024,
   maxPackageUncompressedBytes: 1024 * 1024 * 1024,
   maxSingleFileBytes: 256 * 1024 * 1024,
   maxCompressedRatio: 100,
@@ -395,6 +397,7 @@ export const validateContentPackageSourceArchiveEntries = (
 
   const seenPaths = new Set<string>()
   const seenAncestorPaths = new Set<string>()
+  let totalCompressedBytes = 0
   let totalUncompressedBytes = 0
   return normalizedEntries.map(({ entry, path }) => {
     if (seenPaths.has(path)) {
@@ -436,6 +439,13 @@ export const validateContentPackageSourceArchiveEntries = (
     }
 
     const compressedSizeBytes = assertNonNegativeSafeInteger(entry.compressedSizeBytes, 'compressedSizeBytes', path)
+    totalCompressedBytes += compressedSizeBytes
+    if (totalCompressedBytes > policy.maxPackageCompressedBytes) {
+      throwLimitExceeded(
+        `Archive exceeds ${policy.maxPackageCompressedBytes} total compressed bytes: ${totalCompressedBytes}`,
+        path
+      )
+    }
     if (
       (compressedSizeBytes === 0 && uncompressedSizeBytes > 0)
       || (compressedSizeBytes > 0 && uncompressedSizeBytes / compressedSizeBytes > policy.maxCompressedRatio)

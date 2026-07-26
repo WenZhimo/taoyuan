@@ -514,6 +514,10 @@ describe('content package source contract', () => {
       }))
     )).code).toBe('SOURCE_LIMIT_EXCEEDED')
     expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'compressed-a.bin', uncompressedSizeBytes: 0, compressedSizeBytes: limits.maxPackageCompressedBytes },
+      { path: 'compressed-b.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 1 }
+    ])).code).toBe('SOURCE_LIMIT_EXCEEDED')
+    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
       { path: 'ratio.bin', uncompressedSizeBytes: limits.maxCompressedRatio + 1, compressedSizeBytes: 1 }
     ])).code).toBe('SOURCE_LIMIT_EXCEEDED')
   })
@@ -523,8 +527,10 @@ describe('content package source contract', () => {
 
     expect(validateContentPackageSourceArchiveEntries([
       { path: 'ratio-edge.bin', uncompressedSizeBytes: limits.maxCompressedRatio, compressedSizeBytes: 1 },
+      { path: 'compressed-budget.bin', uncompressedSizeBytes: 0, compressedSizeBytes: limits.maxPackageCompressedBytes - 1 },
       { path: 'empty.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
     ])).toEqual([
+      { path: 'compressed-budget.bin', uncompressedSizeBytes: 0, compressedSizeBytes: limits.maxPackageCompressedBytes - 1 },
       { path: 'empty.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 },
       { path: 'ratio-edge.bin', uncompressedSizeBytes: limits.maxCompressedRatio, compressedSizeBytes: 1 }
     ])
