@@ -186,6 +186,67 @@ const readUnknownMetadataField = (
   }
 }
 
+const isArrayIndexKey = (key: string, length: number): boolean => {
+  if (!/^(0|[1-9]\d*)$/.test(key)) return false
+  const index = Number(key)
+  return Number.isSafeInteger(index) && index >= 0 && index < length
+}
+
+const readUnknownMetadataArray = (
+  metadata: unknown,
+  notArrayMessage: string,
+  unsafeMessage: string,
+  unreadableMessage: string
+): readonly unknown[] => {
+  if (!Array.isArray(metadata)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      notArrayMessage
+    )
+  }
+
+  let entryCount: number
+  let ownKeys: readonly (string | symbol)[]
+  try {
+    entryCount = metadata.length
+    ownKeys = Reflect.ownKeys(metadata)
+  } catch {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      unreadableMessage
+    )
+  }
+
+  if (ownKeys.some(key =>
+    typeof key !== 'string'
+    || (key !== 'length' && !isArrayIndexKey(key, entryCount))
+  )) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      unsafeMessage
+    )
+  }
+
+  const entries: unknown[] = []
+  for (let index = 0; index < entryCount; index += 1) {
+    if (!(index in metadata)) {
+      throw new ContentPackageSourceError(
+        'SOURCE_ENTRY_UNSAFE',
+        unsafeMessage
+      )
+    }
+    try {
+      entries.push(metadata[index])
+    } catch {
+      throw new ContentPackageSourceError(
+        'SOURCE_ENTRY_UNSAFE',
+        unreadableMessage
+      )
+    }
+  }
+  return entries
+}
+
 const assertNormalizedPathWithinLimits = (
   normalizedPath: string,
   originalPath: string,
@@ -310,20 +371,20 @@ export const normalizeContentPackageSourceDirectoryEntries = (
   entries: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): readonly ContentPackageSourceDirectoryEntry[] => {
-  if (!Array.isArray(entries)) {
-    throw new ContentPackageSourceError(
-      'SOURCE_ENTRY_UNSAFE',
-      'Content package source directory entries metadata must be an array'
-    )
-  }
-  if (entries.length > policy.maxPackageFileCount) {
+  const metadataEntries = readUnknownMetadataArray(
+    entries,
+    'Content package source directory entries metadata must be an array',
+    'Content package source directory entries metadata must be a dense JSON array',
+    'Content package source directory entries metadata could not be read'
+  )
+  if (metadataEntries.length > policy.maxPackageFileCount) {
     throwLimitExceeded(
-      `Directory listing exceeds ${policy.maxPackageFileCount} entries: ${entries.length}`
+      `Directory listing exceeds ${policy.maxPackageFileCount} entries: ${metadataEntries.length}`
     )
   }
 
   const seenNames = new Set<string>()
-  const normalizedEntries = entries.map(entry => {
+  const normalizedEntries = metadataEntries.map(entry => {
     const normalizedEntry = normalizeContentPackageSourceDirectoryEntry(entry, policy)
     if (seenNames.has(normalizedEntry.name)) {
       throw new ContentPackageSourceError(
@@ -425,17 +486,17 @@ export const validateContentPackageSourceArchiveEntries = (
   entries: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): readonly ContentPackageSourceValidatedArchiveEntry[] => {
-  if (!Array.isArray(entries)) {
-    throw new ContentPackageSourceError(
-      'SOURCE_ENTRY_UNSAFE',
-      'Archive entries metadata must be an array'
-    )
-  }
-  if (entries.length > policy.maxPackageFileCount) {
-    throwLimitExceeded(`Archive exceeds ${policy.maxPackageFileCount} entries: ${entries.length}`)
+  const metadataEntries = readUnknownMetadataArray(
+    entries,
+    'Archive entries metadata must be an array',
+    'Archive entries metadata must be a dense JSON array',
+    'Archive entries metadata could not be read'
+  )
+  if (metadataEntries.length > policy.maxPackageFileCount) {
+    throwLimitExceeded(`Archive exceeds ${policy.maxPackageFileCount} entries: ${metadataEntries.length}`)
   }
 
-  const normalizedEntries = entries
+  const normalizedEntries = metadataEntries
     .map(entry => {
       const metadata = normalizeContentPackageSourceArchiveEntryMetadata(entry)
       return {

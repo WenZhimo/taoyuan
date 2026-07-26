@@ -162,6 +162,17 @@ const defineHostileGetter = <T extends object>(target: T, property: string): T =
   return target
 }
 
+const createHostileMetadataArray = (): unknown[] => {
+  const entries: unknown[] = []
+  Object.defineProperty(entries, '0', {
+    enumerable: true,
+    get() {
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-entry')
+    }
+  })
+  return entries
+}
+
 describe('content package source contract', () => {
   it('bridges a normalized in-memory source into the shared third-party discovery pipeline', async() => {
     const source = createValidSource()
@@ -411,6 +422,8 @@ describe('content package source contract', () => {
   it('narrows directory entry metadata from unknown before discovery can inspect packages', async() => {
     for (const hostileEntries of [
       'C:/Users/LENOVO/mods' as unknown,
+      Array(1),
+      createHostileMetadataArray(),
       [null],
       ['C:/Users/LENOVO/mods/pack'],
       [{ name: 1, kind: 'directory', isSymbolicLink: false }],
@@ -675,6 +688,8 @@ describe('content package source contract', () => {
 
     const hostileInputs: readonly unknown[] = [
       null,
+      Array(1),
+      createHostileMetadataArray(),
       { path: 1, uncompressedSizeBytes: 0 },
       { path: 'C:/Users/LENOVO/mods/pack/manifest.json', uncompressedSizeBytes: 0 },
       { path: 'pack/manifest.json', uncompressedSizeBytes: 'C:/Users/LENOVO/size' },
