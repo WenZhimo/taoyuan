@@ -173,6 +173,19 @@ const throwUnsafeSourcePath = (message = 'Content package source path is unsafe'
   throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', message)
 }
 
+const readUnknownMetadataField = (
+  metadata: Record<string, unknown>,
+  fieldName: string,
+  code: ContentPackageSourceErrorCode,
+  message: string
+): unknown => {
+  try {
+    return metadata[fieldName]
+  } catch {
+    throw new ContentPackageSourceError(code, message)
+  }
+}
+
 const assertNormalizedPathWithinLimits = (
   normalizedPath: string,
   originalPath: string,
@@ -239,7 +252,13 @@ export const normalizeContentPackageSourceDirectoryEntry = (
     )
   }
 
-  const name = (entry as { readonly name?: unknown }).name
+  const entryMetadata = entry as Record<string, unknown>
+  const name = readUnknownMetadataField(
+    entryMetadata,
+    'name',
+    'SOURCE_ENTRY_UNSAFE',
+    'Content package source entry metadata could not be read'
+  )
   if (typeof name !== 'string') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
@@ -247,7 +266,12 @@ export const normalizeContentPackageSourceDirectoryEntry = (
     )
   }
 
-  const kind = (entry as { readonly kind?: unknown }).kind
+  const kind = readUnknownMetadataField(
+    entryMetadata,
+    'kind',
+    'SOURCE_ENTRY_UNSAFE',
+    'Content package source entry metadata could not be read'
+  )
   if (typeof kind !== 'string') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
@@ -255,7 +279,12 @@ export const normalizeContentPackageSourceDirectoryEntry = (
     )
   }
 
-  const isSymbolicLink = (entry as { readonly isSymbolicLink?: unknown }).isSymbolicLink
+  const isSymbolicLink = readUnknownMetadataField(
+    entryMetadata,
+    'isSymbolicLink',
+    'SOURCE_ENTRY_UNSAFE',
+    'Content package source entry metadata could not be read'
+  )
   if (typeof isSymbolicLink !== 'boolean') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
@@ -351,7 +380,13 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
     )
   }
 
-  const path = (entry as { readonly path?: unknown }).path
+  const entryMetadata = entry as Record<string, unknown>
+  const path = readUnknownMetadataField(
+    entryMetadata,
+    'path',
+    'SOURCE_ENTRY_UNSAFE',
+    'Archive entry metadata could not be read'
+  )
   if (typeof path !== 'string') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
@@ -359,8 +394,18 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
     )
   }
 
-  const uncompressedSizeBytes = (entry as { readonly uncompressedSizeBytes?: unknown }).uncompressedSizeBytes
-  const compressedSizeBytes = (entry as { readonly compressedSizeBytes?: unknown }).compressedSizeBytes
+  const uncompressedSizeBytes = readUnknownMetadataField(
+    entryMetadata,
+    'uncompressedSizeBytes',
+    'SOURCE_ENTRY_UNSAFE',
+    'Archive entry metadata could not be read'
+  )
+  const compressedSizeBytes = readUnknownMetadataField(
+    entryMetadata,
+    'compressedSizeBytes',
+    'SOURCE_ENTRY_UNSAFE',
+    'Archive entry metadata could not be read'
+  )
   return compressedSizeBytes === undefined
     ? { path, uncompressedSizeBytes }
     : { path, uncompressedSizeBytes, compressedSizeBytes }
@@ -606,10 +651,30 @@ export const validateContentPackageSourceIdentity = (
   identity: unknown
 ): ContentPackageSourceIdentity => {
   const identityObject = asIdentityObject(identity)
-  const contractVersion = identityObject.contractVersion
-  const kind = identityObject.kind
-  const sourceIdInput = identityObject.sourceId
-  const rootPathInput = identityObject.rootPath
+  const contractVersion = readUnknownMetadataField(
+    identityObject,
+    'contractVersion',
+    'SOURCE_IDENTITY_INVALID',
+    'Content package source identity metadata could not be read'
+  )
+  const kind = readUnknownMetadataField(
+    identityObject,
+    'kind',
+    'SOURCE_IDENTITY_INVALID',
+    'Content package source identity metadata could not be read'
+  )
+  const sourceIdInput = readUnknownMetadataField(
+    identityObject,
+    'sourceId',
+    'SOURCE_IDENTITY_INVALID',
+    'Content package source identity metadata could not be read'
+  )
+  const rootPathInput = readUnknownMetadataField(
+    identityObject,
+    'rootPath',
+    'SOURCE_IDENTITY_INVALID',
+    'Content package source identity metadata could not be read'
+  )
 
   if (contractVersion !== CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION) {
     throw new ContentPackageSourceError(

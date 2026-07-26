@@ -152,6 +152,16 @@ const captureAsyncSourceError = async(fn: () => Promise<unknown>): Promise<Conte
   throw new Error('Expected ContentPackageSourceError')
 }
 
+const defineHostileGetter = <T extends object>(target: T, property: string): T => {
+  Object.defineProperty(target, property, {
+    enumerable: true,
+    get() {
+      throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${property}`)
+    }
+  })
+  return target
+}
+
 describe('content package source contract', () => {
   it('bridges a normalized in-memory source into the shared third-party discovery pipeline', async() => {
     const source = createValidSource()
@@ -455,6 +465,112 @@ describe('content package source contract', () => {
     })
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
+  })
+
+  it('redacts metadata getter failures before source diagnostics expose host text', async() => {
+    const hostileIdentity = defineHostileGetter({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/hostile-identity-field'
+    }, 'rootPath')
+    const identityError = captureSourceError(() => validateContentPackageSourceIdentity(hostileIdentity))
+
+    expect(identityError.code).toBe('SOURCE_IDENTITY_INVALID')
+    expect(JSON.stringify(identityError)).not.toContain('C:/Users')
+    expect(JSON.stringify(identityError)).not.toContain('LENOVO')
+
+    const hostileDirectoryEntry = defineHostileGetter({
+      kind: 'directory',
+      isSymbolicLink: false
+    }, 'name')
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      hostileDirectoryEntry
+    ]))
+
+    expect(directoryError.code).toBe('SOURCE_ENTRY_UNSAFE')
+    expect(JSON.stringify(directoryError)).not.toContain('C:/Users')
+    expect(JSON.stringify(directoryError)).not.toContain('LENOVO')
+
+    for (const hostileArchiveEntry of [
+      defineHostileGetter({ uncompressedSizeBytes: 0 }, 'path'),
+      defineHostileGetter({ path: 'pack/manifest.json' }, 'uncompressedSizeBytes'),
+      defineHostileGetter({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }, 'compressedSizeBytes')
+    ]) {
+      const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+        hostileArchiveEntry
+      ]))
+
+      expect(archiveError.code).toBe('SOURCE_ENTRY_UNSAFE')
+      expect(JSON.stringify(archiveError)).not.toContain('C:/Users')
+      expect(JSON.stringify(archiveError)).not.toContain('LENOVO')
+    }
+
+    let inspected = false
+    let readAttempted = false
+    const hostileIdentitySource: ContentPackageSource = {
+      identity: hostileIdentity as ContentPackageSource['identity'],
+      async getEntry() {
+        inspected = true
+        return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+      },
+      async readDirectory() {
+        return []
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('identity failures must block payload reads')
+      },
+      async dispose() {}
+    }
+    const hostileDirectorySource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/hostile-directory-metadata-field',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        return path === ''
+          ? { name: 'packs', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [hostileDirectoryEntry as ContentPackageSourceDirectoryEntry]
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('directory metadata failures must block payload reads')
+      },
+      async dispose() {}
+    }
+
+    const identityReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(hostileIdentitySource)
+    )
+    const directoryReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(hostileDirectorySource)
+    )
+
+    expect(inspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(identityReport.status).toBe('directory-not-found')
+    expect(identityReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_IDENTITY_INVALID'
+    })
+    expect(directoryReport.status).toBe('directory-not-found')
+    expect(directoryReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      reason: 'Package source list operation failed'
+    })
+    expect(directoryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    for (const result of [identityReport, directoryReport]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+    }
   })
 
   it('validates archive entry paths and resource guardrails without extracting archives', () => {
