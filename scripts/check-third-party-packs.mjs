@@ -225,6 +225,16 @@ export const createNodeContentPackageSource = ({
   }
 }
 
+export const createDiscoveryInputFromContentPackageSource = (source, sourceContract) => {
+  const sourceIdentity = sourceContract.readContentPackageSourceIdentity(source)
+  return {
+    rootDirectory: sourceIdentity.rootPath,
+    fileSystem: sourceContract.createDiscoveryFileSystemFromContentPackageSource(source),
+    source,
+    sourceIdentity
+  }
+}
+
 const resolveDiscoveryInput = async(scanRoot, sourceContract) => {
   const baseFileSystem = createNodeDiscoveryFileSystem()
   const rootEntry = await baseFileSystem.getEntry(scanRoot)
@@ -243,20 +253,12 @@ const resolveDiscoveryInput = async(scanRoot, sourceContract) => {
         sourceId: 'developer-cli/single-package',
         packageName: path.basename(scanRoot)
       })
-      return {
-        rootDirectory: source.identity.rootPath,
-        fileSystem: sourceContract.createDiscoveryFileSystemFromContentPackageSource(source),
-        source
-      }
+      return createDiscoveryInputFromContentPackageSource(source, sourceContract)
     }
   }
 
   const source = createNodeContentPackageSource(sourceOptions)
-  return {
-    rootDirectory: source.identity.rootPath,
-    fileSystem: sourceContract.createDiscoveryFileSystemFromContentPackageSource(source),
-    source
-  }
+  return createDiscoveryInputFromContentPackageSource(source, sourceContract)
 }
 
 const loadDiscoveryModule = async() => {
@@ -275,7 +277,7 @@ const loadDiscoveryModule = async() => {
           "export { buildThirdPartyDataPackTransactionPreflight } from './src/domain/mods/thirdPartyDataPackTransactionPreflight.ts'",
           "export { buildThirdPartyDataPackRuntimeAdapterGate } from './src/domain/mods/thirdPartyDataPackRuntimeAdapterGate.ts'",
           "export { buildThirdPartyDataPackSourceAdapterGate } from './src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts'",
-          "export { CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION, createDiscoveryFileSystemFromContentPackageSource } from './src/domain/mods/contentPackageSource.ts'",
+          "export { CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION, createDiscoveryFileSystemFromContentPackageSource, readContentPackageSourceIdentity } from './src/domain/mods/contentPackageSource.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
         loader: 'ts',
@@ -1150,11 +1152,13 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       buildThirdPartyDataPackSourceAdapterGate,
       CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
       createDiscoveryFileSystemFromContentPackageSource,
+      readContentPackageSourceIdentity,
       buildOfficialRegistrySetFromStaticData
     } = await loadDiscoveryModule()
     discoveryInput = await resolveDiscoveryInput(scanRoot, {
       CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
-      createDiscoveryFileSystemFromContentPackageSource
+      createDiscoveryFileSystemFromContentPackageSource,
+      readContentPackageSourceIdentity
     })
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     const report = await discoverThirdPartyDataPacks(discoveryInput.rootDirectory, discoveryInput.fileSystem)
@@ -1242,7 +1246,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
     })
     stdout.write(formatDiscoveryReport(
       scanRoot,
-      discoveryInput.source.identity,
+      discoveryInput.sourceIdentity,
       report,
       selectionReport,
       repairReport,

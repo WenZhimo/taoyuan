@@ -33,6 +33,22 @@ interface NodeAdapterProbeMessage {
   readonly message: string
 }
 
+interface SourceIdentityProbeResult {
+  readonly rootDirectory: string
+  readonly sourceIdentity: {
+    readonly contractVersion: number
+    readonly kind: string
+    readonly sourceId: string
+    readonly rootPath: string
+  }
+  readonly calls: readonly string[]
+  readonly sourceIsRetained: boolean
+  readonly fileSystem: {
+    readonly marker: boolean
+    readonly sourceMatched: boolean
+  }
+}
+
 afterEach(async() => {
   await Promise.all(tempRoots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
@@ -530,6 +546,75 @@ describe('third-party data pack check CLI', () => {
       expect(message.message).not.toContain('private-pack')
       expect(message.message).not.toContain('Users')
     }
+  }, CLI_TEST_TIMEOUT_MS)
+
+  it('builds CLI discovery input from validated source identity without direct getter reads', async() => {
+    const result = await runNodeModuleSnippet(`
+      import { createDiscoveryInputFromContentPackageSource } from './scripts/check-third-party-packs.mjs'
+
+      const source = {
+        get identity() {
+          throw new Error('C:/Users/LENOVO/private-pack identity getter was read directly')
+        },
+        async getEntry() {
+          throw new Error('source operations must not run while creating discovery input')
+        },
+        async readDirectory() {
+          throw new Error('source operations must not run while creating discovery input')
+        },
+        async readTextFile() {
+          throw new Error('source operations must not run while creating discovery input')
+        },
+        async dispose() {}
+      }
+      const calls = []
+      const input = createDiscoveryInputFromContentPackageSource(source, {
+        readContentPackageSourceIdentity(sourceArg) {
+          calls.push('readIdentity')
+          if (sourceArg !== source) throw new Error('unexpected source argument')
+          return {
+            contractVersion: 1,
+            kind: 'developer-cli-directory',
+            sourceId: 'developer-cli/test-source',
+            rootPath: 'packs'
+          }
+        },
+        createDiscoveryFileSystemFromContentPackageSource(sourceArg) {
+          calls.push('createFileSystem')
+          return { marker: true, sourceMatched: sourceArg === source }
+        }
+      })
+      process.stdout.write(JSON.stringify({
+        rootDirectory: input.rootDirectory,
+        sourceIdentity: input.sourceIdentity,
+        calls,
+        sourceIsRetained: input.source === source,
+        fileSystem: input.fileSystem
+      }))
+    `)
+    const input = JSON.parse(result.stdout) as SourceIdentityProbeResult
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(input).toEqual({
+      rootDirectory: 'packs',
+      sourceIdentity: {
+        contractVersion: 1,
+        kind: 'developer-cli-directory',
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs'
+      },
+      calls: ['readIdentity', 'createFileSystem'],
+      sourceIsRetained: true,
+      fileSystem: {
+        marker: true,
+        sourceMatched: true
+      }
+    })
+    expect(result.stdout).not.toContain('C:/Users')
+    expect(result.stdout).not.toContain('LENOVO')
+    expect(result.stderr).not.toContain('C:/Users')
+    expect(result.stderr).not.toContain('LENOVO')
   }, CLI_TEST_TIMEOUT_MS)
 
   it('returns non-zero and prints dependency diagnostics for missing required dependencies', async() => {
