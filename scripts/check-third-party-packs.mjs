@@ -23,13 +23,23 @@ const toEntryKind = stats => {
   return 'other'
 }
 
+const hasUnsafeSourcePathControlCharacter = value => {
+  for (let index = 0; index < value.length; index += 1) {
+    const charCode = value.charCodeAt(index)
+    if (charCode <= 0x1F || charCode === 0x7F) return true
+  }
+  return false
+}
+
 const normalizeNodeSourcePath = sourcePath => {
   const normalizedPath = sourcePath.replace(/\\/g, '/')
   if (normalizedPath === '') return ''
+  const segments = normalizedPath.split('/')
   if (
     path.isAbsolute(sourcePath)
     || normalizedPath.startsWith('/')
-    || normalizedPath.split('/').includes('..')
+    || hasUnsafeSourcePathControlCharacter(normalizedPath)
+    || segments.some(segment => segment === '' || segment === '.' || segment === '..')
   ) {
     throw new Error('Content package source path is unsafe')
   }

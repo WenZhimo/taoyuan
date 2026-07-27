@@ -512,7 +512,13 @@ describe('third-party data pack check CLI', () => {
         sourceId: 'developer-cli/test-source',
         rootPath: 'packs'
       })
-      const unsafePaths = ['/Users/LENOVO/private-pack/manifest.json', '../LENOVO/private-pack/manifest.json']
+      const unsafePaths = [
+        '/Users/LENOVO/private-pack/manifest.json',
+        '../LENOVO/private-pack/manifest.json',
+        'private-pack/./manifest.json',
+        'private-pack//manifest.json',
+        'private-pack/manifest.json\\nhostile-fragment'
+      ]
       const messages = []
       for (const unsafePath of unsafePaths) {
         for (const [operation, fn] of [
@@ -539,12 +545,13 @@ describe('third-party data pack check CLI', () => {
 
     expect(result.code).toBe(0)
     expect(result.stderr).toBe('')
-    expect(messages).toHaveLength(6)
+    expect(messages).toHaveLength(15)
     for (const message of messages) {
       expect(message.message).toBe('Content package source path is unsafe')
       expect(message.message).not.toContain('LENOVO')
       expect(message.message).not.toContain('private-pack')
       expect(message.message).not.toContain('Users')
+      expect(message.message).not.toContain('hostile-fragment')
     }
   }, CLI_TEST_TIMEOUT_MS)
 
