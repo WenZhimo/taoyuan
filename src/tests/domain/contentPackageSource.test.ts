@@ -200,6 +200,33 @@ const createHostilePresenceMetadataArray = (entry: unknown): unknown[] =>
     }
   })
 
+const createMalformedLengthMetadataArray = (
+  lengthValue: unknown,
+  entry: unknown
+): {
+  readonly entries: unknown[]
+  readonly wasOwnKeysRead: () => boolean
+  readonly wasEntryRead: () => boolean
+} => {
+  let ownKeysRead = false
+  let entryRead = false
+  const entries = new Proxy([entry], {
+    get(target, property, receiver) {
+      if (property === 'length') return lengthValue
+      if (property === '0') {
+        entryRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-entry')
+      }
+      return Reflect.get(target, property, receiver)
+    },
+    ownKeys() {
+      ownKeysRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-keys')
+    }
+  })
+  return { entries, wasOwnKeysRead: () => ownKeysRead, wasEntryRead: () => entryRead }
+}
+
 const createHostileDirectoryMetadataOwnKeys = (): unknown =>
   new Proxy({ name: 'pack', kind: 'directory', isSymbolicLink: false }, {
     ownKeys() {
@@ -574,6 +601,42 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('C:/Users')
     expect(JSON.stringify(error)).not.toContain('LENOVO')
     expect(JSON.stringify(error)).not.toContain('hostile-fragment')
+  })
+
+  it('rejects malformed metadata array lengths before reading keys or entries', () => {
+    const directoryArray = createMalformedLengthMetadataArray(
+      Number.POSITIVE_INFINITY,
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    )
+    const archiveArray = createMalformedLengthMetadataArray(
+      'C:/Users/LENOVO/mods/archive-length',
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    )
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      directoryArray.entries
+    ))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      archiveArray.entries
+    ))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be a dense JSON array'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be a dense JSON array'
+    })
+    expect(directoryArray.wasOwnKeysRead()).toBe(false)
+    expect(directoryArray.wasEntryRead()).toBe(false)
+    expect(archiveArray.wasOwnKeysRead()).toBe(false)
+    expect(archiveArray.wasEntryRead()).toBe(false)
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('metadata-array')
+    }
   })
 
   it('redacts metadata getter failures before source diagnostics expose host text', async() => {

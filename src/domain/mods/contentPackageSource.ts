@@ -305,6 +305,12 @@ const readUnknownMetadataArray = (
       unreadableMessage
     )
   }
+  if (!Number.isSafeInteger(entryCount) || entryCount < 0) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      unsafeMessage
+    )
+  }
   if (maxEntryCount !== undefined && entryCount > maxEntryCount) {
     throwLimitExceeded(limitMessage?.(entryCount) ?? `Metadata array exceeds ${maxEntryCount} entries: ${entryCount}`)
   }
