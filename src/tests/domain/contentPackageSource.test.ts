@@ -162,6 +162,23 @@ const defineHostileGetter = <T extends object>(target: T, property: string): T =
   return target
 }
 
+const createHostileSourceErrorMetadata = (): ContentPackageSourceError => {
+  const error = new ContentPackageSourceError(
+    'SOURCE_PERMISSION_REVOKED',
+    'Permission denied while reading package source',
+    'pack/manifest.json'
+  )
+  for (const fieldName of ['message', 'code', 'sourcePath']) {
+    Object.defineProperty(error, fieldName, {
+      enumerable: true,
+      get() {
+        throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${fieldName}\nhostile-fragment`)
+      }
+    })
+  }
+  return error
+}
+
 const createHostileMetadataArray = (): unknown[] => {
   const entries: unknown[] = []
   Object.defineProperty(entries, '0', {
@@ -594,6 +611,62 @@ describe('content package source contract', () => {
     for (const result of [identityReport, directoryReport]) {
       expect(JSON.stringify(result)).not.toContain('C:/Users')
       expect(JSON.stringify(result)).not.toContain('LENOVO')
+    }
+  })
+
+  it('redacts unreadable source error metadata before direct reads or discovery diagnostics can leak', async() => {
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/hostile-source-error-metadata',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+        return []
+      },
+      async readTextFile() {
+        throw createHostileSourceErrorMetadata()
+      },
+      async dispose() {}
+    }
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    const directJson = await readContentPackageSourceJson(source, 'pack/manifest.json')
+    const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const report = await discoverThirdPartyDataPacks(source.identity.rootPath, fileSystem)
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Content package source read operation failed'
+    })
+    expect(bridgedReadError).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Content package source read operation failed',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(report.status).toBe('completed')
+    expect(report.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      path: 'pack/manifest.json',
+      reason: 'Package source read operation failed'
+    })
+    expect(report.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    for (const result of [directJson, bridgedReadError, report]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
     }
   })
 

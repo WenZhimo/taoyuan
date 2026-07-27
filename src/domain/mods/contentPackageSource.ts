@@ -111,7 +111,51 @@ export type ContentPackageSourceJsonReadResult =
   | { readonly ok: true; readonly data: unknown }
   | { readonly ok: false; readonly code: ContentPackageSourceErrorCode; readonly message: string }
 
-const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
+const contentPackageSourceErrorCodes: ReadonlySet<string> = new Set<ContentPackageSourceErrorCode>([
+  'SOURCE_IDENTITY_INVALID',
+  'SOURCE_DUPLICATE_PATH',
+  'SOURCE_ENTRY_UNSAFE',
+  'SOURCE_ENTRY_NOT_DIRECTORY',
+  'SOURCE_ENTRY_NOT_FILE',
+  'SOURCE_ENTRY_NOT_FOUND',
+  'SOURCE_JSON_NOT_PURE',
+  'SOURCE_JSON_PARSE_FAILED',
+  'SOURCE_LIMIT_EXCEEDED',
+  'SOURCE_PATH_OUTSIDE_ROOT',
+  'SOURCE_PATH_UNSAFE',
+  'SOURCE_PERMISSION_REVOKED',
+  'SOURCE_DISPOSED'
+])
+const unreadableErrorMessage = 'Content package source error could not be read'
+
+const isContentPackageSourceErrorCode = (value: unknown): value is ContentPackageSourceErrorCode =>
+  typeof value === 'string' && contentPackageSourceErrorCodes.has(value)
+
+const readStringErrorField = (
+  error: unknown,
+  fieldName: string
+): { readonly status: 'value'; readonly value: string } | { readonly status: 'missing' | 'unreadable' } => {
+  if (typeof error !== 'object' || error === null) return { status: 'missing' }
+  try {
+    const value = (error as Record<string, unknown>)[fieldName]
+    return typeof value === 'string'
+      ? { status: 'value', value }
+      : { status: 'missing' }
+  } catch {
+    return { status: 'unreadable' }
+  }
+}
+
+const errorMessage = (error: unknown): string => {
+  const message = readStringErrorField(error, 'message')
+  if (message.status === 'value') return message.value
+  if (message.status === 'unreadable') return unreadableErrorMessage
+  try {
+    return String(error)
+  } catch {
+    return unreadableErrorMessage
+  }
+}
 export type ContentPackageSourceHostOperation = 'identity' | 'inspect' | 'list' | 'read'
 
 const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
@@ -126,14 +170,16 @@ const hasUnsafePathControlCharacter = (value: string): boolean => {
   return false
 }
 
-const sourceErrorMayContainHostPath = (error: ContentPackageSourceError): boolean =>
-  mayContainHostPath(error.message)
-  || (error.sourcePath !== undefined && mayContainHostPath(error.sourcePath))
-
-const sourceErrorMayContainUnsafeDiagnosticText = (error: ContentPackageSourceError): boolean =>
-  sourceErrorMayContainHostPath(error)
-  || hasUnsafePathControlCharacter(error.message)
-  || (error.sourcePath !== undefined && hasUnsafePathControlCharacter(error.sourcePath))
+const sourceErrorMayContainUnsafeDiagnosticText = (
+  message: string,
+  sourcePath: string | undefined
+): boolean =>
+  mayContainHostPath(message)
+  || hasUnsafePathControlCharacter(message)
+  || (sourcePath !== undefined && (
+    mayContainHostPath(sourcePath)
+    || hasUnsafePathControlCharacter(sourcePath)
+  ))
 
 export const toContentPackageSourceHostOperationError = (
   operation: ContentPackageSourceHostOperation,
@@ -141,9 +187,31 @@ export const toContentPackageSourceHostOperationError = (
   sourcePath: string,
   fallbackCode: ContentPackageSourceErrorCode = 'SOURCE_ENTRY_NOT_FOUND'
 ): ContentPackageSourceError => {
-  if (error instanceof ContentPackageSourceError && !sourceErrorMayContainUnsafeDiagnosticText(error)) return error
+  if (error instanceof ContentPackageSourceError) {
+    const code = readStringErrorField(error, 'code')
+    const message = readStringErrorField(error, 'message')
+    const errorSourcePath = readStringErrorField(error, 'sourcePath')
+    const metadataUnreadable =
+      code.status === 'unreadable'
+      || message.status !== 'value'
+      || errorSourcePath.status === 'unreadable'
+    const safeCode = code.status === 'value' && isContentPackageSourceErrorCode(code.value)
+      ? code.value
+      : fallbackCode
+    const safeSourcePath = errorSourcePath.status === 'value' ? errorSourcePath.value : undefined
+
+    if (!metadataUnreadable && !sourceErrorMayContainUnsafeDiagnosticText(message.value, safeSourcePath)) {
+      return error
+    }
+
+    return new ContentPackageSourceError(
+      safeCode,
+      `Content package source ${operation} operation failed`,
+      sourcePath
+    )
+  }
   return new ContentPackageSourceError(
-    error instanceof ContentPackageSourceError ? error.code : fallbackCode,
+    fallbackCode,
     `Content package source ${operation} operation failed`,
     sourcePath
   )
