@@ -1,5 +1,6 @@
 import { Type, type TSchema } from '@sinclair/typebox'
 import { assertPureJsonValue, compareCodePoints, type JsonValue } from './canonicalJson'
+import { CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS } from './contentPackageSource'
 import { createDiagnostic, type ModDiagnostic, type ModDiagnosticSeverity } from './diagnostics'
 import { hashCanonicalJson, normalizePackagePath, type Sha256Hash } from './hash'
 import {
@@ -181,7 +182,7 @@ const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
 
 const createDiscoverySourceError = (
-  code: 'SOURCE_ENTRY_UNSAFE' | 'SOURCE_PATH_UNSAFE',
+  code: 'SOURCE_ENTRY_UNSAFE' | 'SOURCE_LIMIT_EXCEEDED' | 'SOURCE_PATH_UNSAFE',
   message: string
 ): Error & { readonly code: typeof code } =>
   Object.assign(new Error(message), { code })
@@ -271,6 +272,12 @@ const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPar
   }
   if (!Number.isSafeInteger(entryCount) || entryCount < 0) {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be dense')
+  }
+  if (entryCount > CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount) {
+    throw createDiscoverySourceError(
+      'SOURCE_LIMIT_EXCEEDED',
+      `Package source directory entries exceed ${CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount} entries: ${entryCount}`
+    )
   }
 
   let keys: readonly (string | symbol)[]

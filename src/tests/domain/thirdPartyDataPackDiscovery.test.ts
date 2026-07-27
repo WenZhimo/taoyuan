@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import { CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS } from '@/domain/mods/contentPackageSource'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import {
   discoverThirdPartyDataPacks,
@@ -223,6 +224,38 @@ const createMalformedRawDiscoveryDirectoryArrayLength = (
     {
       get(target, property, receiver) {
         if (property === 'length') return lengthValue
+        if (property === '0') {
+          entryRead = true
+          throw new Error('EACCES: get C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
+        }
+        return Reflect.get(target, property, receiver)
+      },
+      ownKeys() {
+        ownKeysRead = true
+        throw new Error('EACCES: keys C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
+      }
+    }
+  )
+  return {
+    entries,
+    wasOwnKeysRead: () => ownKeysRead,
+    wasEntryRead: () => entryRead
+  }
+}
+
+const createOverLimitRawDiscoveryDirectoryArray = (): {
+  readonly entries: unknown
+  readonly wasOwnKeysRead: () => boolean
+  readonly wasEntryRead: () => boolean
+} => {
+  let ownKeysRead = false
+  let entryRead = false
+  const limit = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount
+  const entries = new Proxy(
+    [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }],
+    {
+      get(target, property, receiver) {
+        if (property === 'length') return limit + 1
         if (property === '0') {
           entryRead = true
           throw new Error('EACCES: get C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
@@ -485,6 +518,49 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('LENOVO')
     expect(JSON.stringify(report)).not.toContain('hostile-fragment')
     expect(JSON.stringify(report)).not.toContain('raw-directory-length')
+  })
+
+  it('rejects over-limit raw discovery directory arrays before reading keys or entries', async() => {
+    let packageInspected = false
+    let readAttempted = false
+    const hostileArray = createOverLimitRawDiscoveryDirectoryArray()
+    const limit = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return hostileArray.entries as never
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('over-limit directory arrays must not be read')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(hostileArray.wasOwnKeysRead()).toBe(false)
+    expect(hostileArray.wasEntryRead()).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: `Package source directory entries exceed ${limit} entries: ${limit + 1}`,
+      sourceCode: 'SOURCE_LIMIT_EXCEEDED'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
   })
 
   it('rejects raw discovery directory array presence traps before inspecting packages', async() => {
