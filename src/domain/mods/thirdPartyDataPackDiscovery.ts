@@ -281,10 +281,22 @@ const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPar
 
   const normalizedEntries: ThirdPartyDiscoveryDirectoryEntry[] = []
   for (let index = 0; index < entryCount; index += 1) {
-    if (!(index in entries)) {
+    let hasEntry: boolean
+    try {
+      hasEntry = index in entries
+    } catch {
+      throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries metadata could not be read')
+    }
+    if (!hasEntry) {
       throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be dense')
     }
-    normalizedEntries.push(normalizeDiscoveryDirectoryEntry(entries[index]))
+    let entry: unknown
+    try {
+      entry = entries[index]
+    } catch {
+      throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries metadata could not be read')
+    }
+    normalizedEntries.push(normalizeDiscoveryDirectoryEntry(entry))
   }
   return normalizedEntries
 }

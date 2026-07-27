@@ -170,6 +170,45 @@ const createPack = async(
   return packRoot
 }
 
+const expectRawDirectoryArrayTrapRejected = async(entries: unknown): Promise<void> => {
+  let packageInspected = false
+  let readAttempted = false
+
+  const report = await discoverThirdPartyDataPacks('mods', {
+    async getEntry(filePath) {
+      if (filePath === 'mods/private-pack') packageInspected = true
+      return filePath === 'mods'
+        ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        : null
+    },
+    async readDirectory() {
+      return entries as never
+    },
+    async readTextFile() {
+      readAttempted = true
+      throw new Error('hostile directory arrays must not be read')
+    }
+  })
+
+  expect(packageInspected).toBe(false)
+  expect(readAttempted).toBe(false)
+  expect(report.status).toBe('directory-not-found')
+  expect(report.candidates).toEqual([])
+  expect(report.issues[0]).toMatchObject({
+    kind: 'file-read-failed',
+    severity: 'fatal',
+    path: '.',
+    reason: 'Package source list operation failed'
+  })
+  expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+    message: 'Package source directory entries metadata could not be read',
+    sourceCode: 'SOURCE_ENTRY_UNSAFE'
+  })
+  expect(JSON.stringify(report)).not.toContain('C:/Users')
+  expect(JSON.stringify(report)).not.toContain('LENOVO')
+  expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+}
+
 describe('third-party data pack read-only discovery', () => {
   it('reports missing and empty discovery roots without throwing', async() => {
     const root = await createRoot()
@@ -368,6 +407,38 @@ describe('third-party data pack read-only discovery', () => {
     })
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
+  })
+
+  it('rejects raw discovery directory array presence traps before inspecting packages', async() => {
+    const entries = new Proxy(
+      [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }],
+      {
+        has(target, property) {
+          if (property === '0') {
+            throw new Error('EACCES: has C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
+          }
+          return Reflect.has(target, property)
+        }
+      }
+    )
+
+    await expectRawDirectoryArrayTrapRejected(entries)
+  })
+
+  it('rejects raw discovery directory array index getter traps before inspecting packages', async() => {
+    const entries = new Proxy(
+      [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }],
+      {
+        get(target, property, receiver) {
+          if (property === '0') {
+            throw new Error('EACCES: get C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
+          }
+          return Reflect.get(target, property, receiver)
+        }
+      }
+    )
+
+    await expectRawDirectoryArrayTrapRejected(entries)
   })
 
   it('rejects malformed raw getEntry metadata before reading entrypoint payloads', async() => {
