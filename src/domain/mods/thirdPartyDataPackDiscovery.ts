@@ -264,9 +264,17 @@ const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPar
   }
 
   let entryCount: number
-  let keys: readonly (string | symbol)[]
   try {
     entryCount = entries.length
+  } catch {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries metadata could not be read')
+  }
+  if (!Number.isSafeInteger(entryCount) || entryCount < 0) {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be dense')
+  }
+
+  let keys: readonly (string | symbol)[]
+  try {
     keys = Reflect.ownKeys(entries)
   } catch {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries metadata could not be read')

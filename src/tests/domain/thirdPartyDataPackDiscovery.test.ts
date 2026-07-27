@@ -209,6 +209,39 @@ const expectRawDirectoryArrayTrapRejected = async(entries: unknown): Promise<voi
   expect(JSON.stringify(report)).not.toContain('hostile-fragment')
 }
 
+const createMalformedRawDiscoveryDirectoryArrayLength = (
+  lengthValue: unknown
+): {
+  readonly entries: unknown
+  readonly wasOwnKeysRead: () => boolean
+  readonly wasEntryRead: () => boolean
+} => {
+  let ownKeysRead = false
+  let entryRead = false
+  const entries = new Proxy(
+    [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }],
+    {
+      get(target, property, receiver) {
+        if (property === 'length') return lengthValue
+        if (property === '0') {
+          entryRead = true
+          throw new Error('EACCES: get C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
+        }
+        return Reflect.get(target, property, receiver)
+      },
+      ownKeys() {
+        ownKeysRead = true
+        throw new Error('EACCES: keys C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
+      }
+    }
+  )
+  return {
+    entries,
+    wasOwnKeysRead: () => ownKeysRead,
+    wasEntryRead: () => entryRead
+  }
+}
+
 describe('third-party data pack read-only discovery', () => {
   it('reports missing and empty discovery roots without throwing', async() => {
     const root = await createRoot()
@@ -407,6 +440,51 @@ describe('third-party data pack read-only discovery', () => {
     })
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
+  })
+
+  it('rejects malformed raw discovery directory array lengths before reading keys or entries', async() => {
+    let packageInspected = false
+    let readAttempted = false
+    const hostileArray = createMalformedRawDiscoveryDirectoryArrayLength(
+      'C:/Users/LENOVO/mods/raw-directory-length'
+    )
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return hostileArray.entries as never
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('malformed directory array lengths must not be read')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(hostileArray.wasOwnKeysRead()).toBe(false)
+    expect(hostileArray.wasEntryRead()).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source directory entries must be dense',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    expect(JSON.stringify(report)).not.toContain('raw-directory-length')
   })
 
   it('rejects raw discovery directory array presence traps before inspecting packages', async() => {
