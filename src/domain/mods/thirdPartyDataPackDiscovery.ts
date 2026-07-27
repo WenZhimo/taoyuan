@@ -252,12 +252,35 @@ const normalizeDiscoveryDirectoryEntry = (entry: unknown): ThirdPartyDiscoveryDi
   }
 }
 
+const isDiscoveryArrayIndexKey = (key: string, length: number): boolean => {
+  if (!/^(0|[1-9]\d*)$/.test(key)) return false
+  const index = Number(key)
+  return Number.isSafeInteger(index) && index >= 0 && index < length
+}
+
 const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPartyDiscoveryDirectoryEntry[] => {
   if (!Array.isArray(entries)) {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be an array')
   }
+
+  let entryCount: number
+  let keys: readonly (string | symbol)[]
+  try {
+    entryCount = entries.length
+    keys = Reflect.ownKeys(entries)
+  } catch {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries metadata could not be read')
+  }
+
+  if (keys.some(key => typeof key !== 'string' || (key !== 'length' && !isDiscoveryArrayIndexKey(key, entryCount)))) {
+    throw createDiscoverySourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Package source directory entries metadata contains unsupported fields'
+    )
+  }
+
   const normalizedEntries: ThirdPartyDiscoveryDirectoryEntry[] = []
-  for (let index = 0; index < entries.length; index += 1) {
+  for (let index = 0; index < entryCount; index += 1) {
     if (!(index in entries)) {
       throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be dense')
     }

@@ -327,6 +327,49 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('userdata')
   })
 
+  it('rejects malformed raw discovery directory array metadata before inspecting packages', async() => {
+    let packageInspected = false
+    let readAttempted = false
+    const entries = [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }] as unknown[]
+    Object.defineProperty(entries, Symbol('C:/Users/LENOVO/raw-directory-list'), {
+      enumerable: true,
+      value: 'hostile-fragment'
+    })
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return entries as never
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('malformed directory arrays must not be read')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source directory entries metadata contains unsupported fields',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+  })
+
   it('rejects malformed raw getEntry metadata before reading entrypoint payloads', async() => {
     const readPaths: string[] = []
     const manifest = {
