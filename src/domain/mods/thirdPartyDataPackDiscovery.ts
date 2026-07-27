@@ -214,6 +214,10 @@ const assertDiscoveryEntryHasOnlySupportedKeys = (metadata: Record<string, unkno
 }
 
 const normalizeDiscoveryEntryName = (name: string): string => {
+  if (hasUnsafeDiagnosticControlCharacter(name)) {
+    throw createDiscoverySourceError('SOURCE_PATH_UNSAFE', 'Package source entry name is unsafe')
+  }
+
   let normalizedName: string
   try {
     normalizedName = normalizePackagePath(name)
