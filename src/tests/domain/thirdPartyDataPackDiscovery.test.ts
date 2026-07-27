@@ -99,6 +99,11 @@ const createHostFailure = (message: string, sourcePath?: string): Error & {
     ...(sourcePath === undefined ? {} : { sourcePath })
   })
 
+const createUnsafeCodeHostFailure = (): Error & { readonly code: string } =>
+  Object.assign(new Error('Permission denied while reading package source'), {
+    code: 'C:/Users/LENOVO/mods/hostile-code\nhostile-fragment'
+  })
+
 const createHostileFailureMetadata = (): unknown => {
   const failure = Object.create(null) as Record<string | symbol, unknown>
   for (const fieldName of ['message', 'code', 'sourcePath']) {
@@ -723,6 +728,72 @@ describe('third-party data pack read-only discovery', () => {
       message: 'Package source read operation failed',
       sourceCode: 'EACCES'
     })
+    for (const report of [inspectFailureReport, listFailureReport, readFailureReport]) {
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+      expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    }
+  })
+
+  it('redacts unsafe raw file system failure codes before diagnostics expose host text', async() => {
+    const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw createUnsafeCodeHostFailure()
+      },
+      async readDirectory() {
+        throw new Error('inspect failure must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inspect failure must stop before reading')
+      }
+    })
+
+    const listFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        throw createUnsafeCodeHostFailure()
+      },
+      async readTextFile() {
+        throw new Error('list failure must stop before reading')
+      }
+    })
+
+    const readFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack') {
+          return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/private-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(filePath) {
+        if (filePath === 'mods') {
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        return []
+      },
+      async readTextFile() {
+        throw createUnsafeCodeHostFailure()
+      }
+    })
+
+    const inspectDetails = inspectFailureReport.issues[0]?.diagnostics[0]?.details ?? {}
+    const listDetails = listFailureReport.issues[0]?.diagnostics[0]?.details ?? {}
+    const readDetails = readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details ?? {}
+
+    expect(inspectDetails).toMatchObject({ message: 'Package source inspect operation failed' })
+    expect(listDetails).toMatchObject({ message: 'Package source list operation failed' })
+    expect(readDetails).toMatchObject({ message: 'Package source read operation failed' })
+    expect(inspectDetails).not.toHaveProperty('sourceCode')
+    expect(listDetails).not.toHaveProperty('sourceCode')
+    expect(readDetails).not.toHaveProperty('sourceCode')
     for (const report of [inspectFailureReport, listFailureReport, readFailureReport]) {
       expect(JSON.stringify(report)).not.toContain('C:/Users')
       expect(JSON.stringify(report)).not.toContain('LENOVO')

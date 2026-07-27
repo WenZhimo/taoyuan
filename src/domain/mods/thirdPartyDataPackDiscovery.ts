@@ -434,6 +434,12 @@ const createIssue = (
 
 const sourceErrorCode = (error: unknown): string | undefined => errorStringField(error, 'code')
 
+const safeSourceErrorCode = (error: unknown): string | undefined => {
+  const code = sourceErrorCode(error)
+  if (code === undefined || mayContainHostPath(code) || hasUnsafeDiagnosticControlCharacter(code)) return undefined
+  return code
+}
+
 const sourceErrorPath = (error: unknown): string | undefined => errorStringField(error, 'sourcePath')
 
 const hasUnsafeDiagnosticControlCharacter = (value: string): boolean => {
@@ -448,10 +454,15 @@ const mayContainHostPath = (value: string): boolean => hostPathHintPattern.test(
 
 const errorMayContainUnsafeDiagnosticText = (error: unknown): boolean => {
   const message = errorMessage(error)
+  const code = sourceErrorCode(error)
   const sourcePath = sourceErrorPath(error)
   return message === unreadableErrorMessage
     || mayContainHostPath(message)
     || hasUnsafeDiagnosticControlCharacter(message)
+    || (code !== undefined && (
+      mayContainHostPath(code)
+      || hasUnsafeDiagnosticControlCharacter(code)
+    ))
     || (sourcePath !== undefined && (
       mayContainHostPath(sourcePath)
       || hasUnsafeDiagnosticControlCharacter(sourcePath)
@@ -482,7 +493,7 @@ const fileSystemFailureIssue = (
     error: unknown
   }
 ): ThirdPartyDataPackDiscoveryIssue => {
-  const code = sourceErrorCode(options.error)
+  const code = safeSourceErrorCode(options.error)
   return createIssue(isSourcePathError(options.error) ? 'path-unsafe' : 'file-read-failed', {
     path: options.path,
     candidatePath: options.candidatePath,
