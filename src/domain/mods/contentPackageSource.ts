@@ -181,6 +181,12 @@ const sourceErrorMayContainUnsafeDiagnosticText = (
     || hasUnsafePathControlCharacter(sourcePath)
   ))
 
+const sourceErrorPathMatchesOperation = (
+  errorSourcePath: string | undefined,
+  sourcePath: string
+): boolean =>
+  errorSourcePath === undefined || errorSourcePath === sourcePath
+
 export const toContentPackageSourceHostOperationError = (
   operation: ContentPackageSourceHostOperation,
   error: unknown,
@@ -199,7 +205,12 @@ export const toContentPackageSourceHostOperationError = (
     const safeCode = hasSafeCode ? code.value : fallbackCode
     const safeSourcePath = errorSourcePath.status === 'value' ? errorSourcePath.value : undefined
 
-    if (!metadataUnreadable && hasSafeCode && !sourceErrorMayContainUnsafeDiagnosticText(message.value, safeSourcePath)) {
+    if (
+      !metadataUnreadable
+      && hasSafeCode
+      && !sourceErrorMayContainUnsafeDiagnosticText(message.value, safeSourcePath)
+      && sourceErrorPathMatchesOperation(safeSourcePath, sourcePath)
+    ) {
       return error
     }
 

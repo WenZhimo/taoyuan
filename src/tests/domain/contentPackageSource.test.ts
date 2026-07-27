@@ -1707,6 +1707,90 @@ describe('content package source contract', () => {
     expect(JSON.stringify(posixInspectFailureReport)).not.toContain('LENOVO')
   })
 
+  it('redacts mismatched source error paths before diagnostics can misattribute package reads', async() => {
+    const mismatchedSourcePathFailureSource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/source-error-mismatched-source-path',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          'Permission denied while listing package source',
+          'other-pack'
+        )
+      },
+      async readTextFile() {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          'Permission denied while reading package source',
+          'other-pack/manifest.json'
+        )
+      },
+      async dispose() {}
+    }
+    const mismatchedInspectFailureSource: ContentPackageSource = {
+      ...mismatchedSourcePathFailureSource,
+      identity: {
+        ...mismatchedSourcePathFailureSource.identity,
+        sourceId: 'memory/source-error-mismatched-inspect-path'
+      },
+      async getEntry() {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          'Permission denied while inspecting package source',
+          'other-pack'
+        )
+      }
+    }
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(mismatchedSourcePathFailureSource)
+
+    const directJson = await readContentPackageSourceJson(
+      mismatchedSourcePathFailureSource,
+      'pack/manifest.json'
+    )
+    const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const readFailureReport = await discoverThirdPartyDataPacks(
+      mismatchedSourcePathFailureSource.identity.rootPath,
+      fileSystem
+    )
+    const inspectFailureReport = await discoverThirdPartyDataPacks(
+      mismatchedInspectFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(mismatchedInspectFailureSource)
+    )
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed'
+    })
+    expect(bridgedReadError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    for (const result of [directJson, bridgedReadError, readFailureReport, inspectFailureReport]) {
+      expect(JSON.stringify(result)).not.toContain('other-pack')
+    }
+  })
+
   it('redacts unsafe source error codes before direct reads or discovery diagnostics expose host text', async() => {
     const unsafeCodeReadFailureSource: ContentPackageSource = {
       identity: {
