@@ -200,6 +200,13 @@ const createHostilePresenceMetadataArray = (entry: unknown): unknown[] =>
     }
   })
 
+const createHostileDirectoryMetadataOwnKeys = (): unknown =>
+  new Proxy({ name: 'pack', kind: 'directory', isSymbolicLink: false }, {
+    ownKeys() {
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-metadata-keys')
+    }
+  })
+
 const createHostileArchiveMetadataOwnKeys = (): unknown =>
   new Proxy({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }, {
     ownKeys() {
@@ -459,9 +466,12 @@ describe('content package source contract', () => {
       Array(1),
       createHostileMetadataArray(),
       createHostilePresenceMetadataArray({ name: 'pack', kind: 'directory', isSymbolicLink: false }),
+      [createHostileDirectoryMetadataOwnKeys()],
       [null],
       ['C:/Users/LENOVO/mods/pack'],
       [{ name: 1, kind: 'directory', isSymbolicLink: false }],
+      [{ name: 'pack', kind: 'directory', isSymbolicLink: false, extra: 'C:/Users/LENOVO/extra' }],
+      [{ name: 'pack', kind: 'directory', isSymbolicLink: false, [Symbol('host')]: 'C:/Users/LENOVO/symbol' }],
       [{ name: 'pack', kind: 1, isSymbolicLink: false }],
       [{ name: 'pack', kind: 'directory', isSymbolicLink: 'C:/Users/LENOVO/symlink' }]
     ]) {

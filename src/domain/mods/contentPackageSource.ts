@@ -232,6 +232,8 @@ const supportedSourceKinds = new Set<ContentPackageSourceKind>([
   'electron-readonly-directory-probe'
 ])
 const supportedEntryKinds = new Set<ContentPackageSourceEntryKind>(['file', 'directory', 'other'])
+const supportedDirectoryEntryMetadataKeys = new Set(['name', 'kind', 'isSymbolicLink'])
+const supportedArchiveEntryMetadataKeys = new Set(['path', 'uncompressedSizeBytes', 'compressedSizeBytes'])
 
 const throwLimitExceeded = (message: string, sourcePath?: string): never => {
   throw new ContentPackageSourceError('SOURCE_LIMIT_EXCEEDED', message, sourcePath)
@@ -251,6 +253,24 @@ const readUnknownMetadataField = (
     return metadata[fieldName]
   } catch {
     throw new ContentPackageSourceError(code, message)
+  }
+}
+
+const assertUnknownMetadataHasOnlyKeys = (
+  metadata: Record<string, unknown>,
+  allowedKeys: ReadonlySet<string>,
+  code: ContentPackageSourceErrorCode,
+  unreadableMessage: string,
+  unsupportedMessage: string
+): void => {
+  let metadataKeys: readonly (string | symbol)[]
+  try {
+    metadataKeys = Reflect.ownKeys(metadata)
+  } catch {
+    throw new ContentPackageSourceError(code, unreadableMessage)
+  }
+  if (metadataKeys.some(key => typeof key !== 'string' || !allowedKeys.has(key))) {
+    throw new ContentPackageSourceError(code, unsupportedMessage)
   }
 }
 
@@ -391,6 +411,13 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   }
 
   const entryMetadata = entry as Record<string, unknown>
+  assertUnknownMetadataHasOnlyKeys(
+    entryMetadata,
+    supportedDirectoryEntryMetadataKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Content package source entry metadata could not be read',
+    'Content package source entry metadata contains unsupported fields'
+  )
   const name = readUnknownMetadataField(
     entryMetadata,
     'name',
@@ -519,24 +546,13 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
   }
 
   const entryMetadata = entry as Record<string, unknown>
-  let metadataKeys: readonly (string | symbol)[]
-  try {
-    metadataKeys = Reflect.ownKeys(entryMetadata)
-  } catch {
-    throw new ContentPackageSourceError(
-      'SOURCE_ENTRY_UNSAFE',
-      'Archive entry metadata could not be read'
-    )
-  }
-  if (metadataKeys.some(key =>
-    typeof key !== 'string'
-    || (key !== 'path' && key !== 'uncompressedSizeBytes' && key !== 'compressedSizeBytes')
-  )) {
-    throw new ContentPackageSourceError(
-      'SOURCE_ENTRY_UNSAFE',
-      'Archive entry metadata contains unsupported fields'
-    )
-  }
+  assertUnknownMetadataHasOnlyKeys(
+    entryMetadata,
+    supportedArchiveEntryMetadataKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Archive entry metadata could not be read',
+    'Archive entry metadata contains unsupported fields'
+  )
 
   const path = readUnknownMetadataField(
     entryMetadata,
