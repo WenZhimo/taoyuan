@@ -179,6 +179,18 @@ const createHostileSourceErrorMetadata = (): ContentPackageSourceError => {
   return error
 }
 
+const createUnsafeSourceErrorCode = (
+  message: string,
+  sourcePath: string
+): ContentPackageSourceError => {
+  const error = new ContentPackageSourceError('SOURCE_PERMISSION_REVOKED', message, sourcePath)
+  Object.defineProperty(error, 'code', {
+    enumerable: true,
+    value: 'C:/Users/LENOVO/mods/hostile-code\nhostile-fragment'
+  })
+  return error
+}
+
 const createHostileMetadataArray = (): unknown[] => {
   const entries: unknown[] = []
   Object.defineProperty(entries, '0', {
@@ -1693,6 +1705,81 @@ describe('content package source contract', () => {
     expect(JSON.stringify(posixReadFailureReport)).not.toContain('LENOVO')
     expect(JSON.stringify(posixInspectFailureReport)).not.toContain('/Users')
     expect(JSON.stringify(posixInspectFailureReport)).not.toContain('LENOVO')
+  })
+
+  it('redacts unsafe source error codes before direct reads or discovery diagnostics expose host text', async() => {
+    const unsafeCodeReadFailureSource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/source-error-unsafe-code-read-failure',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+        throw createUnsafeSourceErrorCode('Permission denied while listing package source', path)
+      },
+      async readTextFile(path) {
+        throw createUnsafeSourceErrorCode('Permission denied while reading package source', path)
+      },
+      async dispose() {}
+    }
+    const unsafeCodeInspectFailureSource: ContentPackageSource = {
+      ...unsafeCodeReadFailureSource,
+      identity: {
+        ...unsafeCodeReadFailureSource.identity,
+        sourceId: 'memory/source-error-unsafe-code-inspect-failure'
+      },
+      async getEntry(path) {
+        throw createUnsafeSourceErrorCode('Permission denied while inspecting package source', path)
+      }
+    }
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(unsafeCodeReadFailureSource)
+
+    const directJson = await readContentPackageSourceJson(
+      unsafeCodeReadFailureSource,
+      'pack/manifest.json'
+    )
+    const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const readFailureReport = await discoverThirdPartyDataPacks(
+      unsafeCodeReadFailureSource.identity.rootPath,
+      fileSystem
+    )
+    const inspectFailureReport = await discoverThirdPartyDataPacks(
+      unsafeCodeInspectFailureSource.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(unsafeCodeInspectFailureSource)
+    )
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Content package source read operation failed'
+    })
+    expect(bridgedReadError).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Content package source read operation failed',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_ENTRY_NOT_FOUND'
+    })
+    for (const result of [directJson, bridgedReadError, readFailureReport, inspectFailureReport]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
+      expect(JSON.stringify(result)).not.toContain('\\n')
+    }
   })
 
   it('redacts host source paths even when source error messages are stable', async() => {

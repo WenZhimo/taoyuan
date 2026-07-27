@@ -195,12 +195,11 @@ export const toContentPackageSourceHostOperationError = (
       code.status === 'unreadable'
       || message.status !== 'value'
       || errorSourcePath.status === 'unreadable'
-    const safeCode = code.status === 'value' && isContentPackageSourceErrorCode(code.value)
-      ? code.value
-      : fallbackCode
+    const hasSafeCode = code.status === 'value' && isContentPackageSourceErrorCode(code.value)
+    const safeCode = hasSafeCode ? code.value : fallbackCode
     const safeSourcePath = errorSourcePath.status === 'value' ? errorSourcePath.value : undefined
 
-    if (!metadataUnreadable && !sourceErrorMayContainUnsafeDiagnosticText(message.value, safeSourcePath)) {
+    if (!metadataUnreadable && hasSafeCode && !sourceErrorMayContainUnsafeDiagnosticText(message.value, safeSourcePath)) {
       return error
     }
 
