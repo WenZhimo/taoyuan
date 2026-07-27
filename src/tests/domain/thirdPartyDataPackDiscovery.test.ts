@@ -290,6 +290,107 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(issue)).not.toContain('LENOVO')
   })
 
+  it('rejects malformed raw discovery root entry names before composing package paths', async() => {
+    let outsideRootInspected = false
+    let readAttempted = false
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath.includes('userdata')) outsideRootInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [{ name: '../userdata', kind: 'directory', isSymbolicLink: false } as never]
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('malformed root entries must not be read')
+      }
+    })
+
+    expect(outsideRootInspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'path-unsafe',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry name is unsafe',
+      sourceCode: 'SOURCE_PATH_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('userdata')
+  })
+
+  it('rejects malformed raw getEntry metadata before reading entrypoint payloads', async() => {
+    const readPaths: string[] = []
+    const manifest = {
+      id: 'raw_metadata_pack',
+      name: { key: 'raw_metadata_pack.package.name', fallback: 'Raw metadata pack' },
+      version: '1.0.0',
+      gameVersion: '2.4.0',
+      engineApiVersion: '1',
+      contentSchemaVersion: '1',
+      defaultLocale: 'zh-CN',
+      locales: { 'zh-CN': 'locales/zh-CN.json' },
+      authors: [{ name: 'Raw Metadata Safety Tester', role: 'developer' }],
+      license: 'MIT',
+      dependencies: [],
+      entrypoints: { 'taoyuan:item': ['data/items.json'] }
+    }
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/raw-metadata-pack') {
+          return { name: 'raw-metadata-pack', kind: 'directory', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/raw-metadata-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/raw-metadata-pack/data') {
+          return { name: '../userdata', kind: 'directory', isSymbolicLink: false } as never
+        }
+        return null
+      },
+      async readDirectory(directoryPath) {
+        if (directoryPath === 'mods') {
+          return [{ name: 'raw-metadata-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        throw new Error(`Unexpected directory read: ${directoryPath}`)
+      },
+      async readTextFile(filePath) {
+        readPaths.push(filePath)
+        if (filePath === 'mods/raw-metadata-pack/manifest.json') {
+          return `${JSON.stringify(manifest, null, 2)}\n`
+        }
+        throw new Error('malformed entrypoint metadata must stop before payload reads')
+      }
+    })
+
+    expect(readPaths).toEqual(['mods/raw-metadata-pack/manifest.json'])
+    expect(report.summary).toMatchObject({
+      candidateCount: 1,
+      validPackageCount: 0,
+      invalidPackageCount: 1
+    })
+    expect(report.candidates[0]?.issues).toContainEqual(expect.objectContaining({
+      kind: 'path-unsafe',
+      path: 'raw-metadata-pack/data/items.json',
+      reason: 'Package source inspect operation failed'
+    }))
+    expect(report.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry name is unsafe',
+      sourceCode: 'SOURCE_PATH_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('userdata')
+  })
+
   it('redacts raw file system failures before discovery diagnostics expose host text', async() => {
     const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
       async getEntry() {

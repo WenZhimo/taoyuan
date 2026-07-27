@@ -164,6 +164,12 @@ const errorStringField = (error: unknown, fieldName: string): string | undefined
 const unsafePackagePathDiagnosticPath = (packageDisplayPath: string): string => `${packageDisplayPath}/<unsafe-path>`
 const unsafePackagePathDiagnosticMessage = 'Package path is absolute, empty, or escapes the package root'
 const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
+const supportedDiscoveryEntryKinds = new Set<ThirdPartyDiscoveryDirectoryEntry['kind']>([
+  'file',
+  'directory',
+  'other'
+])
+const supportedDiscoveryEntryMetadataKeys = new Set(['name', 'kind', 'isSymbolicLink'])
 
 const isBlockingIssue = (issue: ThirdPartyDataPackDiscoveryIssue): boolean =>
   blockingSeverities.has(issue.severity)
@@ -173,6 +179,92 @@ const hasBlockingIssue = (issues: readonly ThirdPartyDataPackDiscoveryIssue[]): 
 
 const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
+
+const createDiscoverySourceError = (
+  code: 'SOURCE_ENTRY_UNSAFE' | 'SOURCE_PATH_UNSAFE',
+  message: string
+): Error & { readonly code: typeof code } =>
+  Object.assign(new Error(message), { code })
+
+const readDiscoveryEntryField = (
+  metadata: Record<string, unknown>,
+  fieldName: string
+): unknown => {
+  try {
+    return metadata[fieldName]
+  } catch {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry metadata could not be read')
+  }
+}
+
+const assertDiscoveryEntryHasOnlySupportedKeys = (metadata: Record<string, unknown>): void => {
+  let keys: readonly (string | symbol)[]
+  try {
+    keys = Reflect.ownKeys(metadata)
+  } catch {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry metadata could not be read')
+  }
+  if (keys.some(key => typeof key !== 'string' || !supportedDiscoveryEntryMetadataKeys.has(key))) {
+    throw createDiscoverySourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Package source entry metadata contains unsupported fields'
+    )
+  }
+}
+
+const normalizeDiscoveryEntryName = (name: string): string => {
+  let normalizedName: string
+  try {
+    normalizedName = normalizePackagePath(name)
+  } catch {
+    throw createDiscoverySourceError('SOURCE_PATH_UNSAFE', 'Package source entry name is unsafe')
+  }
+  if (normalizedName === '' || normalizedName !== name || normalizedName.includes('/')) {
+    throw createDiscoverySourceError('SOURCE_PATH_UNSAFE', 'Package source entry name is unsafe')
+  }
+  return normalizedName
+}
+
+const normalizeDiscoveryDirectoryEntry = (entry: unknown): ThirdPartyDiscoveryDirectoryEntry => {
+  if (!isObjectRecord(entry)) {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry metadata must be an object')
+  }
+  assertDiscoveryEntryHasOnlySupportedKeys(entry)
+  const name = readDiscoveryEntryField(entry, 'name')
+  if (typeof name !== 'string') {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry name metadata must be a string')
+  }
+  const kind = readDiscoveryEntryField(entry, 'kind')
+  if (typeof kind !== 'string' || !supportedDiscoveryEntryKinds.has(kind as ThirdPartyDiscoveryDirectoryEntry['kind'])) {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Unsupported package source entry kind')
+  }
+  const isSymbolicLink = readDiscoveryEntryField(entry, 'isSymbolicLink')
+  if (isSymbolicLink !== undefined && typeof isSymbolicLink !== 'boolean') {
+    throw createDiscoverySourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Package source entry symbolic-link metadata must be a boolean'
+    )
+  }
+  return {
+    name: normalizeDiscoveryEntryName(name),
+    kind: kind as ThirdPartyDiscoveryDirectoryEntry['kind'],
+    isSymbolicLink: isSymbolicLink ?? false
+  }
+}
+
+const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPartyDiscoveryDirectoryEntry[] => {
+  if (!Array.isArray(entries)) {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be an array')
+  }
+  const normalizedEntries: ThirdPartyDiscoveryDirectoryEntry[] = []
+  for (let index = 0; index < entries.length; index += 1) {
+    if (!(index in entries)) {
+      throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be dense')
+    }
+    normalizedEntries.push(normalizeDiscoveryDirectoryEntry(entries[index]))
+  }
+  return normalizedEntries
+}
 
 const parseSemVerCore = (value: string): SemVerCore | null => {
   const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(value)
@@ -370,7 +462,8 @@ const getFileSystemEntry = async (
   | { ok: false; issue: ThirdPartyDataPackDiscoveryIssue }
 > => {
   try {
-    return { ok: true, entry: await fileSystem.getEntry(filePath) }
+    const entry = await fileSystem.getEntry(filePath)
+    return { ok: true, entry: entry === null ? null : normalizeDiscoveryDirectoryEntry(entry) }
   } catch (error) {
     return {
       ok: false,
@@ -395,7 +488,7 @@ const readFileSystemDirectory = async (
   | { ok: false; issue: ThirdPartyDataPackDiscoveryIssue }
 > => {
   try {
-    return { ok: true, entries: await fileSystem.readDirectory(directoryPath) }
+    return { ok: true, entries: normalizeDiscoveryDirectoryEntries(await fileSystem.readDirectory(directoryPath)) }
   } catch (error) {
     return {
       ok: false,
