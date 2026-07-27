@@ -207,6 +207,18 @@ const createHostileDirectoryMetadataOwnKeys = (): unknown =>
     }
   })
 
+const createHostileIdentityMetadataOwnKeys = (): unknown =>
+  new Proxy({
+    contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+    kind: 'memory',
+    sourceId: 'memory/hostile-identity-keys',
+    rootPath: 'packs'
+  }, {
+    ownKeys() {
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/identity-metadata-keys')
+    }
+  })
+
 const createHostileArchiveMetadataOwnKeys = (): unknown =>
   new Proxy({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }, {
     ownKeys() {
@@ -918,6 +930,24 @@ describe('content package source contract', () => {
       expect(JSON.stringify(error)).not.toContain('LENOVO')
     }
 
+    for (const unsupportedIdentity of [
+      {
+        ...source.identity,
+        extra: 'C:/Users/LENOVO/mods/identity-extra'
+      },
+      {
+        ...source.identity,
+        [Symbol('host')]: 'C:/Users/LENOVO/mods/identity-symbol'
+      },
+      createHostileIdentityMetadataOwnKeys()
+    ]) {
+      const error = captureSourceError(() => validateContentPackageSourceIdentity(unsupportedIdentity))
+
+      expect(error.code).toBe('SOURCE_IDENTITY_INVALID')
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
     const absoluteIdentitySource: ContentPackageSource = {
       ...source,
       identity: {
@@ -984,6 +1014,32 @@ describe('content package source contract', () => {
     })
     expect(JSON.stringify(malformedReport)).not.toContain('C:/Users')
     expect(JSON.stringify(malformedReport)).not.toContain('LENOVO')
+
+    let extraIdentityInspected = false
+    const extraIdentitySource: ContentPackageSource = {
+      ...source,
+      identity: {
+        ...source.identity,
+        extra: 'C:/Users/LENOVO/mods/identity-extra'
+      } as ContentPackageSource['identity'],
+      async getEntry() {
+        extraIdentityInspected = true
+        throw new Error('extra identity fields must be rejected before source inspection')
+      }
+    }
+    const extraIdentityReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(extraIdentitySource)
+    )
+
+    expect(extraIdentityInspected).toBe(false)
+    expect(extraIdentityReport.status).toBe('directory-not-found')
+    expect(extraIdentityReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata contains unsupported fields'
+    })
+    expect(JSON.stringify(extraIdentityReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(extraIdentityReport)).not.toContain('LENOVO')
 
     let hostileIdentityInspected = false
     const hostileIdentityGetterSource: ContentPackageSource = {

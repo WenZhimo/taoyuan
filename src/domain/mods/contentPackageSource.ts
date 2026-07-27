@@ -232,6 +232,7 @@ const supportedSourceKinds = new Set<ContentPackageSourceKind>([
   'electron-readonly-directory-probe'
 ])
 const supportedEntryKinds = new Set<ContentPackageSourceEntryKind>(['file', 'directory', 'other'])
+const supportedSourceIdentityMetadataKeys = new Set(['contractVersion', 'kind', 'sourceId', 'rootPath'])
 const supportedDirectoryEntryMetadataKeys = new Set(['name', 'kind', 'isSymbolicLink'])
 const supportedArchiveEntryMetadataKeys = new Set(['path', 'uncompressedSizeBytes', 'compressedSizeBytes'])
 
@@ -824,6 +825,13 @@ export const validateContentPackageSourceIdentity = (
   identity: unknown
 ): ContentPackageSourceIdentity => {
   const identityObject = asIdentityObject(identity)
+  assertUnknownMetadataHasOnlyKeys(
+    identityObject,
+    supportedSourceIdentityMetadataKeys,
+    'SOURCE_IDENTITY_INVALID',
+    'Content package source identity metadata could not be read',
+    'Content package source identity metadata contains unsupported fields'
+  )
   const contractVersion = readUnknownMetadataField(
     identityObject,
     'contractVersion',
