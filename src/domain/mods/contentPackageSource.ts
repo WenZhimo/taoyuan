@@ -519,6 +519,25 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
   }
 
   const entryMetadata = entry as Record<string, unknown>
+  let metadataKeys: readonly (string | symbol)[]
+  try {
+    metadataKeys = Reflect.ownKeys(entryMetadata)
+  } catch {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Archive entry metadata could not be read'
+    )
+  }
+  if (metadataKeys.some(key =>
+    typeof key !== 'string'
+    || (key !== 'path' && key !== 'uncompressedSizeBytes' && key !== 'compressedSizeBytes')
+  )) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Archive entry metadata contains unsupported fields'
+    )
+  }
+
   const path = readUnknownMetadataField(
     entryMetadata,
     'path',

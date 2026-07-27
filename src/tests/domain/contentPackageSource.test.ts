@@ -200,6 +200,13 @@ const createHostilePresenceMetadataArray = (entry: unknown): unknown[] =>
     }
   })
 
+const createHostileArchiveMetadataOwnKeys = (): unknown =>
+  new Proxy({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }, {
+    ownKeys() {
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-metadata-keys')
+    }
+  })
+
 describe('content package source contract', () => {
   it('bridges a normalized in-memory source into the shared third-party discovery pipeline', async() => {
     const source = createValidSource()
@@ -775,7 +782,10 @@ describe('content package source contract', () => {
       Array(1),
       createHostileMetadataArray(),
       createHostilePresenceMetadataArray({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }),
+      createHostileArchiveMetadataOwnKeys(),
       { path: 1, uncompressedSizeBytes: 0 },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0, extra: 'C:/Users/LENOVO/extra' },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0, [Symbol('host')]: 'C:/Users/LENOVO/symbol' },
       { path: 'C:/Users/LENOVO/mods/pack/manifest.json', uncompressedSizeBytes: 0 },
       { path: 'pack/manifest.json', uncompressedSizeBytes: 'C:/Users/LENOVO/size' },
       { path: 'pack/manifest.json', uncompressedSizeBytes: 0, compressedSizeBytes: 'C:/Users/LENOVO/size' }
