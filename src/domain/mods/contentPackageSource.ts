@@ -285,7 +285,9 @@ const readUnknownMetadataArray = (
   metadata: unknown,
   notArrayMessage: string,
   unsafeMessage: string,
-  unreadableMessage: string
+  unreadableMessage: string,
+  maxEntryCount?: number,
+  limitMessage?: (entryCount: number) => string
 ): readonly unknown[] => {
   if (!Array.isArray(metadata)) {
     throw new ContentPackageSourceError(
@@ -295,9 +297,20 @@ const readUnknownMetadataArray = (
   }
 
   let entryCount: number
-  let ownKeys: readonly (string | symbol)[]
   try {
     entryCount = metadata.length
+  } catch {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      unreadableMessage
+    )
+  }
+  if (maxEntryCount !== undefined && entryCount > maxEntryCount) {
+    throwLimitExceeded(limitMessage?.(entryCount) ?? `Metadata array exceeds ${maxEntryCount} entries: ${entryCount}`)
+  }
+
+  let ownKeys: readonly (string | symbol)[]
+  try {
     ownKeys = Reflect.ownKeys(metadata)
   } catch {
     throw new ContentPackageSourceError(
@@ -480,13 +493,10 @@ export const normalizeContentPackageSourceDirectoryEntries = (
     entries,
     'Content package source directory entries metadata must be an array',
     'Content package source directory entries metadata must be a dense JSON array',
-    'Content package source directory entries metadata could not be read'
+    'Content package source directory entries metadata could not be read',
+    policy.maxPackageFileCount,
+    entryCount => `Directory listing exceeds ${policy.maxPackageFileCount} entries: ${entryCount}`
   )
-  if (metadataEntries.length > policy.maxPackageFileCount) {
-    throwLimitExceeded(
-      `Directory listing exceeds ${policy.maxPackageFileCount} entries: ${metadataEntries.length}`
-    )
-  }
 
   const seenNames = new Set<string>()
   const normalizedEntries = metadataEntries.map(entry => {
@@ -603,11 +613,10 @@ export const validateContentPackageSourceArchiveEntries = (
     entries,
     'Archive entries metadata must be an array',
     'Archive entries metadata must be a dense JSON array',
-    'Archive entries metadata could not be read'
+    'Archive entries metadata could not be read',
+    policy.maxPackageFileCount,
+    entryCount => `Archive exceeds ${policy.maxPackageFileCount} entries: ${entryCount}`
   )
-  if (metadataEntries.length > policy.maxPackageFileCount) {
-    throwLimitExceeded(`Archive exceeds ${policy.maxPackageFileCount} entries: ${metadataEntries.length}`)
-  }
 
   const normalizedEntries = metadataEntries
     .map(entry => {

@@ -226,6 +226,25 @@ const createHostileArchiveMetadataOwnKeys = (): unknown =>
     }
   })
 
+const createOverLimitMetadataArray = (
+  entryFactory: (index: number) => unknown
+): {
+  readonly entries: unknown[]
+  readonly wasBoundaryEntryRead: () => boolean
+} => {
+  const limit = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount
+  let boundaryEntryRead = false
+  const entries = Array.from({ length: limit }, (_, index) => entryFactory(index))
+  Object.defineProperty(entries, String(limit), {
+    enumerable: true,
+    get() {
+      boundaryEntryRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/hostile-fragment')
+    }
+  })
+  return { entries, wasBoundaryEntryRead: () => boundaryEntryRead }
+}
+
 describe('content package source contract', () => {
   it('bridges a normalized in-memory source into the shared third-party discovery pipeline', async() => {
     const source = createValidSource()
@@ -537,6 +556,26 @@ describe('content package source contract', () => {
     expect(JSON.stringify(report)).not.toContain('LENOVO')
   })
 
+  it('rejects over-limit directory metadata arrays before reading boundary entries', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    const { entries, wasBoundaryEntryRead } = createOverLimitMetadataArray(index => ({
+      name: `pack-${index}`,
+      kind: 'directory',
+      isSymbolicLink: false
+    }))
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(entries))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Directory listing exceeds ${limits.maxPackageFileCount} entries: ${limits.maxPackageFileCount + 1}`
+    })
+    expect(wasBoundaryEntryRead()).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('hostile-fragment')
+  })
+
   it('redacts metadata getter failures before source diagnostics expose host text', async() => {
     const hostileIdentity = defineHostileGetter({
       contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
@@ -746,6 +785,22 @@ describe('content package source contract', () => {
         uncompressedSizeBytes: 0
       }))
     )).code).toBe('SOURCE_LIMIT_EXCEEDED')
+    const overLimitArchiveMetadata = createOverLimitMetadataArray(index => ({
+      path: `data/${index}.json`,
+      uncompressedSizeBytes: 0
+    }))
+    const overLimitArchiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      overLimitArchiveMetadata.entries
+    ))
+
+    expect(overLimitArchiveError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive exceeds ${limits.maxPackageFileCount} entries: ${limits.maxPackageFileCount + 1}`
+    })
+    expect(overLimitArchiveMetadata.wasBoundaryEntryRead()).toBe(false)
+    expect(JSON.stringify(overLimitArchiveError)).not.toContain('C:/Users')
+    expect(JSON.stringify(overLimitArchiveError)).not.toContain('LENOVO')
+    expect(JSON.stringify(overLimitArchiveError)).not.toContain('hostile-fragment')
     expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
       { path: 'large.bin', uncompressedSizeBytes: limits.maxSingleFileBytes + 1 }
     ])).code).toBe('SOURCE_LIMIT_EXCEEDED')
