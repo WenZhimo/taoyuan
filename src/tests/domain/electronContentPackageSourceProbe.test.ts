@@ -601,23 +601,23 @@ describe('electron content package source read-only probe', () => {
 
     expect(sourceReport).toMatchObject({
       status: 'blocked',
-      reason: 'Electron read-only source adapter operation failed',
+      reason: 'Content package source entry metadata could not be read',
       sourceIdentity: directSource.identity,
+      sourceErrorCode: 'SOURCE_ENTRY_UNSAFE',
       effects: {
         runtimeEnablementAllowed: false,
         electronIpcExposed: false,
         sourceHandlesRetained: false
       }
     })
-    expect(sourceReport.sourceErrorCode).toBeUndefined()
     expect(readinessReport).toMatchObject({
       status: 'blocked',
-      reason: 'Electron read-only source adapter operation failed',
+      reason: 'Content package source entry metadata could not be read',
       sourceProbeStatus: 'blocked',
       discoveryStatus: 'not-run',
       registryCount: 54,
       entryCount: 4242,
-      diagnosticCount: 0,
+      diagnosticCount: 1,
       runtimePublication: 'deferred',
       effects: createElectronReadonlyRuntimeReadinessProbeEffects()
     })
@@ -1051,6 +1051,64 @@ describe('electron content package source read-only probe', () => {
     expect(JSON.stringify(directJson)).not.toContain('LENOVO')
     expect(JSON.stringify(discoveryReport)).not.toContain('C:/Users')
     expect(JSON.stringify(discoveryReport)).not.toContain('LENOVO')
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('blocks mismatched Electron source root metadata before discovery', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    let readDirectoryAttempted = false
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: createInvalidRootHost(
+        { name: 'private-mods', kind: 'directory', isSymbolicLink: false },
+        { readDirectoryAttempted: () => { readDirectoryAttempted = true } }
+      )
+    })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await source.dispose()
+
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      inspectedPath: '',
+      inspectedEntryKind: null,
+      sourceErrorCode: 'SOURCE_ENTRY_UNSAFE',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false,
+        packageFilesWritten: false,
+        platformSourceInspected: true,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(sourceReport.reason).toContain('metadata does not match requested path')
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(readinessReport.reason).toContain('metadata does not match requested path')
+    expect(readDirectoryAttempted).toBe(false)
+    expect(JSON.stringify(readinessReport)).not.toContain(root)
+    expect(JSON.stringify(readinessReport)).not.toContain(path.sep)
     expect(await collectFileContents(root)).toEqual(before)
     expectOfficialBaseline()
   }, 15_000)

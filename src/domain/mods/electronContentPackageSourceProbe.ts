@@ -244,14 +244,31 @@ const normalizeEntry = (
   return normalizeContentPackageSourceDirectoryEntry(entry)
 }
 
+const sourcePathEntryName = (
+  sourcePath: string,
+  sourceIdentity: ContentPackageSourceIdentity
+): string => {
+  const pathForName = sourcePath === '' ? sourceIdentity.rootPath : sourcePath
+  const separatorIndex = pathForName.lastIndexOf('/')
+  return separatorIndex === -1 ? pathForName : pathForName.slice(separatorIndex + 1)
+}
+
 const assertDirectoryProbeRoot = (
   entry: ContentPackageSourceDirectoryEntry | null,
-  sourcePath: string
+  sourcePath: string,
+  expectedName: string
 ): ContentPackageSourceDirectoryEntry => {
   if (entry === null) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_NOT_FOUND',
       'Electron read-only source adapter probe root was not found',
+      sourcePath
+    )
+  }
+  if (entry.name !== expectedName) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Electron read-only source adapter probe root metadata does not match requested path',
       sourcePath
     )
   }
@@ -571,8 +588,9 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
       throw toContentPackageSourceHostOperationError('inspect', error, normalizedInspectedPath)
     }
     const entry = assertDirectoryProbeRoot(
-      inspectedEntry,
-      normalizedInspectedPath
+      normalizeEntry(inspectedEntry),
+      normalizedInspectedPath,
+      sourcePathEntryName(normalizedInspectedPath, sourceIdentity)
     )
     return {
       status: 'ready',
