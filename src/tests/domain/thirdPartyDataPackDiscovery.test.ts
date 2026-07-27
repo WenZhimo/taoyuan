@@ -370,7 +370,7 @@ describe('third-party data pack read-only discovery', () => {
     }
   })
 
-  it('redacts unsafe absolute entrypoint paths from diagnostics', async() => {
+  it('redacts unsafe absolute and control-character entrypoint paths from diagnostics', async() => {
     const root = await createRoot()
     const readPaths: string[] = []
     const packRoot = await createPack(root, 'absolute-entrypoint-pack')
@@ -378,26 +378,42 @@ describe('third-party data pack read-only discovery', () => {
     const manifest = await readJsonObject(manifestPath)
     manifest.entrypoints = { 'taoyuan:item': ['C:/Users/LENOVO/secrets/items.json'] }
     await writeJson(manifestPath, manifest)
+    const controlPackRoot = await createPack(root, 'control-entrypoint-pack')
+    const controlManifestPath = path.join(controlPackRoot, 'manifest.json')
+    const controlManifest = await readJsonObject(controlManifestPath)
+    controlManifest.entrypoints = { 'taoyuan:item': ['data/items.json\nhostile-fragment'] }
+    await writeJson(controlManifestPath, controlManifest)
 
     const report = await discoverThirdPartyDataPacks(root, createNodeFileSystem(readPaths))
-    const issue = report.issues.find(item => item.kind === 'path-unsafe')
+    const issues = report.issues.filter(item => item.kind === 'path-unsafe')
 
     expect(report.summary).toMatchObject({
-      candidateCount: 1,
+      candidateCount: 2,
       validPackageCount: 0,
-      invalidPackageCount: 1
+      invalidPackageCount: 2
     })
-    expect(issue).toMatchObject({
-      kind: 'path-unsafe',
-      path: 'absolute-entrypoint-pack/<unsafe-path>',
-      reason: 'Package path is absolute, empty, or escapes the package root'
-    })
-    expect(issue?.diagnostics[0]?.details).toMatchObject({
-      message: 'Package path is absolute, empty, or escapes the package root'
-    })
+    expect(issues).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'path-unsafe',
+        path: 'absolute-entrypoint-pack/<unsafe-path>',
+        reason: 'Package path is absolute, empty, or escapes the package root'
+      }),
+      expect.objectContaining({
+        kind: 'path-unsafe',
+        path: 'control-entrypoint-pack/<unsafe-path>',
+        reason: 'Package path is absolute, empty, or escapes the package root'
+      })
+    ]))
+    for (const issue of issues) {
+      expect(issue.diagnostics[0]?.details).toMatchObject({
+        message: 'Package path is absolute, empty, or escapes the package root'
+      })
+    }
     expect(readPaths.some(item => item.includes('secrets'))).toBe(false)
-    expect(JSON.stringify(issue)).not.toContain('C:/Users')
-    expect(JSON.stringify(issue)).not.toContain('LENOVO')
+    expect(readPaths.some(item => item.includes('hostile-fragment'))).toBe(false)
+    expect(JSON.stringify(issues)).not.toContain('C:/Users')
+    expect(JSON.stringify(issues)).not.toContain('LENOVO')
+    expect(JSON.stringify(issues)).not.toContain('hostile-fragment')
   })
 
   it('rejects malformed raw discovery root entry names before composing package paths', async() => {
