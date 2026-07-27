@@ -130,7 +130,37 @@ const sortEntries = (
 ): ThirdPartyDiscoveryDirectoryEntry[] =>
   [...entries].sort((a, b) => compareCodePoints(a.name, b.name))
 
-const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
+const unreadableErrorMessage = 'Package source error could not be read'
+
+const readStringErrorField = (
+  error: unknown,
+  fieldName: string
+): { readonly status: 'value'; readonly value: string } | { readonly status: 'missing' | 'unreadable' } => {
+  if (typeof error !== 'object' || error === null) return { status: 'missing' }
+  try {
+    const value = (error as Record<string, unknown>)[fieldName]
+    return typeof value === 'string'
+      ? { status: 'value', value }
+      : { status: 'missing' }
+  } catch {
+    return { status: 'unreadable' }
+  }
+}
+
+const errorMessage = (error: unknown): string => {
+  const message = readStringErrorField(error, 'message')
+  if (message.status === 'value') return message.value
+  if (message.status === 'unreadable') return unreadableErrorMessage
+  try {
+    return String(error)
+  } catch {
+    return unreadableErrorMessage
+  }
+}
+const errorStringField = (error: unknown, fieldName: string): string | undefined => {
+  const field = readStringErrorField(error, fieldName)
+  return field.status === 'value' ? field.value : undefined
+}
 const unsafePackagePathDiagnosticPath = (packageDisplayPath: string): string => `${packageDisplayPath}/<unsafe-path>`
 const unsafePackagePathDiagnosticMessage = 'Package path is absolute, empty, or escapes the package root'
 const hostPathHintPattern = /(?:[A-Za-z]:[\\/]|\\\\|\\|(?:^|[^A-Za-z0-9_-])\/(?:Users|home|var|tmp|private|Volumes|mnt|run)(?:\/|\b))/
@@ -260,21 +290,9 @@ const createIssue = (
   }
 }
 
-const sourceErrorCode = (error: unknown): string | undefined =>
-  typeof error === 'object'
-  && error !== null
-  && 'code' in error
-  && typeof (error as { code?: unknown }).code === 'string'
-    ? (error as { code: string }).code
-    : undefined
+const sourceErrorCode = (error: unknown): string | undefined => errorStringField(error, 'code')
 
-const sourceErrorPath = (error: unknown): string | undefined =>
-  typeof error === 'object'
-  && error !== null
-  && 'sourcePath' in error
-  && typeof (error as { sourcePath?: unknown }).sourcePath === 'string'
-    ? (error as { sourcePath: string }).sourcePath
-    : undefined
+const sourceErrorPath = (error: unknown): string | undefined => errorStringField(error, 'sourcePath')
 
 const hasUnsafeDiagnosticControlCharacter = (value: string): boolean => {
   for (let index = 0; index < value.length; index += 1) {
@@ -289,7 +307,8 @@ const mayContainHostPath = (value: string): boolean => hostPathHintPattern.test(
 const errorMayContainUnsafeDiagnosticText = (error: unknown): boolean => {
   const message = errorMessage(error)
   const sourcePath = sourceErrorPath(error)
-  return mayContainHostPath(message)
+  return message === unreadableErrorMessage
+    || mayContainHostPath(message)
     || hasUnsafeDiagnosticControlCharacter(message)
     || (sourcePath !== undefined && (
       mayContainHostPath(sourcePath)
