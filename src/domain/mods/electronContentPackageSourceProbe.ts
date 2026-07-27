@@ -142,10 +142,58 @@ export interface BuildElectronReadonlyRuntimeReadinessProbeReportOptions {
   readonly officialRegistrySet: RegistrySet
 }
 
-const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
+const electronReadonlySourceErrorCodes: ReadonlySet<string> = new Set<ContentPackageSourceErrorCode>([
+  'SOURCE_IDENTITY_INVALID',
+  'SOURCE_DUPLICATE_PATH',
+  'SOURCE_ENTRY_UNSAFE',
+  'SOURCE_ENTRY_NOT_DIRECTORY',
+  'SOURCE_ENTRY_NOT_FILE',
+  'SOURCE_ENTRY_NOT_FOUND',
+  'SOURCE_JSON_NOT_PURE',
+  'SOURCE_JSON_PARSE_FAILED',
+  'SOURCE_LIMIT_EXCEEDED',
+  'SOURCE_PATH_OUTSIDE_ROOT',
+  'SOURCE_PATH_UNSAFE',
+  'SOURCE_PERMISSION_REVOKED',
+  'SOURCE_DISPOSED'
+])
 
-const sourceErrorCode = (error: unknown): ContentPackageSourceErrorCode | undefined =>
-  error instanceof ContentPackageSourceError ? error.code : undefined
+const isElectronReadonlySourceErrorCode = (value: unknown): value is ContentPackageSourceErrorCode =>
+  typeof value === 'string' && electronReadonlySourceErrorCodes.has(value)
+
+const readStringErrorField = (
+  error: unknown,
+  fieldName: string
+): { readonly status: 'value'; readonly value: string } | { readonly status: 'missing' | 'unreadable' } => {
+  if (typeof error !== 'object' || error === null) return { status: 'missing' }
+  try {
+    const value = (error as Record<string, unknown>)[fieldName]
+    return typeof value === 'string'
+      ? { status: 'value', value }
+      : { status: 'missing' }
+  } catch {
+    return { status: 'unreadable' }
+  }
+}
+
+const errorMessage = (error: unknown): string => {
+  const message = readStringErrorField(error, 'message')
+  if (message.status === 'value') return message.value
+  if (message.status === 'unreadable') return 'Electron read-only source adapter operation failed'
+  try {
+    return String(error)
+  } catch {
+    return 'Electron read-only source adapter operation failed'
+  }
+}
+
+const sourceErrorCode = (error: unknown): ContentPackageSourceErrorCode | undefined => {
+  if (!(error instanceof ContentPackageSourceError)) return undefined
+  const code = readStringErrorField(error, 'code')
+  return code.status === 'value' && isElectronReadonlySourceErrorCode(code.value)
+    ? code.value
+    : undefined
+}
 
 const toElectronReadonlySourceReleaseError = (error: unknown): ContentPackageSourceError =>
   new ContentPackageSourceError(

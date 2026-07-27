@@ -112,6 +112,23 @@ const createPermissionFailureHost = (): ElectronReadonlyDirectoryProbeHost => ({
   }
 })
 
+const createHostileElectronSourceErrorMetadata = (): ContentPackageSourceError => {
+  const error = new ContentPackageSourceError(
+    'SOURCE_PERMISSION_REVOKED',
+    'Electron source metadata failure',
+    'mods/hostile-pack/manifest.json'
+  )
+  for (const fieldName of ['message', 'code', 'sourcePath']) {
+    Object.defineProperty(error, fieldName, {
+      enumerable: true,
+      get() {
+        throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${fieldName}\nhostile-fragment`)
+      }
+    })
+  }
+  return error
+}
+
 const createInvalidRootHost = (
   entry: { readonly name: string; readonly kind: 'file' | 'directory' | 'other'; readonly isSymbolicLink: boolean } | null,
   hooks?: { readDirectoryAttempted?: () => void }
@@ -520,6 +537,100 @@ describe('electron content package source read-only probe', () => {
     expect(JSON.stringify(releaseError)).not.toContain('LENOVO')
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expectOfficialBaseline()
+  })
+
+  it('redacts unreadable Electron source error metadata in probe and release diagnostics', async() => {
+    const hostileEntry = {
+      name: 'mods',
+      isSymbolicLink: false
+    } as Record<string, unknown>
+    Object.defineProperty(hostileEntry, 'kind', {
+      enumerable: true,
+      get() {
+        throw createHostileElectronSourceErrorMetadata()
+      }
+    })
+    const directSource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      },
+      async getEntry(sourcePath) {
+        return sourcePath === '' ? hostileEntry as never : null
+      },
+      async readDirectory() {
+        throw new Error('probe must stop before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('probe must stop before file reads')
+      },
+      async dispose() {}
+    }
+    const releaseSource = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory() {
+          return []
+        },
+        async readTextFile() {
+          throw new Error('release metadata test does not read package payloads')
+        },
+        async dispose() {
+          throw createHostileElectronSourceErrorMetadata()
+        }
+      }
+    })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(directSource)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source: directSource,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    let releaseError: unknown
+    try {
+      await releaseSource.dispose()
+    } catch (error) {
+      releaseError = error
+    }
+
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Electron read-only source adapter operation failed',
+      sourceIdentity: directSource.identity,
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(sourceReport.sourceErrorCode).toBeUndefined()
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Electron read-only source adapter operation failed',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 0,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(releaseError).toBeInstanceOf(ContentPackageSourceError)
+    expect(releaseError).toMatchObject({
+      code: 'SOURCE_DISPOSED',
+      message: 'Content package source release operation failed'
+    })
+    for (const result of [sourceReport, readinessReport, releaseError]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
+    }
     expectOfficialBaseline()
   })
 
