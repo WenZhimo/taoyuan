@@ -451,6 +451,40 @@ describe('third-party data pack check CLI', () => {
     expect(invalidArgs.stderr).toContain('Usage: pnpm run mod:check-packs -- <directory>')
   }, CLI_TEST_TIMEOUT_MS)
 
+  it('redacts unexpected top-level CLI failures before stderr exposes host paths', async() => {
+    const root = await createTempRoot()
+    const packsRoot = path.join(root, 'packs')
+    await copyPack('valid-gift-pack', packsRoot)
+    const result = await runNodeModuleSnippet(`
+      import { runCheckPacksCli } from './scripts/check-third-party-packs.mjs'
+
+      const stderrWrites = []
+      const exitCode = await runCheckPacksCli([${JSON.stringify(packsRoot)}], {
+        stdout: {
+          write() {
+            throw new Error('EACCES: C:/Users/LENOVO/private-pack/manifest.json\\nhostile-fragment')
+          }
+        },
+        stderr: {
+          write(value) {
+            stderrWrites.push(value)
+          }
+        }
+      })
+      process.stdout.write(JSON.stringify({ exitCode, stderr: stderrWrites.join('') }))
+    `)
+    const payload = JSON.parse(result.stdout) as { readonly exitCode: number; readonly stderr: string }
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(payload.exitCode).toBe(1)
+    expect(payload.stderr).toContain('Failed to check third-party data packs: Unexpected CLI failure (details redacted)')
+    expect(payload.stderr).not.toContain('C:/Users')
+    expect(payload.stderr).not.toContain('LENOVO')
+    expect(payload.stderr).not.toContain('private-pack')
+    expect(payload.stderr).not.toContain('hostile-fragment')
+  }, CLI_TEST_TIMEOUT_MS)
+
   it('reports JSON parse and Schema errors through diagnostics', async() => {
     const root = await createTempRoot()
     const packsRoot = path.join(root, 'packs')

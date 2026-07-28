@@ -31,6 +31,23 @@ const hasUnsafeSourcePathControlCharacter = value => {
   return false
 }
 
+const redactedUnexpectedFailureMessage = 'Unexpected CLI failure (details redacted)'
+
+const hasPathLikeCliFailureText = value =>
+  value.includes('/') || value.includes('\\') || /[A-Za-z]:/.test(value)
+
+const safeCliFailureMessage = error => {
+  let message
+  try {
+    message = error instanceof Error ? error.message : String(error)
+  } catch {
+    return redactedUnexpectedFailureMessage
+  }
+  return hasUnsafeSourcePathControlCharacter(message) || hasPathLikeCliFailureText(message)
+    ? redactedUnexpectedFailureMessage
+    : message
+}
+
 const normalizeNodeSourcePath = sourcePath => {
   const normalizedPath = sourcePath.replace(/\\/g, '/')
   if (normalizedPath === '') return ''
@@ -1283,7 +1300,7 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       sourceAdapterGateReport
     )
   } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
+    const message = safeCliFailureMessage(error)
     stderr.write(`Failed to check third-party data packs: ${message}\n`)
     return 1
   } finally {
@@ -1299,7 +1316,7 @@ if (isDirectRun) {
       process.exitCode = exitCode
     })
     .catch(error => {
-      const message = error instanceof Error ? error.message : String(error)
+      const message = safeCliFailureMessage(error)
       process.stderr.write(`Failed to check third-party data packs: ${message}\n`)
       process.exitCode = 1
     })
