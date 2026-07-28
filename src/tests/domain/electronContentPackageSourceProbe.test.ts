@@ -831,12 +831,17 @@ describe('electron content package source read-only probe', () => {
     })
 
     expect(rootInspected).toBe(true)
-    expect(identityReads).toBeGreaterThan(1)
+    expect(identityReads).toBe(1)
     expect(report).toMatchObject({
-      status: 'blocked',
-      reason: 'discovery failed',
+      status: 'skipped',
+      reason: 'no selected third-party data packs',
       sourceProbeStatus: 'ready',
-      discoveryStatus: 'directory-not-found',
+      discoveryStatus: 'empty',
+      mountInputStatus: 'skipped',
+      runtimeMountGateStatus: 'skipped',
+      transactionPreflightStatus: 'skipped',
+      runtimeAdapterGateStatus: 'skipped',
+      sourceAdapterGateStatus: 'skipped',
       sourceIdentity: {
         contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
         kind: 'electron-readonly-directory-probe',
@@ -848,10 +853,12 @@ describe('electron content package source read-only probe', () => {
       registryCount: 54,
       entryCount: 4242,
       packageCount: 0,
+      diagnosticCount: 1,
       runtimePublication: 'deferred',
+      sourceContractReadiness: 'defined',
+      contentPackageSourceContractStable: true,
       effects: createElectronReadonlyRuntimeReadinessProbeEffects()
     })
-    expect(report.diagnosticCount).toBeGreaterThan(0)
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
     expectOfficialBaseline()

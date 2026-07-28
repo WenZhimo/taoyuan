@@ -353,6 +353,17 @@ const createBlockedReadinessReport = (
   effects: createElectronReadonlyRuntimeReadinessProbeEffects()
 })
 
+const bindValidatedSourceIdentity = (
+  source: ContentPackageSource,
+  sourceIdentity: ContentPackageSourceIdentity
+): ContentPackageSource => ({
+  identity: sourceIdentity,
+  getEntry: path => source.getEntry(path),
+  readDirectory: path => source.readDirectory(path),
+  readTextFile: path => source.readTextFile(path),
+  dispose: () => source.dispose()
+})
+
 export const createElectronReadonlyDirectoryProbeSource = (
   options: CreateElectronReadonlyDirectoryProbeSourceOptions
 ): ContentPackageSource => {
@@ -451,7 +462,9 @@ export const buildElectronReadonlyRuntimeReadinessProbeReport = async(
   try {
     discoveryReport = await discoverThirdPartyDataPacks(
       sourceProbe.sourceIdentity.rootPath,
-      createDiscoveryFileSystemFromContentPackageSource(options.source)
+      createDiscoveryFileSystemFromContentPackageSource(
+        bindValidatedSourceIdentity(options.source, sourceProbe.sourceIdentity)
+      )
     )
   } catch (error) {
     return createBlockedReadinessReport(
