@@ -170,11 +170,84 @@ const hasUnsafePathControlCharacter = (value: string): boolean => {
   return false
 }
 
+const stableContentPackageSourceDiagnosticMessages: ReadonlySet<string> = new Set([
+  'Content package source path is unsafe',
+  'Content package source entry names must be single normalized path segments',
+  'Content package source entry metadata must be an object',
+  'Content package source entry metadata could not be read',
+  'Content package source entry metadata contains unsupported fields',
+  'Content package source entry metadata must include name, kind and isSymbolicLink own fields',
+  'Content package source entry name metadata must be a string',
+  'Content package source entry must expose an explicit symbolic-link flag',
+  'Content package source directory entries metadata must be an array',
+  'Content package source directory entries metadata must be a dense JSON array',
+  'Content package source directory entries metadata could not be read',
+  'Archive entry paths must be non-empty normalized POSIX paths',
+  'Archive entry paths must already be normalized before validation',
+  'Archive entry metadata must be an object',
+  'Archive entry metadata could not be read',
+  'Archive entry metadata contains unsupported fields',
+  'Archive entry metadata must include path and uncompressedSizeBytes own fields',
+  'Archive entry path metadata must be a string',
+  'Archive entries metadata must be an array',
+  'Archive entries metadata must be a dense JSON array',
+  'Content package source text payload must be a string',
+  'Content package source identity must be an object',
+  'Content package source identity metadata could not be read',
+  'Content package source identity metadata contains unsupported fields',
+  'Content package source identity metadata must include contractVersion, kind, sourceId and rootPath own fields',
+  'Unsupported content package source contract version',
+  'Unsupported content package source kind',
+  'sourceId must be a normalized relative identifier',
+  'rootPath must be a normalized relative identifier',
+  'sourceId must be non-empty and already normalized',
+  'rootPath must be non-empty and already normalized',
+  'Content package source identity must already use normalized relative sourceId and rootPath',
+  'Source entry name does not match requested path',
+  'Content package source has been disposed',
+  'Content package source permission was revoked',
+  'File path cannot be the source root',
+  'Electron read-only source adapter probe root was not found',
+  'Electron read-only source adapter probe root metadata does not match requested path',
+  'Electron read-only source adapter probe root must be a directory',
+  'Electron read-only source adapter probe root must not be a symbolic link',
+  'Electron read-only source adapter probe has been disposed'
+])
+
+const stableContentPackageSourceDiagnosticPatterns: readonly RegExp[] = [
+  /^Package path exceeds \d+ UTF-8 bytes: \d+$/,
+  /^Package path exceeds \d+ segments: \d+$/,
+  /^Directory listing exceeds \d+ entries: \d+$/,
+  /^Archive exceeds \d+ entries: \d+$/,
+  /^(?:uncompressedSizeBytes|compressedSizeBytes) must be a non-negative safe integer$/,
+  /^Duplicate archive entry path: .+$/,
+  /^Archive entry path conflicts with another entry directory prefix: .+$/,
+  /^Archive entry exceeds \d+ bytes: \d+$/,
+  /^Archive exceeds \d+ total uncompressed bytes: \d+$/,
+  /^Archive exceeds \d+ total compressed bytes: \d+$/,
+  /^Archive entry exceeds \d+:1 compression ratio$/,
+  /^Source text file exceeds \d+ bytes: \d+$/,
+  /^Source path was not found: .+$/,
+  /^Source path must not be a symbolic link: .+$/,
+  /^Source path is not a file: .+$/,
+  /^Source path is not a directory: .+$/,
+  /^Memory source exceeds \d+ files: \d+$/,
+  /^Source file path conflicts with a directory path: .+$/,
+  /^Duplicate source file path: .+$/,
+  /^Source directory path conflicts with a file path: .+$/,
+  /^Discovery path is outside source root: .+$/
+]
+
+const isStableContentPackageSourceDiagnosticMessage = (message: string): boolean =>
+  stableContentPackageSourceDiagnosticMessages.has(message)
+  || stableContentPackageSourceDiagnosticPatterns.some(pattern => pattern.test(message))
+
 const sourceErrorMayContainUnsafeDiagnosticText = (
   message: string,
   sourcePath: string | undefined
 ): boolean =>
-  mayContainHostPath(message)
+  !isStableContentPackageSourceDiagnosticMessage(message)
+  || mayContainHostPath(message)
   || hasUnsafePathControlCharacter(message)
   || (sourcePath !== undefined && (
     mayContainHostPath(sourcePath)
