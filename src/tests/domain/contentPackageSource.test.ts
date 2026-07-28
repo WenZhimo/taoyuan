@@ -232,6 +232,26 @@ const createHostilePresenceMetadataArray = (entry: unknown): unknown[] =>
     }
   })
 
+const createInheritedIndexMetadataArray = (
+  _entry: unknown
+): {
+  readonly entries: unknown[]
+  readonly wasRead: () => boolean
+} => {
+  const entries = Array(1)
+  let wasRead = false
+  const prototype = Object.create(Array.prototype)
+  Object.defineProperty(prototype, '0', {
+    enumerable: true,
+    get() {
+      wasRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-inherited-index')
+    }
+  })
+  Object.setPrototypeOf(entries, prototype)
+  return { entries, wasRead: () => wasRead }
+}
+
 const createMalformedLengthMetadataArray = (
   lengthValue: unknown,
   entry: unknown
@@ -555,7 +575,6 @@ describe('content package source contract', () => {
       'C:/Users/LENOVO/mods' as unknown,
       Array(1),
       createHostileMetadataArray(),
-      createHostilePresenceMetadataArray({ name: 'pack', kind: 'directory', isSymbolicLink: false }),
       [createHostileDirectoryMetadataOwnKeys()],
       [null],
       ['C:/Users/LENOVO/mods/pack'],
@@ -668,6 +687,53 @@ describe('content package source contract', () => {
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
       expect(JSON.stringify(error)).not.toContain('metadata-array')
+    }
+  })
+
+  it('reads metadata array entries from own indexes without invoking presence traps', () => {
+    const directoryEntry = { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    const archiveEntry = { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+
+    expect(normalizeContentPackageSourceDirectoryEntries(
+      createHostilePresenceMetadataArray(directoryEntry)
+    )).toEqual([directoryEntry])
+    expect(validateContentPackageSourceArchiveEntries(
+      createHostilePresenceMetadataArray(archiveEntry)
+    )).toEqual([archiveEntry])
+  })
+
+  it('requires metadata array entries to be own indexes before inherited getters can run', () => {
+    const directoryArray = createInheritedIndexMetadataArray({
+      name: 'pack',
+      kind: 'directory',
+      isSymbolicLink: false
+    })
+    const archiveArray = createInheritedIndexMetadataArray({
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 0
+    })
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      directoryArray.entries
+    ))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      archiveArray.entries
+    ))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be a dense JSON array'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be a dense JSON array'
+    })
+    expect(directoryArray.wasRead()).toBe(false)
+    expect(archiveArray.wasRead()).toBe(false)
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('metadata-array-inherited-index')
     }
   })
 
@@ -1068,7 +1134,6 @@ describe('content package source contract', () => {
       null,
       Array(1),
       createHostileMetadataArray(),
-      createHostilePresenceMetadataArray({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }),
       createHostileArchiveMetadataOwnKeys(),
       { path: 1, uncompressedSizeBytes: 0 },
       { path: 'pack/manifest.json', uncompressedSizeBytes: 0, extra: 'C:/Users/LENOVO/extra' },

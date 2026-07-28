@@ -355,28 +355,25 @@ const readUnknownMetadataArray = (
     )
   }
 
-  if (ownKeys.some(key =>
-    typeof key !== 'string'
-    || (key !== 'length' && !isArrayIndexKey(key, entryCount))
-  )) {
-    throw new ContentPackageSourceError(
-      'SOURCE_ENTRY_UNSAFE',
-      unsafeMessage
-    )
+  const ownIndexKeys = new Set<string>()
+  for (const key of ownKeys) {
+    if (
+      typeof key !== 'string'
+      || (key !== 'length' && !isArrayIndexKey(key, entryCount))
+    ) {
+      throw new ContentPackageSourceError(
+        'SOURCE_ENTRY_UNSAFE',
+        unsafeMessage
+      )
+    }
+    if (key !== 'length') {
+      ownIndexKeys.add(key)
+    }
   }
 
   const entries: unknown[] = []
   for (let index = 0; index < entryCount; index += 1) {
-    let hasEntry: boolean
-    try {
-      hasEntry = index in metadata
-    } catch {
-      throw new ContentPackageSourceError(
-        'SOURCE_ENTRY_UNSAFE',
-        unreadableMessage
-      )
-    }
-    if (!hasEntry) {
+    if (!ownIndexKeys.has(String(index))) {
       throw new ContentPackageSourceError(
         'SOURCE_ENTRY_UNSAFE',
         unsafeMessage
