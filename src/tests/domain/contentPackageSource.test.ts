@@ -12,6 +12,7 @@ import {
   normalizeContentPackageSourceDirectoryEntries,
   normalizeContentPackageSourceEntryName,
   normalizeContentPackageSourcePath,
+  readContentPackageSourceIdentity,
   readContentPackageSourceJson,
   validateContentPackageSourceArchiveEntries,
   validateContentPackageSourceIdentity
@@ -1623,6 +1624,60 @@ describe('content package source contract', () => {
     ])
     expect(JSON.stringify({ hostOperations })).not.toContain('C:/Users')
     expect(JSON.stringify({ hostOperations })).not.toContain('LENOVO')
+  })
+
+  it('reuses a validated source identity for direct JSON reads', async() => {
+    let identityReads = 0
+    const hostOperations: string[] = []
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        identityReads += 1
+        if (identityReads === 1) {
+          return {
+            contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+            kind: 'memory',
+            sourceId: 'memory/direct-json-identity-cache',
+            rootPath: 'packs'
+          }
+        }
+        throw new Error('EACCES: lstat C:/Users/LENOVO/mods/direct-json-identity')
+      },
+      async getEntry(path) {
+        hostOperations.push(`inspect:${path}`)
+        if (path === 'pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory() {
+        throw new Error('direct JSON reads should not list directories')
+      },
+      async readTextFile(path) {
+        hostOperations.push(`read:${path}`)
+        return toJson(createManifest('direct_json_identity_cache'))
+      },
+      async dispose() {}
+    }
+    const sourceIdentity = readContentPackageSourceIdentity(source)
+
+    const result = await readContentPackageSourceJson(
+      source,
+      'pack/manifest.json',
+      CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      sourceIdentity
+    )
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data).toMatchObject({ id: 'direct_json_identity_cache' })
+    }
+    expect(identityReads).toBe(1)
+    expect(hostOperations).toEqual([
+      'inspect:pack/manifest.json',
+      'read:pack/manifest.json'
+    ])
+    expect(JSON.stringify({ result, hostOperations })).not.toContain('C:/Users')
+    expect(JSON.stringify({ result, hostOperations })).not.toContain('LENOVO')
   })
 
   it('keeps file payloads as unknown pure JSON before TypeBox validation', async() => {
