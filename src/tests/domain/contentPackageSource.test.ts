@@ -1840,6 +1840,90 @@ describe('content package source contract', () => {
     expect(JSON.stringify({ result, hostOperations })).not.toContain('LENOVO')
   })
 
+  it('keeps caller-validated direct JSON identities while unavailable sources stay structured and path-free', async() => {
+    const cases = [
+      {
+        label: 'revocation',
+        code: 'SOURCE_PERMISSION_REVOKED' as const,
+        sourceId: 'memory/direct-json-revoked-after-validation'
+      },
+      {
+        label: 'disposal',
+        code: 'SOURCE_DISPOSED' as const,
+        sourceId: 'memory/direct-json-disposed-after-validation'
+      }
+    ]
+
+    for (const lifecycleCase of cases) {
+      let identityReads = 0
+      let unavailable = false
+      const hostOperations: string[] = []
+      const source: ContentPackageSource = {
+        get identity(): ContentPackageSource['identity'] {
+          identityReads += 1
+          if (identityReads === 1) {
+            return {
+              contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+              kind: 'memory',
+              sourceId: lifecycleCase.sourceId,
+              rootPath: 'packs'
+            }
+          }
+          throw new Error(`EACCES: lstat C:/Users/LENOVO/mods/identity-after-${lifecycleCase.label}`)
+        },
+        async getEntry(path) {
+          hostOperations.push(`inspect:${path}`)
+          if (unavailable) {
+            throw new ContentPackageSourceError(
+              lifecycleCase.code,
+              `EACCES: lstat C:/Users/LENOVO/mods/${path}`,
+              path
+            )
+          }
+          if (path === 'pack/manifest.json') {
+            return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+          }
+          return null
+        },
+        async readDirectory() {
+          throw new Error('direct JSON lifecycle checks should not list directories')
+        },
+        async readTextFile() {
+          throw new Error('unavailable direct JSON sources must stop before payload reads')
+        },
+        async dispose() {
+          unavailable = true
+        }
+      }
+      const sourceIdentity = readContentPackageSourceIdentity(source)
+      if (lifecycleCase.code === 'SOURCE_DISPOSED') {
+        await source.dispose()
+      } else {
+        unavailable = true
+      }
+
+      const result = await readContentPackageSourceJson(
+        source,
+        'pack/manifest.json',
+        CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+        sourceIdentity
+      )
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: lifecycleCase.code,
+        message: 'Content package source inspect operation failed'
+      })
+      expect(identityReads).toBe(1)
+      expect(hostOperations).toEqual(['inspect:pack/manifest.json'])
+      for (const observable of [result, { hostOperations }]) {
+        expect(JSON.stringify(observable)).not.toContain('C:/Users')
+        expect(JSON.stringify(observable)).not.toContain('LENOVO')
+        expect(JSON.stringify(observable)).not.toContain(`identity-after-${lifecycleCase.label}`)
+      }
+    }
+  })
+
   it('keeps file payloads as unknown pure JSON before TypeBox validation', async() => {
     const source = createMemoryContentPackageSource({
       sourceId: 'memory/json-source',
