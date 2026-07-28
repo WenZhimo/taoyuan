@@ -1235,6 +1235,34 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('hostile-fragment')
   })
 
+  it('rejects platform-separated archive entry paths before reading size metadata', () => {
+    let uncompressedSizeRead = false
+    let compressedSizeRead = false
+    const hostileArchiveEntry = {
+      path: 'pack\\data\\items.json',
+      get uncompressedSizeBytes() {
+        uncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-size')
+      },
+      get compressedSizeBytes() {
+        compressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([hostileArchiveEntry]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Archive entry paths must be non-empty normalized POSIX paths'
+    })
+    expect(uncompressedSizeRead).toBe(false)
+    expect(compressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('pack\\\\data')
+  })
+
   it('does not read absent optional archive compressed-size metadata', () => {
     let compressedSizeRead = false
     const archiveEntry = new Proxy({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }, {
