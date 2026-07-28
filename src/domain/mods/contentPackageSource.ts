@@ -534,7 +534,7 @@ export const normalizeContentPackageSourceArchiveEntryPath = (
   path: string,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): string => {
-  if (path === '' || path.includes('\\')) {
+  if (path === '' || path.includes('\\') || hasUnsafePathControlCharacter(path)) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
       'Archive entry paths must be non-empty normalized POSIX paths'
@@ -563,7 +563,8 @@ const assertNonNegativeSafeInteger = (value: unknown, fieldName: string, sourceP
 }
 
 const normalizeContentPackageSourceArchiveEntryMetadata = (
-  entry: unknown
+  entry: unknown,
+  policy: ContentPackageSourceSafeReadPolicy
 ): ContentPackageSourceUnknownArchiveEntry => {
   if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
     throw new ContentPackageSourceError(
@@ -593,6 +594,7 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
       'Archive entry path metadata must be a string'
     )
   }
+  const normalizedPath = normalizeContentPackageSourceArchiveEntryPath(path, policy)
 
   const uncompressedSizeBytes = readUnknownMetadataField(
     entryMetadata,
@@ -607,8 +609,8 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
     'Archive entry metadata could not be read'
   )
   return compressedSizeBytes === undefined
-    ? { path, uncompressedSizeBytes }
-    : { path, uncompressedSizeBytes, compressedSizeBytes }
+    ? { path: normalizedPath, uncompressedSizeBytes }
+    : { path: normalizedPath, uncompressedSizeBytes, compressedSizeBytes }
 }
 
 const collectAncestorPaths = (path: string): readonly string[] => {
@@ -636,10 +638,10 @@ export const validateContentPackageSourceArchiveEntries = (
 
   const normalizedEntries = metadataEntries
     .map(entry => {
-      const metadata = normalizeContentPackageSourceArchiveEntryMetadata(entry)
+      const metadata = normalizeContentPackageSourceArchiveEntryMetadata(entry, policy)
       return {
         entry: metadata,
-        path: normalizeContentPackageSourceArchiveEntryPath(metadata.path, policy)
+        path: metadata.path
       }
     })
     .sort((a, b) => compareCodePoints(a.path, b.path))
