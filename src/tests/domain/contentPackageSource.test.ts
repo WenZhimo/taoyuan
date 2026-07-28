@@ -182,6 +182,24 @@ const defineInheritedHostileGetter = <T extends object>(
   }
 }
 
+const defineHiddenHostileGetter = <T extends object>(
+  target: T,
+  property: string
+): { readonly value: T, readonly wasRead: () => boolean } => {
+  let wasRead = false
+  Object.defineProperty(target, property, {
+    enumerable: false,
+    get() {
+      wasRead = true
+      throw new Error(`EACCES: hidden C:/Users/LENOVO/mods/${property}`)
+    }
+  })
+  return {
+    value: target,
+    wasRead: () => wasRead
+  }
+}
+
 const createHostileSourceErrorMetadata = (): ContentPackageSourceError => {
   const error = new ContentPackageSourceError(
     'SOURCE_PERMISSION_REVOKED',
@@ -909,6 +927,67 @@ describe('content package source contract', () => {
       expect(inherited.wasRead()).toBe(false)
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+  })
+
+  it('requires ContentPackageSource metadata fields to be enumerable before hidden getters can run', () => {
+    const hiddenIdentity = defineHiddenHostileGetter({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/hidden-identity-field'
+    }, 'rootPath')
+    const identityError = captureSourceError(() => validateContentPackageSourceIdentity(hiddenIdentity.value))
+
+    expect(identityError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata contains unsupported fields'
+    })
+    expect(hiddenIdentity.wasRead()).toBe(false)
+
+    const hiddenDirectoryEntry = defineHiddenHostileGetter({
+      name: 'pack',
+      kind: 'directory'
+    }, 'isSymbolicLink')
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      hiddenDirectoryEntry.value
+    ]))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source entry metadata contains unsupported fields'
+    })
+    expect(hiddenDirectoryEntry.wasRead()).toBe(false)
+
+    const hiddenArchivePath = defineHiddenHostileGetter({
+      uncompressedSizeBytes: 0
+    }, 'path')
+    const archivePathError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      hiddenArchivePath.value
+    ]))
+
+    expect(archivePathError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata contains unsupported fields'
+    })
+    expect(hiddenArchivePath.wasRead()).toBe(false)
+
+    const hiddenArchiveCompressedSize = defineHiddenHostileGetter({
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 0
+    }, 'compressedSizeBytes')
+    const archiveCompressedSizeError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      hiddenArchiveCompressedSize.value
+    ]))
+
+    expect(archiveCompressedSizeError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata contains unsupported fields'
+    })
+    expect(hiddenArchiveCompressedSize.wasRead()).toBe(false)
+
+    for (const result of [identityError, directoryError, archivePathError, archiveCompressedSizeError]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
     }
   })
 

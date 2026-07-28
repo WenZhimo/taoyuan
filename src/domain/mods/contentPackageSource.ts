@@ -284,11 +284,20 @@ const assertUnknownMetadataHasOnlyKeys = (
     throw new ContentPackageSourceError(code, unreadableMessage)
   }
   const stringKeys: string[] = []
-  if (metadataKeys.some(key => typeof key !== 'string' || !allowedKeys.has(key))) {
-    throw new ContentPackageSourceError(code, unsupportedMessage)
-  }
   for (const key of metadataKeys) {
-    if (typeof key === 'string') stringKeys.push(key)
+    if (typeof key !== 'string' || !allowedKeys.has(key)) {
+      throw new ContentPackageSourceError(code, unsupportedMessage)
+    }
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(metadata, key)
+    } catch {
+      throw new ContentPackageSourceError(code, unreadableMessage)
+    }
+    if (descriptor?.enumerable !== true) {
+      throw new ContentPackageSourceError(code, unsupportedMessage)
+    }
+    stringKeys.push(key)
   }
   return stringKeys
 }

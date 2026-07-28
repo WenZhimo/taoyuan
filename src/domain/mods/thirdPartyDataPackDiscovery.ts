@@ -205,13 +205,29 @@ const assertDiscoveryEntryHasOnlySupportedKeys = (metadata: Record<string, unkno
   } catch {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry metadata could not be read')
   }
-  if (keys.some(key => typeof key !== 'string' || !supportedDiscoveryEntryMetadataKeys.has(key))) {
-    throw createDiscoverySourceError(
-      'SOURCE_ENTRY_UNSAFE',
-      'Package source entry metadata contains unsupported fields'
-    )
+  const supportedKeys: string[] = []
+  for (const key of keys) {
+    if (typeof key !== 'string' || !supportedDiscoveryEntryMetadataKeys.has(key)) {
+      throw createDiscoverySourceError(
+        'SOURCE_ENTRY_UNSAFE',
+        'Package source entry metadata contains unsupported fields'
+      )
+    }
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(metadata, key)
+    } catch {
+      throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry metadata could not be read')
+    }
+    if (descriptor?.enumerable !== true) {
+      throw createDiscoverySourceError(
+        'SOURCE_ENTRY_UNSAFE',
+        'Package source entry metadata contains unsupported fields'
+      )
+    }
+    supportedKeys.push(key)
   }
-  return keys.filter((key): key is string => typeof key === 'string')
+  return supportedKeys
 }
 
 const normalizeDiscoveryEntryName = (name: string): string => {

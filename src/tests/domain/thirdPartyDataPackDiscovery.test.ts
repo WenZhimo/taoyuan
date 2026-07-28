@@ -123,6 +123,24 @@ const createHostileFailureMetadata = (): unknown => {
   return failure
 }
 
+const defineHiddenRawDiscoveryGetter = (
+  target: Record<string, unknown>,
+  fieldName: string
+): { readonly value: Record<string, unknown>; readonly wasRead: () => boolean } => {
+  let wasRead = false
+  Object.defineProperty(target, fieldName, {
+    enumerable: false,
+    get() {
+      wasRead = true
+      throw new Error(`EACCES: hidden C:/Users/LENOVO/mods/private-pack ${fieldName} metadata`)
+    }
+  })
+  return {
+    value: target,
+    wasRead: () => wasRead
+  }
+}
+
 const createPack = async(
   root: string,
   directoryName: string,
@@ -901,6 +919,87 @@ describe('third-party data pack read-only discovery', () => {
     })
     expect(manifestReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
       message: 'Package source entry must expose an explicit symbolic-link flag',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+
+    for (const report of [listingReport, manifestReport]) {
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+    }
+  })
+
+  it('rejects non-enumerable raw discovery entry metadata before reading packages', async() => {
+    let packageInspected = false
+    let listingReadAttempted = false
+    const listingEntry = defineHiddenRawDiscoveryGetter({
+      name: 'private-pack',
+      kind: 'directory'
+    }, 'isSymbolicLink')
+
+    const listingReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [listingEntry.value as never]
+      },
+      async readTextFile() {
+        listingReadAttempted = true
+        throw new Error('hidden listing metadata must not reach payload reads')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(listingReadAttempted).toBe(false)
+    expect(listingEntry.wasRead()).toBe(false)
+    expect(listingReport.status).toBe('directory-not-found')
+    expect(listingReport.candidates).toEqual([])
+    expect(listingReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(listingReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry metadata contains unsupported fields',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+
+    let manifestReadAttempted = false
+    const manifestEntry = defineHiddenRawDiscoveryGetter({
+      name: 'manifest.json',
+      kind: 'file'
+    }, 'isSymbolicLink')
+    const manifestReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack/manifest.json') return manifestEntry.value as never
+        return null
+      },
+      async readDirectory(filePath) {
+        if (filePath === 'mods') {
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        throw new Error(`Unexpected directory read: ${filePath}`)
+      },
+      async readTextFile() {
+        manifestReadAttempted = true
+        throw new Error('hidden manifest metadata must not reach payload reads')
+      }
+    })
+
+    expect(manifestReadAttempted).toBe(false)
+    expect(manifestEntry.wasRead()).toBe(false)
+    expect(manifestReport.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      path: 'private-pack/manifest.json',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(manifestReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry metadata contains unsupported fields',
       sourceCode: 'SOURCE_ENTRY_UNSAFE'
     })
 
