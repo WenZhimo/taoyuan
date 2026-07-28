@@ -520,6 +520,13 @@ const safeFileSystemFailureMessage = (
     ? `Package source ${operation} operation failed`
     : errorMessage(error)
 
+const safeJsonParseFailureMessage = (error: unknown): string => {
+  const message = errorMessage(error)
+  return mayContainHostPath(message) || hasUnsafeDiagnosticControlCharacter(message)
+    ? 'JSON parsing failed'
+    : message
+}
+
 const isSourcePathError = (error: unknown): boolean => {
   const code = sourceErrorCode(error)
   return code === 'SOURCE_PATH_OUTSIDE_ROOT' || code === 'SOURCE_PATH_UNSAFE'
@@ -626,7 +633,7 @@ const parseJsonText = (
         packageId: context.packageId,
         registryId: context.registryId,
         reason: 'JSON parsing failed',
-        details: { message: errorMessage(error) }
+        details: { message: safeJsonParseFailureMessage(error) }
       })
     }
   }

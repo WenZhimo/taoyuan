@@ -388,6 +388,32 @@ describe('third-party data pack read-only discovery', () => {
     }
   })
 
+  it('redacts unsafe JSON parse fragments before discovery diagnostics expose host text', async() => {
+    const root = await createRoot()
+    const packRoot = await createPack(root, 'host-path-json-pack')
+    await writeFile(
+      path.join(packRoot, 'data', 'items.json'),
+      'C:/Users/LENOVO/private-pack/manifest.json\nhostile-fragment',
+      'utf8'
+    )
+
+    const report = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const invalidJson = report.candidates.find(candidate => candidate.path === 'host-path-json-pack')
+    const issue = invalidJson?.issues.find(item => item.kind === 'json-parse-failed')
+
+    expect(issue).toMatchObject({
+      kind: 'json-parse-failed',
+      path: 'host-path-json-pack/data/items.json'
+    })
+    expect(issue?.diagnostics[0]?.details).toMatchObject({
+      reason: 'JSON parsing failed',
+      message: 'JSON parsing failed'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+  })
+
   it('redacts unsafe absolute and control-character entrypoint paths from diagnostics', async() => {
     const root = await createRoot()
     const readPaths: string[] = []

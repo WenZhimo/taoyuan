@@ -181,6 +181,13 @@ const sourceErrorMayContainUnsafeDiagnosticText = (
     || hasUnsafePathControlCharacter(sourcePath)
   ))
 
+const jsonParseFailureMessage = (error: unknown): string => {
+  const message = errorMessage(error)
+  return mayContainHostPath(message) || hasUnsafePathControlCharacter(message)
+    ? 'JSON parsing failed'
+    : message
+}
+
 const sourceErrorPathMatchesOperation = (
   errorSourcePath: string | undefined,
   sourcePath: string
@@ -1198,7 +1205,7 @@ export const readContentPackageSourceJson = async (
   try {
     data = JSON.parse(text) as unknown
   } catch (error) {
-    return { ok: false, code: 'SOURCE_JSON_PARSE_FAILED', message: errorMessage(error) }
+    return { ok: false, code: 'SOURCE_JSON_PARSE_FAILED', message: jsonParseFailureMessage(error) }
   }
 
   try {

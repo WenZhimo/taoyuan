@@ -1541,12 +1541,17 @@ describe('content package source contract', () => {
       rootPath: 'packs',
       files: [
         { path: 'pack/manifest.json', text: toJson(createManifest('json_source')) },
-        { path: 'pack/broken.json', text: '{ bad json' }
+        { path: 'pack/broken.json', text: '{ bad json' },
+        {
+          path: 'pack/host-path-fragment.json',
+          text: 'C:/Users/LENOVO/private-pack/manifest.json\nhostile-fragment'
+        }
       ]
     })
 
     const valid = await readContentPackageSourceJson(source, 'pack/manifest.json')
     const invalid = await readContentPackageSourceJson(source, 'pack/broken.json')
+    const unsafeInvalid = await readContentPackageSourceJson(source, 'pack/host-path-fragment.json')
     const oversized = await readContentPackageSourceJson(source, 'pack/manifest.json', {
       ...CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
       maxSingleFileBytes: 1
@@ -1561,6 +1566,14 @@ describe('content package source contract', () => {
       ok: false,
       code: 'SOURCE_JSON_PARSE_FAILED'
     })
+    expect(unsafeInvalid).toMatchObject({
+      ok: false,
+      code: 'SOURCE_JSON_PARSE_FAILED',
+      message: 'JSON parsing failed'
+    })
+    expect(JSON.stringify(unsafeInvalid)).not.toContain('C:/Users')
+    expect(JSON.stringify(unsafeInvalid)).not.toContain('LENOVO')
+    expect(JSON.stringify(unsafeInvalid)).not.toContain('hostile-fragment')
     expect(oversized).toMatchObject({
       ok: false,
       code: 'SOURCE_LIMIT_EXCEEDED'
