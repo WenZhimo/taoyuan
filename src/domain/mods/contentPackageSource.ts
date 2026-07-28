@@ -872,7 +872,8 @@ export const normalizeContentPackageSourceTextPayload = (
 const inspectContentPackageSourceReadableFile = async(
   source: ContentPackageSource,
   path: string,
-  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+  sourceIdentity?: ContentPackageSourceIdentity
 ): Promise<string> => {
   const normalizedPath = normalizeContentPackageSourcePath(path, policy)
   let inspectedEntry: ContentPackageSourceDirectoryEntry | null
@@ -888,7 +889,13 @@ const inspectContentPackageSourceReadableFile = async(
       normalizedPath
     )
   }
-  const entry = normalizeInspectedContentPackageSourceEntry(source, normalizedPath, inspectedEntry, policy)
+  const entry = normalizeInspectedContentPackageSourceEntry(
+    source,
+    normalizedPath,
+    inspectedEntry,
+    policy,
+    sourceIdentity
+  )
   if (entry.isSymbolicLink) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
@@ -909,7 +916,8 @@ const inspectContentPackageSourceReadableFile = async(
 const inspectContentPackageSourceReadableDirectory = async(
   source: ContentPackageSource,
   path: string,
-  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+  sourceIdentity?: ContentPackageSourceIdentity
 ): Promise<string> => {
   const normalizedPath = normalizeContentPackageSourcePath(path, policy)
   let inspectedEntry: ContentPackageSourceDirectoryEntry | null
@@ -925,7 +933,13 @@ const inspectContentPackageSourceReadableDirectory = async(
       normalizedPath
     )
   }
-  const entry = normalizeInspectedContentPackageSourceEntry(source, normalizedPath, inspectedEntry, policy)
+  const entry = normalizeInspectedContentPackageSourceEntry(
+    source,
+    normalizedPath,
+    inspectedEntry,
+    policy,
+    sourceIdentity
+  )
   if (entry.isSymbolicLink) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
@@ -1090,9 +1104,10 @@ const normalizeInspectedContentPackageSourceEntry = (
   source: ContentPackageSource,
   path: string,
   inspectedEntry: ContentPackageSourceDirectoryEntry,
-  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+  policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+  sourceIdentity?: ContentPackageSourceIdentity
 ): ContentPackageSourceDirectoryEntry => {
-  const identity = readContentPackageSourceIdentity(source, path)
+  const identity = sourceIdentity ?? readContentPackageSourceIdentity(source, path)
   const expectedName = entryName(path, entryName(identity.rootPath, identity.rootPath))
   const entry = normalizeContentPackageSourceDirectoryEntry(inspectedEntry, policy)
   if (entry.name !== expectedName) {
@@ -1290,8 +1305,12 @@ export const readContentPackageSourceJson = async (
   return { ok: true, data }
 }
 
-const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string => {
-  const identity = readContentPackageSourceIdentity(source, path)
+const stripDiscoveryRoot = (
+  source: ContentPackageSource,
+  path: string,
+  sourceIdentity?: ContentPackageSourceIdentity
+): string => {
+  const identity = sourceIdentity ?? readContentPackageSourceIdentity(source, path)
   let normalizedPath: string
   try {
     normalizedPath = normalizeContentPackageSourcePath(path)
@@ -1316,48 +1335,77 @@ const stripDiscoveryRoot = (source: ContentPackageSource, path: string): string 
 const toDiscoveryEntry = (
   source: ContentPackageSource,
   sourcePath: string,
-  entry: ContentPackageSourceDirectoryEntry | null
+  entry: ContentPackageSourceDirectoryEntry | null,
+  sourceIdentity?: ContentPackageSourceIdentity
 ): ThirdPartyDiscoveryDirectoryEntry | null =>
-  entry === null ? null : normalizeInspectedContentPackageSourceEntry(source, sourcePath, entry)
+  entry === null ? null : normalizeInspectedContentPackageSourceEntry(
+    source,
+    sourcePath,
+    entry,
+    CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+    sourceIdentity
+  )
 
 export const createDiscoveryFileSystemFromContentPackageSource = (
   source: ContentPackageSource
-): ThirdPartyDiscoveryFileSystem => ({
-  async getEntry(path) {
-    const sourcePath = stripDiscoveryRoot(source, path)
-    let entry: ContentPackageSourceDirectoryEntry | null
-    try {
-      entry = await source.getEntry(sourcePath)
-    } catch (error) {
-      throw toContentPackageSourceHostOperationError('inspect', error, sourcePath)
-    }
-    return toDiscoveryEntry(source, sourcePath, entry)
-  },
-  async readDirectory(path) {
-    const sourcePath = stripDiscoveryRoot(source, path)
-    const readableDirectoryPath = await inspectContentPackageSourceReadableDirectory(source, sourcePath)
-    let entries: readonly ContentPackageSourceDirectoryEntry[]
-    try {
-      entries = await source.readDirectory(readableDirectoryPath)
-    } catch (error) {
-      throw toContentPackageSourceHostOperationError(
-        'list',
-        error,
-        readableDirectoryPath,
-        'SOURCE_ENTRY_NOT_DIRECTORY'
-      )
-    }
-    return normalizeContentPackageSourceDirectoryEntries(entries)
-  },
-  async readTextFile(path) {
-    const sourcePath = stripDiscoveryRoot(source, path)
-    const readableFilePath = await inspectContentPackageSourceReadableFile(source, sourcePath)
-    let text: string
-    try {
-      text = assertContentPackageSourceTextWithinLimits(await source.readTextFile(readableFilePath), readableFilePath)
-    } catch (error) {
-      throw toContentPackageSourceHostOperationError('read', error, readableFilePath)
-    }
-    return text
+): ThirdPartyDiscoveryFileSystem => {
+  let validatedIdentity: ContentPackageSourceIdentity | undefined
+  const readBridgeIdentity = (path: string): ContentPackageSourceIdentity => {
+    if (validatedIdentity !== undefined) return validatedIdentity
+    validatedIdentity = readContentPackageSourceIdentity(source, path)
+    return validatedIdentity
   }
-})
+
+  return {
+    async getEntry(path) {
+      const sourceIdentity = readBridgeIdentity(path)
+      const sourcePath = stripDiscoveryRoot(source, path, sourceIdentity)
+      let entry: ContentPackageSourceDirectoryEntry | null
+      try {
+        entry = await source.getEntry(sourcePath)
+      } catch (error) {
+        throw toContentPackageSourceHostOperationError('inspect', error, sourcePath)
+      }
+      return toDiscoveryEntry(source, sourcePath, entry, sourceIdentity)
+    },
+    async readDirectory(path) {
+      const sourceIdentity = readBridgeIdentity(path)
+      const sourcePath = stripDiscoveryRoot(source, path, sourceIdentity)
+      const readableDirectoryPath = await inspectContentPackageSourceReadableDirectory(
+        source,
+        sourcePath,
+        CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+        sourceIdentity
+      )
+      let entries: readonly ContentPackageSourceDirectoryEntry[]
+      try {
+        entries = await source.readDirectory(readableDirectoryPath)
+      } catch (error) {
+        throw toContentPackageSourceHostOperationError(
+          'list',
+          error,
+          readableDirectoryPath,
+          'SOURCE_ENTRY_NOT_DIRECTORY'
+        )
+      }
+      return normalizeContentPackageSourceDirectoryEntries(entries)
+    },
+    async readTextFile(path) {
+      const sourceIdentity = readBridgeIdentity(path)
+      const sourcePath = stripDiscoveryRoot(source, path, sourceIdentity)
+      const readableFilePath = await inspectContentPackageSourceReadableFile(
+        source,
+        sourcePath,
+        CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+        sourceIdentity
+      )
+      let text: string
+      try {
+        text = assertContentPackageSourceTextWithinLimits(await source.readTextFile(readableFilePath), readableFilePath)
+      } catch (error) {
+        throw toContentPackageSourceHostOperationError('read', error, readableFilePath)
+      }
+      return text
+    }
+  }
+}

@@ -1563,6 +1563,68 @@ describe('content package source contract', () => {
     expect(JSON.stringify(hostileIdentityReport)).not.toContain('LENOVO')
   })
 
+  it('reuses a validated source identity inside the discovery bridge', async() => {
+    let identityReads = 0
+    const hostOperations: string[] = []
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        identityReads += 1
+        if (identityReads === 1) {
+          return {
+            contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+            kind: 'memory',
+            sourceId: 'memory/discovery-identity-cache',
+            rootPath: 'packs'
+          }
+        }
+        throw new Error('EACCES: lstat C:/Users/LENOVO/mods/identity-after-bridge-validation')
+      },
+      async getEntry(path) {
+        hostOperations.push(`inspect:${path}`)
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(path) {
+        hostOperations.push(`list:${path}`)
+        return path === ''
+          ? [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+          : []
+      },
+      async readTextFile(path) {
+        hostOperations.push(`read:${path}`)
+        return toJson(createManifest('discovery_identity_cache'))
+      },
+      async dispose() {}
+    }
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    await expect(fileSystem.getEntry('packs')).resolves.toEqual({
+      name: 'packs',
+      kind: 'directory',
+      isSymbolicLink: false
+    })
+    await expect(fileSystem.readDirectory('packs')).resolves.toEqual([
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    ])
+    await expect(fileSystem.readTextFile('packs/pack/manifest.json'))
+      .resolves.toContain('discovery_identity_cache')
+
+    expect(identityReads).toBe(1)
+    expect(hostOperations).toEqual([
+      'inspect:',
+      'inspect:',
+      'list:',
+      'inspect:pack/manifest.json',
+      'read:pack/manifest.json'
+    ])
+    expect(JSON.stringify({ hostOperations })).not.toContain('C:/Users')
+    expect(JSON.stringify({ hostOperations })).not.toContain('LENOVO')
+  })
+
   it('keeps file payloads as unknown pure JSON before TypeBox validation', async() => {
     const source = createMemoryContentPackageSource({
       sourceId: 'memory/json-source',
