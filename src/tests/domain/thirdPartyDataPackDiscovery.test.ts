@@ -508,6 +508,44 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('userdata')
   })
 
+  it('rejects platform-separator raw discovery root entry names before composing package paths', async() => {
+    const inspectedPaths: string[] = []
+    let readAttempted = false
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        inspectedPaths.push(filePath)
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [{ name: 'private-pack\\nested', kind: 'directory', isSymbolicLink: false } as never]
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('platform-separated root entries must not be read')
+      }
+    })
+
+    expect(inspectedPaths).toEqual(['mods'])
+    expect(readAttempted).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'path-unsafe',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry name is unsafe',
+      sourceCode: 'SOURCE_PATH_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('private-pack')
+    expect(JSON.stringify(report)).not.toContain('nested')
+  })
+
   it('rejects control-character raw discovery root entry names before composing package paths', async() => {
     const inspectedPaths: string[] = []
     let readAttempted = false
