@@ -1626,6 +1626,85 @@ describe('content package source contract', () => {
     expect(JSON.stringify({ hostOperations })).not.toContain('LENOVO')
   })
 
+  it('keeps cached discovery identities while revoked sources stay structured and path-free', async() => {
+    let identityReads = 0
+    let revoked = false
+    const hostOperations: string[] = []
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        identityReads += 1
+        if (identityReads === 1) {
+          return {
+            contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+            kind: 'memory',
+            sourceId: 'memory/revoked-after-bridge-validation',
+            rootPath: 'packs'
+          }
+        }
+        throw new Error('EACCES: lstat C:/Users/LENOVO/mods/identity-after-revocation')
+      },
+      async getEntry(path) {
+        hostOperations.push(`inspect:${path}`)
+        if (revoked) {
+          throw new ContentPackageSourceError(
+            'SOURCE_PERMISSION_REVOKED',
+            `EACCES: lstat C:/Users/LENOVO/mods/${path}`,
+            path
+          )
+        }
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory() {
+        throw new Error('revoked bridge sources must stop before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('revoked bridge sources must stop before payload reads')
+      },
+      async dispose() {}
+    }
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    await expect(fileSystem.getEntry('packs')).resolves.toEqual({
+      name: 'packs',
+      kind: 'directory',
+      isSymbolicLink: false
+    })
+    revoked = true
+
+    const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const discoveryReport = await discoverThirdPartyDataPacks('packs', fileSystem)
+
+    expect(identityReads).toBe(1)
+    expect(bridgedReadError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source inspect operation failed',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(discoveryReport.status).toBe('directory-not-found')
+    expect(discoveryReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(discoveryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(hostOperations).toEqual([
+      'inspect:',
+      'inspect:pack/manifest.json',
+      'inspect:'
+    ])
+    for (const result of [bridgedReadError, discoveryReport, { hostOperations }]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('identity-after-revocation')
+    }
+  })
+
   it('reuses a validated source identity for direct JSON reads', async() => {
     let identityReads = 0
     const hostOperations: string[] = []
