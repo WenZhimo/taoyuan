@@ -721,7 +721,7 @@ const resolveSafePackageFile = async (
   | { ok: false; issue: ThirdPartyDataPackDiscoveryIssue }
 > => {
   let normalizedPath: string
-  if (hasUnsafeDiagnosticControlCharacter(packageRelativePath)) {
+  if (packageRelativePath.includes('\\') || hasUnsafeDiagnosticControlCharacter(packageRelativePath)) {
     return {
       ok: false,
       issue: createIssue('path-unsafe', {

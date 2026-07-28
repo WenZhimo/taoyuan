@@ -414,7 +414,7 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('hostile-fragment')
   })
 
-  it('redacts unsafe absolute and control-character entrypoint paths from diagnostics', async() => {
+  it('redacts unsafe absolute, platform-separator and control-character entrypoint paths from diagnostics', async() => {
     const root = await createRoot()
     const readPaths: string[] = []
     const packRoot = await createPack(root, 'absolute-entrypoint-pack')
@@ -422,6 +422,11 @@ describe('third-party data pack read-only discovery', () => {
     const manifest = await readJsonObject(manifestPath)
     manifest.entrypoints = { 'taoyuan:item': ['C:/Users/LENOVO/secrets/items.json'] }
     await writeJson(manifestPath, manifest)
+    const backslashPackRoot = await createPack(root, 'backslash-entrypoint-pack')
+    const backslashManifestPath = path.join(backslashPackRoot, 'manifest.json')
+    const backslashManifest = await readJsonObject(backslashManifestPath)
+    backslashManifest.entrypoints = { 'taoyuan:item': ['data\\items.json'] }
+    await writeJson(backslashManifestPath, backslashManifest)
     const controlPackRoot = await createPack(root, 'control-entrypoint-pack')
     const controlManifestPath = path.join(controlPackRoot, 'manifest.json')
     const controlManifest = await readJsonObject(controlManifestPath)
@@ -432,14 +437,19 @@ describe('third-party data pack read-only discovery', () => {
     const issues = report.issues.filter(item => item.kind === 'path-unsafe')
 
     expect(report.summary).toMatchObject({
-      candidateCount: 2,
+      candidateCount: 3,
       validPackageCount: 0,
-      invalidPackageCount: 2
+      invalidPackageCount: 3
     })
     expect(issues).toEqual(expect.arrayContaining([
       expect.objectContaining({
         kind: 'path-unsafe',
         path: 'absolute-entrypoint-pack/<unsafe-path>',
+        reason: 'Package path is absolute, empty, or escapes the package root'
+      }),
+      expect.objectContaining({
+        kind: 'path-unsafe',
+        path: 'backslash-entrypoint-pack/<unsafe-path>',
         reason: 'Package path is absolute, empty, or escapes the package root'
       }),
       expect.objectContaining({
@@ -454,6 +464,7 @@ describe('third-party data pack read-only discovery', () => {
       })
     }
     expect(readPaths.some(item => item.includes('secrets'))).toBe(false)
+    expect(readPaths.some(item => item.includes('items.json'))).toBe(false)
     expect(readPaths.some(item => item.includes('hostile-fragment'))).toBe(false)
     expect(JSON.stringify(issues)).not.toContain('C:/Users')
     expect(JSON.stringify(issues)).not.toContain('LENOVO')
