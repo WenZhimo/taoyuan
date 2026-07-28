@@ -551,6 +551,7 @@ describe('third-party data pack check CLI', () => {
         '../LENOVO/private-pack/manifest.json',
         'private-pack/./manifest.json',
         'private-pack//manifest.json',
+        'private-pack\\\\manifest.json',
         'private-pack/manifest.json\\nhostile-fragment'
       ]
       const messages = []
@@ -579,7 +580,7 @@ describe('third-party data pack check CLI', () => {
 
     expect(result.code).toBe(0)
     expect(result.stderr).toBe('')
-    expect(messages).toHaveLength(15)
+    expect(messages).toHaveLength(18)
     for (const message of messages) {
       expect(message.message).toBe('Content package source path is unsafe')
       expect(message.message).not.toContain('LENOVO')

@@ -49,6 +49,9 @@ const safeCliFailureMessage = error => {
 }
 
 const normalizeNodeSourcePath = sourcePath => {
+  if (sourcePath.includes('\\')) {
+    throw new Error('Content package source path is unsafe')
+  }
   const normalizedPath = sourcePath.replace(/\\/g, '/')
   if (normalizedPath === '') return ''
   const segments = normalizedPath.split('/')
