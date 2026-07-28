@@ -654,6 +654,84 @@ describe('third-party data pack read-only discovery', () => {
     await expectRawDirectoryArrayTrapRejected(entries)
   })
 
+  it('rejects raw discovery entries without explicit symbolic-link flags before reading packages', async() => {
+    let packageInspected = false
+    let listingReadAttempted = false
+    const listingReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [{ name: 'private-pack', kind: 'directory' } as never]
+      },
+      async readTextFile() {
+        listingReadAttempted = true
+        throw new Error('missing symbolic-link metadata must not reach payload reads')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(listingReadAttempted).toBe(false)
+    expect(listingReport.status).toBe('directory-not-found')
+    expect(listingReport.candidates).toEqual([])
+    expect(listingReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(listingReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry must expose an explicit symbolic-link flag',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+
+    let manifestReadAttempted = false
+    const manifestReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file' } as never
+        }
+        return null
+      },
+      async readDirectory(filePath) {
+        if (filePath === 'mods') {
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        throw new Error(`Unexpected directory read: ${filePath}`)
+      },
+      async readTextFile() {
+        manifestReadAttempted = true
+        throw new Error('missing symbolic-link metadata must stop before manifest reads')
+      }
+    })
+
+    expect(manifestReadAttempted).toBe(false)
+    expect(manifestReport.status).toBe('completed')
+    expect(manifestReport.summary).toMatchObject({
+      candidateCount: 1,
+      validPackageCount: 0,
+      invalidPackageCount: 1
+    })
+    expect(manifestReport.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      path: 'private-pack/manifest.json',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(manifestReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry must expose an explicit symbolic-link flag',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+
+    for (const report of [listingReport, manifestReport]) {
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+    }
+  })
+
   it('rejects malformed raw getEntry metadata before reading entrypoint payloads', async() => {
     const readPaths: string[] = []
     const manifest = {
@@ -1181,7 +1259,7 @@ describe('third-party data pack read-only discovery', () => {
     let readAttempted = false
     const fileSystem: ThirdPartyDiscoveryFileSystem = {
       async getEntry(filePath) {
-        if (filePath === 'mods') return { name: 'mods', kind: 'directory' }
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
         return null
       },
       async readDirectory() {

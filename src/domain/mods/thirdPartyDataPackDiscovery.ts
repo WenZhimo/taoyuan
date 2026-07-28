@@ -45,7 +45,7 @@ export type ThirdPartyDataPackDiscoveryStatus = 'completed' | 'directory-not-fou
 export interface ThirdPartyDiscoveryDirectoryEntry {
   readonly name: string
   readonly kind: 'file' | 'directory' | 'other'
-  readonly isSymbolicLink?: boolean
+  readonly isSymbolicLink: boolean
 }
 
 export interface ThirdPartyDiscoveryFileSystem {
@@ -244,16 +244,16 @@ const normalizeDiscoveryDirectoryEntry = (entry: unknown): ThirdPartyDiscoveryDi
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Unsupported package source entry kind')
   }
   const isSymbolicLink = readDiscoveryEntryField(entry, 'isSymbolicLink')
-  if (isSymbolicLink !== undefined && typeof isSymbolicLink !== 'boolean') {
+  if (typeof isSymbolicLink !== 'boolean') {
     throw createDiscoverySourceError(
       'SOURCE_ENTRY_UNSAFE',
-      'Package source entry symbolic-link metadata must be a boolean'
+      'Package source entry must expose an explicit symbolic-link flag'
     )
   }
   return {
     name: normalizeDiscoveryEntryName(name),
     kind: kind as ThirdPartyDiscoveryDirectoryEntry['kind'],
-    isSymbolicLink: isSymbolicLink ?? false
+    isSymbolicLink
   }
 }
 
