@@ -1218,6 +1218,90 @@ describe('third-party data pack read-only discovery', () => {
     }
   })
 
+  it('redacts unstructured raw file system failure messages even when they look path-free', async() => {
+    const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw new Error('hostile-fragment')
+      },
+      async readDirectory() {
+        throw new Error('inspect failure must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inspect failure must stop before reading')
+      }
+    })
+
+    const listFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        throw new Error('hostile-fragment')
+      },
+      async readTextFile() {
+        throw new Error('list failure must stop before reading')
+      }
+    })
+
+    const readFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack') {
+          return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/private-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(filePath) {
+        if (filePath === 'mods') {
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        return []
+      },
+      async readTextFile() {
+        throw new Error('hostile-fragment')
+      }
+    })
+
+    const codedInspectFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw createHostFailure('hostile-fragment')
+      },
+      async readDirectory() {
+        throw new Error('coded inspect failure must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('coded inspect failure must stop before reading')
+      }
+    })
+
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source inspect operation failed'
+    })
+    expect(listFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source list operation failed'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source read operation failed'
+    })
+    expect(codedInspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source inspect operation failed',
+      sourceCode: 'EACCES'
+    })
+    for (const report of [
+      inspectFailureReport,
+      listFailureReport,
+      readFailureReport,
+      codedInspectFailureReport
+    ]) {
+      expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    }
+  })
+
   it('redacts unsafe raw file system failure codes before diagnostics expose host text', async() => {
     const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
       async getEntry() {

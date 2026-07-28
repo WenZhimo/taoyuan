@@ -1,6 +1,9 @@
 import { Type, type TSchema } from '@sinclair/typebox'
 import { assertPureJsonValue, compareCodePoints, type JsonValue } from './canonicalJson'
-import { CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS } from './contentPackageSource'
+import {
+  CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+  ContentPackageSourceError
+} from './contentPackageSource'
 import { createDiagnostic, type ModDiagnostic, type ModDiagnosticSeverity } from './diagnostics'
 import { hashCanonicalJson, normalizePackagePath, type Sha256Hash } from './hash'
 import {
@@ -171,6 +174,7 @@ const supportedDiscoveryEntryKinds = new Set<ThirdPartyDiscoveryDirectoryEntry['
   'other'
 ])
 const supportedDiscoveryEntryMetadataKeys = new Set(['name', 'kind', 'isSymbolicLink'])
+const discoverySourceErrorBrand = Symbol('taoyuan.discoverySourceError')
 
 const isBlockingIssue = (issue: ThirdPartyDataPackDiscoveryIssue): boolean =>
   blockingSeverities.has(issue.severity)
@@ -184,8 +188,8 @@ const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
 const createDiscoverySourceError = (
   code: 'SOURCE_ENTRY_UNSAFE' | 'SOURCE_LIMIT_EXCEEDED' | 'SOURCE_PATH_UNSAFE',
   message: string
-): Error & { readonly code: typeof code } =>
-  Object.assign(new Error(message), { code })
+): Error & { readonly code: typeof code; readonly [discoverySourceErrorBrand]: true } =>
+  Object.assign(new Error(message), { code, [discoverySourceErrorBrand]: true as const })
 
 const readDiscoveryEntryField = (
   metadata: Record<string, unknown>,
@@ -495,7 +499,19 @@ const hasUnsafeDiagnosticControlCharacter = (value: string): boolean => {
 
 const mayContainHostPath = (value: string): boolean => hostPathHintPattern.test(value)
 
+const isDiscoverySourceError = (
+  error: unknown
+): error is Error & { readonly [discoverySourceErrorBrand]: true } =>
+  typeof error === 'object'
+  && error !== null
+  && (error as { readonly [discoverySourceErrorBrand]?: unknown })[discoverySourceErrorBrand] === true
+
+const isStructuredSourceError = (error: unknown): boolean =>
+  error instanceof ContentPackageSourceError || isDiscoverySourceError(error)
+
 const errorMayContainUnsafeDiagnosticText = (error: unknown): boolean => {
+  if (!isStructuredSourceError(error)) return true
+
   const message = errorMessage(error)
   const code = sourceErrorCode(error)
   const sourcePath = sourceErrorPath(error)
