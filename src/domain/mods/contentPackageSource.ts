@@ -245,6 +245,9 @@ const supportedEntryKinds = new Set<ContentPackageSourceEntryKind>(['file', 'dir
 const supportedSourceIdentityMetadataKeys = new Set(['contractVersion', 'kind', 'sourceId', 'rootPath'])
 const supportedDirectoryEntryMetadataKeys = new Set(['name', 'kind', 'isSymbolicLink'])
 const supportedArchiveEntryMetadataKeys = new Set(['path', 'uncompressedSizeBytes', 'compressedSizeBytes'])
+const requiredSourceIdentityMetadataKeys = ['contractVersion', 'kind', 'sourceId', 'rootPath'] as const
+const requiredDirectoryEntryMetadataKeys = ['name', 'kind', 'isSymbolicLink'] as const
+const requiredArchiveEntryMetadataKeys = ['path', 'uncompressedSizeBytes'] as const
 
 const throwLimitExceeded = (message: string, sourcePath?: string): never => {
   throw new ContentPackageSourceError('SOURCE_LIMIT_EXCEEDED', message, sourcePath)
@@ -288,6 +291,18 @@ const assertUnknownMetadataHasOnlyKeys = (
     if (typeof key === 'string') stringKeys.push(key)
   }
   return stringKeys
+}
+
+const assertUnknownMetadataHasRequiredOwnKeys = (
+  metadataKeys: readonly string[],
+  requiredKeys: readonly string[],
+  code: ContentPackageSourceErrorCode,
+  missingMessage: string
+): void => {
+  const ownKeys = new Set(metadataKeys)
+  if (requiredKeys.some(key => !ownKeys.has(key))) {
+    throw new ContentPackageSourceError(code, missingMessage)
+  }
 }
 
 const isArrayIndexKey = (key: string, length: number): boolean => {
@@ -446,12 +461,18 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   }
 
   const entryMetadata = entry as Record<string, unknown>
-  assertUnknownMetadataHasOnlyKeys(
+  const metadataKeys = assertUnknownMetadataHasOnlyKeys(
     entryMetadata,
     supportedDirectoryEntryMetadataKeys,
     'SOURCE_ENTRY_UNSAFE',
     'Content package source entry metadata could not be read',
     'Content package source entry metadata contains unsupported fields'
+  )
+  assertUnknownMetadataHasRequiredOwnKeys(
+    metadataKeys,
+    requiredDirectoryEntryMetadataKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Content package source entry metadata must include name, kind and isSymbolicLink own fields'
   )
   const name = readUnknownMetadataField(
     entryMetadata,
@@ -585,6 +606,12 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
     'SOURCE_ENTRY_UNSAFE',
     'Archive entry metadata could not be read',
     'Archive entry metadata contains unsupported fields'
+  )
+  assertUnknownMetadataHasRequiredOwnKeys(
+    metadataKeys,
+    requiredArchiveEntryMetadataKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Archive entry metadata must include path and uncompressedSizeBytes own fields'
   )
 
   const path = readUnknownMetadataField(
@@ -859,12 +886,18 @@ export const validateContentPackageSourceIdentity = (
   identity: unknown
 ): ContentPackageSourceIdentity => {
   const identityObject = asIdentityObject(identity)
-  assertUnknownMetadataHasOnlyKeys(
+  const metadataKeys = assertUnknownMetadataHasOnlyKeys(
     identityObject,
     supportedSourceIdentityMetadataKeys,
     'SOURCE_IDENTITY_INVALID',
     'Content package source identity metadata could not be read',
     'Content package source identity metadata contains unsupported fields'
+  )
+  assertUnknownMetadataHasRequiredOwnKeys(
+    metadataKeys,
+    requiredSourceIdentityMetadataKeys,
+    'SOURCE_IDENTITY_INVALID',
+    'Content package source identity metadata must include contractVersion, kind, sourceId and rootPath own fields'
   )
   const contractVersion = readUnknownMetadataField(
     identityObject,

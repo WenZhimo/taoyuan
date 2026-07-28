@@ -162,6 +162,26 @@ const defineHostileGetter = <T extends object>(target: T, property: string): T =
   return target
 }
 
+const defineInheritedHostileGetter = <T extends object>(
+  target: T,
+  property: string
+): { readonly value: T, readonly wasRead: () => boolean } => {
+  let wasRead = false
+  const prototype = {}
+  Object.defineProperty(prototype, property, {
+    enumerable: true,
+    get() {
+      wasRead = true
+      throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${property}`)
+    }
+  })
+  Object.setPrototypeOf(target, prototype)
+  return {
+    value: target,
+    wasRead: () => wasRead
+  }
+}
+
 const createHostileSourceErrorMetadata = (): ContentPackageSourceError => {
   const error = new ContentPackageSourceError(
     'SOURCE_PERMISSION_REVOKED',
@@ -754,6 +774,75 @@ describe('content package source contract', () => {
     for (const result of [identityReport, directoryReport]) {
       expect(JSON.stringify(result)).not.toContain('C:/Users')
       expect(JSON.stringify(result)).not.toContain('LENOVO')
+    }
+  })
+
+  it('requires ContentPackageSource required metadata to be own fields before inherited getters can run', () => {
+    const identityBase: Record<string, unknown> = {
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/inherited-identity',
+      rootPath: 'packs'
+    }
+    for (const fieldName of ['contractVersion', 'kind', 'sourceId', 'rootPath']) {
+      const identity = { ...identityBase }
+      delete identity[fieldName]
+      const inherited = defineInheritedHostileGetter(identity, fieldName)
+
+      const error = captureSourceError(() => validateContentPackageSourceIdentity(inherited.value))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_IDENTITY_INVALID',
+        message: 'Content package source identity metadata must include contractVersion, kind, sourceId and rootPath own fields'
+      })
+      expect(inherited.wasRead()).toBe(false)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    const directoryEntryBase: Record<string, unknown> = {
+      name: 'pack',
+      kind: 'directory',
+      isSymbolicLink: false
+    }
+    for (const fieldName of ['name', 'kind', 'isSymbolicLink']) {
+      const directoryEntry = { ...directoryEntryBase }
+      delete directoryEntry[fieldName]
+      const inherited = defineInheritedHostileGetter(directoryEntry, fieldName)
+
+      const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+        inherited.value
+      ]))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_ENTRY_UNSAFE',
+        message: 'Content package source entry metadata must include name, kind and isSymbolicLink own fields'
+      })
+      expect(inherited.wasRead()).toBe(false)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    const archiveEntryBase: Record<string, unknown> = {
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 0
+    }
+    for (const fieldName of ['path', 'uncompressedSizeBytes']) {
+      const archiveEntry = { ...archiveEntryBase }
+      delete archiveEntry[fieldName]
+      const inherited = defineInheritedHostileGetter(archiveEntry, fieldName)
+
+      const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+        inherited.value
+      ]))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_ENTRY_UNSAFE',
+        message: 'Archive entry metadata must include path and uncompressedSizeBytes own fields'
+      })
+      expect(inherited.wasRead()).toBe(false)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
     }
   })
 
