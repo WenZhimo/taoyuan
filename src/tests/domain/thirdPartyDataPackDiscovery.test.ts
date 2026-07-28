@@ -654,9 +654,90 @@ describe('third-party data pack read-only discovery', () => {
     await expectRawDirectoryArrayTrapRejected(entries)
   })
 
-  it('rejects raw discovery entries without explicit symbolic-link flags before reading packages', async() => {
+  it('rejects inherited raw discovery name and kind metadata before reading packages', async() => {
+    const inheritedMetadataCases = [
+      {
+        fieldName: 'name',
+        ownFields: { kind: 'directory', isSymbolicLink: false },
+        expectedMessage: 'Package source entry name metadata must be a string'
+      },
+      {
+        fieldName: 'kind',
+        ownFields: { name: 'private-pack', isSymbolicLink: false },
+        expectedMessage: 'Unsupported package source entry kind'
+      }
+    ] as const
+
+    for (const inheritedCase of inheritedMetadataCases) {
+      let packageInspected = false
+      let listingReadAttempted = false
+      let inheritedMetadataRead = false
+      const listingEntry = Object.create({
+        get [inheritedCase.fieldName]() {
+          inheritedMetadataRead = true
+          throw new Error(`EACCES: inherited C:/Users/LENOVO/mods/private-pack ${inheritedCase.fieldName} metadata`)
+        }
+      }) as Record<string, unknown>
+      Object.defineProperties(
+        listingEntry,
+        Object.fromEntries(
+          Object.entries(inheritedCase.ownFields).map(([fieldName, value]) => [
+            fieldName,
+            { enumerable: true, value }
+          ])
+        )
+      )
+
+      const report = await discoverThirdPartyDataPacks('mods', {
+        async getEntry(filePath) {
+          if (filePath === 'mods/private-pack') packageInspected = true
+          return filePath === 'mods'
+            ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+            : null
+        },
+        async readDirectory() {
+          return [listingEntry as never]
+        },
+        async readTextFile() {
+          listingReadAttempted = true
+          throw new Error('inherited entry metadata must not reach payload reads')
+        }
+      })
+
+      expect(packageInspected).toBe(false)
+      expect(listingReadAttempted).toBe(false)
+      expect(inheritedMetadataRead).toBe(false)
+      expect(report.status).toBe('directory-not-found')
+      expect(report.candidates).toEqual([])
+      expect(report.issues[0]).toMatchObject({
+        kind: 'file-read-failed',
+        severity: 'fatal',
+        path: '.',
+        reason: 'Package source list operation failed'
+      })
+      expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+        message: inheritedCase.expectedMessage,
+        sourceCode: 'SOURCE_ENTRY_UNSAFE'
+      })
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+    }
+  })
+
+  it('rejects raw discovery entries without explicit own symbolic-link flags before reading packages', async() => {
     let packageInspected = false
     let listingReadAttempted = false
+    let inheritedListingSymlinkRead = false
+    const listingEntry = Object.create({
+      get isSymbolicLink() {
+        inheritedListingSymlinkRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/private-pack symlink metadata')
+      }
+    }) as Record<string, unknown>
+    Object.defineProperties(listingEntry, {
+      name: { enumerable: true, value: 'private-pack' },
+      kind: { enumerable: true, value: 'directory' }
+    })
     const listingReport = await discoverThirdPartyDataPacks('mods', {
       async getEntry(filePath) {
         if (filePath === 'mods/private-pack') packageInspected = true
@@ -665,7 +746,7 @@ describe('third-party data pack read-only discovery', () => {
           : null
       },
       async readDirectory() {
-        return [{ name: 'private-pack', kind: 'directory' } as never]
+        return [listingEntry as never]
       },
       async readTextFile() {
         listingReadAttempted = true
@@ -675,6 +756,7 @@ describe('third-party data pack read-only discovery', () => {
 
     expect(packageInspected).toBe(false)
     expect(listingReadAttempted).toBe(false)
+    expect(inheritedListingSymlinkRead).toBe(false)
     expect(listingReport.status).toBe('directory-not-found')
     expect(listingReport.candidates).toEqual([])
     expect(listingReport.issues[0]).toMatchObject({
@@ -689,11 +771,22 @@ describe('third-party data pack read-only discovery', () => {
     })
 
     let manifestReadAttempted = false
+    let inheritedManifestSymlinkRead = false
+    const manifestEntry = Object.create({
+      get isSymbolicLink() {
+        inheritedManifestSymlinkRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/manifest symlink metadata')
+      }
+    }) as Record<string, unknown>
+    Object.defineProperties(manifestEntry, {
+      name: { enumerable: true, value: 'manifest.json' },
+      kind: { enumerable: true, value: 'file' }
+    })
     const manifestReport = await discoverThirdPartyDataPacks('mods', {
       async getEntry(filePath) {
         if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
         if (filePath === 'mods/private-pack/manifest.json') {
-          return { name: 'manifest.json', kind: 'file' } as never
+          return manifestEntry as never
         }
         return null
       },
@@ -710,6 +803,7 @@ describe('third-party data pack read-only discovery', () => {
     })
 
     expect(manifestReadAttempted).toBe(false)
+    expect(inheritedManifestSymlinkRead).toBe(false)
     expect(manifestReport.status).toBe('completed')
     expect(manifestReport.summary).toMatchObject({
       candidateCount: 1,

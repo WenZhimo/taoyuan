@@ -198,7 +198,7 @@ const readDiscoveryEntryField = (
   }
 }
 
-const assertDiscoveryEntryHasOnlySupportedKeys = (metadata: Record<string, unknown>): void => {
+const assertDiscoveryEntryHasOnlySupportedKeys = (metadata: Record<string, unknown>): readonly string[] => {
   let keys: readonly (string | symbol)[]
   try {
     keys = Reflect.ownKeys(metadata)
@@ -211,6 +211,7 @@ const assertDiscoveryEntryHasOnlySupportedKeys = (metadata: Record<string, unkno
       'Package source entry metadata contains unsupported fields'
     )
   }
+  return keys.filter((key): key is string => typeof key === 'string')
 }
 
 const normalizeDiscoveryEntryName = (name: string): string => {
@@ -234,14 +235,26 @@ const normalizeDiscoveryDirectoryEntry = (entry: unknown): ThirdPartyDiscoveryDi
   if (!isObjectRecord(entry)) {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry metadata must be an object')
   }
-  assertDiscoveryEntryHasOnlySupportedKeys(entry)
+  const metadataKeys = assertDiscoveryEntryHasOnlySupportedKeys(entry)
+  if (!metadataKeys.includes('name')) {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry name metadata must be a string')
+  }
   const name = readDiscoveryEntryField(entry, 'name')
   if (typeof name !== 'string') {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry name metadata must be a string')
   }
+  if (!metadataKeys.includes('kind')) {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Unsupported package source entry kind')
+  }
   const kind = readDiscoveryEntryField(entry, 'kind')
   if (typeof kind !== 'string' || !supportedDiscoveryEntryKinds.has(kind as ThirdPartyDiscoveryDirectoryEntry['kind'])) {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Unsupported package source entry kind')
+  }
+  if (!metadataKeys.includes('isSymbolicLink')) {
+    throw createDiscoverySourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Package source entry must expose an explicit symbolic-link flag'
+    )
   }
   const isSymbolicLink = readDiscoveryEntryField(entry, 'isSymbolicLink')
   if (typeof isSymbolicLink !== 'boolean') {
