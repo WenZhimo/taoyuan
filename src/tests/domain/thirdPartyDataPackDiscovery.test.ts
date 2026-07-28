@@ -622,12 +622,15 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('hostile-fragment')
   })
 
-  it('rejects raw discovery directory array presence traps before inspecting packages', async() => {
+  it('reads raw discovery directory array entries from own indexes without invoking presence traps', async() => {
+    let presenceChecked = false
+    const inspectedPaths: string[] = []
     const entries = new Proxy(
       [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }],
       {
         has(target, property) {
           if (property === '0') {
+            presenceChecked = true
             throw new Error('EACCES: has C:/Users/LENOVO/mods/private-pack\nhostile-fragment')
           }
           return Reflect.has(target, property)
@@ -635,7 +638,88 @@ describe('third-party data pack read-only discovery', () => {
       }
     )
 
-    await expectRawDirectoryArrayTrapRejected(entries)
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        inspectedPaths.push(filePath)
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack/manifest.json') return null
+        return null
+      },
+      async readDirectory() {
+        return entries as never
+      },
+      async readTextFile() {
+        throw new Error('presence-trap arrays must not reach payload reads')
+      }
+    })
+
+    expect(presenceChecked).toBe(false)
+    expect(inspectedPaths).toEqual(['mods', 'mods/private-pack/manifest.json'])
+    expect(report.status).toBe('completed')
+    expect(report.summary).toMatchObject({
+      scannedEntries: 1,
+      candidateCount: 1,
+      validPackageCount: 0,
+      invalidPackageCount: 1
+    })
+    expect(report.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'missing-manifest',
+      path: 'private-pack/manifest.json'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+  })
+
+  it('rejects inherited raw discovery directory array indexes before inspecting packages', async() => {
+    let packageInspected = false
+    let readAttempted = false
+    let inheritedIndexRead = false
+    const entries = [] as unknown[]
+    Object.defineProperty(entries, 'length', { value: 1 })
+    Object.setPrototypeOf(entries, Object.create(Array.prototype, {
+      0: {
+        enumerable: true,
+        get() {
+          inheritedIndexRead = true
+          throw new Error('EACCES: inherited C:/Users/LENOVO/mods/private-pack index metadata')
+        }
+      }
+    }))
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return entries as never
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('inherited directory array indexes must not be read')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(inheritedIndexRead).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source directory entries must be dense',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
   })
 
   it('rejects raw discovery directory array index getter traps before inspecting packages', async() => {

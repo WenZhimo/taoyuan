@@ -311,15 +311,16 @@ const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPar
     )
   }
 
+  const ownIndexKeys = new Set<string>()
+  for (const key of keys) {
+    if (typeof key === 'string' && key !== 'length') {
+      ownIndexKeys.add(key)
+    }
+  }
+
   const normalizedEntries: ThirdPartyDiscoveryDirectoryEntry[] = []
   for (let index = 0; index < entryCount; index += 1) {
-    let hasEntry: boolean
-    try {
-      hasEntry = index in entries
-    } catch {
-      throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries metadata could not be read')
-    }
-    if (!hasEntry) {
+    if (!ownIndexKeys.has(String(index))) {
       throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be dense')
     }
     let entry: unknown
