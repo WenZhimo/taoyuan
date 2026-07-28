@@ -948,6 +948,24 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('hostile-fragment')
   })
 
+  it('does not read absent optional archive compressed-size metadata', () => {
+    let compressedSizeRead = false
+    const archiveEntry = new Proxy({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }, {
+      get(target, property, receiver) {
+        if (property === 'compressedSizeBytes') {
+          compressedSizeRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+
+    expect(validateContentPackageSourceArchiveEntries([archiveEntry])).toEqual([
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    ])
+    expect(compressedSizeRead).toBe(false)
+  })
+
   it('narrows archive entry metadata from unknown before ZIP payloads can become sources', () => {
     expect(validateContentPackageSourceArchiveEntries([
       { path: 'pack/manifest.json', uncompressedSizeBytes: 0, compressedSizeBytes: undefined },

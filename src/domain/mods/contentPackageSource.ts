@@ -273,16 +273,21 @@ const assertUnknownMetadataHasOnlyKeys = (
   code: ContentPackageSourceErrorCode,
   unreadableMessage: string,
   unsupportedMessage: string
-): void => {
+): readonly string[] => {
   let metadataKeys: readonly (string | symbol)[]
   try {
     metadataKeys = Reflect.ownKeys(metadata)
   } catch {
     throw new ContentPackageSourceError(code, unreadableMessage)
   }
+  const stringKeys: string[] = []
   if (metadataKeys.some(key => typeof key !== 'string' || !allowedKeys.has(key))) {
     throw new ContentPackageSourceError(code, unsupportedMessage)
   }
+  for (const key of metadataKeys) {
+    if (typeof key === 'string') stringKeys.push(key)
+  }
+  return stringKeys
 }
 
 const isArrayIndexKey = (key: string, length: number): boolean => {
@@ -574,7 +579,7 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
   }
 
   const entryMetadata = entry as Record<string, unknown>
-  assertUnknownMetadataHasOnlyKeys(
+  const metadataKeys = assertUnknownMetadataHasOnlyKeys(
     entryMetadata,
     supportedArchiveEntryMetadataKeys,
     'SOURCE_ENTRY_UNSAFE',
@@ -602,12 +607,14 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
     'SOURCE_ENTRY_UNSAFE',
     'Archive entry metadata could not be read'
   )
-  const compressedSizeBytes = readUnknownMetadataField(
-    entryMetadata,
-    'compressedSizeBytes',
-    'SOURCE_ENTRY_UNSAFE',
-    'Archive entry metadata could not be read'
-  )
+  const compressedSizeBytes = metadataKeys.includes('compressedSizeBytes')
+    ? readUnknownMetadataField(
+      entryMetadata,
+      'compressedSizeBytes',
+      'SOURCE_ENTRY_UNSAFE',
+      'Archive entry metadata could not be read'
+    )
+    : undefined
   return compressedSizeBytes === undefined
     ? { path: normalizedPath, uncompressedSizeBytes }
     : { path: normalizedPath, uncompressedSizeBytes, compressedSizeBytes }
