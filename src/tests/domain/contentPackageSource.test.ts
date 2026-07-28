@@ -270,6 +270,24 @@ const createInheritedIndexMetadataArray = (
   return { entries, wasRead: () => wasRead }
 }
 
+const createHiddenIndexMetadataArray = (
+  _entry: unknown
+): {
+  readonly entries: unknown[]
+  readonly wasRead: () => boolean
+} => {
+  const entries = Array(1)
+  let wasRead = false
+  Object.defineProperty(entries, '0', {
+    enumerable: false,
+    get() {
+      wasRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-hidden-index')
+    }
+  })
+  return { entries, wasRead: () => wasRead }
+}
+
 const createMalformedLengthMetadataArray = (
   lengthValue: unknown,
   entry: unknown
@@ -752,6 +770,41 @@ describe('content package source contract', () => {
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
       expect(JSON.stringify(error)).not.toContain('metadata-array-inherited-index')
+    }
+  })
+
+  it('requires metadata array entries to be enumerable own indexes before hidden getters can run', () => {
+    const directoryArray = createHiddenIndexMetadataArray({
+      name: 'pack',
+      kind: 'directory',
+      isSymbolicLink: false
+    })
+    const archiveArray = createHiddenIndexMetadataArray({
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 0
+    })
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      directoryArray.entries
+    ))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      archiveArray.entries
+    ))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be a dense JSON array'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be a dense JSON array'
+    })
+    expect(directoryArray.wasRead()).toBe(false)
+    expect(archiveArray.wasRead()).toBe(false)
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('metadata-array-hidden-index')
     }
   })
 

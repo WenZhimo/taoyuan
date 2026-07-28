@@ -376,6 +376,21 @@ const readUnknownMetadataArray = (
       )
     }
     if (key !== 'length') {
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(metadata, key)
+      } catch {
+        throw new ContentPackageSourceError(
+          'SOURCE_ENTRY_UNSAFE',
+          unreadableMessage
+        )
+      }
+      if (descriptor?.enumerable !== true) {
+        throw new ContentPackageSourceError(
+          'SOURCE_ENTRY_UNSAFE',
+          unsafeMessage
+        )
+      }
       ownIndexKeys.add(key)
     }
   }

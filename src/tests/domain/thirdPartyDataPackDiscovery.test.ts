@@ -740,6 +740,54 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('LENOVO')
   })
 
+  it('rejects non-enumerable raw discovery directory array indexes before inspecting packages', async() => {
+    let packageInspected = false
+    let readAttempted = false
+    let hiddenIndexRead = false
+    const entries = Array(1)
+    Object.defineProperty(entries, '0', {
+      enumerable: false,
+      get() {
+        hiddenIndexRead = true
+        throw new Error('EACCES: hidden C:/Users/LENOVO/mods/private-pack index metadata')
+      }
+    })
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return entries as never
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('hidden directory array indexes must not be read')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(hiddenIndexRead).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source directory entries must be dense',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+  })
+
   it('rejects raw discovery directory array index getter traps before inspecting packages', async() => {
     const entries = new Proxy(
       [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }],

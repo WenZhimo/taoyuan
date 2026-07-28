@@ -330,6 +330,15 @@ const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPar
   const ownIndexKeys = new Set<string>()
   for (const key of keys) {
     if (typeof key === 'string' && key !== 'length') {
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(entries, key)
+      } catch {
+        throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries metadata could not be read')
+      }
+      if (descriptor?.enumerable !== true) {
+        throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be dense')
+      }
       ownIndexKeys.add(key)
     }
   }
