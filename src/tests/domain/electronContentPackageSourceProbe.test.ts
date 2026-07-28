@@ -491,6 +491,66 @@ describe('electron content package source read-only probe', () => {
     })
   })
 
+  it('rejects platform-separated Electron source paths before host operations', async() => {
+    const hostOperations: string[] = []
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          hostOperations.push(`inspect:${sourcePath}`)
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'valid-gift-pack/manifest.json') {
+            return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+          }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          hostOperations.push(`list:${sourcePath}`)
+          return []
+        },
+        async readTextFile(sourcePath) {
+          hostOperations.push(`read:${sourcePath}`)
+          return '{}\n'
+        }
+      }
+    })
+
+    await expect(source.getEntry('valid-gift-pack\\manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    await expect(source.readDirectory('valid-gift-pack\\data')).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    await expect(source.readTextFile('valid-gift-pack\\manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+
+    const report = await buildElectronReadonlySourceAdapterProbeReport(
+      source,
+      'C:\\Users\\LENOVO\\mods\\private-pack'
+    )
+
+    expect(report).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source path is unsafe',
+      inspectedPath: '<unsafe-path>',
+      sourceErrorCode: 'SOURCE_PATH_UNSAFE',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(hostOperations).toEqual([])
+    expect(JSON.stringify(report)).not.toContain('C:')
+    expect(JSON.stringify(report)).not.toContain('C:\\')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('private-pack')
+    expectOfficialBaseline()
+  })
+
   it('redacts Electron host release failures before callers or reports expose paths', async() => {
     const source = createElectronReadonlyDirectoryProbeSource({
       host: {

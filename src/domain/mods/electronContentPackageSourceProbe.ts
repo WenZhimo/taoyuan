@@ -49,6 +49,7 @@ export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND =
 export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID = 'electron/mods-readonly-probe'
 export const ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH = 'mods'
 const ELECTRON_READONLY_DIRECTORY_PROBE_INVALID_SOURCE_ID = 'electron/invalid-readonly-probe-source'
+const ELECTRON_READONLY_DIRECTORY_PROBE_UNSAFE_PATH = '<unsafe-path>'
 
 export interface ElectronReadonlyDirectoryProbeHost {
   getEntry(path: string): Promise<ContentPackageSourceDirectoryEntry | null>
@@ -220,6 +221,13 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
   return normalized
 }
 
+const normalizeElectronReadonlyProbePath = (sourcePath: string): string => {
+  if (sourcePath.includes('\\')) {
+    throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', 'Content package source path is unsafe')
+  }
+  return normalizeContentPackageSourcePath(sourcePath)
+}
+
 const createRedactedElectronReadonlySourceIdentity = (): ContentPackageSourceIdentity => ({
   contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   kind: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND,
@@ -386,7 +394,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
     }
   }
 
-  const normalizePath = (sourcePath: string): string => normalizeContentPackageSourcePath(sourcePath)
+  const normalizePath = (sourcePath: string): string => normalizeElectronReadonlyProbePath(sourcePath)
 
   return {
     identity: {
@@ -591,8 +599,10 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
 ): Promise<ElectronReadonlySourceAdapterProbeReport> => {
   const effects = createElectronReadonlySourceAdapterProbeEffects()
   let normalizedInspectedPath = inspectedPath
+  let reportedInspectedPath = ELECTRON_READONLY_DIRECTORY_PROBE_UNSAFE_PATH
   try {
-    normalizedInspectedPath = normalizeContentPackageSourcePath(inspectedPath)
+    normalizedInspectedPath = normalizeElectronReadonlyProbePath(inspectedPath)
+    reportedInspectedPath = normalizedInspectedPath
     const sourceIdentity = readContentPackageSourceIdentity(source, normalizedInspectedPath)
     let inspectedEntry: ContentPackageSourceDirectoryEntry | null
     try {
@@ -618,7 +628,7 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
       status: 'blocked',
       reason: errorMessage(error),
       sourceIdentity: safeProbeReportSourceIdentity(source),
-      inspectedPath: normalizedInspectedPath,
+      inspectedPath: reportedInspectedPath,
       inspectedEntryKind: null,
       sourceErrorCode: sourceErrorCode(error),
       effects
