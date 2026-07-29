@@ -600,10 +600,12 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
   const effects = createElectronReadonlySourceAdapterProbeEffects()
   let normalizedInspectedPath = inspectedPath
   let reportedInspectedPath = ELECTRON_READONLY_DIRECTORY_PROBE_UNSAFE_PATH
+  let validatedSourceIdentity: ContentPackageSourceIdentity | undefined
   try {
     normalizedInspectedPath = normalizeElectronReadonlyProbePath(inspectedPath)
     reportedInspectedPath = normalizedInspectedPath
     const sourceIdentity = readContentPackageSourceIdentity(source, normalizedInspectedPath)
+    validatedSourceIdentity = sourceIdentity
     let inspectedEntry: ContentPackageSourceDirectoryEntry | null
     try {
       inspectedEntry = await source.getEntry(normalizedInspectedPath)
@@ -627,7 +629,7 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
     return {
       status: 'blocked',
       reason: errorMessage(error),
-      sourceIdentity: safeProbeReportSourceIdentity(source),
+      sourceIdentity: validatedSourceIdentity ?? safeProbeReportSourceIdentity(source),
       inspectedPath: reportedInspectedPath,
       inspectedEntryKind: null,
       sourceErrorCode: sourceErrorCode(error),

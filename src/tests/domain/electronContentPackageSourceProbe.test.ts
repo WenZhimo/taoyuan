@@ -924,6 +924,86 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('keeps the validated source identity when Electron root inspection fails', async() => {
+    const createFlakyInspectSource = () => {
+      let identityReads = 0
+      let rootInspections = 0
+      const sourceIdentity: ContentPackageSource['identity'] = {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      }
+      const source: ContentPackageSource = {
+        get identity(): ContentPackageSource['identity'] {
+          identityReads += 1
+          if (identityReads === 1) return sourceIdentity
+          throw new Error('EACCES: lstat C:/Users/LENOVO/mods/identity-after-root-inspect')
+        },
+        async getEntry(sourcePath) {
+          rootInspections += 1
+          throw new Error(`EACCES: lstat C:/Users/LENOVO/mods/root-after-identity/${sourcePath}`)
+        },
+        async readDirectory() {
+          throw new Error('blocked probe reports must stop before directory reads')
+        },
+        async readTextFile() {
+          throw new Error('blocked probe reports must stop before file reads')
+        },
+        async dispose() {}
+      }
+      return {
+        source,
+        sourceIdentity,
+        reads: () => ({ identityReads, rootInspections })
+      }
+    }
+
+    const sourceProbe = createFlakyInspectSource()
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(sourceProbe.source)
+
+    expect(sourceProbe.reads()).toEqual({ identityReads: 1, rootInspections: 1 })
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source inspect operation failed',
+      sourceIdentity: sourceProbe.sourceIdentity,
+      sourceErrorCode: 'SOURCE_ENTRY_NOT_FOUND',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+
+    const readinessProbe = createFlakyInspectSource()
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source: readinessProbe.source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(readinessProbe.reads()).toEqual({ identityReads: 1, rootInspections: 1 })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source inspect operation failed',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      sourceIdentity: readinessProbe.sourceIdentity,
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    for (const report of [sourceReport, readinessReport]) {
+      const serialized = JSON.stringify(report)
+      expect(serialized).not.toContain('C:/Users')
+      expect(serialized).not.toContain('LENOVO')
+      expect(serialized).not.toContain('identity-after-root-inspect')
+      expect(serialized).not.toContain('root-after-identity')
+    }
+    expectOfficialBaseline()
+  })
+
   it('redacts raw Electron host failures before probe or discovery diagnostics expose paths', async() => {
     const inspectFailureSource = createElectronReadonlyDirectoryProbeSource({
       host: {
