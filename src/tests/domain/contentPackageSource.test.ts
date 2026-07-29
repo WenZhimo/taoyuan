@@ -445,6 +445,198 @@ describe('content package source contract', () => {
     })).toThrow(ContentPackageSourceError)
   })
 
+  it('narrows memory source options metadata before publishing a source', async() => {
+    const source = createMemoryContentPackageSource({
+      sourceId: 'memory/options-metadata-source',
+      rootPath: 'packs',
+      files: [
+        { path: 'pack/manifest.json', text: '{}\n' }
+      ]
+    })
+
+    await expect(source.readTextFile('pack/manifest.json')).resolves.toBe('{}\n')
+
+    const nonObjectError = captureSourceError(() => createMemoryContentPackageSource(null as never))
+    expect(nonObjectError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata must be an object'
+    })
+
+    const arrayOptionsError = captureSourceError(() => createMemoryContentPackageSource([] as never))
+    expect(arrayOptionsError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata must be an object'
+    })
+
+    const hostileOwnKeysOptions = new Proxy({
+      sourceId: 'memory/options-hostile-keys',
+      rootPath: 'packs',
+      files: []
+    }, {
+      ownKeys() {
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/memory-options-keys')
+      }
+    })
+    const hostileOwnKeysError = captureSourceError(() =>
+      createMemoryContentPackageSource(hostileOwnKeysOptions as never)
+    )
+    expect(hostileOwnKeysError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata could not be read'
+    })
+    expect(JSON.stringify(hostileOwnKeysError)).not.toContain('C:/Users')
+    expect(JSON.stringify(hostileOwnKeysError)).not.toContain('LENOVO')
+
+    for (const input of [
+      {
+        sourceId: 'memory/options-extra-field',
+        rootPath: 'packs',
+        files: [],
+        extra: 'C:/Users/LENOVO/mods/private-extra'
+      },
+      {
+        sourceId: 'memory/options-symbol-field',
+        rootPath: 'packs',
+        files: [],
+        [Symbol('hostPath')]: 'C:/Users/LENOVO/mods/private-symbol'
+      }
+    ]) {
+      const error = captureSourceError(() => createMemoryContentPackageSource(input as never))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_IDENTITY_INVALID',
+        message: 'Memory source options metadata contains unsupported fields'
+      })
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    const inheritedSourceId = defineInheritedHostileGetter({
+      rootPath: 'packs',
+      files: []
+    }, 'sourceId')
+    const inheritedSourceIdError = captureSourceError(() =>
+      createMemoryContentPackageSource(inheritedSourceId.value as never)
+    )
+    expect(inheritedSourceIdError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata must include sourceId, rootPath and files own fields'
+    })
+    expect(inheritedSourceId.wasRead()).toBe(false)
+
+    const hiddenFiles = defineHiddenHostileGetter({
+      sourceId: 'memory/options-hidden-files',
+      rootPath: 'packs'
+    }, 'files')
+    const hiddenFilesError = captureSourceError(() =>
+      createMemoryContentPackageSource(hiddenFiles.value as never)
+    )
+    expect(hiddenFilesError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata contains unsupported fields'
+    })
+    expect(hiddenFiles.wasRead()).toBe(false)
+
+    const hostileSourceIdError = captureSourceError(() => createMemoryContentPackageSource(
+      defineHostileGetter({
+        rootPath: 'packs',
+        files: []
+      }, 'sourceId') as never
+    ))
+    expect(hostileSourceIdError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata could not be read'
+    })
+    expect(JSON.stringify(hostileSourceIdError)).not.toContain('C:/Users')
+    expect(JSON.stringify(hostileSourceIdError)).not.toContain('LENOVO')
+
+    let filesGetterRead = false
+    const hostileFilesOptions = {
+      sourceId: 'memory/options-hostile-files',
+      rootPath: 'packs'
+    }
+    Object.defineProperty(hostileFilesOptions, 'files', {
+      enumerable: true,
+      get() {
+        filesGetterRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/memory-options-files')
+      }
+    })
+    const hostileFilesError = captureSourceError(() =>
+      createMemoryContentPackageSource(hostileFilesOptions as never)
+    )
+    expect(hostileFilesError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata could not be read'
+    })
+    expect(filesGetterRead).toBe(true)
+    expect(JSON.stringify(hostileFilesError)).not.toContain('C:/Users')
+    expect(JSON.stringify(hostileFilesError)).not.toContain('LENOVO')
+
+    let sourceIdCoerced = false
+    let filesReadAfterInvalidSourceId = false
+    const invalidSourceIdOptions = {
+      sourceId: {
+        toString() {
+          sourceIdCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/memory-options-source-id')
+        },
+        [Symbol.toPrimitive]() {
+          sourceIdCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/memory-options-source-id')
+        }
+      },
+      rootPath: 'packs'
+    }
+    Object.defineProperty(invalidSourceIdOptions, 'files', {
+      enumerable: true,
+      get() {
+        filesReadAfterInvalidSourceId = true
+        throw new Error('files must not be read after invalid sourceId')
+      }
+    })
+    const invalidSourceIdError = captureSourceError(() =>
+      createMemoryContentPackageSource(invalidSourceIdOptions as never)
+    )
+    expect(invalidSourceIdError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'sourceId must be a normalized relative identifier'
+    })
+    expect(sourceIdCoerced).toBe(false)
+    expect(filesReadAfterInvalidSourceId).toBe(false)
+
+    let rootPathCoerced = false
+    let filesReadAfterInvalidRootPath = false
+    const invalidRootPathOptions = {
+      sourceId: 'memory/options-invalid-root',
+      rootPath: {
+        toString() {
+          rootPathCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/memory-options-root-path')
+        },
+        [Symbol.toPrimitive]() {
+          rootPathCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/memory-options-root-path')
+        }
+      }
+    }
+    Object.defineProperty(invalidRootPathOptions, 'files', {
+      enumerable: true,
+      get() {
+        filesReadAfterInvalidRootPath = true
+        throw new Error('files must not be read after invalid rootPath')
+      }
+    })
+    const invalidRootPathError = captureSourceError(() =>
+      createMemoryContentPackageSource(invalidRootPathOptions as never)
+    )
+    expect(invalidRootPathError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'rootPath must be a normalized relative identifier'
+    })
+    expect(rootPathCoerced).toBe(false)
+    expect(filesReadAfterInvalidRootPath).toBe(false)
+  })
 
   it('narrows memory source file metadata from unknown before publishing a source', async() => {
     const source = createMemoryContentPackageSource({

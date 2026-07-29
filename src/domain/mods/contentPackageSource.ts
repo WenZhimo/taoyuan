@@ -191,6 +191,10 @@ const stableContentPackageSourceDiagnosticMessages: ReadonlySet<string> = new Se
   'Archive entry path metadata must be a string',
   'Archive entries metadata must be an array',
   'Archive entries metadata must be a dense JSON array',
+  'Memory source options metadata must be an object',
+  'Memory source options metadata could not be read',
+  'Memory source options metadata contains unsupported fields',
+  'Memory source options metadata must include sourceId, rootPath and files own fields',
   'Memory source files metadata must be an array',
   'Memory source files metadata must be a dense JSON array',
   'Memory source file metadata must be an object',
@@ -340,10 +344,12 @@ const supportedEntryKinds = new Set<ContentPackageSourceEntryKind>(['file', 'dir
 const supportedSourceIdentityMetadataKeys = new Set(['contractVersion', 'kind', 'sourceId', 'rootPath'])
 const supportedDirectoryEntryMetadataKeys = new Set(['name', 'kind', 'isSymbolicLink'])
 const supportedArchiveEntryMetadataKeys = new Set(['path', 'uncompressedSizeBytes', 'compressedSizeBytes'])
+const supportedMemorySourceOptionsMetadataKeys = new Set(['sourceId', 'rootPath', 'files'])
 const supportedMemorySourceFileMetadataKeys = new Set(['path', 'text'])
 const requiredSourceIdentityMetadataKeys = ['contractVersion', 'kind', 'sourceId', 'rootPath'] as const
 const requiredDirectoryEntryMetadataKeys = ['name', 'kind', 'isSymbolicLink'] as const
 const requiredArchiveEntryMetadataKeys = ['path', 'uncompressedSizeBytes'] as const
+const requiredMemorySourceOptionsMetadataKeys = ['sourceId', 'rootPath', 'files'] as const
 const requiredMemorySourceFileMetadataKeys = ['path', 'text'] as const
 
 const throwLimitExceeded = (message: string, sourcePath?: string): never => {
@@ -1073,6 +1079,77 @@ const normalizeMemoryContentPackageSourceFile = (
   }
 }
 
+const normalizeMemoryContentPackageSourceOptions = (
+  options: unknown
+): CreateMemoryContentPackageSourceOptions => {
+  if (
+    typeof options !== 'object'
+    || options === null
+    || isUnknownArray(options, 'SOURCE_IDENTITY_INVALID', 'Memory source options metadata could not be read')
+  ) {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      'Memory source options metadata must be an object'
+    )
+  }
+
+  const optionsMetadata = options as Record<string, unknown>
+  const metadataKeys = assertUnknownMetadataHasOnlyKeys(
+    optionsMetadata,
+    supportedMemorySourceOptionsMetadataKeys,
+    'SOURCE_IDENTITY_INVALID',
+    'Memory source options metadata could not be read',
+    'Memory source options metadata contains unsupported fields'
+  )
+  assertUnknownMetadataHasRequiredOwnKeys(
+    metadataKeys,
+    requiredMemorySourceOptionsMetadataKeys,
+    'SOURCE_IDENTITY_INVALID',
+    'Memory source options metadata must include sourceId, rootPath and files own fields'
+  )
+
+  const sourceIdInput = readUnknownMetadataField(
+    optionsMetadata,
+    'sourceId',
+    'SOURCE_IDENTITY_INVALID',
+    'Memory source options metadata could not be read'
+  )
+  if (typeof sourceIdInput !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      'sourceId must be a normalized relative identifier'
+    )
+  }
+  const sourceId = normalizeIdentityPart(sourceIdInput, 'sourceId')
+
+  const rootPathInput = readUnknownMetadataField(
+    optionsMetadata,
+    'rootPath',
+    'SOURCE_IDENTITY_INVALID',
+    'Memory source options metadata could not be read'
+  )
+  if (typeof rootPathInput !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_IDENTITY_INVALID',
+      'rootPath must be a normalized relative identifier'
+    )
+  }
+  const rootPath = normalizeIdentityPart(rootPathInput, 'rootPath')
+
+  const files = readUnknownMetadataField(
+    optionsMetadata,
+    'files',
+    'SOURCE_IDENTITY_INVALID',
+    'Memory source options metadata could not be read'
+  )
+
+  return {
+    sourceId,
+    rootPath,
+    files: files as readonly MemoryContentPackageSourceFile[]
+  }
+}
+
 const asIdentityObject = (identity: unknown): Record<string, unknown> => {
   if (
     typeof identity !== 'object'
@@ -1232,8 +1309,9 @@ const normalizeInspectedContentPackageSourceEntry = (
 export const createMemoryContentPackageSource = (
   options: CreateMemoryContentPackageSourceOptions
 ): RevocableContentPackageSource => {
-  const sourceId = normalizeIdentityPart(options.sourceId, 'sourceId')
-  const rootPath = normalizeIdentityPart(options.rootPath, 'rootPath')
+  const normalizedOptions = normalizeMemoryContentPackageSourceOptions(options)
+  const sourceId = normalizedOptions.sourceId
+  const rootPath = normalizedOptions.rootPath
   const rootName = entryName(rootPath, rootPath)
   const files = new Map<string, string>()
   const directories = new Set<string>([''])
@@ -1241,7 +1319,7 @@ export const createMemoryContentPackageSource = (
   let disposed = false
 
   const memoryFiles = readUnknownMetadataArray(
-    options.files,
+    normalizedOptions.files,
     'Memory source files metadata must be an array',
     'Memory source files metadata must be a dense JSON array',
     'Memory source files metadata could not be read',
