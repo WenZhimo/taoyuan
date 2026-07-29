@@ -1786,6 +1786,113 @@ describe('content package source contract', () => {
     }
   })
 
+  it('keeps cached discovery identities when payload reads become unavailable', async() => {
+    const cases = [
+      {
+        label: 'revocation',
+        code: 'SOURCE_PERMISSION_REVOKED' as const,
+        sourceId: 'memory/bridge-read-revoked-after-validation'
+      },
+      {
+        label: 'disposal',
+        code: 'SOURCE_DISPOSED' as const,
+        sourceId: 'memory/bridge-read-disposed-after-validation'
+      }
+    ]
+
+    for (const lifecycleCase of cases) {
+      let identityReads = 0
+      let payloadUnavailable = false
+      const hostOperations: string[] = []
+      const source: ContentPackageSource = {
+        get identity(): ContentPackageSource['identity'] {
+          identityReads += 1
+          if (identityReads === 1) {
+            return {
+              contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+              kind: 'memory',
+              sourceId: lifecycleCase.sourceId,
+              rootPath: 'packs'
+            }
+          }
+          throw new Error(`EACCES: lstat C:/Users/LENOVO/mods/bridge-identity-after-read-${lifecycleCase.label}`)
+        },
+        async getEntry(path) {
+          hostOperations.push(`inspect:${path}`)
+          if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+          if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+          if (path === 'pack/manifest.json') {
+            return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+          }
+          return null
+        },
+        async readDirectory(path) {
+          hostOperations.push(`list:${path}`)
+          return path === ''
+            ? [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+            : []
+        },
+        async readTextFile(path) {
+          hostOperations.push(`read:${path}`)
+          if (payloadUnavailable) {
+            throw new ContentPackageSourceError(
+              lifecycleCase.code,
+              `EACCES: open C:/Users/LENOVO/mods/${path}`,
+              path
+            )
+          }
+          return toJson(createManifest('bridge_read_lifecycle'))
+        },
+        async dispose() {
+          payloadUnavailable = true
+        }
+      }
+      const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+      await expect(fileSystem.getEntry('packs')).resolves.toEqual({
+        name: 'packs',
+        kind: 'directory',
+        isSymbolicLink: false
+      })
+      if (lifecycleCase.code === 'SOURCE_DISPOSED') {
+        await source.dispose()
+      } else {
+        payloadUnavailable = true
+      }
+
+      const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+      const discoveryReport = await discoverThirdPartyDataPacks('packs', fileSystem)
+
+      expect(identityReads).toBe(1)
+      expect(bridgedReadError).toMatchObject({
+        code: lifecycleCase.code,
+        message: 'Content package source read operation failed',
+        sourcePath: 'pack/manifest.json'
+      })
+      expect(discoveryReport.status).toBe('completed')
+      expect(discoveryReport.candidates[0]).toMatchObject({
+        path: 'pack',
+        status: 'invalid'
+      })
+      expect(discoveryReport.candidates[0]?.issues[0]).toMatchObject({
+        kind: 'file-read-failed',
+        path: 'pack/manifest.json',
+        candidatePath: 'pack',
+        reason: 'Package source read operation failed'
+      })
+      expect(discoveryReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+        message: 'Content package source read operation failed',
+        sourceCode: lifecycleCase.code
+      })
+      expect(hostOperations).toContain('read:pack/manifest.json')
+      for (const result of [bridgedReadError, discoveryReport, { hostOperations }]) {
+        expect(JSON.stringify(result)).not.toContain('C:/Users')
+        expect(JSON.stringify(result)).not.toContain('LENOVO')
+        expect(JSON.stringify(result)).not.toContain(`bridge-identity-after-read-${lifecycleCase.label}`)
+      }
+    }
+  })
+
   it('reuses a validated source identity for direct JSON reads', async() => {
     let identityReads = 0
     const hostOperations: string[] = []
