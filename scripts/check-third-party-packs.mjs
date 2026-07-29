@@ -76,6 +76,22 @@ const assertNodeRootDirectory = rootDirectory => {
   return rootDirectory
 }
 
+const normalizeNodeSourceIdentityPart = (value, fieldName) => {
+  if (typeof value !== 'string') {
+    throw new Error(`${fieldName} must be a normalized relative identifier`)
+  }
+  let normalizedValue
+  try {
+    normalizedValue = normalizeNodeSourcePath(value)
+  } catch {
+    throw new Error(`${fieldName} must be a normalized relative identifier`)
+  }
+  if (normalizedValue === '' || normalizedValue !== value) {
+    throw new Error(`${fieldName} must be non-empty and already normalized`)
+  }
+  return normalizedValue
+}
+
 const joinResolvedSourcePath = (rootDirectory, sourcePath) =>
   sourcePath === ''
     ? rootDirectory
@@ -179,6 +195,8 @@ export const createNodeContentPackageSource = ({
   packageName
 }) => {
   const resolvedRoot = path.resolve(assertNodeRootDirectory(rootDirectory))
+  const normalizedSourceId = normalizeNodeSourceIdentityPart(sourceId, 'sourceId')
+  const normalizedRootPath = normalizeNodeSourceIdentityPart(rootPath, 'rootPath')
   const virtualPackageName = packageName || 'package'
   const virtualPackagePrefix = `${virtualPackageName}/`
   let disposed = false
@@ -203,8 +221,8 @@ export const createNodeContentPackageSource = ({
     identity: {
       contractVersion,
       kind: 'developer-cli-directory',
-      sourceId,
-      rootPath
+      sourceId: normalizedSourceId,
+      rootPath: normalizedRootPath
     },
 
     async getEntry(sourcePath) {
@@ -212,7 +230,7 @@ export const createNodeContentPackageSource = ({
       const normalizedPath = normalizeNodeSourcePath(sourcePath)
       if (packageName && normalizedPath === '') {
         return {
-          name: rootPath,
+          name: normalizedRootPath,
           kind: 'directory',
           isSymbolicLink: false
         }
@@ -221,7 +239,7 @@ export const createNodeContentPackageSource = ({
         const filePath = mapSourcePath(normalizedPath)
         const stats = await lstat(filePath)
         const name = normalizedPath === ''
-          ? rootPath
+          ? normalizedRootPath
           : packageName && normalizedPath === virtualPackageName
             ? virtualPackageName
             : path.basename(filePath)

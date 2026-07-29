@@ -701,6 +701,82 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).not.toContain('hostile-node-root')
   }, CLI_TEST_TIMEOUT_MS)
 
+  it('rejects non-string Node source identities before coercion', async() => {
+    const root = await createTempRoot()
+    const result = await runNodeModuleSnippet(`
+      import { createNodeContentPackageSource } from './scripts/check-third-party-packs.mjs'
+
+      const createHostileIdentityPart = label => ({
+        get includes() {
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-identity-' + label)
+        },
+        toString() {
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-identity-' + label)
+        },
+        [Symbol.toPrimitive]() {
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-identity-' + label)
+        }
+      })
+      const cases = [
+        {
+          fieldName: 'sourceId',
+          options: {
+            contractVersion: 1,
+            rootDirectory: ${JSON.stringify(root)},
+            sourceId: createHostileIdentityPart('sourceId'),
+            rootPath: 'packs'
+          },
+          expectedMessage: 'sourceId must be a normalized relative identifier'
+        },
+        {
+          fieldName: 'rootPath',
+          options: {
+            contractVersion: 1,
+            rootDirectory: ${JSON.stringify(root)},
+            sourceId: 'developer-cli/test-source',
+            rootPath: createHostileIdentityPart('rootPath')
+          },
+          expectedMessage: 'rootPath must be a normalized relative identifier'
+        }
+      ]
+      const results = []
+      for (const testCase of cases) {
+        let message = 'resolved'
+        try {
+          const source = createNodeContentPackageSource(testCase.options)
+          await source.getEntry('')
+        } catch (error) {
+          message = error instanceof Error ? error.message : String(error)
+        }
+        results.push({ fieldName: testCase.fieldName, message, expectedMessage: testCase.expectedMessage })
+      }
+      process.stdout.write(JSON.stringify(results))
+    `)
+    const output = JSON.parse(result.stdout) as readonly {
+      readonly fieldName: string
+      readonly message: string
+      readonly expectedMessage: string
+    }[]
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(output).toEqual([
+      {
+        fieldName: 'sourceId',
+        message: 'sourceId must be a normalized relative identifier',
+        expectedMessage: 'sourceId must be a normalized relative identifier'
+      },
+      {
+        fieldName: 'rootPath',
+        message: 'rootPath must be a normalized relative identifier',
+        expectedMessage: 'rootPath must be a normalized relative identifier'
+      }
+    ])
+    expect(result.stdout).not.toContain('C:/Users')
+    expect(result.stdout).not.toContain('LENOVO')
+    expect(result.stdout).not.toContain('hostile-node-identity')
+  }, CLI_TEST_TIMEOUT_MS)
+
   it('builds CLI discovery input from validated source identity without direct getter reads', async() => {
     const result = await runNodeModuleSnippet(`
       import { createDiscoveryInputFromContentPackageSource } from './scripts/check-third-party-packs.mjs'
