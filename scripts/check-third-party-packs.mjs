@@ -69,6 +69,13 @@ const normalizeNodeSourcePath = sourcePath => {
   return normalizedPath
 }
 
+const assertNodeRootDirectory = rootDirectory => {
+  if (typeof rootDirectory !== 'string') {
+    throw new Error('Content package source root is unsafe')
+  }
+  return rootDirectory
+}
+
 const joinResolvedSourcePath = (rootDirectory, sourcePath) =>
   sourcePath === ''
     ? rootDirectory
@@ -171,7 +178,7 @@ export const createNodeContentPackageSource = ({
   rootPath = cliContentSourceRootPath,
   packageName
 }) => {
-  const resolvedRoot = path.resolve(rootDirectory)
+  const resolvedRoot = path.resolve(assertNodeRootDirectory(rootDirectory))
   const virtualPackageName = packageName || 'package'
   const virtualPackagePrefix = `${virtualPackageName}/`
   let disposed = false

@@ -657,6 +657,50 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).not.toContain('hostile-node-path')
   }, CLI_TEST_TIMEOUT_MS)
 
+  it('rejects non-string Node source roots before coercion', async() => {
+    const result = await runNodeModuleSnippet(`
+      import { createNodeContentPackageSource } from './scripts/check-third-party-packs.mjs'
+
+      let coerced = false
+      const hostileRootDirectory = {
+        toString() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-root')
+        },
+        [Symbol.toPrimitive]() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-root')
+        }
+      }
+      let message = 'resolved'
+      try {
+        createNodeContentPackageSource({
+          contractVersion: 1,
+          rootDirectory: hostileRootDirectory,
+          sourceId: 'developer-cli/test-source',
+          rootPath: 'packs'
+        })
+      } catch (error) {
+        message = error instanceof Error ? error.message : String(error)
+      }
+      process.stdout.write(JSON.stringify({ coerced, message }))
+    `)
+    const output = JSON.parse(result.stdout) as {
+      readonly coerced: boolean
+      readonly message: string
+    }
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(output).toEqual({
+      coerced: false,
+      message: 'Content package source root is unsafe'
+    })
+    expect(result.stdout).not.toContain('C:/Users')
+    expect(result.stdout).not.toContain('LENOVO')
+    expect(result.stdout).not.toContain('hostile-node-root')
+  }, CLI_TEST_TIMEOUT_MS)
+
   it('builds CLI discovery input from validated source identity without direct getter reads', async() => {
     const result = await runNodeModuleSnippet(`
       import { createDiscoveryInputFromContentPackageSource } from './scripts/check-third-party-packs.mjs'
