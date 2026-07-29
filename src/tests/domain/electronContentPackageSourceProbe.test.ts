@@ -853,6 +853,91 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('does not re-read invalid Electron source identities for blocked reports', async() => {
+    const createInvalidIdentitySource = () => {
+      let identityReads = 0
+      let hostInspections = 0
+      const source: ContentPackageSource = {
+        get identity(): ContentPackageSource['identity'] {
+          identityReads += 1
+          if (identityReads === 1) {
+            return {
+              contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+              kind: 'electron-readonly-directory-probe',
+              sourceId: 'C:/Users/LENOVO/mods/invalid-first-identity',
+              rootPath: 'mods'
+            }
+          }
+          throw new Error('EACCES: lstat C:/Users/LENOVO/mods/identity-after-invalid')
+        },
+        async getEntry() {
+          hostInspections += 1
+          throw new Error('invalid identities must be rejected before source inspection')
+        },
+        async readDirectory() {
+          throw new Error('invalid identities must be rejected before directory reads')
+        },
+        async readTextFile() {
+          throw new Error('invalid identities must be rejected before file reads')
+        },
+        async dispose() {}
+      }
+      return {
+        source,
+        reads: () => ({ identityReads, hostInspections })
+      }
+    }
+
+    const sourceProbe = createInvalidIdentitySource()
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(sourceProbe.source)
+
+    expect(sourceProbe.reads()).toEqual({ identityReads: 1, hostInspections: 0 })
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'sourceId must be a normalized relative identifier',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/invalid-readonly-probe-source',
+        rootPath: 'mods'
+      },
+      sourceErrorCode: 'SOURCE_IDENTITY_INVALID',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+
+    const readinessProbe = createInvalidIdentitySource()
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source: readinessProbe.source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(readinessProbe.reads()).toEqual({ identityReads: 1, hostInspections: 0 })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'sourceId must be a normalized relative identifier',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      sourceIdentity: sourceReport.sourceIdentity,
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    for (const report of [sourceReport, readinessReport]) {
+      const serialized = JSON.stringify(report)
+      expect(serialized).not.toContain('C:/Users')
+      expect(serialized).not.toContain('LENOVO')
+      expect(serialized).not.toContain('invalid-first-identity')
+      expect(serialized).not.toContain('identity-after-invalid')
+    }
+    expectOfficialBaseline()
+  })
+
   it('reuses the validated source identity for readiness discovery roots', async() => {
     let identityReads = 0
     let rootInspected = false
