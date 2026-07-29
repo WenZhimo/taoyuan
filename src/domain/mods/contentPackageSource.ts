@@ -988,7 +988,7 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
       `${fieldName} must be a normalized relative identifier`
     )
   }
-  if (normalized === '') {
+  if (normalized === '' || normalized !== value) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
       `${fieldName} must be non-empty and already normalized`

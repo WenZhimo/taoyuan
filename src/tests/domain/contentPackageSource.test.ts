@@ -1357,6 +1357,32 @@ describe('content package source contract', () => {
       rootPath: '',
       files: []
     })).toThrow(ContentPackageSourceError)
+    for (const { fieldName, sourceId, rootPath } of [
+      {
+        fieldName: 'sourceId',
+        sourceId: 'memory\\not-normalized',
+        rootPath: 'packs'
+      },
+      {
+        fieldName: 'rootPath',
+        sourceId: 'memory/root-not-normalized',
+        rootPath: 'packs\\private'
+      }
+    ]) {
+      const error = captureSourceError(() => createMemoryContentPackageSource({
+        sourceId,
+        rootPath,
+        files: []
+      }))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_IDENTITY_INVALID',
+        message: `${fieldName} must be non-empty and already normalized`
+      })
+      expect(JSON.stringify(error)).not.toContain('not-normalized')
+      expect(JSON.stringify(error)).not.toContain('private')
+      expect(JSON.stringify(error)).not.toContain('\\')
+    }
     const controlCharacterIdentityError = captureSourceError(() => validateContentPackageSourceIdentity({
       ...source.identity,
       sourceId: 'memory/source\nsecret'
