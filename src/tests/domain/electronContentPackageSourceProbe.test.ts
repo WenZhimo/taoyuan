@@ -617,6 +617,60 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('rejects non-string Electron source identities before coercion or host operations', () => {
+    let coerced = false
+    const hostOperations: string[] = []
+    const hostileIdentityPart = {
+      toString() {
+        coerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-identity')
+      },
+      [Symbol.toPrimitive]() {
+        coerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-identity')
+      }
+    }
+    const host: ElectronReadonlyDirectoryProbeHost = {
+      async getEntry(sourcePath) {
+        hostOperations.push(`inspect:${sourcePath}`)
+        return null
+      },
+      async readDirectory(sourcePath) {
+        hostOperations.push(`list:${sourcePath}`)
+        return []
+      },
+      async readTextFile(sourcePath) {
+        hostOperations.push(`read:${sourcePath}`)
+        return '{}\n'
+      }
+    }
+
+    for (const fieldName of ['sourceId', 'rootPath'] as const) {
+      let identityError: unknown
+      try {
+        createElectronReadonlyDirectoryProbeSource({
+          host,
+          [fieldName]: hostileIdentityPart
+        } as unknown as Parameters<typeof createElectronReadonlyDirectoryProbeSource>[0])
+      } catch (error) {
+        identityError = error
+      }
+
+      expect(identityError).toBeInstanceOf(ContentPackageSourceError)
+      expect(identityError).toMatchObject({
+        code: 'SOURCE_IDENTITY_INVALID',
+        message: `${fieldName} must be a normalized relative identifier`
+      })
+      expect(JSON.stringify(identityError)).not.toContain('C:/Users')
+      expect(JSON.stringify(identityError)).not.toContain('LENOVO')
+      expect(JSON.stringify(identityError)).not.toContain('hostile-identity')
+    }
+
+    expect(coerced).toBe(false)
+    expect(hostOperations).toEqual([])
+    expectOfficialBaseline()
+  })
+
   it('redacts Electron host release failures before callers or reports expose paths', async() => {
     const source = createElectronReadonlyDirectoryProbeSource({
       host: {

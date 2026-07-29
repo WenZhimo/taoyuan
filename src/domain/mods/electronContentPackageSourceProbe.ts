@@ -202,7 +202,7 @@ const toElectronReadonlySourceReleaseError = (error: unknown): ContentPackageSou
     'Content package source release operation failed'
   )
 
-const normalizeIdentityPart = (value: string, fieldName: string): string => {
+const normalizeIdentityPart = (value: unknown, fieldName: string): string => {
   let normalized: string
   try {
     normalized = normalizeContentPackageSourcePath(value)
