@@ -182,14 +182,33 @@ const isBlockingIssue = (issue: ThirdPartyDataPackDiscoveryIssue): boolean =>
 const hasBlockingIssue = (issues: readonly ThirdPartyDataPackDiscoveryIssue[]): boolean =>
   issues.some(isBlockingIssue)
 
-const isObjectRecord = (value: unknown): value is Record<string, unknown> =>
-  value !== null && typeof value === 'object' && !Array.isArray(value)
-
 const createDiscoverySourceError = (
   code: 'SOURCE_ENTRY_UNSAFE' | 'SOURCE_LIMIT_EXCEEDED' | 'SOURCE_PATH_UNSAFE',
   message: string
 ): Error & { readonly code: typeof code; readonly [discoverySourceErrorBrand]: true } =>
   Object.assign(new Error(message), { code, [discoverySourceErrorBrand]: true as const })
+
+const isUnknownArray = (value: unknown, unreadableMessage: string): value is unknown[] => {
+  try {
+    return Array.isArray(value)
+  } catch {
+    throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', unreadableMessage)
+  }
+}
+
+const isObjectRecord = (value: unknown): value is Record<string, unknown> => {
+  if (value === null || typeof value !== 'object') return false
+  try {
+    return !Array.isArray(value)
+  } catch {
+    return false
+  }
+}
+
+const isDiscoveryEntryRecord = (value: unknown): value is Record<string, unknown> => {
+  if (value === null || typeof value !== 'object') return false
+  return !isUnknownArray(value, 'Package source entry metadata could not be read')
+}
 
 const readDiscoveryEntryField = (
   metadata: Record<string, unknown>,
@@ -252,7 +271,7 @@ const normalizeDiscoveryEntryName = (name: string): string => {
 }
 
 const normalizeDiscoveryDirectoryEntry = (entry: unknown): ThirdPartyDiscoveryDirectoryEntry => {
-  if (!isObjectRecord(entry)) {
+  if (!isDiscoveryEntryRecord(entry)) {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry metadata must be an object')
   }
   const metadataKeys = assertDiscoveryEntryHasOnlySupportedKeys(entry)
@@ -297,7 +316,7 @@ const isDiscoveryArrayIndexKey = (key: string, length: number): boolean => {
 }
 
 const normalizeDiscoveryDirectoryEntries = (entries: unknown): readonly ThirdPartyDiscoveryDirectoryEntry[] => {
-  if (!Array.isArray(entries)) {
+  if (!isUnknownArray(entries, 'Package source directory entries metadata could not be read')) {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source directory entries must be an array')
   }
 

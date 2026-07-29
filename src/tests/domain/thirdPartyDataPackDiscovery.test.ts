@@ -231,6 +231,15 @@ const expectRawDirectoryArrayTrapRejected = async(entries: unknown): Promise<voi
   expect(JSON.stringify(report)).not.toContain('C:/Users')
   expect(JSON.stringify(report)).not.toContain('LENOVO')
   expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+  expect(JSON.stringify(report)).not.toContain('Cannot perform')
+  expect(JSON.stringify(report)).not.toContain('IsArray')
+  expect(JSON.stringify(report)).not.toContain('revoked')
+}
+
+const createRevokedProxy = <T extends object>(target: T): T => {
+  const { proxy, revoke } = Proxy.revocable(target, {})
+  revoke()
+  return proxy
 }
 
 const createMalformedRawDiscoveryDirectoryArrayLength = (
@@ -877,6 +886,95 @@ describe('third-party data pack read-only discovery', () => {
     )
 
     await expectRawDirectoryArrayTrapRejected(entries)
+  })
+
+  it('wraps revoked raw discovery directory arrays as structured diagnostics', async() => {
+    const entries = createRevokedProxy([{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }])
+
+    let packageInspected = false
+    let readAttempted = false
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return entries as never
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('revoked directory arrays must not reach payload reads')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(readAttempted).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source list operation failed'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    expect(JSON.stringify(report)).not.toContain('Cannot perform')
+    expect(JSON.stringify(report)).not.toContain('IsArray')
+    expect(JSON.stringify(report)).not.toContain('revoked')
+  })
+
+  it('wraps revoked raw discovery entry metadata as structured diagnostics', async() => {
+    let packageInspected = false
+    let listingReadAttempted = false
+    const listingEntry = createRevokedProxy({
+      name: 'private-pack',
+      kind: 'directory',
+      isSymbolicLink: false
+    })
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods/private-pack') packageInspected = true
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [listingEntry as never]
+      },
+      async readTextFile() {
+        listingReadAttempted = true
+        throw new Error('revoked entry metadata must not reach payload reads')
+      }
+    })
+
+    expect(packageInspected).toBe(false)
+    expect(listingReadAttempted).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry metadata could not be read',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    expect(JSON.stringify(report)).not.toContain('Cannot perform')
+    expect(JSON.stringify(report)).not.toContain('IsArray')
+    expect(JSON.stringify(report)).not.toContain('revoked')
   })
 
   it('rejects inherited raw discovery name and kind metadata before reading packages', async() => {
