@@ -445,6 +445,128 @@ describe('content package source contract', () => {
     })).toThrow(ContentPackageSourceError)
   })
 
+
+  it('narrows memory source file metadata from unknown before publishing a source', async() => {
+    const source = createMemoryContentPackageSource({
+      sourceId: 'memory/file-metadata-source',
+      rootPath: 'packs',
+      files: [
+        { path: 'pack\\manifest.json', text: '{}\n' }
+      ]
+    })
+
+    await expect(source.readTextFile('pack/manifest.json')).resolves.toBe('{}\n')
+
+    let nonArrayLengthRead = false
+    const nonArrayFiles = {}
+    Object.defineProperty(nonArrayFiles, 'length', {
+      enumerable: true,
+      get() {
+        nonArrayLengthRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/memory-files-length')
+      }
+    })
+    const nonArrayError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/non-array-files',
+      rootPath: 'packs',
+      files: nonArrayFiles as never
+    }))
+
+    expect(nonArrayError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Memory source files metadata must be an array'
+    })
+    expect(nonArrayLengthRead).toBe(false)
+    expect(JSON.stringify(nonArrayError)).not.toContain('C:/Users')
+    expect(JSON.stringify(nonArrayError)).not.toContain('LENOVO')
+
+    const malformedFiles = createMalformedLengthMetadataArray(
+      'C:/Users/LENOVO/mods/memory-files-length',
+      { path: 'pack/manifest.json', text: '{}\n' }
+    )
+    const malformedArrayError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/malformed-file-array',
+      rootPath: 'packs',
+      files: malformedFiles.entries as never
+    }))
+
+    expect(malformedArrayError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Memory source files metadata must be a dense JSON array'
+    })
+    expect(malformedFiles.wasOwnKeysRead()).toBe(false)
+    expect(malformedFiles.wasEntryRead()).toBe(false)
+
+    const overLimitFiles = createOverLimitMetadataArray(index => ({
+      path: 'data/' + index + '.json',
+      text: ''
+    }))
+    const overLimitError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/over-limit-files',
+      rootPath: 'packs',
+      files: overLimitFiles.entries as never
+    }))
+
+    expect(overLimitError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'Memory source exceeds '
+        + CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount
+        + ' files: '
+        + (CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount + 1)
+    })
+    expect(overLimitFiles.wasBoundaryEntryRead()).toBe(false)
+    expect(JSON.stringify(overLimitError)).not.toContain('hostile-fragment')
+
+    let pathCoerced = false
+    let textCoerced = false
+    const hostileFileInputs: readonly unknown[] = [
+      null,
+      Array(1),
+      createHostileMetadataArray(),
+      new Proxy({ path: 'pack/manifest.json', text: '{}\n' }, {
+        ownKeys() {
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/memory-file-keys')
+        }
+      }),
+      { path: 'pack/manifest.json', text: '{}\n', extra: 'C:/Users/LENOVO/mods/private-extra' },
+      { path: 1, text: '{}\n' },
+      {
+        path: {
+          toString() {
+            pathCoerced = true
+            throw new Error('C:/Users/LENOVO/mods/memory-file-path')
+          }
+        },
+        text: '{}\n'
+      },
+      { path: 'C:/Users/LENOVO/mods/pack/manifest.json', text: '{}\n' },
+      {
+        path: 'pack/manifest.json',
+        text: {
+          toString() {
+            textCoerced = true
+            throw new Error('C:/Users/LENOVO/mods/memory-file-text')
+          }
+        }
+      }
+    ]
+
+    for (const input of hostileFileInputs) {
+      const error = captureSourceError(() => createMemoryContentPackageSource({
+        sourceId: 'memory/hostile-file-metadata',
+        rootPath: 'packs',
+        files: [input as never]
+      }))
+
+      expect(error.code).toMatch(/^SOURCE_/)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('memory-file')
+    }
+    expect(pathCoerced).toBe(false)
+    expect(textCoerced).toBe(false)
+  })
+
   it('redacts unsafe platform paths before direct reads or discovery diagnostics expose them', async() => {
     const source = createValidSource()
 

@@ -191,6 +191,14 @@ const stableContentPackageSourceDiagnosticMessages: ReadonlySet<string> = new Se
   'Archive entry path metadata must be a string',
   'Archive entries metadata must be an array',
   'Archive entries metadata must be a dense JSON array',
+  'Memory source files metadata must be an array',
+  'Memory source files metadata must be a dense JSON array',
+  'Memory source file metadata must be an object',
+  'Memory source file metadata could not be read',
+  'Memory source file metadata contains unsupported fields',
+  'Memory source file metadata must include path and text own fields',
+  'Memory source file path metadata must be a string',
+  'Memory source file text payload must be a string',
   'Content package source text payload must be a string',
   'Content package source identity must be an object',
   'Content package source identity metadata could not be read',
@@ -332,9 +340,11 @@ const supportedEntryKinds = new Set<ContentPackageSourceEntryKind>(['file', 'dir
 const supportedSourceIdentityMetadataKeys = new Set(['contractVersion', 'kind', 'sourceId', 'rootPath'])
 const supportedDirectoryEntryMetadataKeys = new Set(['name', 'kind', 'isSymbolicLink'])
 const supportedArchiveEntryMetadataKeys = new Set(['path', 'uncompressedSizeBytes', 'compressedSizeBytes'])
+const supportedMemorySourceFileMetadataKeys = new Set(['path', 'text'])
 const requiredSourceIdentityMetadataKeys = ['contractVersion', 'kind', 'sourceId', 'rootPath'] as const
 const requiredDirectoryEntryMetadataKeys = ['name', 'kind', 'isSymbolicLink'] as const
 const requiredArchiveEntryMetadataKeys = ['path', 'uncompressedSizeBytes'] as const
+const requiredMemorySourceFileMetadataKeys = ['path', 'text'] as const
 
 const throwLimitExceeded = (message: string, sourcePath?: string): never => {
   throw new ContentPackageSourceError('SOURCE_LIMIT_EXCEEDED', message, sourcePath)
@@ -1002,6 +1012,67 @@ const entryName = (path: string, fallback: string): string => {
   return separatorIndex === -1 ? path : path.slice(separatorIndex + 1)
 }
 
+const normalizeMemoryContentPackageSourceFile = (
+  file: unknown
+): MemoryContentPackageSourceFile => {
+  if (
+    typeof file !== 'object'
+    || file === null
+    || isUnknownArray(file, 'SOURCE_ENTRY_UNSAFE', 'Memory source file metadata could not be read')
+  ) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Memory source file metadata must be an object'
+    )
+  }
+
+  const fileMetadata = file as Record<string, unknown>
+  const metadataKeys = assertUnknownMetadataHasOnlyKeys(
+    fileMetadata,
+    supportedMemorySourceFileMetadataKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Memory source file metadata could not be read',
+    'Memory source file metadata contains unsupported fields'
+  )
+  assertUnknownMetadataHasRequiredOwnKeys(
+    metadataKeys,
+    requiredMemorySourceFileMetadataKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Memory source file metadata must include path and text own fields'
+  )
+
+  const path = readUnknownMetadataField(
+    fileMetadata,
+    'path',
+    'SOURCE_ENTRY_UNSAFE',
+    'Memory source file metadata could not be read'
+  )
+  if (typeof path !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Memory source file path metadata must be a string'
+    )
+  }
+
+  const text = readUnknownMetadataField(
+    fileMetadata,
+    'text',
+    'SOURCE_ENTRY_UNSAFE',
+    'Memory source file metadata could not be read'
+  )
+  if (typeof text !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Memory source file text payload must be a string'
+    )
+  }
+
+  return {
+    path: normalizeContentPackageSourcePath(path),
+    text
+  }
+}
+
 const asIdentityObject = (identity: unknown): Record<string, unknown> => {
   if (
     typeof identity !== 'object'
@@ -1169,16 +1240,20 @@ export const createMemoryContentPackageSource = (
   let revoked = false
   let disposed = false
 
-  if (options.files.length > CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount) {
-    throwLimitExceeded(
-      `Memory source exceeds ${CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount} files: ${options.files.length}`
-    )
-  }
+  const memoryFiles = readUnknownMetadataArray(
+    options.files,
+    'Memory source files metadata must be an array',
+    'Memory source files metadata must be a dense JSON array',
+    'Memory source files metadata could not be read',
+    CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount,
+    fileCount => `Memory source exceeds ${CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount} files: ${fileCount}`
+  )
 
-  for (const file of options.files) {
-    const normalizedPath = normalizeContentPackageSourcePath(file.path)
+  for (const fileInput of memoryFiles) {
+    const file = normalizeMemoryContentPackageSourceFile(fileInput)
+    const normalizedPath = file.path
     if (normalizedPath === '') {
-      throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', 'File path cannot be the source root', file.path)
+      throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', 'File path cannot be the source root', normalizedPath)
     }
     if (directories.has(normalizedPath)) {
       throw new ContentPackageSourceError(
