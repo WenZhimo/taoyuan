@@ -1235,6 +1235,67 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('blocks runtime readiness when Electron root listing fails after source probing', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    let readAttempted = false
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          throw new Error(`EACCES: scandir C:/Users/LENOVO/mods/${sourcePath}\nhostile-fragment`)
+        },
+        async readTextFile() {
+          readAttempted = true
+          throw new Error('root listing failures must stop before package payload reads')
+        }
+      }
+    })
+
+    const report = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await source.dispose()
+
+    expect(readAttempted).toBe(false)
+    expect(report).toMatchObject({
+      status: 'blocked',
+      reason: 'discovery failed',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'directory-not-found',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      },
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(report.officialIdentity).toBeUndefined()
+    expect(report.candidateIdentity).toBeUndefined()
+    expect(report.lockfileHash).toBeUndefined()
+    expect('candidateRegistrySet' in report).toBe(false)
+    expect('candidateSnapshot' in report).toBe(false)
+    expect('lockfileDraft' in report).toBe(false)
+    expect('sourceAdapterGate' in report).toBe(false)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('redacts arbitrary source inspect failures before Electron probe reports expose host paths', async() => {
     const source: ContentPackageSource = {
       identity: {

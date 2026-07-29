@@ -475,6 +475,16 @@ export const buildElectronReadonlyRuntimeReadinessProbeReport = async(
       1
     )
   }
+  if (discoveryReport.status === 'directory-not-found') {
+    return createBlockedReadinessReport(
+      'discovery failed',
+      sourceProbe.status,
+      sourceProbe.sourceIdentity,
+      options.officialRegistrySet,
+      discoveryReport.status,
+      discoveryReport.summary.issueCount
+    )
+  }
 
   const selectionReport = selectThirdPartyDataPacks(discoveryReport)
   const candidateSnapshot = buildThirdPartyCandidateRegistrySnapshot({
