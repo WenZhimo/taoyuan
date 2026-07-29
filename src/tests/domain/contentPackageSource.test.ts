@@ -858,6 +858,29 @@ describe('content package source contract', () => {
 
   it('validates directory entry names, duplicate listings and non-file metadata before discovery', async() => {
     expect(normalizeContentPackageSourceEntryName('manifest.json')).toBe('manifest.json')
+    let entryNameCoerced = false
+    const hostileEntryName = {
+      toString() {
+        entryNameCoerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-entry-name')
+      },
+      [Symbol.toPrimitive]() {
+        entryNameCoerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-entry-name')
+      }
+    }
+    const nonStringEntryNameError = captureSourceError(() =>
+      normalizeContentPackageSourceEntryName(hostileEntryName)
+    )
+
+    expect(nonStringEntryNameError).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    expect(entryNameCoerced).toBe(false)
+    expect(JSON.stringify(nonStringEntryNameError)).not.toContain('hostile-entry-name')
+    expect(JSON.stringify(nonStringEntryNameError)).not.toContain('C:/Users')
+    expect(JSON.stringify(nonStringEntryNameError)).not.toContain('LENOVO')
     expect(normalizeContentPackageSourceDirectoryEntries([
       { name: 'z-pack', kind: 'directory', isSymbolicLink: false },
       { name: 'pipe-pack', kind: 'other', isSymbolicLink: false },

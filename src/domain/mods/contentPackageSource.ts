@@ -567,7 +567,7 @@ export const normalizeContentPackageSourcePath = (
 }
 
 export const normalizeContentPackageSourceEntryName = (
-  name: string,
+  name: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): string => {
   let normalizedName: string
