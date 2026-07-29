@@ -55,6 +55,25 @@ describe('FarmBatchPlantDialog', () => {
     expect(emptyWrapper.emitted('go-to-shop')).toHaveLength(1)
   })
 
+  it('plants ordinary seeds from the visible quality square', async () => {
+    const wrapper = mountDialog({
+      seeds: [
+        { cropId: 'corn', name: '玉米', quality: 'normal', count: 20, colorClass: '', regrowth: true },
+        { cropId: 'persimmon', name: '柿子', quality: 'normal', count: 12, colorClass: '', regrowth: false },
+        { cropId: 'chaos_zenith_herb', name: '混极草', quality: 'supreme', count: 5, colorClass: 'text-quality-supreme', regrowth: false }
+      ]
+    })
+
+    expect(wrapper.text()).toContain('点击右侧品质方块开始种植。')
+    await wrapper.get('button[aria-label="普通品质 20 个"]').trigger('click')
+    await wrapper.get('button[aria-label="普通品质 12 个"]').trigger('click')
+
+    expect(wrapper.emitted('plant')).toEqual([
+      ['corn', 'normal'],
+      ['persimmon', 'normal']
+    ])
+  })
+
   it('renders closed shop reason when there are no seeds and the shop is closed', () => {
     const wrapper = mountDialog({
       breedingSeedGroups: [],

@@ -125,6 +125,24 @@ describe('FarmPlotDetailDialog', () => {
     expect(wrapper.emitted('place-sprinkler')).toEqual([['bamboo_sprinkler']])
   })
 
+  it('guides ordinary field planting through quality squares', async () => {
+    const wrapper = mountDialog({
+      seeds: [
+        { cropId: 'corn', name: '玉米', quality: 'normal', count: 20, colorClass: '', regrowth: true },
+        { cropId: 'persimmon', name: '柿子', quality: 'normal', count: 12, colorClass: '', regrowth: false }
+      ]
+    })
+
+    expect(wrapper.text()).toContain('点击右侧品质方块开始种植。')
+    await wrapper.get('button[aria-label="普通品质 20 个"]').trigger('click')
+    await wrapper.get('button[aria-label="普通品质 12 个"]').trigger('click')
+
+    expect(wrapper.emitted('plant')).toEqual([
+      ['corn', 'normal'],
+      ['persimmon', 'normal']
+    ])
+  })
+
   it('renders crop status actions and emits field operations', async () => {
     const wrapper = mountDialog({
       plot: makePlot({

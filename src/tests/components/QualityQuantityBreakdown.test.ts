@@ -38,4 +38,24 @@ describe('QualityQuantityBreakdown', () => {
     expect(wrapper.emitted('select-quality')).toEqual([['excellent']])
     expect(wrapper.findAll('button')[1]?.classes()).toContain('border-accent/50')
   })
+
+  it('renders quality squares for planting choices', async () => {
+    const wrapper = mount(QualityQuantityBreakdown, {
+      props: {
+        entries,
+        interactive: true,
+        variant: 'square'
+      }
+    })
+
+    expect(wrapper.text()).toContain('普×4')
+    expect(wrapper.text()).toContain('良×20')
+    expect(wrapper.text()).toContain('精×3')
+    expect(wrapper.text()).toContain('极×4')
+    expect(wrapper.findAll('button')[0]?.classes()).toContain('inline-flex')
+
+    await wrapper.findAll('button')[3]?.trigger('click')
+
+    expect(wrapper.emitted('select-quality')).toEqual([['supreme']])
+  })
 })

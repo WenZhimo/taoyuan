@@ -5,12 +5,13 @@
         <X :size="14" />
       </button>
       <p class="text-accent text-sm mb-2">一键种植</p>
-      <p class="text-xs text-muted mb-2">空耕地 {{ tilledEmptyCount }} 块，选择要种植的种子：</p>
+      <p class="text-xs text-muted mb-1">空耕地 {{ tilledEmptyCount }} 块，选择要种植的种子：</p>
+      <p v-if="groupedSeeds.length > 0" class="text-[10px] text-muted/70 mb-2">点击右侧品质方块开始种植。</p>
       <div class="flex flex-col space-y-1 max-h-40 overflow-y-auto">
         <div
           v-for="seed in groupedSeeds"
           :key="seed.itemId"
-          class="btn text-xs justify-between mr-1 shrink-0"
+          class="flex items-center justify-between rounded-xs border border-accent/10 bg-panel/30 px-2 py-1 text-xs mr-1 shrink-0"
         >
           <span>
             {{ seed.option.name }}
@@ -19,6 +20,7 @@
           <QualityQuantityBreakdown
             :entries="seed.qualities"
             :interactive="true"
+            variant="square"
             :aria-label="`${seed.option.name}种子的各品质数量`"
             @select-quality="quality => $emit('plant', seed.itemId, quality)"
           />
