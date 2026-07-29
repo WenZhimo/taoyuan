@@ -92,6 +92,23 @@ const normalizeNodeSourceIdentityPart = (value, fieldName) => {
   return normalizedValue
 }
 
+const normalizeNodeVirtualPackageName = packageName => {
+  if (packageName === undefined || packageName === null || packageName === '') return 'package'
+  if (typeof packageName !== 'string') {
+    throw new Error('Content package source package name is unsafe')
+  }
+  let normalizedName
+  try {
+    normalizedName = normalizeNodeSourcePath(packageName)
+  } catch {
+    throw new Error('Content package source package name is unsafe')
+  }
+  if (normalizedName === '' || normalizedName !== packageName || normalizedName.includes('/')) {
+    throw new Error('Content package source package name is unsafe')
+  }
+  return normalizedName
+}
+
 const joinResolvedSourcePath = (rootDirectory, sourcePath) =>
   sourcePath === ''
     ? rootDirectory
@@ -197,7 +214,7 @@ export const createNodeContentPackageSource = ({
   const resolvedRoot = path.resolve(assertNodeRootDirectory(rootDirectory))
   const normalizedSourceId = normalizeNodeSourceIdentityPart(sourceId, 'sourceId')
   const normalizedRootPath = normalizeNodeSourceIdentityPart(rootPath, 'rootPath')
-  const virtualPackageName = packageName || 'package'
+  const virtualPackageName = normalizeNodeVirtualPackageName(packageName)
   const virtualPackagePrefix = `${virtualPackageName}/`
   let disposed = false
 

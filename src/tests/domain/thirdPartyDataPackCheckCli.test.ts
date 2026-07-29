@@ -777,6 +777,52 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).not.toContain('hostile-node-identity')
   }, CLI_TEST_TIMEOUT_MS)
 
+  it('rejects non-string Node virtual package names before coercion', async() => {
+    const root = await createTempRoot()
+    const result = await runNodeModuleSnippet(`
+      import { createNodeContentPackageSource } from './scripts/check-third-party-packs.mjs'
+
+      let coerced = false
+      const hostilePackageName = {
+        toString() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-package')
+        },
+        [Symbol.toPrimitive]() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-package')
+        }
+      }
+      let message = 'resolved'
+      try {
+        createNodeContentPackageSource({
+          contractVersion: 1,
+          rootDirectory: ${JSON.stringify(root)},
+          sourceId: 'developer-cli/test-source',
+          rootPath: 'packs',
+          packageName: hostilePackageName
+        })
+      } catch (error) {
+        message = error instanceof Error ? error.message : String(error)
+      }
+      process.stdout.write(JSON.stringify({ coerced, message }))
+    `)
+    const output = JSON.parse(result.stdout) as {
+      readonly coerced: boolean
+      readonly message: string
+    }
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(output).toEqual({
+      coerced: false,
+      message: 'Content package source package name is unsafe'
+    })
+    expect(result.stdout).not.toContain('C:/Users')
+    expect(result.stdout).not.toContain('LENOVO')
+    expect(result.stdout).not.toContain('hostile-node-package')
+  }, CLI_TEST_TIMEOUT_MS)
+
   it('builds CLI discovery input from validated source identity without direct getter reads', async() => {
     const result = await runNodeModuleSnippet(`
       import { createDiscoveryInputFromContentPackageSource } from './scripts/check-third-party-packs.mjs'
