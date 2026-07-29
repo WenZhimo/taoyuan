@@ -431,6 +431,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
       }
     },
     async dispose() {
+      if (disposed) return
       disposed = true
       try {
         await options.host.dispose?.()

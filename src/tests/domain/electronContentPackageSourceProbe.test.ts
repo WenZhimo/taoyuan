@@ -600,6 +600,66 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('does not re-enter Electron host release after the source is disposed', async() => {
+    let hostReleaseCount = 0
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory() {
+          throw new Error('idempotent release test does not list packages')
+        },
+        async readTextFile() {
+          throw new Error('idempotent release test does not read package payloads')
+        },
+        async dispose() {
+          hostReleaseCount += 1
+          if (hostReleaseCount > 1) {
+            throw new Error('EBUSY: repeated close C:/Users/LENOVO/mods/.probe-handle')
+          }
+        }
+      }
+    })
+
+    await source.dispose()
+    await source.dispose()
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(hostReleaseCount).toBe(1)
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Electron read-only source adapter probe has been disposed',
+      sourceErrorCode: 'SOURCE_DISPOSED',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    for (const report of [sourceReport, readinessReport]) {
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+      expect(JSON.stringify(report)).not.toContain('repeated close')
+    }
+    expectOfficialBaseline()
+  })
+
   it('redacts unreadable Electron source error metadata in probe and release diagnostics', async() => {
     const hostileEntry = {
       name: 'mods',
