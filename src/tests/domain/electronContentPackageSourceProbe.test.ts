@@ -551,6 +551,72 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('rejects non-string Electron source paths before coercion or host operations', async() => {
+    let coerced = false
+    const hostOperations: string[] = []
+    const hostilePath = {
+      toString() {
+        coerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-fragment')
+      },
+      [Symbol.toPrimitive]() {
+        coerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-fragment')
+      }
+    }
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          hostOperations.push(`inspect:${sourcePath}`)
+          return null
+        },
+        async readDirectory(sourcePath) {
+          hostOperations.push(`list:${sourcePath}`)
+          return []
+        },
+        async readTextFile(sourcePath) {
+          hostOperations.push(`read:${sourcePath}`)
+          return '{}\n'
+        }
+      }
+    })
+
+    await expect(source.getEntry(hostilePath as unknown as string)).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    await expect(source.readDirectory(hostilePath as unknown as string)).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    await expect(source.readTextFile(hostilePath as unknown as string)).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    const report = await buildElectronReadonlySourceAdapterProbeReport(
+      source,
+      hostilePath as unknown as string
+    )
+
+    expect(coerced).toBe(false)
+    expect(hostOperations).toEqual([])
+    expect(report).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source path is unsafe',
+      inspectedPath: '<unsafe-path>',
+      sourceErrorCode: 'SOURCE_PATH_UNSAFE',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+    expectOfficialBaseline()
+  })
+
   it('redacts Electron host release failures before callers or reports expose paths', async() => {
     const source = createElectronReadonlyDirectoryProbeSource({
       host: {

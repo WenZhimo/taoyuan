@@ -221,7 +221,10 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
   return normalized
 }
 
-const normalizeElectronReadonlyProbePath = (sourcePath: string): string => {
+const normalizeElectronReadonlyProbePath = (sourcePath: unknown): string => {
+  if (typeof sourcePath !== 'string') {
+    throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', 'Content package source path is unsafe')
+  }
   if (sourcePath.includes('\\')) {
     throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', 'Content package source path is unsafe')
   }
