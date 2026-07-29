@@ -1893,6 +1893,112 @@ describe('content package source contract', () => {
     }
   })
 
+  it('keeps cached discovery identities when directory listings become unavailable', async() => {
+    const cases = [
+      {
+        label: 'revocation',
+        code: 'SOURCE_PERMISSION_REVOKED' as const,
+        sourceId: 'memory/bridge-list-revoked-after-validation'
+      },
+      {
+        label: 'disposal',
+        code: 'SOURCE_DISPOSED' as const,
+        sourceId: 'memory/bridge-list-disposed-after-validation'
+      }
+    ]
+
+    for (const lifecycleCase of cases) {
+      let identityReads = 0
+      let listingUnavailable = false
+      const hostOperations: string[] = []
+      const source: ContentPackageSource = {
+        get identity(): ContentPackageSource['identity'] {
+          identityReads += 1
+          if (identityReads === 1) {
+            return {
+              contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+              kind: 'memory',
+              sourceId: lifecycleCase.sourceId,
+              rootPath: 'packs'
+            }
+          }
+          throw new Error(`EACCES: lstat C:/Users/LENOVO/mods/bridge-identity-after-list-${lifecycleCase.label}`)
+        },
+        async getEntry(path) {
+          hostOperations.push(`inspect:${path}`)
+          if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+          if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory(path) {
+          hostOperations.push(`list:${path}`)
+          if (listingUnavailable) {
+            throw new ContentPackageSourceError(
+              lifecycleCase.code,
+              `EACCES: scandir C:/Users/LENOVO/mods/${path}`,
+              path
+            )
+          }
+          return path === ''
+            ? [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+            : [{ name: 'manifest.json', kind: 'file', isSymbolicLink: false }]
+        },
+        async readTextFile() {
+          throw new Error('directory listing lifecycle checks should not read payloads')
+        },
+        async dispose() {
+          listingUnavailable = true
+        }
+      }
+      const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+      await expect(fileSystem.getEntry('packs')).resolves.toEqual({
+        name: 'packs',
+        kind: 'directory',
+        isSymbolicLink: false
+      })
+      if (lifecycleCase.code === 'SOURCE_DISPOSED') {
+        await source.dispose()
+      } else {
+        listingUnavailable = true
+      }
+
+      const bridgedListError = await captureAsyncSourceError(() => fileSystem.readDirectory('packs/pack'))
+      const discoveryReport = await discoverThirdPartyDataPacks('packs', fileSystem)
+
+      expect(identityReads).toBe(1)
+      expect(bridgedListError).toMatchObject({
+        code: lifecycleCase.code,
+        message: 'Content package source list operation failed',
+        sourcePath: 'pack'
+      })
+      expect(discoveryReport.status).toBe('directory-not-found')
+      expect(discoveryReport.issues[0]).toMatchObject({
+        kind: 'file-read-failed',
+        severity: 'fatal',
+        path: '.',
+        reason: 'Package source list operation failed'
+      })
+      expect(discoveryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+        message: 'Content package source list operation failed',
+        sourceCode: lifecycleCase.code
+      })
+      expect(hostOperations).toEqual([
+        'inspect:',
+        'inspect:pack',
+        'list:pack',
+        'inspect:',
+        'inspect:',
+        'list:'
+      ])
+      for (const result of [bridgedListError, discoveryReport, { hostOperations }]) {
+        expect(JSON.stringify(result)).not.toContain('C:/Users')
+        expect(JSON.stringify(result)).not.toContain('LENOVO')
+        expect(JSON.stringify(result)).not.toContain(`bridge-identity-after-list-${lifecycleCase.label}`)
+      }
+    }
+  })
+
   it('reuses a validated source identity for direct JSON reads', async() => {
     let identityReads = 0
     const hostOperations: string[] = []
