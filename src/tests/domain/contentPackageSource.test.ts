@@ -2831,6 +2831,62 @@ describe('content package source contract', () => {
     }
   })
 
+  it('strips extra source error fields before bridge callers can serialize host paths', async() => {
+    const createExtraFieldSourceError = (
+      message: string,
+      sourcePath: string
+    ): ContentPackageSourceError => {
+      const error = new ContentPackageSourceError('SOURCE_PERMISSION_REVOKED', message, sourcePath)
+      Object.defineProperty(error, 'hostPath', {
+        enumerable: true,
+        value: `C:/Users/LENOVO/mods/${sourcePath}\nhostile-fragment`
+      })
+      return error
+    }
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/source-error-extra-field',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack') return { name: 'pack', kind: 'directory', isSymbolicLink: false }
+        if (path === 'pack/manifest.json') return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+        throw createExtraFieldSourceError('Content package source permission was revoked', path)
+      },
+      async readTextFile(path) {
+        throw createExtraFieldSourceError('Content package source permission was revoked', path)
+      },
+      async dispose() {}
+    }
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const readFailureReport = await discoverThirdPartyDataPacks(source.identity.rootPath, fileSystem)
+
+    expect(bridgedReadError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source permission was revoked',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source permission was revoked',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    for (const result of [bridgedReadError, readFailureReport]) {
+      expect(JSON.stringify(result)).not.toContain('hostPath')
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
+    }
+  })
+
   it('redacts host path messages even when host failures use source errors', async() => {
     const sourceErrorReadFailureSource: ContentPackageSource = {
       identity: {

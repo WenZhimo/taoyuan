@@ -267,6 +267,13 @@ const sourceErrorPathMatchesOperation = (
 ): boolean =>
   errorSourcePath === undefined || errorSourcePath === sourcePath
 
+const createCleanContentPackageSourceError = (
+  code: ContentPackageSourceErrorCode,
+  message: string,
+  sourcePath?: string
+): ContentPackageSourceError =>
+  new ContentPackageSourceError(code, message, sourcePath)
+
 export const toContentPackageSourceHostOperationError = (
   operation: ContentPackageSourceHostOperation,
   error: unknown,
@@ -291,16 +298,16 @@ export const toContentPackageSourceHostOperationError = (
       && !sourceErrorMayContainUnsafeDiagnosticText(message.value, safeSourcePath)
       && sourceErrorPathMatchesOperation(safeSourcePath, sourcePath)
     ) {
-      return error
+      return createCleanContentPackageSourceError(safeCode, message.value, safeSourcePath)
     }
 
-    return new ContentPackageSourceError(
+    return createCleanContentPackageSourceError(
       safeCode,
       `Content package source ${operation} operation failed`,
       sourcePath
     )
   }
-  return new ContentPackageSourceError(
+  return createCleanContentPackageSourceError(
     fallbackCode,
     `Content package source ${operation} operation failed`,
     sourcePath
