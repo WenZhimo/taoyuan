@@ -484,6 +484,58 @@ describe('content package source contract', () => {
     expect(JSON.stringify(controlCharacterDiscoveryReport)).not.toContain('secret')
   })
 
+  it('rejects non-string source paths before coercion or host operations', async() => {
+    let coerced = false
+    let inspected = false
+    const hostilePath = {
+      toString() {
+        coerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-fragment')
+      },
+      [Symbol.toPrimitive]() {
+        coerced = true
+        throw new Error('C:/Users/LENOVO/mods/hostile-fragment')
+      }
+    }
+    const directError = captureSourceError(() => normalizeContentPackageSourcePath(hostilePath))
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/non-string-path-source',
+        rootPath: 'packs'
+      },
+      async getEntry() {
+        inspected = true
+        throw new Error('non-string paths must be rejected before host inspection')
+      },
+      async readDirectory() {
+        throw new Error('non-string paths must be rejected before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('non-string paths must be rejected before file reads')
+      },
+      async dispose() {}
+    }
+    const bridgeError = await captureAsyncSourceError(() =>
+      createDiscoveryFileSystemFromContentPackageSource(source).getEntry(hostilePath as unknown as string)
+    )
+
+    expect(directError).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    expect(bridgeError).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package discovery path is unsafe'
+    })
+    expect(coerced).toBe(false)
+    expect(inspected).toBe(false)
+    expect(JSON.stringify(directError)).not.toContain('C:/Users')
+    expect(JSON.stringify(bridgeError)).not.toContain('LENOVO')
+    expect(JSON.stringify(bridgeError)).not.toContain('hostile-fragment')
+  })
+
   it('validates directory entry names, duplicate listings and non-file metadata before discovery', async() => {
     expect(normalizeContentPackageSourceEntryName('manifest.json')).toBe('manifest.json')
     expect(normalizeContentPackageSourceDirectoryEntries([

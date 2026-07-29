@@ -515,9 +515,10 @@ const assertNormalizedPathWithinLimits = (
 }
 
 export const normalizeContentPackageSourcePath = (
-  path: string,
+  path: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): string => {
+  if (typeof path !== 'string') return throwUnsafeSourcePath()
   if (path === '') return ''
   if (hasUnsafePathControlCharacter(path)) return throwUnsafeSourcePath()
   try {
