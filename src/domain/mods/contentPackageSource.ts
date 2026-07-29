@@ -337,6 +337,18 @@ const throwUnsafeSourcePath = (message = 'Content package source path is unsafe'
   throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', message)
 }
 
+const isUnknownArray = (
+  value: unknown,
+  code: ContentPackageSourceErrorCode,
+  unreadableMessage: string
+): value is unknown[] => {
+  try {
+    return Array.isArray(value)
+  } catch {
+    throw new ContentPackageSourceError(code, unreadableMessage)
+  }
+}
+
 const readUnknownMetadataField = (
   metadata: Record<string, unknown>,
   fieldName: string,
@@ -408,7 +420,7 @@ const readUnknownMetadataArray = (
   maxEntryCount?: number,
   limitMessage?: (entryCount: number) => string
 ): readonly unknown[] => {
-  if (!Array.isArray(metadata)) {
+  if (!isUnknownArray(metadata, 'SOURCE_ENTRY_UNSAFE', unreadableMessage)) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
       notArrayMessage
@@ -555,7 +567,11 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   entry: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): ContentPackageSourceDirectoryEntry => {
-  if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+  if (
+    typeof entry !== 'object'
+    || entry === null
+    || isUnknownArray(entry, 'SOURCE_ENTRY_UNSAFE', 'Content package source entry metadata could not be read')
+  ) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
       'Content package source entry metadata must be an object'
@@ -700,7 +716,11 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
   entry: unknown,
   policy: ContentPackageSourceSafeReadPolicy
 ): ContentPackageSourceUnknownArchiveEntry => {
-  if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) {
+  if (
+    typeof entry !== 'object'
+    || entry === null
+    || isUnknownArray(entry, 'SOURCE_ENTRY_UNSAFE', 'Archive entry metadata could not be read')
+  ) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_UNSAFE',
       'Archive entry metadata must be an object'
@@ -976,7 +996,11 @@ const entryName = (path: string, fallback: string): string => {
 }
 
 const asIdentityObject = (identity: unknown): Record<string, unknown> => {
-  if (typeof identity !== 'object' || identity === null || Array.isArray(identity)) {
+  if (
+    typeof identity !== 'object'
+    || identity === null
+    || isUnknownArray(identity, 'SOURCE_IDENTITY_INVALID', 'Content package source identity metadata could not be read')
+  ) {
     throw new ContentPackageSourceError(
       'SOURCE_IDENTITY_INVALID',
       'Content package source identity must be an object'

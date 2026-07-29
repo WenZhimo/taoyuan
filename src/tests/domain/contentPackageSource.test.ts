@@ -201,6 +201,12 @@ const defineHiddenHostileGetter = <T extends object>(
   }
 }
 
+const createRevokedProxy = <T extends object>(target: T): T => {
+  const { proxy, revoke } = Proxy.revocable(target, {})
+  revoke()
+  return proxy
+}
+
 const createHostileSourceErrorMetadata = (): ContentPackageSourceError => {
   const error = new ContentPackageSourceError(
     'SOURCE_PERMISSION_REVOKED',
@@ -776,6 +782,61 @@ describe('content package source contract', () => {
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
       expect(JSON.stringify(error)).not.toContain('metadata-array')
+    }
+  })
+
+  it('wraps revoked proxy metadata before raw platform errors can escape', () => {
+    const revokedIdentityError = captureSourceError(() => validateContentPackageSourceIdentity(
+      createRevokedProxy({
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/revoked-identity',
+        rootPath: 'packs'
+      })
+    ))
+    const revokedDirectoryArrayError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      createRevokedProxy([{ name: 'pack', kind: 'directory', isSymbolicLink: false }])
+    ))
+    const revokedDirectoryEntryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      createRevokedProxy({ name: 'pack', kind: 'directory', isSymbolicLink: false })
+    ]))
+    const revokedArchiveArrayError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      createRevokedProxy([{ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }])
+    ))
+    const revokedArchiveEntryError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      createRevokedProxy({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 })
+    ]))
+
+    expect(revokedIdentityError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata could not be read'
+    })
+    expect(revokedDirectoryArrayError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata could not be read'
+    })
+    expect(revokedDirectoryEntryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source entry metadata could not be read'
+    })
+    expect(revokedArchiveArrayError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata could not be read'
+    })
+    expect(revokedArchiveEntryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata could not be read'
+    })
+    for (const error of [
+      revokedIdentityError,
+      revokedDirectoryArrayError,
+      revokedDirectoryEntryError,
+      revokedArchiveArrayError,
+      revokedArchiveEntryError
+    ]) {
+      expect(JSON.stringify(error)).not.toContain('Cannot perform')
+      expect(JSON.stringify(error)).not.toContain('IsArray')
+      expect(JSON.stringify(error)).not.toContain('revoked')
     }
   })
 
