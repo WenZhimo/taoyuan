@@ -49,6 +49,9 @@ const safeCliFailureMessage = error => {
 }
 
 const normalizeNodeSourcePath = sourcePath => {
+  if (typeof sourcePath !== 'string') {
+    throw new Error('Content package source path is unsafe')
+  }
   if (sourcePath.includes('\\')) {
     throw new Error('Content package source path is unsafe')
   }

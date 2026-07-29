@@ -590,6 +590,73 @@ describe('third-party data pack check CLI', () => {
     }
   }, CLI_TEST_TIMEOUT_MS)
 
+  it('rejects non-string Node source paths before coercion', async() => {
+    const root = await createTempRoot()
+    const result = await runNodeModuleSnippet(`
+      import { createNodeContentPackageSource } from './scripts/check-third-party-packs.mjs'
+
+      const source = createNodeContentPackageSource({
+        contractVersion: 1,
+        rootDirectory: ${JSON.stringify(root)},
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs'
+      })
+      let coerced = false
+      const hostilePath = {
+        get includes() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-path')
+        },
+        toString() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-path')
+        },
+        [Symbol.toPrimitive]() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-path')
+        }
+      }
+      const messages = []
+      for (const [operation, fn] of [
+        ['getEntry', () => source.getEntry(hostilePath)],
+        ['readDirectory', () => source.readDirectory(hostilePath)],
+        ['readTextFile', () => source.readTextFile(hostilePath)]
+      ]) {
+        try {
+          await fn()
+          messages.push({ operation, message: 'resolved' })
+        } catch (error) {
+          messages.push({
+            operation,
+            message: error instanceof Error ? error.message : String(error)
+          })
+        }
+      }
+      await source.dispose()
+      process.stdout.write(JSON.stringify({ coerced, messages }))
+    `)
+    const output = JSON.parse(result.stdout) as {
+      readonly coerced: boolean
+      readonly messages: readonly Pick<NodeAdapterProbeMessage, 'operation' | 'message'>[]
+    }
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(output.coerced).toBe(false)
+    expect(output.messages).toHaveLength(3)
+    expect(output.messages.map(message => message.operation)).toEqual([
+      'getEntry',
+      'readDirectory',
+      'readTextFile'
+    ])
+    for (const message of output.messages) {
+      expect(message.message).toBe('Content package source path is unsafe')
+    }
+    expect(result.stdout).not.toContain('C:/Users')
+    expect(result.stdout).not.toContain('LENOVO')
+    expect(result.stdout).not.toContain('hostile-node-path')
+  }, CLI_TEST_TIMEOUT_MS)
+
   it('builds CLI discovery input from validated source identity without direct getter reads', async() => {
     const result = await runNodeModuleSnippet(`
       import { createDiscoveryInputFromContentPackageSource } from './scripts/check-third-party-packs.mjs'
