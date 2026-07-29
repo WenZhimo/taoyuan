@@ -1168,6 +1168,29 @@ describe('content package source contract', () => {
     ]) {
       expect(() => normalizeContentPackageSourceArchiveEntryPath(unsafePath)).toThrow(ContentPackageSourceError)
     }
+    let archivePathCoerced = false
+    const hostileArchivePath = {
+      toString() {
+        archivePathCoerced = true
+        throw new Error('C:/Users/LENOVO/mods/archive-to-string-hostile-fragment')
+      },
+      [Symbol.toPrimitive]() {
+        archivePathCoerced = true
+        throw new Error('C:/Users/LENOVO/mods/archive-to-primitive-hostile-fragment')
+      }
+    }
+    const hostileArchivePathError = captureSourceError(() => normalizeContentPackageSourceArchiveEntryPath(
+      hostileArchivePath as never
+    ))
+
+    expect(hostileArchivePathError).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Archive entry paths must be non-empty normalized POSIX paths'
+    })
+    expect(archivePathCoerced).toBe(false)
+    expect(JSON.stringify(hostileArchivePathError)).not.toContain('C:/Users')
+    expect(JSON.stringify(hostileArchivePathError)).not.toContain('LENOVO')
+    expect(JSON.stringify(hostileArchivePathError)).not.toContain('hostile-fragment')
     expect(captureSourceError(() => normalizeContentPackageSourceArchiveEntryPath(
       'a/'.repeat(limits.maxPathDepth) + 'manifest.json'
     )).code).toBe('SOURCE_LIMIT_EXCEEDED')

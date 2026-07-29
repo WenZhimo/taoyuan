@@ -659,9 +659,15 @@ export const normalizeContentPackageSourceDirectoryEntries = (
 }
 
 export const normalizeContentPackageSourceArchiveEntryPath = (
-  path: string,
+  path: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): string => {
+  if (typeof path !== 'string') {
+    throw new ContentPackageSourceError(
+      'SOURCE_PATH_UNSAFE',
+      'Archive entry paths must be non-empty normalized POSIX paths'
+    )
+  }
   if (path === '' || path.includes('\\') || hasUnsafePathControlCharacter(path)) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
