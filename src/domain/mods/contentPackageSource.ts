@@ -222,6 +222,9 @@ const stableContentPackageSourceDiagnosticMessages: ReadonlySet<string> = new Se
   'Content package source has been disposed',
   'Content package source permission was revoked',
   'File path cannot be the source root',
+  'Source file path conflicts with a directory path',
+  'Duplicate source file path',
+  'Source directory path conflicts with a file path',
   'Electron read-only source adapter probe root was not found',
   'Electron read-only source adapter probe root metadata does not match requested path',
   'Electron read-only source adapter probe root must be a directory',
@@ -245,9 +248,6 @@ const stableContentPackageSourceDiagnosticPatterns: readonly RegExp[] = [
   /^Source path is not a file: .+$/,
   /^Source path is not a directory: .+$/,
   /^Memory source exceeds \d+ files: \d+$/,
-  /^Source file path conflicts with a directory path: .+$/,
-  /^Duplicate source file path: .+$/,
-  /^Source directory path conflicts with a file path: .+$/,
   /^Discovery path is outside source root: .+$/
 ]
 
@@ -1335,15 +1335,13 @@ export const createMemoryContentPackageSource = (
     if (directories.has(normalizedPath)) {
       throw new ContentPackageSourceError(
         'SOURCE_DUPLICATE_PATH',
-        `Source file path conflicts with a directory path: ${normalizedPath}`,
-        normalizedPath
+        'Source file path conflicts with a directory path'
       )
     }
     if (files.has(normalizedPath)) {
       throw new ContentPackageSourceError(
         'SOURCE_DUPLICATE_PATH',
-        `Duplicate source file path: ${normalizedPath}`,
-        normalizedPath
+        'Duplicate source file path'
       )
     }
     files.set(normalizedPath, file.text)
@@ -1353,8 +1351,7 @@ export const createMemoryContentPackageSource = (
       if (files.has(directory)) {
         throw new ContentPackageSourceError(
           'SOURCE_DUPLICATE_PATH',
-          `Source directory path conflicts with a file path: ${directory}`,
-          directory
+          'Source directory path conflicts with a file path'
         )
       }
       directories.add(directory)

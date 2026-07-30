@@ -435,14 +435,46 @@ describe('content package source contract', () => {
       })
       expect(JSON.stringify(error)).not.toContain('secret')
     }
-    expect(() => createMemoryContentPackageSource({
+    const duplicateFilePathError = captureSourceError(() => createMemoryContentPackageSource({
       sourceId: 'memory/duplicate-source',
       rootPath: 'packs',
       files: [
-        { path: 'pack/manifest.json', text: '{}\n' },
-        { path: 'pack\\manifest.json', text: '{}\n' }
+        { path: 'LENOVO-private-pack/manifest.json', text: '{}\n' },
+        { path: 'LENOVO-private-pack\\manifest.json', text: '{}\n' }
       ]
-    })).toThrow(ContentPackageSourceError)
+    }))
+    const fileOverDirectoryError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/file-over-directory-source',
+      rootPath: 'packs',
+      files: [
+        { path: 'LENOVO-private-pack/manifest.json', text: '{}\n' },
+        { path: 'LENOVO-private-pack', text: '{}\n' }
+      ]
+    }))
+    const directoryOverFileError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/directory-over-file-source',
+      rootPath: 'packs',
+      files: [
+        { path: 'LENOVO-private-pack', text: '{}\n' },
+        { path: 'LENOVO-private-pack/manifest.json', text: '{}\n' }
+      ]
+    }))
+
+    expect(duplicateFilePathError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Duplicate source file path'
+    })
+    expect(fileOverDirectoryError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Source file path conflicts with a directory path'
+    })
+    expect(directoryOverFileError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Source directory path conflicts with a file path'
+    })
+    for (const error of [duplicateFilePathError, fileOverDirectoryError, directoryOverFileError]) {
+      expect(JSON.stringify(error)).not.toContain('LENOVO-private-pack')
+    }
   })
 
   it('narrows memory source options metadata before publishing a source', async() => {
