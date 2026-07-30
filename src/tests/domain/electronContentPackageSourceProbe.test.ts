@@ -973,6 +973,98 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('contains disposed Electron source inspect, list, read and discovery boundaries', async() => {
+    const hostOperations: string[] = []
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          hostOperations.push(`inspect:${sourcePath}`)
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack') return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack/manifest.json') {
+            return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+          }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          hostOperations.push(`list:${sourcePath}`)
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        },
+        async readTextFile(sourcePath) {
+          hostOperations.push(`read:${sourcePath}`)
+          return '{"id":"private_pack"}\n'
+        },
+        async dispose() {
+          hostOperations.push('dispose')
+        }
+      }
+    })
+
+    await source.dispose()
+    await source.dispose()
+    await expect(source.getEntry('')).rejects.toMatchObject({
+      code: 'SOURCE_DISPOSED',
+      message: 'Electron read-only source adapter probe has been disposed'
+    })
+    await expect(source.readDirectory('')).rejects.toMatchObject({
+      code: 'SOURCE_DISPOSED',
+      message: 'Electron read-only source adapter probe has been disposed'
+    })
+    await expect(source.readTextFile('private-pack/manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_DISPOSED',
+      message: 'Electron read-only source adapter probe has been disposed'
+    })
+
+    const directJson = await readContentPackageSourceJson(source, 'private-pack/manifest.json')
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_DISPOSED',
+      message: 'Electron read-only source adapter probe has been disposed'
+    })
+    expect(discoveryReport.status).toBe('directory-not-found')
+    expect(discoveryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      sourceCode: 'SOURCE_DISPOSED',
+      message: 'Electron read-only source adapter probe has been disposed'
+    })
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Electron read-only source adapter probe has been disposed',
+      sourceErrorCode: 'SOURCE_DISPOSED',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(hostOperations).toEqual(['dispose'])
+    for (const result of [directJson, discoveryReport, sourceReport, readinessReport]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain(path.sep)
+    }
+    expectOfficialBaseline()
+  })
+
   it('redacts unreadable Electron source error metadata in probe and release diagnostics', async() => {
     const hostileEntry = {
       name: 'mods',
