@@ -948,6 +948,28 @@ describe('content package source contract', () => {
     expect(captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
       { name: 'pipe', kind: 'socket', isSymbolicLink: false } as never
     ])).code).toBe('SOURCE_ENTRY_UNSAFE')
+
+    let symbolicLinkReadAfterUnsupportedKind = false
+    const unsupportedKindWithHostileSymbolicLink = { name: 'pipe', kind: 'socket' }
+    Object.defineProperty(unsupportedKindWithHostileSymbolicLink, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        symbolicLinkReadAfterUnsupportedKind = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/unsupported-kind-symlink')
+      }
+    })
+    const unsupportedKindError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      unsupportedKindWithHostileSymbolicLink as never
+    ]))
+    expect(unsupportedKindError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Unsupported content package source entry kind'
+    })
+    expect(symbolicLinkReadAfterUnsupportedKind).toBe(false)
+    expect(JSON.stringify(unsupportedKindError)).not.toContain('C:/Users')
+    expect(JSON.stringify(unsupportedKindError)).not.toContain('LENOVO')
+    expect(JSON.stringify(unsupportedKindError)).not.toContain('unsupported-kind-symlink')
+
     for (const unsafeMetadataEntry of [
       { name: 'C:/Users/LENOVO/mods/pack', kind: 'socket', isSymbolicLink: false } as never,
       { name: 'pack', kind: 'C:/Users/LENOVO/mods/socket', isSymbolicLink: false } as never,

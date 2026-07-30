@@ -641,6 +641,12 @@ export const normalizeContentPackageSourceDirectoryEntry = (
       'Unsupported content package source entry kind'
     )
   }
+  if (!supportedEntryKinds.has(kind as ContentPackageSourceEntryKind)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Unsupported content package source entry kind'
+    )
+  }
 
   const isSymbolicLink = readUnknownMetadataField(
     entryMetadata,
@@ -656,12 +662,6 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   }
 
   const unknownEntry: ContentPackageSourceUnknownDirectoryEntry = { name, kind, isSymbolicLink }
-  if (!supportedEntryKinds.has(unknownEntry.kind as ContentPackageSourceEntryKind)) {
-    throw new ContentPackageSourceError(
-      'SOURCE_ENTRY_UNSAFE',
-      'Unsupported content package source entry kind'
-    )
-  }
   return {
     name: normalizeContentPackageSourceEntryName(unknownEntry.name, policy),
     kind: unknownEntry.kind as ContentPackageSourceEntryKind,
