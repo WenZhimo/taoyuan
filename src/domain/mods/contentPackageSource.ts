@@ -628,6 +628,7 @@ export const normalizeContentPackageSourceDirectoryEntry = (
       'Content package source entry name metadata must be a string'
     )
   }
+  const normalizedName = normalizeContentPackageSourceEntryName(name, policy)
 
   const kind = readUnknownMetadataField(
     entryMetadata,
@@ -663,7 +664,7 @@ export const normalizeContentPackageSourceDirectoryEntry = (
 
   const unknownEntry: ContentPackageSourceUnknownDirectoryEntry = { name, kind, isSymbolicLink }
   return {
-    name: normalizeContentPackageSourceEntryName(unknownEntry.name, policy),
+    name: normalizedName,
     kind: unknownEntry.kind as ContentPackageSourceEntryKind,
     isSymbolicLink: unknownEntry.isSymbolicLink
   }

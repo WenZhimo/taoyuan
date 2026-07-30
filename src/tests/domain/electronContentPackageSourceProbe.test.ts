@@ -1964,7 +1964,7 @@ describe('electron content package source read-only probe', () => {
       status: 'blocked',
       inspectedPath: '',
       inspectedEntryKind: null,
-      sourceErrorCode: 'SOURCE_ENTRY_UNSAFE',
+      sourceErrorCode: 'SOURCE_PATH_UNSAFE',
       effects: {
         runtimeEnablementAllowed: false,
         electronIpcExposed: false,

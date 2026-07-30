@@ -970,17 +970,49 @@ describe('content package source contract', () => {
     expect(JSON.stringify(unsupportedKindError)).not.toContain('LENOVO')
     expect(JSON.stringify(unsupportedKindError)).not.toContain('unsupported-kind-symlink')
 
-    for (const unsafeMetadataEntry of [
-      { name: 'C:/Users/LENOVO/mods/pack', kind: 'socket', isSymbolicLink: false } as never,
-      { name: 'pack', kind: 'C:/Users/LENOVO/mods/socket', isSymbolicLink: false } as never,
-      { name: 'C:/Users/LENOVO/mods/pack', kind: 'directory' } as never
-    ]) {
-      const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([unsafeMetadataEntry]))
-
-      expect(error.code).toBe('SOURCE_ENTRY_UNSAFE')
-      expect(JSON.stringify(error)).not.toContain('C:/Users')
-      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    let kindReadAfterUnsafeName = false
+    const unsafeNameWithHostileKind = {
+      name: 'private-pack\\nested',
+      isSymbolicLink: false
     }
+    Object.defineProperty(unsafeNameWithHostileKind, 'kind', {
+      enumerable: true,
+      get() {
+        kindReadAfterUnsafeName = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/unsafe-name-kind')
+      }
+    })
+    const unsafeNameError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      unsafeNameWithHostileKind as never
+    ]))
+    expect(unsafeNameError).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source entry names must be single normalized path segments'
+    })
+    expect(kindReadAfterUnsafeName).toBe(false)
+    expect(JSON.stringify(unsafeNameError)).not.toContain('C:/Users')
+    expect(JSON.stringify(unsafeNameError)).not.toContain('LENOVO')
+    expect(JSON.stringify(unsafeNameError)).not.toContain('unsafe-name-kind')
+    expect(JSON.stringify(unsafeNameError)).not.toContain('private-pack')
+    expect(JSON.stringify(unsafeNameError)).not.toContain('nested')
+
+    for (const unsafeNameMetadataEntry of [
+      { name: 'private-pack\\nested', kind: 'socket', isSymbolicLink: false } as never,
+      { name: '../private-pack', kind: 'directory' } as never
+    ]) {
+      const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([unsafeNameMetadataEntry]))
+
+      expect(error.code).toMatch(/^SOURCE_/)
+      expect(JSON.stringify(error)).not.toContain('private-pack')
+      expect(JSON.stringify(error)).not.toContain('nested')
+    }
+
+    const unsafeKindMetadataError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      { name: 'pack', kind: 'C:/Users/LENOVO/mods/socket', isSymbolicLink: false } as never
+    ]))
+    expect(unsafeKindMetadataError.code).toBe('SOURCE_ENTRY_UNSAFE')
+    expect(JSON.stringify(unsafeKindMetadataError)).not.toContain('C:/Users')
+    expect(JSON.stringify(unsafeKindMetadataError)).not.toContain('LENOVO')
 
     let readAttempted = false
     const source: ContentPackageSource = {
@@ -1158,13 +1190,13 @@ describe('content package source contract', () => {
     expect(readAttempted).toBe(false)
     expect(report.status).toBe('directory-not-found')
     expect(report.issues[0]).toMatchObject({
-      kind: 'file-read-failed',
+      kind: 'path-unsafe',
       severity: 'fatal',
       path: '.',
       reason: 'Package source list operation failed'
     })
     expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
-      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+      sourceCode: 'SOURCE_PATH_UNSAFE'
     })
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
