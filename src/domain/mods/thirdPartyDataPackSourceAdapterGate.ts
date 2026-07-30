@@ -87,6 +87,14 @@ const createEffectSummary = (): ThirdPartyDataPackSourceAdapterGateEffectSummary
   transactionLogWritten: false
 })
 
+const cloneOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
+
+const cloneCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
+
 const satisfiedSourceContracts = (): readonly ThirdPartyDataPackSourceContractRequirement[] => [
   {
     id: 'source-identity-validation',
@@ -131,8 +139,8 @@ const baseResult = (
   registryCount: runtimeAdapterGate.registryCount,
   entryCount: runtimeAdapterGate.entryCount,
   packageCount: runtimeAdapterGate.packageCount,
-  officialIdentity: runtimeAdapterGate.officialIdentity,
-  candidateIdentity: runtimeAdapterGate.candidateIdentity,
+  officialIdentity: cloneOfficialIdentity(runtimeAdapterGate.officialIdentity),
+  candidateIdentity: cloneCandidateIdentity(runtimeAdapterGate.candidateIdentity),
   lockfileHash: runtimeAdapterGate.lockfileHash,
   sourceContractReadiness: 'defined',
   contentPackageSourceContractStable: true,
