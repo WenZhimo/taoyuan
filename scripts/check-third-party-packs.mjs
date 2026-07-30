@@ -109,6 +109,86 @@ const normalizeNodeVirtualPackageName = packageName => {
   return normalizedName
 }
 
+const nodeContentPackageSourceOptionFields = new Set([
+  'contractVersion',
+  'rootDirectory',
+  'sourceId',
+  'rootPath',
+  'packageName'
+])
+
+const requiredNodeContentPackageSourceOptionFields = [
+  'contractVersion',
+  'rootDirectory',
+  'sourceId'
+]
+
+const assertNodeContentPackageSourceOptionsObject = options => {
+  let isArray
+  try {
+    isArray = Array.isArray(options)
+  } catch {
+    throw new Error('Content package Node source options metadata could not be read')
+  }
+  if (typeof options !== 'object' || options === null || isArray) {
+    throw new Error('Content package Node source options metadata must be an object')
+  }
+  return options
+}
+
+const readNodeContentPackageSourceOptionDescriptors = options => {
+  let keys
+  try {
+    keys = Reflect.ownKeys(options)
+  } catch {
+    throw new Error('Content package Node source options metadata could not be read')
+  }
+
+  const descriptors = new Map()
+  for (const key of keys) {
+    if (typeof key !== 'string' || !nodeContentPackageSourceOptionFields.has(key)) {
+      throw new Error('Content package Node source options metadata contains unsupported fields')
+    }
+
+    let descriptor
+    try {
+      descriptor = Object.getOwnPropertyDescriptor(options, key)
+    } catch {
+      throw new Error('Content package Node source options metadata could not be read')
+    }
+
+    if (!descriptor || !descriptor.enumerable) {
+      throw new Error('Content package Node source options metadata contains unsupported fields')
+    }
+    if (!Object.prototype.hasOwnProperty.call(descriptor, 'value')) {
+      throw new Error('Content package Node source options metadata could not be read')
+    }
+    descriptors.set(key, descriptor)
+  }
+  return descriptors
+}
+
+const normalizeNodeContentPackageSourceOptions = options => {
+  const optionsObject = assertNodeContentPackageSourceOptionsObject(options)
+  const descriptors = readNodeContentPackageSourceOptionDescriptors(optionsObject)
+
+  if (requiredNodeContentPackageSourceOptionFields.some(field => !descriptors.has(field))) {
+    throw new Error(
+      'Content package Node source options metadata must include contractVersion, rootDirectory and sourceId own fields'
+    )
+  }
+
+  return {
+    contractVersion: descriptors.get('contractVersion').value,
+    rootDirectory: descriptors.get('rootDirectory').value,
+    sourceId: descriptors.get('sourceId').value,
+    rootPath: descriptors.has('rootPath') && descriptors.get('rootPath').value !== undefined
+      ? descriptors.get('rootPath').value
+      : cliContentSourceRootPath,
+    packageName: descriptors.get('packageName')?.value
+  }
+}
+
 const joinResolvedSourcePath = (rootDirectory, sourcePath) =>
   sourcePath === ''
     ? rootDirectory
@@ -204,18 +284,20 @@ export const createSinglePackageDiscoveryFileSystem = (
   }
 }
 
-export const createNodeContentPackageSource = ({
-  contractVersion,
-  rootDirectory,
-  sourceId,
-  rootPath = cliContentSourceRootPath,
-  packageName
-}) => {
+export const createNodeContentPackageSource = options => {
+  const {
+    contractVersion,
+    rootDirectory,
+    sourceId,
+    rootPath,
+    packageName
+  } = normalizeNodeContentPackageSourceOptions(options)
   const resolvedRoot = path.resolve(assertNodeRootDirectory(rootDirectory))
   const normalizedSourceId = normalizeNodeSourceIdentityPart(sourceId, 'sourceId')
   const normalizedRootPath = normalizeNodeSourceIdentityPart(rootPath, 'rootPath')
   const virtualPackageName = normalizeNodeVirtualPackageName(packageName)
   const virtualPackagePrefix = `${virtualPackageName}/`
+  const hasVirtualPackage = packageName !== undefined && packageName !== null && packageName !== ''
   let disposed = false
 
   const assertAvailable = () => {
@@ -226,7 +308,7 @@ export const createNodeContentPackageSource = ({
 
   const mapSourcePath = sourcePath => {
     const normalizedPath = normalizeNodeSourcePath(sourcePath)
-    if (!packageName) return joinResolvedSourcePath(resolvedRoot, normalizedPath)
+    if (!hasVirtualPackage) return joinResolvedSourcePath(resolvedRoot, normalizedPath)
     if (normalizedPath === '' || normalizedPath === virtualPackageName) return resolvedRoot
     if (normalizedPath.startsWith(virtualPackagePrefix)) {
       return joinResolvedSourcePath(resolvedRoot, normalizedPath.slice(virtualPackagePrefix.length))
@@ -245,7 +327,7 @@ export const createNodeContentPackageSource = ({
     async getEntry(sourcePath) {
       assertAvailable()
       const normalizedPath = normalizeNodeSourcePath(sourcePath)
-      if (packageName && normalizedPath === '') {
+      if (hasVirtualPackage && normalizedPath === '') {
         return {
           name: normalizedRootPath,
           kind: 'directory',
@@ -257,7 +339,7 @@ export const createNodeContentPackageSource = ({
         const stats = await lstat(filePath)
         const name = normalizedPath === ''
           ? normalizedRootPath
-          : packageName && normalizedPath === virtualPackageName
+          : hasVirtualPackage && normalizedPath === virtualPackageName
             ? virtualPackageName
             : path.basename(filePath)
         return toContentPackageSourceEntry(name, stats)
@@ -270,7 +352,7 @@ export const createNodeContentPackageSource = ({
     async readDirectory(sourcePath) {
       assertAvailable()
       const normalizedPath = normalizeNodeSourcePath(sourcePath)
-      if (packageName && normalizedPath === '') {
+      if (hasVirtualPackage && normalizedPath === '') {
         return [
           {
             name: virtualPackageName,

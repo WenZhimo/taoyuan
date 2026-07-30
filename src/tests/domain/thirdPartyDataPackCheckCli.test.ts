@@ -657,6 +657,200 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).not.toContain('hostile-node-path')
   }, CLI_TEST_TIMEOUT_MS)
 
+  it('narrows Node source options metadata before reading fields or resolving paths', async() => {
+    const root = await createTempRoot()
+    const result = await runNodeModuleSnippet(`
+      import { createNodeContentPackageSource } from './scripts/check-third-party-packs.mjs'
+
+      const rootDirectory = ${JSON.stringify(root)}
+      const messages = []
+      const capture = async(label, fn) => {
+        let message = 'resolved'
+        let extra = {}
+        try {
+          extra = await fn() ?? {}
+        } catch (error) {
+          message = error instanceof Error ? error.message : String(error)
+        }
+        messages.push({ label, message, ...extra })
+      }
+
+      let ownKeysRead = false
+      await capture('nullOptions', () => createNodeContentPackageSource(null))
+      await capture('arrayOptions', () => createNodeContentPackageSource([]))
+      await capture('ownKeysTrap', () => createNodeContentPackageSource(new Proxy({}, {
+        ownKeys() {
+          ownKeysRead = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-options-ownkeys')
+        }
+      })))
+
+      await capture('extraField', () => createNodeContentPackageSource({
+        contractVersion: 1,
+        rootDirectory,
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs',
+        unexpected: 'C:/Users/LENOVO/mods/hostile-node-options-extra'
+      }))
+
+      const symbolKey = Symbol('C:/Users/LENOVO/mods/hostile-node-options-symbol')
+      await capture('symbolField', () => createNodeContentPackageSource({
+        contractVersion: 1,
+        rootDirectory,
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs',
+        [symbolKey]: true
+      }))
+
+      let inheritedGetterRead = false
+      const inheritedOptions = Object.create({
+        get rootDirectory() {
+          inheritedGetterRead = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-options-inherited')
+        }
+      })
+      Object.assign(inheritedOptions, {
+        contractVersion: 1,
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs'
+      })
+      await capture('inheritedGetter', () => createNodeContentPackageSource(inheritedOptions))
+
+      let hiddenGetterRead = false
+      const hiddenOptions = {
+        contractVersion: 1,
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs'
+      }
+      Object.defineProperty(hiddenOptions, 'rootDirectory', {
+        enumerable: false,
+        get() {
+          hiddenGetterRead = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-options-hidden')
+        }
+      })
+      await capture('hiddenGetter', () => createNodeContentPackageSource(hiddenOptions))
+
+      let ownGetterRead = false
+      const ownGetterOptions = {
+        contractVersion: 1,
+        sourceId: 'developer-cli/test-source',
+        rootPath: 'packs'
+      }
+      Object.defineProperty(ownGetterOptions, 'rootDirectory', {
+        enumerable: true,
+        get() {
+          ownGetterRead = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-options-getter')
+        }
+      })
+      await capture('ownGetter', () => createNodeContentPackageSource(ownGetterOptions))
+
+      let coerced = false
+      const hostileRootDirectory = {
+        toString() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-options-root')
+        },
+        [Symbol.toPrimitive]() {
+          coerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-node-options-root')
+        }
+      }
+      await capture('missingRequired', () => createNodeContentPackageSource({
+        contractVersion: 1,
+        rootDirectory: hostileRootDirectory,
+        rootPath: 'packs'
+      }))
+
+      await capture('defaultRootPath', async() => {
+        const source = createNodeContentPackageSource({
+          contractVersion: 1,
+          rootDirectory,
+          sourceId: 'developer-cli/test-source'
+        })
+        const rootPath = source.identity.rootPath
+        await source.dispose()
+        return { rootPath }
+      })
+
+      process.stdout.write(JSON.stringify({
+        ownKeysRead,
+        inheritedGetterRead,
+        hiddenGetterRead,
+        ownGetterRead,
+        coerced,
+        messages
+      }))
+    `)
+    const output = JSON.parse(result.stdout) as {
+      readonly ownKeysRead: boolean
+      readonly inheritedGetterRead: boolean
+      readonly hiddenGetterRead: boolean
+      readonly ownGetterRead: boolean
+      readonly coerced: boolean
+      readonly messages: readonly {
+        readonly label: string
+        readonly message: string
+        readonly rootPath?: string
+      }[]
+    }
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(output.ownKeysRead).toBe(true)
+    expect(output.inheritedGetterRead).toBe(false)
+    expect(output.hiddenGetterRead).toBe(false)
+    expect(output.ownGetterRead).toBe(false)
+    expect(output.coerced).toBe(false)
+    expect(output.messages).toEqual([
+      {
+        label: 'nullOptions',
+        message: 'Content package Node source options metadata must be an object'
+      },
+      {
+        label: 'arrayOptions',
+        message: 'Content package Node source options metadata must be an object'
+      },
+      {
+        label: 'ownKeysTrap',
+        message: 'Content package Node source options metadata could not be read'
+      },
+      {
+        label: 'extraField',
+        message: 'Content package Node source options metadata contains unsupported fields'
+      },
+      {
+        label: 'symbolField',
+        message: 'Content package Node source options metadata contains unsupported fields'
+      },
+      {
+        label: 'inheritedGetter',
+        message: 'Content package Node source options metadata must include contractVersion, rootDirectory and sourceId own fields'
+      },
+      {
+        label: 'hiddenGetter',
+        message: 'Content package Node source options metadata contains unsupported fields'
+      },
+      {
+        label: 'ownGetter',
+        message: 'Content package Node source options metadata could not be read'
+      },
+      {
+        label: 'missingRequired',
+        message: 'Content package Node source options metadata must include contractVersion, rootDirectory and sourceId own fields'
+      },
+      {
+        label: 'defaultRootPath',
+        message: 'resolved',
+        rootPath: 'packs'
+      }
+    ])
+    expect(result.stdout).not.toContain('C:/Users')
+    expect(result.stdout).not.toContain('LENOVO')
+    expect(result.stdout).not.toContain('hostile-node-options')
+  }, CLI_TEST_TIMEOUT_MS)
+
   it('rejects non-string Node source roots before coercion', async() => {
     const result = await runNodeModuleSnippet(`
       import { createNodeContentPackageSource } from './scripts/check-third-party-packs.mjs'
