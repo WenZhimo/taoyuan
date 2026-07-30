@@ -228,6 +228,11 @@ const stableContentPackageSourceDiagnosticMessages: ReadonlySet<string> = new Se
   'Content package source has been disposed',
   'Content package source permission was revoked',
   'File path cannot be the source root',
+  'Source path was not found',
+  'Source path must not be a symbolic link',
+  'Source path is not a file',
+  'Source path is not a directory',
+  'Discovery path is outside source root',
   'Source file path conflicts with a directory path',
   'Duplicate source file path',
   'Source directory path conflicts with a file path',
@@ -249,12 +254,7 @@ const stableContentPackageSourceDiagnosticPatterns: readonly RegExp[] = [
   /^Archive exceeds \d+ total compressed bytes: \d+$/,
   /^Archive entry exceeds \d+:1 compression ratio$/,
   /^Source text file exceeds \d+ bytes: \d+$/,
-  /^Source path was not found: .+$/,
-  /^Source path must not be a symbolic link: .+$/,
-  /^Source path is not a file: .+$/,
-  /^Source path is not a directory: .+$/,
-  /^Memory source exceeds \d+ files: \d+$/,
-  /^Discovery path is outside source root: .+$/
+  /^Memory source exceeds \d+ files: \d+$/
 ]
 
 const isStableContentPackageSourceDiagnosticMessage = (message: string): boolean =>
@@ -958,7 +958,7 @@ const inspectContentPackageSourceReadableFile = async(
   if (inspectedEntry === null) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_NOT_FOUND',
-      `Source path was not found: ${normalizedPath}`,
+      'Source path was not found',
       normalizedPath
     )
   }
@@ -972,14 +972,14 @@ const inspectContentPackageSourceReadableFile = async(
   if (entry.isSymbolicLink) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
-      `Source path must not be a symbolic link: ${normalizedPath}`,
+      'Source path must not be a symbolic link',
       normalizedPath
     )
   }
   if (entry.kind !== 'file') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_NOT_FILE',
-      `Source path is not a file: ${normalizedPath}`,
+      'Source path is not a file',
       normalizedPath
     )
   }
@@ -1002,7 +1002,7 @@ const inspectContentPackageSourceReadableDirectory = async(
   if (inspectedEntry === null) {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_NOT_FOUND',
-      `Source path was not found: ${normalizedPath}`,
+      'Source path was not found',
       normalizedPath
     )
   }
@@ -1016,14 +1016,14 @@ const inspectContentPackageSourceReadableDirectory = async(
   if (entry.isSymbolicLink) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_UNSAFE',
-      `Source path must not be a symbolic link: ${normalizedPath}`,
+      'Source path must not be a symbolic link',
       normalizedPath
     )
   }
   if (entry.kind !== 'directory') {
     throw new ContentPackageSourceError(
       'SOURCE_ENTRY_NOT_DIRECTORY',
-      `Source path is not a directory: ${normalizedPath}`,
+      'Source path is not a directory',
       normalizedPath
     )
   }
@@ -1416,7 +1416,7 @@ export const createMemoryContentPackageSource = (
     if (!directories.has(normalizedPath)) {
       throw new ContentPackageSourceError(
         'SOURCE_ENTRY_NOT_DIRECTORY',
-        `Source path is not a directory: ${normalizedPath || rootPath}`,
+        'Source path is not a directory',
         normalizedPath
       )
     }
@@ -1465,7 +1465,7 @@ export const createMemoryContentPackageSource = (
         const entry = getEntry(normalizedPath)
         throw new ContentPackageSourceError(
           entry?.kind === 'directory' ? 'SOURCE_ENTRY_NOT_FILE' : 'SOURCE_ENTRY_NOT_FOUND',
-          `Source path is not a file: ${normalizedPath}`,
+          entry?.kind === 'directory' ? 'Source path is not a file' : 'Source path was not found',
           normalizedPath
         )
       }
@@ -1545,7 +1545,7 @@ const stripDiscoveryRoot = (
   if (!normalizedPath.startsWith(rootPrefix)) {
     throw new ContentPackageSourceError(
       'SOURCE_PATH_OUTSIDE_ROOT',
-      `Discovery path is outside source root: ${normalizedPath}`,
+      'Discovery path is outside source root',
       normalizedPath
     )
   }

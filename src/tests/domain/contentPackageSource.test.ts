@@ -3175,6 +3175,136 @@ describe('content package source contract', () => {
     expect(directoryReadAttempts).toEqual(['pack/valid-dir'])
   })
 
+  it('keeps source preflight diagnostic messages path-free', async() => {
+    const source = createMetadataGuardSource({
+      'LENOVO-private-pack/missing.json': null,
+      'LENOVO-private-pack/directory.json': { kind: 'directory', isSymbolicLink: false },
+      'LENOVO-private-pack/symlink.json': { kind: 'file', isSymbolicLink: true },
+      'LENOVO-private-pack/file-as-dir': { kind: 'file', isSymbolicLink: false }
+    })
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    const directMissing = await readContentPackageSourceJson(source, 'LENOVO-private-pack/missing.json')
+    const directDirectory = await readContentPackageSourceJson(source, 'LENOVO-private-pack/directory.json')
+    const directSymlink = await readContentPackageSourceJson(source, 'LENOVO-private-pack/symlink.json')
+    const bridgedMissing = await captureAsyncSourceError(() =>
+      fileSystem.readTextFile('packs/LENOVO-private-pack/missing.json')
+    )
+    const bridgedDirectory = await captureAsyncSourceError(() =>
+      fileSystem.readTextFile('packs/LENOVO-private-pack/directory.json')
+    )
+    const bridgedSymlink = await captureAsyncSourceError(() =>
+      fileSystem.readTextFile('packs/LENOVO-private-pack/symlink.json')
+    )
+    const bridgedFileAsDirectory = await captureAsyncSourceError(() =>
+      fileSystem.readDirectory('packs/LENOVO-private-pack/file-as-dir')
+    )
+
+    expect(directMissing).toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Source path was not found'
+    })
+    expect(directDirectory).toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FILE',
+      message: 'Source path is not a file'
+    })
+    expect(directSymlink).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Source path must not be a symbolic link'
+    })
+    expect(bridgedMissing).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Source path was not found',
+      sourcePath: 'LENOVO-private-pack/missing.json'
+    })
+    expect(bridgedDirectory).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FILE',
+      message: 'Source path is not a file',
+      sourcePath: 'LENOVO-private-pack/directory.json'
+    })
+    expect(bridgedSymlink).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Source path must not be a symbolic link',
+      sourcePath: 'LENOVO-private-pack/symlink.json'
+    })
+    expect(bridgedFileAsDirectory).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_DIRECTORY',
+      message: 'Source path is not a directory',
+      sourcePath: 'LENOVO-private-pack/file-as-dir'
+    })
+
+    for (const message of [
+      directMissing.ok ? '' : directMissing.message,
+      directDirectory.ok ? '' : directDirectory.message,
+      directSymlink.ok ? '' : directSymlink.message,
+      bridgedMissing.message,
+      bridgedDirectory.message,
+      bridgedSymlink.message,
+      bridgedFileAsDirectory.message
+    ]) {
+      expect(message).not.toContain('LENOVO-private-pack')
+    }
+  })
+
+  it('redacts legacy path-bearing source preflight messages from host errors', async() => {
+    const source: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/path-bearing-preflight-message',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        if (path === '') return { name: 'packs', kind: 'directory', isSymbolicLink: false }
+        if (path === 'LENOVO-private-pack') {
+          return { name: 'LENOVO-private-pack', kind: 'directory', isSymbolicLink: false }
+        }
+        if (path === 'LENOVO-private-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'LENOVO-private-pack', kind: 'directory', isSymbolicLink: false }]
+        if (path === 'LENOVO-private-pack') return [{ name: 'manifest.json', kind: 'file', isSymbolicLink: false }]
+        return []
+      },
+      async readTextFile(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_ENTRY_NOT_FILE',
+          `Source path is not a file: ${path}`,
+          path
+        )
+      },
+      async dispose() {}
+    }
+
+    const directJson = await readContentPackageSourceJson(source, 'LENOVO-private-pack/manifest.json')
+    const bridgedReadError = await captureAsyncSourceError(() =>
+      createDiscoveryFileSystemFromContentPackageSource(source)
+        .readTextFile('packs/LENOVO-private-pack/manifest.json')
+    )
+
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FILE',
+      message: 'Content package source read operation failed'
+    })
+    expect(bridgedReadError).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FILE',
+      message: 'Content package source read operation failed',
+      sourcePath: 'LENOVO-private-pack/manifest.json'
+    })
+    expect(directJson.ok).toBe(false)
+    if (!directJson.ok) {
+      expect(directJson.message).not.toContain('LENOVO-private-pack')
+    }
+    expect(bridgedReadError.message).not.toContain('LENOVO-private-pack')
+  })
+
   it('rejects mismatched source metadata names before reads and listings expose data', async() => {
     const readAttempts: string[] = []
     const directoryReadAttempts: string[] = []
