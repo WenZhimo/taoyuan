@@ -3176,11 +3176,16 @@ describe('content package source contract', () => {
   })
 
   it('keeps source preflight diagnostic messages path-free', async() => {
+    const outsideRootDirectoryReadAttempts: string[] = []
     const source = createMetadataGuardSource({
       'LENOVO-private-pack/missing.json': null,
       'LENOVO-private-pack/directory.json': { kind: 'directory', isSymbolicLink: false },
       'LENOVO-private-pack/symlink.json': { kind: 'file', isSymbolicLink: true },
       'LENOVO-private-pack/file-as-dir': { kind: 'file', isSymbolicLink: false }
+    }, {
+      directoryReadAttempted: path => {
+        outsideRootDirectoryReadAttempts.push(path)
+      }
     })
     const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
 
@@ -3201,6 +3206,9 @@ describe('content package source contract', () => {
     )
     const bridgedOutsideRoot = await captureAsyncSourceError(() =>
       fileSystem.getEntry('LENOVO-private-root/manifest.json')
+    )
+    const bridgedOutsideRootDirectory = await captureAsyncSourceError(() =>
+      fileSystem.readDirectory('LENOVO-private-root')
     )
 
     expect(directMissing).toMatchObject({
@@ -3243,6 +3251,12 @@ describe('content package source contract', () => {
       message: 'Discovery path is outside source root',
       sourcePath: 'LENOVO-private-root/manifest.json'
     })
+    expect(bridgedOutsideRootDirectory).toMatchObject({
+      code: 'SOURCE_PATH_OUTSIDE_ROOT',
+      message: 'Discovery path is outside source root',
+      sourcePath: 'LENOVO-private-root'
+    })
+    expect(outsideRootDirectoryReadAttempts).toEqual([])
 
     for (const message of [
       directMissing.ok ? '' : directMissing.message,
@@ -3252,7 +3266,8 @@ describe('content package source contract', () => {
       bridgedDirectory.message,
       bridgedSymlink.message,
       bridgedFileAsDirectory.message,
-      bridgedOutsideRoot.message
+      bridgedOutsideRoot.message,
+      bridgedOutsideRootDirectory.message
     ]) {
       expect(message).not.toContain('LENOVO-private-pack')
       expect(message).not.toContain('LENOVO-private-root')
