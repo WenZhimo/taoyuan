@@ -1952,6 +1952,18 @@ describe('content package source contract', () => {
     expect(compressedSizeRead).toBe(false)
   })
 
+  it('ignores inherited optional archive compressed-size metadata before prototype getters can run', () => {
+    const inherited = defineInheritedHostileGetter({
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 0
+    }, 'compressedSizeBytes')
+
+    expect(validateContentPackageSourceArchiveEntries([inherited.value])).toEqual([
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    ])
+    expect(inherited.wasRead()).toBe(false)
+  })
+
   it('narrows archive entry metadata from unknown before ZIP payloads can become sources', () => {
     expect(validateContentPackageSourceArchiveEntries([
       { path: 'pack/manifest.json', uncompressedSizeBytes: 0, compressedSizeBytes: undefined },
