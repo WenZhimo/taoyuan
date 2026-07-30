@@ -1017,6 +1017,79 @@ describe('third-party data pack check CLI', () => {
     expect(result.stdout).not.toContain('hostile-node-package')
   }, CLI_TEST_TIMEOUT_MS)
 
+  it('narrows single-package discovery filesystem arguments before coercion', async() => {
+    const root = await createTempRoot()
+    const result = await runNodeModuleSnippet(`
+      import { createSinglePackageDiscoveryFileSystem } from './scripts/check-third-party-packs.mjs'
+
+      const messages = []
+      const capture = async(label, fn) => {
+        let message = 'resolved'
+        try {
+          message = await fn()
+        } catch (error) {
+          message = error instanceof Error ? error.message : String(error)
+        }
+        messages.push({ label, message })
+      }
+
+      let rootCoerced = false
+      const hostileRoot = {
+        toString() {
+          rootCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-single-root')
+        },
+        [Symbol.toPrimitive]() {
+          rootCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-single-root')
+        }
+      }
+      let nameCoerced = false
+      const hostilePackageName = {
+        toString() {
+          nameCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-single-package')
+        },
+        [Symbol.toPrimitive]() {
+          nameCoerced = true
+          throw new Error('C:/Users/LENOVO/mods/hostile-single-package')
+        }
+      }
+
+      await capture('root', () => createSinglePackageDiscoveryFileSystem(hostileRoot, 'package'))
+      await capture('packageName', () =>
+        createSinglePackageDiscoveryFileSystem(${JSON.stringify(root)}, hostilePackageName)
+      )
+      await capture('defaultName', async() => {
+        const fileSystem = createSinglePackageDiscoveryFileSystem(${JSON.stringify(root)}, '')
+        const entries = await fileSystem.readDirectory(${JSON.stringify(root)})
+        return entries[0]?.name ?? 'missing'
+      })
+
+      process.stdout.write(JSON.stringify({ rootCoerced, nameCoerced, messages }))
+    `)
+    const output = JSON.parse(result.stdout) as {
+      readonly rootCoerced: boolean
+      readonly nameCoerced: boolean
+      readonly messages: readonly { readonly label: string; readonly message: string }[]
+    }
+
+    expect(result.code).toBe(0)
+    expect(result.stderr).toBe('')
+    expect(output).toEqual({
+      rootCoerced: false,
+      nameCoerced: false,
+      messages: [
+        { label: 'root', message: 'Content package source root is unsafe' },
+        { label: 'packageName', message: 'Content package source package name is unsafe' },
+        { label: 'defaultName', message: 'package' }
+      ]
+    })
+    expect(result.stdout).not.toContain('C:/Users')
+    expect(result.stdout).not.toContain('LENOVO')
+    expect(result.stdout).not.toContain('hostile-single')
+  }, CLI_TEST_TIMEOUT_MS)
+
   it('builds CLI discovery input from validated source identity without direct getter reads', async() => {
     const result = await runNodeModuleSnippet(`
       import { createDiscoveryInputFromContentPackageSource } from './scripts/check-third-party-packs.mjs'

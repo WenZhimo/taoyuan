@@ -234,8 +234,8 @@ export const createSinglePackageDiscoveryFileSystem = (
   packageName,
   baseFileSystem = createNodeDiscoveryFileSystem()
 ) => {
-  const resolvedPackageRoot = path.resolve(packageRoot)
-  const candidateName = packageName || 'package'
+  const resolvedPackageRoot = path.resolve(assertNodeRootDirectory(packageRoot))
+  const candidateName = normalizeNodeVirtualPackageName(packageName)
   const virtualCandidateRoot = path.join(resolvedPackageRoot, candidateName)
   const virtualCandidatePrefix = `${virtualCandidateRoot}${path.sep}`
 
