@@ -1653,18 +1653,34 @@ describe('content package source contract', () => {
       { path: 'data/items.json', uncompressedSizeBytes: 100, compressedSizeBytes: 1 },
       { path: 'manifest.json', uncompressedSizeBytes: 1, compressedSizeBytes: 1 }
     ])
-    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
-      { path: 'manifest.json', uncompressedSizeBytes: 1 },
-      { path: 'manifest.json', uncompressedSizeBytes: 1 }
-    ])).code).toBe('SOURCE_DUPLICATE_PATH')
-    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
-      { path: 'pack', uncompressedSizeBytes: 1 },
-      { path: 'pack/manifest.json', uncompressedSizeBytes: 1 }
-    ])).code).toBe('SOURCE_DUPLICATE_PATH')
-    expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
-      { path: 'pack/data/items.json', uncompressedSizeBytes: 1 },
-      { path: 'pack/data', uncompressedSizeBytes: 1 }
-    ])).code).toBe('SOURCE_DUPLICATE_PATH')
+    const duplicateArchivePathError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'LENOVO-private-pack/manifest.json', uncompressedSizeBytes: 1 },
+      { path: 'LENOVO-private-pack/manifest.json', uncompressedSizeBytes: 1 }
+    ]))
+    const ancestorArchivePathError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'LENOVO-private-pack', uncompressedSizeBytes: 1 },
+      { path: 'LENOVO-private-pack/manifest.json', uncompressedSizeBytes: 1 }
+    ]))
+    const descendantArchivePathError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'LENOVO-private-pack/data/items.json', uncompressedSizeBytes: 1 },
+      { path: 'LENOVO-private-pack/data', uncompressedSizeBytes: 1 }
+    ]))
+
+    expect(duplicateArchivePathError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Duplicate archive entry path'
+    })
+    expect(ancestorArchivePathError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Archive entry path conflicts with another entry directory prefix'
+    })
+    expect(descendantArchivePathError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Archive entry path conflicts with another entry directory prefix'
+    })
+    for (const error of [duplicateArchivePathError, ancestorArchivePathError, descendantArchivePathError]) {
+      expect(JSON.stringify(error)).not.toContain('LENOVO-private-pack')
+    }
     expect(captureSourceError(() => validateContentPackageSourceArchiveEntries(
       Array.from({ length: limits.maxPackageFileCount + 1 }, (_, index) => ({
         path: `data/${index}.json`,

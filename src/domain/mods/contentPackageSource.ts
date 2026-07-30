@@ -190,6 +190,8 @@ const stableContentPackageSourceDiagnosticMessages: ReadonlySet<string> = new Se
   'Archive entry metadata contains unsupported fields',
   'Archive entry metadata must include path and uncompressedSizeBytes own fields',
   'Archive entry path metadata must be a string',
+  'Duplicate archive entry path',
+  'Archive entry path conflicts with another entry directory prefix',
   'Archive entries metadata must be an array',
   'Archive entries metadata must be a dense JSON array',
   'Memory source options metadata must be an object',
@@ -233,8 +235,6 @@ const stableContentPackageSourceDiagnosticPatterns: readonly RegExp[] = [
   /^Directory listing exceeds \d+ entries: \d+$/,
   /^Archive exceeds \d+ entries: \d+$/,
   /^(?:uncompressedSizeBytes|compressedSizeBytes) must be a non-negative safe integer$/,
-  /^Duplicate archive entry path: .+$/,
-  /^Archive entry path conflicts with another entry directory prefix: .+$/,
   /^Archive entry exceeds \d+ bytes: \d+$/,
   /^Archive exceeds \d+ total uncompressed bytes: \d+$/,
   /^Archive exceeds \d+ total compressed bytes: \d+$/,
@@ -837,13 +837,12 @@ export const validateContentPackageSourceArchiveEntries = (
   let totalUncompressedBytes = 0
   return normalizedEntries.map(({ entry, path }) => {
     if (seenPaths.has(path)) {
-      throw new ContentPackageSourceError('SOURCE_DUPLICATE_PATH', `Duplicate archive entry path: ${path}`, path)
+      throw new ContentPackageSourceError('SOURCE_DUPLICATE_PATH', 'Duplicate archive entry path')
     }
     if (seenAncestorPaths.has(path) || collectAncestorPaths(path).some(ancestorPath => seenPaths.has(ancestorPath))) {
       throw new ContentPackageSourceError(
         'SOURCE_DUPLICATE_PATH',
-        `Archive entry path conflicts with another entry directory prefix: ${path}`,
-        path
+        'Archive entry path conflicts with another entry directory prefix'
       )
     }
     seenPaths.add(path)
