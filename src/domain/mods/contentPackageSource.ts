@@ -1464,11 +1464,19 @@ export const readContentPackageSourceJson = async (
   source: ContentPackageSource,
   path: string,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
-  sourceIdentity?: ContentPackageSourceIdentity
+  sourceIdentity?: unknown
 ): Promise<ContentPackageSourceJsonReadResult> => {
   let text: string
   try {
-    const normalizedPath = await inspectContentPackageSourceReadableFile(source, path, policy, sourceIdentity)
+    const validatedSourceIdentity = sourceIdentity === undefined
+      ? undefined
+      : validateContentPackageSourceIdentity(sourceIdentity)
+    const normalizedPath = await inspectContentPackageSourceReadableFile(
+      source,
+      path,
+      policy,
+      validatedSourceIdentity
+    )
     try {
       text = assertContentPackageSourceTextWithinLimits(await source.readTextFile(normalizedPath), normalizedPath, policy)
     } catch (error) {

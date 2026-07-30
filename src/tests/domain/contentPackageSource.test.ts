@@ -2552,6 +2552,60 @@ describe('content package source contract', () => {
     expect(JSON.stringify({ result, hostOperations })).not.toContain('LENOVO')
   })
 
+  it('revalidates caller-provided direct JSON identities before inspecting source entries', async() => {
+    let identityReads = 0
+    let rootPathRead = false
+    let inspected = false
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        identityReads += 1
+        throw new Error('source identity must not be read when caller supplies identity')
+      },
+      async getEntry() {
+        inspected = true
+        throw new Error('invalid caller identities must be rejected before source inspection')
+      },
+      async readDirectory() {
+        throw new Error('invalid caller identities must not list directories')
+      },
+      async readTextFile() {
+        throw new Error('invalid caller identities must not read payloads')
+      },
+      async dispose() {}
+    }
+    const hostileCallerIdentity = {
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/direct-json-hostile-caller-identity'
+    }
+    Object.defineProperty(hostileCallerIdentity, 'rootPath', {
+      enumerable: true,
+      get() {
+        rootPathRead = true
+        throw new Error('EACCES: lstat C:/Users/LENOVO/mods/direct-json-caller-identity')
+      }
+    })
+
+    const result = await readContentPackageSourceJson(
+      source,
+      'pack/manifest.json',
+      CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      hostileCallerIdentity
+    )
+
+    expect(result).toMatchObject({
+      ok: false,
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata could not be read'
+    })
+    expect(identityReads).toBe(0)
+    expect(rootPathRead).toBe(true)
+    expect(inspected).toBe(false)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('direct-json-caller-identity')
+  })
+
   it('keeps caller-validated direct JSON identities while unavailable sources stay structured and path-free', async() => {
     const cases = [
       {
