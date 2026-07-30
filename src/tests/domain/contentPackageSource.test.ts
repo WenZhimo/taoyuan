@@ -3199,6 +3199,9 @@ describe('content package source contract', () => {
     const bridgedFileAsDirectory = await captureAsyncSourceError(() =>
       fileSystem.readDirectory('packs/LENOVO-private-pack/file-as-dir')
     )
+    const bridgedOutsideRoot = await captureAsyncSourceError(() =>
+      fileSystem.getEntry('LENOVO-private-root/manifest.json')
+    )
 
     expect(directMissing).toMatchObject({
       ok: false,
@@ -3235,6 +3238,11 @@ describe('content package source contract', () => {
       message: 'Source path is not a directory',
       sourcePath: 'LENOVO-private-pack/file-as-dir'
     })
+    expect(bridgedOutsideRoot).toMatchObject({
+      code: 'SOURCE_PATH_OUTSIDE_ROOT',
+      message: 'Discovery path is outside source root',
+      sourcePath: 'LENOVO-private-root/manifest.json'
+    })
 
     for (const message of [
       directMissing.ok ? '' : directMissing.message,
@@ -3243,9 +3251,11 @@ describe('content package source contract', () => {
       bridgedMissing.message,
       bridgedDirectory.message,
       bridgedSymlink.message,
-      bridgedFileAsDirectory.message
+      bridgedFileAsDirectory.message,
+      bridgedOutsideRoot.message
     ]) {
       expect(message).not.toContain('LENOVO-private-pack')
+      expect(message).not.toContain('LENOVO-private-root')
     }
   })
 
