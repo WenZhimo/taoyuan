@@ -145,6 +145,18 @@ const createInvalidRootHost = (
   }
 })
 
+const captureProbeCreateError = (options: unknown): ContentPackageSourceError => {
+  try {
+    createElectronReadonlyDirectoryProbeSource(
+      options as Parameters<typeof createElectronReadonlyDirectoryProbeSource>[0]
+    )
+  } catch (error) {
+    expect(error).toBeInstanceOf(ContentPackageSourceError)
+    return error as ContentPackageSourceError
+  }
+  throw new Error('Expected ContentPackageSourceError')
+}
+
 const collectFileContents = async(root: string): Promise<Record<string, string>> => {
   const result: Record<string, string> = {}
   const visit = async(directory: string): Promise<void> => {
@@ -667,6 +679,187 @@ describe('electron content package source read-only probe', () => {
     }
 
     expect(coerced).toBe(false)
+    expect(hostOperations).toEqual([])
+    expectOfficialBaseline()
+  })
+
+  it('narrows Electron source adapter options and host metadata before publishing a source', () => {
+    const hostOperations: string[] = []
+    const host: ElectronReadonlyDirectoryProbeHost = {
+      async getEntry(sourcePath) {
+        hostOperations.push(`inspect:${sourcePath}`)
+        return null
+      },
+      async readDirectory(sourcePath) {
+        hostOperations.push(`list:${sourcePath}`)
+        return []
+      },
+      async readTextFile(sourcePath) {
+        hostOperations.push(`read:${sourcePath}`)
+        return '{}\n'
+      }
+    }
+    const validSource = createElectronReadonlyDirectoryProbeSource({ host })
+
+    expect(validSource.identity).toEqual({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'electron-readonly-directory-probe',
+      sourceId: 'electron/mods-readonly-probe',
+      rootPath: 'mods'
+    })
+
+    const nonObjectOptionsError = captureProbeCreateError(null)
+    expect(nonObjectOptionsError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata must be an object'
+    })
+
+    const hostileOptionsOwnKeysError = captureProbeCreateError(new Proxy({ host }, {
+      ownKeys() {
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/options-keys')
+      }
+    }))
+    expect(hostileOptionsOwnKeysError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata could not be read'
+    })
+
+    const extraOptionsError = captureProbeCreateError({
+      host,
+      extra: 'C:/Users/LENOVO/mods/private-option'
+    })
+    expect(extraOptionsError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata contains unsupported fields'
+    })
+
+    let inheritedHostRead = false
+    const inheritedOptionsPrototype = {}
+    Object.defineProperty(inheritedOptionsPrototype, 'host', {
+      enumerable: true,
+      get() {
+        inheritedHostRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/host')
+      }
+    })
+    const inheritedOptions = Object.create(inheritedOptionsPrototype)
+    const inheritedOptionsError = captureProbeCreateError(inheritedOptions)
+    expect(inheritedOptionsError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata must include host own field'
+    })
+    expect(inheritedHostRead).toBe(false)
+
+    let hiddenHostRead = false
+    const hiddenOptions = {}
+    Object.defineProperty(hiddenOptions, 'host', {
+      enumerable: false,
+      get() {
+        hiddenHostRead = true
+        throw new Error('EACCES: hidden C:/Users/LENOVO/mods/host')
+      }
+    })
+    const hiddenOptionsError = captureProbeCreateError(hiddenOptions)
+    expect(hiddenOptionsError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata contains unsupported fields'
+    })
+    expect(hiddenHostRead).toBe(false)
+
+    const hostileHostGetterOptions = {}
+    Object.defineProperty(hostileHostGetterOptions, 'host', {
+      enumerable: true,
+      get() {
+        throw new Error('EACCES: get C:/Users/LENOVO/mods/host')
+      }
+    })
+    const hostileHostGetterError = captureProbeCreateError(hostileHostGetterOptions)
+    expect(hostileHostGetterError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata could not be read'
+    })
+
+    const hostExtraFieldError = captureProbeCreateError({
+      host: {
+        ...host,
+        secret: 'C:/Users/LENOVO/mods/private-host'
+      }
+    })
+    expect(hostExtraFieldError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host metadata contains unsupported fields'
+    })
+
+    const hostOwnKeysError = captureProbeCreateError({
+      host: new Proxy(host, {
+        ownKeys() {
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/host-keys')
+        }
+      })
+    })
+    expect(hostOwnKeysError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host metadata could not be read'
+    })
+
+    let inheritedMethodRead = false
+    const inheritedHostPrototype = {}
+    Object.defineProperty(inheritedHostPrototype, 'getEntry', {
+      enumerable: true,
+      get() {
+        inheritedMethodRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/getEntry')
+      }
+    })
+    const inheritedHost = Object.create(inheritedHostPrototype)
+    Object.defineProperty(inheritedHost, 'readDirectory', { enumerable: true, value: host.readDirectory })
+    Object.defineProperty(inheritedHost, 'readTextFile', { enumerable: true, value: host.readTextFile })
+    const inheritedHostError = captureProbeCreateError({ host: inheritedHost })
+    expect(inheritedHostError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host metadata must include getEntry, readDirectory and readTextFile own fields'
+    })
+    expect(inheritedMethodRead).toBe(false)
+
+    const nonFunctionMethodError = captureProbeCreateError({
+      host: {
+        getEntry: 'C:/Users/LENOVO/mods/getEntry',
+        readDirectory: host.readDirectory,
+        readTextFile: host.readTextFile
+      }
+    })
+    expect(nonFunctionMethodError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host methods must be functions'
+    })
+
+    const nonFunctionDisposeError = captureProbeCreateError({
+      host: {
+        ...host,
+        dispose: 'C:/Users/LENOVO/mods/dispose'
+      }
+    })
+    expect(nonFunctionDisposeError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host dispose must be a function'
+    })
+
+    for (const error of [
+      nonObjectOptionsError,
+      hostileOptionsOwnKeysError,
+      extraOptionsError,
+      inheritedOptionsError,
+      hiddenOptionsError,
+      hostileHostGetterError,
+      hostExtraFieldError,
+      hostOwnKeysError,
+      inheritedHostError,
+      nonFunctionMethodError,
+      nonFunctionDisposeError
+    ]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
     expect(hostOperations).toEqual([])
     expectOfficialBaseline()
   })

@@ -50,6 +50,10 @@ export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID = 'electron/mods-readon
 export const ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH = 'mods'
 const ELECTRON_READONLY_DIRECTORY_PROBE_INVALID_SOURCE_ID = 'electron/invalid-readonly-probe-source'
 const ELECTRON_READONLY_DIRECTORY_PROBE_UNSAFE_PATH = '<unsafe-path>'
+const supportedElectronReadonlyProbeOptionsKeys = new Set(['host', 'sourceId', 'rootPath'])
+const supportedElectronReadonlyProbeHostKeys = new Set(['getEntry', 'readDirectory', 'readTextFile', 'dispose'])
+const requiredElectronReadonlyProbeOptionsKeys = ['host'] as const
+const requiredElectronReadonlyProbeHostKeys = ['getEntry', 'readDirectory', 'readTextFile'] as const
 
 export interface ElectronReadonlyDirectoryProbeHost {
   getEntry(path: string): Promise<ContentPackageSourceDirectoryEntry | null>
@@ -201,6 +205,206 @@ const toElectronReadonlySourceReleaseError = (error: unknown): ContentPackageSou
     sourceErrorCode(error) ?? 'SOURCE_DISPOSED',
     'Content package source release operation failed'
   )
+
+const asProbeMetadataObject = (
+  value: unknown,
+  code: ContentPackageSourceErrorCode,
+  notObjectMessage: string,
+  unreadableMessage: string
+): Record<string, unknown> => {
+  try {
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+      throw new ContentPackageSourceError(code, notObjectMessage)
+    }
+  } catch (error) {
+    if (error instanceof ContentPackageSourceError) throw error
+    throw new ContentPackageSourceError(code, unreadableMessage)
+  }
+  return value as Record<string, unknown>
+}
+
+const readProbeMetadataKeys = (
+  metadata: Record<string, unknown>,
+  allowedKeys: ReadonlySet<string>,
+  code: ContentPackageSourceErrorCode,
+  unreadableMessage: string,
+  unsupportedMessage: string
+): readonly string[] => {
+  let keys: readonly (string | symbol)[]
+  try {
+    keys = Reflect.ownKeys(metadata)
+  } catch {
+    throw new ContentPackageSourceError(code, unreadableMessage)
+  }
+  const stringKeys: string[] = []
+  for (const key of keys) {
+    if (typeof key !== 'string' || !allowedKeys.has(key)) {
+      throw new ContentPackageSourceError(code, unsupportedMessage)
+    }
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(metadata, key)
+    } catch {
+      throw new ContentPackageSourceError(code, unreadableMessage)
+    }
+    if (descriptor?.enumerable !== true) {
+      throw new ContentPackageSourceError(code, unsupportedMessage)
+    }
+    stringKeys.push(key)
+  }
+  return stringKeys
+}
+
+const assertProbeMetadataHasRequiredKeys = (
+  keys: readonly string[],
+  requiredKeys: readonly string[],
+  code: ContentPackageSourceErrorCode,
+  message: string
+): void => {
+  const ownKeys = new Set(keys)
+  if (requiredKeys.some(key => !ownKeys.has(key))) {
+    throw new ContentPackageSourceError(code, message)
+  }
+}
+
+const readProbeMetadataField = (
+  metadata: Record<string, unknown>,
+  fieldName: string,
+  code: ContentPackageSourceErrorCode,
+  message: string
+): unknown => {
+  try {
+    return metadata[fieldName]
+  } catch {
+    throw new ContentPackageSourceError(code, message)
+  }
+}
+
+const normalizeElectronReadonlyProbeHost = (
+  host: unknown
+): ElectronReadonlyDirectoryProbeHost => {
+  const hostMetadata = asProbeMetadataObject(
+    host,
+    'SOURCE_ENTRY_UNSAFE',
+    'Electron read-only source adapter host metadata must be an object',
+    'Electron read-only source adapter host metadata could not be read'
+  )
+  const keys = readProbeMetadataKeys(
+    hostMetadata,
+    supportedElectronReadonlyProbeHostKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Electron read-only source adapter host metadata could not be read',
+    'Electron read-only source adapter host metadata contains unsupported fields'
+  )
+  assertProbeMetadataHasRequiredKeys(
+    keys,
+    requiredElectronReadonlyProbeHostKeys,
+    'SOURCE_ENTRY_UNSAFE',
+    'Electron read-only source adapter host metadata must include getEntry, readDirectory and readTextFile own fields'
+  )
+  const getEntry = readProbeMetadataField(
+    hostMetadata,
+    'getEntry',
+    'SOURCE_ENTRY_UNSAFE',
+    'Electron read-only source adapter host metadata could not be read'
+  )
+  const readDirectory = readProbeMetadataField(
+    hostMetadata,
+    'readDirectory',
+    'SOURCE_ENTRY_UNSAFE',
+    'Electron read-only source adapter host metadata could not be read'
+  )
+  const readTextFile = readProbeMetadataField(
+    hostMetadata,
+    'readTextFile',
+    'SOURCE_ENTRY_UNSAFE',
+    'Electron read-only source adapter host metadata could not be read'
+  )
+  if (
+    typeof getEntry !== 'function'
+    || typeof readDirectory !== 'function'
+    || typeof readTextFile !== 'function'
+  ) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Electron read-only source adapter host methods must be functions'
+    )
+  }
+  const dispose = keys.includes('dispose')
+    ? readProbeMetadataField(
+      hostMetadata,
+      'dispose',
+      'SOURCE_ENTRY_UNSAFE',
+      'Electron read-only source adapter host metadata could not be read'
+    )
+    : undefined
+  if (dispose !== undefined && typeof dispose !== 'function') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Electron read-only source adapter host dispose must be a function'
+    )
+  }
+
+  return {
+    getEntry: sourcePath => getEntry.call(hostMetadata, sourcePath),
+    readDirectory: sourcePath => readDirectory.call(hostMetadata, sourcePath),
+    readTextFile: sourcePath => readTextFile.call(hostMetadata, sourcePath),
+    dispose: dispose === undefined
+      ? undefined
+      : () => dispose.call(hostMetadata)
+  }
+}
+
+const normalizeElectronReadonlyProbeOptions = (
+  options: unknown
+): CreateElectronReadonlyDirectoryProbeSourceOptions => {
+  const optionsMetadata = asProbeMetadataObject(
+    options,
+    'SOURCE_IDENTITY_INVALID',
+    'Electron read-only source adapter options metadata must be an object',
+    'Electron read-only source adapter options metadata could not be read'
+  )
+  const keys = readProbeMetadataKeys(
+    optionsMetadata,
+    supportedElectronReadonlyProbeOptionsKeys,
+    'SOURCE_IDENTITY_INVALID',
+    'Electron read-only source adapter options metadata could not be read',
+    'Electron read-only source adapter options metadata contains unsupported fields'
+  )
+  assertProbeMetadataHasRequiredKeys(
+    keys,
+    requiredElectronReadonlyProbeOptionsKeys,
+    'SOURCE_IDENTITY_INVALID',
+    'Electron read-only source adapter options metadata must include host own field'
+  )
+  const host = normalizeElectronReadonlyProbeHost(readProbeMetadataField(
+    optionsMetadata,
+    'host',
+    'SOURCE_IDENTITY_INVALID',
+    'Electron read-only source adapter options metadata could not be read'
+  ))
+  const sourceId = keys.includes('sourceId')
+    ? readProbeMetadataField(
+      optionsMetadata,
+      'sourceId',
+      'SOURCE_IDENTITY_INVALID',
+      'Electron read-only source adapter options metadata could not be read'
+    )
+    : undefined
+  const rootPath = keys.includes('rootPath')
+    ? readProbeMetadataField(
+      optionsMetadata,
+      'rootPath',
+      'SOURCE_IDENTITY_INVALID',
+      'Electron read-only source adapter options metadata could not be read'
+    )
+    : undefined
+  return {
+    host,
+    sourceId: sourceId as string | undefined,
+    rootPath: rootPath as string | undefined
+  }
+}
 
 const normalizeIdentityPart = (value: unknown, fieldName: string): string => {
   let normalized: string
@@ -368,14 +572,16 @@ const bindValidatedSourceIdentity = (
 export const createElectronReadonlyDirectoryProbeSource = (
   options: CreateElectronReadonlyDirectoryProbeSourceOptions
 ): ContentPackageSource => {
+  const normalizedOptions = normalizeElectronReadonlyProbeOptions(options)
   const sourceId = normalizeIdentityPart(
-    options.sourceId ?? ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID,
+    normalizedOptions.sourceId ?? ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID,
     'sourceId'
   )
   const rootPath = normalizeIdentityPart(
-    options.rootPath ?? ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH,
+    normalizedOptions.rootPath ?? ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH,
     'rootPath'
   )
+  const host = normalizedOptions.host
   let disposed = false
 
   const assertAvailable = (): void => {
@@ -400,7 +606,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
       assertAvailable()
       const normalizedPath = normalizePath(sourcePath)
       try {
-        return normalizeEntry(await options.host.getEntry(normalizedPath))
+        return normalizeEntry(await host.getEntry(normalizedPath))
       } catch (error) {
         throw toContentPackageSourceHostOperationError('inspect', error, normalizedPath)
       }
@@ -410,7 +616,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
       const normalizedPath = normalizePath(sourcePath)
       let entries: readonly ContentPackageSourceDirectoryEntry[]
       try {
-        entries = await options.host.readDirectory(normalizedPath)
+        entries = await host.readDirectory(normalizedPath)
       } catch (error) {
         throw toContentPackageSourceHostOperationError(
           'list',
@@ -426,7 +632,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
       const normalizedPath = normalizePath(sourcePath)
       try {
         return normalizeContentPackageSourceTextPayload(
-          await options.host.readTextFile(normalizedPath),
+          await host.readTextFile(normalizedPath),
           normalizedPath
         )
       } catch (error) {
@@ -437,7 +643,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
       if (disposed) return
       disposed = true
       try {
-        await options.host.dispose?.()
+        await host.dispose?.()
       } catch (error) {
         throw toElectronReadonlySourceReleaseError(error)
       }
