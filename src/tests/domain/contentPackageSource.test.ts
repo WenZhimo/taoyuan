@@ -904,10 +904,15 @@ describe('content package source contract', () => {
     ]) {
       expect(() => normalizeContentPackageSourceEntryName(unsafeName)).toThrow(ContentPackageSourceError)
     }
-    expect(captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
-      { name: 'pack', kind: 'directory', isSymbolicLink: false },
-      { name: 'pack', kind: 'file', isSymbolicLink: false }
-    ])).code).toBe('SOURCE_DUPLICATE_PATH')
+    const duplicateEntryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      { name: 'LENOVO-private-pack', kind: 'directory', isSymbolicLink: false },
+      { name: 'LENOVO-private-pack', kind: 'file', isSymbolicLink: false }
+    ]))
+    expect(duplicateEntryError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Duplicate source directory entry'
+    })
+    expect(JSON.stringify(duplicateEntryError)).not.toContain('LENOVO-private-pack')
     expect(captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
       { name: 'pipe', kind: 'socket', isSymbolicLink: false } as never
     ])).code).toBe('SOURCE_ENTRY_UNSAFE')
@@ -961,6 +966,51 @@ describe('content package source contract', () => {
         severity: 'warning'
       })
     ])
+
+    let duplicateListingReadAttempted = false
+    const duplicateListingSource: ContentPackageSource = {
+      identity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'memory',
+        sourceId: 'memory/duplicate-entry-source',
+        rootPath: 'packs'
+      },
+      async getEntry(path) {
+        return path === ''
+          ? { name: 'packs', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [
+          { name: 'LENOVO-private-pack', kind: 'directory', isSymbolicLink: false },
+          { name: 'LENOVO-private-pack', kind: 'file', isSymbolicLink: false }
+        ]
+      },
+      async readTextFile() {
+        duplicateListingReadAttempted = true
+        throw new Error('duplicate entries must not be read')
+      },
+      async dispose() {}
+    }
+
+    const duplicateListingReport = await discoverThirdPartyDataPacks(
+      'packs',
+      createDiscoveryFileSystemFromContentPackageSource(duplicateListingSource)
+    )
+
+    expect(duplicateListingReadAttempted).toBe(false)
+    expect(duplicateListingReport.status).toBe('directory-not-found')
+    expect(duplicateListingReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(duplicateListingReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Duplicate source directory entry',
+      sourceCode: 'SOURCE_DUPLICATE_PATH'
+    })
+    expect(JSON.stringify(duplicateListingReport)).not.toContain('LENOVO-private-pack')
   })
 
   it('turns hostile source directory entry names into structured unsafe-path diagnostics', async() => {

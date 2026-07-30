@@ -182,6 +182,7 @@ const stableContentPackageSourceDiagnosticMessages: ReadonlySet<string> = new Se
   'Content package source directory entries metadata must be an array',
   'Content package source directory entries metadata must be a dense JSON array',
   'Content package source directory entries metadata could not be read',
+  'Duplicate source directory entry',
   'Archive entry paths must be non-empty normalized POSIX paths',
   'Archive entry paths must already be normalized before validation',
   'Archive entry metadata must be an object',
@@ -687,8 +688,7 @@ export const normalizeContentPackageSourceDirectoryEntries = (
     if (seenNames.has(normalizedEntry.name)) {
       throw new ContentPackageSourceError(
         'SOURCE_DUPLICATE_PATH',
-        `Duplicate source directory entry: ${normalizedEntry.name}`,
-        normalizedEntry.name
+        'Duplicate source directory entry'
       )
     }
     seenNames.add(normalizedEntry.name)
