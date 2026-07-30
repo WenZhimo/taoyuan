@@ -92,6 +92,12 @@ interface ContentPackageSourceUnknownArchiveEntry {
   readonly compressedSizeBytes?: unknown
 }
 
+interface ContentPackageSourceArchiveEntryPathMetadata {
+  readonly path: string
+  readonly entryMetadata: Record<string, unknown>
+  readonly metadataKeys: readonly string[]
+}
+
 export interface RevocableContentPackageSource extends ContentPackageSource {
   revoke(): void
 }
@@ -736,10 +742,10 @@ const assertNonNegativeSafeInteger = (value: unknown, fieldName: string, sourceP
   return value
 }
 
-const normalizeContentPackageSourceArchiveEntryMetadata = (
+const normalizeContentPackageSourceArchiveEntryPathMetadata = (
   entry: unknown,
   policy: ContentPackageSourceSafeReadPolicy
-): ContentPackageSourceUnknownArchiveEntry => {
+): ContentPackageSourceArchiveEntryPathMetadata => {
   if (
     typeof entry !== 'object'
     || entry === null
@@ -780,23 +786,33 @@ const normalizeContentPackageSourceArchiveEntryMetadata = (
   }
   const normalizedPath = normalizeContentPackageSourceArchiveEntryPath(path, policy)
 
-  const uncompressedSizeBytes = readUnknownMetadataField(
+  return {
+    path: normalizedPath,
     entryMetadata,
+    metadataKeys
+  }
+}
+
+const readContentPackageSourceArchiveEntrySizeMetadata = (
+  entry: ContentPackageSourceArchiveEntryPathMetadata
+): ContentPackageSourceUnknownArchiveEntry => {
+  const uncompressedSizeBytes = readUnknownMetadataField(
+    entry.entryMetadata,
     'uncompressedSizeBytes',
     'SOURCE_ENTRY_UNSAFE',
     'Archive entry metadata could not be read'
   )
-  const compressedSizeBytes = metadataKeys.includes('compressedSizeBytes')
+  const compressedSizeBytes = entry.metadataKeys.includes('compressedSizeBytes')
     ? readUnknownMetadataField(
-      entryMetadata,
+      entry.entryMetadata,
       'compressedSizeBytes',
       'SOURCE_ENTRY_UNSAFE',
       'Archive entry metadata could not be read'
     )
     : undefined
   return compressedSizeBytes === undefined
-    ? { path: normalizedPath, uncompressedSizeBytes }
-    : { path: normalizedPath, uncompressedSizeBytes, compressedSizeBytes }
+    ? { path: entry.path, uncompressedSizeBytes }
+    : { path: entry.path, uncompressedSizeBytes, compressedSizeBytes }
 }
 
 const collectAncestorPaths = (path: string): readonly string[] => {
@@ -824,7 +840,7 @@ export const validateContentPackageSourceArchiveEntries = (
 
   const normalizedEntries = metadataEntries
     .map(entry => {
-      const metadata = normalizeContentPackageSourceArchiveEntryMetadata(entry, policy)
+      const metadata = normalizeContentPackageSourceArchiveEntryPathMetadata(entry, policy)
       return {
         entry: metadata,
         path: metadata.path
@@ -834,9 +850,7 @@ export const validateContentPackageSourceArchiveEntries = (
 
   const seenPaths = new Set<string>()
   const seenAncestorPaths = new Set<string>()
-  let totalCompressedBytes = 0
-  let totalUncompressedBytes = 0
-  return normalizedEntries.map(({ entry, path }) => {
+  for (const { path } of normalizedEntries) {
     if (seenPaths.has(path)) {
       throw new ContentPackageSourceError('SOURCE_DUPLICATE_PATH', 'Duplicate archive entry path')
     }
@@ -850,9 +864,14 @@ export const validateContentPackageSourceArchiveEntries = (
     for (const ancestorPath of collectAncestorPaths(path)) {
       seenAncestorPaths.add(ancestorPath)
     }
+  }
 
+  let totalCompressedBytes = 0
+  let totalUncompressedBytes = 0
+  return normalizedEntries.map(({ entry, path }) => {
+    const entrySizeMetadata = readContentPackageSourceArchiveEntrySizeMetadata(entry)
     const uncompressedSizeBytes = assertNonNegativeSafeInteger(
-      entry.uncompressedSizeBytes,
+      entrySizeMetadata.uncompressedSizeBytes,
       'uncompressedSizeBytes',
       path
     )
@@ -870,11 +889,15 @@ export const validateContentPackageSourceArchiveEntries = (
       )
     }
 
-    if (entry.compressedSizeBytes === undefined) {
+    if (entrySizeMetadata.compressedSizeBytes === undefined) {
       return { path, uncompressedSizeBytes }
     }
 
-    const compressedSizeBytes = assertNonNegativeSafeInteger(entry.compressedSizeBytes, 'compressedSizeBytes', path)
+    const compressedSizeBytes = assertNonNegativeSafeInteger(
+      entrySizeMetadata.compressedSizeBytes,
+      'compressedSizeBytes',
+      path
+    )
     totalCompressedBytes += compressedSizeBytes
     if (totalCompressedBytes > policy.maxPackageCompressedBytes) {
       throwLimitExceeded(
