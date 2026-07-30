@@ -3369,15 +3369,28 @@ describe('content package source contract', () => {
     expect(directoryReadAttempts).toEqual([])
   })
 
-  it('reports permission revocation and disposal without retaining platform handles', async() => {
+  it('reports permission revocation and idempotent disposal without retaining platform handles', async() => {
     const revoked = createValidSource()
     const disposed = createValidSource()
 
     revoked.revoke()
     await disposed.dispose()
+    await expect(disposed.dispose()).resolves.toBeUndefined()
 
+    await expect(revoked.getEntry('valid-gift-pack/manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED'
+    })
+    await expect(revoked.readDirectory('valid-gift-pack')).rejects.toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED'
+    })
     await expect(revoked.readTextFile('valid-gift-pack/manifest.json')).rejects.toMatchObject({
       code: 'SOURCE_PERMISSION_REVOKED'
+    })
+    await expect(disposed.getEntry('valid-gift-pack/manifest.json')).rejects.toMatchObject({
+      code: 'SOURCE_DISPOSED'
+    })
+    await expect(disposed.readDirectory('valid-gift-pack')).rejects.toMatchObject({
+      code: 'SOURCE_DISPOSED'
     })
     await expect(disposed.readTextFile('valid-gift-pack/manifest.json')).rejects.toMatchObject({
       code: 'SOURCE_DISPOSED'
