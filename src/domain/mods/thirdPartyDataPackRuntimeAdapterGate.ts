@@ -109,6 +109,14 @@ const runtimeAdapterRequirements = (): readonly ThirdPartyDataPackRuntimeAdapter
   }
 ]
 
+const cloneOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
+
+const cloneCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
+
 const baseResult = (
   status: ThirdPartyDataPackRuntimeAdapterGateStatus,
   reason: string,
@@ -126,8 +134,8 @@ const baseResult = (
   registryCount: transactionPreflight.registryCount,
   entryCount: transactionPreflight.entryCount,
   packageCount: transactionPreflight.packageCount,
-  officialIdentity: transactionPreflight.officialIdentity,
-  candidateIdentity: transactionPreflight.candidateIdentity,
+  officialIdentity: cloneOfficialIdentity(transactionPreflight.officialIdentity),
+  candidateIdentity: cloneCandidateIdentity(transactionPreflight.candidateIdentity),
   lockfileHash: transactionPreflight.lockfileHash,
   adapterReadiness: 'deferred',
   runtimeEnablementAllowed: false,

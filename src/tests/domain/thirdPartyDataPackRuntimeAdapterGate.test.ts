@@ -5,6 +5,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { Sha256Hash } from '@/domain/mods/hash'
+import { requirePackageId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { buildThirdPartyCandidateRegistrySnapshot } from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
@@ -21,7 +23,10 @@ import { buildThirdPartyDataPackMountInput } from '@/domain/mods/thirdPartyDataP
 import { buildThirdPartyDataPackMountPreflight } from '@/domain/mods/thirdPartyDataPackMountPreflight'
 import { buildThirdPartyDataPackRuntimeAdapterGate } from '@/domain/mods/thirdPartyDataPackRuntimeAdapterGate'
 import { buildThirdPartyDataPackRuntimeMountGate } from '@/domain/mods/thirdPartyDataPackRuntimeMountGate'
-import { buildThirdPartyDataPackTransactionPreflight } from '@/domain/mods/thirdPartyDataPackTransactionPreflight'
+import {
+  buildThirdPartyDataPackTransactionPreflight,
+  type ThirdPartyDataPackTransactionPreflightResult
+} from '@/domain/mods/thirdPartyDataPackTransactionPreflight'
 import { selectThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackSelection'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
@@ -29,6 +34,7 @@ const roots: string[] = []
 const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discovery')
 
 type JsonObject = Record<string, unknown>
+const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
@@ -382,4 +388,73 @@ describe('third-party data pack runtime adapter gate', () => {
     expectNoWriteEffects(repeated)
     expectOfficialBaseline()
   }, 15_000)
+
+  it('copies upstream identity summaries before exposing runtime adapter reports', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const transactionPreflight: ThirdPartyDataPackTransactionPreflightResult = {
+      status: 'deferred',
+      runtimeGateStatus: 'deferred',
+      reason: 'lifecycle transaction commit is intentionally deferred until atomic write and recovery primitives are implemented',
+      diagnostics: [],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      transactionCommit: 'deferred',
+      commitAllowed: false,
+      recoveryRequired: false,
+      rollbackRequired: false,
+      requiredTransactions: [],
+      lifecycleOperations: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        packageFilesWritten: false,
+        packageBackupsWritten: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const gate = buildThirdPartyDataPackRuntimeAdapterGate({
+      transactionPreflight
+    } as never)
+
+    expect(gate.officialIdentity).toEqual(transactionPreflight.officialIdentity)
+    expect(gate.candidateIdentity).toEqual(transactionPreflight.candidateIdentity)
+    expect(gate.officialIdentity).not.toBe(transactionPreflight.officialIdentity)
+    expect(gate.candidateIdentity).not.toBe(transactionPreflight.candidateIdentity)
+
+    const mutableOfficialIdentity = transactionPreflight.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = transactionPreflight.candidateIdentity as { candidateHash: Sha256Hash }
+    mutableOfficialIdentity.registryCount = 1
+    mutableCandidateIdentity.candidateHash = testHash('5')
+
+    expect(gate.officialIdentity.registryCount).toBe(54)
+    expect(gate.candidateIdentity?.candidateHash).toBe(testHash('3'))
+    expectNoWriteEffects(gate)
+    expectOfficialBaseline()
+  })
 })

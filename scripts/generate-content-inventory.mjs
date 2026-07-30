@@ -6471,7 +6471,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Consumes the read-only Transaction Preflight and produces a runtime platform adapter gate report that keeps runtime enablement deferred, enumerates missing Electron, Web, Android, shared core and storage-isolation adapters, and performs no IPC exposure, import persistence, registry, package, lockfile, settings, save, cache or transaction-log writes.'
+    rationale: 'Consumes the read-only Transaction Preflight and produces a runtime platform adapter gate report that keeps runtime enablement deferred, copies upstream official/candidate identity summaries before exposure, enumerates missing Electron, Web, Android, shared core and storage-isolation adapters, and performs no IPC exposure, import persistence, registry, package, lockfile, settings, save, cache or transaction-log writes.'
   },
   {
     file: 'src/domain/mods/contentPackageSource.ts',
@@ -6661,7 +6661,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers deferred, skipped and blocked runtime adapter gate outcomes, required Electron/Web/Android/shared adapter enumeration, absence of candidate artifact exposure, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers deferred, skipped and blocked runtime adapter gate outcomes, required Electron/Web/Android/shared adapter enumeration, absence of candidate artifact exposure, upstream official/candidate identity summary copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
