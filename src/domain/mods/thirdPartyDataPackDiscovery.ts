@@ -282,6 +282,7 @@ const normalizeDiscoveryDirectoryEntry = (entry: unknown): ThirdPartyDiscoveryDi
   if (typeof name !== 'string') {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Package source entry name metadata must be a string')
   }
+  const normalizedName = normalizeDiscoveryEntryName(name)
   if (!metadataKeys.includes('kind')) {
     throw createDiscoverySourceError('SOURCE_ENTRY_UNSAFE', 'Unsupported package source entry kind')
   }
@@ -303,7 +304,7 @@ const normalizeDiscoveryDirectoryEntry = (entry: unknown): ThirdPartyDiscoveryDi
     )
   }
   return {
-    name: normalizeDiscoveryEntryName(name),
+    name: normalizedName,
     kind: kind as ThirdPartyDiscoveryDirectoryEntry['kind'],
     isSymbolicLink
   }

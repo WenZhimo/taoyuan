@@ -555,6 +555,68 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('nested')
   })
 
+  it('rejects unsafe raw discovery entry names before reading kind or symbolic-link metadata', async() => {
+    const inspectedPaths: string[] = []
+    let readAttempted = false
+    let kindRead = false
+    let symbolicLinkRead = false
+    const listingEntry = { name: 'private-pack\\nested' }
+    Object.defineProperties(listingEntry, {
+      kind: {
+        enumerable: true,
+        get() {
+          kindRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/raw-entry-kind')
+        }
+      },
+      isSymbolicLink: {
+        enumerable: true,
+        get() {
+          symbolicLinkRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/raw-entry-symlink')
+        }
+      }
+    })
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        inspectedPaths.push(filePath)
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        return [listingEntry as never]
+      },
+      async readTextFile() {
+        readAttempted = true
+        throw new Error('unsafe raw entries must not be read')
+      }
+    })
+
+    expect(inspectedPaths).toEqual(['mods'])
+    expect(readAttempted).toBe(false)
+    expect(kindRead).toBe(false)
+    expect(symbolicLinkRead).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'path-unsafe',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry name is unsafe',
+      sourceCode: 'SOURCE_PATH_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('raw-entry')
+    expect(JSON.stringify(report)).not.toContain('private-pack')
+    expect(JSON.stringify(report)).not.toContain('nested')
+  })
+
   it('rejects control-character raw discovery root entry names before composing package paths', async() => {
     const inspectedPaths: string[] = []
     let readAttempted = false
