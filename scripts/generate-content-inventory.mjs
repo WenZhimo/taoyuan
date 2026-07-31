@@ -6321,7 +6321,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Provides the read-only package selection summary for discovered third-party data pack candidates: blocks invalid candidates, duplicate package ids and forward-incompatible host version targets, allows lower gameVersion packages to continue into the staged compatibility attempt, propagates blocked required dependencies including duplicate-id or host-version targets, treats compatible optional dependencies as ordering edges, diagnoses cycles and returns a stable packageId-sorted topological load order without loading or writing third-party content.'
+    rationale: 'Provides the read-only package selection summary for discovered third-party data pack candidates: blocks invalid candidates, duplicate package ids and forward-incompatible host version targets, allows lower gameVersion packages to continue into the staged compatibility attempt, propagates blocked required dependencies including duplicate-id or host-version targets, treats compatible optional dependencies as ordering edges, diagnoses cycles, returns a stable packageId-sorted topological load order, copies blocked discovery and selection issue diagnostics including relatedPackageIds and nested JSON details before exposing blocked/top-level report arrays, and never loads or writes third-party content.'
   },
   {
     file: 'src/domain/mods/thirdPartyCandidateRegistrySnapshot.ts',
@@ -6561,7 +6561,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, lower gameVersion staged compatibility selection, newer game/engine/schema version blocking and dependent propagation, required and optional dependency cycle diagnostics, input immutability, repeated result stability and unchanged official registry counts and hashes.'
+    rationale: 'Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, lower gameVersion staged compatibility selection, newer game/engine/schema version blocking and dependent propagation, required and optional dependency cycle diagnostics, blocked discovery and selection issue diagnostic copy boundaries including relatedPackageIds and nested details, input immutability, repeated result stability and unchanged official registry counts and hashes.'
   },
   {
     file: 'src/tests/domain/thirdPartyCandidateRegistrySnapshot.test.ts',

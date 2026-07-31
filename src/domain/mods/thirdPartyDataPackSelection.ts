@@ -88,6 +88,79 @@ const sortPackageIds = (values: Iterable<PackageId>): PackageId[] =>
 const sortSelectableCandidates = (values: Iterable<SelectableCandidate>): SelectableCandidate[] =>
   [...values].sort((a, b) => compareCodePoints(a.packageId, b.packageId) || compareCodePoints(a.path, b.path))
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, entry] of Object.entries(value)) result[key] = cloneJsonValue(entry)
+  return result
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
+  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
+const cloneDiscoveryIssue = (
+  issue: ThirdPartyDataPackDiscoveryIssue
+): ThirdPartyDataPackDiscoveryIssue => ({
+  kind: issue.kind,
+  severity: issue.severity,
+  path: issue.path,
+  candidatePath: issue.candidatePath,
+  packageId: issue.packageId,
+  registryId: issue.registryId,
+  contentId: issue.contentId,
+  relatedPackageIds: issue.relatedPackageIds ? [...issue.relatedPackageIds] : undefined,
+  fieldPath: issue.fieldPath,
+  reason: issue.reason,
+  diagnostics: cloneDiagnostics(issue.diagnostics)
+})
+
+const cloneSelectionIssue = (
+  issue: ThirdPartyDataPackSelectionIssue
+): ThirdPartyDataPackSelectionIssue => ({
+  kind: issue.kind,
+  severity: issue.severity,
+  path: issue.path,
+  candidatePath: issue.candidatePath,
+  packageId: issue.packageId,
+  relatedPackageIds: issue.relatedPackageIds ? [...issue.relatedPackageIds] : undefined,
+  fieldPath: issue.fieldPath,
+  reason: issue.reason,
+  diagnostics: cloneDiagnostics(issue.diagnostics)
+})
+
+const cloneSelectionIssues = (
+  issues: readonly ThirdPartyDataPackSelectionIssue[]
+): ThirdPartyDataPackSelectionIssue[] =>
+  issues.map(issue => cloneSelectionIssue(issue))
+
 const createSelectionIssue = (
   kind: ThirdPartyDataPackSelectionIssueKind,
   options: {
@@ -114,7 +187,7 @@ const createSelectionIssue = (
     path: options.path,
     candidatePath: options.candidatePath,
     packageId: options.packageId,
-    relatedPackageIds: options.relatedPackageIds,
+    relatedPackageIds: options.relatedPackageIds ? [...options.relatedPackageIds] : undefined,
     fieldPath: options.fieldPath,
     reason: options.reason,
     diagnostics: [
@@ -467,8 +540,10 @@ const finalizeBlockedPackages = (
       packageId: candidate.packageId,
       version: candidate.manifest?.version,
       reasons: [...(reasonsByPath.get(candidate.path) ?? [])].sort(compareCodePoints),
-      discoveryIssues: candidate.issues.filter(issue => blockingSeverities.has(issue.severity)),
-      selectionIssues: issuesByPath.get(candidate.path) ?? []
+      discoveryIssues: candidate.issues
+        .filter(issue => blockingSeverities.has(issue.severity))
+        .map(issue => cloneDiscoveryIssue(issue)),
+      selectionIssues: cloneSelectionIssues(issuesByPath.get(candidate.path) ?? [])
     }))
     .sort((a, b) => compareCodePoints(a.packageId ?? a.path, b.packageId ?? b.path) || compareCodePoints(a.path, b.path))
 
@@ -521,7 +596,7 @@ export const selectThirdPartyDataPacks = (
     }
   })
   const blockedPackages = finalizeBlockedPackages(report, issuesByPath, reasonsByPath)
-  const issues = [...issuesByPath.values()].flat()
+  const issues = cloneSelectionIssues([...issuesByPath.values()].flat())
 
   return {
     status: blockedPackages.length > 0 ? 'blocked' : 'completed',

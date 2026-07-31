@@ -7,6 +7,7 @@ import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
+import { requirePackageId } from '@/domain/mods/ids'
 import {
   discoverThirdPartyDataPacks,
   type ThirdPartyDataPackDiscoveryReport,
@@ -441,6 +442,117 @@ describe('third-party data pack read-only selection', () => {
     expect(JSON.stringify(discoveryReport)).toBe(before)
     expect(second).toEqual(first)
     expect(first.loadOrder).toEqual(['library_pack', 'dependent_pack'])
+  })
+
+  it('copies upstream discovery and selection issues before exposing blocked reports', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      itemEntries: [
+        {
+          id: 'bad_library:broken',
+          name: { key: 'bad_library.item.broken.name', fallback: 'Broken' },
+          category: 'gift',
+          description: { key: 'bad_library.item.broken.description', fallback: 'Broken.' },
+          sellPrice: -1,
+          edible: false
+        }
+      ]
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'bad_library', version: '1.0.0' }]
+    })
+    const discoveryReport = await discover(root)
+    const upstreamDiscoveryIssue = discoveryReport.candidates
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.issues[0]
+    const upstreamDiscoveryDiagnostic = upstreamDiscoveryIssue?.diagnostics[0]
+    if (!upstreamDiscoveryDiagnostic) throw new Error('Expected discovery diagnostic for invalid package.')
+    upstreamDiscoveryDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
+    upstreamDiscoveryDiagnostic.details = {
+      ...(upstreamDiscoveryDiagnostic.details ?? {}),
+      reason: 'original discovery diagnostic',
+      nested: { marker: 'original' },
+      list: ['original']
+    }
+    const originalDiscoveryStage = upstreamDiscoveryDiagnostic.stage
+
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const blockedDiscoveryIssue = selectionReport.blockedPackages
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.discoveryIssues[0]
+    const topLevelSelectionIssue = selectionReport.issues
+      .find(issue => issue.packageId === 'dependent_app')
+    const blockedSelectionIssue = selectionReport.blockedPackages
+      .find(candidate => candidate.packageId === 'dependent_app')
+      ?.selectionIssues[0]
+    if (!blockedDiscoveryIssue || !topLevelSelectionIssue || !blockedSelectionIssue) {
+      throw new Error('Expected copied discovery and selection issues.')
+    }
+    const topLevelSelectionDiagnostic = topLevelSelectionIssue.diagnostics[0]
+    const blockedSelectionDiagnostic = blockedSelectionIssue.diagnostics[0]
+    if (!topLevelSelectionDiagnostic || !blockedSelectionDiagnostic) {
+      throw new Error('Expected copied selection diagnostics.')
+    }
+
+    upstreamDiscoveryDiagnostic.stage = 'third-party.discovery.mutated'
+    upstreamDiscoveryDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
+    const upstreamDiscoveryDetails = upstreamDiscoveryDiagnostic.details
+    if (upstreamDiscoveryDetails === undefined) throw new Error('Expected discovery details.')
+    upstreamDiscoveryDetails.reason = 'mutated'
+    const nestedDiscoveryDetails = upstreamDiscoveryDetails.nested as Record<string, unknown>
+    nestedDiscoveryDetails.marker = 'mutated'
+    const discoveryListDetails = upstreamDiscoveryDetails.list as unknown[]
+    discoveryListDetails.push('mutated')
+
+    const mutableTopLevelSelectionIssue = topLevelSelectionIssue as unknown as {
+      relatedPackageIds?: string[]
+      diagnostics: Array<{
+        stage: string
+        relatedPackageIds?: string[]
+        details?: Record<string, unknown>
+      }>
+    }
+    mutableTopLevelSelectionIssue.relatedPackageIds?.push('mutated_selection_pack')
+    mutableTopLevelSelectionIssue.diagnostics[0]!.stage = 'third-party.selection.mutated'
+    mutableTopLevelSelectionIssue.diagnostics[0]!.relatedPackageIds?.push('mutated_selection_pack')
+    const topLevelSelectionDetails = mutableTopLevelSelectionIssue.diagnostics[0]!.details
+    if (topLevelSelectionDetails === undefined) throw new Error('Expected selection details.')
+    const dependencyPaths = topLevelSelectionDetails.dependencyPaths as unknown[]
+    const dependencyReasons = topLevelSelectionDetails.dependencyReasons as unknown[]
+    dependencyPaths.push('mutated-path')
+    dependencyReasons.push('mutated-reason')
+
+    expect(blockedDiscoveryIssue).not.toBe(upstreamDiscoveryIssue)
+    expect(blockedDiscoveryIssue.diagnostics[0]).not.toBe(upstreamDiscoveryDiagnostic)
+    expect(blockedDiscoveryIssue.diagnostics[0]?.details).not.toBe(upstreamDiscoveryDiagnostic.details)
+    expect(blockedDiscoveryIssue.diagnostics[0]).toMatchObject({
+      stage: originalDiscoveryStage,
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original discovery diagnostic',
+        nested: { marker: 'original' },
+        list: ['original']
+      }
+    })
+    expect(blockedSelectionIssue).not.toBe(topLevelSelectionIssue)
+    expect(blockedSelectionDiagnostic).not.toBe(topLevelSelectionDiagnostic)
+    expect(blockedSelectionDiagnostic.details).not.toBe(topLevelSelectionDiagnostic.details)
+    expect(blockedSelectionIssue.relatedPackageIds).toEqual(['bad_library'])
+    expect(blockedSelectionDiagnostic).toMatchObject({
+      stage: 'third-party.selection.required-dependency-blocked',
+      relatedPackageIds: ['bad_library'],
+      details: {
+        dependencyPaths: ['bad-library'],
+        dependencyReasons: ['discovery-blocked']
+      }
+    })
+    expect(selectionReport.blockedPackages.some(candidate =>
+      candidate.discoveryIssues.some(issue =>
+        issue.diagnostics.some(diagnostic => diagnostic.stage === 'third-party.discovery.mutated')
+      )
+    )).toBe(false)
   })
 
   it('keeps official registry hashes unchanged while selecting third-party candidates', async() => {
