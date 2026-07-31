@@ -288,6 +288,64 @@ describe('third-party candidate registry snapshot', () => {
     expectOfficialBaseline()
   })
 
+  it('copies upstream discovery diagnostics before exposing invalid results', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      items: [createItem('bad_library:broken', -1)]
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'bad_library', version: '1.0.0' }],
+      items: [createItem('dependent_app:gift')]
+    })
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected discovery diagnostics for invalid test package.')
+
+    upstreamDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
+    upstreamDiagnostic.details = {
+      ...(upstreamDiagnostic.details ?? {}),
+      reason: 'original diagnostic',
+      nested: { marker: 'original' },
+      list: ['original']
+    }
+    const originalStage = upstreamDiagnostic.stage
+    const originalReason = upstreamDiagnostic.details.reason
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport
+    })
+    const copiedDiagnostic = result.diagnostics.find(diagnostic => diagnostic.stage === originalStage)
+
+    upstreamDiagnostic.stage = 'third-party.discovery.mutated'
+    upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
+    const upstreamDetails = upstreamDiagnostic.details
+    if (!upstreamDetails) throw new Error('Expected copied diagnostic details.')
+    upstreamDetails.reason = 'mutated'
+    const nestedDetails = upstreamDetails.nested as Record<string, unknown>
+    nestedDetails.marker = 'mutated'
+    const listDetails = upstreamDetails.list as unknown[]
+    listDetails.push('mutated')
+
+    expect(result.status).toBe('invalid')
+    expect(copiedDiagnostic).toMatchObject({
+      stage: originalStage,
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: originalReason,
+        nested: { marker: 'original' },
+        list: ['original']
+      }
+    })
+    expect(result.diagnostics.some(diagnostic => diagnostic.stage === 'third-party.discovery.mutated')).toBe(false)
+    expectOfficialBaseline()
+  })
+
   it('rejects third-party entries that collide with official content ids', async() => {
     const root = await createRoot()
     await createPack(root, 'official-conflict', {

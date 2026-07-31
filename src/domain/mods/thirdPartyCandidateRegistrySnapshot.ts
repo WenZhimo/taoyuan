@@ -1,5 +1,6 @@
 import metadataJson from '@/generated/mods/official-precompiled-metadata.json'
 import { Type, type TSchema } from '@sinclair/typebox'
+import type { JsonValue } from './canonicalJson'
 import { hashCanonicalJson, type Sha256Hash } from './hash'
 import {
   requireContentId,
@@ -100,6 +101,44 @@ const blockingSeverity = new Set(['error', 'fatal'])
 const isBlockingDiagnostic = (diagnostic: ModDiagnostic): boolean =>
   blockingSeverity.has(diagnostic.severity)
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, entry] of Object.entries(value)) result[key] = cloneJsonValue(entry)
+  return result
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
+  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
 const countRegistryEntries = (registrySet: RegistrySet): {
   readonly registryCount: number
   readonly entryCount: number
@@ -161,7 +200,7 @@ const createBaseResult = (
       .filter((packageId): packageId is PackageId => packageId !== undefined),
     blockedCandidatePaths: options.selectionReport.blockedPackages.map(item => item.path),
     loadOrder: [...options.selectionReport.loadOrder],
-    diagnostics: options.diagnostics,
+    diagnostics: cloneDiagnostics(options.diagnostics),
     registryCount: officialIdentity.registryCount,
     entryCount: officialIdentity.entryCount,
     officialIdentity
@@ -524,7 +563,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
     blockedPackageIds: [],
     blockedCandidatePaths: [],
     loadOrder: [...selectionReport.loadOrder],
-    diagnostics,
+    diagnostics: cloneDiagnostics(diagnostics),
     ...counts,
     officialIdentity,
     candidateIdentity: createCandidateIdentity(candidateSnapshot, officialIdentity, selectionReport),

@@ -6331,7 +6331,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Builds a read-only in-memory candidate RegistrySet from the selected third-party load order by cloning the official frozen baseline, registering already TypeBox-validated third-party entries into the clone, rejecting official content conflicts and selected third-party duplicates, rerunning structure/semantic/freeze gates, and returning skipped/invalid/valid summaries without publishing a runtime registry, lockfile, cache, save or settings write.'
+    rationale: 'Builds a read-only in-memory candidate RegistrySet from the selected third-party load order by cloning the official frozen baseline, registering already TypeBox-validated third-party entries into the clone, rejecting official content conflicts and selected third-party duplicates, rerunning structure/semantic/freeze gates, copying diagnostics including nested details before exposing result objects, and returning skipped/invalid/valid summaries without publishing a runtime registry, lockfile, cache, save or settings write.'
   },
   {
     file: 'src/domain/mods/schemas.ts',
@@ -6571,7 +6571,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid frozen candidate snapshots, empty-root skipped results, repeated deterministic candidate identity, schema-blocked dependencies, official content id conflicts, selected third-party duplicate entries, dependency-cycle all-or-nothing invalidation, cross-registry semantic failures and immutability of official registries plus discovery and selection reports.'
+    rationale: 'Covers valid frozen candidate snapshots, empty-root skipped results, repeated deterministic candidate identity, schema-blocked dependencies, copied upstream discovery diagnostic objects and nested details, official content id conflicts, selected third-party duplicate entries, dependency-cycle all-or-nothing invalidation, cross-registry semantic failures and immutability of official registries plus discovery and selection reports.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackLockfileDraft.test.ts',
