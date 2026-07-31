@@ -88,6 +88,10 @@ const createEffectSummary = (): ThirdPartyDataPackSourceAdapterGateEffectSummary
   transactionLogWritten: false
 })
 
+const freezeEffectSummary = (
+  effects: ThirdPartyDataPackSourceAdapterGateEffectSummary
+): ThirdPartyDataPackSourceAdapterGateEffectSummary => Object.freeze(effects)
+
 const cloneOfficialIdentity = (
   identity: ThirdPartyCandidateOfficialIdentitySummary
 ): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
@@ -134,33 +138,37 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
 
-const satisfiedSourceContracts = (): readonly ThirdPartyDataPackSourceContractRequirement[] => [
-  {
+const freezeSourceContractRequirement = (
+  requirement: ThirdPartyDataPackSourceContractRequirement
+): ThirdPartyDataPackSourceContractRequirement => Object.freeze(requirement)
+
+const satisfiedSourceContracts = (): readonly ThirdPartyDataPackSourceContractRequirement[] => Object.freeze([
+  freezeSourceContractRequirement({
     id: 'source-identity-validation',
     status: 'satisfied',
     reason: 'ContentPackageSource identities are validated for contract version, kind, sourceId and rootPath before discovery mapping.'
-  },
-  {
+  }),
+  freezeSourceContractRequirement({
     id: 'pure-json-read-boundary',
     status: 'satisfied',
     reason: 'Source text payloads are parsed as unknown JSON and checked for pure JSON before downstream TypeBox validation.'
-  },
-  {
+  }),
+  freezeSourceContractRequirement({
     id: 'normalized-relative-paths',
     status: 'satisfied',
     reason: 'Source paths and discovery paths use normalized relative identifiers and reject absolute or escaping paths.'
-  },
-  {
+  }),
+  freezeSourceContractRequirement({
     id: 'permission-revocation-diagnostics',
     status: 'satisfied',
     reason: 'Revoked, disposed, unsafe or unreadable sources are surfaced as structured discovery diagnostics with source error codes.'
-  },
-  {
+  }),
+  freezeSourceContractRequirement({
     id: 'source-lifecycle-release',
     status: 'satisfied',
     reason: 'ContentPackageSource exposes an explicit dispose lifecycle and the developer CLI releases its source after each check.'
-  }
-]
+  })
+])
 
 const baseResult = (
   status: ThirdPartyDataPackSourceAdapterGateStatus,
@@ -185,7 +193,7 @@ const baseResult = (
   contentPackageSourceContractStable: true,
   runtimeEnablementAllowed: false,
   requiredSourceContracts: satisfiedSourceContracts(),
-  effects: createEffectSummary()
+  effects: freezeEffectSummary(createEffectSummary())
 })
 
 export const buildThirdPartyDataPackSourceAdapterGate = (

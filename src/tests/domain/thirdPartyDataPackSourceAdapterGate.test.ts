@@ -265,6 +265,7 @@ const expectNoWriteEffects = (gate: ReturnType<typeof buildThirdPartyDataPackSou
     cacheWritten: false,
     transactionLogWritten: false
   })
+  expect(Object.isFrozen(gate.effects)).toBe(true)
 }
 
 const expectSatisfiedSourceContracts = (
@@ -281,6 +282,8 @@ const expectSatisfiedSourceContracts = (
     { id: 'source-lifecycle-release', status: 'satisfied' }
   ])
   expect(gate.requiredSourceContracts.every(contract => contract.reason.length > 0)).toBe(true)
+  expect(Object.isFrozen(gate.requiredSourceContracts)).toBe(true)
+  expect(gate.requiredSourceContracts.every(contract => Object.isFrozen(contract))).toBe(true)
 }
 
 const expectOfficialBaseline = (): void => {
@@ -331,6 +334,21 @@ describe('third-party data pack source adapter gate', () => {
     expect('runtimeAdapterGate' in sourceAdapterGate).toBe(false)
     expect('platformSource' in sourceAdapterGate).toBe(false)
     expectNoWriteEffects(sourceAdapterGate)
+    const frozenOutputSnapshot = JSON.stringify({
+      requiredSourceContracts: sourceAdapterGate.requiredSourceContracts,
+      effects: sourceAdapterGate.effects
+    })
+    const firstContract = sourceAdapterGate.requiredSourceContracts[0]
+    if (firstContract === undefined) throw new Error('Expected at least one frozen source contract requirement.')
+    expect(() => {
+      (sourceAdapterGate.requiredSourceContracts as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstContract as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(Reflect.set(sourceAdapterGate.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    expect(JSON.stringify({
+      requiredSourceContracts: sourceAdapterGate.requiredSourceContracts,
+      effects: sourceAdapterGate.effects
+    })).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
   }, 15_000)
 
