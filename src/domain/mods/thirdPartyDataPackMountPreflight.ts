@@ -1,3 +1,4 @@
+import type { JsonValue } from './canonicalJson'
 import type { ModDiagnostic, ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
@@ -95,6 +96,41 @@ const blockingSeverities = new Set<ModDiagnosticSeverity>(['error', 'fatal'])
 const hasBlockingDiagnostic = (diagnostics: readonly ModDiagnostic[]): boolean =>
   diagnostics.some(diagnostic => blockingSeverities.has(diagnostic.severity))
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, entry] of Object.entries(value)) result[key] = cloneJsonValue(entry)
+  return result
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
 const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
   const seen = new Set<string>()
   const result: ModDiagnostic[] = []
@@ -113,7 +149,7 @@ const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic
     })
     if (seen.has(key)) continue
     seen.add(key)
-    result.push(diagnostic)
+    result.push(cloneDiagnostic(diagnostic))
   }
   return result
 }

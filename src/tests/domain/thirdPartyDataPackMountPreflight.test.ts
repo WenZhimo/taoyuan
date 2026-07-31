@@ -5,7 +5,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
+import type { PackageId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import {
@@ -396,6 +398,85 @@ describe('third-party data pack mount preflight', () => {
 
     expect(preflight.officialIdentity.registryCount).toBe(54)
     expect(preflight.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
+    expectReadOnlyEffects(preflight)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies upstream diagnostics before exposing preflight reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult } = await buildReportsFromRoot(root)
+    const relatedPackageId = 'related_pack' as PackageId
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.mount-preflight.test',
+      severity: 'warning',
+      packageId: 'discovery_valid' as PackageId,
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original', { stable: true }]
+      }
+    })
+    const candidateSnapshotWithDiagnostic = {
+      ...candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const preflight = buildThirdPartyDataPackMountPreflight({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotWithDiagnostic,
+      lockfileDraftResult,
+      lockfileValidationResult
+    })
+    const candidateStage = preflight.stages.find(stage => stage.name === 'candidate-snapshot')
+    if (!candidateStage) throw new Error('Expected candidate snapshot stage.')
+
+    expect(preflight.status).toBe('ready')
+    expect(candidateStage.diagnostics).toEqual([upstreamDiagnostic])
+    expect(preflight.diagnostics).toEqual([upstreamDiagnostic])
+    expect(candidateStage.diagnostics[0]).not.toBe(upstreamDiagnostic)
+    expect(preflight.diagnostics[0]).not.toBe(upstreamDiagnostic)
+    expect(candidateStage.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(preflight.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(candidateStage.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(preflight.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(candidateStage.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
+    expect(preflight.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+
+    upstreamDiagnostic.stage = 'mutated'
+    upstreamDiagnostic.relatedPackageIds?.push('mutated_pack' as PackageId)
+    const upstreamDetails = upstreamDiagnostic.details
+    if (upstreamDetails === undefined) throw new Error('Expected copied diagnostic details.')
+    upstreamDetails.reason = 'mutated'
+    const nestedDetails = upstreamDetails.nested
+    if (nestedDetails === null || typeof nestedDetails !== 'object' || Array.isArray(nestedDetails)) {
+      throw new Error('Expected copied nested diagnostic details.')
+    }
+    nestedDetails.count = 2
+    const listDetails = upstreamDetails.list
+    if (!Array.isArray(listDetails)) throw new Error('Expected copied list diagnostic details.')
+    listDetails.push('mutated')
+    const listObject = listDetails[1]
+    if (listObject === null || typeof listObject !== 'object' || Array.isArray(listObject)) {
+      throw new Error('Expected copied nested list object.')
+    }
+    listObject.stable = false
+
+    const expectedDiagnostic = {
+      stage: 'third-party.mount-preflight.test',
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original', { stable: true }]
+      }
+    }
+    expect(candidateStage.diagnostics[0]).toMatchObject(expectedDiagnostic)
+    expect(preflight.diagnostics[0]).toMatchObject(expectedDiagnostic)
     expectReadOnlyEffects(preflight)
     expectOfficialBaseline()
   }, 15_000)
