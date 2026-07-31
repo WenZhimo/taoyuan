@@ -7,6 +7,7 @@ import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
+import { requirePackageId } from '@/domain/mods/ids'
 import {
   discoverThirdPartyDataPacks,
   type ThirdPartyDiscoveryDirectoryEntry,
@@ -243,6 +244,65 @@ describe('third-party data pack repair report', () => {
         stage: 'third-party.discovery.content'
       })
     ])
+    expectNoWriteEffects(report)
+  }, 15_000)
+
+  it('copies upstream diagnostics before exposing repair actions and report diagnostics', async() => {
+    const root = await createRoot()
+    await copyPack(root, 'bad-schema', {
+      id: 'bad_schema',
+      itemSellPrice: -1
+    })
+    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected schema diagnostics for invalid test package.')
+
+    upstreamDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
+    upstreamDiagnostic.details = {
+      ...(upstreamDiagnostic.details ?? {}),
+      reason: 'original diagnostic',
+      nested: { marker: 'original' },
+      list: ['original']
+    }
+    const originalStage = upstreamDiagnostic.stage
+
+    const report = buildThirdPartyDataPackRepairReport(discoveryReport)
+    const actionDiagnostic = report.actions[0]?.diagnostics[0]
+    const reportDiagnostic = report.diagnostics[0]
+    if (!actionDiagnostic || !reportDiagnostic) throw new Error('Expected copied repair diagnostics.')
+
+    upstreamDiagnostic.stage = 'third-party.discovery.mutated'
+    upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
+    const upstreamDetails = upstreamDiagnostic.details
+    if (!upstreamDetails) throw new Error('Expected mutable upstream diagnostic details.')
+    upstreamDetails.reason = 'mutated'
+    const nestedDetails = upstreamDetails.nested as Record<string, unknown>
+    nestedDetails.marker = 'mutated'
+    const listDetails = upstreamDetails.list as unknown[]
+    listDetails.push('mutated')
+
+    expect(actionDiagnostic).not.toBe(upstreamDiagnostic)
+    expect(reportDiagnostic).not.toBe(upstreamDiagnostic)
+    expect(reportDiagnostic).not.toBe(actionDiagnostic)
+    expect(actionDiagnostic).toMatchObject({
+      stage: originalStage,
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original diagnostic',
+        nested: { marker: 'original' },
+        list: ['original']
+      }
+    })
+    expect(reportDiagnostic).toMatchObject({
+      stage: originalStage,
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original diagnostic',
+        nested: { marker: 'original' },
+        list: ['original']
+      }
+    })
+    expect(report.diagnostics.some(diagnostic => diagnostic.stage === 'third-party.discovery.mutated')).toBe(false)
     expectNoWriteEffects(report)
   }, 15_000)
 

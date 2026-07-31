@@ -1,3 +1,4 @@
+import type { JsonValue } from './canonicalJson'
 import type { ModDiagnostic, ModDiagnosticSeverity } from './diagnostics'
 import type { PackageId } from './ids'
 import type {
@@ -64,6 +65,44 @@ const createEffectSummary = (): ThirdPartyDataPackRepairEffectSummary => ({
 const isBlockingIssue = (issue: ThirdPartyDataPackDiscoveryIssue): boolean =>
   blockingSeverities.has(issue.severity)
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, entry] of Object.entries(value)) result[key] = cloneJsonValue(entry)
+  return result
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
+  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
 const issueToBlockedAction = (issue: ThirdPartyDataPackDiscoveryIssue): ThirdPartyDataPackRepairAction => ({
   ruleId: 'PKG-REPAIR-NOT-WHITELISTED',
   decision: 'blocked',
@@ -74,7 +113,7 @@ const issueToBlockedAction = (issue: ThirdPartyDataPackDiscoveryIssue): ThirdPar
   beforeSummary: issue.kind,
   afterSummary: 'unchanged',
   reason: 'No whitelisted read-only repair rule may change this diagnostic.',
-  diagnostics: [...issue.diagnostics]
+  diagnostics: cloneDiagnostics(issue.diagnostics)
 })
 
 export const buildThirdPartyDataPackRepairReport = (
@@ -107,7 +146,7 @@ export const buildThirdPartyDataPackRepairReport = (
 
   const whitelistedActionCount = actions.filter(action => action.decision === 'whitelisted').length
   const blockedActionCount = actions.filter(action => action.decision === 'blocked').length
-  const diagnostics = actions.flatMap(action => action.diagnostics)
+  const diagnostics = actions.flatMap(action => cloneDiagnostics(action.diagnostics))
 
   return {
     status: blockedActionCount > 0

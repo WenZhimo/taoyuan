@@ -15922,7 +15922,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Builds the first strict-whitelist, read-only Repair Report over discovery results: reports legacy manifest dependency defaults as staged normalization opportunities, blocks non-whitelisted errors, records before/after summaries and diagnostics, and performs no package, registry, lockfile, settings, save or cache writes."
+      "rationale": "Builds the first strict-whitelist, read-only Repair Report over discovery results: reports legacy manifest dependency defaults as staged normalization opportunities, blocks non-whitelisted errors, copies upstream diagnostic objects including relatedPackageIds and nested JSON details before exposing repair actions and report diagnostics, records before/after summaries and diagnostics, and performs no package, registry, lockfile, settings, save or cache writes."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery",
@@ -16138,7 +16138,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers clean, repairable and blocked repair report outcomes, whitelisted legacy dependencies default reporting, non-whitelisted schema error blocking, deterministic repeated output, read-only protection for package files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers clean, repairable and blocked repair report outcomes, whitelisted legacy dependencies default reporting, non-whitelisted schema error blocking, upstream diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for package files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     }
   ]
 }
