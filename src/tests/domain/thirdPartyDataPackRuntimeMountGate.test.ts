@@ -5,7 +5,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
+import { requirePackageId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { buildThirdPartyCandidateRegistrySnapshot } from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
@@ -18,7 +20,10 @@ import {
   createThirdPartyDataPackLockfileDraft,
   validateThirdPartyDataPackLockfileDraft
 } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
-import { buildThirdPartyDataPackMountInput } from '@/domain/mods/thirdPartyDataPackMountInput'
+import {
+  buildThirdPartyDataPackMountInput,
+  type ThirdPartyDataPackMountInputResult
+} from '@/domain/mods/thirdPartyDataPackMountInput'
 import { buildThirdPartyDataPackMountPreflight } from '@/domain/mods/thirdPartyDataPackMountPreflight'
 import { buildThirdPartyDataPackRuntimeMountGate } from '@/domain/mods/thirdPartyDataPackRuntimeMountGate'
 import { selectThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackSelection'
@@ -370,4 +375,93 @@ describe('third-party data pack runtime mount gate', () => {
     expectNoWriteEffects(runtimeGate)
     expectOfficialBaseline()
   }, 15_000)
+
+  it('copies upstream diagnostics before exposing runtime mount gate reports', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.runtime-mount.test',
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
+    const mountInput: ThirdPartyDataPackMountInputResult = {
+      status: 'ready',
+      preflightStatus: 'ready',
+      reason: 'mount input is ready',
+      diagnostics: [upstreamDiagnostic],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false
+      },
+      runtimePublication: 'deferred',
+      preflight: {} as never
+    }
+
+    const gate = buildThirdPartyDataPackRuntimeMountGate({ mountInput } as never)
+
+    expect(gate.diagnostics).toEqual([upstreamDiagnostic])
+    expect(gate.diagnostics[0]).not.toBe(upstreamDiagnostic)
+    expect(gate.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(gate.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(gate.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
+    expect(gate.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+
+    upstreamDiagnostic.stage = 'mutated'
+    upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
+    const upstreamDetails = upstreamDiagnostic.details
+    if (upstreamDetails === undefined) throw new Error('Expected copied diagnostic details.')
+    upstreamDetails.reason = 'mutated'
+    const nestedDetails = upstreamDetails.nested
+    if (nestedDetails === null || typeof nestedDetails !== 'object' || Array.isArray(nestedDetails)) {
+      throw new Error('Expected copied nested diagnostic details.')
+    }
+    nestedDetails.count = 2
+    const listDetails = upstreamDetails.list
+    if (!Array.isArray(listDetails)) throw new Error('Expected copied list diagnostic details.')
+    listDetails.push('mutated')
+
+    expect(gate.diagnostics[0]).toMatchObject({
+      stage: 'third-party.runtime-mount.test',
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
+    expectNoWriteEffects(gate)
+    expectOfficialBaseline()
+  })
 })

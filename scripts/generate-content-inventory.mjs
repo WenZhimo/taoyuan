@@ -6451,7 +6451,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Consumes the read-only Mount Input and produces a runtime publication gate report that summarizes selected packages, copies upstream official/candidate identity summaries before exposure, enumerates missing write/transaction prerequisites while keeping runtime publication deferred, and performs no registry, lockfile, settings, save, package, cache or transaction-log writes.'
+    rationale: 'Consumes the read-only Mount Input and produces a runtime publication gate report that summarizes selected packages, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details before exposure, enumerates missing write/transaction prerequisites while keeping runtime publication deferred, and performs no registry, lockfile, settings, save, package, cache or transaction-log writes.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackTransactionPreflight.ts',
@@ -6641,7 +6641,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers deferred, skipped and blocked runtime gate outcomes, required write/transaction gate enumeration, absence of candidate artifact exposure, upstream official/candidate identity summary copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers deferred, skipped and blocked runtime gate outcomes, required write/transaction gate enumeration, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
