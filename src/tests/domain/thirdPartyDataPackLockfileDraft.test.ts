@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createDiagnostic } from '@/domain/mods/diagnostics'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId } from '@/domain/mods/ids'
@@ -565,6 +566,69 @@ describe('third-party data pack lockfile draft', () => {
     expect(draft.officialIdentity.registryCount).toBe(54)
     expect(draft.candidateIdentity.candidateHash).toBe(originalCandidateHash)
     expect(draft.lockfileHash).toBe(originalLockfileHash)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies upstream candidate snapshot diagnostics before exposing draft reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.lockfile-draft.upstream',
+      severity: 'warning',
+      packageId: requirePackageId('discovery_valid'),
+      relatedPackageIds: [requirePackageId('discovery_valid')],
+      details: {
+        reason: 'candidate warning',
+        nested: {
+          status: 'original',
+          values: ['first', { stable: true }]
+        }
+      }
+    })
+    const candidateSnapshot = {
+      ...reports.candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot
+    })
+
+    expect(draftResult.status).toBe('valid')
+    expect(draftResult.diagnostics).toEqual([upstreamDiagnostic])
+    expect(draftResult.diagnostics[0]).not.toBe(upstreamDiagnostic)
+    expect(draftResult.diagnostics[0]!.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(draftResult.diagnostics[0]!.details).not.toBe(upstreamDiagnostic.details)
+
+    upstreamDiagnostic.stage = 'mutated'
+    upstreamDiagnostic.relatedPackageIds!.push(requirePackageId('other_package'))
+    const mutableDetails = upstreamDiagnostic.details as {
+      reason: string
+      nested: {
+        status: string
+        values: Array<string | { stable: boolean }>
+      }
+    }
+    mutableDetails.reason = 'mutated'
+    mutableDetails.nested.status = 'mutated'
+    const nestedObject = mutableDetails.nested.values[1] as { stable: boolean }
+    nestedObject.stable = false
+
+    expect(draftResult.diagnostics[0]).toMatchObject({
+      stage: 'test.lockfile-draft.upstream',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'candidate warning',
+        nested: {
+          status: 'original',
+          values: ['first', { stable: true }]
+        }
+      }
+    })
     expectOfficialBaseline()
   }, 15_000)
 })

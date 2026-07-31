@@ -134,6 +134,44 @@ const cloneOptionalCandidateIdentity = (
   identity: ThirdPartyCandidateIdentitySummary | undefined
 ): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : cloneCandidateIdentity(identity)
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, entry] of Object.entries(value)) result[key] = cloneJsonValue(entry)
+  return result
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
+  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
 const candidatesByPackageId = (
   report: ThirdPartyDataPackDiscoveryReport
 ): Map<PackageId, ThirdPartyDataPackCandidate> => {
@@ -281,7 +319,7 @@ export const createThirdPartyDataPackLockfileDraft = (
 ): ThirdPartyDataPackLockfileDraftResult => {
   const { candidateSnapshot, discoveryReport, selectionReport } = options
   const baseResult = {
-    diagnostics: candidateSnapshot.diagnostics,
+    diagnostics: cloneDiagnostics(candidateSnapshot.diagnostics),
     selectedPackageIds: [...candidateSnapshot.selectedPackageIds],
     blockedPackageIds: [...candidateSnapshot.blockedPackageIds],
     loadOrder: [...candidateSnapshot.loadOrder],
@@ -307,7 +345,7 @@ export const createThirdPartyDataPackLockfileDraft = (
       status: 'invalid',
       ...baseResult,
       diagnostics: [
-        ...candidateSnapshot.diagnostics,
+        ...baseResult.diagnostics,
         createLockfileDiagnostic('third-party.lockfile-draft.candidate', {
           details: {
             reason: 'A lockfile draft requires a valid candidate registry snapshot.',
@@ -363,7 +401,7 @@ export const createThirdPartyDataPackLockfileDraft = (
     return {
       status: 'invalid',
       ...baseResult,
-      diagnostics: [...candidateSnapshot.diagnostics, ...diagnostics]
+      diagnostics: [...baseResult.diagnostics, ...cloneDiagnostics(diagnostics)]
     }
   }
 
@@ -385,7 +423,7 @@ export const createThirdPartyDataPackLockfileDraft = (
     ...baseResult,
     selectedPackageIds,
     blockedPackageIds: [],
-    diagnostics: [...candidateSnapshot.diagnostics],
+    diagnostics: baseResult.diagnostics,
     draft: {
       ...body,
       lockfileHash: hashCanonicalJson(body)

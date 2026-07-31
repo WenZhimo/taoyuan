@@ -6351,7 +6351,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Creates a read-only, in-memory third-party lockfile draft only from valid candidate snapshots, copies upstream official/candidate identity summaries before exposing result and draft objects, and validates unknown draft input through the internal TypeBox draft schema before semantic comparison, then checks reproducibility of selected package ids, versions, stable load order, relative source paths, manifest/content hashes, official five-hash baseline and candidate identity without writing a real lockfile, enabling runtime packs, changing settings or touching saves.'
+    rationale: 'Creates a read-only, in-memory third-party lockfile draft only from valid candidate snapshots, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details before exposing result and draft objects, and validates unknown draft input through the internal TypeBox draft schema before semantic comparison, then checks reproducibility of selected package ids, versions, stable load order, relative source paths, manifest/content hashes, official five-hash baseline and candidate identity without writing a real lockfile, enabling runtime packs, changing settings or touching saves.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackModLockFile.ts',
@@ -6581,7 +6581,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers deterministic draft generation, upstream official/candidate identity summary copy boundaries for result and draft objects, the internal TypeBox draft schema accepting generated output, unknown/non-object input rejection before semantic comparison, malformed package id/hash/extra-property/unsafe-path schema diagnostics, repeated identical output, matching validator success, package id/version/load-order/content-hash and official-baseline mismatch diagnostics, invalid candidate rejection, empty-root skipped handling, read-only protection for registries/reports/userdata/files and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers deterministic draft generation, upstream official/candidate identity summary and diagnostic object copy boundaries for result and draft objects including relatedPackageIds and nested JSON details, the internal TypeBox draft schema accepting generated output, unknown/non-object input rejection before semantic comparison, malformed package id/hash/extra-property/unsafe-path schema diagnostics, repeated identical output, matching validator success, package id/version/load-order/content-hash and official-baseline mismatch diagnostics, invalid candidate rejection, empty-root skipped handling, read-only protection for registries/reports/userdata/files and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackModLockFile.test.ts',
