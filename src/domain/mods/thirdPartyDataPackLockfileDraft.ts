@@ -122,6 +122,18 @@ const createLockfileDiagnostic = (
   details: options.details
 })
 
+const cloneOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
+
+const cloneCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary
+): ThirdPartyCandidateIdentitySummary => ({ ...identity })
+
+const cloneOptionalCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : cloneCandidateIdentity(identity)
+
 const candidatesByPackageId = (
   report: ThirdPartyDataPackDiscoveryReport
 ): Map<PackageId, ThirdPartyDataPackCandidate> => {
@@ -203,8 +215,8 @@ const createDraftBody = (
 ): Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> => ({
   formatVersion: draft.formatVersion,
   kind: draft.kind,
-  officialIdentity: draft.officialIdentity,
-  candidateIdentity: draft.candidateIdentity,
+  officialIdentity: cloneOfficialIdentity(draft.officialIdentity),
+  candidateIdentity: cloneCandidateIdentity(draft.candidateIdentity),
   registryCount: draft.registryCount,
   entryCount: draft.entryCount,
   selectedPackageIds: [...draft.selectedPackageIds],
@@ -275,8 +287,8 @@ export const createThirdPartyDataPackLockfileDraft = (
     loadOrder: [...candidateSnapshot.loadOrder],
     registryCount: candidateSnapshot.registryCount,
     entryCount: candidateSnapshot.entryCount,
-    officialIdentity: candidateSnapshot.officialIdentity,
-    candidateIdentity: candidateSnapshot.candidateIdentity
+    officialIdentity: cloneOfficialIdentity(candidateSnapshot.officialIdentity),
+    candidateIdentity: cloneOptionalCandidateIdentity(candidateSnapshot.candidateIdentity)
   }
 
   if (candidateSnapshot.status === 'skipped') {
@@ -359,8 +371,8 @@ export const createThirdPartyDataPackLockfileDraft = (
   const body = createDraftBody({
     formatVersion: 1,
     kind: 'third-party-data-pack-lockfile-draft',
-    officialIdentity: candidateSnapshot.officialIdentity,
-    candidateIdentity: candidateSnapshot.candidateIdentity,
+    officialIdentity: cloneOfficialIdentity(candidateSnapshot.officialIdentity),
+    candidateIdentity: cloneCandidateIdentity(candidateSnapshot.candidateIdentity),
     registryCount: candidateSnapshot.registryCount,
     entryCount: candidateSnapshot.entryCount,
     selectedPackageIds,

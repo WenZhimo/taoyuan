@@ -6,6 +6,7 @@ import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
+import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId } from '@/domain/mods/ids'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { validateUnknown } from '@/domain/mods/schemaValidation'
@@ -29,6 +30,7 @@ const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discov
 const alternateHash = 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 
 type JsonObject = Record<string, unknown>
+const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
@@ -528,6 +530,41 @@ describe('third-party data pack lockfile draft', () => {
       environmentHash: committedMetadata.environmentHash,
       snapshotHash: committedMetadata.snapshotHash
     })
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies upstream identity summaries before exposing draft reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    const draft = reports.draftResult.draft!
+    const originalCandidateHash = reports.draftResult.candidateIdentity?.candidateHash
+    const originalLockfileHash = draft.lockfileHash
+
+    expect(reports.draftResult.status).toBe('valid')
+    expect(reports.draftResult.officialIdentity).toEqual(reports.candidateSnapshot.officialIdentity)
+    expect(reports.draftResult.candidateIdentity).toEqual(reports.candidateSnapshot.candidateIdentity)
+    expect(draft.officialIdentity).toEqual(reports.candidateSnapshot.officialIdentity)
+    expect(draft.candidateIdentity).toEqual(reports.candidateSnapshot.candidateIdentity)
+    expect(reports.draftResult.officialIdentity).not.toBe(reports.candidateSnapshot.officialIdentity)
+    expect(reports.draftResult.candidateIdentity).not.toBe(reports.candidateSnapshot.candidateIdentity)
+    expect(draft.officialIdentity).not.toBe(reports.candidateSnapshot.officialIdentity)
+    expect(draft.candidateIdentity).not.toBe(reports.candidateSnapshot.candidateIdentity)
+    expect(draft.officialIdentity).not.toBe(reports.draftResult.officialIdentity)
+    expect(draft.candidateIdentity).not.toBe(reports.draftResult.candidateIdentity)
+    expect(originalCandidateHash).toMatch(/^sha256:/)
+
+    const mutableOfficialIdentity = reports.candidateSnapshot.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = reports.candidateSnapshot.candidateIdentity as { candidateHash: Sha256Hash }
+    mutableOfficialIdentity.registryCount = 1
+    mutableCandidateIdentity.candidateHash = testHash('6')
+
+    expect(reports.draftResult.officialIdentity.registryCount).toBe(54)
+    expect(reports.draftResult.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
+    expect(draft.officialIdentity.registryCount).toBe(54)
+    expect(draft.candidateIdentity.candidateHash).toBe(originalCandidateHash)
+    expect(draft.lockfileHash).toBe(originalLockfileHash)
     expectOfficialBaseline()
   }, 15_000)
 })
