@@ -920,17 +920,30 @@ export const assertContentPackageSourceTextWithinLimits = (
   sourcePath: string,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
 ): string => {
-  const normalizedText = normalizeContentPackageSourceTextPayload(text, sourcePath)
+  const diagnosticSourcePath = normalizeContentPackageSourceDiagnosticPath(sourcePath)
+  const normalizedText = normalizeContentPackageSourceTextPayload(text, diagnosticSourcePath)
   const textBytes = utf8ByteLength(normalizedText)
   if (textBytes > policy.maxSingleFileBytes) {
-    throwLimitExceeded(`Source text file exceeds ${policy.maxSingleFileBytes} bytes: ${textBytes}`, sourcePath)
+    throwLimitExceeded(
+      `Source text file exceeds ${policy.maxSingleFileBytes} bytes: ${textBytes}`,
+      diagnosticSourcePath
+    )
   }
   return normalizedText
 }
 
+const normalizeContentPackageSourceDiagnosticPath = (sourcePath: string): string | undefined => {
+  try {
+    const normalizedSourcePath = normalizeContentPackageSourcePath(sourcePath)
+    return normalizedSourcePath === sourcePath ? normalizedSourcePath : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export const normalizeContentPackageSourceTextPayload = (
   text: unknown,
-  sourcePath: string
+  sourcePath: string | undefined
 ): string => {
   if (typeof text !== 'string') {
     throw new ContentPackageSourceError(

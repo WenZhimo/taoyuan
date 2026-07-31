@@ -6,6 +6,7 @@ import {
   type ContentPackageSource,
   type ContentPackageSourceDirectoryEntry,
   ContentPackageSourceError,
+  assertContentPackageSourceTextWithinLimits,
   createDiscoveryFileSystemFromContentPackageSource,
   createMemoryContentPackageSource,
   normalizeContentPackageSourceArchiveEntryPath,
@@ -3083,6 +3084,42 @@ describe('content package source contract', () => {
     for (const result of [directJson, bridgedReadError, discoveryReport]) {
       expect(JSON.stringify(result)).not.toContain('C:/Users')
       expect(JSON.stringify(result)).not.toContain('LENOVO')
+    }
+  })
+
+  it('redacts unsafe text payload source paths before helper errors expose host text', () => {
+    const hostileSourcePath = 'C:/Users/LENOVO/mods/private-pack/manifest.json\nhostile-fragment'
+    const malformedPayloadError = captureSourceError(() =>
+      assertContentPackageSourceTextWithinLimits(
+        { leaked: 'C:/Users/LENOVO/private-pack/manifest.json' } as never,
+        hostileSourcePath
+      )
+    )
+    const oversizedPayloadError = captureSourceError(() =>
+      assertContentPackageSourceTextWithinLimits('xx', hostileSourcePath, {
+        ...CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+        maxSingleFileBytes: 1
+      })
+    )
+    const safeSourcePathError = captureSourceError(() =>
+      assertContentPackageSourceTextWithinLimits({ leaked: true } as never, 'pack/manifest.json')
+    )
+
+    expect(malformedPayloadError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source text payload must be a string'
+    })
+    expect(malformedPayloadError.sourcePath).toBeUndefined()
+    expect(oversizedPayloadError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'Source text file exceeds 1 bytes: 2'
+    })
+    expect(oversizedPayloadError.sourcePath).toBeUndefined()
+    expect(safeSourcePathError.sourcePath).toBe('pack/manifest.json')
+    for (const error of [malformedPayloadError, oversizedPayloadError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('hostile-fragment')
     }
   })
 
