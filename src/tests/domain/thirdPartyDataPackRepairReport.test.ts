@@ -254,7 +254,9 @@ describe('third-party data pack repair report', () => {
       itemSellPrice: -1
     })
     const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
-    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    const upstreamDiagnostic = discoveryReport.candidates
+      .flatMap(candidate => candidate.issues)
+      .flatMap(issue => issue.diagnostics)[0]
     if (!upstreamDiagnostic) throw new Error('Expected schema diagnostics for invalid test package.')
 
     upstreamDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]

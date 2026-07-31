@@ -1715,6 +1715,74 @@ describe('third-party data pack read-only discovery', () => {
     expect(report.summary.invalidPackageCount).toBe(2)
   })
 
+  it('copies candidate issue diagnostics before exposing top-level discovery issues', async() => {
+    const root = await createRoot()
+    await createPack(root, 'missing-dependent', {
+      id: 'missing_dependent',
+      dependencies: [{ id: 'missing_library', version: '1.0.0' }]
+    })
+
+    const report = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const candidateIssue = report.candidates[0]?.issues.find(issue => issue.kind === 'dependency-missing')
+    const topLevelIssue = report.issues.find(issue => issue.kind === 'dependency-missing')
+    if (!candidateIssue || !topLevelIssue) throw new Error('Expected a dependency-missing discovery issue')
+
+    const candidateDiagnostic = candidateIssue.diagnostics[0]
+    const topLevelDiagnostic = topLevelIssue.diagnostics[0]
+    if (!candidateDiagnostic || !topLevelDiagnostic) throw new Error('Expected a dependency-missing diagnostic')
+
+    expect(candidateIssue).not.toBe(topLevelIssue)
+    expect(candidateIssue.relatedPackageIds).not.toBe(topLevelIssue.relatedPackageIds)
+    expect(candidateDiagnostic).not.toBe(topLevelDiagnostic)
+    expect(candidateDiagnostic.relatedPackageIds).not.toBe(topLevelDiagnostic.relatedPackageIds)
+    expect(candidateDiagnostic.details).not.toBe(topLevelDiagnostic.details)
+    expect(topLevelIssue.relatedPackageIds).toEqual(['missing_library'])
+    expect(topLevelDiagnostic).toMatchObject({
+      stage: 'third-party.discovery.dependency-missing',
+      relatedPackageIds: ['missing_library'],
+      details: {
+        reason: 'Required dependency package is missing',
+        dependencyId: 'missing_library',
+        range: '1.0.0'
+      }
+    })
+
+    type MutableIssue = {
+      relatedPackageIds?: string[]
+      diagnostics: Array<{
+        stage: string
+        relatedPackageIds?: string[]
+        details?: Record<string, unknown>
+      }>
+    }
+
+    const mutableCandidateIssue = candidateIssue as unknown as MutableIssue
+    mutableCandidateIssue.relatedPackageIds![0] = 'mutated_dependency'
+    mutableCandidateIssue.diagnostics[0]!.stage = 'mutated-candidate-stage'
+    mutableCandidateIssue.diagnostics[0]!.relatedPackageIds![0] = 'mutated_diagnostic_dependency'
+    mutableCandidateIssue.diagnostics[0]!.details!.reason = 'mutated candidate reason'
+
+    expect(topLevelIssue.relatedPackageIds).toEqual(['missing_library'])
+    expect(topLevelDiagnostic).toMatchObject({
+      stage: 'third-party.discovery.dependency-missing',
+      relatedPackageIds: ['missing_library'],
+      details: { reason: 'Required dependency package is missing' }
+    })
+
+    const mutableTopLevelIssue = topLevelIssue as unknown as MutableIssue
+    mutableTopLevelIssue.relatedPackageIds![0] = 'mutated_top_dependency'
+    mutableTopLevelIssue.diagnostics[0]!.stage = 'mutated-top-stage'
+    mutableTopLevelIssue.diagnostics[0]!.relatedPackageIds![0] = 'mutated_top_diagnostic_dependency'
+    mutableTopLevelIssue.diagnostics[0]!.details!.reason = 'mutated top reason'
+
+    expect(candidateIssue.relatedPackageIds).toEqual(['mutated_dependency'])
+    expect(candidateDiagnostic).toMatchObject({
+      stage: 'mutated-candidate-stage',
+      relatedPackageIds: ['mutated_diagnostic_dependency'],
+      details: { reason: 'mutated candidate reason' }
+    })
+  })
+
   it('keeps missing optional dependencies as warnings but blocks optional version mismatches', async() => {
     const root = await createRoot()
     await createPack(root, 'optional-warning', {
