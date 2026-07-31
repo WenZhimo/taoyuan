@@ -248,6 +248,25 @@ const expectNoWriteEffects = (gate: ReturnType<typeof buildThirdPartyDataPackRun
     cacheWritten: false,
     transactionLogWritten: false
   })
+  expect(Object.isFrozen(gate.effects)).toBe(true)
+}
+
+const expectRequiredRuntimeAdapters = (
+  gate: ReturnType<typeof buildThirdPartyDataPackRuntimeAdapterGate>
+): void => {
+  expect(gate.requiredAdapters.map(requirement => ({
+    id: requirement.id,
+    status: requirement.status
+  }))).toEqual([
+    { id: 'electron-restricted-ipc-source-adapter', status: 'required' },
+    { id: 'web-file-picker-indexeddb-adapter', status: 'required' },
+    { id: 'android-file-picker-app-data-adapter', status: 'required' },
+    { id: 'shared-core-mount-adapter', status: 'required' },
+    { id: 'platform-storage-isolation', status: 'required' }
+  ])
+  expect(gate.requiredAdapters.every(requirement => requirement.reason.length > 0)).toBe(true)
+  expect(Object.isFrozen(gate.requiredAdapters)).toBe(true)
+  expect(gate.requiredAdapters.every(requirement => Object.isFrozen(requirement))).toBe(true)
 }
 
 const expectOfficialBaseline = (): void => {
@@ -289,18 +308,27 @@ describe('third-party data pack runtime adapter gate', () => {
     expect(runtimeAdapterGate.packageCount).toBe(1)
     expect(runtimeAdapterGate.candidateIdentity?.candidateHash).toBe(candidateSnapshot.candidateIdentity?.candidateHash)
     expect(runtimeAdapterGate.lockfileHash).toBe(lockfileDraftResult.draft?.lockfileHash)
-    expect(runtimeAdapterGate.requiredAdapters.map(requirement => requirement.id)).toEqual([
-      'electron-restricted-ipc-source-adapter',
-      'web-file-picker-indexeddb-adapter',
-      'android-file-picker-app-data-adapter',
-      'shared-core-mount-adapter',
-      'platform-storage-isolation'
-    ])
+    expectRequiredRuntimeAdapters(runtimeAdapterGate)
     expect('candidateRegistrySet' in runtimeAdapterGate).toBe(false)
     expect('candidateSnapshot' in runtimeAdapterGate).toBe(false)
     expect('lockfileDraft' in runtimeAdapterGate).toBe(false)
     expect('transactionPreflight' in runtimeAdapterGate).toBe(false)
     expectNoWriteEffects(runtimeAdapterGate)
+    const frozenOutputSnapshot = JSON.stringify({
+      requiredAdapters: runtimeAdapterGate.requiredAdapters,
+      effects: runtimeAdapterGate.effects
+    })
+    const firstAdapter = runtimeAdapterGate.requiredAdapters[0]
+    if (firstAdapter === undefined) throw new Error('Expected at least one frozen runtime adapter requirement.')
+    expect(() => {
+      (runtimeAdapterGate.requiredAdapters as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstAdapter as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(Reflect.set(runtimeAdapterGate.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    expect(JSON.stringify({
+      requiredAdapters: runtimeAdapterGate.requiredAdapters,
+      effects: runtimeAdapterGate.effects
+    })).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
   }, 15_000)
 

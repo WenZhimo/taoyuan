@@ -82,33 +82,41 @@ const createEffectSummary = (): ThirdPartyDataPackRuntimeAdapterGateEffectSummar
   transactionLogWritten: false
 })
 
-const runtimeAdapterRequirements = (): readonly ThirdPartyDataPackRuntimeAdapterRequirement[] => [
-  {
+const freezeEffectSummary = (
+  effects: ThirdPartyDataPackRuntimeAdapterGateEffectSummary
+): ThirdPartyDataPackRuntimeAdapterGateEffectSummary => Object.freeze(effects)
+
+const freezeRuntimeAdapterRequirement = (
+  requirement: ThirdPartyDataPackRuntimeAdapterRequirement
+): ThirdPartyDataPackRuntimeAdapterRequirement => Object.freeze(requirement)
+
+const runtimeAdapterRequirements = (): readonly ThirdPartyDataPackRuntimeAdapterRequirement[] => Object.freeze([
+  freezeRuntimeAdapterRequirement({
     id: 'electron-restricted-ipc-source-adapter',
     status: 'required',
     reason: 'Define the Electron main-process discovery and read bridge through restricted IPC before desktop packages can be mounted.'
-  },
-  {
+  }),
+  freezeRuntimeAdapterRequirement({
     id: 'web-file-picker-indexeddb-adapter',
     status: 'required',
     reason: 'Define the Web file picker import and IndexedDB persistence adapter before browser packages can be mounted.'
-  },
-  {
+  }),
+  freezeRuntimeAdapterRequirement({
     id: 'android-file-picker-app-data-adapter',
     status: 'required',
     reason: 'Define the Android system picker and app-data import adapter before APK packages can be mounted.'
-  },
-  {
+  }),
+  freezeRuntimeAdapterRequirement({
     id: 'shared-core-mount-adapter',
     status: 'required',
     reason: 'Define the shared adapter boundary that passes platform package sources into the same parse, repair, validate and register core.'
-  },
-  {
+  }),
+  freezeRuntimeAdapterRequirement({
     id: 'platform-storage-isolation',
     status: 'required',
     reason: 'Define platform storage boundaries so package sources, cache, settings and player saves remain isolated before runtime enablement.'
-  }
-]
+  })
+])
 
 const cloneOfficialIdentity = (
   identity: ThirdPartyCandidateOfficialIdentitySummary
@@ -179,7 +187,7 @@ const baseResult = (
   adapterReadiness: 'deferred',
   runtimeEnablementAllowed: false,
   requiredAdapters,
-  effects: createEffectSummary()
+  effects: freezeEffectSummary(createEffectSummary())
 })
 
 export const buildThirdPartyDataPackRuntimeAdapterGate = (
