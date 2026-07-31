@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
@@ -426,13 +427,23 @@ describe('third-party data pack source adapter gate', () => {
     expectOfficialBaseline()
   }, 15_000)
 
-  it('copies upstream identity summaries before exposing source adapter reports', () => {
+  it('copies upstream identity summaries and diagnostics before exposing source adapter reports', () => {
     const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.source-adapter.test',
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
     const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
       status: 'deferred',
       transactionPreflightStatus: 'deferred',
       reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
-      diagnostics: [],
+      diagnostics: [upstreamDiagnostic],
       selectedPackageIds: [packageId],
       blockedPackageIds: [],
       blockedCandidatePaths: [],
@@ -482,14 +493,42 @@ describe('third-party data pack source adapter gate', () => {
     expect(gate.candidateIdentity).toEqual(runtimeAdapterGate.candidateIdentity)
     expect(gate.officialIdentity).not.toBe(runtimeAdapterGate.officialIdentity)
     expect(gate.candidateIdentity).not.toBe(runtimeAdapterGate.candidateIdentity)
+    expect(gate.diagnostics).toEqual([upstreamDiagnostic])
+    expect(gate.diagnostics[0]).not.toBe(upstreamDiagnostic)
+    expect(gate.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(gate.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(gate.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
+    expect(gate.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
 
     const mutableOfficialIdentity = runtimeAdapterGate.officialIdentity as { registryCount: number }
     const mutableCandidateIdentity = runtimeAdapterGate.candidateIdentity as { candidateHash: Sha256Hash }
     mutableOfficialIdentity.registryCount = 1
     mutableCandidateIdentity.candidateHash = testHash('5')
+    upstreamDiagnostic.stage = 'mutated'
+    upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
+    const upstreamDetails = upstreamDiagnostic.details
+    if (upstreamDetails === undefined) throw new Error('Expected copied diagnostic details.')
+    upstreamDetails.reason = 'mutated'
+    const nestedDetails = upstreamDetails.nested
+    if (nestedDetails === null || typeof nestedDetails !== 'object' || Array.isArray(nestedDetails)) {
+      throw new Error('Expected copied nested diagnostic details.')
+    }
+    nestedDetails.count = 2
+    const listDetails = upstreamDetails.list
+    if (!Array.isArray(listDetails)) throw new Error('Expected copied list diagnostic details.')
+    listDetails.push('mutated')
 
     expect(gate.officialIdentity.registryCount).toBe(54)
     expect(gate.candidateIdentity?.candidateHash).toBe(testHash('3'))
+    expect(gate.diagnostics[0]).toMatchObject({
+      stage: 'third-party.source-adapter.test',
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
     expectNoWriteEffects(gate)
     expectOfficialBaseline()
   })
