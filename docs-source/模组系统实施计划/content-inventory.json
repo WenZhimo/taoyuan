@@ -15826,7 +15826,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies the serializable candidate snapshot before exposure, exposes the lockfile draft, copies upstream official/candidate identity summaries before exposure, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
+      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies the serializable candidate snapshot before exposure, exposes the lockfile draft, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details before exposure, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRuntimeMountGate.ts",
@@ -16054,7 +16054,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied serializable candidate snapshot and lockfile draft availability only for ready preflights, upstream frozen candidate snapshot handling, upstream official/candidate identity summary copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied serializable candidate snapshot and lockfile draft availability only for ready preflights, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts",

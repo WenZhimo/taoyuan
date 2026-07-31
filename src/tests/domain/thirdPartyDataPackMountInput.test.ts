@@ -5,7 +5,9 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
+import { requirePackageId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import {
@@ -346,6 +348,68 @@ describe('third-party data pack mount input', () => {
 
     expect(mountInput.officialIdentity.registryCount).toBe(54)
     expect(mountInput.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
+    expectReadOnlyEffects(mountInput)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies upstream diagnostics before exposing mount input reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult, preflight } = await buildReportsFromRoot(root)
+    const relatedPackageId = requirePackageId('related_pack')
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.mount-input.test',
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
+    const mutablePreflightDiagnostics = preflight.diagnostics as typeof upstreamDiagnostic[]
+    mutablePreflightDiagnostics.push(upstreamDiagnostic)
+
+    const mountInput = buildThirdPartyDataPackMountInput({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot,
+      lockfileDraftResult,
+      lockfileValidationResult,
+      preflight
+    })
+
+    expect(mountInput.diagnostics).toEqual([upstreamDiagnostic])
+    expect(mountInput.diagnostics[0]).not.toBe(upstreamDiagnostic)
+    expect(mountInput.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(mountInput.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(mountInput.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
+    expect(mountInput.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+
+    upstreamDiagnostic.stage = 'mutated'
+    upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
+    const upstreamDetails = upstreamDiagnostic.details
+    if (upstreamDetails === undefined) throw new Error('Expected copied diagnostic details.')
+    upstreamDetails.reason = 'mutated'
+    const nestedDetails = upstreamDetails.nested
+    if (nestedDetails === null || typeof nestedDetails !== 'object' || Array.isArray(nestedDetails)) {
+      throw new Error('Expected copied nested diagnostic details.')
+    }
+    nestedDetails.count = 2
+    const listDetails = upstreamDetails.list
+    if (!Array.isArray(listDetails)) throw new Error('Expected copied list diagnostic details.')
+    listDetails.push('mutated')
+
+    expect(mountInput.diagnostics[0]).toMatchObject({
+      stage: 'third-party.mount-input.test',
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
     expectReadOnlyEffects(mountInput)
     expectOfficialBaseline()
   }, 15_000)
