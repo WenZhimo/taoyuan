@@ -5,6 +5,8 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { Sha256Hash } from '@/domain/mods/hash'
+import { requirePackageId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { buildThirdPartyCandidateRegistrySnapshot } from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
@@ -19,7 +21,10 @@ import {
 } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 import { buildThirdPartyDataPackMountInput } from '@/domain/mods/thirdPartyDataPackMountInput'
 import { buildThirdPartyDataPackMountPreflight } from '@/domain/mods/thirdPartyDataPackMountPreflight'
-import { buildThirdPartyDataPackRuntimeMountGate } from '@/domain/mods/thirdPartyDataPackRuntimeMountGate'
+import {
+  buildThirdPartyDataPackRuntimeMountGate,
+  type ThirdPartyDataPackRuntimeMountGateResult
+} from '@/domain/mods/thirdPartyDataPackRuntimeMountGate'
 import { buildThirdPartyDataPackTransactionPreflight } from '@/domain/mods/thirdPartyDataPackTransactionPreflight'
 import { selectThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackSelection'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
@@ -28,6 +33,7 @@ const roots: string[] = []
 const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discovery')
 
 type JsonObject = Record<string, unknown>
+const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
@@ -411,4 +417,68 @@ describe('third-party data pack transaction preflight', () => {
     expectNoWriteEffects(repeated)
     expectOfficialBaseline()
   }, 15_000)
+
+  it('copies upstream identity summaries before exposing transaction preflight reports', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const runtimeGate: ThirdPartyDataPackRuntimeMountGateResult = {
+      status: 'deferred',
+      mountInputStatus: 'ready',
+      reason: 'runtime publication is intentionally deferred until write and transaction gates are implemented',
+      diagnostics: [],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      runtimePublication: 'deferred',
+      requiredGates: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const preflight = buildThirdPartyDataPackTransactionPreflight({
+      runtimeGate
+    } as never)
+
+    expect(preflight.officialIdentity).toEqual(runtimeGate.officialIdentity)
+    expect(preflight.candidateIdentity).toEqual(runtimeGate.candidateIdentity)
+    expect(preflight.officialIdentity).not.toBe(runtimeGate.officialIdentity)
+    expect(preflight.candidateIdentity).not.toBe(runtimeGate.candidateIdentity)
+
+    const mutableOfficialIdentity = runtimeGate.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = runtimeGate.candidateIdentity as { candidateHash: Sha256Hash }
+    mutableOfficialIdentity.registryCount = 1
+    mutableCandidateIdentity.candidateHash = testHash('5')
+
+    expect(preflight.officialIdentity.registryCount).toBe(54)
+    expect(preflight.candidateIdentity?.candidateHash).toBe(testHash('3'))
+    expectNoWriteEffects(preflight)
+    expectOfficialBaseline()
+  })
 })

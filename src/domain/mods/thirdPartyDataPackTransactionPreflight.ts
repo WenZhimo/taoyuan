@@ -109,6 +109,14 @@ const createEffectSummary = (): ThirdPartyDataPackTransactionPreflightEffectSumm
   transactionLogWritten: false
 })
 
+const cloneOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
+
+const cloneCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
+
 const transactionRequirements = (): readonly ThirdPartyDataPackTransactionRequirement[] => [
   {
     id: 'staged-package-file-transaction',
@@ -231,8 +239,8 @@ const baseResult = (
   registryCount: runtimeGate.registryCount,
   entryCount: runtimeGate.entryCount,
   packageCount: runtimeGate.packageCount,
-  officialIdentity: runtimeGate.officialIdentity,
-  candidateIdentity: runtimeGate.candidateIdentity,
+  officialIdentity: cloneOfficialIdentity(runtimeGate.officialIdentity),
+  candidateIdentity: cloneCandidateIdentity(runtimeGate.candidateIdentity),
   lockfileHash: runtimeGate.lockfileHash,
   transactionCommit: 'deferred',
   commitAllowed: false,
