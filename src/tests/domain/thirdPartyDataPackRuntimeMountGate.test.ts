@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { Sha256Hash } from '@/domain/mods/hash'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { buildThirdPartyCandidateRegistrySnapshot } from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
@@ -27,6 +28,7 @@ const roots: string[] = []
 const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discovery')
 
 type JsonObject = Record<string, unknown>
+const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
@@ -342,6 +344,30 @@ describe('third-party data pack runtime mount gate', () => {
     expect(JSON.stringify(reports.mountInput)).toBe(inputBefore)
     expect(await collectFileContents(root)).toEqual(filesBefore)
     expectNoWriteEffects(repeated)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies upstream identity summaries before exposing runtime mount gate reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { mountInput, runtimeGate } = await buildReportsFromRoot(root)
+    const originalCandidateHash = runtimeGate.candidateIdentity?.candidateHash
+
+    expect(runtimeGate.officialIdentity).toEqual(mountInput.officialIdentity)
+    expect(runtimeGate.candidateIdentity).toEqual(mountInput.candidateIdentity)
+    expect(runtimeGate.officialIdentity).not.toBe(mountInput.officialIdentity)
+    expect(runtimeGate.candidateIdentity).not.toBe(mountInput.candidateIdentity)
+    expect(originalCandidateHash).toMatch(/^sha256:/)
+
+    const mutableOfficialIdentity = mountInput.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = mountInput.candidateIdentity as { candidateHash: Sha256Hash }
+    mutableOfficialIdentity.registryCount = 1
+    mutableCandidateIdentity.candidateHash = testHash('5')
+
+    expect(runtimeGate.officialIdentity.registryCount).toBe(54)
+    expect(runtimeGate.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
+    expectNoWriteEffects(runtimeGate)
     expectOfficialBaseline()
   }, 15_000)
 })

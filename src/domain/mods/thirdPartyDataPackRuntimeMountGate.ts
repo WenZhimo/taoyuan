@@ -102,6 +102,14 @@ const runtimeRequirements = (): readonly ThirdPartyDataPackRuntimeMountGateRequi
   }
 ]
 
+const cloneOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
+
+const cloneCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
+
 const baseResult = (
   status: ThirdPartyDataPackRuntimeMountGateStatus,
   reason: string,
@@ -119,8 +127,8 @@ const baseResult = (
   registryCount: mountInput.registryCount,
   entryCount: mountInput.entryCount,
   packageCount: mountInput.packageCount,
-  officialIdentity: mountInput.officialIdentity,
-  candidateIdentity: mountInput.candidateIdentity,
+  officialIdentity: cloneOfficialIdentity(mountInput.officialIdentity),
+  candidateIdentity: cloneCandidateIdentity(mountInput.candidateIdentity),
   lockfileHash: mountInput.lockfileHash,
   runtimePublication: 'deferred',
   requiredGates,
