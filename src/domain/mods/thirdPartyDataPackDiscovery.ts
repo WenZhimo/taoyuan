@@ -220,6 +220,94 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
 
+const freezeJsonTree = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value)) freezeJsonTree(child)
+  }
+  return value
+}
+
+const cloneAuthorMetadata = (
+  author: PackageManifest['authors'][number]
+): PackageManifest['authors'][number] => {
+  const result: PackageManifest['authors'][number] = { name: author.name }
+  if (author.role !== undefined) result.role = author.role
+  if (author.url !== undefined) result.url = author.url
+  return result
+}
+
+const cloneDependencies = (
+  dependencies: PackageManifest['dependencies']
+): PackageManifest['dependencies'] =>
+  dependencies?.map(dependency => ({
+    id: dependency.id,
+    version: dependency.version
+  }))
+
+const cloneEntryPoints = (
+  entrypoints: PackageManifest['entrypoints']
+): PackageManifest['entrypoints'] => {
+  const result: PackageManifest['entrypoints'] = {}
+  for (const [registryId, paths] of Object.entries(entrypoints)) {
+    result[registryId as RegistryTypeId] = [...paths]
+  }
+  return result
+}
+
+const clonePackageManifest = (manifest: PackageManifest): PackageManifest => {
+  const result: PackageManifest = {
+    id: manifest.id,
+    name: { key: manifest.name.key, fallback: manifest.name.fallback },
+    version: manifest.version,
+    gameVersion: manifest.gameVersion,
+    engineApiVersion: manifest.engineApiVersion,
+    contentSchemaVersion: manifest.contentSchemaVersion,
+    defaultLocale: manifest.defaultLocale,
+    locales: { ...manifest.locales },
+    authors: manifest.authors.map(author => cloneAuthorMetadata(author)),
+    license: manifest.license,
+    entrypoints: cloneEntryPoints(manifest.entrypoints)
+  }
+
+  if (manifest.contributors !== undefined) result.contributors = manifest.contributors.map(cloneAuthorMetadata)
+  if (manifest.homepage !== undefined) result.homepage = manifest.homepage
+  if (manifest.source !== undefined) result.source = manifest.source
+  if (manifest.issues !== undefined) result.issues = manifest.issues
+  if (manifest.dependencies !== undefined) result.dependencies = cloneDependencies(manifest.dependencies)
+  if (manifest.optionalDependencies !== undefined) result.optionalDependencies = cloneDependencies(manifest.optionalDependencies)
+  if (manifest.conflicts !== undefined) result.conflicts = cloneDependencies(manifest.conflicts)
+  if (manifest.settings !== undefined) result.settings = manifest.settings
+  if (manifest.attributions !== undefined) result.attributions = manifest.attributions
+  if (manifest.assets !== undefined) result.assets = manifest.assets
+
+  return freezeJsonTree(result)
+}
+
+const cloneContentEntry = (
+  entry: ThirdPartyDataPackContentEntry
+): ThirdPartyDataPackContentEntry => ({
+  registryId: entry.registryId,
+  contentId: entry.contentId,
+  path: entry.path,
+  index: entry.index,
+  canonicalHash: entry.canonicalHash
+})
+
+const cloneRegistryEntry = (entry: RegistryEntry): RegistryEntry =>
+  cloneJsonValue(entry as unknown as JsonValue) as unknown as RegistryEntry
+
+const cloneContentFile = (
+  file: ThirdPartyDataPackContentFile
+): ThirdPartyDataPackContentFile =>
+  freezeJsonTree({
+    registryId: file.registryId,
+    path: file.path,
+    entryCount: file.entryCount,
+    entries: file.entries.map(entry => cloneContentEntry(entry)),
+    validatedEntries: file.validatedEntries.map(entry => cloneRegistryEntry(entry))
+  })
+
 const cloneDiscoveryIssue = (
   issue: ThirdPartyDataPackDiscoveryIssue
 ): ThirdPartyDataPackDiscoveryIssue => ({
@@ -242,8 +330,8 @@ const cloneDiscoveryCandidate = (
   path: candidate.path,
   status: candidate.status,
   packageId: candidate.packageId,
-  manifest: candidate.manifest,
-  contentFiles: candidate.contentFiles,
+  manifest: candidate.manifest ? clonePackageManifest(candidate.manifest) : undefined,
+  contentFiles: freezeJsonTree(candidate.contentFiles.map(file => cloneContentFile(file))),
   issues: candidate.issues.map(issue => cloneDiscoveryIssue(issue))
 })
 

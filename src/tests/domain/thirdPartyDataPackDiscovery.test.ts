@@ -1783,6 +1783,82 @@ describe('third-party data pack read-only discovery', () => {
     })
   })
 
+  it('freezes copied candidate manifests and content files before exposing discovery candidates', async() => {
+    const root = await createRoot()
+    await createPack(root, 'frozen-candidate', {
+      id: 'frozen_candidate',
+      dependencies: [{ id: 'base_library', version: '^1.0.0' }],
+      optionalDependencies: [{ id: 'optional_library', version: '>=1.0.0' }],
+      conflicts: [{ id: 'blocked_library', version: '2.0.0' }]
+    })
+
+    const report = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const candidate = report.candidates[0]
+    const manifest = candidate?.manifest
+    const contentFile = candidate?.contentFiles[0]
+    const contentEntry = contentFile?.entries[0]
+    const validatedEntry = contentFile?.validatedEntries[0]
+    if (!candidate || !manifest || !contentFile || !contentEntry || !validatedEntry) {
+      throw new Error('Expected a discovered candidate with manifest and content entries.')
+    }
+
+    expect(Object.isFrozen(manifest)).toBe(true)
+    expect(Object.isFrozen(manifest.name)).toBe(true)
+    expect(Object.isFrozen(manifest.authors)).toBe(true)
+    expect(Object.isFrozen(manifest.authors[0])).toBe(true)
+    expect(Object.isFrozen(manifest.entrypoints)).toBe(true)
+    expect(Object.isFrozen(manifest.entrypoints['taoyuan:item'])).toBe(true)
+    expect(Object.isFrozen(manifest.dependencies)).toBe(true)
+    expect(Object.isFrozen(manifest.optionalDependencies)).toBe(true)
+    expect(Object.isFrozen(manifest.conflicts)).toBe(true)
+    expect(Object.isFrozen(candidate.contentFiles)).toBe(true)
+    expect(Object.isFrozen(contentFile)).toBe(true)
+    expect(Object.isFrozen(contentFile.entries)).toBe(true)
+    expect(Object.isFrozen(contentEntry)).toBe(true)
+    expect(Object.isFrozen(contentFile.validatedEntries)).toBe(true)
+    expect(Object.isFrozen(validatedEntry)).toBe(true)
+    expect(Object.isFrozen((validatedEntry as unknown as JsonObject).name)).toBe(true)
+
+    expect(manifest.entrypoints['taoyuan:item']).toEqual(['data/items.json'])
+    expect(contentFile).toMatchObject({
+      registryId: 'taoyuan:item',
+      path: 'data/items.json',
+      entryCount: 1
+    })
+    expect(contentEntry).toMatchObject({
+      registryId: 'taoyuan:item',
+      contentId: 'frozen_candidate:linen_ribbon',
+      path: 'data/items.json',
+      index: 0
+    })
+    expect(validatedEntry).toMatchObject({
+      id: 'frozen_candidate:linen_ribbon',
+      name: {
+        fallback: 'Linen ribbon'
+      }
+    })
+
+    const mutableManifest = manifest as unknown as {
+      name: { fallback: string }
+      entrypoints: Record<string, string[]>
+      dependencies: Array<{ id: string }>
+    }
+    const mutableContentFiles = candidate.contentFiles as unknown as unknown[]
+    const mutableContentFile = contentFile as unknown as {
+      path: string
+      entries: Array<{ path: string }>
+      validatedEntries: Array<{ name: { fallback: string } }>
+    }
+
+    expect(() => { mutableManifest.name.fallback = 'Mutated package' }).toThrow(TypeError)
+    expect(() => { mutableManifest.entrypoints['taoyuan:item']!.push('data/extra.json') }).toThrow(TypeError)
+    expect(() => { mutableManifest.dependencies[0]!.id = 'mutated_library' }).toThrow(TypeError)
+    expect(() => { mutableContentFiles.push({}) }).toThrow(TypeError)
+    expect(() => { mutableContentFile.path = 'mutated/items.json' }).toThrow(TypeError)
+    expect(() => { mutableContentFile.entries[0]!.path = 'mutated/items.json' }).toThrow(TypeError)
+    expect(() => { mutableContentFile.validatedEntries[0]!.name.fallback = 'Mutated item' }).toThrow(TypeError)
+  })
+
   it('keeps missing optional dependencies as warnings but blocks optional version mismatches', async() => {
     const root = await createRoot()
     await createPack(root, 'optional-warning', {
