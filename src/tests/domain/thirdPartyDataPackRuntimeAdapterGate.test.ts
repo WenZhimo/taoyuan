@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
@@ -389,13 +390,23 @@ describe('third-party data pack runtime adapter gate', () => {
     expectOfficialBaseline()
   }, 15_000)
 
-  it('copies upstream identity summaries before exposing runtime adapter reports', () => {
+  it('copies upstream identity summaries and diagnostics before exposing runtime adapter reports', () => {
     const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.runtime-adapter.test',
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
     const transactionPreflight: ThirdPartyDataPackTransactionPreflightResult = {
       status: 'deferred',
       runtimeGateStatus: 'deferred',
       reason: 'lifecycle transaction commit is intentionally deferred until atomic write and recovery primitives are implemented',
-      diagnostics: [],
+      diagnostics: [upstreamDiagnostic],
       selectedPackageIds: [packageId],
       blockedPackageIds: [],
       blockedCandidatePaths: [],
@@ -446,14 +457,42 @@ describe('third-party data pack runtime adapter gate', () => {
     expect(gate.candidateIdentity).toEqual(transactionPreflight.candidateIdentity)
     expect(gate.officialIdentity).not.toBe(transactionPreflight.officialIdentity)
     expect(gate.candidateIdentity).not.toBe(transactionPreflight.candidateIdentity)
+    expect(gate.diagnostics).toEqual([upstreamDiagnostic])
+    expect(gate.diagnostics[0]).not.toBe(upstreamDiagnostic)
+    expect(gate.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(gate.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(gate.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
+    expect(gate.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
 
     const mutableOfficialIdentity = transactionPreflight.officialIdentity as { registryCount: number }
     const mutableCandidateIdentity = transactionPreflight.candidateIdentity as { candidateHash: Sha256Hash }
     mutableOfficialIdentity.registryCount = 1
     mutableCandidateIdentity.candidateHash = testHash('5')
+    upstreamDiagnostic.stage = 'mutated'
+    upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
+    const upstreamDetails = upstreamDiagnostic.details
+    if (upstreamDetails === undefined) throw new Error('Expected copied diagnostic details.')
+    upstreamDetails.reason = 'mutated'
+    const nestedDetails = upstreamDetails.nested
+    if (nestedDetails === null || typeof nestedDetails !== 'object' || Array.isArray(nestedDetails)) {
+      throw new Error('Expected copied nested diagnostic details.')
+    }
+    nestedDetails.count = 2
+    const listDetails = upstreamDetails.list
+    if (!Array.isArray(listDetails)) throw new Error('Expected copied list diagnostic details.')
+    listDetails.push('mutated')
 
     expect(gate.officialIdentity.registryCount).toBe(54)
     expect(gate.candidateIdentity?.candidateHash).toBe(testHash('3'))
+    expect(gate.diagnostics[0]).toMatchObject({
+      stage: 'third-party.runtime-adapter.test',
+      relatedPackageIds: ['related_pack'],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      }
+    })
     expectNoWriteEffects(gate)
     expectOfficialBaseline()
   })
