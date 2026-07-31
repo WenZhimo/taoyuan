@@ -139,6 +139,14 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
 
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
 const countRegistryEntries = (registrySet: RegistrySet): {
   readonly registryCount: number
   readonly entryCount: number
@@ -567,7 +575,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
     ...counts,
     officialIdentity,
     candidateIdentity: createCandidateIdentity(candidateSnapshot, officialIdentity, selectionReport),
-    candidateSnapshot,
+    candidateSnapshot: deepFreezeObjectGraph(candidateSnapshot),
     candidateRegistrySet
   }
 }

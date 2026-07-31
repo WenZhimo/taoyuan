@@ -223,6 +223,41 @@ describe('third-party candidate registry snapshot', () => {
       .toThrow(RegistryError)
   })
 
+  it('freezes the exposed serializable candidate snapshot', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { result } = await buildCandidateFromRoot(root)
+    const candidateSnapshot = result.candidateSnapshot
+    if (!candidateSnapshot) throw new Error('Expected a valid candidate snapshot.')
+    const firstRegistry = candidateSnapshot.registries[0]
+    if (!firstRegistry) throw new Error('Expected candidate snapshot registries.')
+    const firstRecord = firstRegistry.entries[0]
+    if (!firstRecord) throw new Error('Expected candidate snapshot entries.')
+
+    expect(result.status).toBe('valid')
+    expect(Object.isFrozen(candidateSnapshot)).toBe(true)
+    expect(Object.isFrozen(candidateSnapshot.registries)).toBe(true)
+    expect(Object.isFrozen(firstRegistry)).toBe(true)
+    expect(Object.isFrozen(firstRegistry.entries)).toBe(true)
+    expect(Object.isFrozen(firstRecord)).toBe(true)
+    expect(Object.isFrozen(firstRecord.source)).toBe(true)
+    expect(Object.isFrozen(firstRecord.entry)).toBe(true)
+
+    const mutableSnapshot = candidateSnapshot as unknown as {
+      snapshotHash: string
+      registries: unknown[]
+    }
+    expect(() => {
+      mutableSnapshot.snapshotHash = 'sha256:0000000000000000000000000000000000000000000000000000000000000000'
+    }).toThrow(TypeError)
+    expect(() => {
+      mutableSnapshot.registries.push({})
+    }).toThrow(TypeError)
+    expect(candidateSnapshot.snapshotHash).toBe(result.candidateIdentity?.snapshotHash)
+    expect(candidateSnapshot.registries).toHaveLength(54)
+  })
+
   it('returns skipped for an empty discovery root without changing official counts', async() => {
     const root = await createRoot()
 

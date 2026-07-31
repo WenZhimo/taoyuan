@@ -362,14 +362,20 @@ describe('third-party data pack mount input', () => {
     expect(exposedSnapshot).toEqual(upstreamSnapshot)
     expect(exposedSnapshot).not.toBe(upstreamSnapshot)
     expect(exposedSnapshot.registries).not.toBe(upstreamSnapshot.registries)
+    expect(Object.isFrozen(upstreamSnapshot)).toBe(true)
+    expect(Object.isFrozen(upstreamSnapshot.registries)).toBe(true)
     expect(originalSnapshotHash).toMatch(/^sha256:/)
 
-    const mutableSnapshot = upstreamSnapshot as {
+    const mutableUpstreamSnapshot = upstreamSnapshot as {
       snapshotHash: Sha256Hash
       registries: unknown[]
     }
-    mutableSnapshot.snapshotHash = testHash('6')
-    mutableSnapshot.registries.length = 0
+    expect(() => {
+      mutableUpstreamSnapshot.snapshotHash = testHash('6')
+    }).toThrow(TypeError)
+    expect(() => {
+      mutableUpstreamSnapshot.registries.length = 0
+    }).toThrow(TypeError)
 
     expect(mountInput.candidateSnapshot?.snapshotHash).toBe(originalSnapshotHash)
     expect(mountInput.candidateSnapshot?.registries).toHaveLength(54)
