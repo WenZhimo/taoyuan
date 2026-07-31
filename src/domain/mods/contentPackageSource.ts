@@ -699,9 +699,9 @@ export const normalizeContentPackageSourceDirectoryEntries = (
       )
     }
     seenNames.add(normalizedEntry.name)
-    return normalizedEntry
+    return Object.freeze(normalizedEntry)
   })
-  return normalizedEntries.sort((a, b) => compareCodePoints(a.name, b.name))
+  return Object.freeze(normalizedEntries.sort((a, b) => compareCodePoints(a.name, b.name)))
 }
 
 export const normalizeContentPackageSourceArchiveEntryPath = (
@@ -868,7 +868,7 @@ export const validateContentPackageSourceArchiveEntries = (
 
   let totalCompressedBytes = 0
   let totalUncompressedBytes = 0
-  return normalizedEntries.map(({ entry, path }) => {
+  const validatedEntries = normalizedEntries.map(({ entry, path }) => {
     const entrySizeMetadata = readContentPackageSourceArchiveEntrySizeMetadata(entry)
     const uncompressedSizeBytes = assertNonNegativeSafeInteger(
       entrySizeMetadata.uncompressedSizeBytes,
@@ -890,7 +890,7 @@ export const validateContentPackageSourceArchiveEntries = (
     }
 
     if (entrySizeMetadata.compressedSizeBytes === undefined) {
-      return { path, uncompressedSizeBytes }
+      return Object.freeze({ path, uncompressedSizeBytes })
     }
 
     const compressedSizeBytes = assertNonNegativeSafeInteger(
@@ -911,8 +911,9 @@ export const validateContentPackageSourceArchiveEntries = (
     ) {
       throwLimitExceeded(`Archive entry exceeds ${policy.maxCompressedRatio}:1 compression ratio`, path)
     }
-    return { path, uncompressedSizeBytes, compressedSizeBytes }
+    return Object.freeze({ path, uncompressedSizeBytes, compressedSizeBytes })
   })
+  return Object.freeze(validatedEntries)
 }
 
 export const assertContentPackageSourceTextWithinLimits = (

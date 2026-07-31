@@ -1953,6 +1953,45 @@ describe('content package source contract', () => {
     expect(compressedSizeRead).toBe(false)
   })
 
+  it('freezes normalized directory and archive metadata before exposing safe-read results', () => {
+    const directoryEntries = normalizeContentPackageSourceDirectoryEntries([
+      { name: 'pack', kind: 'directory', isSymbolicLink: false },
+      { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+    ])
+    const archiveEntries = validateContentPackageSourceArchiveEntries([
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 },
+      { path: 'pack/data/items.json', uncompressedSizeBytes: 10, compressedSizeBytes: 2 }
+    ])
+
+    expect(Object.isFrozen(directoryEntries)).toBe(true)
+    expect(Object.isFrozen(directoryEntries[0])).toBe(true)
+    expect(Object.isFrozen(directoryEntries[1])).toBe(true)
+    expect(Object.isFrozen(archiveEntries)).toBe(true)
+    expect(Object.isFrozen(archiveEntries[0])).toBe(true)
+    expect(Object.isFrozen(archiveEntries[1])).toBe(true)
+    expect(() => {
+      (directoryEntries as ContentPackageSourceDirectoryEntry[]).push({
+        name: 'mutated',
+        kind: 'file',
+        isSymbolicLink: false
+      })
+    }).toThrow(TypeError)
+    expect(() => {
+      (directoryEntries[0] as { name: string }).name = 'mutated'
+    }).toThrow(TypeError)
+    expect(() => {
+      (archiveEntries as Array<{ path: string; uncompressedSizeBytes: number }>).push({
+        path: 'pack/mutated.json',
+        uncompressedSizeBytes: 0
+      })
+    }).toThrow(TypeError)
+    expect(() => {
+      (archiveEntries[0] as { path: string }).path = 'pack/mutated.json'
+    }).toThrow(TypeError)
+    expect(directoryEntries.map(entry => entry.name)).toEqual(['manifest.json', 'pack'])
+    expect(archiveEntries.map(entry => entry.path)).toEqual(['pack/data/items.json', 'pack/manifest.json'])
+  })
+
   it('ignores inherited optional archive compressed-size metadata before prototype getters can run', () => {
     const inherited = defineInheritedHostileGetter({
       path: 'pack/manifest.json',
