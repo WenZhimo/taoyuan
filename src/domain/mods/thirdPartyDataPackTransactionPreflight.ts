@@ -1,3 +1,4 @@
+import type { JsonValue } from './canonicalJson'
 import type { ModDiagnostic } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
@@ -117,6 +118,44 @@ const cloneCandidateIdentity = (
   identity: ThirdPartyCandidateIdentitySummary | undefined
 ): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+  if (value !== null && typeof value === 'object') {
+    const result: Record<string, JsonValue> = {}
+    for (const [key, entryValue] of Object.entries(value)) result[key] = cloneJsonValue(entryValue)
+    return result
+  }
+  return value
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
+  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
 const transactionRequirements = (): readonly ThirdPartyDataPackTransactionRequirement[] => [
   {
     id: 'staged-package-file-transaction',
@@ -231,7 +270,7 @@ const baseResult = (
   status,
   runtimeGateStatus: runtimeGate.status,
   reason,
-  diagnostics: [...runtimeGate.diagnostics],
+  diagnostics: cloneDiagnostics(runtimeGate.diagnostics),
   selectedPackageIds: [...runtimeGate.selectedPackageIds],
   blockedPackageIds: [...runtimeGate.blockedPackageIds],
   blockedCandidatePaths: [...runtimeGate.blockedCandidatePaths],
