@@ -2047,8 +2047,14 @@ describe('content package source contract', () => {
 
   it('validates source identity before a platform source can enter discovery', async() => {
     const source = createValidSource()
+    const validatedIdentity = validateContentPackageSourceIdentity(source.identity)
+    const readIdentity = readContentPackageSourceIdentity(source)
 
-    expect(validateContentPackageSourceIdentity(source.identity)).toEqual(source.identity)
+    expect(validatedIdentity).toEqual(source.identity)
+    expect(readIdentity).toEqual(source.identity)
+    expect(Object.isFrozen(source.identity)).toBe(true)
+    expect(Object.isFrozen(validatedIdentity)).toBe(true)
+    expect(Object.isFrozen(readIdentity)).toBe(true)
     expect(() => validateContentPackageSourceIdentity({
       contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
       kind: 'memory',

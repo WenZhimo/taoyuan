@@ -227,6 +227,9 @@ describe('electron content package source read-only probe', () => {
       sourceId: 'electron/mods-readonly-probe',
       rootPath: 'mods'
     })
+    expect(report.sourceIdentity).toEqual(source.identity)
+    expect(Object.isFrozen(source.identity)).toBe(true)
+    expect(Object.isFrozen(report.sourceIdentity)).toBe(true)
     expect(JSON.stringify(source.identity)).not.toContain(root)
     expect(JSON.stringify(source.identity)).not.toContain(path.sep)
     expect(report).toMatchObject({
@@ -1201,6 +1204,7 @@ describe('electron content package source read-only probe', () => {
         sourceHandlesRetained: false
       }
     })
+    expect(Object.isFrozen(sourceReport.sourceIdentity)).toBe(true)
     expect(readinessReport).toMatchObject({
       status: 'blocked',
       reason: 'sourceId must be a normalized relative identifier',
@@ -1213,6 +1217,7 @@ describe('electron content package source read-only probe', () => {
       runtimePublication: 'deferred',
       effects: createElectronReadonlyRuntimeReadinessProbeEffects()
     })
+    expect(Object.isFrozen(readinessReport.sourceIdentity)).toBe(true)
     expect(JSON.stringify(sourceReport)).not.toContain('C:/Users')
     expect(JSON.stringify(sourceReport)).not.toContain('LENOVO')
     expect(JSON.stringify(readinessReport)).not.toContain('C:/Users')

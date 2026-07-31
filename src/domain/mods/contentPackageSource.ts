@@ -1220,6 +1220,10 @@ const normalizeIdentityPart = (value: string, fieldName: string): string => {
   return normalized
 }
 
+const freezeContentPackageSourceIdentity = (
+  identity: ContentPackageSourceIdentity
+): ContentPackageSourceIdentity => Object.freeze(identity)
+
 export const validateContentPackageSourceIdentity = (
   identity: unknown
 ): ContentPackageSourceIdentity => {
@@ -1297,12 +1301,12 @@ export const validateContentPackageSourceIdentity = (
     )
   }
 
-  return {
+  return freezeContentPackageSourceIdentity({
     contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
     kind: sourceKind,
     sourceId,
     rootPath
-  }
+  })
 }
 
 export const readContentPackageSourceIdentity = (
@@ -1457,12 +1461,12 @@ export const createMemoryContentPackageSource = (
   }
 
   return {
-    identity: {
+    identity: freezeContentPackageSourceIdentity({
       contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
       kind: 'memory',
       sourceId,
       rootPath
-    },
+    }),
     async getEntry(path) {
       assertAvailable()
       return getEntry(path)

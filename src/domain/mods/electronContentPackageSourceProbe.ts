@@ -7,6 +7,7 @@ import {
   normalizeContentPackageSourcePath,
   normalizeContentPackageSourceTextPayload,
   readContentPackageSourceIdentity,
+  validateContentPackageSourceIdentity,
   toContentPackageSourceHostOperationError,
   type ContentPackageSource,
   type ContentPackageSourceDirectoryEntry,
@@ -435,12 +436,13 @@ const normalizeElectronReadonlyProbePath = (sourcePath: unknown): string => {
   return normalizeContentPackageSourcePath(sourcePath)
 }
 
-const createRedactedElectronReadonlySourceIdentity = (): ContentPackageSourceIdentity => ({
-  contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
-  kind: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND,
-  sourceId: ELECTRON_READONLY_DIRECTORY_PROBE_INVALID_SOURCE_ID,
-  rootPath: ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH
-})
+const createRedactedElectronReadonlySourceIdentity = (): ContentPackageSourceIdentity =>
+  validateContentPackageSourceIdentity({
+    contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+    kind: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND,
+    sourceId: ELECTRON_READONLY_DIRECTORY_PROBE_INVALID_SOURCE_ID,
+    rootPath: ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH
+  })
 
 const normalizeEntry = (
   entry: ContentPackageSourceDirectoryEntry | null
@@ -596,12 +598,12 @@ export const createElectronReadonlyDirectoryProbeSource = (
   const normalizePath = (sourcePath: string): string => normalizeElectronReadonlyProbePath(sourcePath)
 
   return {
-    identity: {
+    identity: validateContentPackageSourceIdentity({
       contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
       kind: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND,
       sourceId,
       rootPath
-    },
+    }),
     async getEntry(sourcePath) {
       assertAvailable()
       const normalizedPath = normalizePath(sourcePath)
