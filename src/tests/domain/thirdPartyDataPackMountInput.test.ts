@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { Sha256Hash } from '@/domain/mods/hash'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import {
@@ -26,6 +27,7 @@ const roots: string[] = []
 const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discovery')
 
 type JsonObject = Record<string, unknown>
+const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
@@ -321,6 +323,30 @@ describe('third-party data pack mount input', () => {
     expect(JSON.stringify(reports.lockfileDraftResult)).toBe(draftBefore)
     expect(await collectFileContents(root)).toEqual(filesBefore)
     expectReadOnlyEffects(repeated)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies upstream identity summaries before exposing mount input reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { preflight, mountInput } = await buildReportsFromRoot(root)
+    const originalCandidateHash = mountInput.candidateIdentity?.candidateHash
+
+    expect(mountInput.officialIdentity).toEqual(preflight.officialIdentity)
+    expect(mountInput.candidateIdentity).toEqual(preflight.candidateIdentity)
+    expect(mountInput.officialIdentity).not.toBe(preflight.officialIdentity)
+    expect(mountInput.candidateIdentity).not.toBe(preflight.candidateIdentity)
+    expect(originalCandidateHash).toMatch(/^sha256:/)
+
+    const mutableOfficialIdentity = preflight.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = preflight.candidateIdentity as { candidateHash: Sha256Hash }
+    mutableOfficialIdentity.registryCount = 1
+    mutableCandidateIdentity.candidateHash = testHash('5')
+
+    expect(mountInput.officialIdentity.registryCount).toBe(54)
+    expect(mountInput.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
+    expectReadOnlyEffects(mountInput)
     expectOfficialBaseline()
   }, 15_000)
 })

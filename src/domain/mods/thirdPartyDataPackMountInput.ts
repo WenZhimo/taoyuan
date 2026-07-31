@@ -180,6 +180,14 @@ const validateReadyInput = (
   return diagnostics
 }
 
+const cloneOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
+
+const cloneCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
+
 const baseResult = (
   status: ThirdPartyDataPackMountInputStatus,
   reason: string,
@@ -200,8 +208,8 @@ const baseResult = (
   registryCount: preflight.registryCount,
   entryCount: preflight.entryCount,
   packageCount: preflight.packageCount,
-  officialIdentity: preflight.officialIdentity,
-  candidateIdentity: preflight.candidateIdentity,
+  officialIdentity: cloneOfficialIdentity(preflight.officialIdentity),
+  candidateIdentity: cloneCandidateIdentity(preflight.candidateIdentity),
   lockfileHash: preflight.lockfileHash,
   effects: preflight.effects,
   runtimePublication: 'deferred',
