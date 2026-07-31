@@ -203,6 +203,14 @@ const rollbackReason = (
   return 'not required'
 }
 
+const cloneOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
+
+const cloneCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
+
 export const buildThirdPartyDataPackMountPreflight = (
   options: BuildThirdPartyDataPackMountPreflightOptions
 ): ThirdPartyDataPackMountPreflightResult => {
@@ -290,8 +298,8 @@ export const buildThirdPartyDataPackMountPreflight = (
     loadOrder: [...candidateSnapshot.loadOrder],
     registryCount: candidateSnapshot.registryCount,
     entryCount: candidateSnapshot.entryCount,
-    officialIdentity: candidateSnapshot.officialIdentity,
-    candidateIdentity: candidateSnapshot.candidateIdentity,
+    officialIdentity: cloneOfficialIdentity(candidateSnapshot.officialIdentity),
+    candidateIdentity: cloneCandidateIdentity(candidateSnapshot.candidateIdentity),
     lockfileHash: lockfileDraftResult.draft?.lockfileHash,
     packageCount: lockfileDraftResult.draft?.packages.length ?? 0,
     effects: createEffectSummary(),

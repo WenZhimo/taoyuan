@@ -15814,7 +15814,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence and explicit no-write effects; it does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches."
+      "rationale": "Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence, copied upstream official/candidate identity summaries and explicit no-write effects; it does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackMountInput.ts",
@@ -16042,7 +16042,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers ready, skipped and rolled-back preflight outcomes, stage status summaries, deterministic repeated output, no runtime publication, no lockfile/settings/save/package/cache writes, official registry immutability and unchanged 54/4242 five-hash baseline."
+      "rationale": "Covers ready, skipped and rolled-back preflight outcomes, stage status summaries, upstream official/candidate identity summary copy boundaries, deterministic repeated output, no runtime publication, no lockfile/settings/save/package/cache writes, official registry immutability and unchanged 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackMountInput.test.ts",
