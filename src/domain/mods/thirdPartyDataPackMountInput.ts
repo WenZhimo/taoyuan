@@ -188,6 +188,11 @@ const cloneCandidateIdentity = (
   identity: ThirdPartyCandidateIdentitySummary | undefined
 ): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
 
+const cloneCandidateSnapshot = (
+  snapshot: SerializableRegistrySnapshot | undefined
+): SerializableRegistrySnapshot | undefined =>
+  snapshot === undefined ? undefined : JSON.parse(JSON.stringify(snapshot)) as SerializableRegistrySnapshot
+
 const baseResult = (
   status: ThirdPartyDataPackMountInputStatus,
   reason: string,
@@ -268,7 +273,7 @@ export const buildThirdPartyDataPackMountInput = (
 
   return {
     ...baseResult('ready', 'ready for future runtime mount adapter', preflight, preflight.diagnostics),
-    candidateSnapshot: candidateSnapshot.candidateSnapshot,
+    candidateSnapshot: cloneCandidateSnapshot(candidateSnapshot.candidateSnapshot),
     candidateRegistrySet: candidateSnapshot.candidateRegistrySet,
     lockfileDraft: lockfileDraftResult.draft
   }

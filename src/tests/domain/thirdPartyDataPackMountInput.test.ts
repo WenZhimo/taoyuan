@@ -349,4 +349,31 @@ describe('third-party data pack mount input', () => {
     expectReadOnlyEffects(mountInput)
     expectOfficialBaseline()
   }, 15_000)
+
+  it('copies the serializable candidate snapshot before exposing mount input artifacts', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { candidateSnapshot, mountInput } = await buildReportsFromRoot(root)
+    const upstreamSnapshot = candidateSnapshot.candidateSnapshot!
+    const exposedSnapshot = mountInput.candidateSnapshot!
+    const originalSnapshotHash = exposedSnapshot.snapshotHash
+
+    expect(exposedSnapshot).toEqual(upstreamSnapshot)
+    expect(exposedSnapshot).not.toBe(upstreamSnapshot)
+    expect(exposedSnapshot.registries).not.toBe(upstreamSnapshot.registries)
+    expect(originalSnapshotHash).toMatch(/^sha256:/)
+
+    const mutableSnapshot = upstreamSnapshot as {
+      snapshotHash: Sha256Hash
+      registries: unknown[]
+    }
+    mutableSnapshot.snapshotHash = testHash('6')
+    mutableSnapshot.registries.length = 0
+
+    expect(mountInput.candidateSnapshot?.snapshotHash).toBe(originalSnapshotHash)
+    expect(mountInput.candidateSnapshot?.registries).toHaveLength(54)
+    expectReadOnlyEffects(mountInput)
+    expectOfficialBaseline()
+  }, 15_000)
 })
