@@ -147,6 +147,10 @@ const deepFreezeObjectGraph = <T>(value: T): T => {
   return value
 }
 
+const freezeCandidateRegistrySnapshotResult = (
+  result: ThirdPartyCandidateRegistrySnapshotResult
+): ThirdPartyCandidateRegistrySnapshotResult => deepFreezeObjectGraph(result)
+
 const countRegistryEntries = (registrySet: RegistrySet): {
   readonly registryCount: number
   readonly entryCount: number
@@ -199,7 +203,7 @@ const createBaseResult = (
   }
 ): ThirdPartyCandidateRegistrySnapshotResult => {
   const officialIdentity = createOfficialIdentitySummary(options.officialRegistrySet)
-  return {
+  return freezeCandidateRegistrySnapshotResult({
     status: options.status,
     sourceSummary: createSourceSummary(options.discoveryReport, options.selectionReport),
     selectedPackageIds: options.selectionReport.selectedPackages.map(item => item.packageId),
@@ -212,7 +216,7 @@ const createBaseResult = (
     registryCount: officialIdentity.registryCount,
     entryCount: officialIdentity.entryCount,
     officialIdentity
-  }
+  })
 }
 
 const cloneRegistryEntrySource = (
@@ -564,7 +568,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
   const candidateSnapshot = createSerializableRegistrySnapshot(candidateRegistrySet)
   const counts = countRegistryEntries(candidateRegistrySet)
   const officialIdentity = createOfficialIdentitySummary(options.officialRegistrySet)
-  return {
+  return freezeCandidateRegistrySnapshotResult({
     status: 'valid',
     sourceSummary: createSourceSummary(options.discoveryReport, selectionReport),
     selectedPackageIds: selectionReport.selectedPackages.map(item => item.packageId),
@@ -577,5 +581,5 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
     candidateIdentity: createCandidateIdentity(candidateSnapshot, officialIdentity, selectionReport),
     candidateSnapshot: deepFreezeObjectGraph(candidateSnapshot),
     candidateRegistrySet
-  }
+  })
 }

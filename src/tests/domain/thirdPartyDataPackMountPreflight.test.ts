@@ -16,7 +16,10 @@ import {
   type ThirdPartyDiscoveryFileSystem
 } from '@/domain/mods/thirdPartyDataPackDiscovery'
 import { selectThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackSelection'
-import { buildThirdPartyCandidateRegistrySnapshot } from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
+import {
+  buildThirdPartyCandidateRegistrySnapshot,
+  type ThirdPartyCandidateRegistrySnapshotResult
+} from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
 import {
   createThirdPartyDataPackLockfileDraft,
   validateThirdPartyDataPackLockfileDraft
@@ -180,6 +183,14 @@ const buildReportsFromRoot = async(root: string) => {
     preflight
   }
 }
+
+const createMutableCandidateIdentityFixture = (
+  snapshot: ThirdPartyCandidateRegistrySnapshotResult
+): ThirdPartyCandidateRegistrySnapshotResult => ({
+  ...snapshot,
+  officialIdentity: { ...snapshot.officialIdentity },
+  ...(snapshot.candidateIdentity ? { candidateIdentity: { ...snapshot.candidateIdentity } } : {})
+})
 
 const stageStatusByName = (preflight: ReturnType<typeof buildThirdPartyDataPackMountPreflight>) =>
   new Map(preflight.stages.map(stage => [stage.name, stage.status]))
@@ -448,7 +459,16 @@ describe('third-party data pack mount preflight', () => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
 
-    const { candidateSnapshot, preflight } = await buildReportsFromRoot(root)
+    const reports = await buildReportsFromRoot(root)
+    const candidateSnapshot = createMutableCandidateIdentityFixture(reports.candidateSnapshot)
+    const preflight = buildThirdPartyDataPackMountPreflight({
+      officialRegistrySet: reports.officialRegistrySet,
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot,
+      lockfileDraftResult: reports.lockfileDraftResult,
+      lockfileValidationResult: reports.lockfileValidationResult
+    })
     const originalCandidateHash = preflight.candidateIdentity?.candidateHash
 
     expect(preflight.officialIdentity).toEqual(candidateSnapshot.officialIdentity)

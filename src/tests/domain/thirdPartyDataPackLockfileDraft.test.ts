@@ -18,7 +18,10 @@ import {
   type ThirdPartyDiscoveryFileSystem
 } from '@/domain/mods/thirdPartyDataPackDiscovery'
 import { selectThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackSelection'
-import { buildThirdPartyCandidateRegistrySnapshot } from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
+import {
+  buildThirdPartyCandidateRegistrySnapshot,
+  type ThirdPartyCandidateRegistrySnapshotResult
+} from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
 import {
   createThirdPartyDataPackLockfileDraft,
   validateThirdPartyDataPackLockfileDraft,
@@ -161,6 +164,14 @@ const buildReportsFromRoot = async(root: string) => {
   })
   return { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, draftResult }
 }
+
+const createMutableCandidateIdentityFixture = (
+  snapshot: ThirdPartyCandidateRegistrySnapshotResult
+): ThirdPartyCandidateRegistrySnapshotResult => ({
+  ...snapshot,
+  officialIdentity: { ...snapshot.officialIdentity },
+  ...(snapshot.candidateIdentity ? { candidateIdentity: { ...snapshot.candidateIdentity } } : {})
+})
 
 const mutateDraft = (
   draft: ThirdPartyDataPackLockfileDraft,
@@ -649,30 +660,36 @@ describe('third-party data pack lockfile draft', () => {
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
 
     const reports = await buildReportsFromRoot(root)
-    const draft = reports.draftResult.draft!
-    const originalCandidateHash = reports.draftResult.candidateIdentity?.candidateHash
+    const candidateSnapshot = createMutableCandidateIdentityFixture(reports.candidateSnapshot)
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot
+    })
+    const draft = draftResult.draft!
+    const originalCandidateHash = draftResult.candidateIdentity?.candidateHash
     const originalLockfileHash = draft.lockfileHash
 
-    expect(reports.draftResult.status).toBe('valid')
-    expect(reports.draftResult.officialIdentity).toEqual(reports.candidateSnapshot.officialIdentity)
-    expect(reports.draftResult.candidateIdentity).toEqual(reports.candidateSnapshot.candidateIdentity)
-    expect(draft.officialIdentity).toEqual(reports.candidateSnapshot.officialIdentity)
-    expect(draft.candidateIdentity).toEqual(reports.candidateSnapshot.candidateIdentity)
-    expect(reports.draftResult.officialIdentity).not.toBe(reports.candidateSnapshot.officialIdentity)
-    expect(reports.draftResult.candidateIdentity).not.toBe(reports.candidateSnapshot.candidateIdentity)
-    expect(draft.officialIdentity).not.toBe(reports.candidateSnapshot.officialIdentity)
-    expect(draft.candidateIdentity).not.toBe(reports.candidateSnapshot.candidateIdentity)
-    expect(draft.officialIdentity).not.toBe(reports.draftResult.officialIdentity)
-    expect(draft.candidateIdentity).not.toBe(reports.draftResult.candidateIdentity)
+    expect(draftResult.status).toBe('valid')
+    expect(draftResult.officialIdentity).toEqual(candidateSnapshot.officialIdentity)
+    expect(draftResult.candidateIdentity).toEqual(candidateSnapshot.candidateIdentity)
+    expect(draft.officialIdentity).toEqual(candidateSnapshot.officialIdentity)
+    expect(draft.candidateIdentity).toEqual(candidateSnapshot.candidateIdentity)
+    expect(draftResult.officialIdentity).not.toBe(candidateSnapshot.officialIdentity)
+    expect(draftResult.candidateIdentity).not.toBe(candidateSnapshot.candidateIdentity)
+    expect(draft.officialIdentity).not.toBe(candidateSnapshot.officialIdentity)
+    expect(draft.candidateIdentity).not.toBe(candidateSnapshot.candidateIdentity)
+    expect(draft.officialIdentity).not.toBe(draftResult.officialIdentity)
+    expect(draft.candidateIdentity).not.toBe(draftResult.candidateIdentity)
     expect(originalCandidateHash).toMatch(/^sha256:/)
 
-    const mutableOfficialIdentity = reports.candidateSnapshot.officialIdentity as { registryCount: number }
-    const mutableCandidateIdentity = reports.candidateSnapshot.candidateIdentity as { candidateHash: Sha256Hash }
+    const mutableOfficialIdentity = candidateSnapshot.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = candidateSnapshot.candidateIdentity as { candidateHash: Sha256Hash }
     mutableOfficialIdentity.registryCount = 1
     mutableCandidateIdentity.candidateHash = testHash('6')
 
-    expect(reports.draftResult.officialIdentity.registryCount).toBe(54)
-    expect(reports.draftResult.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
+    expect(draftResult.officialIdentity.registryCount).toBe(54)
+    expect(draftResult.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
     expect(draft.officialIdentity.registryCount).toBe(54)
     expect(draft.candidateIdentity.candidateHash).toBe(originalCandidateHash)
     expect(draft.lockfileHash).toBe(originalLockfileHash)

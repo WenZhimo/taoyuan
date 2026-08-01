@@ -264,6 +264,89 @@ describe('third-party candidate registry snapshot', () => {
     expect(candidateSnapshot.registries).toHaveLength(54)
   })
 
+  it('freezes exposed candidate snapshot result graphs', async() => {
+    const validRoot = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(validRoot, 'valid-gift-pack'), { recursive: true })
+    const { result: validResult } = await buildCandidateFromRoot(validRoot)
+
+    const skippedRoot = await createRoot()
+    const { result: skippedResult } = await buildCandidateFromRoot(skippedRoot)
+
+    const invalidRoot = await createRoot()
+    await createPack(invalidRoot, 'bad-schema', {
+      id: 'bad_schema',
+      items: [createItem('bad_schema:broken', -1)]
+    })
+    const { result: invalidResult } = await buildCandidateFromRoot(invalidRoot)
+    const invalidDiagnostic = invalidResult.diagnostics[0]
+    if (!invalidDiagnostic) throw new Error('Expected invalid candidate diagnostics.')
+
+    const beforeMutation = JSON.stringify({ validResult, skippedResult, invalidResult })
+
+    expect(validResult.status).toBe('valid')
+    expect(Object.isFrozen(validResult)).toBe(true)
+    expect(Object.isFrozen(validResult.sourceSummary)).toBe(true)
+    expect(Object.isFrozen(validResult.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(validResult.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(validResult.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(validResult.loadOrder)).toBe(true)
+    expect(Object.isFrozen(validResult.diagnostics)).toBe(true)
+    expect(Object.isFrozen(validResult.officialIdentity)).toBe(true)
+    expect(Object.isFrozen(validResult.candidateIdentity)).toBe(true)
+    expect(Object.isFrozen(validResult.candidateSnapshot)).toBe(true)
+    expect(Object.isFrozen(validResult.candidateRegistrySet)).toBe(true)
+
+    expect(skippedResult.status).toBe('skipped')
+    expect(Object.isFrozen(skippedResult)).toBe(true)
+    expect(Object.isFrozen(skippedResult.sourceSummary)).toBe(true)
+    expect(Object.isFrozen(skippedResult.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(skippedResult.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(skippedResult.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(skippedResult.loadOrder)).toBe(true)
+    expect(Object.isFrozen(skippedResult.diagnostics)).toBe(true)
+    expect(Object.isFrozen(skippedResult.officialIdentity)).toBe(true)
+    expect(skippedResult.candidateIdentity).toBeUndefined()
+    expect(skippedResult.candidateSnapshot).toBeUndefined()
+    expect(skippedResult.candidateRegistrySet).toBeUndefined()
+
+    expect(invalidResult.status).toBe('invalid')
+    expect(Object.isFrozen(invalidResult)).toBe(true)
+    expect(Object.isFrozen(invalidResult.sourceSummary)).toBe(true)
+    expect(Object.isFrozen(invalidResult.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(invalidResult.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(invalidResult.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(invalidResult.loadOrder)).toBe(true)
+    expect(Object.isFrozen(invalidResult.diagnostics)).toBe(true)
+    expect(Object.isFrozen(invalidDiagnostic)).toBe(true)
+    expect(Object.isFrozen(invalidResult.officialIdentity)).toBe(true)
+    if (invalidDiagnostic.relatedPackageIds) {
+      expect(Object.isFrozen(invalidDiagnostic.relatedPackageIds)).toBe(true)
+    }
+    if (invalidDiagnostic.details) {
+      expect(Object.isFrozen(invalidDiagnostic.details)).toBe(true)
+    }
+    expect(invalidResult.candidateIdentity).toBeUndefined()
+    expect(invalidResult.candidateSnapshot).toBeUndefined()
+    expect(invalidResult.candidateRegistrySet).toBeUndefined()
+
+    expect(() => (validResult.selectedPackageIds as unknown as unknown[]).push('mutated_pack')).toThrow(TypeError)
+    expect(() => (validResult.loadOrder as unknown as unknown[]).push('mutated_pack')).toThrow(TypeError)
+    expect(() => (validResult.candidateSnapshot!.registries as unknown as unknown[]).push({})).toThrow(TypeError)
+    expect(() => (skippedResult.blockedCandidatePaths as unknown as unknown[]).push('mutated-path')).toThrow(TypeError)
+    expect(() => (invalidResult.diagnostics as unknown as unknown[]).push({})).toThrow(TypeError)
+    expect(Reflect.set(validResult.sourceSummary as unknown as Record<string, unknown>, 'selectedPackageCount', 99)).toBe(false)
+    expect(Reflect.set(validResult.officialIdentity as unknown as Record<string, unknown>, 'entryCount', 1)).toBe(false)
+    expect(Reflect.set(validResult.candidateIdentity! as unknown as Record<string, unknown>, 'candidateHash', 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')).toBe(false)
+    expect(Reflect.set(validResult.candidateRegistrySet! as unknown as Record<string, unknown>, 'phase', 'registering-entries')).toBe(false)
+    expect(Reflect.set(invalidDiagnostic as unknown as Record<string, unknown>, 'stage', 'mutated')).toBe(false)
+    if (invalidDiagnostic.details) {
+      expect(Reflect.set(invalidDiagnostic.details as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    }
+
+    expect(JSON.stringify({ validResult, skippedResult, invalidResult })).toBe(beforeMutation)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('returns skipped for an empty discovery root without changing official counts', async() => {
     const root = await createRoot()
 
