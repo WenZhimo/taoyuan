@@ -1843,6 +1843,7 @@ describe('content package source contract', () => {
       { path: 'infinite.bin', uncompressedSizeBytes: Number.POSITIVE_INFINITY },
       { path: 'compressed-negative.bin', uncompressedSizeBytes: 0, compressedSizeBytes: -1 },
       { path: 'compressed-fraction.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 1.5 },
+      { path: 'compressed-undefined.bin', uncompressedSizeBytes: 0, compressedSizeBytes: undefined },
       { path: 'zip-bomb.bin', uncompressedSizeBytes: 1, compressedSizeBytes: 0 }
     ]) {
       expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([entry])).code)
@@ -2022,7 +2023,7 @@ describe('content package source contract', () => {
 
   it('narrows archive entry metadata from unknown before ZIP payloads can become sources', () => {
     expect(validateContentPackageSourceArchiveEntries([
-      { path: 'pack/manifest.json', uncompressedSizeBytes: 0, compressedSizeBytes: undefined },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 },
       { path: 'pack/data/items.json', uncompressedSizeBytes: 10, compressedSizeBytes: 2 }
     ] as unknown)).toEqual([
       { path: 'pack/data/items.json', uncompressedSizeBytes: 10, compressedSizeBytes: 2 },

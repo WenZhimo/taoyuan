@@ -814,17 +814,19 @@ const readContentPackageSourceArchiveEntrySizeMetadata = (
     'SOURCE_ENTRY_UNSAFE',
     'Archive entry metadata could not be read'
   )
-  const compressedSizeBytes = entry.metadataKeys.includes('compressedSizeBytes')
-    ? readUnknownMetadataField(
+  if (!entry.metadataKeys.includes('compressedSizeBytes')) {
+    return { path: entry.path, uncompressedSizeBytes }
+  }
+  return {
+    path: entry.path,
+    uncompressedSizeBytes,
+    compressedSizeBytes: readUnknownMetadataField(
       entry.entryMetadata,
       'compressedSizeBytes',
       'SOURCE_ENTRY_UNSAFE',
       'Archive entry metadata could not be read'
     )
-    : undefined
-  return compressedSizeBytes === undefined
-    ? { path: entry.path, uncompressedSizeBytes }
-    : { path: entry.path, uncompressedSizeBytes, compressedSizeBytes }
+  }
 }
 
 const collectAncestorPaths = (path: string): readonly string[] => {
@@ -901,7 +903,7 @@ export const validateContentPackageSourceArchiveEntries = (
       )
     }
 
-    if (entrySizeMetadata.compressedSizeBytes === undefined) {
+    if (!('compressedSizeBytes' in entrySizeMetadata)) {
       return Object.freeze({ path, uncompressedSizeBytes })
     }
 
