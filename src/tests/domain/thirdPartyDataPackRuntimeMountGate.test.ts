@@ -218,6 +218,25 @@ const expectNoWriteEffects = (gate: ReturnType<typeof buildThirdPartyDataPackRun
     cacheWritten: false,
     transactionLogWritten: false
   })
+  expect(Object.isFrozen(gate.effects)).toBe(true)
+}
+
+const expectRequiredRuntimeGates = (
+  gate: ReturnType<typeof buildThirdPartyDataPackRuntimeMountGate>
+): void => {
+  expect(gate.requiredGates.map(requirement => ({
+    id: requirement.id,
+    status: requirement.status
+  }))).toEqual([
+    { id: 'runtime-registry-publication', status: 'required' },
+    { id: 'mod-lockfile-write', status: 'required' },
+    { id: 'global-settings-persistence', status: 'required' },
+    { id: 'save-environment-binding', status: 'required' },
+    { id: 'lifecycle-transaction-recovery', status: 'required' }
+  ])
+  expect(gate.requiredGates.every(requirement => requirement.reason.length > 0)).toBe(true)
+  expect(Object.isFrozen(gate.requiredGates)).toBe(true)
+  expect(gate.requiredGates.every(requirement => Object.isFrozen(requirement))).toBe(true)
 }
 
 const expectOfficialBaseline = (): void => {
@@ -258,17 +277,26 @@ describe('third-party data pack runtime mount gate', () => {
     expect(runtimeGate.packageCount).toBe(1)
     expect(runtimeGate.candidateIdentity?.candidateHash).toBe(candidateSnapshot.candidateIdentity?.candidateHash)
     expect(runtimeGate.lockfileHash).toBe(lockfileDraftResult.draft?.lockfileHash)
-    expect(runtimeGate.requiredGates.map(requirement => requirement.id)).toEqual([
-      'runtime-registry-publication',
-      'mod-lockfile-write',
-      'global-settings-persistence',
-      'save-environment-binding',
-      'lifecycle-transaction-recovery'
-    ])
+    expectRequiredRuntimeGates(runtimeGate)
     expect('candidateRegistrySet' in runtimeGate).toBe(false)
     expect('candidateSnapshot' in runtimeGate).toBe(false)
     expect('lockfileDraft' in runtimeGate).toBe(false)
     expectNoWriteEffects(runtimeGate)
+    const frozenOutputSnapshot = JSON.stringify({
+      requiredGates: runtimeGate.requiredGates,
+      effects: runtimeGate.effects
+    })
+    const firstGate = runtimeGate.requiredGates[0]
+    if (firstGate === undefined) throw new Error('Expected at least one frozen runtime mount requirement.')
+    expect(() => {
+      (runtimeGate.requiredGates as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstGate as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(Reflect.set(runtimeGate.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    expect(JSON.stringify({
+      requiredGates: runtimeGate.requiredGates,
+      effects: runtimeGate.effects
+    })).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -284,6 +312,7 @@ describe('third-party data pack runtime mount gate', () => {
     expect(runtimeGate.entryCount).toBe(4242)
     expect(runtimeGate.packageCount).toBe(0)
     expect(runtimeGate.requiredGates).toEqual([])
+    expect(Object.isFrozen(runtimeGate.requiredGates)).toBe(true)
     expectNoWriteEffects(runtimeGate)
     expectOfficialBaseline()
   }, 15_000)
@@ -303,6 +332,7 @@ describe('third-party data pack runtime mount gate', () => {
     expect(runtimeGate.registryCount).toBe(54)
     expect(runtimeGate.entryCount).toBe(4242)
     expect(runtimeGate.requiredGates).toEqual([])
+    expect(Object.isFrozen(runtimeGate.requiredGates)).toBe(true)
     expect(runtimeGate.diagnostics).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'SCHEMA-VALIDATE-001' }),
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })

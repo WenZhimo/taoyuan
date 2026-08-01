@@ -75,6 +75,19 @@ const createEffectSummary = (): ThirdPartyDataPackRuntimeMountGateEffectSummary 
   transactionLogWritten: false
 })
 
+const freezeEffectSummary = (
+  effects: ThirdPartyDataPackRuntimeMountGateEffectSummary
+): ThirdPartyDataPackRuntimeMountGateEffectSummary => Object.freeze(effects)
+
+const freezeRuntimeMountGateRequirement = (
+  requirement: ThirdPartyDataPackRuntimeMountGateRequirement
+): ThirdPartyDataPackRuntimeMountGateRequirement => Object.freeze(requirement)
+
+const freezeRuntimeMountGateRequirements = (
+  requirements: readonly ThirdPartyDataPackRuntimeMountGateRequirement[]
+): readonly ThirdPartyDataPackRuntimeMountGateRequirement[] =>
+  Object.freeze(requirements.map(requirement => freezeRuntimeMountGateRequirement(requirement)))
+
 const runtimeRequirements = (): readonly ThirdPartyDataPackRuntimeMountGateRequirement[] => [
   {
     id: 'runtime-registry-publication',
@@ -170,8 +183,8 @@ const baseResult = (
   candidateIdentity: cloneCandidateIdentity(mountInput.candidateIdentity),
   lockfileHash: mountInput.lockfileHash,
   runtimePublication: 'deferred',
-  requiredGates,
-  effects: createEffectSummary()
+  requiredGates: freezeRuntimeMountGateRequirements(requiredGates),
+  effects: freezeEffectSummary(createEffectSummary())
 })
 
 export const buildThirdPartyDataPackRuntimeMountGate = (
