@@ -1715,7 +1715,7 @@ describe('third-party data pack read-only discovery', () => {
     expect(report.summary.invalidPackageCount).toBe(2)
   })
 
-  it('copies candidate issue diagnostics before exposing top-level discovery issues', async() => {
+  it('copies and freezes candidate issue diagnostics before exposing top-level discovery issues', async() => {
     const root = await createRoot()
     await createPack(root, 'missing-dependent', {
       id: 'missing_dependent',
@@ -1746,7 +1746,26 @@ describe('third-party data pack read-only discovery', () => {
         range: '1.0.0'
       }
     })
+    expect(Object.isFrozen(report)).toBe(true)
+    expect(Object.isFrozen(report.candidates)).toBe(true)
+    expect(Object.isFrozen(report.issues)).toBe(true)
+    expect(Object.isFrozen(report.summary)).toBe(true)
+    expect(Object.isFrozen(report.candidates[0])).toBe(true)
+    expect(Object.isFrozen(report.candidates[0]?.issues)).toBe(true)
+    expect(Object.isFrozen(candidateIssue)).toBe(true)
+    expect(Object.isFrozen(candidateIssue.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(candidateIssue.diagnostics)).toBe(true)
+    expect(Object.isFrozen(candidateDiagnostic)).toBe(true)
+    expect(Object.isFrozen(candidateDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(candidateDiagnostic.details)).toBe(true)
+    expect(Object.isFrozen(topLevelIssue)).toBe(true)
+    expect(Object.isFrozen(topLevelIssue.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(topLevelIssue.diagnostics)).toBe(true)
+    expect(Object.isFrozen(topLevelDiagnostic)).toBe(true)
+    expect(Object.isFrozen(topLevelDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(topLevelDiagnostic.details)).toBe(true)
 
+    const reportJsonBeforeMutationAttempts = JSON.stringify(report)
     type MutableIssue = {
       relatedPackageIds?: string[]
       diagnostics: Array<{
@@ -1755,12 +1774,27 @@ describe('third-party data pack read-only discovery', () => {
         details?: Record<string, unknown>
       }>
     }
+    type MutableReport = {
+      status: string
+      candidates: unknown[]
+      issues: unknown[]
+      summary: { issueCount: number }
+    }
 
+    const mutableReport = report as unknown as MutableReport
     const mutableCandidateIssue = candidateIssue as unknown as MutableIssue
-    mutableCandidateIssue.relatedPackageIds![0] = 'mutated_dependency'
-    mutableCandidateIssue.diagnostics[0]!.stage = 'mutated-candidate-stage'
-    mutableCandidateIssue.diagnostics[0]!.relatedPackageIds![0] = 'mutated_diagnostic_dependency'
-    mutableCandidateIssue.diagnostics[0]!.details!.reason = 'mutated candidate reason'
+    expect(() => { mutableReport.status = 'empty' }).toThrow(TypeError)
+    expect(() => { mutableReport.candidates.push({}) }).toThrow(TypeError)
+    expect(() => { mutableReport.issues.push({}) }).toThrow(TypeError)
+    expect(() => { mutableReport.summary.issueCount = 999 }).toThrow(TypeError)
+    expect(() => { mutableCandidateIssue.relatedPackageIds![0] = 'mutated_dependency' }).toThrow(TypeError)
+    expect(() => { mutableCandidateIssue.diagnostics[0]!.stage = 'mutated-candidate-stage' }).toThrow(TypeError)
+    expect(() => {
+      mutableCandidateIssue.diagnostics[0]!.relatedPackageIds![0] = 'mutated_diagnostic_dependency'
+    }).toThrow(TypeError)
+    expect(() => {
+      mutableCandidateIssue.diagnostics[0]!.details!.reason = 'mutated candidate reason'
+    }).toThrow(TypeError)
 
     expect(topLevelIssue.relatedPackageIds).toEqual(['missing_library'])
     expect(topLevelDiagnostic).toMatchObject({
@@ -1770,16 +1804,21 @@ describe('third-party data pack read-only discovery', () => {
     })
 
     const mutableTopLevelIssue = topLevelIssue as unknown as MutableIssue
-    mutableTopLevelIssue.relatedPackageIds![0] = 'mutated_top_dependency'
-    mutableTopLevelIssue.diagnostics[0]!.stage = 'mutated-top-stage'
-    mutableTopLevelIssue.diagnostics[0]!.relatedPackageIds![0] = 'mutated_top_diagnostic_dependency'
-    mutableTopLevelIssue.diagnostics[0]!.details!.reason = 'mutated top reason'
+    expect(() => { mutableTopLevelIssue.relatedPackageIds![0] = 'mutated_top_dependency' }).toThrow(TypeError)
+    expect(() => { mutableTopLevelIssue.diagnostics[0]!.stage = 'mutated-top-stage' }).toThrow(TypeError)
+    expect(() => {
+      mutableTopLevelIssue.diagnostics[0]!.relatedPackageIds![0] = 'mutated_top_diagnostic_dependency'
+    }).toThrow(TypeError)
+    expect(() => {
+      mutableTopLevelIssue.diagnostics[0]!.details!.reason = 'mutated top reason'
+    }).toThrow(TypeError)
 
-    expect(candidateIssue.relatedPackageIds).toEqual(['mutated_dependency'])
+    expect(JSON.stringify(report)).toBe(reportJsonBeforeMutationAttempts)
+    expect(candidateIssue.relatedPackageIds).toEqual(['missing_library'])
     expect(candidateDiagnostic).toMatchObject({
-      stage: 'mutated-candidate-stage',
-      relatedPackageIds: ['mutated_diagnostic_dependency'],
-      details: { reason: 'mutated candidate reason' }
+      stage: 'third-party.discovery.dependency-missing',
+      relatedPackageIds: ['missing_library'],
+      details: { reason: 'Required dependency package is missing' }
     })
   })
 

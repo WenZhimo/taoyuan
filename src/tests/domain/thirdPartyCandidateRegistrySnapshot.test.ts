@@ -18,6 +18,7 @@ import {
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import {
   discoverThirdPartyDataPacks,
+  type ThirdPartyDataPackDiscoveryReport,
   type ThirdPartyDiscoveryDirectoryEntry,
   type ThirdPartyDiscoveryFileSystem
 } from '@/domain/mods/thirdPartyDataPackDiscovery'
@@ -29,6 +30,11 @@ const roots: string[] = []
 const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discovery')
 
 type JsonObject = Record<string, unknown>
+
+const createMutableDiscoveryReport = (
+  report: ThirdPartyDataPackDiscoveryReport
+): ThirdPartyDataPackDiscoveryReport =>
+  structuredClone(report) as ThirdPartyDataPackDiscoveryReport
 
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
@@ -335,7 +341,9 @@ describe('third-party candidate registry snapshot', () => {
       items: [createItem('dependent_app:gift')]
     })
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
-    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
     const selectionReport = selectThirdPartyDataPacks(discoveryReport)
     const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
     if (!upstreamDiagnostic) throw new Error('Expected discovery diagnostics for invalid test package.')

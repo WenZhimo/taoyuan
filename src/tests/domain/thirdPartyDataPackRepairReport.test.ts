@@ -10,6 +10,7 @@ import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdap
 import { requirePackageId } from '@/domain/mods/ids'
 import {
   discoverThirdPartyDataPacks,
+  type ThirdPartyDataPackDiscoveryReport,
   type ThirdPartyDiscoveryDirectoryEntry,
   type ThirdPartyDiscoveryFileSystem
 } from '@/domain/mods/thirdPartyDataPackDiscovery'
@@ -20,6 +21,11 @@ const roots: string[] = []
 const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discovery')
 
 type JsonObject = Record<string, unknown>
+
+const createMutableDiscoveryReport = (
+  report: ThirdPartyDataPackDiscoveryReport
+): ThirdPartyDataPackDiscoveryReport =>
+  structuredClone(report) as ThirdPartyDataPackDiscoveryReport
 
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
@@ -253,7 +259,9 @@ describe('third-party data pack repair report', () => {
       id: 'bad_schema',
       itemSellPrice: -1
     })
-    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
     const upstreamDiagnostic = discoveryReport.candidates
       .flatMap(candidate => candidate.issues)
       .flatMap(issue => issue.diagnostics)[0]
@@ -314,7 +322,9 @@ describe('third-party data pack repair report', () => {
       id: 'bad_schema',
       itemSellPrice: -1
     })
-    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
     const upstreamDiagnostic = discoveryReport.candidates
       .flatMap(candidate => candidate.issues)
       .flatMap(issue => issue.diagnostics)[0]

@@ -335,6 +335,11 @@ const cloneDiscoveryCandidate = (
   issues: candidate.issues.map(issue => cloneDiscoveryIssue(issue))
 })
 
+const freezeDiscoveryReport = (
+  report: ThirdPartyDataPackDiscoveryReport
+): ThirdPartyDataPackDiscoveryReport =>
+  freezeJsonTree(report)
+
 const createDiscoverySourceError = (
   code: 'SOURCE_ENTRY_UNSAFE' | 'SOURCE_LIMIT_EXCEEDED' | 'SOURCE_PATH_UNSAFE',
   message: string
@@ -1554,7 +1559,7 @@ export const discoverThirdPartyDataPacks = async (
   const rootEntryResult = await getFileSystemEntry(fileSystem, rootDirectory, '.', { severity: 'fatal' })
   if (!rootEntryResult.ok) {
     const issue = rootEntryResult.issue
-    return {
+    return freezeDiscoveryReport({
       status: 'directory-not-found',
       candidates: [],
       issues: [issue],
@@ -1565,7 +1570,7 @@ export const discoverThirdPartyDataPacks = async (
         invalidPackageCount: 0,
         issueCount: 1
       }
-    }
+    })
   }
 
   const rootEntry = rootEntryResult.entry
@@ -1577,7 +1582,7 @@ export const discoverThirdPartyDataPacks = async (
         ? 'Discovery root is a symbolic link'
         : 'Discovery root directory does not exist'
     })
-    return {
+    return freezeDiscoveryReport({
       status: 'directory-not-found',
       candidates: [],
       issues: [issue],
@@ -1588,13 +1593,13 @@ export const discoverThirdPartyDataPacks = async (
         invalidPackageCount: 0,
         issueCount: 1
       }
-    }
+    })
   }
 
   const rootEntriesResult = await readFileSystemDirectory(fileSystem, rootDirectory, '.')
   if (!rootEntriesResult.ok) {
     const issue = rootEntriesResult.issue
-    return {
+    return freezeDiscoveryReport({
       status: 'directory-not-found',
       candidates: [],
       issues: [issue],
@@ -1605,7 +1610,7 @@ export const discoverThirdPartyDataPacks = async (
         invalidPackageCount: 0,
         issueCount: 1
       }
-    }
+    })
   }
 
   const entries = sortEntries(rootEntriesResult.entries)
@@ -1615,7 +1620,7 @@ export const discoverThirdPartyDataPacks = async (
       severity: 'info',
       reason: 'Discovery root contains no package candidates'
     })
-    return {
+    return freezeDiscoveryReport({
       status: 'empty',
       candidates: [],
       issues: [issue],
@@ -1626,7 +1631,7 @@ export const discoverThirdPartyDataPacks = async (
         invalidPackageCount: 0,
         issueCount: 1
       }
-    }
+    })
   }
 
   const rootIssues: ThirdPartyDataPackDiscoveryIssue[] = []
@@ -1664,7 +1669,7 @@ export const discoverThirdPartyDataPacks = async (
   const issues = [...rootIssues, ...candidateIssues]
   const validPackageCount = finalCandidates.filter(candidate => candidate.status === 'valid').length
 
-  return {
+  return freezeDiscoveryReport({
     status: 'completed',
     candidates: finalCandidates.map(candidate => cloneDiscoveryCandidate(candidate)),
     issues: issues.map(issue => cloneDiscoveryIssue(issue)),
@@ -1675,5 +1680,5 @@ export const discoverThirdPartyDataPacks = async (
       invalidPackageCount: finalCandidates.length - validPackageCount,
       issueCount: issues.length
     }
-  }
+  })
 }

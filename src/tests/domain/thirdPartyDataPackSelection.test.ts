@@ -22,6 +22,11 @@ const fixtureRoot = path.join(cwd(), 'src/tests/fixtures/mods/third-party-discov
 
 type JsonObject = Record<string, unknown>
 
+const createMutableDiscoveryReport = (
+  report: ThirdPartyDataPackDiscoveryReport
+): ThirdPartyDataPackDiscoveryReport =>
+  structuredClone(report) as ThirdPartyDataPackDiscoveryReport
+
 afterEach(async() => {
   await Promise.all(roots.splice(0).map(root => rm(root, { recursive: true, force: true })))
 })
@@ -180,7 +185,7 @@ describe('third-party data pack read-only selection', () => {
       optionalDependencies: [{ id: 'missing_optional', version: '^1.0.0' }]
     })
 
-    const discoveryReport = await discover(root)
+    const discoveryReport = createMutableDiscoveryReport(await discover(root))
     const selectionReport = selectThirdPartyDataPacks(discoveryReport)
 
     expect(discoveryReport.issues).toContainEqual(expect.objectContaining({
@@ -433,7 +438,7 @@ describe('third-party data pack read-only selection', () => {
       id: 'dependent_pack',
       dependencies: [{ id: 'library_pack', version: '1.0.0' }]
     })
-    const discoveryReport = await discover(root)
+    const discoveryReport = createMutableDiscoveryReport(await discover(root))
     const before = JSON.stringify(discoveryReport)
 
     const first = selectThirdPartyDataPacks(discoveryReport)
@@ -463,7 +468,7 @@ describe('third-party data pack read-only selection', () => {
       id: 'dependent_app',
       dependencies: [{ id: 'bad_library', version: '1.0.0' }]
     })
-    const discoveryReport = await discover(root)
+    const discoveryReport = createMutableDiscoveryReport(await discover(root))
     const upstreamDiscoveryIssue = discoveryReport.candidates
       .find(candidate => candidate.packageId === 'bad_library')
       ?.issues[0]
@@ -556,7 +561,7 @@ describe('third-party data pack read-only selection', () => {
       id: 'dependent_app',
       dependencies: [{ id: 'bad_library', version: '1.0.0' }]
     })
-    const discoveryReport = await discover(root)
+    const discoveryReport = createMutableDiscoveryReport(await discover(root))
     const upstreamDiscoveryDiagnostic = discoveryReport.candidates
       .find(candidate => candidate.packageId === 'bad_library')
       ?.issues[0]
