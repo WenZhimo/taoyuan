@@ -3078,6 +3078,59 @@ describe('content package source contract', () => {
     })
   })
 
+  it('freezes direct JSON read result graphs before callers validate data', async() => {
+    const source = createMemoryContentPackageSource({
+      sourceId: 'memory/frozen-json-result',
+      rootPath: 'packs',
+      files: [
+        {
+          path: 'pack/manifest.json',
+          text: toJson({
+            ...createManifest('frozen_json_result'),
+            authors: [{ name: 'Frozen Result Tester', role: 'developer' }]
+          })
+        },
+        { path: 'pack/broken.json', text: '{ bad json' }
+      ]
+    })
+
+    const valid = await readContentPackageSourceJson(source, 'pack/manifest.json')
+    const invalid = await readContentPackageSourceJson(source, 'pack/broken.json')
+    const sourceError = await readContentPackageSourceJson(source, '../userdata/settings.json')
+    const beforeMutation = JSON.stringify({ valid, invalid, sourceError })
+
+    expect(valid.ok).toBe(true)
+    expect(invalid).toMatchObject({
+      ok: false,
+      code: 'SOURCE_JSON_PARSE_FAILED'
+    })
+    expect(sourceError).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PATH_UNSAFE'
+    })
+    expect(Object.isFrozen(valid)).toBe(true)
+    expect(Object.isFrozen(invalid)).toBe(true)
+    expect(Object.isFrozen(sourceError)).toBe(true)
+
+    if (!valid.ok) throw new Error('Expected direct JSON read to succeed.')
+    const manifest = valid.data as {
+      id: string
+      name: { fallback: string }
+      authors: Array<{ name: string; role: string }>
+    }
+    expect(Object.isFrozen(manifest)).toBe(true)
+    expect(Object.isFrozen(manifest.name)).toBe(true)
+    expect(Object.isFrozen(manifest.authors)).toBe(true)
+    expect(Object.isFrozen(manifest.authors[0])).toBe(true)
+
+    expect(Reflect.set(manifest, 'id', 'mutated')).toBe(false)
+    expect(Reflect.set(manifest.name, 'fallback', 'mutated')).toBe(false)
+    expect(() => manifest.authors.push({ name: 'Mutated', role: 'developer' })).toThrow(TypeError)
+    expect(Reflect.set(invalid as unknown as Record<string, unknown>, 'message', 'mutated')).toBe(false)
+    expect(Reflect.set(sourceError as unknown as Record<string, unknown>, 'code', 'SOURCE_ENTRY_NOT_FOUND')).toBe(false)
+    expect(JSON.stringify({ valid, invalid, sourceError })).toBe(beforeMutation)
+  })
+
   it('narrows text payloads from unknown before JSON parsing and discovery parsing', async() => {
     const source: ContentPackageSource = {
       identity: {

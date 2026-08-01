@@ -117,6 +117,18 @@ export type ContentPackageSourceJsonReadResult =
   | { readonly ok: true; readonly data: unknown }
   | { readonly ok: false; readonly code: ContentPackageSourceErrorCode; readonly message: string }
 
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
+const freezeContentPackageSourceJsonReadResult = (
+  result: ContentPackageSourceJsonReadResult
+): ContentPackageSourceJsonReadResult => deepFreezeObjectGraph(result)
+
 const contentPackageSourceErrorCodes: ReadonlySet<string> = new Set<ContentPackageSourceErrorCode>([
   'SOURCE_IDENTITY_INVALID',
   'SOURCE_DUPLICATE_PATH',
@@ -1522,25 +1534,37 @@ export const readContentPackageSourceJson = async (
     }
   } catch (error) {
     if (error instanceof ContentPackageSourceError) {
-      return { ok: false, code: error.code, message: error.message }
+      return freezeContentPackageSourceJsonReadResult({ ok: false, code: error.code, message: error.message })
     }
-    return { ok: false, code: 'SOURCE_ENTRY_NOT_FOUND', message: errorMessage(error) }
+    return freezeContentPackageSourceJsonReadResult({
+      ok: false,
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: errorMessage(error)
+    })
   }
 
   let data: unknown
   try {
     data = JSON.parse(text) as unknown
   } catch (error) {
-    return { ok: false, code: 'SOURCE_JSON_PARSE_FAILED', message: jsonParseFailureMessage(error) }
+    return freezeContentPackageSourceJsonReadResult({
+      ok: false,
+      code: 'SOURCE_JSON_PARSE_FAILED',
+      message: jsonParseFailureMessage(error)
+    })
   }
 
   try {
     assertPureJsonValue(data)
   } catch (error) {
-    return { ok: false, code: 'SOURCE_JSON_NOT_PURE', message: errorMessage(error) }
+    return freezeContentPackageSourceJsonReadResult({
+      ok: false,
+      code: 'SOURCE_JSON_NOT_PURE',
+      message: errorMessage(error)
+    })
   }
 
-  return { ok: true, data }
+  return freezeContentPackageSourceJsonReadResult({ ok: true, data })
 }
 
 const stripDiscoveryRoot = (
