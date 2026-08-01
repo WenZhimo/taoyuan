@@ -172,6 +172,22 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
 
+const freezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) freezeObjectGraph(child)
+  }
+  return value
+}
+
+const freezeLockfileDraftResult = (
+  result: ThirdPartyDataPackLockfileDraftResult
+): ThirdPartyDataPackLockfileDraftResult => freezeObjectGraph(result)
+
+const freezeLockfileDraftValidationResult = (
+  result: ThirdPartyDataPackLockfileDraftValidationResult
+): ThirdPartyDataPackLockfileDraftValidationResult => freezeObjectGraph(result)
+
 const candidatesByPackageId = (
   report: ThirdPartyDataPackDiscoveryReport
 ): Map<PackageId, ThirdPartyDataPackCandidate> => {
@@ -330,10 +346,10 @@ export const createThirdPartyDataPackLockfileDraft = (
   }
 
   if (candidateSnapshot.status === 'skipped') {
-    return {
+    return freezeLockfileDraftResult({
       status: 'skipped',
       ...baseResult
-    }
+    })
   }
 
   if (
@@ -341,7 +357,7 @@ export const createThirdPartyDataPackLockfileDraft = (
     || !candidateSnapshot.candidateIdentity
     || !candidateSnapshot.candidateSnapshot
   ) {
-    return {
+    return freezeLockfileDraftResult({
       status: 'invalid',
       ...baseResult,
       diagnostics: [
@@ -353,7 +369,7 @@ export const createThirdPartyDataPackLockfileDraft = (
           }
         })
       ]
-    }
+    })
   }
 
   const candidates = candidatesByPackageId(discoveryReport)
@@ -398,11 +414,11 @@ export const createThirdPartyDataPackLockfileDraft = (
   }
 
   if (diagnostics.some(isBlockingDiagnostic)) {
-    return {
+    return freezeLockfileDraftResult({
       status: 'invalid',
       ...baseResult,
       diagnostics: [...baseResult.diagnostics, ...cloneDiagnostics(diagnostics)]
-    }
+    })
   }
 
   const selectedPackageIds = selectionReport.selectedPackages.map(pkg => pkg.packageId)
@@ -418,7 +434,7 @@ export const createThirdPartyDataPackLockfileDraft = (
     packages
   })
 
-  return {
+  return freezeLockfileDraftResult({
     status: 'valid',
     ...baseResult,
     selectedPackageIds,
@@ -428,7 +444,7 @@ export const createThirdPartyDataPackLockfileDraft = (
       ...body,
       lockfileHash: hashCanonicalJson(body)
     }
-  }
+  })
 }
 
 const compareOfficialIdentity = (
@@ -536,17 +552,17 @@ export const validateThirdPartyDataPackLockfileDraft = (
         file: 'third-party-data-pack-lockfile-draft.schema.json'
       })
   if (draftSchemaResult && !draftSchemaResult.ok) {
-    return {
+    return freezeLockfileDraftValidationResult({
       status: 'invalid',
       diagnostics: draftSchemaResult.diagnostics,
       expectedDraft: created.status === 'valid' ? created.draft : undefined
-    }
+    })
   }
   const draft = draftSchemaResult?.data as ThirdPartyDataPackLockfileDraft | undefined
 
   if (created.status === 'skipped') {
     return draft
-      ? {
+      ? freezeLockfileDraftValidationResult({
           status: 'invalid',
           diagnostics: [
             createLockfileDiagnostic('third-party.lockfile-draft.skipped', {
@@ -555,22 +571,22 @@ export const validateThirdPartyDataPackLockfileDraft = (
               }
             })
           ]
-        }
-      : {
+        })
+      : freezeLockfileDraftValidationResult({
           status: 'valid',
           diagnostics: []
-        }
+        })
   }
 
   if (created.status !== 'valid' || !created.draft) {
-    return {
+    return freezeLockfileDraftValidationResult({
       status: 'invalid',
       diagnostics: created.diagnostics
-    }
+    })
   }
 
   if (!draft) {
-    return {
+    return freezeLockfileDraftValidationResult({
       status: 'invalid',
       expectedDraft: created.draft,
       diagnostics: [
@@ -580,7 +596,7 @@ export const validateThirdPartyDataPackLockfileDraft = (
           }
         })
       ]
-    }
+    })
   }
 
   const diagnostics: ModDiagnostic[] = []
@@ -651,9 +667,9 @@ export const validateThirdPartyDataPackLockfileDraft = (
     }))
   }
 
-  return {
+  return freezeLockfileDraftValidationResult({
     status: diagnostics.some(isBlockingDiagnostic) ? 'invalid' : 'valid',
     diagnostics,
     expectedDraft: created.draft
-  }
+  })
 }

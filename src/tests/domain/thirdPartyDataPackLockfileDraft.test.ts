@@ -228,6 +228,116 @@ describe('third-party data pack lockfile draft', () => {
     expect(first.draftResult.draft!.lockfileHash).toMatch(/^sha256:/)
   }, 15_000)
 
+  it('freezes exposed lockfile draft and validation output graphs', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    const validation = validateThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot: reports.candidateSnapshot,
+      draft: reports.draftResult.draft
+    })
+    const missingDraftValidation = validateThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot: reports.candidateSnapshot
+    })
+    const draftResult = reports.draftResult
+    const draft = draftResult.draft!
+    const firstPackage = draft.packages[0]!
+    const firstContentFile = firstPackage.contentFiles[0]!
+    const firstContentEntry = firstContentFile.entries[0]!
+    const beforeMutation = JSON.stringify({
+      draftResult,
+      validation,
+      missingDraftValidation
+    })
+
+    expect(draftResult.status).toBe('valid')
+    expect(validation.status).toBe('valid')
+    expect(missingDraftValidation.status).toBe('invalid')
+    expect(Object.isFrozen(draftResult)).toBe(true)
+    expect(Object.isFrozen(draftResult.diagnostics)).toBe(true)
+    expect(Object.isFrozen(draftResult.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(draftResult.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(draftResult.loadOrder)).toBe(true)
+    expect(Object.isFrozen(draftResult.officialIdentity)).toBe(true)
+    expect(Object.isFrozen(draftResult.candidateIdentity)).toBe(true)
+    expect(Object.isFrozen(draft)).toBe(true)
+    expect(Object.isFrozen(draft.officialIdentity)).toBe(true)
+    expect(Object.isFrozen(draft.candidateIdentity)).toBe(true)
+    expect(Object.isFrozen(draft.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(draft.loadOrder)).toBe(true)
+    expect(Object.isFrozen(draft.packages)).toBe(true)
+    expect(Object.isFrozen(firstPackage)).toBe(true)
+    expect(Object.isFrozen(firstPackage.source)).toBe(true)
+    expect(Object.isFrozen(firstPackage.source.contentFiles)).toBe(true)
+    expect(Object.isFrozen(firstPackage.resolvedDependencies)).toBe(true)
+    expect(Object.isFrozen(firstPackage.contentFiles)).toBe(true)
+    expect(Object.isFrozen(firstContentFile)).toBe(true)
+    expect(Object.isFrozen(firstContentFile.entries)).toBe(true)
+    expect(Object.isFrozen(firstContentEntry)).toBe(true)
+    expect(Object.isFrozen(validation)).toBe(true)
+    expect(Object.isFrozen(validation.diagnostics)).toBe(true)
+    expect(Object.isFrozen(validation.expectedDraft)).toBe(true)
+    expect(Object.isFrozen(missingDraftValidation)).toBe(true)
+    expect(Object.isFrozen(missingDraftValidation.diagnostics)).toBe(true)
+    expect(Object.isFrozen(missingDraftValidation.diagnostics[0])).toBe(true)
+    expect(Object.isFrozen(missingDraftValidation.diagnostics[0]?.details)).toBe(true)
+    expect(Object.isFrozen(missingDraftValidation.expectedDraft)).toBe(true)
+
+    expect(() => (draftResult.selectedPackageIds as unknown as unknown[]).push('mutated_pack')).toThrow(TypeError)
+    expect(() => (draft.loadOrder as unknown as unknown[]).push('mutated_pack')).toThrow(TypeError)
+    expect(() => (draft.packages as unknown as unknown[]).push({})).toThrow(TypeError)
+    expect(() => (firstPackage.source.contentFiles as unknown as unknown[]).push('mutated.json')).toThrow(TypeError)
+    expect(() => (firstPackage.resolvedDependencies as unknown as unknown[]).push('mutated_pack')).toThrow(TypeError)
+    expect(() => (firstContentFile.entries as unknown as unknown[]).push({})).toThrow(TypeError)
+    expect(Reflect.set(draftResult.officialIdentity as unknown as Record<string, unknown>, 'registryCount', 1)).toBe(false)
+    expect(Reflect.set(draft.candidateIdentity as unknown as Record<string, unknown>, 'candidateHash', alternateHash)).toBe(false)
+    expect(Reflect.set(firstPackage.source as unknown as Record<string, unknown>, 'manifestPath', 'mutated.json')).toBe(false)
+    expect(Reflect.set(firstContentEntry as unknown as Record<string, unknown>, 'contentId', 'mutated:item')).toBe(false)
+    expect(Reflect.set(missingDraftValidation.diagnostics[0] as unknown as Record<string, unknown>, 'stage', 'mutated')).toBe(false)
+    expect(Reflect.set(missingDraftValidation.diagnostics[0]?.details as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+
+    expect(JSON.stringify({
+      draftResult,
+      validation,
+      missingDraftValidation
+    })).toBe(beforeMutation)
+
+    const skippedRoot = await createRoot()
+    const skippedReports = await buildReportsFromRoot(skippedRoot)
+
+    expect(skippedReports.draftResult.status).toBe('skipped')
+    expect(Object.isFrozen(skippedReports.draftResult)).toBe(true)
+    expect(Object.isFrozen(skippedReports.draftResult.diagnostics)).toBe(true)
+    expect(Object.isFrozen(skippedReports.draftResult.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(skippedReports.draftResult.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(skippedReports.draftResult.loadOrder)).toBe(true)
+    expect(Object.isFrozen(skippedReports.draftResult.officialIdentity)).toBe(true)
+    expect(skippedReports.draftResult.draft).toBeUndefined()
+
+    const invalidRoot = await createRoot()
+    await createPack(invalidRoot, 'bad-schema', {
+      id: 'bad_schema',
+      items: [createItem('bad_schema:broken', -1)]
+    })
+    const invalidReports = await buildReportsFromRoot(invalidRoot)
+
+    expect(invalidReports.draftResult.status).toBe('invalid')
+    expect(Object.isFrozen(invalidReports.draftResult)).toBe(true)
+    expect(Object.isFrozen(invalidReports.draftResult.diagnostics)).toBe(true)
+    expect(invalidReports.draftResult.diagnostics.length).toBeGreaterThan(0)
+    expect(invalidReports.draftResult.diagnostics.every(diagnostic => Object.isFrozen(diagnostic))).toBe(true)
+    expect(invalidReports.draftResult.diagnostics.every(diagnostic =>
+      diagnostic.details === undefined || Object.isFrozen(diagnostic.details)
+    )).toBe(true)
+    expect(invalidReports.draftResult.draft).toBeUndefined()
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('validates generated drafts through the internal TypeBox schema candidate', async() => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
