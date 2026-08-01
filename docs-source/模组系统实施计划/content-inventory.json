@@ -15910,7 +15910,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Consumes the read-only Runtime Adapter Gate and reports that the shared ContentPackageSource contract is defined while keeping runtime enablement deferred until real Electron, Web and Android source adapters implement it; it now enumerates and freezes the satisfied source identity, pure JSON, normalized relative path, permission revocation diagnostic and lifecycle release contracts, freezes the no-write effect summary, copies upstream diagnostic objects including relatedPackageIds and nested JSON details before exposing the report, and performs no platform source opening, source-handle retention, IPC exposure, import persistence, registry, package, lockfile, settings, save, cache or transaction-log writes."
+      "rationale": "Consumes the read-only Runtime Adapter Gate and reports that the shared ContentPackageSource contract is defined while keeping runtime enablement deferred until real Electron, Web and Android source adapters implement it; it now freezes the full exposed Source Adapter Gate report object graph including package arrays, official/candidate identity summaries, diagnostics with relatedPackageIds and nested JSON details, satisfied source identity/pure JSON/normalized relative path/permission revocation/lifecycle release contracts and the no-write effect summary, copies upstream diagnostic objects before exposure, and performs no platform source opening, source-handle retention, IPC exposure, import persistence, registry, package, lockfile, settings, save, cache or transaction-log writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRepairReport.ts",
@@ -16126,7 +16126,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers deferred, skipped and blocked source adapter gate outcomes after the shared source contract is defined, five satisfied frozen source-contract matrix entries, frozen no-write effect summary, absence of candidate artifact and platform source exposure, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers deferred, skipped and blocked source adapter gate outcomes after the shared source contract is defined, frozen full Source Adapter Gate report object graphs for top-level status, package arrays, official/candidate identity summaries, diagnostics, relatedPackageIds, nested JSON details, five satisfied source-contract matrix entries and no-write effect summary, absence of candidate artifact and platform source exposure, upstream official/candidate identity summary and diagnostic object copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackRepairReport.test.ts",

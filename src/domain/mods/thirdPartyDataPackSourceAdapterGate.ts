@@ -138,6 +138,18 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
 
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
+const freezeSourceAdapterGateResult = (
+  result: ThirdPartyDataPackSourceAdapterGateResult
+): ThirdPartyDataPackSourceAdapterGateResult => deepFreezeObjectGraph(result)
+
 const freezeSourceContractRequirement = (
   requirement: ThirdPartyDataPackSourceContractRequirement
 ): ThirdPartyDataPackSourceContractRequirement => Object.freeze(requirement)
@@ -174,7 +186,7 @@ const baseResult = (
   status: ThirdPartyDataPackSourceAdapterGateStatus,
   reason: string,
   runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult
-): ThirdPartyDataPackSourceAdapterGateResult => ({
+): ThirdPartyDataPackSourceAdapterGateResult => freezeSourceAdapterGateResult({
   status,
   runtimeAdapterGateStatus: runtimeAdapterGate.status,
   reason,

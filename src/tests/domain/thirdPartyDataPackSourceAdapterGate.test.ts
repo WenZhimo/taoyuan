@@ -286,6 +286,19 @@ const expectSatisfiedSourceContracts = (
   expect(gate.requiredSourceContracts.every(contract => Object.isFrozen(contract))).toBe(true)
 }
 
+const expectJsonGraphFrozen = (value: unknown): void => {
+  if (value && typeof value === 'object') {
+    expect(Object.isFrozen(value)).toBe(true)
+    for (const child of Object.values(value as Record<string, unknown>)) expectJsonGraphFrozen(child)
+  }
+}
+
+const expectSourceAdapterGateFrozen = (
+  gate: ReturnType<typeof buildThirdPartyDataPackSourceAdapterGate>
+): void => {
+  expectJsonGraphFrozen(gate)
+}
+
 const expectOfficialBaseline = (): void => {
   const registrySet = buildOfficialRegistrySetFromStaticData()
   const snapshot = createSerializableRegistrySnapshot(registrySet)
@@ -334,21 +347,34 @@ describe('third-party data pack source adapter gate', () => {
     expect('runtimeAdapterGate' in sourceAdapterGate).toBe(false)
     expect('platformSource' in sourceAdapterGate).toBe(false)
     expectNoWriteEffects(sourceAdapterGate)
-    const frozenOutputSnapshot = JSON.stringify({
-      requiredSourceContracts: sourceAdapterGate.requiredSourceContracts,
-      effects: sourceAdapterGate.effects
-    })
+    expectSourceAdapterGateFrozen(sourceAdapterGate)
+    const frozenOutputSnapshot = JSON.stringify(sourceAdapterGate)
     const firstContract = sourceAdapterGate.requiredSourceContracts[0]
     if (firstContract === undefined) throw new Error('Expected at least one frozen source contract requirement.')
     expect(() => {
       (sourceAdapterGate.requiredSourceContracts as unknown as unknown[]).push({})
     }).toThrow(TypeError)
+    expect(Reflect.set(sourceAdapterGate as unknown as Record<string, unknown>, 'status', 'blocked')).toBe(false)
+    expect(() => {
+      (sourceAdapterGate.selectedPackageIds as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(() => {
+      (sourceAdapterGate.loadOrder as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(Reflect.set(
+      sourceAdapterGate.officialIdentity as unknown as Record<string, unknown>,
+      'registryCount',
+      1
+    )).toBe(false)
+    if (!sourceAdapterGate.candidateIdentity) throw new Error('Expected candidate identity for valid package gate.')
+    expect(Reflect.set(
+      sourceAdapterGate.candidateIdentity as unknown as Record<string, unknown>,
+      'candidateHash',
+      testHash('9')
+    )).toBe(false)
     expect(Reflect.set(firstContract as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
     expect(Reflect.set(sourceAdapterGate.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
-    expect(JSON.stringify({
-      requiredSourceContracts: sourceAdapterGate.requiredSourceContracts,
-      effects: sourceAdapterGate.effects
-    })).toBe(frozenOutputSnapshot)
+    expect(JSON.stringify(sourceAdapterGate)).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -367,6 +393,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
     expectSatisfiedSourceContracts(sourceAdapterGate)
     expectNoWriteEffects(sourceAdapterGate)
+    expectSourceAdapterGateFrozen(sourceAdapterGate)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -392,6 +419,7 @@ describe('third-party data pack source adapter gate', () => {
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })
     ]))
     expectNoWriteEffects(sourceAdapterGate)
+    expectSourceAdapterGateFrozen(sourceAdapterGate)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -442,6 +470,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(JSON.stringify(reports.runtimeAdapterGate)).toBe(adapterBefore)
     expect(await collectFileContents(root)).toEqual(filesBefore)
     expectNoWriteEffects(repeated)
+    expectSourceAdapterGateFrozen(repeated)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -517,6 +546,37 @@ describe('third-party data pack source adapter gate', () => {
     expect(gate.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
     expect(gate.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
     expect(gate.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+    expectSourceAdapterGateFrozen(gate)
+
+    const exposedOutputSnapshot = JSON.stringify(gate)
+    expect(() => {
+      (gate.diagnostics as unknown as unknown[]).push(upstreamDiagnostic)
+    }).toThrow(TypeError)
+    const exposedDiagnostic = gate.diagnostics[0]
+    if (exposedDiagnostic === undefined) throw new Error('Expected copied diagnostic.')
+    expect(Reflect.set(exposedDiagnostic as unknown as Record<string, unknown>, 'stage', 'mutated')).toBe(false)
+    if (!exposedDiagnostic.relatedPackageIds) throw new Error('Expected copied related package ids.')
+    expect(() => {
+      (exposedDiagnostic.relatedPackageIds as unknown as unknown[]).push(requirePackageId('mutated_pack'))
+    }).toThrow(TypeError)
+    const exposedDetails = exposedDiagnostic.details
+    if (exposedDetails === undefined) throw new Error('Expected copied diagnostic details.')
+    expect(Reflect.set(exposedDetails as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    const exposedNestedDetails = exposedDetails.nested
+    if (
+      exposedNestedDetails === null
+      || typeof exposedNestedDetails !== 'object'
+      || Array.isArray(exposedNestedDetails)
+    ) {
+      throw new Error('Expected copied nested diagnostic details.')
+    }
+    expect(Reflect.set(exposedNestedDetails as Record<string, unknown>, 'count', 2)).toBe(false)
+    const exposedListDetails = exposedDetails.list
+    if (!Array.isArray(exposedListDetails)) throw new Error('Expected copied list diagnostic details.')
+    expect(() => {
+      (exposedListDetails as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(JSON.stringify(gate)).toBe(exposedOutputSnapshot)
 
     const mutableOfficialIdentity = runtimeAdapterGate.officialIdentity as { registryCount: number }
     const mutableCandidateIdentity = runtimeAdapterGate.candidateIdentity as { candidateHash: Sha256Hash }
