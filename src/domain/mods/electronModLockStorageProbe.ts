@@ -1,4 +1,5 @@
 import path from 'node:path'
+import type { JsonValue } from './canonicalJson'
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import {
   createThirdPartyDataPackModLockStorageAdapter,
@@ -72,6 +73,69 @@ export interface ElectronThirdPartyDataPackModLockStorageProbe {
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+  if (value !== null && typeof value === 'object') {
+    const result: Record<string, JsonValue> = {}
+    for (const [key, entryValue] of Object.entries(value)) result[key] = cloneJsonValue(entryValue)
+    return result
+  }
+  return value
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
+  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
+const cloneStoragePaths = (
+  paths: ThirdPartyDataPackModLockStoragePaths | undefined
+): ThirdPartyDataPackModLockStoragePaths | undefined =>
+  paths === undefined ? undefined : { ...paths }
+
+const freezeProbeReport = (
+  report: ElectronThirdPartyDataPackModLockStorageProbeReport
+): ElectronThirdPartyDataPackModLockStorageProbeReport => deepFreezeObjectGraph(report)
+
+const freezeProbeReadResult = (
+  result: ElectronThirdPartyDataPackModLockStorageProbeReadResult
+): ElectronThirdPartyDataPackModLockStorageProbeReadResult => deepFreezeObjectGraph(result)
+
+const freezeProbeWriteResult = (
+  result: ElectronThirdPartyDataPackModLockStorageProbeWriteResult
+): ElectronThirdPartyDataPackModLockStorageProbeWriteResult => deepFreezeObjectGraph(result)
+
 const pathProbeDiagnostic = (
   stage: string,
   details: Record<string, string | number | boolean | null>
@@ -91,7 +155,7 @@ const diagnosticsForError = (
     && 'diagnostics' in error
     && Array.isArray((error as { diagnostics?: unknown }).diagnostics)
   ) {
-    return (error as { diagnostics: readonly ModDiagnostic[] }).diagnostics
+    return cloneDiagnostics((error as { diagnostics: readonly ModDiagnostic[] }).diagnostics)
   }
 
   return [pathProbeDiagnostic(stage, { message: errorMessage(error) })]
@@ -147,22 +211,22 @@ const createProbeEffects = (
 const toProbeReport = (
   storageReport: ThirdPartyDataPackModLockStorageReport,
   resolution: ElectronThirdPartyDataPackModLockProgramDirectoryResolution
-): ElectronThirdPartyDataPackModLockStorageProbeReport => ({
+): ElectronThirdPartyDataPackModLockStorageProbeReport => freezeProbeReport({
   status: storageReport.status,
   operation: storageReport.operation,
   storageKind: storageReport.storageKind,
   reason: storageReport.reason,
   programDirectorySource: resolution.programDirectorySource,
   configuredUserDataPath: resolution.configuredUserDataPath,
-  paths: storageReport.paths,
-  diagnostics: storageReport.diagnostics,
+  paths: cloneStoragePaths(storageReport.paths),
+  diagnostics: cloneDiagnostics(storageReport.diagnostics),
   effects: createProbeEffects(storageReport.effects)
 })
 
 const createFailureReport = (
   operation: ThirdPartyDataPackModLockStorageOperation,
   error: unknown
-): ElectronThirdPartyDataPackModLockStorageProbeReport => ({
+): ElectronThirdPartyDataPackModLockStorageProbeReport => freezeProbeReport({
   status: 'failed',
   operation,
   storageKind: THIRD_PARTY_DATA_PACK_MOD_LOCK_STORAGE_KIND,
@@ -212,28 +276,28 @@ export const createElectronThirdPartyDataPackModLockStorageProbe = (
       try {
         const resolution = resolve()
         const result = await createStorageAdapter(resolution, options.fileOptions).read()
-        return {
+        return freezeProbeReadResult({
           draft: result.draft,
           report: toProbeReport(result.report, resolution)
-        }
+        })
       } catch (error) {
-        return {
+        return freezeProbeReadResult({
           draft: null,
           report: createFailureReport('read', error)
-        }
+        })
       }
     },
     async write(draftValue) {
       try {
         const resolution = resolve()
         const result = await createStorageAdapter(resolution, options.fileOptions).write(draftValue)
-        return {
+        return freezeProbeWriteResult({
           report: toProbeReport(result.report, resolution)
-        }
+        })
       } catch (error) {
-        return {
+        return freezeProbeWriteResult({
           report: createFailureReport('write', error)
-        }
+        })
       }
     }
   }

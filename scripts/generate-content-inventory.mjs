@@ -6381,7 +6381,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Defines the third 7E Electron main-process mod-lock storage path probe: resolves a packaged process executable directory or PORTABLE_EXECUTABLE_DIR-style override to program-directory userdata/mod-lock.json, explicitly observes but does not use configured app userData, delegates inspect/read/write to the pure storage adapter, and keeps runtime enablement, renderer IPC, desktop startup changes, package files, backups, settings, saves, official cache and transaction logs out of scope.'
+    rationale: 'Defines the third 7E Electron main-process mod-lock storage path probe: resolves a packaged process executable directory or PORTABLE_EXECUTABLE_DIR-style override to program-directory userdata/mod-lock.json, explicitly observes but does not use configured app userData, delegates inspect/read/write to the pure storage adapter, copies path-resolution diagnostics, freezes exposed inspect/read/write report graphs including paths, diagnostics, effects and loaded drafts, and keeps runtime enablement, renderer IPC, desktop startup changes, package files, backups, settings, saves, official cache and transaction logs out of scope.'
   },
   {
     file: 'electron/main.js',
@@ -6611,7 +6611,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers packaged executable-directory and PORTABLE_EXECUTABLE_DIR-style program-directory resolution, no fallback to configured app userData, missing and invalid path reports without unrelated directory creation, successful probe write/read through the existing storage adapter, interruption and replace-failure rollback, temporary-file cleanup, no renderer IPC/runtime enablement/desktop startup changes, and protection for settings, save-like files, official cache, package files, transaction logs and official 54/4242 five-hash baseline.'
+    rationale: 'Covers packaged executable-directory and PORTABLE_EXECUTABLE_DIR-style program-directory resolution, no fallback to configured app userData, missing and invalid path reports without unrelated directory creation, frozen inspect/read/write probe report graphs and loaded draft exposure, copied/frozen path-resolution diagnostics, successful probe write/read through the existing storage adapter, interruption and replace-failure rollback, temporary-file cleanup, no renderer IPC/runtime enablement/desktop startup changes, and protection for settings, save-like files, official cache, package files, transaction logs and official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackMountPreflight.test.ts',

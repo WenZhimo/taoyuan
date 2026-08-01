@@ -8,8 +8,10 @@ import {
   createElectronThirdPartyDataPackModLockStorageProbe,
   resolveElectronThirdPartyDataPackModLockProgramDirectoryPath,
   type ElectronThirdPartyDataPackModLockPathHost,
+  type ElectronThirdPartyDataPackModLockStorageProbeReport,
   type ElectronThirdPartyDataPackModLockStorageProbeEffects
 } from '@/domain/mods/electronModLockStorageProbe'
+import { createDiagnostic, type ModDiagnostic } from '@/domain/mods/diagnostics'
 import {
   getThirdPartyDataPackModLockFilePaths,
   THIRD_PARTY_DATA_PACK_MOD_LOCK_FILE_NAME,
@@ -144,6 +146,27 @@ const expectNoRuntimeEffects = (
     desktopStartupChanged: false
   })
 }
+
+const expectFrozenProbeReport = (
+  report: ElectronThirdPartyDataPackModLockStorageProbeReport
+): void => {
+  expect(Object.isFrozen(report)).toBe(true)
+  expect(Object.isFrozen(report.diagnostics)).toBe(true)
+  expect(Object.isFrozen(report.effects)).toBe(true)
+  if (report.paths !== undefined) expect(Object.isFrozen(report.paths)).toBe(true)
+}
+
+const createNestedDiagnostic = (): ModDiagnostic => createDiagnostic('LIFECYCLE-TRANSACTION-001', {
+  stage: 'third-party.mod-lock.electron-path.inspect',
+  relatedPackageIds: ['sample_pack' as PackageId],
+  details: {
+    nested: {
+      list: ['before'],
+      value: 1
+    }
+  },
+  recovery: 'retry'
+})
 
 const readTemporaryNames = async(directory: string): Promise<readonly string[]> =>
   (await readdir(directory))
@@ -376,4 +399,97 @@ describe('electron main-process mod-lock storage path probe', () => {
     expect(await readFile(paths.filePath, 'utf8')).toBe(oldBytes)
     expect(await readTemporaryNames(paths.directory)).toEqual([])
   }, 30_000)
+
+  it('freezes probe reports and loaded drafts before exposing them', async() => {
+    const root = await createRoot()
+    const programDirectoryPath = path.join(root, 'pkg', 'win-unpacked')
+    const draft = createDraft()
+    const probe = createElectronThirdPartyDataPackModLockStorageProbe({
+      host: createHost({ programDirectoryPath })
+    })
+
+    const inspect = await probe.inspect()
+    const write = await probe.write(draft)
+    const read = await probe.read()
+    const inspectSnapshot = JSON.stringify(inspect)
+    const writeSnapshot = JSON.stringify(write)
+    const readSnapshot = JSON.stringify(read)
+
+    expectFrozenProbeReport(inspect)
+    expect(Object.isFrozen(write)).toBe(true)
+    expectFrozenProbeReport(write.report)
+    expect(Object.isFrozen(read)).toBe(true)
+    expectFrozenProbeReport(read.report)
+    if (read.draft === null) throw new Error('Expected loaded draft.')
+    const loadedDraft = read.draft
+    const loadedPackage = loadedDraft.packages[0]
+    if (loadedPackage === undefined) throw new Error('Expected loaded package.')
+    const loadedContentFile = loadedPackage.contentFiles[0]
+    if (loadedContentFile === undefined) throw new Error('Expected loaded content file.')
+    expect(Object.isFrozen(loadedDraft)).toBe(true)
+    expect(Object.isFrozen(loadedDraft.packages)).toBe(true)
+    expect(Object.isFrozen(loadedPackage)).toBe(true)
+    expect(Object.isFrozen(loadedPackage.source)).toBe(true)
+    expect(Object.isFrozen(loadedContentFile.entries)).toBe(true)
+
+    expect(Reflect.set(inspect as unknown as Record<string, unknown>, 'status', 'failed')).toBe(false)
+    expect(Reflect.set(
+      inspect.paths as unknown as Record<string, unknown>,
+      'userDataPath',
+      'mutated'
+    )).toBe(false)
+    expect(Reflect.set(write.report.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    expect(() => {
+      (loadedDraft.selectedPackageIds as unknown as string[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(() => {
+      (loadedContentFile.entries as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(JSON.stringify(inspect)).toBe(inspectSnapshot)
+    expect(JSON.stringify(write)).toBe(writeSnapshot)
+    expect(JSON.stringify(read)).toBe(readSnapshot)
+  }, 30_000)
+
+  it('copies and freezes path diagnostics before exposing failed reports', async() => {
+    const upstreamDiagnostic = createNestedDiagnostic()
+    const upstreamError = { diagnostics: [upstreamDiagnostic] }
+    const host = {
+      get isPackaged() {
+        throw upstreamError
+      },
+      executablePath: path.join('relative', 'taoyuan.exe')
+    } as unknown as ElectronThirdPartyDataPackModLockPathHost
+    const probe = createElectronThirdPartyDataPackModLockStorageProbe({ host })
+
+    const report = await probe.inspect()
+    const snapshot = JSON.stringify(report)
+
+    expect(report.status).toBe('failed')
+    expectFrozenProbeReport(report)
+    expect(report.diagnostics).toHaveLength(1)
+    const diagnostic = report.diagnostics[0]
+    if (diagnostic === undefined) throw new Error('Expected path diagnostic.')
+    const diagnosticDetails = diagnostic.details
+    if (diagnosticDetails === undefined) throw new Error('Expected diagnostic details.')
+    const diagnosticNested = diagnosticDetails.nested as unknown as { readonly list: readonly string[] }
+    expect(diagnostic).not.toBe(upstreamDiagnostic)
+    expect(diagnostic.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(diagnosticDetails).not.toBe(upstreamDiagnostic.details)
+    expect(Object.isFrozen(diagnostic)).toBe(true)
+    expect(Object.isFrozen(diagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(diagnosticDetails)).toBe(true)
+    expect(Object.isFrozen(diagnosticNested)).toBe(true)
+    expect(Object.isFrozen(diagnosticNested.list)).toBe(true)
+
+    upstreamDiagnostic.relatedPackageIds?.push('mutated_pack' as PackageId)
+    const upstreamNestedDetails = upstreamDiagnostic.details?.nested as unknown as { readonly list: string[] }
+    upstreamNestedDetails.list.push('after')
+    expect(() => {
+      (diagnostic.relatedPackageIds as unknown as string[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(() => {
+      (diagnosticNested.list as unknown as string[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(JSON.stringify(report)).toBe(snapshot)
+  })
 })
