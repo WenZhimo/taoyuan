@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
+import { createDiagnostic } from '@/domain/mods/diagnostics'
 import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
 import type { ContentId, PackageId, RegistryTypeId } from '@/domain/mods/ids'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
@@ -13,7 +14,8 @@ import {
   resolveThirdPartyDataPackModLockStoragePaths,
   THIRD_PARTY_DATA_PACK_MOD_LOCK_STORAGE_KIND,
   THIRD_PARTY_DATA_PACK_MOD_LOCK_USERDATA_DIRECTORY_NAME,
-  type ThirdPartyDataPackModLockStorageEffects
+  type ThirdPartyDataPackModLockStorageEffects,
+  type ThirdPartyDataPackModLockStorageReport
 } from '@/domain/mods/thirdPartyDataPackModLockStorage'
 import { THIRD_PARTY_DATA_PACK_MOD_LOCK_FILE_NAME } from '@/domain/mods/thirdPartyDataPackModLockFile'
 import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
@@ -118,6 +120,15 @@ const expectNoRuntimeEffects = (
     cacheWritten: false,
     transactionLogWritten: false
   })
+}
+
+const expectFrozenStorageReport = (
+  report: ThirdPartyDataPackModLockStorageReport
+): void => {
+  expect(Object.isFrozen(report)).toBe(true)
+  expect(Object.isFrozen(report.diagnostics)).toBe(true)
+  expect(Object.isFrozen(report.effects)).toBe(true)
+  if (report.paths) expect(Object.isFrozen(report.paths)).toBe(true)
 }
 
 const readTemporaryNames = async(directory: string): Promise<readonly string[]> =>
@@ -257,4 +268,89 @@ describe('third-party mod-lock program-directory storage adapter', () => {
     expect(await readFile(paths.filePath, 'utf8')).toBe(oldBytes)
     expect(await readTemporaryNames(paths.userDataPath)).toEqual([])
   }, 30_000)
+
+  it('freezes storage reports and loaded drafts before exposing them', async() => {
+    const root = await createRoot()
+    const draft = createDraft()
+    const adapter = createThirdPartyDataPackModLockStorageAdapter({ programDirectoryPath: root })
+
+    const inspect = await adapter.inspect()
+    const write = await adapter.write(draft)
+    const read = await adapter.read()
+
+    expectFrozenStorageReport(inspect)
+    expect(Object.isFrozen(write)).toBe(true)
+    expectFrozenStorageReport(write.report)
+    expect(Object.isFrozen(read)).toBe(true)
+    expectFrozenStorageReport(read.report)
+    expect(read.draft).toEqual(draft)
+    expect(Object.isFrozen(read.draft)).toBe(true)
+    expect(Object.isFrozen(read.draft?.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(read.draft?.packages)).toBe(true)
+    expect(Object.isFrozen(read.draft?.packages[0]?.source)).toBe(true)
+    expect(Object.isFrozen(read.draft?.packages[0]?.contentFiles[0]?.entries)).toBe(true)
+
+    const frozenSnapshot = JSON.stringify(read)
+    expect(Reflect.set(read.report.effects as unknown as Record<string, unknown>, 'cacheWritten', true))
+      .toBe(false)
+    expect(Reflect.set(read.report.paths as unknown as Record<string, unknown>, 'filePath', 'mutated'))
+      .toBe(false)
+    expect(() => {
+      (read.draft?.selectedPackageIds as unknown as unknown[]).push('mutated_pack')
+    }).toThrow(TypeError)
+    expect(() => {
+      (read.draft?.packages[0]?.contentFiles[0]?.entries as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(JSON.stringify(read)).toBe(frozenSnapshot)
+  }, 30_000)
+
+  it('copies and freezes upstream diagnostics before exposing failed reports', async() => {
+    const upstreamDiagnostic = createDiagnostic('LIFECYCLE-TRANSACTION-001', {
+      stage: 'third-party.mod-lock.storage.upstream',
+      relatedPackageIds: ['related_pack' as PackageId],
+      details: {
+        reason: 'original',
+        nested: { marker: 'original' },
+        list: ['original']
+      },
+      recovery: 'retry'
+    })
+    const adapter = createThirdPartyDataPackModLockStorageAdapter({
+      programDirectoryPath: () => {
+        throw { diagnostics: [upstreamDiagnostic] }
+      }
+    })
+
+    const report = await adapter.inspect()
+
+    expect(report.status).toBe('failed')
+    expectFrozenStorageReport(report)
+    const exposedDiagnostic = report.diagnostics[0]
+    if (!exposedDiagnostic) throw new Error('Expected frozen copied diagnostic.')
+    expect(exposedDiagnostic).not.toBe(upstreamDiagnostic)
+    expect(exposedDiagnostic.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
+    expect(exposedDiagnostic.details).not.toBe(upstreamDiagnostic.details)
+    expect(exposedDiagnostic.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
+    expect(Object.isFrozen(exposedDiagnostic)).toBe(true)
+    expect(Object.isFrozen(exposedDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(exposedDiagnostic.details)).toBe(true)
+    expect(Object.isFrozen(exposedDiagnostic.details?.nested)).toBe(true)
+    expect(Object.isFrozen(exposedDiagnostic.details?.list)).toBe(true)
+
+    const frozenSnapshot = JSON.stringify(report.diagnostics)
+    upstreamDiagnostic.stage = 'third-party.mod-lock.storage.mutated'
+    upstreamDiagnostic.relatedPackageIds?.push('mutated_pack' as PackageId)
+    if (!upstreamDiagnostic.details) throw new Error('Expected mutable upstream diagnostic details.')
+    upstreamDiagnostic.details.reason = 'mutated'
+    const nestedDetails = upstreamDiagnostic.details.nested as Record<string, unknown>
+    nestedDetails.marker = 'mutated'
+    const listDetails = upstreamDiagnostic.details.list as unknown[]
+    listDetails.push('mutated')
+    expect(Reflect.set(exposedDiagnostic as unknown as Record<string, unknown>, 'stage', 'mutated'))
+      .toBe(false)
+    expect(() => {
+      (report.diagnostics as unknown as unknown[]).push(upstreamDiagnostic)
+    }).toThrow(TypeError)
+    expect(JSON.stringify(report.diagnostics)).toBe(frozenSnapshot)
+  })
 })

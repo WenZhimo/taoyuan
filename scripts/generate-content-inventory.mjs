@@ -6371,7 +6371,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Defines the second 7E internal mod-lock storage boundary: resolves an injected absolute program directory to program-directory userdata/mod-lock.json, delegates validated read/write work to the existing atomic file primitive, returns structured inspect/read/write reports, and keeps runtime enablement, Electron IPC, registry publication, package files, backups, settings, saves, official cache and transaction logs out of scope.'
+    rationale: 'Defines the second 7E internal mod-lock storage boundary: resolves an injected absolute program directory to program-directory userdata/mod-lock.json, delegates validated read/write work to the existing atomic file primitive, copies upstream diagnostics, freezes structured inspect/read/write report graphs including paths, diagnostics and effects, freezes loaded draft read results before exposing them, and keeps runtime enablement, Electron IPC, registry publication, package files, backups, settings, saves, official cache and transaction logs out of scope.'
   },
   {
     file: 'src/domain/mods/electronModLockStorageProbe.ts',

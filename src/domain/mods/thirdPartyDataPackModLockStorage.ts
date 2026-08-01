@@ -1,4 +1,5 @@
 import path from 'node:path'
+import type { JsonValue } from './canonicalJson'
 import { createDiagnostic, type ModDiagnostic } from './diagnostics'
 import {
   getThirdPartyDataPackModLockFilePaths,
@@ -100,6 +101,69 @@ const storageDiagnostic = (
 
 const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error)
 
+const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+  if (value !== null && typeof value === 'object') {
+    const result: Record<string, JsonValue> = {}
+    for (const [key, entryValue] of Object.entries(value)) result[key] = cloneJsonValue(entryValue)
+    return result
+  }
+  return value
+}
+
+const cloneDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  return result
+}
+
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
+  code: diagnostic.code,
+  ruleId: diagnostic.ruleId,
+  severity: diagnostic.severity,
+  stage: diagnostic.stage,
+  messageKey: diagnostic.messageKey,
+  packageId: diagnostic.packageId,
+  file: diagnostic.file,
+  fieldPath: diagnostic.fieldPath,
+  registryId: diagnostic.registryId,
+  contentId: diagnostic.contentId,
+  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  details: cloneDiagnosticDetails(diagnostic.details),
+  recovery: diagnostic.recovery
+})
+
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
+  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
+const cloneStoragePaths = (
+  paths: ThirdPartyDataPackModLockStoragePaths | undefined
+): ThirdPartyDataPackModLockStoragePaths | undefined =>
+  paths === undefined ? undefined : { ...paths }
+
+const freezeStorageReport = (
+  report: ThirdPartyDataPackModLockStorageReport
+): ThirdPartyDataPackModLockStorageReport => deepFreezeObjectGraph(report)
+
+const freezeStorageReadResult = (
+  result: ThirdPartyDataPackModLockStorageReadResult
+): ThirdPartyDataPackModLockStorageReadResult => deepFreezeObjectGraph(result)
+
+const freezeStorageWriteResult = (
+  result: ThirdPartyDataPackModLockStorageWriteResult
+): ThirdPartyDataPackModLockStorageWriteResult => deepFreezeObjectGraph(result)
+
 const diagnosticsForError = (
   stage: string,
   error: unknown
@@ -110,7 +174,7 @@ const diagnosticsForError = (
     && 'diagnostics' in error
     && Array.isArray((error as { diagnostics?: unknown }).diagnostics)
   ) {
-    return (error as { diagnostics: readonly ModDiagnostic[] }).diagnostics
+    return cloneDiagnostics((error as { diagnostics: readonly ModDiagnostic[] }).diagnostics)
   }
 
   return [storageDiagnostic(stage, { message: errorMessage(error) })]
@@ -125,13 +189,13 @@ const createReport = (
     readonly diagnostics?: readonly ModDiagnostic[]
     readonly lockfileWritten?: boolean
   }
-): ThirdPartyDataPackModLockStorageReport => ({
+): ThirdPartyDataPackModLockStorageReport => freezeStorageReport({
   status: options.status,
   operation: options.operation,
   storageKind: THIRD_PARTY_DATA_PACK_MOD_LOCK_STORAGE_KIND,
   reason: options.reason,
-  paths: options.paths,
-  diagnostics: options.diagnostics ?? [],
+  paths: cloneStoragePaths(options.paths),
+  diagnostics: cloneDiagnostics(options.diagnostics ?? []),
   effects: createEffects({ lockfileWritten: options.lockfileWritten })
 })
 
@@ -212,7 +276,7 @@ export const createThirdPartyDataPackModLockStorageAdapter = (
       try {
         const paths = await resolvePaths()
         const draft = await readThirdPartyDataPackModLockFile(toFilePaths(paths), options.fileOptions)
-        return {
+        return freezeStorageReadResult({
           draft,
           report: createReport({
             status: draft ? 'loaded' : 'missing',
@@ -222,9 +286,9 @@ export const createThirdPartyDataPackModLockStorageAdapter = (
               : 'program-directory userdata mod-lock file is absent',
             paths
           })
-        }
+        })
       } catch (error) {
-        return {
+        return freezeStorageReadResult({
           draft: null,
           report: createReport({
             status: 'failed',
@@ -232,14 +296,14 @@ export const createThirdPartyDataPackModLockStorageAdapter = (
             reason: 'program-directory userdata mod-lock file could not be loaded',
             diagnostics: diagnosticsForError('third-party.mod-lock.storage.read', error)
           })
-        }
+        })
       }
     },
     async write(draftValue) {
       try {
         const paths = await resolvePaths()
         await writeThirdPartyDataPackModLockFile(toFilePaths(paths), draftValue, options.fileOptions)
-        return {
+        return freezeStorageWriteResult({
           report: createReport({
             status: 'written',
             operation: 'write',
@@ -247,16 +311,16 @@ export const createThirdPartyDataPackModLockStorageAdapter = (
             paths,
             lockfileWritten: true
           })
-        }
+        })
       } catch (error) {
-        return {
+        return freezeStorageWriteResult({
           report: createReport({
             status: 'failed',
             operation: 'write',
             reason: 'program-directory userdata mod-lock file write failed before publishing partial state',
             diagnostics: diagnosticsForError('third-party.mod-lock.storage.write', error)
           })
-        }
+        })
       }
     }
   }
