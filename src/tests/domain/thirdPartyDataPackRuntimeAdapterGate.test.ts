@@ -269,6 +269,19 @@ const expectRequiredRuntimeAdapters = (
   expect(gate.requiredAdapters.every(requirement => Object.isFrozen(requirement))).toBe(true)
 }
 
+const expectJsonGraphFrozen = (value: unknown): void => {
+  if (value && typeof value === 'object') {
+    expect(Object.isFrozen(value)).toBe(true)
+    for (const child of Object.values(value as Record<string, unknown>)) expectJsonGraphFrozen(child)
+  }
+}
+
+const expectRuntimeAdapterGateFrozen = (
+  gate: ReturnType<typeof buildThirdPartyDataPackRuntimeAdapterGate>
+): void => {
+  expectJsonGraphFrozen(gate)
+}
+
 const expectOfficialBaseline = (): void => {
   const registrySet = buildOfficialRegistrySetFromStaticData()
   const snapshot = createSerializableRegistrySnapshot(registrySet)
@@ -314,18 +327,39 @@ describe('third-party data pack runtime adapter gate', () => {
     expect('lockfileDraft' in runtimeAdapterGate).toBe(false)
     expect('transactionPreflight' in runtimeAdapterGate).toBe(false)
     expectNoWriteEffects(runtimeAdapterGate)
+    expectRuntimeAdapterGateFrozen(runtimeAdapterGate)
     const frozenOutputSnapshot = JSON.stringify({
+      runtimeAdapterGate,
       requiredAdapters: runtimeAdapterGate.requiredAdapters,
       effects: runtimeAdapterGate.effects
     })
     const firstAdapter = runtimeAdapterGate.requiredAdapters[0]
     if (firstAdapter === undefined) throw new Error('Expected at least one frozen runtime adapter requirement.')
+    expect(Reflect.set(runtimeAdapterGate as unknown as Record<string, unknown>, 'status', 'blocked')).toBe(false)
+    expect(() => {
+      (runtimeAdapterGate.selectedPackageIds as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(() => {
+      (runtimeAdapterGate.loadOrder as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(Reflect.set(
+      runtimeAdapterGate.officialIdentity as unknown as Record<string, unknown>,
+      'registryCount',
+      1
+    )).toBe(false)
+    if (!runtimeAdapterGate.candidateIdentity) throw new Error('Expected candidate identity for valid package gate.')
+    expect(Reflect.set(
+      runtimeAdapterGate.candidateIdentity as unknown as Record<string, unknown>,
+      'candidateHash',
+      testHash('9')
+    )).toBe(false)
     expect(() => {
       (runtimeAdapterGate.requiredAdapters as unknown as unknown[]).push({})
     }).toThrow(TypeError)
     expect(Reflect.set(firstAdapter as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
     expect(Reflect.set(runtimeAdapterGate.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
     expect(JSON.stringify({
+      runtimeAdapterGate,
       requiredAdapters: runtimeAdapterGate.requiredAdapters,
       effects: runtimeAdapterGate.effects
     })).toBe(frozenOutputSnapshot)
@@ -345,6 +379,7 @@ describe('third-party data pack runtime adapter gate', () => {
     expect(runtimeAdapterGate.packageCount).toBe(0)
     expect(runtimeAdapterGate.requiredAdapters).toEqual([])
     expectNoWriteEffects(runtimeAdapterGate)
+    expectRuntimeAdapterGateFrozen(runtimeAdapterGate)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -368,6 +403,7 @@ describe('third-party data pack runtime adapter gate', () => {
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })
     ]))
     expectNoWriteEffects(runtimeAdapterGate)
+    expectRuntimeAdapterGateFrozen(runtimeAdapterGate)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -415,6 +451,7 @@ describe('third-party data pack runtime adapter gate', () => {
     expect(JSON.stringify(reports.transactionPreflight)).toBe(transactionBefore)
     expect(await collectFileContents(root)).toEqual(filesBefore)
     expectNoWriteEffects(repeated)
+    expectRuntimeAdapterGateFrozen(repeated)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -491,6 +528,37 @@ describe('third-party data pack runtime adapter gate', () => {
     expect(gate.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
     expect(gate.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
     expect(gate.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+    expectRuntimeAdapterGateFrozen(gate)
+
+    const exposedOutputSnapshot = JSON.stringify(gate)
+    expect(() => {
+      (gate.diagnostics as unknown as unknown[]).push(upstreamDiagnostic)
+    }).toThrow(TypeError)
+    const exposedDiagnostic = gate.diagnostics[0]
+    if (exposedDiagnostic === undefined) throw new Error('Expected copied diagnostic.')
+    expect(Reflect.set(exposedDiagnostic as unknown as Record<string, unknown>, 'stage', 'mutated')).toBe(false)
+    if (!exposedDiagnostic.relatedPackageIds) throw new Error('Expected copied related package ids.')
+    expect(() => {
+      (exposedDiagnostic.relatedPackageIds as unknown as unknown[]).push(requirePackageId('mutated_pack'))
+    }).toThrow(TypeError)
+    const exposedDetails = exposedDiagnostic.details
+    if (exposedDetails === undefined) throw new Error('Expected copied diagnostic details.')
+    expect(Reflect.set(exposedDetails as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    const exposedNestedDetails = exposedDetails.nested
+    if (
+      exposedNestedDetails === null
+      || typeof exposedNestedDetails !== 'object'
+      || Array.isArray(exposedNestedDetails)
+    ) {
+      throw new Error('Expected copied nested diagnostic details.')
+    }
+    expect(Reflect.set(exposedNestedDetails as Record<string, unknown>, 'count', 2)).toBe(false)
+    const exposedListDetails = exposedDetails.list
+    if (!Array.isArray(exposedListDetails)) throw new Error('Expected copied list diagnostic details.')
+    expect(() => {
+      (exposedListDetails as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(JSON.stringify(gate)).toBe(exposedOutputSnapshot)
 
     const mutableOfficialIdentity = transactionPreflight.officialIdentity as { registryCount: number }
     const mutableCandidateIdentity = transactionPreflight.candidateIdentity as { candidateHash: Sha256Hash }
