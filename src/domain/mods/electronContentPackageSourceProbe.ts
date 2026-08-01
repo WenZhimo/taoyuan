@@ -201,6 +201,45 @@ const sourceErrorCode = (error: unknown): ContentPackageSourceErrorCode | undefi
     : undefined
 }
 
+const freezeElectronReadonlySourceAdapterProbeEffects = (
+  effects: ElectronReadonlySourceAdapterProbeEffectSummary
+): ElectronReadonlySourceAdapterProbeEffectSummary => Object.freeze(effects)
+
+const freezeElectronReadonlyRuntimeReadinessProbeEffects = (
+  effects: ElectronReadonlyRuntimeReadinessProbeEffectSummary
+): ElectronReadonlyRuntimeReadinessProbeEffectSummary => Object.freeze(effects)
+
+const cloneFrozenOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary | undefined
+): ThirdPartyCandidateOfficialIdentitySummary | undefined =>
+  identity === undefined ? undefined : Object.freeze({ ...identity })
+
+const cloneFrozenCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined =>
+  identity === undefined ? undefined : Object.freeze({ ...identity })
+
+const freezePackageIds = <T extends PackageId>(packageIds: readonly T[]): readonly T[] =>
+  Object.freeze([...packageIds])
+
+const freezeElectronReadonlySourceAdapterProbeReport = (
+  report: ElectronReadonlySourceAdapterProbeReport
+): ElectronReadonlySourceAdapterProbeReport => Object.freeze({
+  ...report,
+  effects: freezeElectronReadonlySourceAdapterProbeEffects(report.effects)
+})
+
+const freezeElectronReadonlyRuntimeReadinessProbeReport = (
+  report: ElectronReadonlyRuntimeReadinessProbeReport
+): ElectronReadonlyRuntimeReadinessProbeReport => Object.freeze({
+  ...report,
+  selectedPackageIds: freezePackageIds(report.selectedPackageIds),
+  loadOrder: freezePackageIds(report.loadOrder),
+  officialIdentity: cloneFrozenOfficialIdentity(report.officialIdentity),
+  candidateIdentity: cloneFrozenCandidateIdentity(report.candidateIdentity),
+  effects: freezeElectronReadonlyRuntimeReadinessProbeEffects(report.effects)
+})
+
 const toElectronReadonlySourceReleaseError = (error: unknown): ContentPackageSourceError =>
   new ContentPackageSourceError(
     sourceErrorCode(error) ?? 'SOURCE_DISPOSED',
@@ -497,7 +536,7 @@ const assertDirectoryProbeRoot = (
 }
 
 export const createElectronReadonlySourceAdapterProbeEffects =
-  (): ElectronReadonlySourceAdapterProbeEffectSummary => ({
+  (): ElectronReadonlySourceAdapterProbeEffectSummary => freezeElectronReadonlySourceAdapterProbeEffects({
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: false,
     runtimeEnablementAllowed: false,
@@ -513,7 +552,7 @@ export const createElectronReadonlySourceAdapterProbeEffects =
   })
 
 export const createElectronReadonlyRuntimeReadinessProbeEffects =
-  (): ElectronReadonlyRuntimeReadinessProbeEffectSummary => ({
+  (): ElectronReadonlyRuntimeReadinessProbeEffectSummary => freezeElectronReadonlyRuntimeReadinessProbeEffects({
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: false,
     runtimeEnablementAllowed: false,
@@ -544,7 +583,7 @@ const createBlockedReadinessReport = (
   officialRegistrySet: RegistrySet,
   discoveryStatus: ElectronReadonlyRuntimeReadinessProbeDiscoveryStatus,
   diagnosticCount: number
-): ElectronReadonlyRuntimeReadinessProbeReport => ({
+): ElectronReadonlyRuntimeReadinessProbeReport => freezeElectronReadonlyRuntimeReadinessProbeReport({
   status: 'blocked',
   reason,
   sourceProbeStatus,
@@ -778,7 +817,7 @@ export const buildElectronReadonlyRuntimeReadinessProbeReport = async(
     runtimeAdapterGate
   })
 
-  return {
+  return freezeElectronReadonlyRuntimeReadinessProbeReport({
     status: sourceAdapterGate.status,
     reason: sourceAdapterGate.reason,
     sourceProbeStatus: sourceProbe.status,
@@ -802,7 +841,7 @@ export const buildElectronReadonlyRuntimeReadinessProbeReport = async(
     sourceContractReadiness: sourceAdapterGate.sourceContractReadiness,
     contentPackageSourceContractStable: sourceAdapterGate.contentPackageSourceContractStable,
     effects: createElectronReadonlyRuntimeReadinessProbeEffects()
-  }
+  })
 }
 
 export const buildElectronReadonlySourceAdapterProbeReport = async(
@@ -830,16 +869,16 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
       normalizedInspectedPath,
       sourcePathEntryName(normalizedInspectedPath, sourceIdentity)
     )
-    return {
+    return freezeElectronReadonlySourceAdapterProbeReport({
       status: 'ready',
       reason: 'electron read-only source adapter probe inspected the source without enabling runtime mounting',
       sourceIdentity,
       inspectedPath: normalizedInspectedPath,
       inspectedEntryKind: entry.kind,
       effects
-    }
+    })
   } catch (error) {
-    return {
+    return freezeElectronReadonlySourceAdapterProbeReport({
       status: 'blocked',
       reason: errorMessage(error),
       sourceIdentity: validatedSourceIdentity ?? fallbackSourceIdentity,
@@ -847,6 +886,6 @@ export const buildElectronReadonlySourceAdapterProbeReport = async(
       inspectedEntryKind: null,
       sourceErrorCode: sourceErrorCode(error),
       effects
-    }
+    })
   }
 }

@@ -306,6 +306,71 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('freezes Electron probe and runtime readiness report outputs', async() => {
+    const root = await createRoot()
+    const modsRoot = path.join(root, 'mods')
+    await mkdir(modsRoot, { recursive: true })
+    const before = await collectFileContents(root)
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: createNodeProbeHost(modsRoot)
+    })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet
+    })
+    const sourceSnapshot = JSON.stringify(sourceReport)
+    const readinessSnapshot = JSON.stringify(readinessReport)
+
+    expect(sourceReport.status).toBe('ready')
+    expect(readinessReport.status).toBe('skipped')
+    expect(Object.isFrozen(sourceReport)).toBe(true)
+    expect(Object.isFrozen(sourceReport.effects)).toBe(true)
+    expect(Object.isFrozen(readinessReport)).toBe(true)
+    expect(Object.isFrozen(readinessReport.sourceIdentity)).toBe(true)
+    expect(Object.isFrozen(readinessReport.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(readinessReport.loadOrder)).toBe(true)
+    expect(Object.isFrozen(readinessReport.effects)).toBe(true)
+    if (readinessReport.officialIdentity === undefined) throw new Error('Expected frozen official identity summary.')
+    expect(Object.isFrozen(readinessReport.officialIdentity)).toBe(true)
+
+    expect(Reflect.set(sourceReport as unknown as Record<string, unknown>, 'status', 'blocked')).toBe(false)
+    expect(Reflect.set(sourceReport.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    expect(() => {
+      (readinessReport.selectedPackageIds as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(Reflect.set(
+      readinessReport.officialIdentity as unknown as Record<string, unknown>,
+      'registryCount',
+      1
+    )).toBe(false)
+    expect(Reflect.set(readinessReport.effects as unknown as Record<string, unknown>, 'savesWritten', true)).toBe(false)
+    expect(JSON.stringify(sourceReport)).toBe(sourceSnapshot)
+    expect(JSON.stringify(readinessReport)).toBe(readinessSnapshot)
+
+    await source.dispose()
+    const blockedSourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const blockedReadinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet
+    })
+
+    expect(blockedSourceReport.status).toBe('blocked')
+    expect(blockedReadinessReport.status).toBe('blocked')
+    expect(Object.isFrozen(blockedSourceReport)).toBe(true)
+    expect(Object.isFrozen(blockedSourceReport.effects)).toBe(true)
+    expect(Object.isFrozen(blockedReadinessReport)).toBe(true)
+    expect(Object.isFrozen(blockedReadinessReport.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(blockedReadinessReport.loadOrder)).toBe(true)
+    expect(Object.isFrozen(blockedReadinessReport.effects)).toBe(true)
+    expect(Reflect.set(blockedReadinessReport.effects as unknown as Record<string, unknown>, 'cacheWritten', true))
+      .toBe(false)
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('carries a sample pack to the deferred runtime boundary without exposing paths or writing data', async() => {
     const root = await createRoot()
     const modsRoot = path.join(root, 'mods')
