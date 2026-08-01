@@ -110,6 +110,40 @@ const createEffectSummary = (): ThirdPartyDataPackTransactionPreflightEffectSumm
   transactionLogWritten: false
 })
 
+const freezeEffectSummary = (
+  effects: ThirdPartyDataPackTransactionPreflightEffectSummary
+): ThirdPartyDataPackTransactionPreflightEffectSummary => Object.freeze(effects)
+
+const freezeTransactionRequirement = (
+  requirement: ThirdPartyDataPackTransactionRequirement
+): ThirdPartyDataPackTransactionRequirement => Object.freeze(requirement)
+
+const freezeTransactionRequirements = (
+  requirements: readonly ThirdPartyDataPackTransactionRequirement[]
+): readonly ThirdPartyDataPackTransactionRequirement[] =>
+  Object.freeze(requirements.map(requirement => freezeTransactionRequirement(requirement)))
+
+const freezeLifecycleStageSummary = (
+  stage: ThirdPartyDataPackTransactionLifecycleStageSummary
+): ThirdPartyDataPackTransactionLifecycleStageSummary => Object.freeze(stage)
+
+const freezeLifecycleStageSummaries = (
+  stages: readonly ThirdPartyDataPackTransactionLifecycleStageSummary[]
+): readonly ThirdPartyDataPackTransactionLifecycleStageSummary[] =>
+  Object.freeze(stages.map(stage => freezeLifecycleStageSummary(stage)))
+
+const freezeLifecycleOperationSummary = (
+  operation: ThirdPartyDataPackTransactionLifecycleOperationSummary
+): ThirdPartyDataPackTransactionLifecycleOperationSummary => Object.freeze({
+  ...operation,
+  stages: freezeLifecycleStageSummaries(operation.stages)
+})
+
+const freezeLifecycleOperations = (
+  operations: readonly ThirdPartyDataPackTransactionLifecycleOperationSummary[]
+): readonly ThirdPartyDataPackTransactionLifecycleOperationSummary[] =>
+  Object.freeze(operations.map(operation => freezeLifecycleOperationSummary(operation)))
+
 const cloneOfficialIdentity = (
   identity: ThirdPartyCandidateOfficialIdentitySummary
 ): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
@@ -285,9 +319,9 @@ const baseResult = (
   commitAllowed: false,
   recoveryRequired: false,
   rollbackRequired: false,
-  requiredTransactions,
-  lifecycleOperations: createLifecycleOperations(status, reason),
-  effects: createEffectSummary()
+  requiredTransactions: freezeTransactionRequirements(requiredTransactions),
+  lifecycleOperations: freezeLifecycleOperations(createLifecycleOperations(status, reason)),
+  effects: freezeEffectSummary(createEffectSummary())
 })
 
 export const buildThirdPartyDataPackTransactionPreflight = (

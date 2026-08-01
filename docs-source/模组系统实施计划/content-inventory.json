@@ -15850,7 +15850,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Consumes the read-only Runtime Mount Gate and produces a lifecycle transaction preflight report that keeps commits deferred, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details before exposure, enumerates missing staged package, settings, lockfile, recovery log and rollback verification primitives, exposes the install/upgrade/disable/uninstall discovered-to-committed no-write state matrix, and performs no package, backup, registry, lockfile, settings, save, cache or transaction-log writes."
+      "rationale": "Consumes the read-only Runtime Mount Gate and produces a lifecycle transaction preflight report that keeps commits deferred, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details before exposure, enumerates and freezes missing staged package, settings, lockfile, recovery log and rollback verification primitives, freezes the install/upgrade/disable/uninstall discovered-to-committed no-write state matrix including nested lifecycle stages, freezes the no-write effect summary, and performs no package, backup, registry, lockfile, settings, save, cache or transaction-log writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRuntimeAdapterGate.ts",
@@ -16078,7 +16078,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers deferred, skipped and blocked transaction preflight outcomes, required lifecycle transaction primitive enumeration, install/upgrade/disable/uninstall stage summaries, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers deferred, skipped and blocked transaction preflight outcomes, frozen required lifecycle transaction primitive enumeration, frozen install/upgrade/disable/uninstall stage summaries including nested lifecycle stages, frozen no-write effect summaries, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackRuntimeAdapterGate.test.ts",

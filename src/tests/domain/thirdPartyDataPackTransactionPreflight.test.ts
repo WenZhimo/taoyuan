@@ -232,12 +232,32 @@ const expectNoWriteEffects = (preflight: ReturnType<typeof buildThirdPartyDataPa
     cacheWritten: false,
     transactionLogWritten: false
   })
+  expect(Object.isFrozen(preflight.effects)).toBe(true)
+}
+
+const expectRequiredTransactions = (
+  preflight: ReturnType<typeof buildThirdPartyDataPackTransactionPreflight>
+): void => {
+  expect(preflight.requiredTransactions.map(requirement => ({
+    id: requirement.id,
+    status: requirement.status
+  }))).toEqual([
+    { id: 'staged-package-file-transaction', status: 'required' },
+    { id: 'installation-settings-transaction', status: 'required' },
+    { id: 'mod-lockfile-atomic-commit', status: 'required' },
+    { id: 'transaction-recovery-log', status: 'required' },
+    { id: 'rollback-verification', status: 'required' }
+  ])
+  expect(preflight.requiredTransactions.every(requirement => requirement.reason.length > 0)).toBe(true)
+  expect(Object.isFrozen(preflight.requiredTransactions)).toBe(true)
+  expect(preflight.requiredTransactions.every(requirement => Object.isFrozen(requirement))).toBe(true)
 }
 
 const expectLifecycleOperations = (
   preflight: ReturnType<typeof buildThirdPartyDataPackTransactionPreflight>,
   status: 'deferred' | 'skipped' | 'blocked'
 ): void => {
+  expect(Object.isFrozen(preflight.lifecycleOperations)).toBe(true)
   expect(preflight.lifecycleOperations.map(operation => operation.operation)).toEqual([
     'install',
     'upgrade',
@@ -246,10 +266,13 @@ const expectLifecycleOperations = (
   ])
 
   for (const operation of preflight.lifecycleOperations) {
+    expect(Object.isFrozen(operation)).toBe(true)
     expect(operation.status).toBe(status)
     expect(operation.currentStage).toBe('discovered')
     expect(operation.commitAllowed).toBe(false)
     expect(operation.reason.length).toBeGreaterThan(0)
+    expect(Object.isFrozen(operation.stages)).toBe(true)
+    expect(operation.stages.every(stage => Object.isFrozen(stage))).toBe(true)
     expect(operation.stages.map(stage => stage.id)).toEqual([
       'discovered',
       'staged',
@@ -318,19 +341,42 @@ describe('third-party data pack transaction preflight', () => {
     expect(transactionPreflight.packageCount).toBe(1)
     expect(transactionPreflight.candidateIdentity?.candidateHash).toBe(candidateSnapshot.candidateIdentity?.candidateHash)
     expect(transactionPreflight.lockfileHash).toBe(lockfileDraftResult.draft?.lockfileHash)
-    expect(transactionPreflight.requiredTransactions.map(requirement => requirement.id)).toEqual([
-      'staged-package-file-transaction',
-      'installation-settings-transaction',
-      'mod-lockfile-atomic-commit',
-      'transaction-recovery-log',
-      'rollback-verification'
-    ])
+    expectRequiredTransactions(transactionPreflight)
     expectLifecycleOperations(transactionPreflight, 'deferred')
     expect('candidateRegistrySet' in transactionPreflight).toBe(false)
     expect('candidateSnapshot' in transactionPreflight).toBe(false)
     expect('lockfileDraft' in transactionPreflight).toBe(false)
     expect('runtimeGate' in transactionPreflight).toBe(false)
     expectNoWriteEffects(transactionPreflight)
+    const frozenOutputSnapshot = JSON.stringify({
+      requiredTransactions: transactionPreflight.requiredTransactions,
+      lifecycleOperations: transactionPreflight.lifecycleOperations,
+      effects: transactionPreflight.effects
+    })
+    const firstRequirement = transactionPreflight.requiredTransactions[0]
+    const firstOperation = transactionPreflight.lifecycleOperations[0]
+    const firstStage = firstOperation?.stages[0]
+    if (firstRequirement === undefined) throw new Error('Expected at least one frozen transaction requirement.')
+    if (firstOperation === undefined) throw new Error('Expected at least one frozen lifecycle operation.')
+    if (firstStage === undefined) throw new Error('Expected at least one frozen lifecycle stage.')
+    expect(() => {
+      (transactionPreflight.requiredTransactions as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstRequirement as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(() => {
+      (transactionPreflight.lifecycleOperations as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstOperation as unknown as Record<string, unknown>, 'operation', 'mutated')).toBe(false)
+    expect(() => {
+      (firstOperation.stages as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstStage as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(Reflect.set(transactionPreflight.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    expect(JSON.stringify({
+      requiredTransactions: transactionPreflight.requiredTransactions,
+      lifecycleOperations: transactionPreflight.lifecycleOperations,
+      effects: transactionPreflight.effects
+    })).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -346,6 +392,7 @@ describe('third-party data pack transaction preflight', () => {
     expect(transactionPreflight.entryCount).toBe(4242)
     expect(transactionPreflight.packageCount).toBe(0)
     expect(transactionPreflight.requiredTransactions).toEqual([])
+    expect(Object.isFrozen(transactionPreflight.requiredTransactions)).toBe(true)
     expectLifecycleOperations(transactionPreflight, 'skipped')
     expectNoWriteEffects(transactionPreflight)
     expectOfficialBaseline()
@@ -366,6 +413,7 @@ describe('third-party data pack transaction preflight', () => {
     expect(transactionPreflight.registryCount).toBe(54)
     expect(transactionPreflight.entryCount).toBe(4242)
     expect(transactionPreflight.requiredTransactions).toEqual([])
+    expect(Object.isFrozen(transactionPreflight.requiredTransactions)).toBe(true)
     expect(transactionPreflight.diagnostics).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'SCHEMA-VALIDATE-001' }),
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })
