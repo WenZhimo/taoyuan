@@ -10,6 +10,7 @@ import {
   createDiscoveryFileSystemFromContentPackageSource,
   createMemoryContentPackageSource,
   normalizeContentPackageSourceArchiveEntryPath,
+  normalizeContentPackageSourceDirectoryEntry,
   normalizeContentPackageSourceDirectoryEntries,
   normalizeContentPackageSourceEntryName,
   normalizeContentPackageSourcePath,
@@ -374,6 +375,7 @@ describe('content package source contract', () => {
     const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
 
     const manifestJson = await readContentPackageSourceJson(source, 'valid-gift-pack/manifest.json')
+    const manifestEntry = await source.getEntry('valid-gift-pack/manifest.json')
     const report = await discoverThirdPartyDataPacks(source.identity.rootPath, fileSystem)
 
     expect(source.identity).toEqual({
@@ -397,6 +399,13 @@ describe('content package source contract', () => {
     })
     expect(report.candidates[0]?.path).toBe('valid-gift-pack')
     expect(report.candidates[0]?.contentFiles[0]?.path).toBe('data/items.json')
+    expect(manifestEntry).toMatchObject({
+      name: 'manifest.json',
+      kind: 'file',
+      isSymbolicLink: false
+    })
+    expect(Object.isFrozen(manifestEntry)).toBe(true)
+    expect(Reflect.set(manifestEntry as unknown as Record<string, unknown>, 'kind', 'directory')).toBe(false)
   })
 
   it('normalizes relative source paths and rejects absolute or escaping paths', async() => {
@@ -914,6 +923,13 @@ describe('content package source contract', () => {
     expect(JSON.stringify(nonStringEntryNameError)).not.toContain('hostile-entry-name')
     expect(JSON.stringify(nonStringEntryNameError)).not.toContain('C:/Users')
     expect(JSON.stringify(nonStringEntryNameError)).not.toContain('LENOVO')
+    const singleEntry = normalizeContentPackageSourceDirectoryEntry({
+      name: 'manifest.json',
+      kind: 'file',
+      isSymbolicLink: false
+    })
+    expect(Object.isFrozen(singleEntry)).toBe(true)
+    expect(Reflect.set(singleEntry as unknown as Record<string, unknown>, 'name', 'mutated.json')).toBe(false)
     expect(normalizeContentPackageSourceDirectoryEntries([
       { name: 'z-pack', kind: 'directory', isSymbolicLink: false },
       { name: 'pipe-pack', kind: 'other', isSymbolicLink: false },

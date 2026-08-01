@@ -681,11 +681,11 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   }
 
   const unknownEntry: ContentPackageSourceUnknownDirectoryEntry = { name, kind, isSymbolicLink }
-  return {
+  return freezeContentPackageSourceDirectoryEntry({
     name: normalizedName,
     kind: unknownEntry.kind as ContentPackageSourceEntryKind,
     isSymbolicLink: unknownEntry.isSymbolicLink
-  }
+  })
 }
 
 export const normalizeContentPackageSourceDirectoryEntries = (
@@ -1236,6 +1236,10 @@ const freezeContentPackageSourceIdentity = (
   identity: ContentPackageSourceIdentity
 ): ContentPackageSourceIdentity => Object.freeze(identity)
 
+const freezeContentPackageSourceDirectoryEntry = (
+  entry: ContentPackageSourceDirectoryEntry
+): ContentPackageSourceDirectoryEntry => Object.freeze(entry)
+
 export const validateContentPackageSourceIdentity = (
   identity: unknown
 ): ContentPackageSourceIdentity => {
@@ -1425,18 +1429,18 @@ export const createMemoryContentPackageSource = (
   const getEntry = (path: string): ContentPackageSourceDirectoryEntry | null => {
     const normalizedPath = normalizeContentPackageSourcePath(path)
     if (files.has(normalizedPath)) {
-      return {
+      return freezeContentPackageSourceDirectoryEntry({
         name: entryName(normalizedPath, rootName),
         kind: 'file',
         isSymbolicLink: false
-      }
+      })
     }
     if (directories.has(normalizedPath)) {
-      return {
+      return freezeContentPackageSourceDirectoryEntry({
         name: entryName(normalizedPath, rootName),
         kind: 'directory',
         isSymbolicLink: false
-      }
+      })
     }
     return null
   }
