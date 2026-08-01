@@ -386,17 +386,23 @@ describe('third-party data pack runtime mount gate', () => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
 
-    const { mountInput, runtimeGate } = await buildReportsFromRoot(root)
+    const { mountInput } = await buildReportsFromRoot(root)
+    const mutableMountInput = {
+      ...mountInput,
+      officialIdentity: { ...mountInput.officialIdentity },
+      candidateIdentity: mountInput.candidateIdentity ? { ...mountInput.candidateIdentity } : undefined
+    }
+    const runtimeGate = buildThirdPartyDataPackRuntimeMountGate({ mountInput: mutableMountInput } as never)
     const originalCandidateHash = runtimeGate.candidateIdentity?.candidateHash
 
-    expect(runtimeGate.officialIdentity).toEqual(mountInput.officialIdentity)
-    expect(runtimeGate.candidateIdentity).toEqual(mountInput.candidateIdentity)
-    expect(runtimeGate.officialIdentity).not.toBe(mountInput.officialIdentity)
-    expect(runtimeGate.candidateIdentity).not.toBe(mountInput.candidateIdentity)
+    expect(runtimeGate.officialIdentity).toEqual(mutableMountInput.officialIdentity)
+    expect(runtimeGate.candidateIdentity).toEqual(mutableMountInput.candidateIdentity)
+    expect(runtimeGate.officialIdentity).not.toBe(mutableMountInput.officialIdentity)
+    expect(runtimeGate.candidateIdentity).not.toBe(mutableMountInput.candidateIdentity)
     expect(originalCandidateHash).toMatch(/^sha256:/)
 
-    const mutableOfficialIdentity = mountInput.officialIdentity as { registryCount: number }
-    const mutableCandidateIdentity = mountInput.candidateIdentity as { candidateHash: Sha256Hash }
+    const mutableOfficialIdentity = mutableMountInput.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = mutableMountInput.candidateIdentity as { candidateHash: Sha256Hash }
     mutableOfficialIdentity.registryCount = 1
     mutableCandidateIdentity.candidateHash = testHash('5')
 

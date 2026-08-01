@@ -202,6 +202,47 @@ const expectReadOnlyEffects = (input: ReturnType<typeof buildThirdPartyDataPackM
     packageFilesWritten: false,
     cacheWritten: false
   })
+  expect(Object.isFrozen(input.effects)).toBe(true)
+}
+
+const expectFrozenMountInputOutput = (
+  input: ReturnType<typeof buildThirdPartyDataPackMountInput>
+): void => {
+  expect(Object.isFrozen(input)).toBe(true)
+  expect(Object.isFrozen(input.diagnostics)).toBe(true)
+  expect(input.diagnostics.every(diagnostic => Object.isFrozen(diagnostic))).toBe(true)
+  expect(input.diagnostics.every(diagnostic =>
+    diagnostic.relatedPackageIds === undefined || Object.isFrozen(diagnostic.relatedPackageIds)
+  )).toBe(true)
+  expect(input.diagnostics.every(diagnostic =>
+    diagnostic.details === undefined || Object.isFrozen(diagnostic.details)
+  )).toBe(true)
+  expect(Object.isFrozen(input.selectedPackageIds)).toBe(true)
+  expect(Object.isFrozen(input.blockedPackageIds)).toBe(true)
+  expect(Object.isFrozen(input.blockedCandidatePaths)).toBe(true)
+  expect(Object.isFrozen(input.loadOrder)).toBe(true)
+  expect(Object.isFrozen(input.officialIdentity)).toBe(true)
+  expect(input.candidateIdentity === undefined || Object.isFrozen(input.candidateIdentity)).toBe(true)
+  expect(Object.isFrozen(input.preflight)).toBe(true)
+  expect(input.candidateSnapshot === undefined || Object.isFrozen(input.candidateSnapshot)).toBe(true)
+  expect(input.candidateSnapshot === undefined || Object.isFrozen(input.candidateSnapshot.registries)).toBe(true)
+  expect(input.candidateSnapshot?.registries.every(registry => Object.isFrozen(registry))).not.toBe(false)
+  expect(input.candidateSnapshot?.registries.every(registry => Object.isFrozen(registry.entries))).not.toBe(false)
+  expect(input.candidateSnapshot?.registries.every(registry =>
+    registry.entries.every(entry => Object.isFrozen(entry) && Object.isFrozen(entry.source) && Object.isFrozen(entry.entry))
+  )).not.toBe(false)
+  expect(input.lockfileDraft === undefined || Object.isFrozen(input.lockfileDraft)).toBe(true)
+  expect(input.lockfileDraft === undefined || Object.isFrozen(input.lockfileDraft.selectedPackageIds)).toBe(true)
+  expect(input.lockfileDraft === undefined || Object.isFrozen(input.lockfileDraft.loadOrder)).toBe(true)
+  expect(input.lockfileDraft === undefined || Object.isFrozen(input.lockfileDraft.packages)).toBe(true)
+  expect(input.lockfileDraft?.packages.every(pkg => Object.isFrozen(pkg))).not.toBe(false)
+  expect(input.lockfileDraft?.packages.every(pkg =>
+    Object.isFrozen(pkg.source)
+    && Object.isFrozen(pkg.source.contentFiles)
+    && Object.isFrozen(pkg.resolvedDependencies)
+    && Object.isFrozen(pkg.contentFiles)
+    && pkg.contentFiles.every(file => Object.isFrozen(file) && Object.isFrozen(file.entries))
+  )).not.toBe(false)
 }
 
 const expectOfficialBaseline = (): void => {
@@ -242,8 +283,51 @@ describe('third-party data pack mount input', () => {
     expect(mountInput.lockfileHash).toBe(lockfileDraftResult.draft?.lockfileHash)
     expect(mountInput.candidateRegistrySet?.currentPhase).toBe('frozen')
     expect(mountInput.candidateSnapshot?.snapshotHash).toBe(candidateSnapshot.candidateSnapshot?.snapshotHash)
-    expect(mountInput.lockfileDraft).toBe(lockfileDraftResult.draft)
+    expect(mountInput.lockfileDraft).toEqual(lockfileDraftResult.draft)
+    expect(mountInput.lockfileDraft).not.toBe(lockfileDraftResult.draft)
     expectReadOnlyEffects(mountInput)
+    expectFrozenMountInputOutput(mountInput)
+    const frozenOutputSnapshot = JSON.stringify({
+      selectedPackageIds: mountInput.selectedPackageIds,
+      loadOrder: mountInput.loadOrder,
+      officialIdentity: mountInput.officialIdentity,
+      candidateIdentity: mountInput.candidateIdentity,
+      effects: mountInput.effects,
+      candidateSnapshot: mountInput.candidateSnapshot,
+      lockfileDraft: mountInput.lockfileDraft
+    })
+    expect(Reflect.set(mountInput as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(() => {
+      (mountInput.selectedPackageIds as unknown as unknown[]).push('mutated_pack')
+    }).toThrow(TypeError)
+    expect(() => {
+      (mountInput.loadOrder as unknown as unknown[]).push('mutated_pack')
+    }).toThrow(TypeError)
+    expect(Reflect.set(mountInput.officialIdentity as unknown as Record<string, unknown>, 'registryCount', 1)).toBe(false)
+    if (mountInput.candidateIdentity === undefined) throw new Error('Expected frozen candidate identity.')
+    expect(Reflect.set(mountInput.candidateIdentity as unknown as Record<string, unknown>, 'candidateHash', testHash('7'))).toBe(false)
+    expect(Reflect.set(mountInput.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    const firstRegistry = mountInput.candidateSnapshot?.registries[0]
+    if (firstRegistry === undefined) throw new Error('Expected frozen candidate snapshot registry.')
+    expect(() => {
+      (mountInput.candidateSnapshot?.registries as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstRegistry as unknown as Record<string, unknown>, 'registryId', 'mutated')).toBe(false)
+    const firstPackage = mountInput.lockfileDraft?.packages[0]
+    if (firstPackage === undefined) throw new Error('Expected frozen lockfile draft package.')
+    expect(() => {
+      (mountInput.lockfileDraft?.packages as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstPackage as unknown as Record<string, unknown>, 'version', '9.9.9')).toBe(false)
+    expect(JSON.stringify({
+      selectedPackageIds: mountInput.selectedPackageIds,
+      loadOrder: mountInput.loadOrder,
+      officialIdentity: mountInput.officialIdentity,
+      candidateIdentity: mountInput.candidateIdentity,
+      effects: mountInput.effects,
+      candidateSnapshot: mountInput.candidateSnapshot,
+      lockfileDraft: mountInput.lockfileDraft
+    })).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -262,6 +346,7 @@ describe('third-party data pack mount input', () => {
     expect(mountInput.candidateSnapshot).toBeUndefined()
     expect(mountInput.lockfileDraft).toBeUndefined()
     expectReadOnlyEffects(mountInput)
+    expectFrozenMountInputOutput(mountInput)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -287,6 +372,7 @@ describe('third-party data pack mount input', () => {
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })
     ]))
     expectReadOnlyEffects(mountInput)
+    expectFrozenMountInputOutput(mountInput)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -371,6 +457,7 @@ describe('third-party data pack mount input', () => {
     expect(mountInput.officialIdentity.registryCount).toBe(54)
     expect(mountInput.candidateIdentity?.candidateHash).toBe(originalCandidateHash)
     expectReadOnlyEffects(mountInput)
+    expectFrozenMountInputOutput(mountInput)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -410,6 +497,16 @@ describe('third-party data pack mount input', () => {
     expect(mountInput.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
     expect(mountInput.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
     expect(mountInput.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+    expectFrozenMountInputOutput(mountInput)
+    expect(Object.isFrozen(mountInput.diagnostics[0])).toBe(true)
+    expect(Object.isFrozen(mountInput.diagnostics[0]?.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(mountInput.diagnostics[0]?.details)).toBe(true)
+    expect(Object.isFrozen(mountInput.diagnostics[0]?.details?.nested)).toBe(true)
+    expect(Object.isFrozen(mountInput.diagnostics[0]?.details?.list)).toBe(true)
+    expect(Reflect.set(mountInput.diagnostics[0] as unknown as Record<string, unknown>, 'stage', 'mutated')).toBe(false)
+    expect(() => {
+      (mountInput.diagnostics as unknown as unknown[]).push(upstreamDiagnostic)
+    }).toThrow(TypeError)
 
     upstreamDiagnostic.stage = 'mutated'
     upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
@@ -468,6 +565,7 @@ describe('third-party data pack mount input', () => {
     expect(mountInput.candidateSnapshot?.snapshotHash).toBe(originalSnapshotHash)
     expect(mountInput.candidateSnapshot?.registries).toHaveLength(54)
     expectReadOnlyEffects(mountInput)
+    expectFrozenMountInputOutput(mountInput)
     expectOfficialBaseline()
   }, 15_000)
 })

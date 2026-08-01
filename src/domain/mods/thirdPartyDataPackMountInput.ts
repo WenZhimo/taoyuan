@@ -72,6 +72,16 @@ const cloneJsonValue = (value: JsonValue): JsonValue => {
   return value
 }
 
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
+const freezeJsonValue = (value: JsonValue): JsonValue => deepFreezeObjectGraph(value)
+
 const cloneDiagnosticDetails = (
   details: ModDiagnostic['details']
 ): ModDiagnostic['details'] => {
@@ -79,6 +89,15 @@ const cloneDiagnosticDetails = (
   const result: Record<string, JsonValue> = {}
   for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
   return result
+}
+
+const freezeDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = freezeJsonValue(value)
+  return Object.freeze(result) as ModDiagnostic['details']
 }
 
 const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
@@ -95,6 +114,14 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
   relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
   details: cloneDiagnosticDetails(diagnostic.details),
   recovery: diagnostic.recovery
+})
+
+const freezeDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => Object.freeze({
+  ...diagnostic,
+  relatedPackageIds: diagnostic.relatedPackageIds
+    ? Object.freeze([...diagnostic.relatedPackageIds]) as PackageId[]
+    : undefined,
+  details: freezeDiagnosticDetails(diagnostic.details)
 })
 
 const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
@@ -115,10 +142,13 @@ const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic
     })
     if (seen.has(key)) continue
     seen.add(key)
-    result.push(cloneDiagnostic(diagnostic))
+    result.push(freezeDiagnostic(cloneDiagnostic(diagnostic)))
   }
   return result
 }
+
+const freezeDiagnostics = (diagnostics: readonly ModDiagnostic[]): readonly ModDiagnostic[] =>
+  Object.freeze(uniqueDiagnostics(diagnostics))
 
 const createMountInputDiagnostic = (
   fieldPath: string,
@@ -224,10 +254,46 @@ const cloneCandidateIdentity = (
   identity: ThirdPartyCandidateIdentitySummary | undefined
 ): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
 
+const freezeOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => Object.freeze(cloneOfficialIdentity(identity))
+
+const freezeCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined =>
+  identity === undefined ? undefined : Object.freeze(cloneCandidateIdentity(identity))
+
 const cloneCandidateSnapshot = (
   snapshot: SerializableRegistrySnapshot | undefined
 ): SerializableRegistrySnapshot | undefined =>
   snapshot === undefined ? undefined : JSON.parse(JSON.stringify(snapshot)) as SerializableRegistrySnapshot
+
+const freezeCandidateSnapshot = (
+  snapshot: SerializableRegistrySnapshot | undefined
+): SerializableRegistrySnapshot | undefined =>
+  snapshot === undefined ? undefined : deepFreezeObjectGraph(cloneCandidateSnapshot(snapshot))
+
+const freezeLockfileDraft = (
+  draft: ThirdPartyDataPackLockfileDraft | undefined
+): ThirdPartyDataPackLockfileDraft | undefined =>
+  draft === undefined
+    ? undefined
+    : deepFreezeObjectGraph(JSON.parse(JSON.stringify(draft)) as ThirdPartyDataPackLockfileDraft)
+
+const freezePackageIds = (packageIds: readonly PackageId[]): readonly PackageId[] =>
+  Object.freeze([...packageIds])
+
+const freezeStringList = (values: readonly string[]): readonly string[] =>
+  Object.freeze([...values])
+
+const freezeEffectSummary = (
+  effects: ThirdPartyDataPackMountPreflightEffectSummary
+): ThirdPartyDataPackMountPreflightEffectSummary => Object.freeze({ ...effects })
+
+const freezePreflight = (
+  preflight: ThirdPartyDataPackMountPreflightResult
+): ThirdPartyDataPackMountPreflightResult =>
+  deepFreezeObjectGraph(JSON.parse(JSON.stringify(preflight)) as ThirdPartyDataPackMountPreflightResult)
 
 const baseResult = (
   status: ThirdPartyDataPackMountInputStatus,
@@ -237,24 +303,24 @@ const baseResult = (
 ): Omit<
   ThirdPartyDataPackMountInputResult,
   'candidateSnapshot' | 'candidateRegistrySet' | 'lockfileDraft'
-> => ({
+> => Object.freeze({
   status,
   preflightStatus: preflight.status,
   reason,
-  diagnostics: uniqueDiagnostics(diagnostics),
-  selectedPackageIds: [...preflight.selectedPackageIds],
-  blockedPackageIds: [...preflight.blockedPackageIds],
-  blockedCandidatePaths: [...preflight.blockedCandidatePaths],
-  loadOrder: [...preflight.loadOrder],
+  diagnostics: freezeDiagnostics(diagnostics),
+  selectedPackageIds: freezePackageIds(preflight.selectedPackageIds),
+  blockedPackageIds: freezePackageIds(preflight.blockedPackageIds),
+  blockedCandidatePaths: freezeStringList(preflight.blockedCandidatePaths),
+  loadOrder: freezePackageIds(preflight.loadOrder),
   registryCount: preflight.registryCount,
   entryCount: preflight.entryCount,
   packageCount: preflight.packageCount,
-  officialIdentity: cloneOfficialIdentity(preflight.officialIdentity),
-  candidateIdentity: cloneCandidateIdentity(preflight.candidateIdentity),
+  officialIdentity: freezeOfficialIdentity(preflight.officialIdentity),
+  candidateIdentity: freezeCandidateIdentity(preflight.candidateIdentity),
   lockfileHash: preflight.lockfileHash,
-  effects: preflight.effects,
+  effects: freezeEffectSummary(preflight.effects),
   runtimePublication: 'deferred',
-  preflight
+  preflight: freezePreflight(preflight)
 })
 
 export const buildThirdPartyDataPackMountInput = (
@@ -307,10 +373,10 @@ export const buildThirdPartyDataPackMountInput = (
     ])
   }
 
-  return {
+  return Object.freeze({
     ...baseResult('ready', 'ready for future runtime mount adapter', preflight, preflight.diagnostics),
-    candidateSnapshot: cloneCandidateSnapshot(candidateSnapshot.candidateSnapshot),
+    candidateSnapshot: freezeCandidateSnapshot(candidateSnapshot.candidateSnapshot),
     candidateRegistrySet: candidateSnapshot.candidateRegistrySet,
-    lockfileDraft: lockfileDraftResult.draft
-  }
+    lockfileDraft: freezeLockfileDraft(lockfileDraftResult.draft)
+  })
 }

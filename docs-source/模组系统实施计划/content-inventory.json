@@ -15826,7 +15826,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies the serializable candidate snapshot before exposure, exposes the lockfile draft, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details before exposure, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
+      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies and freezes the serializable candidate snapshot and lockfile draft before exposure, copies and freezes upstream preflight report, official/candidate identity summaries, diagnostic objects including relatedPackageIds and nested JSON details, package id/path arrays, no-write effects and the top-level mount input report, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRuntimeMountGate.ts",
@@ -16054,7 +16054,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied serializable candidate snapshot and lockfile draft availability only for ready preflights, compatibility with frozen Mount Preflight outputs, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied and frozen serializable candidate snapshot and lockfile draft availability only for ready preflights, frozen top-level report, package arrays, diagnostics, identities, preflight copy, no-write effects and mutation snapshot stability, compatibility with frozen Mount Preflight outputs, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts",
@@ -16066,7 +16066,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers deferred, skipped and blocked runtime gate outcomes, frozen required write/transaction gate enumeration, frozen no-write effect summary, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers deferred, skipped and blocked runtime gate outcomes, frozen required write/transaction gate enumeration, frozen no-write effect summary, absence of candidate artifact exposure, compatibility with frozen Mount Input outputs, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts",
