@@ -97,6 +97,14 @@ const cloneJsonValue = (value: JsonValue): JsonValue => {
   return result
 }
 
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
 const cloneDiagnosticDetails = (
   details: ModDiagnostic['details']
 ): ModDiagnostic['details'] => {
@@ -547,6 +555,10 @@ const finalizeBlockedPackages = (
     }))
     .sort((a, b) => compareCodePoints(a.packageId ?? a.path, b.packageId ?? b.path) || compareCodePoints(a.path, b.path))
 
+const freezeSelectionReport = (
+  report: ThirdPartyDataPackSelectionReport
+): ThirdPartyDataPackSelectionReport => deepFreezeObjectGraph(report)
+
 export const selectThirdPartyDataPacks = (
   report: ThirdPartyDataPackDiscoveryReport
 ): ThirdPartyDataPackSelectionReport => {
@@ -598,7 +610,7 @@ export const selectThirdPartyDataPacks = (
   const blockedPackages = finalizeBlockedPackages(report, issuesByPath, reasonsByPath)
   const issues = cloneSelectionIssues([...issuesByPath.values()].flat())
 
-  return {
+  return freezeSelectionReport({
     status: blockedPackages.length > 0 ? 'blocked' : 'completed',
     selectedPackages,
     blockedPackages,
@@ -610,5 +622,5 @@ export const selectThirdPartyDataPacks = (
       blockedPackageCount: blockedPackages.length,
       issueCount: issues.length
     }
-  }
+  })
 }

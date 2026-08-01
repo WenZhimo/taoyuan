@@ -506,24 +506,6 @@ describe('third-party data pack read-only selection', () => {
     const discoveryListDetails = upstreamDiscoveryDetails.list as unknown[]
     discoveryListDetails.push('mutated')
 
-    const mutableTopLevelSelectionIssue = topLevelSelectionIssue as unknown as {
-      relatedPackageIds?: string[]
-      diagnostics: Array<{
-        stage: string
-        relatedPackageIds?: string[]
-        details?: Record<string, unknown>
-      }>
-    }
-    mutableTopLevelSelectionIssue.relatedPackageIds?.push('mutated_selection_pack')
-    mutableTopLevelSelectionIssue.diagnostics[0]!.stage = 'third-party.selection.mutated'
-    mutableTopLevelSelectionIssue.diagnostics[0]!.relatedPackageIds?.push('mutated_selection_pack')
-    const topLevelSelectionDetails = mutableTopLevelSelectionIssue.diagnostics[0]!.details
-    if (topLevelSelectionDetails === undefined) throw new Error('Expected selection details.')
-    const dependencyPaths = topLevelSelectionDetails.dependencyPaths as unknown[]
-    const dependencyReasons = topLevelSelectionDetails.dependencyReasons as unknown[]
-    dependencyPaths.push('mutated-path')
-    dependencyReasons.push('mutated-reason')
-
     expect(blockedDiscoveryIssue).not.toBe(upstreamDiscoveryIssue)
     expect(blockedDiscoveryIssue.diagnostics[0]).not.toBe(upstreamDiscoveryDiagnostic)
     expect(blockedDiscoveryIssue.diagnostics[0]?.details).not.toBe(upstreamDiscoveryDiagnostic.details)
@@ -553,6 +535,91 @@ describe('third-party data pack read-only selection', () => {
         issue.diagnostics.some(diagnostic => diagnostic.stage === 'third-party.discovery.mutated')
       )
     )).toBe(false)
+  })
+
+  it('freezes exposed selection report output graphs', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      itemEntries: [
+        {
+          id: 'bad_library:broken',
+          name: { key: 'bad_library.item.broken.name', fallback: 'Broken' },
+          category: 'gift',
+          description: { key: 'bad_library.item.broken.description', fallback: 'Broken.' },
+          sellPrice: -1,
+          edible: false
+        }
+      ]
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'bad_library', version: '1.0.0' }]
+    })
+    const discoveryReport = await discover(root)
+    const upstreamDiscoveryDiagnostic = discoveryReport.candidates
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.issues[0]
+      ?.diagnostics[0]
+    if (!upstreamDiscoveryDiagnostic) throw new Error('Expected discovery diagnostic for invalid package.')
+    upstreamDiscoveryDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
+    upstreamDiscoveryDiagnostic.details = {
+      ...(upstreamDiscoveryDiagnostic.details ?? {}),
+      nested: { marker: 'original' },
+      list: ['original']
+    }
+
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const beforeMutationAttempts = JSON.stringify(selectionReport)
+    const blockedPackage = selectionReport.blockedPackages
+      .find(candidate => candidate.packageId === 'bad_library')
+    const blockedDiscoveryDiagnostic = blockedPackage?.discoveryIssues[0]?.diagnostics[0]
+    const topLevelSelectionIssue = selectionReport.issues
+      .find(issue => issue.packageId === 'dependent_app')
+    const topLevelSelectionDiagnostic = topLevelSelectionIssue?.diagnostics[0]
+    if (!blockedPackage || !blockedDiscoveryDiagnostic || !topLevelSelectionIssue || !topLevelSelectionDiagnostic) {
+      throw new Error('Expected blocked package and selection diagnostics.')
+    }
+    const discoveryDetails = blockedDiscoveryDiagnostic.details
+    const selectionDetails = topLevelSelectionDiagnostic.details
+    if (!discoveryDetails || !selectionDetails) throw new Error('Expected diagnostic details.')
+
+    expect(Object.isFrozen(selectionReport)).toBe(true)
+    expect(Object.isFrozen(selectionReport.selectedPackages)).toBe(true)
+    expect(Object.isFrozen(selectionReport.blockedPackages)).toBe(true)
+    expect(Object.isFrozen(blockedPackage)).toBe(true)
+    expect(Object.isFrozen(blockedPackage.reasons)).toBe(true)
+    expect(Object.isFrozen(blockedPackage.discoveryIssues[0])).toBe(true)
+    expect(Object.isFrozen(blockedDiscoveryDiagnostic)).toBe(true)
+    expect(Object.isFrozen(blockedDiscoveryDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(discoveryDetails)).toBe(true)
+    expect(Object.isFrozen(discoveryDetails.nested)).toBe(true)
+    expect(Object.isFrozen(discoveryDetails.list)).toBe(true)
+    expect(Object.isFrozen(selectionReport.issues)).toBe(true)
+    expect(Object.isFrozen(topLevelSelectionIssue)).toBe(true)
+    expect(Object.isFrozen(topLevelSelectionIssue.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(topLevelSelectionDiagnostic)).toBe(true)
+    expect(Object.isFrozen(selectionDetails)).toBe(true)
+    expect(Object.isFrozen(selectionDetails.dependencyPaths)).toBe(true)
+    expect(Object.isFrozen(selectionReport.summary)).toBe(true)
+
+    expect(Reflect.set(selectionReport, 'status', 'completed')).toBe(false)
+    expect(() => (selectionReport.selectedPackages as unknown as unknown[]).push({})).toThrow(TypeError)
+    expect(() => (selectionReport.loadOrder as unknown as unknown[]).push('mutated_pack')).toThrow(TypeError)
+    expect(() => (blockedPackage.reasons as unknown as unknown[]).push('dependency-cycle')).toThrow(TypeError)
+    expect(Reflect.set(blockedDiscoveryDiagnostic, 'stage', 'third-party.discovery.mutated')).toBe(false)
+    expect(() => (blockedDiscoveryDiagnostic.relatedPackageIds as unknown as unknown[]).push('mutated_pack'))
+      .toThrow(TypeError)
+    expect(Reflect.set(discoveryDetails, 'nested', { marker: 'mutated' })).toBe(false)
+    expect(Reflect.set(discoveryDetails.nested as Record<string, unknown>, 'marker', 'mutated')).toBe(false)
+    expect(() => (discoveryDetails.list as unknown[]).push('mutated')).toThrow(TypeError)
+    expect(() => (topLevelSelectionIssue.relatedPackageIds as unknown as unknown[]).push('mutated_pack'))
+      .toThrow(TypeError)
+    expect(Reflect.set(selectionDetails, 'dependencyPaths', ['mutated-path'])).toBe(false)
+    expect(() => (selectionDetails.dependencyReasons as unknown[]).push('mutated-reason')).toThrow(TypeError)
+    expect(Reflect.set(selectionReport.summary, 'issueCount', 999)).toBe(false)
+
+    expect(JSON.stringify(selectionReport)).toBe(beforeMutationAttempts)
   })
 
   it('keeps official registry hashes unchanged while selecting third-party candidates', async() => {
