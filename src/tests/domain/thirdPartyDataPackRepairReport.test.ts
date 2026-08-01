@@ -308,6 +308,79 @@ describe('third-party data pack repair report', () => {
     expectNoWriteEffects(report)
   }, 15_000)
 
+  it('freezes exposed repair report output graphs', async() => {
+    const root = await createRoot()
+    await copyPack(root, 'bad-schema', {
+      id: 'bad_schema',
+      itemSellPrice: -1
+    })
+    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const upstreamDiagnostic = discoveryReport.candidates
+      .flatMap(candidate => candidate.issues)
+      .flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected schema diagnostics for invalid test package.')
+
+    upstreamDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
+    upstreamDiagnostic.details = {
+      ...(upstreamDiagnostic.details ?? {}),
+      nested: { marker: 'original' },
+      list: ['original']
+    }
+
+    const report = buildThirdPartyDataPackRepairReport(discoveryReport)
+    const beforeMutationAttempts = JSON.stringify(report)
+    const blockedAction = report.actions[0]
+    const actionDiagnostic = blockedAction?.diagnostics[0]
+    const reportDiagnostic = report.diagnostics[0]
+    if (!blockedAction || !actionDiagnostic || !reportDiagnostic) {
+      throw new Error('Expected blocked action and copied repair diagnostics.')
+    }
+    const actionDetails = actionDiagnostic.details
+    const reportDetails = reportDiagnostic.details
+    if (!actionDetails || !reportDetails) throw new Error('Expected diagnostic details.')
+    if (!actionDiagnostic.relatedPackageIds || !reportDiagnostic.relatedPackageIds) {
+      throw new Error('Expected related package ids.')
+    }
+
+    expect(Object.isFrozen(report)).toBe(true)
+    expect(Object.isFrozen(report.actions)).toBe(true)
+    expect(Object.isFrozen(blockedAction)).toBe(true)
+    expect(Object.isFrozen(blockedAction.diagnostics)).toBe(true)
+    expect(Object.isFrozen(actionDiagnostic)).toBe(true)
+    expect(Object.isFrozen(actionDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(actionDetails)).toBe(true)
+    expect(Object.isFrozen(actionDetails.nested)).toBe(true)
+    expect(Object.isFrozen(actionDetails.list)).toBe(true)
+    expect(Object.isFrozen(report.diagnostics)).toBe(true)
+    expect(Object.isFrozen(reportDiagnostic)).toBe(true)
+    expect(Object.isFrozen(reportDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(reportDetails)).toBe(true)
+    expect(Object.isFrozen(reportDetails.nested)).toBe(true)
+    expect(Object.isFrozen(reportDetails.list)).toBe(true)
+    expect(Object.isFrozen(report.effects)).toBe(true)
+    expect(Object.isFrozen(report.summary)).toBe(true)
+
+    expect(Reflect.set(report, 'status', 'clean')).toBe(false)
+    expect(() => (report.actions as unknown as unknown[]).push({})).toThrow(TypeError)
+    expect(() => (blockedAction.diagnostics as unknown as unknown[]).push({})).toThrow(TypeError)
+    expect(Reflect.set(actionDiagnostic, 'stage', 'third-party.discovery.mutated')).toBe(false)
+    expect(() => (actionDiagnostic.relatedPackageIds as unknown as unknown[]).push('mutated_pack'))
+      .toThrow(TypeError)
+    expect(Reflect.set(actionDetails, 'nested', { marker: 'mutated' })).toBe(false)
+    expect(Reflect.set(actionDetails.nested as Record<string, unknown>, 'marker', 'mutated')).toBe(false)
+    expect(() => (actionDetails.list as unknown[]).push('mutated')).toThrow(TypeError)
+    expect(Reflect.set(reportDiagnostic, 'stage', 'third-party.discovery.mutated')).toBe(false)
+    expect(() => (reportDiagnostic.relatedPackageIds as unknown as unknown[]).push('mutated_pack'))
+      .toThrow(TypeError)
+    expect(Reflect.set(reportDetails.nested as Record<string, unknown>, 'marker', 'mutated')).toBe(false)
+    expect(() => (reportDetails.list as unknown[]).push('mutated')).toThrow(TypeError)
+    expect(Reflect.set(report.effects, 'cacheWritten', true)).toBe(false)
+    expect(Reflect.set(report.summary, 'diagnosticCount', 999)).toBe(false)
+
+    expect(JSON.stringify(report)).toBe(beforeMutationAttempts)
+    expectNoWriteEffects(report)
+  }, 15_000)
+
   it('is deterministic and does not mutate package files, saves, settings or official registries', async() => {
     const root = await createRoot()
     const packsRoot = path.join(root, 'packs')

@@ -74,6 +74,14 @@ const cloneJsonValue = (value: JsonValue): JsonValue => {
   return result
 }
 
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
+}
+
 const cloneDiagnosticDetails = (
   details: ModDiagnostic['details']
 ): ModDiagnostic['details'] => {
@@ -102,6 +110,10 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+
+const freezeRepairReport = (
+  report: ThirdPartyDataPackRepairReport
+): ThirdPartyDataPackRepairReport => deepFreezeObjectGraph(report)
 
 const issueToBlockedAction = (issue: ThirdPartyDataPackDiscoveryIssue): ThirdPartyDataPackRepairAction => ({
   ruleId: 'PKG-REPAIR-NOT-WHITELISTED',
@@ -148,7 +160,7 @@ export const buildThirdPartyDataPackRepairReport = (
   const blockedActionCount = actions.filter(action => action.decision === 'blocked').length
   const diagnostics = actions.flatMap(action => cloneDiagnostics(action.diagnostics))
 
-  return {
+  return freezeRepairReport({
     status: blockedActionCount > 0
       ? 'blocked'
       : whitelistedActionCount > 0
@@ -163,5 +175,5 @@ export const buildThirdPartyDataPackRepairReport = (
       blockedActionCount,
       diagnosticCount: diagnostics.length
     }
-  }
+  })
 }
