@@ -105,6 +105,17 @@ const cloneJsonValue = (value: JsonValue): JsonValue => {
   return result
 }
 
+const freezeJsonValue = (value: JsonValue): JsonValue => {
+  if (value === null || typeof value !== 'object') return value
+  if (Array.isArray(value)) {
+    return Object.freeze(value.map(item => freezeJsonValue(item))) as unknown as JsonValue
+  }
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, entry] of Object.entries(value)) result[key] = freezeJsonValue(entry)
+  return Object.freeze(result) as JsonValue
+}
+
 const cloneDiagnosticDetails = (
   details: ModDiagnostic['details']
 ): ModDiagnostic['details'] => {
@@ -131,6 +142,24 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
   recovery: diagnostic.recovery
 })
 
+const freezeDiagnosticDetails = (
+  details: ModDiagnostic['details']
+): ModDiagnostic['details'] => {
+  if (details === undefined) return undefined
+
+  const result: Record<string, JsonValue> = {}
+  for (const [key, value] of Object.entries(details)) result[key] = freezeJsonValue(value)
+  return Object.freeze(result) as ModDiagnostic['details']
+}
+
+const freezeDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => Object.freeze({
+  ...diagnostic,
+  relatedPackageIds: diagnostic.relatedPackageIds
+    ? Object.freeze([...diagnostic.relatedPackageIds]) as PackageId[]
+    : undefined,
+  details: freezeDiagnosticDetails(diagnostic.details)
+})
+
 const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
   const seen = new Set<string>()
   const result: ModDiagnostic[] = []
@@ -149,10 +178,13 @@ const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic
     })
     if (seen.has(key)) continue
     seen.add(key)
-    result.push(cloneDiagnostic(diagnostic))
+    result.push(freezeDiagnostic(cloneDiagnostic(diagnostic)))
   }
   return result
 }
+
+const freezeDiagnostics = (diagnostics: readonly ModDiagnostic[]): readonly ModDiagnostic[] =>
+  Object.freeze(uniqueDiagnostics(diagnostics))
 
 const createEffectSummary = (): ThirdPartyDataPackMountPreflightEffectSummary => ({
   officialRegistryPublished: false,
@@ -164,15 +196,54 @@ const createEffectSummary = (): ThirdPartyDataPackMountPreflightEffectSummary =>
   cacheWritten: false
 })
 
+const freezeEffectSummary = (
+  effects: ThirdPartyDataPackMountPreflightEffectSummary
+): ThirdPartyDataPackMountPreflightEffectSummary => Object.freeze(effects)
+
+const freezeStageDetails = (
+  details: Readonly<Record<string, string | number | boolean>>
+): Readonly<Record<string, string | number | boolean>> => Object.freeze({ ...details })
+
+const freezeStage = (
+  stage: ThirdPartyDataPackMountPreflightStage
+): ThirdPartyDataPackMountPreflightStage => Object.freeze({
+  ...stage,
+  diagnostics: freezeDiagnostics(stage.diagnostics),
+  ...(stage.details ? { details: freezeStageDetails(stage.details) } : {})
+})
+
+const freezeStages = (
+  stages: readonly ThirdPartyDataPackMountPreflightStage[]
+): readonly ThirdPartyDataPackMountPreflightStage[] =>
+  Object.freeze(stages.map(currentStage => freezeStage(currentStage)))
+
+const freezePackageIds = (packageIds: readonly PackageId[]): readonly PackageId[] =>
+  Object.freeze([...packageIds])
+
+const freezeStringList = (values: readonly string[]): readonly string[] =>
+  Object.freeze([...values])
+
+const freezeOfficialIdentity = (
+  identity: ThirdPartyCandidateOfficialIdentitySummary
+): ThirdPartyCandidateOfficialIdentitySummary => Object.freeze({ ...identity })
+
+const freezeCandidateIdentity = (
+  identity: ThirdPartyCandidateIdentitySummary | undefined
+): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : Object.freeze({ ...identity })
+
+const freezeRollbackSummary = (
+  rollback: ThirdPartyDataPackMountPreflightRollbackSummary
+): ThirdPartyDataPackMountPreflightRollbackSummary => Object.freeze(rollback)
+
 const stage = (
   name: ThirdPartyDataPackMountPreflightStageName,
   status: ThirdPartyDataPackMountPreflightStageStatus,
   diagnostics: readonly ModDiagnostic[],
   details?: Readonly<Record<string, string | number | boolean>>
-): ThirdPartyDataPackMountPreflightStage => ({
+): ThirdPartyDataPackMountPreflightStage => freezeStage({
   name,
   status,
-  diagnostics: uniqueDiagnostics(diagnostics),
+  diagnostics,
   ...(details ? { details } : {})
 })
 
@@ -238,14 +309,6 @@ const rollbackReason = (
   if (validation.status === 'invalid') return 'lockfile draft validation failed'
   return 'not required'
 }
-
-const cloneOfficialIdentity = (
-  identity: ThirdPartyCandidateOfficialIdentitySummary
-): ThirdPartyCandidateOfficialIdentitySummary => ({ ...identity })
-
-const cloneCandidateIdentity = (
-  identity: ThirdPartyCandidateIdentitySummary | undefined
-): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
 
 export const buildThirdPartyDataPackMountPreflight = (
   options: BuildThirdPartyDataPackMountPreflightOptions
@@ -316,7 +379,7 @@ export const buildThirdPartyDataPackMountPreflight = (
     })
   ]
 
-  const diagnostics = uniqueDiagnostics([
+  const diagnostics = freezeDiagnostics([
     ...discoveryStageDiagnostics,
     ...selectionStageDiagnostics,
     ...candidateSnapshot.diagnostics,
@@ -324,28 +387,28 @@ export const buildThirdPartyDataPackMountPreflight = (
     ...lockfileValidationResult.diagnostics
   ])
 
-  return {
+  return Object.freeze({
     status,
-    stages,
+    stages: freezeStages(stages),
     diagnostics,
-    selectedPackageIds: [...candidateSnapshot.selectedPackageIds],
-    blockedPackageIds: [...candidateSnapshot.blockedPackageIds],
-    blockedCandidatePaths: [...candidateSnapshot.blockedCandidatePaths],
-    loadOrder: [...candidateSnapshot.loadOrder],
+    selectedPackageIds: freezePackageIds(candidateSnapshot.selectedPackageIds),
+    blockedPackageIds: freezePackageIds(candidateSnapshot.blockedPackageIds),
+    blockedCandidatePaths: freezeStringList(candidateSnapshot.blockedCandidatePaths),
+    loadOrder: freezePackageIds(candidateSnapshot.loadOrder),
     registryCount: candidateSnapshot.registryCount,
     entryCount: candidateSnapshot.entryCount,
-    officialIdentity: cloneOfficialIdentity(candidateSnapshot.officialIdentity),
-    candidateIdentity: cloneCandidateIdentity(candidateSnapshot.candidateIdentity),
+    officialIdentity: freezeOfficialIdentity(candidateSnapshot.officialIdentity),
+    candidateIdentity: freezeCandidateIdentity(candidateSnapshot.candidateIdentity),
     lockfileHash: lockfileDraftResult.draft?.lockfileHash,
     packageCount: lockfileDraftResult.draft?.packages.length ?? 0,
-    effects: createEffectSummary(),
-    rollback: {
+    effects: freezeEffectSummary(createEffectSummary()),
+    rollback: freezeRollbackSummary({
       required: status === 'rolled-back',
       reason,
       retainedOfficialRegistryCount: candidateSnapshot.officialIdentity.registryCount,
       retainedOfficialEntryCount: candidateSnapshot.officialIdentity.entryCount,
       discardedCandidateRegistry: status === 'rolled-back' && candidateSnapshot.status !== 'valid',
       discardedLockfileDraft: status === 'rolled-back' && lockfileDraftResult.status !== 'valid'
-    }
-  }
+    })
+  })
 }

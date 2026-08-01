@@ -194,6 +194,32 @@ const expectReadOnlyEffects = (preflight: ReturnType<typeof buildThirdPartyDataP
     packageFilesWritten: false,
     cacheWritten: false
   })
+  expect(Object.isFrozen(preflight.effects)).toBe(true)
+}
+
+const expectFrozenPreflightOutput = (
+  preflight: ReturnType<typeof buildThirdPartyDataPackMountPreflight>
+): void => {
+  expect(Object.isFrozen(preflight)).toBe(true)
+  expect(Object.isFrozen(preflight.stages)).toBe(true)
+  expect(preflight.stages.every(stage => Object.isFrozen(stage))).toBe(true)
+  expect(preflight.stages.every(stage => Object.isFrozen(stage.diagnostics))).toBe(true)
+  expect(preflight.stages.every(stage => stage.details === undefined || Object.isFrozen(stage.details))).toBe(true)
+  expect(Object.isFrozen(preflight.diagnostics)).toBe(true)
+  expect(preflight.diagnostics.every(diagnostic => Object.isFrozen(diagnostic))).toBe(true)
+  expect(preflight.diagnostics.every(diagnostic =>
+    diagnostic.relatedPackageIds === undefined || Object.isFrozen(diagnostic.relatedPackageIds)
+  )).toBe(true)
+  expect(preflight.diagnostics.every(diagnostic =>
+    diagnostic.details === undefined || Object.isFrozen(diagnostic.details)
+  )).toBe(true)
+  expect(Object.isFrozen(preflight.selectedPackageIds)).toBe(true)
+  expect(Object.isFrozen(preflight.blockedPackageIds)).toBe(true)
+  expect(Object.isFrozen(preflight.blockedCandidatePaths)).toBe(true)
+  expect(Object.isFrozen(preflight.loadOrder)).toBe(true)
+  expect(Object.isFrozen(preflight.officialIdentity)).toBe(true)
+  expect(preflight.candidateIdentity === undefined || Object.isFrozen(preflight.candidateIdentity)).toBe(true)
+  expect(Object.isFrozen(preflight.rollback)).toBe(true)
 }
 
 const expectOfficialBaseline = (): void => {
@@ -243,6 +269,46 @@ describe('third-party data pack mount preflight', () => {
       retainedOfficialEntryCount: 4242
     })
     expectReadOnlyEffects(preflight)
+    expectFrozenPreflightOutput(preflight)
+    const frozenOutputSnapshot = JSON.stringify({
+      stages: preflight.stages,
+      selectedPackageIds: preflight.selectedPackageIds,
+      loadOrder: preflight.loadOrder,
+      officialIdentity: preflight.officialIdentity,
+      candidateIdentity: preflight.candidateIdentity,
+      effects: preflight.effects,
+      rollback: preflight.rollback
+    })
+    const firstStage = preflight.stages[0]
+    if (firstStage === undefined) throw new Error('Expected at least one frozen preflight stage.')
+    expect(() => {
+      (preflight.stages as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(Reflect.set(firstStage as unknown as Record<string, unknown>, 'status', 'failed')).toBe(false)
+    if (firstStage.details !== undefined) {
+      expect(Reflect.set(firstStage.details as Record<string, unknown>, 'candidateCount', 999)).toBe(false)
+    }
+    expect(() => {
+      (preflight.selectedPackageIds as unknown as unknown[]).push('mutated_pack')
+    }).toThrow(TypeError)
+    expect(() => {
+      (preflight.loadOrder as unknown as unknown[]).push('mutated_pack')
+    }).toThrow(TypeError)
+    expect(Reflect.set(preflight.officialIdentity as unknown as Record<string, unknown>, 'registryCount', 1)).toBe(false)
+    if (preflight.candidateIdentity !== undefined) {
+      expect(Reflect.set(preflight.candidateIdentity as unknown as Record<string, unknown>, 'candidateHash', testHash('5'))).toBe(false)
+    }
+    expect(Reflect.set(preflight.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
+    expect(Reflect.set(preflight.rollback as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(JSON.stringify({
+      stages: preflight.stages,
+      selectedPackageIds: preflight.selectedPackageIds,
+      loadOrder: preflight.loadOrder,
+      officialIdentity: preflight.officialIdentity,
+      candidateIdentity: preflight.candidateIdentity,
+      effects: preflight.effects,
+      rollback: preflight.rollback
+    })).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
   }, 15_000)
 
@@ -446,6 +512,16 @@ describe('third-party data pack mount preflight', () => {
     expect(preflight.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
     expect(candidateStage.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
     expect(preflight.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+    expectFrozenPreflightOutput(preflight)
+    expect(Object.isFrozen(candidateStage.diagnostics[0])).toBe(true)
+    expect(Object.isFrozen(candidateStage.diagnostics[0]?.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(candidateStage.diagnostics[0]?.details)).toBe(true)
+    expect(Object.isFrozen(candidateStage.diagnostics[0]?.details?.nested)).toBe(true)
+    expect(Object.isFrozen(candidateStage.diagnostics[0]?.details?.list)).toBe(true)
+    expect(Reflect.set(candidateStage.diagnostics[0] as unknown as Record<string, unknown>, 'stage', 'mutated')).toBe(false)
+    expect(() => {
+      (candidateStage.diagnostics as unknown as unknown[]).push(upstreamDiagnostic)
+    }).toThrow(TypeError)
 
     upstreamDiagnostic.stage = 'mutated'
     upstreamDiagnostic.relatedPackageIds?.push('mutated_pack' as PackageId)

@@ -332,17 +332,39 @@ describe('third-party data pack mount input', () => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
 
-    const { preflight, mountInput } = await buildReportsFromRoot(root)
+    const {
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot,
+      lockfileDraftResult,
+      lockfileValidationResult,
+      preflight
+    } = await buildReportsFromRoot(root)
+    const mutablePreflight = {
+      ...preflight,
+      officialIdentity: { ...preflight.officialIdentity },
+      candidateIdentity: preflight.candidateIdentity ? { ...preflight.candidateIdentity } : undefined
+    }
+    const mountInput = buildThirdPartyDataPackMountInput({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot,
+      lockfileDraftResult,
+      lockfileValidationResult,
+      preflight: mutablePreflight
+    })
     const originalCandidateHash = mountInput.candidateIdentity?.candidateHash
 
-    expect(mountInput.officialIdentity).toEqual(preflight.officialIdentity)
-    expect(mountInput.candidateIdentity).toEqual(preflight.candidateIdentity)
-    expect(mountInput.officialIdentity).not.toBe(preflight.officialIdentity)
-    expect(mountInput.candidateIdentity).not.toBe(preflight.candidateIdentity)
+    expect(mountInput.officialIdentity).toEqual(mutablePreflight.officialIdentity)
+    expect(mountInput.candidateIdentity).toEqual(mutablePreflight.candidateIdentity)
+    expect(mountInput.officialIdentity).not.toBe(mutablePreflight.officialIdentity)
+    expect(mountInput.candidateIdentity).not.toBe(mutablePreflight.candidateIdentity)
     expect(originalCandidateHash).toMatch(/^sha256:/)
 
-    const mutableOfficialIdentity = preflight.officialIdentity as { registryCount: number }
-    const mutableCandidateIdentity = preflight.candidateIdentity as { candidateHash: Sha256Hash }
+    const mutableOfficialIdentity = mutablePreflight.officialIdentity as { registryCount: number }
+    const mutableCandidateIdentity = mutablePreflight.candidateIdentity as { candidateHash: Sha256Hash }
     mutableOfficialIdentity.registryCount = 1
     mutableCandidateIdentity.candidateHash = testHash('5')
 
@@ -367,8 +389,10 @@ describe('third-party data pack mount input', () => {
         list: ['original']
       }
     })
-    const mutablePreflightDiagnostics = preflight.diagnostics as typeof upstreamDiagnostic[]
-    mutablePreflightDiagnostics.push(upstreamDiagnostic)
+    const mutablePreflight = {
+      ...preflight,
+      diagnostics: [...preflight.diagnostics, upstreamDiagnostic]
+    }
 
     const mountInput = buildThirdPartyDataPackMountInput({
       officialRegistrySet,
@@ -377,7 +401,7 @@ describe('third-party data pack mount input', () => {
       candidateSnapshot,
       lockfileDraftResult,
       lockfileValidationResult,
-      preflight
+      preflight: mutablePreflight
     })
 
     expect(mountInput.diagnostics).toEqual([upstreamDiagnostic])

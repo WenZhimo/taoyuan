@@ -6431,7 +6431,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence, copied upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details, plus explicit no-write effects; it does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches.'
+    rationale: 'Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence, copied upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details, freezes exposed stage/report diagnostics, package id/path arrays, identity summaries, no-write effects, rollback summary and the top-level report object, and does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackMountInput.ts',
@@ -6621,7 +6621,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers ready, skipped and rolled-back preflight outcomes, stage status summaries, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, no runtime publication, no lockfile/settings/save/package/cache writes, official registry immutability and unchanged 54/4242 five-hash baseline.'
+    rationale: 'Covers ready, skipped and rolled-back preflight outcomes, stage status summaries, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, frozen report output boundaries for stages, stage details, diagnostics, package arrays, identities, no-write effects and rollback summary, deterministic repeated output, no runtime publication, no lockfile/settings/save/package/cache writes, official registry immutability and unchanged 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackMountInput.test.ts',
@@ -6631,7 +6631,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied serializable candidate snapshot and lockfile draft availability only for ready preflights, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied serializable candidate snapshot and lockfile draft availability only for ready preflights, compatibility with frozen Mount Preflight outputs, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts',
