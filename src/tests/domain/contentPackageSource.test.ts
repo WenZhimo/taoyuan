@@ -3440,6 +3440,41 @@ describe('content package source contract', () => {
     expect(directoryReadAttempts).toEqual(['pack/valid-dir'])
   })
 
+  it('freezes bridged discovery directory listing outputs before callers can mutate them', async() => {
+    const rawEntry: { name: string; kind: 'file'; isSymbolicLink: boolean } = {
+      name: 'manifest.json',
+      kind: 'file',
+      isSymbolicLink: false
+    }
+    const source = createMetadataGuardSource({
+      'pack/valid-dir': { kind: 'directory', isSymbolicLink: false }
+    }, {
+      directoryEntries: [rawEntry]
+    })
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+
+    const entries = await fileSystem.readDirectory('packs/pack/valid-dir')
+    const serializedBeforeMutationAttempts = JSON.stringify(entries)
+
+    expect(Object.isFrozen(entries)).toBe(true)
+    expect(Object.isFrozen(entries[0])).toBe(true)
+    expect(() => {
+      (entries as ContentPackageSourceDirectoryEntry[]).push({
+        name: 'mutated.json',
+        kind: 'file',
+        isSymbolicLink: false
+      })
+    }).toThrow(TypeError)
+    expect(() => {
+      (entries[0] as { name: string }).name = 'mutated.json'
+    }).toThrow(TypeError)
+
+    rawEntry.name = 'LENOVO-private-entry.json'
+
+    expect(JSON.stringify(entries)).toBe(serializedBeforeMutationAttempts)
+    expect(JSON.stringify(entries)).not.toContain('LENOVO-private-entry')
+  })
+
   it('keeps source preflight diagnostic messages path-free', async() => {
     const outsideRootDirectoryReadAttempts: string[] = []
     const source = createMetadataGuardSource({
