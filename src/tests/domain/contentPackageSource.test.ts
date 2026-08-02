@@ -1875,6 +1875,48 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-compressed-size')
   })
 
+  it('rejects archive total uncompressed budget before reading later size metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    let overflowingCompressedSizeRead = false
+    let laterUncompressedSizeRead = false
+    const overflowingEntry = {
+      path: 'b-overflow.bin',
+      uncompressedSizeBytes: 1,
+      get compressedSizeBytes() {
+        overflowingCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-overflow-compressed-size')
+      }
+    }
+    const laterEntry = {
+      path: 'c-later.bin',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-uncompressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'a-baseline-0.bin', uncompressedSizeBytes: limits.maxSingleFileBytes },
+      { path: 'a-baseline-1.bin', uncompressedSizeBytes: limits.maxSingleFileBytes },
+      { path: 'a-baseline-2.bin', uncompressedSizeBytes: limits.maxSingleFileBytes },
+      { path: 'a-baseline-3.bin', uncompressedSizeBytes: limits.maxSingleFileBytes },
+      overflowingEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive exceeds ${limits.maxPackageUncompressedBytes} total uncompressed bytes: ${limits.maxPackageUncompressedBytes + 1}`,
+      sourcePath: 'b-overflow.bin'
+    })
+    expect(overflowingCompressedSizeRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-overflow-compressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-later-uncompressed-size')
+  })
+
   it('rejects unsafe archive entry paths before reading size metadata', () => {
     let uncompressedSizeRead = false
     let compressedSizeRead = false
