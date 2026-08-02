@@ -16,6 +16,7 @@ import {
   normalizeContentPackageSourcePath,
   readContentPackageSourceIdentity,
   readContentPackageSourceJson,
+  toContentPackageSourceHostOperationError,
   validateContentPackageSourceArchiveEntries,
   validateContentPackageSourceIdentity
 } from '@/domain/mods/contentPackageSource'
@@ -3941,6 +3942,36 @@ describe('content package source contract', () => {
       expect(JSON.stringify(result)).not.toContain('LENOVO')
       expect(JSON.stringify(result)).not.toContain('hostile-fragment')
     }
+  })
+
+  it('strips extra source error fields at the host operation sanitizer boundary', () => {
+    const hostError = new ContentPackageSourceError(
+      'SOURCE_PERMISSION_REVOKED',
+      'Content package source permission was revoked',
+      'pack/manifest.json'
+    )
+    Object.defineProperty(hostError, 'hostPath', {
+      enumerable: true,
+      value: 'C:/Users/LENOVO/mods/pack/manifest.json\nhostile-fragment'
+    })
+
+    const cleanedError = toContentPackageSourceHostOperationError(
+      'read',
+      hostError,
+      'pack/manifest.json'
+    )
+
+    expect(cleanedError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source permission was revoked',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(cleanedError).not.toBe(hostError)
+    expect(Object.prototype.hasOwnProperty.call(cleanedError, 'hostPath')).toBe(false)
+    expect(JSON.stringify(cleanedError)).not.toContain('hostPath')
+    expect(JSON.stringify(cleanedError)).not.toContain('C:/Users')
+    expect(JSON.stringify(cleanedError)).not.toContain('LENOVO')
+    expect(JSON.stringify(cleanedError)).not.toContain('hostile-fragment')
   })
 
   it('redacts host path messages even when host failures use source errors', async() => {
