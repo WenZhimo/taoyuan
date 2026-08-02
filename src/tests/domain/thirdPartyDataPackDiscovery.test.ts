@@ -1427,6 +1427,82 @@ describe('third-party data pack read-only discovery', () => {
     }
   })
 
+  it('redacts unsafe raw file system source paths even when messages look safe', async() => {
+    const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw createHostFailure(
+          'Permission denied while inspecting package source',
+          'C:/Users/LENOVO/mods/private-pack'
+        )
+      },
+      async readDirectory() {
+        throw new Error('inspect source-path failure must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inspect source-path failure must stop before reading')
+      }
+    })
+
+    const listFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        throw createHostFailure(
+          'Permission denied while listing package source',
+          'C:/Users/LENOVO/mods'
+        )
+      },
+      async readTextFile() {
+        throw new Error('list source-path failure must stop before reading')
+      }
+    })
+
+    const readFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack') {
+          return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/private-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(filePath) {
+        if (filePath === 'mods') {
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        return []
+      },
+      async readTextFile() {
+        throw createHostFailure(
+          'Permission denied while reading package source',
+          'C:/Users/LENOVO/mods/private-pack/manifest.json'
+        )
+      }
+    })
+
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source inspect operation failed',
+      sourceCode: 'EACCES'
+    })
+    expect(listFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source list operation failed',
+      sourceCode: 'EACCES'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source read operation failed',
+      sourceCode: 'EACCES'
+    })
+    for (const report of [inspectFailureReport, listFailureReport, readFailureReport]) {
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+    }
+  })
+
   it('redacts unstructured raw file system failure messages even when they look path-free', async() => {
     const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
       async getEntry() {
