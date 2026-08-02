@@ -4565,10 +4565,12 @@ describe('content package source contract', () => {
       'pack/manifest.json'
     )
     const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const bridgedListError = await captureAsyncSourceError(() => fileSystem.readDirectory('packs/pack'))
     const readFailureReport = await discoverThirdPartyDataPacks(
       controlCharacterSourcePathFailureSource.identity.rootPath,
       fileSystem
     )
+    const listFailureReport = await discoverThirdPartyDataPacks('packs/pack', fileSystem)
     const inspectFailureReport = await discoverThirdPartyDataPacks(
       controlCharacterMessageFailureSource.identity.rootPath,
       createDiscoveryFileSystemFromContentPackageSource(controlCharacterMessageFailureSource)
@@ -4584,15 +4586,24 @@ describe('content package source contract', () => {
       message: 'Content package source read operation failed',
       sourcePath: 'pack/manifest.json'
     })
+    expect(bridgedListError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source list operation failed',
+      sourcePath: 'pack'
+    })
     expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
       message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(listFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source list operation failed',
       sourceCode: 'SOURCE_PERMISSION_REVOKED'
     })
     expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
       message: 'Content package source inspect operation failed',
       sourceCode: 'SOURCE_PERMISSION_REVOKED'
     })
-    for (const result of [directJson, bridgedReadError, readFailureReport, inspectFailureReport]) {
+    for (const result of [directJson, bridgedReadError, bridgedListError, readFailureReport, listFailureReport, inspectFailureReport]) {
       expect(JSON.stringify(result)).not.toContain('hostile-fragment')
       expect(JSON.stringify(result)).not.toContain('\\n')
     }
