@@ -99,6 +99,21 @@ const createHostFailure = (message: string, sourcePath?: string): Error & {
     ...(sourcePath === undefined ? {} : { sourcePath })
   })
 
+const createExtraFieldHostFailure = (
+  message: string,
+  sourcePath: string
+): Error & {
+  readonly code: 'EACCES'
+  readonly sourcePath: string
+  readonly hostPath: string
+  readonly rawDetails: { readonly hostPath: string }
+} =>
+  Object.assign(createHostFailure(message, sourcePath), {
+    sourcePath,
+    hostPath: 'C:/Users/LENOVO/mods/private-pack',
+    rawDetails: { hostPath: 'C:/Users/LENOVO/mods/private-pack\nhostile-fragment' }
+  })
+
 const createUnsafeCodeHostFailure = (): Error & { readonly code: string } =>
   Object.assign(new Error('Permission denied while reading package source'), {
     code: 'C:/Users/LENOVO/mods/hostile-code\nhostile-fragment'
@@ -1576,6 +1591,88 @@ describe('third-party data pack read-only discovery', () => {
     for (const report of [inspectFailureReport, listFailureReport, readFailureReport]) {
       expect(JSON.stringify(report)).not.toContain('hostile-fragment')
       expect(JSON.stringify(report)).not.toContain('\\n')
+    }
+  })
+
+  it('ignores extra raw file system failure fields before diagnostics expose host text', async() => {
+    const inspectFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw createExtraFieldHostFailure(
+          'Permission denied while inspecting package source',
+          'mods/private-pack'
+        )
+      },
+      async readDirectory() {
+        throw new Error('inspect extra-field failure must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inspect extra-field failure must stop before reading')
+      }
+    })
+
+    const listFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        throw createExtraFieldHostFailure(
+          'Permission denied while listing package source',
+          'mods'
+        )
+      },
+      async readTextFile() {
+        throw new Error('list extra-field failure must stop before reading')
+      }
+    })
+
+    const readFailureReport = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath === 'mods/private-pack') {
+          return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/private-pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(filePath) {
+        if (filePath === 'mods') {
+          return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+        }
+        return []
+      },
+      async readTextFile() {
+        throw createExtraFieldHostFailure(
+          'Permission denied while reading package source',
+          'mods/private-pack/manifest.json'
+        )
+      }
+    })
+
+    expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toEqual({
+      reason: 'Package source inspect operation failed',
+      message: 'Package source inspect operation failed',
+      sourceCode: 'EACCES'
+    })
+    expect(listFailureReport.issues[0]?.diagnostics[0]?.details).toEqual({
+      reason: 'Package source list operation failed',
+      message: 'Package source list operation failed',
+      sourceCode: 'EACCES'
+    })
+    expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toEqual({
+      reason: 'Package source read operation failed',
+      message: 'Package source read operation failed',
+      sourceCode: 'EACCES'
+    })
+    for (const report of [inspectFailureReport, listFailureReport, readFailureReport]) {
+      expect(JSON.stringify(report)).not.toContain('hostPath')
+      expect(JSON.stringify(report)).not.toContain('rawDetails')
+      expect(JSON.stringify(report)).not.toContain('C:/Users')
+      expect(JSON.stringify(report)).not.toContain('LENOVO')
+      expect(JSON.stringify(report)).not.toContain('hostile-fragment')
     }
   })
 
