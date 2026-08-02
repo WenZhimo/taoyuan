@@ -4038,6 +4038,41 @@ describe('content package source contract', () => {
     expect(JSON.stringify(cleanedError)).not.toContain('hostile-fragment')
   })
 
+  it('detaches sanitized host operation errors from later host error mutation', () => {
+    const hostError = new ContentPackageSourceError(
+      'SOURCE_PERMISSION_REVOKED',
+      'Content package source permission was revoked',
+      'pack/manifest.json'
+    )
+
+    const cleanedError = toContentPackageSourceHostOperationError(
+      'read',
+      hostError,
+      'pack/manifest.json'
+    )
+    const beforeMutation = JSON.stringify(cleanedError)
+    Object.assign(hostError as { code: string; message: string; sourcePath: string }, {
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'EACCES: stat C:/Users/LENOVO/mods/pack/manifest.json',
+      sourcePath: 'C:/Users/LENOVO/mods/pack/manifest.json'
+    })
+    Object.defineProperty(hostError, 'hostPath', {
+      configurable: true,
+      enumerable: true,
+      value: 'C:/Users/LENOVO/mods/pack/manifest.json\nhostile-fragment'
+    })
+
+    expect(cleanedError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source permission was revoked',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(JSON.stringify(cleanedError)).toBe(beforeMutation)
+    expect(JSON.stringify(cleanedError)).not.toContain('C:/Users')
+    expect(JSON.stringify(cleanedError)).not.toContain('LENOVO')
+    expect(JSON.stringify(cleanedError)).not.toContain('hostile-fragment')
+  })
+
   it('redacts host path messages even when host failures use source errors', async() => {
     const sourceErrorReadFailureSource: ContentPackageSource = {
       identity: {
