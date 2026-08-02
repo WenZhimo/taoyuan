@@ -1851,6 +1851,30 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects invalid uncompressed archive size before reading optional compressed metadata', () => {
+    let compressedSizeRead = false
+    const hostileArchiveEntry = {
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 'C:/Users/LENOVO/mods/archive-uncompressed-size',
+      get compressedSizeBytes() {
+        compressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([hostileArchiveEntry]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'uncompressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(compressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-compressed-size')
+  })
+
   it('rejects unsafe archive entry paths before reading size metadata', () => {
     let uncompressedSizeRead = false
     let compressedSizeRead = false

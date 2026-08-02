@@ -86,12 +86,6 @@ export interface ContentPackageSourceValidatedArchiveEntry {
   readonly compressedSizeBytes?: number
 }
 
-interface ContentPackageSourceUnknownArchiveEntry {
-  readonly path: string
-  readonly uncompressedSizeBytes: unknown
-  readonly compressedSizeBytes?: unknown
-}
-
 interface ContentPackageSourceArchiveEntryPathMetadata {
   readonly path: string
   readonly entryMetadata: Record<string, unknown>
@@ -805,30 +799,6 @@ const normalizeContentPackageSourceArchiveEntryPathMetadata = (
   }
 }
 
-const readContentPackageSourceArchiveEntrySizeMetadata = (
-  entry: ContentPackageSourceArchiveEntryPathMetadata
-): ContentPackageSourceUnknownArchiveEntry => {
-  const uncompressedSizeBytes = readUnknownMetadataField(
-    entry.entryMetadata,
-    'uncompressedSizeBytes',
-    'SOURCE_ENTRY_UNSAFE',
-    'Archive entry metadata could not be read'
-  )
-  if (!entry.metadataKeys.includes('compressedSizeBytes')) {
-    return { path: entry.path, uncompressedSizeBytes }
-  }
-  return {
-    path: entry.path,
-    uncompressedSizeBytes,
-    compressedSizeBytes: readUnknownMetadataField(
-      entry.entryMetadata,
-      'compressedSizeBytes',
-      'SOURCE_ENTRY_UNSAFE',
-      'Archive entry metadata could not be read'
-    )
-  }
-}
-
 const collectAncestorPaths = (path: string): readonly string[] => {
   const ancestors: string[] = []
   let separatorIndex = path.indexOf('/')
@@ -883,9 +853,13 @@ export const validateContentPackageSourceArchiveEntries = (
   let totalCompressedBytes = 0
   let totalUncompressedBytes = 0
   const validatedEntries = normalizedEntries.map(({ entry, path }) => {
-    const entrySizeMetadata = readContentPackageSourceArchiveEntrySizeMetadata(entry)
     const uncompressedSizeBytes = assertNonNegativeSafeInteger(
-      entrySizeMetadata.uncompressedSizeBytes,
+      readUnknownMetadataField(
+        entry.entryMetadata,
+        'uncompressedSizeBytes',
+        'SOURCE_ENTRY_UNSAFE',
+        'Archive entry metadata could not be read'
+      ),
       'uncompressedSizeBytes',
       path
     )
@@ -903,12 +877,17 @@ export const validateContentPackageSourceArchiveEntries = (
       )
     }
 
-    if (!('compressedSizeBytes' in entrySizeMetadata)) {
+    if (!entry.metadataKeys.includes('compressedSizeBytes')) {
       return Object.freeze({ path, uncompressedSizeBytes })
     }
 
     const compressedSizeBytes = assertNonNegativeSafeInteger(
-      entrySizeMetadata.compressedSizeBytes,
+      readUnknownMetadataField(
+        entry.entryMetadata,
+        'compressedSizeBytes',
+        'SOURCE_ENTRY_UNSAFE',
+        'Archive entry metadata could not be read'
+      ),
       'compressedSizeBytes',
       path
     )
