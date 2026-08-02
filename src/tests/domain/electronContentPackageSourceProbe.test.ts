@@ -420,6 +420,16 @@ describe('electron content package source read-only probe', () => {
       snapshotHash: committedMetadata.snapshotHash
     })
     expect(report.candidateIdentity?.candidateHash).toMatch(/^sha256:/)
+    const reportSnapshot = JSON.stringify(report)
+    const candidateIdentity = report.candidateIdentity
+    if (candidateIdentity === undefined) throw new Error('Expected frozen candidate identity summary.')
+    expect(Object.isFrozen(candidateIdentity)).toBe(true)
+    expect(Reflect.set(
+      candidateIdentity as unknown as Record<string, unknown>,
+      'candidateHash',
+      'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+    )).toBe(false)
+    expect(JSON.stringify(report)).toBe(reportSnapshot)
     expect(report.lockfileHash).toMatch(/^sha256:/)
     expect('candidateRegistrySet' in report).toBe(false)
     expect('candidateSnapshot' in report).toBe(false)
