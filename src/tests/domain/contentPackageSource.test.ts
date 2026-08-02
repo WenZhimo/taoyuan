@@ -1917,6 +1917,41 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-later-uncompressed-size')
   })
 
+  it('rejects archive total compressed budget before reading later size metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const laterEntry = {
+      path: 'c-later.bin',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      { path: 'a-baseline.bin', uncompressedSizeBytes: 0, compressedSizeBytes: limits.maxPackageCompressedBytes },
+      { path: 'b-overflow.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 1 },
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive exceeds ${limits.maxPackageCompressedBytes} total compressed bytes: ${limits.maxPackageCompressedBytes + 1}`,
+      sourcePath: 'b-overflow.bin'
+    })
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-later-uncompressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-later-compressed-size')
+  })
+
   it('rejects unsafe archive entry paths before reading size metadata', () => {
     let uncompressedSizeRead = false
     let compressedSizeRead = false
