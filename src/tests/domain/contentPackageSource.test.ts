@@ -3952,7 +3952,7 @@ describe('content package source contract', () => {
     }
   })
 
-  it('strips extra source error fields before bridge callers can serialize host paths', async() => {
+  it('strips extra source error fields before direct JSON or bridge callers can serialize host paths', async() => {
     const createExtraFieldSourceError = (
       message: string,
       sourcePath: string
@@ -3988,9 +3988,15 @@ describe('content package source contract', () => {
     }
     const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
 
+    const directJson = await readContentPackageSourceJson(source, 'pack/manifest.json')
     const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
     const readFailureReport = await discoverThirdPartyDataPacks(source.identity.rootPath, fileSystem)
 
+    expect(directJson).toMatchObject({
+      ok: false,
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source permission was revoked'
+    })
     expect(bridgedReadError).toMatchObject({
       code: 'SOURCE_PERMISSION_REVOKED',
       message: 'Content package source permission was revoked',
@@ -4000,7 +4006,7 @@ describe('content package source contract', () => {
       message: 'Content package source permission was revoked',
       sourceCode: 'SOURCE_PERMISSION_REVOKED'
     })
-    for (const result of [bridgedReadError, readFailureReport]) {
+    for (const result of [directJson, bridgedReadError, readFailureReport]) {
       expect(JSON.stringify(result)).not.toContain('hostPath')
       expect(JSON.stringify(result)).not.toContain('C:/Users')
       expect(JSON.stringify(result)).not.toContain('LENOVO')
