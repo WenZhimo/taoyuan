@@ -3952,7 +3952,7 @@ describe('content package source contract', () => {
     }
   })
 
-  it('strips extra source error fields before direct JSON or bridge callers can serialize host paths', async() => {
+  it('strips extra source error fields before direct JSON, bridge or discovery callers serialize host paths', async() => {
     const createExtraFieldSourceError = (
       message: string,
       sourcePath: string
@@ -3990,7 +3990,9 @@ describe('content package source contract', () => {
 
     const directJson = await readContentPackageSourceJson(source, 'pack/manifest.json')
     const bridgedReadError = await captureAsyncSourceError(() => fileSystem.readTextFile('packs/pack/manifest.json'))
+    const bridgedListError = await captureAsyncSourceError(() => fileSystem.readDirectory('packs/pack'))
     const readFailureReport = await discoverThirdPartyDataPacks(source.identity.rootPath, fileSystem)
+    const listFailureReport = await discoverThirdPartyDataPacks('packs/pack', fileSystem)
 
     expect(directJson).toMatchObject({
       ok: false,
@@ -4002,11 +4004,20 @@ describe('content package source contract', () => {
       message: 'Content package source permission was revoked',
       sourcePath: 'pack/manifest.json'
     })
+    expect(bridgedListError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source permission was revoked',
+      sourcePath: 'pack'
+    })
     expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
       message: 'Content package source permission was revoked',
       sourceCode: 'SOURCE_PERMISSION_REVOKED'
     })
-    for (const result of [directJson, bridgedReadError, readFailureReport]) {
+    expect(listFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source permission was revoked',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    for (const result of [directJson, bridgedReadError, bridgedListError, readFailureReport, listFailureReport]) {
       expect(JSON.stringify(result)).not.toContain('hostPath')
       expect(JSON.stringify(result)).not.toContain('C:/Users')
       expect(JSON.stringify(result)).not.toContain('LENOVO')
