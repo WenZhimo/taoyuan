@@ -991,6 +991,76 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('redacts ContentPackageSourceError host release failures while preserving safe codes', async() => {
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory() {
+          return []
+        },
+        async readTextFile() {
+          throw new Error('structured release failure test does not read package payloads')
+        },
+        async dispose() {
+          throw new ContentPackageSourceError(
+            'SOURCE_PERMISSION_REVOKED',
+            'EACCES: close C:/Users/LENOVO/mods/.probe-handle\nhostile-fragment',
+            'C:/Users/LENOVO/mods/.probe-handle'
+          )
+        }
+      }
+    })
+
+    let releaseError: unknown
+    try {
+      await source.dispose()
+    } catch (error) {
+      releaseError = error
+    }
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(releaseError).toBeInstanceOf(ContentPackageSourceError)
+    expect(releaseError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source release operation failed'
+    })
+    expect((releaseError as ContentPackageSourceError).sourcePath).toBeUndefined()
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Electron read-only source adapter probe has been disposed',
+      sourceErrorCode: 'SOURCE_DISPOSED',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    for (const result of [releaseError, sourceReport, readinessReport]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('.probe-handle')
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
+    }
+    expectOfficialBaseline()
+  })
+
   it('does not re-enter Electron host release after the source is disposed', async() => {
     let hostReleaseCount = 0
     const source = createElectronReadonlyDirectoryProbeSource({
