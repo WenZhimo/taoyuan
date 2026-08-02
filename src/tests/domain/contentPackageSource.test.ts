@@ -4136,14 +4136,17 @@ describe('content package source contract', () => {
       }
     }
 
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(sourceErrorReadFailureSource)
     const directJson = await readContentPackageSourceJson(
       sourceErrorReadFailureSource,
       'pack/manifest.json'
     )
+    const bridgedListError = await captureAsyncSourceError(() => fileSystem.readDirectory('packs/pack'))
     const readFailureReport = await discoverThirdPartyDataPacks(
       sourceErrorReadFailureSource.identity.rootPath,
-      createDiscoveryFileSystemFromContentPackageSource(sourceErrorReadFailureSource)
+      fileSystem
     )
+    const listFailureReport = await discoverThirdPartyDataPacks('packs/pack', fileSystem)
     const inspectFailureReport = await discoverThirdPartyDataPacks(
       sourceErrorInspectFailureSource.identity.rootPath,
       createDiscoveryFileSystemFromContentPackageSource(sourceErrorInspectFailureSource)
@@ -4154,8 +4157,17 @@ describe('content package source contract', () => {
       code: 'SOURCE_PERMISSION_REVOKED',
       message: 'Content package source read operation failed'
     })
+    expect(bridgedListError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source list operation failed',
+      sourcePath: 'pack'
+    })
     expect(readFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
       message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(listFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source list operation failed',
       sourceCode: 'SOURCE_PERMISSION_REVOKED'
     })
     expect(inspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
@@ -4166,6 +4178,10 @@ describe('content package source contract', () => {
     expect(JSON.stringify(directJson)).not.toContain('LENOVO')
     expect(JSON.stringify(readFailureReport)).not.toContain('C:/Users')
     expect(JSON.stringify(readFailureReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(bridgedListError)).not.toContain('C:/Users')
+    expect(JSON.stringify(bridgedListError)).not.toContain('LENOVO')
+    expect(JSON.stringify(listFailureReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(listFailureReport)).not.toContain('LENOVO')
     expect(JSON.stringify(inspectFailureReport)).not.toContain('C:/Users')
     expect(JSON.stringify(inspectFailureReport)).not.toContain('LENOVO')
 
@@ -4176,6 +4192,14 @@ describe('content package source contract', () => {
         sourceId: 'memory/source-error-posix-host-path-read-failure'
       },
       async readTextFile(path) {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          `EACCES:/Users/LENOVO/mods/${path}`,
+          path
+        )
+      },
+      async readDirectory(path) {
+        if (path === '') return [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
         throw new ContentPackageSourceError(
           'SOURCE_PERMISSION_REVOKED',
           `EACCES:/Users/LENOVO/mods/${path}`,
@@ -4198,14 +4222,17 @@ describe('content package source contract', () => {
       }
     }
 
+    const posixFileSystem = createDiscoveryFileSystemFromContentPackageSource(posixSourceErrorReadFailureSource)
     const posixDirectJson = await readContentPackageSourceJson(
       posixSourceErrorReadFailureSource,
       'pack/manifest.json'
     )
+    const posixBridgedListError = await captureAsyncSourceError(() => posixFileSystem.readDirectory('packs/pack'))
     const posixReadFailureReport = await discoverThirdPartyDataPacks(
       posixSourceErrorReadFailureSource.identity.rootPath,
-      createDiscoveryFileSystemFromContentPackageSource(posixSourceErrorReadFailureSource)
+      posixFileSystem
     )
+    const posixListFailureReport = await discoverThirdPartyDataPacks('packs/pack', posixFileSystem)
     const posixInspectFailureReport = await discoverThirdPartyDataPacks(
       posixSourceErrorInspectFailureSource.identity.rootPath,
       createDiscoveryFileSystemFromContentPackageSource(posixSourceErrorInspectFailureSource)
@@ -4216,8 +4243,17 @@ describe('content package source contract', () => {
       code: 'SOURCE_PERMISSION_REVOKED',
       message: 'Content package source read operation failed'
     })
+    expect(posixBridgedListError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source list operation failed',
+      sourcePath: 'pack'
+    })
     expect(posixReadFailureReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
       message: 'Content package source read operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(posixListFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source list operation failed',
       sourceCode: 'SOURCE_PERMISSION_REVOKED'
     })
     expect(posixInspectFailureReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
@@ -4228,6 +4264,10 @@ describe('content package source contract', () => {
     expect(JSON.stringify(posixDirectJson)).not.toContain('LENOVO')
     expect(JSON.stringify(posixReadFailureReport)).not.toContain('/Users')
     expect(JSON.stringify(posixReadFailureReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(posixBridgedListError)).not.toContain('/Users')
+    expect(JSON.stringify(posixBridgedListError)).not.toContain('LENOVO')
+    expect(JSON.stringify(posixListFailureReport)).not.toContain('/Users')
+    expect(JSON.stringify(posixListFailureReport)).not.toContain('LENOVO')
     expect(JSON.stringify(posixInspectFailureReport)).not.toContain('/Users')
     expect(JSON.stringify(posixInspectFailureReport)).not.toContain('LENOVO')
   })
