@@ -894,6 +894,57 @@ describe('content package source contract', () => {
     expect(textCoerced).toBe(false)
   })
 
+  it('rejects over-limit memory source files before reading file metadata', () => {
+    const limit = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount
+    let firstFileRead = false
+    let boundaryFileRead = false
+    let pathRead = false
+    let textRead = false
+    const hostileFile = {
+      get path() {
+        pathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/memory-file-count-path')
+      },
+      get text() {
+        textRead = true
+        throw new Error('EACCES: read C:/Users/LENOVO/mods/memory-file-count-text')
+      }
+    }
+    const files = Array(limit + 1)
+    Object.defineProperty(files, '0', {
+      enumerable: true,
+      get() {
+        firstFileRead = true
+        return hostileFile
+      }
+    })
+    Object.defineProperty(files, String(limit), {
+      enumerable: true,
+      get() {
+        boundaryFileRead = true
+        return hostileFile
+      }
+    })
+
+    const error = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/over-limit-files-metadata-containment',
+      rootPath: 'packs',
+      files: files as never
+    }))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Memory source exceeds ${limit} files: ${limit + 1}`
+    })
+    expect(firstFileRead).toBe(false)
+    expect(boundaryFileRead).toBe(false)
+    expect(pathRead).toBe(false)
+    expect(textRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('memory-file-count')
+  })
+
   it('redacts unsafe platform paths before direct reads or discovery diagnostics expose them', async() => {
     const source = createValidSource()
 

@@ -6695,6 +6695,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'memory source file-count metadata containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers over-limit memory source file arrays being rejected before first or boundary file objects and their path/text metadata getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write source publication boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'content package source contract fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
