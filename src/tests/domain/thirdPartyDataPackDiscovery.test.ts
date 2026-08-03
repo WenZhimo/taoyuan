@@ -323,7 +323,7 @@ const createOverLimitRawDiscoveryDirectoryArray = (): {
 }
 
 describe('third-party data pack read-only discovery', () => {
-  it('reports missing and empty discovery roots without throwing', async() => {
+  it('reports missing, non-directory and empty discovery roots without throwing or reading payloads', async() => {
     const root = await createRoot()
     const fileSystem = createNodeFileSystem()
 
@@ -331,6 +331,50 @@ describe('third-party data pack read-only discovery', () => {
     expect(missing.status).toBe('directory-not-found')
     expect(missing.candidates).toEqual([])
     expect(missing.issues.map(issue => issue.kind)).toEqual(['directory-not-found'])
+
+    const fileRootPath = path.join(root, 'not-a-directory.json')
+    await writeFile(fileRootPath, '{}\n', 'utf8')
+    const fileRoot = await discoverThirdPartyDataPacks(fileRootPath, fileSystem)
+    expect(fileRoot.status).toBe('directory-not-found')
+    expect(fileRoot.candidates).toEqual([])
+    expect(fileRoot.issues).toEqual([
+      expect.objectContaining({
+        kind: 'directory-not-found',
+        severity: 'info',
+        path: '.',
+        reason: 'Discovery root directory does not exist'
+      })
+    ])
+
+    let otherRootListed = false
+    let otherRootRead = false
+    const otherRoot = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'other', isSymbolicLink: false }
+          : null
+      },
+      async readDirectory() {
+        otherRootListed = true
+        throw new Error('non-directory discovery root must not be listed')
+      },
+      async readTextFile() {
+        otherRootRead = true
+        throw new Error('non-directory discovery root must not be read')
+      }
+    })
+    expect(otherRootListed).toBe(false)
+    expect(otherRootRead).toBe(false)
+    expect(otherRoot.status).toBe('directory-not-found')
+    expect(otherRoot.candidates).toEqual([])
+    expect(otherRoot.issues).toEqual([
+      expect.objectContaining({
+        kind: 'directory-not-found',
+        severity: 'info',
+        path: '.',
+        reason: 'Discovery root directory does not exist'
+      })
+    ])
 
     const emptyRoot = path.join(root, 'empty')
     await mkdir(emptyRoot)
