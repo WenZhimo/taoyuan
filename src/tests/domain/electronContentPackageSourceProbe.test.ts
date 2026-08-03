@@ -1156,6 +1156,87 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('requires Electron host methods as enumerable own metadata before getter reads', () => {
+    const hostOperations: string[] = []
+    const host = {
+      async getEntry(sourcePath: string) {
+        hostOperations.push(`inspect:${sourcePath}`)
+        return null
+      },
+      async readDirectory(sourcePath: string) {
+        hostOperations.push(`list:${sourcePath}`)
+        return []
+      },
+      async readTextFile(sourcePath: string) {
+        hostOperations.push(`read:${sourcePath}`)
+        return '{}\n'
+      }
+    }
+    const methodNames = ['getEntry', 'readDirectory', 'readTextFile'] as const
+
+    const inheritedMethodErrors = methodNames.map(methodName => {
+      let inheritedMethodRead = false
+      const inheritedHostPrototype = {}
+      Object.defineProperty(inheritedHostPrototype, methodName, {
+        enumerable: true,
+        get() {
+          inheritedMethodRead = true
+          throw new Error(`EACCES: inherited C:/Users/LENOVO/mods/hostile-${methodName}`)
+        }
+      })
+      const inheritedHost = Object.create(inheritedHostPrototype)
+      for (const ownMethodName of methodNames) {
+        if (ownMethodName === methodName) continue
+        Object.defineProperty(inheritedHost, ownMethodName, {
+          enumerable: true,
+          value: host[ownMethodName]
+        })
+      }
+
+      const error = captureProbeCreateError({ host: inheritedHost })
+
+      expect(inheritedMethodRead).toBe(false)
+      expect(error).toMatchObject({
+        code: 'SOURCE_ENTRY_UNSAFE',
+        message: 'Electron read-only source adapter host metadata must include getEntry, readDirectory and readTextFile own fields'
+      })
+      return error
+    })
+
+    const hiddenMethodErrors = methodNames.map(methodName => {
+      let hiddenMethodRead = false
+      const hiddenHost: Record<string, unknown> = {}
+      for (const ownMethodName of methodNames) {
+        if (ownMethodName === methodName) continue
+        hiddenHost[ownMethodName] = host[ownMethodName]
+      }
+      Object.defineProperty(hiddenHost, methodName, {
+        enumerable: false,
+        get() {
+          hiddenMethodRead = true
+          throw new Error(`EACCES: hidden C:/Users/LENOVO/mods/hostile-${methodName}`)
+        }
+      })
+
+      const error = captureProbeCreateError({ host: hiddenHost })
+
+      expect(hiddenMethodRead).toBe(false)
+      expect(error).toMatchObject({
+        code: 'SOURCE_ENTRY_UNSAFE',
+        message: 'Electron read-only source adapter host metadata contains unsupported fields'
+      })
+      return error
+    })
+
+    for (const error of [...inheritedMethodErrors, ...hiddenMethodErrors]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('hostile-')
+    }
+    expect(hostOperations).toEqual([])
+    expectOfficialBaseline()
+  })
+
   it('redacts own optional Electron host dispose getter before source publication', () => {
     let disposeGetterRead = false
     const hostOperations: string[] = []

@@ -6755,6 +6755,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
+    exportName: 'electron probe required host method own-field containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-source-adapter-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Electron read-only source host getEntry/readDirectory/readTextFile metadata being required as enumerable own fields before source publication, preventing inherited or hidden host-path-bearing method getters from running while preserving the no-write source adapter boundary.'
+  },
+  {
+    file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
     exportName: 'electron probe optional dispose getter containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/electron-source-adapter-probe',
