@@ -4764,6 +4764,44 @@ describe('content package source contract', () => {
     expect(JSON.stringify(cleanedError)).not.toContain('hostile-fragment')
   })
 
+  it('redacts unsafe source paths at the host operation sanitizer boundary', () => {
+    const unsafeHostPath = 'C:/Users/LENOVO/mods/pack/manifest.json'
+    const unsafeControlPath = 'pack/manifest.json\nhostile-fragment'
+    const rawHostError = new Error('EACCES: stat C:/Users/LENOVO/mods/pack/manifest.json')
+    const hostSourceError = new ContentPackageSourceError(
+      'SOURCE_PERMISSION_REVOKED',
+      'EACCES: stat C:/Users/LENOVO/mods/pack/manifest.json',
+      unsafeHostPath
+    )
+
+    const cleanedRawError = toContentPackageSourceHostOperationError(
+      'inspect',
+      rawHostError,
+      unsafeHostPath
+    )
+    const cleanedSourceError = toContentPackageSourceHostOperationError(
+      'read',
+      hostSourceError,
+      unsafeControlPath
+    )
+
+    expect(cleanedRawError).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Content package source inspect operation failed'
+    })
+    expect(cleanedRawError.sourcePath).toBeUndefined()
+    expect(cleanedSourceError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed'
+    })
+    expect(cleanedSourceError.sourcePath).toBeUndefined()
+    for (const cleanedError of [cleanedRawError, cleanedSourceError]) {
+      expect(JSON.stringify(cleanedError)).not.toContain('C:/Users')
+      expect(JSON.stringify(cleanedError)).not.toContain('LENOVO')
+      expect(JSON.stringify(cleanedError)).not.toContain('hostile-fragment')
+    }
+  })
+
   it('detaches sanitized host operation errors from later host error mutation', () => {
     const hostError = new ContentPackageSourceError(
       'SOURCE_PERMISSION_REVOKED',

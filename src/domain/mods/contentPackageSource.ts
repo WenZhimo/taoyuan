@@ -322,6 +322,7 @@ export const toContentPackageSourceHostOperationError = (
   sourcePath: string,
   fallbackCode: ContentPackageSourceErrorCode = 'SOURCE_ENTRY_NOT_FOUND'
 ): ContentPackageSourceError => {
+  const diagnosticSourcePath = normalizeContentPackageSourceDiagnosticPath(sourcePath)
   if (error instanceof ContentPackageSourceError) {
     const code = readStringErrorField(error, 'code')
     const message = readStringErrorField(error, 'message')
@@ -346,13 +347,13 @@ export const toContentPackageSourceHostOperationError = (
     return createCleanContentPackageSourceError(
       safeCode,
       `Content package source ${operation} operation failed`,
-      sourcePath
+      diagnosticSourcePath
     )
   }
   return createCleanContentPackageSourceError(
     fallbackCode,
     `Content package source ${operation} operation failed`,
-    sourcePath
+    diagnosticSourcePath
   )
 }
 
@@ -943,7 +944,7 @@ export const assertContentPackageSourceTextWithinLimits = (
   return normalizedText
 }
 
-const normalizeContentPackageSourceDiagnosticPath = (sourcePath: string): string | undefined => {
+function normalizeContentPackageSourceDiagnosticPath(sourcePath: string): string | undefined {
   try {
     const normalizedSourcePath = normalizeContentPackageSourcePath(sourcePath)
     return normalizedSourcePath === sourcePath ? normalizedSourcePath : undefined
