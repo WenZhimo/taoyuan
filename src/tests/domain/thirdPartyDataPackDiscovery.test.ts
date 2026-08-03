@@ -2416,4 +2416,83 @@ describe('third-party data pack read-only discovery', () => {
       reason: 'Package content path crosses a symbolic link'
     }))
   })
+
+  it('rejects non-directory entrypoint parents and directory payloads before reading payload files', async() => {
+    const readPaths: string[] = []
+    const makeManifest = (id: string, fallback: string): JsonObject => ({
+      id,
+      name: { key: `${id}.package.name`, fallback },
+      version: '1.0.0',
+      gameVersion: '2.4.0',
+      engineApiVersion: '1',
+      contentSchemaVersion: '1',
+      defaultLocale: 'zh-CN',
+      locales: { 'zh-CN': 'locales/zh-CN.json' },
+      authors: [{ name: 'Entrypoint Safety Tester', role: 'developer' }],
+      license: 'MIT',
+      dependencies: [],
+      entrypoints: { 'taoyuan:item': ['data/items.json'] }
+    })
+    const manifests: Record<string, JsonObject> = {
+      'mods/file-parent-pack/manifest.json': makeManifest('file_parent_pack', 'File parent pack'),
+      'mods/directory-payload-pack/manifest.json': makeManifest('directory_payload_pack', 'Directory payload pack')
+    }
+
+    const fileSystem: ThirdPartyDiscoveryFileSystem = {
+      async getEntry(filePath) {
+        if (filePath === 'mods') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        if (filePath.endsWith('/manifest.json')) return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        if (filePath === 'mods/file-parent-pack/data') {
+          return { name: 'data', kind: 'file', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/directory-payload-pack/data') {
+          return { name: 'data', kind: 'directory', isSymbolicLink: false }
+        }
+        if (filePath === 'mods/directory-payload-pack/data/items.json') {
+          return { name: 'items.json', kind: 'directory', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory(directoryPath) {
+        if (directoryPath === 'mods') {
+          return [
+            { name: 'file-parent-pack', kind: 'directory', isSymbolicLink: false },
+            { name: 'directory-payload-pack', kind: 'directory', isSymbolicLink: false }
+          ]
+        }
+        throw new Error(`Unexpected directory read: ${directoryPath}`)
+      },
+      async readTextFile(filePath) {
+        readPaths.push(filePath)
+        const manifest = manifests[filePath]
+        if (manifest) return `${JSON.stringify(manifest, null, 2)}\n`
+        throw new Error('non-file entrypoints must stop before payload reads')
+      }
+    }
+
+    const report = await discoverThirdPartyDataPacks('mods', fileSystem)
+
+    expect(readPaths).toEqual([
+      'mods/directory-payload-pack/manifest.json',
+      'mods/file-parent-pack/manifest.json'
+    ])
+    expect(report.summary).toMatchObject({
+      candidateCount: 2,
+      validPackageCount: 0,
+      invalidPackageCount: 2
+    })
+    expect(report.candidates.find(candidate => candidate.path === 'file-parent-pack')?.issues)
+      .toContainEqual(expect.objectContaining({
+        kind: 'content-file-missing',
+        path: 'file-parent-pack/data/items.json',
+        reason: 'Manifest entrypoint parent is not a directory'
+      }))
+    expect(report.candidates.find(candidate => candidate.path === 'directory-payload-pack')?.issues)
+      .toContainEqual(expect.objectContaining({
+        kind: 'content-file-missing',
+        path: 'directory-payload-pack/data/items.json',
+        reason: 'Manifest entrypoint is not a file'
+      }))
+    expect(report.candidates.flatMap(candidate => candidate.contentFiles)).toEqual([])
+  })
 })
