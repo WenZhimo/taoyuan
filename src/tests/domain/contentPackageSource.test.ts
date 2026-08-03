@@ -3104,6 +3104,41 @@ describe('content package source contract', () => {
     expect(JSON.stringify(result)).not.toContain('C:/Users')
     expect(JSON.stringify(result)).not.toContain('LENOVO')
     expect(JSON.stringify(result)).not.toContain('direct-json-caller-identity')
+
+    let inheritedRootPathRead = false
+    const inheritedIdentityPrototype = {}
+    Object.defineProperty(inheritedIdentityPrototype, 'rootPath', {
+      enumerable: true,
+      get() {
+        inheritedRootPathRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/direct-json-caller-rootPath')
+      }
+    })
+    const inheritedCallerIdentity = Object.create(inheritedIdentityPrototype)
+    Object.assign(inheritedCallerIdentity, {
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/direct-json-inherited-caller-identity'
+    })
+
+    const inheritedResult = await readContentPackageSourceJson(
+      source,
+      'pack/manifest.json',
+      CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      inheritedCallerIdentity
+    )
+
+    expect(inheritedResult).toMatchObject({
+      ok: false,
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata must include contractVersion, kind, sourceId and rootPath own fields'
+    })
+    expect(identityReads).toBe(0)
+    expect(inheritedRootPathRead).toBe(false)
+    expect(inspected).toBe(false)
+    expect(JSON.stringify(inheritedResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(inheritedResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(inheritedResult)).not.toContain('direct-json-caller-rootPath')
   })
 
   it('keeps caller-validated direct JSON identities while unavailable sources stay structured and path-free', async() => {
