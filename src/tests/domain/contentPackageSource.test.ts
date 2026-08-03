@@ -3139,6 +3139,31 @@ describe('content package source contract', () => {
     expect(JSON.stringify(inheritedResult)).not.toContain('C:/Users')
     expect(JSON.stringify(inheritedResult)).not.toContain('LENOVO')
     expect(JSON.stringify(inheritedResult)).not.toContain('direct-json-caller-rootPath')
+
+    const hiddenCallerIdentity = defineHiddenHostileGetter({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/direct-json-hidden-caller-identity'
+    }, 'rootPath')
+
+    const hiddenResult = await readContentPackageSourceJson(
+      source,
+      'pack/manifest.json',
+      CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      hiddenCallerIdentity.value
+    )
+
+    expect(hiddenResult).toMatchObject({
+      ok: false,
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata contains unsupported fields'
+    })
+    expect(identityReads).toBe(0)
+    expect(hiddenCallerIdentity.wasRead()).toBe(false)
+    expect(inspected).toBe(false)
+    expect(JSON.stringify(hiddenResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(hiddenResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(hiddenResult)).not.toContain('direct-json-hidden-caller-identity')
   })
 
   it('detaches caller-provided direct JSON identities from later caller object mutation', async() => {
