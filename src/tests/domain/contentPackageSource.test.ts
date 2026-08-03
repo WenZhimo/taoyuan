@@ -519,6 +519,67 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects memory source path conflicts before reading file text payloads', () => {
+    const textReads: string[] = []
+    const createHostileTextFile = (path: string, fragment: string) => {
+      const file: Record<string, unknown> = { path }
+      Object.defineProperty(file, 'text', {
+        enumerable: true,
+        get() {
+          textReads.push(fragment)
+          throw new Error(`EACCES: read C:/Users/LENOVO/mods/${fragment}`)
+        }
+      })
+      return file
+    }
+
+    const duplicateFilePathError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/duplicate-source-text-containment',
+      rootPath: 'packs',
+      files: [
+        createHostileTextFile('LENOVO-private-pack/manifest.json', 'duplicate-first-text'),
+        createHostileTextFile('LENOVO-private-pack\\manifest.json', 'duplicate-second-text')
+      ] as never
+    }))
+    const fileOverDirectoryError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/file-over-directory-text-containment',
+      rootPath: 'packs',
+      files: [
+        createHostileTextFile('LENOVO-private-pack/manifest.json', 'directory-child-text'),
+        createHostileTextFile('LENOVO-private-pack', 'directory-parent-text')
+      ] as never
+    }))
+    const directoryOverFileError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/directory-over-file-text-containment',
+      rootPath: 'packs',
+      files: [
+        createHostileTextFile('LENOVO-private-pack', 'file-parent-text'),
+        createHostileTextFile('LENOVO-private-pack/manifest.json', 'file-child-text')
+      ] as never
+    }))
+
+    expect(duplicateFilePathError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Duplicate source file path'
+    })
+    expect(fileOverDirectoryError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Source file path conflicts with a directory path'
+    })
+    expect(directoryOverFileError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Source directory path conflicts with a file path'
+    })
+    expect(textReads).toEqual([])
+    for (const error of [duplicateFilePathError, fileOverDirectoryError, directoryOverFileError]) {
+      expect(JSON.stringify(error)).not.toContain('LENOVO-private-pack')
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('duplicate-first-text')
+      expect(JSON.stringify(error)).not.toContain('directory-parent-text')
+      expect(JSON.stringify(error)).not.toContain('file-child-text')
+    }
+  })
+
   it('narrows memory source options metadata before publishing a source', async() => {
     const source = createMemoryContentPackageSource({
       sourceId: 'memory/options-metadata-source',

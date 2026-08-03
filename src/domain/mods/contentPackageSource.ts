@@ -101,6 +101,11 @@ export interface MemoryContentPackageSourceFile {
   readonly text: string
 }
 
+interface MemoryContentPackageSourceFilePathMetadata {
+  readonly path: string
+  readonly fileMetadata: Record<string, unknown>
+}
+
 export interface CreateMemoryContentPackageSourceOptions {
   readonly sourceId: string
   readonly rootPath: string
@@ -1048,9 +1053,9 @@ const entryName = (path: string, fallback: string): string => {
   return separatorIndex === -1 ? path : path.slice(separatorIndex + 1)
 }
 
-const normalizeMemoryContentPackageSourceFile = (
+const normalizeMemoryContentPackageSourceFilePathMetadata = (
   file: unknown
-): MemoryContentPackageSourceFile => {
+): MemoryContentPackageSourceFilePathMetadata => {
   if (
     typeof file !== 'object'
     || file === null
@@ -1090,6 +1095,15 @@ const normalizeMemoryContentPackageSourceFile = (
     )
   }
 
+  return {
+    path: normalizeContentPackageSourcePath(path),
+    fileMetadata
+  }
+}
+
+const readMemoryContentPackageSourceFileText = (
+  fileMetadata: Record<string, unknown>
+): string => {
   const text = readUnknownMetadataField(
     fileMetadata,
     'text',
@@ -1103,10 +1117,7 @@ const normalizeMemoryContentPackageSourceFile = (
     )
   }
 
-  return {
-    path: normalizeContentPackageSourcePath(path),
-    text
-  }
+  return text
 }
 
 const normalizeMemoryContentPackageSourceOptions = (
@@ -1365,8 +1376,10 @@ export const createMemoryContentPackageSource = (
     fileCount => `Memory source exceeds ${CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount} files: ${fileCount}`
   )
 
-  for (const fileInput of memoryFiles) {
-    const file = normalizeMemoryContentPackageSourceFile(fileInput)
+  const pendingFiles = memoryFiles.map(fileInput => normalizeMemoryContentPackageSourceFilePathMetadata(fileInput))
+  const filePaths = new Set<string>()
+
+  for (const file of pendingFiles) {
     const normalizedPath = file.path
     if (normalizedPath === '') {
       throw new ContentPackageSourceError('SOURCE_PATH_UNSAFE', 'File path cannot be the source root', normalizedPath)
@@ -1377,17 +1390,17 @@ export const createMemoryContentPackageSource = (
         'Source file path conflicts with a directory path'
       )
     }
-    if (files.has(normalizedPath)) {
+    if (filePaths.has(normalizedPath)) {
       throw new ContentPackageSourceError(
         'SOURCE_DUPLICATE_PATH',
         'Duplicate source file path'
       )
     }
-    files.set(normalizedPath, file.text)
+    filePaths.add(normalizedPath)
 
     let directory = parentPath(normalizedPath)
     while (directory !== '') {
-      if (files.has(directory)) {
+      if (filePaths.has(directory)) {
         throw new ContentPackageSourceError(
           'SOURCE_DUPLICATE_PATH',
           'Source directory path conflicts with a file path'
@@ -1396,6 +1409,10 @@ export const createMemoryContentPackageSource = (
       directories.add(directory)
       directory = parentPath(directory)
     }
+  }
+
+  for (const file of pendingFiles) {
+    files.set(file.path, readMemoryContentPackageSourceFileText(file.fileMetadata))
   }
 
   const assertAvailable = (): void => {
