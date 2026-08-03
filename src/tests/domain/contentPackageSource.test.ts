@@ -1914,6 +1914,53 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects over-limit archive entry counts before reading boundary entry metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    let boundaryEntryRead = false
+    let boundaryPathRead = false
+    let boundaryUncompressedSizeRead = false
+    let boundaryCompressedSizeRead = false
+    const boundaryEntry = {
+      get path() {
+        boundaryPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-boundary-path')
+      },
+      get uncompressedSizeBytes() {
+        boundaryUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-boundary-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        boundaryCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-boundary-compressed-size')
+      }
+    }
+    const archiveEntries = Array.from({ length: limits.maxPackageFileCount }, (_, index) => ({
+      path: `data/${index}.json`,
+      uncompressedSizeBytes: 0
+    }))
+    Object.defineProperty(archiveEntries, String(limits.maxPackageFileCount), {
+      enumerable: true,
+      get() {
+        boundaryEntryRead = true
+        return boundaryEntry
+      }
+    })
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries(archiveEntries))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive exceeds ${limits.maxPackageFileCount} entries: ${limits.maxPackageFileCount + 1}`
+    })
+    expect(boundaryEntryRead).toBe(false)
+    expect(boundaryPathRead).toBe(false)
+    expect(boundaryUncompressedSizeRead).toBe(false)
+    expect(boundaryCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-boundary')
+  })
+
   it('rejects invalid uncompressed archive size before reading optional compressed metadata', () => {
     let compressedSizeRead = false
     const hostileArchiveEntry = {

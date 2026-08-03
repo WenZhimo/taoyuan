@@ -6675,6 +6675,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive entry-count boundary metadata containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers over-limit archive entry arrays being rejected before the boundary archive entry or its path/uncompressed/compressed size metadata getters can run, keeping host-path-bearing boundary metadata out of diagnostics while preserving the no-write ZIP source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'content package source contract fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
