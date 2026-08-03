@@ -975,6 +975,26 @@ describe('electron content package source read-only probe', () => {
       message: 'Electron read-only source adapter host dispose must be a function'
     })
 
+    let hiddenDisposeRead = false
+    const hiddenDisposeHost = {
+      getEntry: host.getEntry,
+      readDirectory: host.readDirectory,
+      readTextFile: host.readTextFile
+    }
+    Object.defineProperty(hiddenDisposeHost, 'dispose', {
+      enumerable: false,
+      get() {
+        hiddenDisposeRead = true
+        throw new Error('EACCES: hidden C:/Users/LENOVO/mods/dispose')
+      }
+    })
+    const hiddenDisposeHostError = captureProbeCreateError({ host: hiddenDisposeHost })
+    expect(hiddenDisposeHostError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host metadata contains unsupported fields'
+    })
+    expect(hiddenDisposeRead).toBe(false)
+
     for (const error of [
       nonObjectOptionsError,
       hostileOptionsOwnKeysError,
@@ -988,12 +1008,78 @@ describe('electron content package source read-only probe', () => {
       inheritedHostError,
       hiddenMethodHostError,
       nonFunctionMethodError,
-      nonFunctionDisposeError
+      nonFunctionDisposeError,
+      hiddenDisposeHostError
     ]) {
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
     }
     expect(hostOperations).toEqual([])
+    expectOfficialBaseline()
+  })
+
+  it('ignores inherited optional Electron host dispose metadata before release', async() => {
+    let inheritedDisposeRead = false
+    const inheritedDisposePrototype = {}
+    Object.defineProperty(inheritedDisposePrototype, 'dispose', {
+      enumerable: true,
+      get() {
+        inheritedDisposeRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/dispose')
+      }
+    })
+    const inheritedDisposeHost = Object.create(inheritedDisposePrototype)
+    Object.defineProperties(inheritedDisposeHost, {
+      getEntry: {
+        enumerable: true,
+        value: async(sourcePath: string) =>
+          sourcePath === '' ? { name: 'mods', kind: 'directory', isSymbolicLink: false } : null
+      },
+      readDirectory: {
+        enumerable: true,
+        value: async() => []
+      },
+      readTextFile: {
+        enumerable: true,
+        value: async() => {
+          throw new Error('inherited dispose test does not read package payloads')
+        }
+      }
+    })
+    const source = createElectronReadonlyDirectoryProbeSource({ host: inheritedDisposeHost })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    await source.dispose()
+    await source.dispose()
+    const disposedReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+
+    expect(inheritedDisposeRead).toBe(false)
+    expect(sourceReport).toMatchObject({
+      status: 'ready',
+      sourceIdentity: {
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      },
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(disposedReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Electron read-only source adapter probe has been disposed',
+      sourceErrorCode: 'SOURCE_DISPOSED',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(JSON.stringify(sourceReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(disposedReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(disposedReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(disposedReport)).not.toContain('inherited')
     expectOfficialBaseline()
   })
 
