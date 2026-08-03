@@ -891,6 +891,38 @@ describe('electron content package source read-only probe', () => {
       message: 'Electron read-only source adapter options metadata could not be read'
     })
 
+    let hostileSourceIdRead = false
+    const hostileSourceIdOptions = { host }
+    Object.defineProperty(hostileSourceIdOptions, 'sourceId', {
+      enumerable: true,
+      get() {
+        hostileSourceIdRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/sourceId')
+      }
+    })
+    const hostileSourceIdError = captureProbeCreateError(hostileSourceIdOptions)
+    expect(hostileSourceIdError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata could not be read'
+    })
+    expect(hostileSourceIdRead).toBe(true)
+
+    let hostileRootPathRead = false
+    const hostileRootPathOptions = { host }
+    Object.defineProperty(hostileRootPathOptions, 'rootPath', {
+      enumerable: true,
+      get() {
+        hostileRootPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/rootPath')
+      }
+    })
+    const hostileRootPathError = captureProbeCreateError(hostileRootPathOptions)
+    expect(hostileRootPathError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata could not be read'
+    })
+    expect(hostileRootPathRead).toBe(true)
+
     const hostExtraFieldError = captureProbeCreateError({
       host: {
         ...host,
@@ -1003,6 +1035,8 @@ describe('electron content package source read-only probe', () => {
       inheritedOptionsError,
       hiddenOptionsError,
       hostileHostGetterError,
+      hostileSourceIdError,
+      hostileRootPathError,
       hostExtraFieldError,
       hostOwnKeysError,
       inheritedHostError,
