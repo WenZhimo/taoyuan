@@ -1938,6 +1938,45 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-compressed-size')
   })
 
+  it('rejects unreadable optional archive compressed-size metadata before reading later sizes', () => {
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const unreadableCompressedSizeEntry = {
+      path: 'a-pack/manifest.json',
+      uncompressedSizeBytes: 1,
+      get compressedSizeBytes() {
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size-hostile-fragment')
+      }
+    }
+    const laterEntry = {
+      path: 'b-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterEntry,
+      unreadableCompressedSizeEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata could not be read'
+    })
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('hostile-fragment')
+    expect(JSON.stringify(error)).not.toContain('archive-later')
+  })
+
   it('rejects archive total uncompressed budget before reading later size metadata', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     let overflowingCompressedSizeRead = false
