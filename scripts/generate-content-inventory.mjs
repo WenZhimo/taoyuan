@@ -6685,6 +6685,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive reverse path-prefix conflict containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers archive path-prefix conflicts being rejected before size metadata getters can run even when the child entry appears before the parent entry in host-provided metadata, keeping host-path-bearing getter failures and raw package path fragments out of diagnostics while preserving the no-write ZIP source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'content package source contract fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

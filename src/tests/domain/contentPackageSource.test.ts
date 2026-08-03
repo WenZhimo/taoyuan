@@ -2272,16 +2272,26 @@ describe('content package source contract', () => {
       createHostileArchiveEntry('LENOVO-private-pack'),
       createHostileArchiveEntry('LENOVO-private-pack/manifest.json')
     ]))
+    const reversePrefixConflictError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      createHostileArchiveEntry('LENOVO-private-pack/manifest.json'),
+      createHostileArchiveEntry('LENOVO-private-pack')
+    ]))
 
     expect(prefixConflictError).toMatchObject({
       code: 'SOURCE_DUPLICATE_PATH',
       message: 'Archive entry path conflicts with another entry directory prefix'
     })
+    expect(reversePrefixConflictError).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Archive entry path conflicts with another entry directory prefix'
+    })
     expect(sizeMetadataReadCount).toBe(0)
-    expect(JSON.stringify(prefixConflictError)).not.toContain('C:/Users')
-    expect(JSON.stringify(prefixConflictError)).not.toContain('LENOVO')
-    expect(JSON.stringify(prefixConflictError)).not.toContain('archive-conflict')
-    expect(JSON.stringify(prefixConflictError)).not.toContain('private-pack')
+    for (const error of [prefixConflictError, reversePrefixConflictError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('archive-conflict')
+      expect(JSON.stringify(error)).not.toContain('private-pack')
+    }
   })
 
   it('does not read absent optional archive compressed-size metadata', () => {
