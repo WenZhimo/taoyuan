@@ -1138,6 +1138,45 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('redacts own optional Electron host dispose getter before source publication', () => {
+    let disposeGetterRead = false
+    const hostOperations: string[] = []
+    const host = {
+      async getEntry(sourcePath: string) {
+        hostOperations.push(`inspect:${sourcePath}`)
+        return null
+      },
+      async readDirectory(sourcePath: string) {
+        hostOperations.push(`list:${sourcePath}`)
+        return []
+      },
+      async readTextFile(sourcePath: string) {
+        hostOperations.push(`read:${sourcePath}`)
+        return '{}\n'
+      }
+    }
+    Object.defineProperty(host, 'dispose', {
+      enumerable: true,
+      get() {
+        disposeGetterRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/dispose')
+      }
+    })
+
+    const error = captureProbeCreateError({ host })
+
+    expect(disposeGetterRead).toBe(true)
+    expect(hostOperations).toEqual([])
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host metadata could not be read'
+    })
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('dispose')
+    expectOfficialBaseline()
+  })
+
   it('redacts Electron host release failures before callers or reports expose paths', async() => {
     const source = createElectronReadonlyDirectoryProbeSource({
       host: {
