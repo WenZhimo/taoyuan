@@ -3164,6 +3164,41 @@ describe('content package source contract', () => {
     expect(JSON.stringify(hiddenResult)).not.toContain('C:/Users')
     expect(JSON.stringify(hiddenResult)).not.toContain('LENOVO')
     expect(JSON.stringify(hiddenResult)).not.toContain('direct-json-hidden-caller-identity')
+
+    let extraHostPathRead = false
+    const extraFieldCallerIdentity = {
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/direct-json-extra-caller-identity',
+      rootPath: 'packs'
+    }
+    Object.defineProperty(extraFieldCallerIdentity, 'hostPath', {
+      enumerable: true,
+      get() {
+        extraHostPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/direct-json-caller-hostPath')
+      }
+    })
+
+    const extraFieldResult = await readContentPackageSourceJson(
+      source,
+      'pack/manifest.json',
+      CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      extraFieldCallerIdentity
+    )
+
+    expect(extraFieldResult).toMatchObject({
+      ok: false,
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata contains unsupported fields'
+    })
+    expect(identityReads).toBe(0)
+    expect(extraHostPathRead).toBe(false)
+    expect(inspected).toBe(false)
+    expect(JSON.stringify(extraFieldResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(extraFieldResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(extraFieldResult)).not.toContain('hostPath')
+    expect(JSON.stringify(extraFieldResult)).not.toContain('direct-json-extra-caller-identity')
   })
 
   it('detaches caller-provided direct JSON identities from later caller object mutation', async() => {
