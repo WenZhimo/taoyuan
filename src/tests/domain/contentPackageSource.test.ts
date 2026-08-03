@@ -1938,6 +1938,50 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-compressed-size')
   })
 
+  it('rejects oversized single archive entries before reading compressed or later size metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    let oversizedCompressedSizeRead = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const oversizedEntry = {
+      path: 'a-oversized.bin',
+      uncompressedSizeBytes: limits.maxSingleFileBytes + 1,
+      get compressedSizeBytes() {
+        oversizedCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-oversized-compressed-size')
+      }
+    }
+    const laterEntry = {
+      path: 'b-later.bin',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      oversizedEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive entry exceeds ${limits.maxSingleFileBytes} bytes: ${limits.maxSingleFileBytes + 1}`,
+      sourcePath: 'a-oversized.bin'
+    })
+    expect(oversizedCompressedSizeRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-oversized-compressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-later')
+  })
+
   it('rejects unreadable optional archive compressed-size metadata before reading later sizes', () => {
     let laterUncompressedSizeRead = false
     let laterCompressedSizeRead = false
