@@ -3105,6 +3105,39 @@ describe('content package source contract', () => {
     expect(JSON.stringify(result)).not.toContain('LENOVO')
     expect(JSON.stringify(result)).not.toContain('direct-json-caller-identity')
 
+    let ownKeysRead = false
+    const unreadableCallerIdentity = new Proxy({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/direct-json-unreadable-caller-identity',
+      rootPath: 'packs'
+    }, {
+      ownKeys() {
+        ownKeysRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/direct-json-caller-ownKeys')
+      }
+    })
+
+    const unreadableResult = await readContentPackageSourceJson(
+      source,
+      'pack/manifest.json',
+      CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      unreadableCallerIdentity
+    )
+
+    expect(unreadableResult).toMatchObject({
+      ok: false,
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Content package source identity metadata could not be read'
+    })
+    expect(identityReads).toBe(0)
+    expect(ownKeysRead).toBe(true)
+    expect(inspected).toBe(false)
+    expect(JSON.stringify(unreadableResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(unreadableResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(unreadableResult)).not.toContain('ownKeys')
+    expect(JSON.stringify(unreadableResult)).not.toContain('direct-json-unreadable-caller-identity')
+
     let inheritedRootPathRead = false
     const inheritedIdentityPrototype = {}
     Object.defineProperty(inheritedIdentityPrototype, 'rootPath', {
