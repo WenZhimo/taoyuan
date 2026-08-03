@@ -414,6 +414,57 @@ describe('third-party data pack read-only discovery', () => {
     expect(empty.issues.map(issue => issue.kind)).toEqual(['empty-directory'])
   })
 
+  it('rejects malformed discovery root getEntry metadata before listing packages', async() => {
+    let hostPathRead = false
+    let rootListed = false
+    let rootRead = false
+    const rootEntry = {
+      name: 'mods',
+      kind: 'directory',
+      isSymbolicLink: false
+    }
+    Object.defineProperty(rootEntry, 'hostPath', {
+      enumerable: true,
+      get() {
+        hostPathRead = true
+        throw new Error('EACCES: root metadata C:/Users/LENOVO/mods')
+      }
+    })
+
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods' ? rootEntry as never : null
+      },
+      async readDirectory() {
+        rootListed = true
+        throw new Error('malformed discovery root metadata must not be listed')
+      },
+      async readTextFile() {
+        rootRead = true
+        throw new Error('malformed discovery root metadata must not read payloads')
+      }
+    })
+
+    expect(hostPathRead).toBe(false)
+    expect(rootListed).toBe(false)
+    expect(rootRead).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(report.candidates).toEqual([])
+    expect(report.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(report.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Package source entry metadata contains unsupported fields',
+      sourceCode: 'SOURCE_ENTRY_UNSAFE'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('hostPath')
+  })
+
   it('discovers valid packages and reports each invalid package class deterministically', async() => {
     const report = await discoverThirdPartyDataPacks(fixtureRoot, createNodeFileSystem())
 
