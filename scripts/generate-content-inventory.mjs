@@ -6695,6 +6695,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'directory listing file-count metadata containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers over-limit directory listing arrays being rejected before first or boundary directory entry objects and their metadata getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write directory source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'memory source file-count metadata containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

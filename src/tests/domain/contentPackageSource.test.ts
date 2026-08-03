@@ -386,19 +386,33 @@ const createOverLimitMetadataArray = (
   entryFactory: (index: number) => unknown
 ): {
   readonly entries: unknown[]
+  readonly wasFirstEntryRead: () => boolean
   readonly wasBoundaryEntryRead: () => boolean
 } => {
   const limit = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageFileCount
+  let firstEntryRead = false
   let boundaryEntryRead = false
-  const entries = Array.from({ length: limit }, (_, index) => entryFactory(index))
+  const entries = Array(limit + 1)
+  Object.defineProperty(entries, '0', {
+    enumerable: true,
+    get() {
+      firstEntryRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/hostile-first-entry')
+    }
+  })
   Object.defineProperty(entries, String(limit), {
     enumerable: true,
     get() {
       boundaryEntryRead = true
-      throw new Error('EACCES: stat C:/Users/LENOVO/mods/hostile-fragment')
+      void entryFactory(limit)
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/hostile-boundary-entry')
     }
   })
-  return { entries, wasBoundaryEntryRead: () => boundaryEntryRead }
+  return {
+    entries,
+    wasFirstEntryRead: () => firstEntryRead,
+    wasBoundaryEntryRead: () => boundaryEntryRead
+  }
 }
 
 describe('content package source contract', () => {
@@ -1363,9 +1377,9 @@ describe('content package source contract', () => {
     expect(JSON.stringify(report)).not.toContain('LENOVO')
   })
 
-  it('rejects over-limit directory metadata arrays before reading boundary entries', () => {
+  it('rejects over-limit directory metadata arrays before reading first or boundary entries', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
-    const { entries, wasBoundaryEntryRead } = createOverLimitMetadataArray(index => ({
+    const { entries, wasFirstEntryRead, wasBoundaryEntryRead } = createOverLimitMetadataArray(index => ({
       name: `pack-${index}`,
       kind: 'directory',
       isSymbolicLink: false
@@ -1377,9 +1391,12 @@ describe('content package source contract', () => {
       code: 'SOURCE_LIMIT_EXCEEDED',
       message: `Directory listing exceeds ${limits.maxPackageFileCount} entries: ${limits.maxPackageFileCount + 1}`
     })
+    expect(wasFirstEntryRead()).toBe(false)
     expect(wasBoundaryEntryRead()).toBe(false)
     expect(JSON.stringify(error)).not.toContain('C:/Users')
     expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('hostile-first-entry')
+    expect(JSON.stringify(error)).not.toContain('hostile-boundary-entry')
     expect(JSON.stringify(error)).not.toContain('hostile-fragment')
   })
 
@@ -1977,9 +1994,12 @@ describe('content package source contract', () => {
       code: 'SOURCE_LIMIT_EXCEEDED',
       message: `Archive exceeds ${limits.maxPackageFileCount} entries: ${limits.maxPackageFileCount + 1}`
     })
+    expect(overLimitArchiveMetadata.wasFirstEntryRead()).toBe(false)
     expect(overLimitArchiveMetadata.wasBoundaryEntryRead()).toBe(false)
     expect(JSON.stringify(overLimitArchiveError)).not.toContain('C:/Users')
     expect(JSON.stringify(overLimitArchiveError)).not.toContain('LENOVO')
+    expect(JSON.stringify(overLimitArchiveError)).not.toContain('hostile-first-entry')
+    expect(JSON.stringify(overLimitArchiveError)).not.toContain('hostile-boundary-entry')
     expect(JSON.stringify(overLimitArchiveError)).not.toContain('hostile-fragment')
     expect(captureSourceError(() => validateContentPackageSourceArchiveEntries([
       { path: 'large.bin', uncompressedSizeBytes: limits.maxSingleFileBytes + 1 }
