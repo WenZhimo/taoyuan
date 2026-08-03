@@ -1395,6 +1395,60 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('ignores inherited Electron release error metadata before preserving source codes', async() => {
+    let inheritedCodeRead = false
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory() {
+          return []
+        },
+        async readTextFile() {
+          throw new Error('inherited release metadata test does not read package payloads')
+        },
+        async dispose() {
+          const error = new ContentPackageSourceError(
+            'SOURCE_PERMISSION_REVOKED',
+            'Permission revoked while releasing Electron source',
+            'mods/.probe-handle'
+          )
+          delete (error as unknown as { code?: string }).code
+          const prototype = Object.create(ContentPackageSourceError.prototype)
+          Object.defineProperty(prototype, 'code', {
+            enumerable: true,
+            get() {
+              inheritedCodeRead = true
+              throw new Error('EACCES: inherited C:/Users/LENOVO/mods/release-code')
+            }
+          })
+          Object.setPrototypeOf(error, prototype)
+          throw error
+        }
+      }
+    })
+
+    let releaseError: unknown
+    try {
+      await source.dispose()
+    } catch (error) {
+      releaseError = error
+    }
+
+    expect(inheritedCodeRead).toBe(false)
+    expect(releaseError).toBeInstanceOf(ContentPackageSourceError)
+    expect(releaseError).toMatchObject({
+      code: 'SOURCE_DISPOSED',
+      message: 'Content package source release operation failed'
+    })
+    expect(JSON.stringify(releaseError)).not.toContain('C:/Users')
+    expect(JSON.stringify(releaseError)).not.toContain('LENOVO')
+    expect(JSON.stringify(releaseError)).not.toContain('release-code')
+    expectOfficialBaseline()
+  })
+
   it('does not re-enter Electron host release after the source is disposed', async() => {
     let hostReleaseCount = 0
     const source = createElectronReadonlyDirectoryProbeSource({
