@@ -323,7 +323,7 @@ const createOverLimitRawDiscoveryDirectoryArray = (): {
 }
 
 describe('third-party data pack read-only discovery', () => {
-  it('reports missing, non-directory and empty discovery roots without throwing or reading payloads', async() => {
+  it('reports missing, symlinked, non-directory and empty discovery roots without throwing or reading payloads', async() => {
     const root = await createRoot()
     const fileSystem = createNodeFileSystem()
 
@@ -373,6 +373,36 @@ describe('third-party data pack read-only discovery', () => {
         severity: 'info',
         path: '.',
         reason: 'Discovery root directory does not exist'
+      })
+    ])
+
+    let symlinkRootListed = false
+    let symlinkRootRead = false
+    const symlinkRoot = await discoverThirdPartyDataPacks('mods', {
+      async getEntry(filePath) {
+        return filePath === 'mods'
+          ? { name: 'mods', kind: 'directory', isSymbolicLink: true }
+          : null
+      },
+      async readDirectory() {
+        symlinkRootListed = true
+        throw new Error('symlinked discovery root must not be listed')
+      },
+      async readTextFile() {
+        symlinkRootRead = true
+        throw new Error('symlinked discovery root must not be read')
+      }
+    })
+    expect(symlinkRootListed).toBe(false)
+    expect(symlinkRootRead).toBe(false)
+    expect(symlinkRoot.status).toBe('directory-not-found')
+    expect(symlinkRoot.candidates).toEqual([])
+    expect(symlinkRoot.issues).toEqual([
+      expect.objectContaining({
+        kind: 'path-unsafe',
+        severity: 'fatal',
+        path: '.',
+        reason: 'Discovery root is a symbolic link'
       })
     ])
 
