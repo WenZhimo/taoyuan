@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 254
+    "reviewedArtifactCount": 255
   },
   "entries": [
     {
@@ -16187,6 +16187,18 @@
       ],
       "status": "verified",
       "rationale": "Covers memory source file path/text metadata being required as enumerable own fields before source publication, preventing inherited or hidden host-path-bearing getters from running while preserving the no-write source publication boundary."
+    },
+    {
+      "file": "src/tests/domain/electronContentPackageSourceProbe.test.ts",
+      "exportName": "electron probe inherited rootPath containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/electron-source-adapter-probe",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers Electron read-only source adapter options ignoring inherited optional rootPath metadata before host-path-bearing getters can run, keeping the default mods root and no-write source publication boundary intact."
     },
     {
       "file": "src/tests/domain/electronContentPackageSourceProbe.test.ts",

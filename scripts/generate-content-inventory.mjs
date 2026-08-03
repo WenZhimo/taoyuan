@@ -6745,6 +6745,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
+    exportName: 'electron probe inherited rootPath containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-source-adapter-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Electron read-only source adapter options ignoring inherited optional rootPath metadata before host-path-bearing getters can run, keeping the default mods root and no-write source publication boundary intact.'
+  },
+  {
+    file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
     exportName: 'electron probe optional dispose getter containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/electron-source-adapter-probe',

@@ -829,6 +829,24 @@ describe('electron content package source read-only probe', () => {
     })
     expect(inheritedSourceIdRead).toBe(false)
 
+    let inheritedRootPathRead = false
+    const inheritedRootPathPrototype = {}
+    Object.defineProperty(inheritedRootPathPrototype, 'rootPath', {
+      enumerable: true,
+      get() {
+        inheritedRootPathRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/rootPath')
+      }
+    })
+    const inheritedRootPathOptions = Object.create(inheritedRootPathPrototype)
+    Object.defineProperty(inheritedRootPathOptions, 'host', { enumerable: true, value: host })
+    const inheritedRootPathSource = createElectronReadonlyDirectoryProbeSource(inheritedRootPathOptions)
+    expect(inheritedRootPathSource.identity).toMatchObject({
+      sourceId: 'electron/mods-readonly-probe',
+      rootPath: 'mods'
+    })
+    expect(inheritedRootPathRead).toBe(false)
+
     let hiddenRootPathRead = false
     const hiddenRootPathOptions = { host }
     Object.defineProperty(hiddenRootPathOptions, 'rootPath', {
