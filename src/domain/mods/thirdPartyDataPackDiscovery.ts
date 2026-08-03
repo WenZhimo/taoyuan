@@ -141,6 +141,18 @@ const readStringErrorField = (
   fieldName: string
 ): { readonly status: 'value'; readonly value: string } | { readonly status: 'missing' | 'unreadable' } => {
   if (typeof error !== 'object' || error === null) return { status: 'missing' }
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(error, fieldName)
+  } catch {
+    return { status: 'unreadable' }
+  }
+  if (descriptor === undefined) return { status: 'missing' }
+  if ('value' in descriptor) {
+    return typeof descriptor.value === 'string'
+      ? { status: 'value', value: descriptor.value }
+      : { status: 'missing' }
+  }
   try {
     const value = (error as Record<string, unknown>)[fieldName]
     return typeof value === 'string'

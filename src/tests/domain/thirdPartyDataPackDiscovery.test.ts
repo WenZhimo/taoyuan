@@ -119,6 +119,27 @@ const createUnsafeCodeHostFailure = (): Error & { readonly code: string } =>
     code: 'C:/Users/LENOVO/mods/hostile-code\nhostile-fragment'
   })
 
+const createInheritedCodeHostFailure = (): {
+  readonly error: Error
+  readonly wasCodeRead: () => boolean
+} => {
+  let codeRead = false
+  const error = new Error('Permission denied while inspecting package source')
+  const prototype = Object.create(Object.getPrototypeOf(error))
+  Object.defineProperty(prototype, 'code', {
+    enumerable: true,
+    get() {
+      codeRead = true
+      throw new Error('EACCES: inherited C:/Users/LENOVO/mods/source-code\nhostile-fragment')
+    }
+  })
+  Object.setPrototypeOf(error, prototype)
+  return {
+    error,
+    wasCodeRead: () => codeRead
+  }
+}
+
 const createHostileFailureMetadata = (): unknown => {
   const failure = Object.create(null) as Record<string | symbol, unknown>
   for (const fieldName of ['message', 'code', 'sourcePath']) {
@@ -1997,6 +2018,34 @@ describe('third-party data pack read-only discovery', () => {
       expect(JSON.stringify(report)).not.toContain('LENOVO')
       expect(JSON.stringify(report)).not.toContain('hostile-fragment')
     }
+  })
+
+  it('ignores inherited raw file system failure code metadata before diagnostics', async() => {
+    const inheritedFailure = createInheritedCodeHostFailure()
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw inheritedFailure.error
+      },
+      async readDirectory() {
+        throw new Error('inherited raw failure metadata must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inherited raw failure metadata must stop before reading')
+      }
+    })
+
+    const details = report.issues[0]?.diagnostics[0]?.details ?? {}
+
+    expect(inheritedFailure.wasCodeRead()).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(details).toMatchObject({
+      message: 'Package source inspect operation failed'
+    })
+    expect(details).not.toHaveProperty('sourceCode')
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('source-code')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
   })
 
   it('redacts unreadable raw file system failure metadata before diagnostics can crash or leak', async() => {
