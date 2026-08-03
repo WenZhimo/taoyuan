@@ -811,6 +811,40 @@ describe('electron content package source read-only probe', () => {
       message: 'Electron read-only source adapter options metadata contains unsupported fields'
     })
 
+    let inheritedSourceIdRead = false
+    const inheritedSourceIdPrototype = {}
+    Object.defineProperty(inheritedSourceIdPrototype, 'sourceId', {
+      enumerable: true,
+      get() {
+        inheritedSourceIdRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/sourceId')
+      }
+    })
+    const inheritedSourceIdOptions = Object.create(inheritedSourceIdPrototype)
+    Object.defineProperty(inheritedSourceIdOptions, 'host', { enumerable: true, value: host })
+    const inheritedSourceIdSource = createElectronReadonlyDirectoryProbeSource(inheritedSourceIdOptions)
+    expect(inheritedSourceIdSource.identity).toMatchObject({
+      sourceId: 'electron/mods-readonly-probe',
+      rootPath: 'mods'
+    })
+    expect(inheritedSourceIdRead).toBe(false)
+
+    let hiddenRootPathRead = false
+    const hiddenRootPathOptions = { host }
+    Object.defineProperty(hiddenRootPathOptions, 'rootPath', {
+      enumerable: false,
+      get() {
+        hiddenRootPathRead = true
+        throw new Error('EACCES: hidden C:/Users/LENOVO/mods/rootPath')
+      }
+    })
+    const hiddenRootPathError = captureProbeCreateError(hiddenRootPathOptions)
+    expect(hiddenRootPathError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata contains unsupported fields'
+    })
+    expect(hiddenRootPathRead).toBe(false)
+
     let inheritedHostRead = false
     const inheritedOptionsPrototype = {}
     Object.defineProperty(inheritedOptionsPrototype, 'host', {
@@ -899,6 +933,25 @@ describe('electron content package source read-only probe', () => {
     })
     expect(inheritedMethodRead).toBe(false)
 
+    let hiddenMethodRead = false
+    const hiddenMethodHost = {
+      getEntry: host.getEntry,
+      readTextFile: host.readTextFile
+    }
+    Object.defineProperty(hiddenMethodHost, 'readDirectory', {
+      enumerable: false,
+      get() {
+        hiddenMethodRead = true
+        throw new Error('EACCES: hidden C:/Users/LENOVO/mods/readDirectory')
+      }
+    })
+    const hiddenMethodHostError = captureProbeCreateError({ host: hiddenMethodHost })
+    expect(hiddenMethodHostError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host metadata contains unsupported fields'
+    })
+    expect(hiddenMethodRead).toBe(false)
+
     const nonFunctionMethodError = captureProbeCreateError({
       host: {
         getEntry: 'C:/Users/LENOVO/mods/getEntry',
@@ -926,12 +979,14 @@ describe('electron content package source read-only probe', () => {
       nonObjectOptionsError,
       hostileOptionsOwnKeysError,
       extraOptionsError,
+      hiddenRootPathError,
       inheritedOptionsError,
       hiddenOptionsError,
       hostileHostGetterError,
       hostExtraFieldError,
       hostOwnKeysError,
       inheritedHostError,
+      hiddenMethodHostError,
       nonFunctionMethodError,
       nonFunctionDisposeError
     ]) {
