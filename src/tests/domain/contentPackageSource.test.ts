@@ -3141,6 +3141,57 @@ describe('content package source contract', () => {
     expect(JSON.stringify(inheritedResult)).not.toContain('direct-json-caller-rootPath')
   })
 
+  it('detaches caller-provided direct JSON identities from later caller object mutation', async() => {
+    const callerIdentity = {
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/direct-json-mutable-caller-identity',
+      rootPath: 'packs'
+    }
+    const hostOperations: string[] = []
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        throw new Error('source identity must not be read when caller supplies identity')
+      },
+      async getEntry(path) {
+        hostOperations.push(`inspect:${path}`)
+        callerIdentity.sourceId = 'C:/Users/LENOVO/mods/mutated-direct-json-caller-sourceId'
+        callerIdentity.rootPath = 'C:/Users/LENOVO/mods/mutated-direct-json-caller-rootPath'
+        if (path === 'pack/manifest.json') {
+          return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+        }
+        return null
+      },
+      async readDirectory() {
+        throw new Error('direct JSON identity mutation checks should not list directories')
+      },
+      async readTextFile(path) {
+        hostOperations.push(`read:${path}`)
+        return toJson(createManifest('direct_json_mutable_caller_identity'))
+      },
+      async dispose() {}
+    }
+
+    const result = await readContentPackageSourceJson(
+      source,
+      'pack/manifest.json',
+      CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
+      callerIdentity
+    )
+
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.data).toMatchObject({ id: 'direct_json_mutable_caller_identity' })
+    }
+    expect(hostOperations).toEqual([
+      'inspect:pack/manifest.json',
+      'read:pack/manifest.json'
+    ])
+    expect(JSON.stringify({ result, hostOperations })).not.toContain('C:/Users')
+    expect(JSON.stringify({ result, hostOperations })).not.toContain('LENOVO')
+    expect(JSON.stringify({ result, hostOperations })).not.toContain('mutated-direct-json-caller')
+  })
+
   it('keeps caller-validated direct JSON identities while unavailable sources stay structured and path-free', async() => {
     const cases = [
       {
