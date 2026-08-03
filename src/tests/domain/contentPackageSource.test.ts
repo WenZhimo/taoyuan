@@ -787,6 +787,50 @@ describe('content package source contract', () => {
     expect(filesReadAfterInvalidRootPath).toBe(false)
   })
 
+  it('requires memory source options metadata fields to be own and enumerable before getters can run', () => {
+    const optionsBase: Record<string, unknown> = {
+      sourceId: 'memory/options-own-field-containment',
+      rootPath: 'packs',
+      files: []
+    }
+
+    for (const fieldName of ['sourceId', 'rootPath', 'files']) {
+      const options = { ...optionsBase }
+      delete options[fieldName]
+      const inherited = defineInheritedHostileGetter(options, fieldName)
+
+      const error = captureSourceError(() =>
+        createMemoryContentPackageSource(inherited.value as never)
+      )
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_IDENTITY_INVALID',
+        message: 'Memory source options metadata must include sourceId, rootPath and files own fields'
+      })
+      expect(inherited.wasRead()).toBe(false)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    for (const fieldName of ['sourceId', 'rootPath', 'files']) {
+      const options = { ...optionsBase }
+      delete options[fieldName]
+      const hidden = defineHiddenHostileGetter(options, fieldName)
+
+      const error = captureSourceError(() =>
+        createMemoryContentPackageSource(hidden.value as never)
+      )
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_IDENTITY_INVALID',
+        message: 'Memory source options metadata contains unsupported fields'
+      })
+      expect(hidden.wasRead()).toBe(false)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+  })
+
   it('narrows memory source file metadata from unknown before publishing a source', async() => {
     const source = createMemoryContentPackageSource({
       sourceId: 'memory/file-metadata-source',
