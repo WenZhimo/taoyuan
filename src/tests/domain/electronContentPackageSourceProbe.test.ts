@@ -946,6 +946,26 @@ describe('electron content package source read-only probe', () => {
       message: 'Electron read-only source adapter host metadata could not be read'
     })
 
+    const hostMethodGetterErrors = (['getEntry', 'readDirectory', 'readTextFile'] as const).map(methodName => {
+      const hostileMethodHost: Record<string, unknown> = {
+        getEntry: host.getEntry,
+        readDirectory: host.readDirectory,
+        readTextFile: host.readTextFile
+      }
+      Object.defineProperty(hostileMethodHost, methodName, {
+        enumerable: true,
+        get() {
+          throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${methodName}`)
+        }
+      })
+      const error = captureProbeCreateError({ host: hostileMethodHost })
+      expect(error).toMatchObject({
+        code: 'SOURCE_ENTRY_UNSAFE',
+        message: 'Electron read-only source adapter host metadata could not be read'
+      })
+      return error
+    })
+
     let inheritedMethodRead = false
     const inheritedHostPrototype = {}
     Object.defineProperty(inheritedHostPrototype, 'getEntry', {
@@ -1039,6 +1059,7 @@ describe('electron content package source read-only probe', () => {
       hostileRootPathError,
       hostExtraFieldError,
       hostOwnKeysError,
+      ...hostMethodGetterErrors,
       inheritedHostError,
       hiddenMethodHostError,
       nonFunctionMethodError,
