@@ -6715,6 +6715,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'memory source file metadata own-field containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers memory source file path/text metadata being required as enumerable own fields before source publication, preventing inherited or hidden host-path-bearing getters from running while preserving the no-write source publication boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'content package source contract fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

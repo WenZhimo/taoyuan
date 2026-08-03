@@ -959,6 +959,53 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('memory-file-count')
   })
 
+  it('requires memory source file metadata fields to be own and enumerable before getters can run', () => {
+    const fileBase: Record<string, unknown> = {
+      path: 'pack/manifest.json',
+      text: '{}\n'
+    }
+
+    for (const fieldName of ['path', 'text']) {
+      const file = { ...fileBase }
+      delete file[fieldName]
+      const inherited = defineInheritedHostileGetter(file, fieldName)
+
+      const error = captureSourceError(() => createMemoryContentPackageSource({
+        sourceId: 'memory/inherited-file-metadata',
+        rootPath: 'packs',
+        files: [inherited.value as never]
+      }))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_ENTRY_UNSAFE',
+        message: 'Memory source file metadata must include path and text own fields'
+      })
+      expect(inherited.wasRead()).toBe(false)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+
+    for (const fieldName of ['path', 'text']) {
+      const file = { ...fileBase }
+      delete file[fieldName]
+      const hidden = defineHiddenHostileGetter(file, fieldName)
+
+      const error = captureSourceError(() => createMemoryContentPackageSource({
+        sourceId: 'memory/hidden-file-metadata',
+        rootPath: 'packs',
+        files: [hidden.value as never]
+      }))
+
+      expect(error).toMatchObject({
+        code: 'SOURCE_ENTRY_UNSAFE',
+        message: 'Memory source file metadata contains unsupported fields'
+      })
+      expect(hidden.wasRead()).toBe(false)
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+    }
+  })
+
   it('redacts unsafe platform paths before direct reads or discovery diagnostics expose them', async() => {
     const source = createValidSource()
 

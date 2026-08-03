@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 250
+    "reviewedArtifactCount": 251
   },
   "entries": [
     {
@@ -16151,6 +16151,18 @@
       ],
       "status": "verified",
       "rationale": "Covers over-limit memory source file arrays being rejected before first or boundary file objects and their path/text metadata getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write source publication boundary."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "memory source file metadata own-field containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers memory source file path/text metadata being required as enumerable own fields before source publication, preventing inherited or hidden host-path-bearing getters from running while preserving the no-write source publication boundary."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",
