@@ -4799,6 +4799,46 @@ describe('content package source contract', () => {
     expect(JSON.stringify(cleanedError)).not.toContain('hostile-fragment')
   })
 
+  it('ignores inherited source error metadata getters before host operation sanitizing', () => {
+    const hostError = new ContentPackageSourceError(
+      'SOURCE_PERMISSION_REVOKED',
+      'Content package source permission was revoked',
+      'pack/manifest.json'
+    )
+    Reflect.deleteProperty(hostError, 'code')
+    Reflect.deleteProperty(hostError, 'message')
+    Reflect.deleteProperty(hostError, 'sourcePath')
+    const readFields: string[] = []
+    const inheritedMetadata = Object.create(ContentPackageSourceError.prototype)
+    for (const fieldName of ['code', 'message', 'sourcePath'] as const) {
+      Object.defineProperty(inheritedMetadata, fieldName, {
+        enumerable: true,
+        get() {
+          readFields.push(fieldName)
+          throw new Error(`EACCES: inherited C:/Users/LENOVO/mods/${fieldName}\nhostile-fragment`)
+        }
+      })
+    }
+    Object.setPrototypeOf(hostError, inheritedMetadata)
+
+    expect(hostError).toBeInstanceOf(ContentPackageSourceError)
+    const cleanedError = toContentPackageSourceHostOperationError(
+      'read',
+      hostError,
+      'pack/manifest.json'
+    )
+
+    expect(readFields).toEqual([])
+    expect(cleanedError).toMatchObject({
+      code: 'SOURCE_ENTRY_NOT_FOUND',
+      message: 'Content package source read operation failed',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(JSON.stringify(cleanedError)).not.toContain('C:/Users')
+    expect(JSON.stringify(cleanedError)).not.toContain('LENOVO')
+    expect(JSON.stringify(cleanedError)).not.toContain('hostile-fragment')
+  })
+
   it('redacts host path messages even when host failures use source errors', async() => {
     const sourceErrorReadFailureSource: ContentPackageSource = {
       identity: {

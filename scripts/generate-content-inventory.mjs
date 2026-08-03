@@ -6491,7 +6491,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Clones accepted ContentPackageSourceError host failures into clean source-operation envelopes so extra enumerable host fields cannot leak absolute paths or hostile fragments when the sanitizer result or bridge callers serialize errors; direct regressions preserve safe code/message/sourcePath semantics while proving the returned error is detached from the host object and later host error metadata mutation, keeping the boundary read-only.'
+    rationale: 'Clones accepted ContentPackageSourceError host failures into clean source-operation envelopes so extra enumerable host fields cannot leak absolute paths or hostile fragments when the sanitizer result or bridge callers serialize errors; direct regressions preserve safe code/message/sourcePath semantics while proving inherited host metadata getters are ignored, the returned error is detached from the host object and later host error metadata mutation, keeping the boundary read-only.'
   },
   {
     file: 'src/domain/mods/electronContentPackageSourceProbe.ts',
@@ -6772,6 +6772,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers Electron read-only source host optional dispose metadata getter failures being rejected as SOURCE_ENTRY_UNSAFE before source publication, host inspect/list/read operations, runtime enablement, IPC exposure, lockfile/settings/save/cache/package writes or transaction logs, while redacting host-path-bearing getter fragments.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'source error inherited metadata getter containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers host ContentPackageSourceError code/message/sourcePath metadata being accepted only from own fields before source-operation sanitizing, preventing inherited host-path-bearing metadata getters from running while preserving the no-write source error boundary.'
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
