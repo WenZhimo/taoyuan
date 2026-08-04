@@ -1594,6 +1594,40 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects sparse archive entry arrays before reading later entry metadata', () => {
+    let laterPathRead = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const archiveEntries = Array(2)
+    archiveEntries[1] = {
+      get path() {
+        laterPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sparse-path')
+      },
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sparse-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sparse-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries(archiveEntries))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be a dense JSON array'
+    })
+    expect(laterPathRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sparse')
+  })
+
   it('wraps revoked proxy metadata before raw platform errors can escape', () => {
     const revokedIdentityError = captureSourceError(() => validateContentPackageSourceIdentity(
       createRevokedProxy({

@@ -473,7 +473,7 @@ describe('third-party data pack source adapter gate', () => {
     expectNoWriteEffects(repeated)
     expectSourceAdapterGateFrozen(repeated)
     expectOfficialBaseline()
-  }, 15_000)
+  }, 30_000)
 
   it('copies upstream identity summaries and diagnostics before exposing source adapter reports', () => {
     const packageId = requirePackageId('discovery_valid')

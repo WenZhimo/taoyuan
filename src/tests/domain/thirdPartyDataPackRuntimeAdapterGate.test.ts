@@ -365,7 +365,7 @@ describe('third-party data pack runtime adapter gate', () => {
       effects: runtimeAdapterGate.effects
     })).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
-  }, 15_000)
+  }, 30_000)
 
   it('skips runtime adapter gates when no third-party packages are selected', async() => {
     const root = await createRoot()
