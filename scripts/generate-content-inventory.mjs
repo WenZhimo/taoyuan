@@ -6661,7 +6661,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers deferred, skipped and blocked runtime adapter gate outcomes, frozen full report output graphs including package arrays, official/candidate identity summaries, diagnostics with relatedPackageIds and nested JSON details, required Electron/Web/Android/shared adapter enumeration and no-write effect summary, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers deferred, skipped and blocked runtime adapter gate outcomes, frozen full report output graphs including package arrays, official/candidate identity summaries, diagnostics with relatedPackageIds and nested JSON details, inherited diagnostic detail metadata containment, required Electron/Web/Android/shared adapter enumeration and no-write effect summary, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
