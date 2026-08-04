@@ -167,6 +167,7 @@ const errorMessage = (error: unknown): string => {
   const message = readStringErrorField(error, 'message')
   if (message.status === 'value') return message.value
   if (message.status === 'unreadable') return unreadableErrorMessage
+  if (typeof error === 'object' && error !== null) return unreadableErrorMessage
   try {
     return String(error)
   } catch {

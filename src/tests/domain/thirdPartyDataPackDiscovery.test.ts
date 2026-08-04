@@ -140,6 +140,31 @@ const createInheritedCodeHostFailure = (): {
   }
 }
 
+const createInheritedMessageHostFailure = (): {
+  readonly error: ContentPackageSourceError
+  readonly wasMessageRead: () => boolean
+} => {
+  let messageRead = false
+  const error = new ContentPackageSourceError(
+    'SOURCE_PERMISSION_REVOKED',
+    'Permission denied while inspecting package source'
+  )
+  Reflect.deleteProperty(error, 'message')
+  const prototype = Object.create(Object.getPrototypeOf(error))
+  Object.defineProperty(prototype, 'message', {
+    enumerable: true,
+    get() {
+      messageRead = true
+      throw new Error('EACCES: inherited C:/Users/LENOVO/mods/source-message\nhostile-fragment')
+    }
+  })
+  Object.setPrototypeOf(error, prototype)
+  return {
+    error,
+    wasMessageRead: () => messageRead
+  }
+}
+
 const createInheritedSourcePathHostFailure = (): {
   readonly error: ContentPackageSourceError
   readonly wasSourcePathRead: () => boolean
@@ -2070,6 +2095,34 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
     expect(JSON.stringify(report)).not.toContain('source-code')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+  })
+
+  it('ignores inherited raw file system failure message metadata before diagnostics', async() => {
+    const inheritedFailure = createInheritedMessageHostFailure()
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw inheritedFailure.error
+      },
+      async readDirectory() {
+        throw new Error('inherited raw message metadata must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inherited raw message metadata must stop before reading')
+      }
+    })
+
+    const details = report.issues[0]?.diagnostics[0]?.details ?? {}
+
+    expect(inheritedFailure.wasMessageRead()).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(details).toMatchObject({
+      message: 'Package source inspect operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('source-message')
     expect(JSON.stringify(report)).not.toContain('hostile-fragment')
   })
 
