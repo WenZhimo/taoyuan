@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { JsonValue } from '@/domain/mods/canonicalJson'
 import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId } from '@/domain/mods/ids'
@@ -477,14 +478,24 @@ describe('third-party data pack source adapter gate', () => {
   it('copies upstream identity summaries and diagnostics before exposing source adapter reports', () => {
     const packageId = requirePackageId('discovery_valid')
     const relatedPackageId = requirePackageId('related_pack')
+    let inheritedDetailsRead = false
+    const inheritedDetailsPrototype = {}
+    Object.defineProperty(inheritedDetailsPrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/source-adapter-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = Object.assign(Object.create(inheritedDetailsPrototype), {
+      reason: 'original',
+      nested: { count: 1 },
+      list: ['original']
+    }) as Record<string, JsonValue>
     const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
       stage: 'third-party.source-adapter.test',
       relatedPackageIds: [relatedPackageId],
-      details: {
-        reason: 'original',
-        nested: { count: 1 },
-        list: ['original']
-      }
+      details: diagnosticDetails
     })
     const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
       status: 'deferred',
@@ -536,6 +547,7 @@ describe('third-party data pack source adapter gate', () => {
       runtimeAdapterGate
     } as never)
 
+    expect(inheritedDetailsRead).toBe(false)
     expect(gate.officialIdentity).toEqual(runtimeAdapterGate.officialIdentity)
     expect(gate.candidateIdentity).toEqual(runtimeAdapterGate.candidateIdentity)
     expect(gate.officialIdentity).not.toBe(runtimeAdapterGate.officialIdentity)
@@ -544,6 +556,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(gate.diagnostics[0]).not.toBe(upstreamDiagnostic)
     expect(gate.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
     expect(gate.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(gate.diagnostics[0]?.details).not.toHaveProperty('hostPath')
     expect(gate.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
     expect(gate.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
     expectSourceAdapterGateFrozen(gate)
@@ -607,6 +620,10 @@ describe('third-party data pack source adapter gate', () => {
         list: ['original']
       }
     })
+    expect(inheritedDetailsRead).toBe(false)
+    expect(JSON.stringify(gate)).not.toContain('C:/Users')
+    expect(JSON.stringify(gate)).not.toContain('LENOVO')
+    expect(JSON.stringify(gate)).not.toContain('source-adapter-diagnostic-detail')
     expectNoWriteEffects(gate)
     expectOfficialBaseline()
   })

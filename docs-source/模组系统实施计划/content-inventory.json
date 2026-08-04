@@ -16342,7 +16342,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers deferred, skipped and blocked source adapter gate outcomes after the shared source contract is defined, frozen full Source Adapter Gate report object graphs for top-level status, package arrays, official/candidate identity summaries, diagnostics, relatedPackageIds, nested JSON details, five satisfied source-contract matrix entries and no-write effect summary, absence of candidate artifact and platform source exposure, upstream official/candidate identity summary and diagnostic object copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers deferred, skipped and blocked source adapter gate outcomes after the shared source contract is defined, frozen full Source Adapter Gate report object graphs for top-level status, package arrays, official/candidate identity summaries, diagnostics, relatedPackageIds, nested JSON details, inherited diagnostic detail metadata containment, five satisfied source-contract matrix entries and no-write effect summary, absence of candidate artifact and platform source exposure, upstream official/candidate identity summary and diagnostic object copy boundaries, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackRepairReport.test.ts",
