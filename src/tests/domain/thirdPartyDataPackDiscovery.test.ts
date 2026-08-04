@@ -5,7 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
-import { CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS } from '@/domain/mods/contentPackageSource'
+import { CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS, ContentPackageSourceError } from '@/domain/mods/contentPackageSource'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import {
   discoverThirdPartyDataPacks,
@@ -137,6 +137,31 @@ const createInheritedCodeHostFailure = (): {
   return {
     error,
     wasCodeRead: () => codeRead
+  }
+}
+
+const createInheritedSourcePathHostFailure = (): {
+  readonly error: ContentPackageSourceError
+  readonly wasSourcePathRead: () => boolean
+} => {
+  let sourcePathRead = false
+  const error = new ContentPackageSourceError(
+    'SOURCE_PERMISSION_REVOKED',
+    'Permission denied while inspecting package source'
+  )
+  Reflect.deleteProperty(error, 'sourcePath')
+  const prototype = Object.create(Object.getPrototypeOf(error))
+  Object.defineProperty(prototype, 'sourcePath', {
+    enumerable: true,
+    get() {
+      sourcePathRead = true
+      throw new Error('EACCES: inherited C:/Users/LENOVO/mods/source-path\nhostile-fragment')
+    }
+  })
+  Object.setPrototypeOf(error, prototype)
+  return {
+    error,
+    wasSourcePathRead: () => sourcePathRead
   }
 }
 
@@ -2045,6 +2070,35 @@ describe('third-party data pack read-only discovery', () => {
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
     expect(JSON.stringify(report)).not.toContain('source-code')
+    expect(JSON.stringify(report)).not.toContain('hostile-fragment')
+  })
+
+  it('ignores inherited raw file system failure sourcePath metadata before diagnostics', async() => {
+    const inheritedFailure = createInheritedSourcePathHostFailure()
+    const report = await discoverThirdPartyDataPacks('mods', {
+      async getEntry() {
+        throw inheritedFailure.error
+      },
+      async readDirectory() {
+        throw new Error('inherited raw sourcePath metadata must stop before listing')
+      },
+      async readTextFile() {
+        throw new Error('inherited raw sourcePath metadata must stop before reading')
+      }
+    })
+
+    const details = report.issues[0]?.diagnostics[0]?.details ?? {}
+
+    expect(inheritedFailure.wasSourcePathRead()).toBe(false)
+    expect(report.status).toBe('directory-not-found')
+    expect(details).toMatchObject({
+      message: 'Permission denied while inspecting package source',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(details).not.toHaveProperty('sourcePath')
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('source-path')
     expect(JSON.stringify(report)).not.toContain('hostile-fragment')
   })
 

@@ -6531,7 +6531,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers legal, legacy-manifest, schema-invalid, JSON-invalid including unsafe parse-fragment redaction, missing-manifest, missing-content, non-JSON, unsupported-registry, unsafe-path, unsafe absolute, platform-separator and control-character entrypoint redaction, malformed raw discovery root including unsupported and unreadable root getEntry metadata, non-directory and symbolic-link roots plus platform-separator and control-character root entry names before listing, reading, path composition or later kind/symbolic-link metadata getters, directory array length/metadata/enumerable-own-index/presence-trap/index-getter/revoked-array boundaries, revoked raw entry metadata containment, explicit enumerable own name/kind/symbolic-link metadata and getEntry metadata rejection before path composition or payload reads, raw inspect/list/read host failure redaction including sourcePath-only host paths/control characters, inherited raw file system failure metadata containment, extra host-field containment and unstructured path-free messages, structured discovery diagnostic preservation, unsafe sourceCode redaction, unreadable host failure metadata getter redaction, dependency, optional dependency, manifest conflict, same-package duplicate, cross-package conflict and identical duplicate fixtures, candidate/top-level discovery issue diagnostic copy boundaries, and frozen candidate manifest/content-file exposure boundaries; proves symlinked candidate roots, symlinked discovery roots, symlinked entrypoint parents, non-directory entrypoint parents and directory entrypoint payloads are rejected before payload reads, invalid packages are not injected into official registries, and player settings/save files and unrelated large files are not read or modified.'
+    rationale: 'Covers legal, legacy-manifest, schema-invalid, JSON-invalid including unsafe parse-fragment redaction, missing-manifest, missing-content, non-JSON, unsupported-registry, unsafe-path, unsafe absolute, platform-separator and control-character entrypoint redaction, malformed raw discovery root including unsupported and unreadable root getEntry metadata, non-directory and symbolic-link roots plus platform-separator and control-character root entry names before listing, reading, path composition or later kind/symbolic-link metadata getters, directory array length/metadata/enumerable-own-index/presence-trap/index-getter/revoked-array boundaries, revoked raw entry metadata containment, explicit enumerable own name/kind/symbolic-link metadata and getEntry metadata rejection before path composition or payload reads, raw inspect/list/read host failure redaction including sourcePath-only host paths/control characters, inherited raw file system failure code/sourcePath metadata containment, extra host-field containment and unstructured path-free messages, structured discovery diagnostic preservation, unsafe sourceCode redaction, unreadable host failure metadata getter redaction, dependency, optional dependency, manifest conflict, same-package duplicate, cross-package conflict and identical duplicate fixtures, candidate/top-level discovery issue diagnostic copy boundaries, and frozen candidate manifest/content-file exposure boundaries; proves symlinked candidate roots, symlinked discovery roots, symlinked entrypoint parents, non-directory entrypoint parents and directory entrypoint payloads are rejected before payload reads, invalid packages are not injected into official registries, and player settings/save files and unrelated large files are not read or modified.'
   },
   {
     file: 'scripts/check-third-party-packs.mjs',
@@ -6792,6 +6792,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers raw file system failure metadata accepted only from own fields before discovery diagnostics, preventing inherited host-path-bearing code getters from running while preserving the no-write discovery boundary.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackDiscovery.test.ts',
+    exportName: 'raw file system failure inherited sourcePath containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-data-pack-discovery',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers structured raw file system failure sourcePath metadata accepted only from own fields before discovery diagnostics, preventing inherited host-path-bearing sourcePath getters from running while preserving safe sourceCode diagnostics and the no-write discovery boundary.'
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
