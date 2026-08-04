@@ -1,5 +1,5 @@
 import { cwd } from 'node:process'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
@@ -3968,6 +3968,56 @@ describe('content package source contract', () => {
       ok: false,
       code: 'SOURCE_LIMIT_EXCEEDED'
     })
+  })
+
+  it('does not stringify object JSON parse failures before direct JSON diagnostics', async() => {
+    const source = createMemoryContentPackageSource({
+      sourceId: 'memory/json-parse-object-failure',
+      rootPath: 'packs',
+      files: [
+        { path: 'pack/manifest.json', text: toJson(createManifest('json_parse_object_failure')) }
+      ]
+    })
+    let inheritedMessageRead = false
+    let stringified = false
+    const prototype = {}
+    Object.defineProperty(prototype, 'message', {
+      enumerable: true,
+      get() {
+        inheritedMessageRead = true
+        throw new Error('EACCES: inherited C:/Users/LENOVO/mods/json-parse-message')
+      }
+    })
+    const parseFailure = Object.create(prototype) as { toString: () => string }
+    Object.defineProperty(parseFailure, 'toString', {
+      enumerable: true,
+      value() {
+        stringified = true
+        return 'C:/Users/LENOVO/mods/json-parse-to-string\nhostile-fragment'
+      }
+    })
+    const parseSpy = vi.spyOn(JSON, 'parse').mockImplementationOnce(() => {
+      throw parseFailure
+    })
+
+    try {
+      const result = await readContentPackageSourceJson(source, 'pack/manifest.json')
+
+      expect(result).toMatchObject({
+        ok: false,
+        code: 'SOURCE_JSON_PARSE_FAILED',
+        message: 'JSON parsing failed'
+      })
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
+      expect(parseSpy).toHaveBeenCalledTimes(1)
+    } finally {
+      parseSpy.mockRestore()
+    }
+
+    expect(inheritedMessageRead).toBe(false)
+    expect(stringified).toBe(false)
   })
 
   it('freezes direct JSON read result graphs before callers validate data', async() => {

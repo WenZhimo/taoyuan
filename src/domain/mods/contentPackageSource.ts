@@ -179,6 +179,7 @@ const errorMessage = (error: unknown): string => {
   const message = readStringErrorField(error, 'message')
   if (message.status === 'value') return message.value
   if (message.status === 'unreadable') return unreadableErrorMessage
+  if (typeof error === 'object' && error !== null) return unreadableErrorMessage
   try {
     return String(error)
   } catch {
@@ -298,7 +299,9 @@ const sourceErrorMayContainUnsafeDiagnosticText = (
 
 const jsonParseFailureMessage = (error: unknown): string => {
   const message = errorMessage(error)
-  return mayContainHostPath(message) || hasUnsafePathControlCharacter(message)
+  return message === unreadableErrorMessage
+    || mayContainHostPath(message)
+    || hasUnsafePathControlCharacter(message)
     ? 'JSON parsing failed'
     : message
 }

@@ -6835,6 +6835,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'direct JSON parse failure object-stringification containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers direct ContentPackageSource JSON parsing diagnostics avoiding inherited host-path-bearing message getters and object stringification fallback when parse failures lack own message metadata, preserving the no-write unknown JSON boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'content package source contract fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
