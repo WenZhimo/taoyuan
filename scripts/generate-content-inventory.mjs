@@ -6651,7 +6651,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers deferred, skipped and blocked transaction preflight outcomes, frozen required lifecycle transaction primitive enumeration, frozen install/upgrade/disable/uninstall stage summaries including nested lifecycle stages, frozen no-write effect summaries, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers deferred, skipped and blocked transaction preflight outcomes, frozen required lifecycle transaction primitive enumeration, frozen install/upgrade/disable/uninstall stage summaries including nested lifecycle stages, frozen no-write effect summaries, absence of candidate artifact exposure, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds, nested details and inherited diagnostic detail metadata containment, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackRuntimeAdapterGate.test.ts',
