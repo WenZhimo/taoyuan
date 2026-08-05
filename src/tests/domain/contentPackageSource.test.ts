@@ -1497,6 +1497,60 @@ describe('content package source contract', () => {
     expect(JSON.stringify(report)).not.toContain('LENOVO')
   })
 
+  it('rejects unsupported symbol directory entry metadata before own getters can run', () => {
+    let nameRead = false
+    let kindRead = false
+    let symbolicLinkRead = false
+    let symbolRead = false
+    const symbolMetadataKey = Symbol('hostPath')
+    const directoryEntry = {}
+    Object.defineProperty(directoryEntry, 'name', {
+      enumerable: true,
+      get() {
+        nameRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-symbol-name')
+      }
+    })
+    Object.defineProperty(directoryEntry, 'kind', {
+      enumerable: true,
+      get() {
+        kindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-symbol-kind')
+      }
+    })
+    Object.defineProperty(directoryEntry, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        symbolicLinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-symbol-symlink')
+      }
+    })
+    Object.defineProperty(directoryEntry, symbolMetadataKey, {
+      enumerable: true,
+      get() {
+        symbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-symbol-hostPath\nhostile-fragment')
+      }
+    })
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      directoryEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source entry metadata contains unsupported fields'
+    })
+    expect(nameRead).toBe(false)
+    expect(kindRead).toBe(false)
+    expect(symbolicLinkRead).toBe(false)
+    expect(symbolRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-symbol')
+    expect(JSON.stringify(error)).not.toContain('hostile-fragment')
+  })
+
   it('rejects over-limit directory metadata arrays before reading first or boundary entries', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     const { entries, wasFirstEntryRead, wasBoundaryEntryRead } = createOverLimitMetadataArray(index => ({
