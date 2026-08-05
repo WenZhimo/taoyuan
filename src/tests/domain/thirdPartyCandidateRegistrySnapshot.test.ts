@@ -472,6 +472,61 @@ describe('third-party candidate registry snapshot', () => {
     expectOfficialBaseline()
   })
 
+  it('ignores inherited discovery diagnostic details before exposing invalid results', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      items: [createItem('bad_library:broken', -1)]
+    })
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected discovery diagnostics for invalid test package.')
+
+    let inheritedDetailsRead = false
+    const inheritedDetailsPrototype = {}
+    Object.defineProperty(inheritedDetailsPrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-diagnostics')
+      }
+    })
+    upstreamDiagnostic.details = Object.assign(Object.create(inheritedDetailsPrototype), {
+      reason: 'original diagnostic',
+      nested: { marker: 'original' },
+      list: ['original']
+    }) as NonNullable<typeof upstreamDiagnostic.details>
+    const originalStage = upstreamDiagnostic.stage
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport
+    })
+    const copiedDiagnostic = result.diagnostics.find(diagnostic => diagnostic.stage === originalStage)
+    if (!copiedDiagnostic) throw new Error('Expected copied candidate snapshot diagnostic.')
+
+    expect(result.status).toBe('invalid')
+    expect(inheritedDetailsRead).toBe(false)
+    expect(copiedDiagnostic.details).toMatchObject({
+      reason: 'original diagnostic',
+      nested: { marker: 'original' },
+      list: ['original']
+    })
+    expect(copiedDiagnostic.details).not.toHaveProperty('hostPath')
+    expect(Object.isFrozen(copiedDiagnostic.details)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details?.nested)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details?.list)).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-diagnostics')
+    expectOfficialBaseline()
+  })
+
   it('rejects third-party entries that collide with official content ids', async() => {
     const root = await createRoot()
     await createPack(root, 'official-conflict', {

@@ -6331,7 +6331,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Builds a read-only in-memory candidate RegistrySet from the selected third-party load order by cloning the official frozen baseline, registering already TypeBox-validated third-party entries into the clone, rejecting official content conflicts and selected third-party duplicates, rerunning structure/semantic/freeze gates, copying diagnostics including nested details, freezing the exposed valid/skipped/invalid result graphs including package arrays, source summary, identities, diagnostics and serializable candidate snapshot, and returning summaries without publishing a runtime registry, lockfile, cache, save or settings write.'
+    rationale: 'Builds a read-only in-memory candidate RegistrySet from the selected third-party load order by cloning the official frozen baseline, registering already TypeBox-validated third-party entries into the clone, rejecting official content conflicts and selected third-party duplicates, rerunning structure/semantic/freeze gates, copying diagnostics including relatedPackageIds and nested JSON details while ignoring inherited diagnostic detail metadata, freezing the exposed valid/skipped/invalid result graphs including package arrays, source summary, identities, diagnostics and serializable candidate snapshot, and returning summaries without publishing a runtime registry, lockfile, cache, save or settings write.'
   },
   {
     file: 'src/domain/mods/schemas.ts',
