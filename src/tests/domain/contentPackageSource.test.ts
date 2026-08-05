@@ -1495,6 +1495,49 @@ describe('content package source contract', () => {
     expect(JSON.stringify(duplicateListingReport)).not.toContain('LENOVO-private-pack')
   })
 
+  it('rejects duplicate directory entry names before reading kind or symlink metadata', () => {
+    let kindReadCount = 0
+    let symlinkReadCount = 0
+    const createDuplicateEntry = () => {
+      const entry: Record<string, unknown> = {}
+      Object.defineProperty(entry, 'name', {
+        enumerable: true,
+        value: 'LENOVO-private-pack'
+      })
+      Object.defineProperty(entry, 'kind', {
+        enumerable: true,
+        get() {
+          kindReadCount += 1
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-duplicate-kind')
+        }
+      })
+      Object.defineProperty(entry, 'isSymbolicLink', {
+        enumerable: true,
+        get() {
+          symlinkReadCount += 1
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-duplicate-symlink')
+        }
+      })
+      return entry
+    }
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      createDuplicateEntry(),
+      createDuplicateEntry()
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Duplicate source directory entry'
+    })
+    expect(kindReadCount).toBe(0)
+    expect(symlinkReadCount).toBe(0)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-duplicate')
+    expect(JSON.stringify(error)).not.toContain('private-pack')
+  })
+
   it('turns hostile source directory entry names into structured unsafe-path diagnostics', async() => {
     const source: ContentPackageSource = {
       identity: {

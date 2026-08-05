@@ -56,6 +56,11 @@ interface ContentPackageSourceUnknownDirectoryEntry {
   readonly isSymbolicLink: boolean
 }
 
+interface ContentPackageSourceDirectoryEntryNameMetadata {
+  readonly name: string
+  readonly entryMetadata: Record<string, unknown>
+}
+
 export interface ContentPackageSource {
   readonly identity: ContentPackageSourceIdentity
   getEntry(path: string): Promise<ContentPackageSourceDirectoryEntry | null>
@@ -623,7 +628,15 @@ export const normalizeContentPackageSourceEntryName = (
 export const normalizeContentPackageSourceDirectoryEntry = (
   entry: unknown,
   policy: ContentPackageSourceSafeReadPolicy = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
-): ContentPackageSourceDirectoryEntry => {
+): ContentPackageSourceDirectoryEntry =>
+  normalizeContentPackageSourceDirectoryEntryKindMetadata(
+    normalizeContentPackageSourceDirectoryEntryNameMetadata(entry, policy)
+  )
+
+const normalizeContentPackageSourceDirectoryEntryNameMetadata = (
+  entry: unknown,
+  policy: ContentPackageSourceSafeReadPolicy
+): ContentPackageSourceDirectoryEntryNameMetadata => {
   if (
     typeof entry !== 'object'
     || entry === null
@@ -663,6 +676,13 @@ export const normalizeContentPackageSourceDirectoryEntry = (
   }
   const normalizedName = normalizeContentPackageSourceEntryName(name, policy)
 
+  return { name: normalizedName, entryMetadata }
+}
+
+const normalizeContentPackageSourceDirectoryEntryKindMetadata = (
+  metadata: ContentPackageSourceDirectoryEntryNameMetadata
+): ContentPackageSourceDirectoryEntry => {
+  const entryMetadata = metadata.entryMetadata
   const kind = readUnknownMetadataField(
     entryMetadata,
     'kind',
@@ -695,9 +715,13 @@ export const normalizeContentPackageSourceDirectoryEntry = (
     )
   }
 
-  const unknownEntry: ContentPackageSourceUnknownDirectoryEntry = { name, kind, isSymbolicLink }
+  const unknownEntry: ContentPackageSourceUnknownDirectoryEntry = {
+    name: metadata.name,
+    kind,
+    isSymbolicLink
+  }
   return freezeContentPackageSourceDirectoryEntry({
-    name: normalizedName,
+    name: unknownEntry.name,
     kind: unknownEntry.kind as ContentPackageSourceEntryKind,
     isSymbolicLink: unknownEntry.isSymbolicLink
   })
@@ -717,8 +741,8 @@ export const normalizeContentPackageSourceDirectoryEntries = (
   )
 
   const seenNames = new Set<string>()
-  const normalizedEntries = metadataEntries.map(entry => {
-    const normalizedEntry = normalizeContentPackageSourceDirectoryEntry(entry, policy)
+  const entryMetadata = metadataEntries.map(entry => {
+    const normalizedEntry = normalizeContentPackageSourceDirectoryEntryNameMetadata(entry, policy)
     if (seenNames.has(normalizedEntry.name)) {
       throw new ContentPackageSourceError(
         'SOURCE_DUPLICATE_PATH',
@@ -726,6 +750,10 @@ export const normalizeContentPackageSourceDirectoryEntries = (
       )
     }
     seenNames.add(normalizedEntry.name)
+    return normalizedEntry
+  })
+  const normalizedEntries = entryMetadata.map(entry => {
+    const normalizedEntry = normalizeContentPackageSourceDirectoryEntryKindMetadata(entry)
     return Object.freeze(normalizedEntry)
   })
   return Object.freeze(normalizedEntries.sort((a, b) => compareCodePoints(a.name, b.name)))
