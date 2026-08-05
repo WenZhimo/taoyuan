@@ -329,6 +329,35 @@ const createExtraOwnKeyMetadataArray = (
   }
 }
 
+const createSymbolOwnKeyMetadataArray = (): {
+  readonly entries: unknown[]
+  readonly wasEntryRead: () => boolean
+  readonly wasSymbolRead: () => boolean
+} => {
+  const entries = Array(1)
+  let entryRead = false
+  let symbolRead = false
+  Object.defineProperty(entries, '0', {
+    enumerable: true,
+    get() {
+      entryRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-entry')
+    }
+  })
+  Object.defineProperty(entries, Symbol('hostPath'), {
+    enumerable: true,
+    get() {
+      symbolRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-symbol-hostPath')
+    }
+  })
+  return {
+    entries,
+    wasEntryRead: () => entryRead,
+    wasSymbolRead: () => symbolRead
+  }
+}
+
 const createMalformedLengthMetadataArray = (
   lengthValue: unknown,
   entry: unknown
@@ -1919,6 +1948,37 @@ describe('content package source contract', () => {
       expect(JSON.stringify(error)).not.toContain('LENOVO')
       expect(JSON.stringify(error)).not.toContain('hostPath')
       expect(JSON.stringify(error)).not.toContain('metadata-array-entry')
+    }
+  })
+
+  it('rejects metadata arrays with symbol own keys before entry or symbol getters can run', () => {
+    const directoryArray = createSymbolOwnKeyMetadataArray()
+    const archiveArray = createSymbolOwnKeyMetadataArray()
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      directoryArray.entries
+    ))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      archiveArray.entries
+    ))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be a dense JSON array'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be a dense JSON array'
+    })
+    expect(directoryArray.wasEntryRead()).toBe(false)
+    expect(directoryArray.wasSymbolRead()).toBe(false)
+    expect(archiveArray.wasEntryRead()).toBe(false)
+    expect(archiveArray.wasSymbolRead()).toBe(false)
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('hostPath')
+      expect(JSON.stringify(error)).not.toContain('metadata-array')
     }
   })
 
