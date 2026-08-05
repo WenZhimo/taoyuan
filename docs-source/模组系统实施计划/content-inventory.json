@@ -15970,7 +15970,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, lower gameVersion staged compatibility selection, newer game/engine/schema version blocking and dependent propagation, required and optional dependency cycle diagnostics, blocked discovery and selection issue diagnostic copy boundaries including relatedPackageIds and nested details, frozen exposed selection report output graphs, input immutability, repeated result stability and unchanged official registry counts and hashes."
+      "rationale": "Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, lower gameVersion staged compatibility selection, newer game/engine/schema version blocking and dependent propagation, required and optional dependency cycle diagnostics, blocked discovery and selection issue diagnostic copy boundaries including relatedPackageIds, nested details and inherited diagnostic detail metadata containment, frozen exposed selection report output graphs, input immutability, repeated result stability and unchanged official registry counts and hashes."
     },
     {
       "file": "src/tests/domain/thirdPartyCandidateRegistrySnapshot.test.ts",
