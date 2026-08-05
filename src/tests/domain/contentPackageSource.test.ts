@@ -2852,6 +2852,52 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('pack\\\\data')
   })
 
+  it('rejects over-limit archive entry paths before reading size metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    const overDepthPath = 'a/'.repeat(limits.maxPathDepth) + 'manifest.json'
+    const overBytePath = `${'a'.repeat(limits.maxPathUtf8Bytes + 1)}.json`
+    const readState = {
+      uncompressedSizeRead: false,
+      compressedSizeRead: false
+    }
+    const createHostileArchiveEntry = (archivePath: string) => ({
+      path: archivePath,
+      get uncompressedSizeBytes() {
+        readState.uncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-path-limit-size')
+      },
+      get compressedSizeBytes() {
+        readState.compressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-path-limit-compressed-size')
+      }
+    })
+
+    const overDepthError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      createHostileArchiveEntry(overDepthPath)
+    ]))
+    const overByteError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      createHostileArchiveEntry(overBytePath)
+    ]))
+
+    expect(overDepthError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Package path exceeds ${limits.maxPathDepth} segments: ${limits.maxPathDepth + 1}`,
+      sourcePath: overDepthPath
+    })
+    expect(overByteError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED'
+    })
+    expect(overByteError.message).toContain(`Package path exceeds ${limits.maxPathUtf8Bytes} UTF-8 bytes`)
+    expect(overByteError.sourcePath).toBe(overBytePath)
+    expect(readState.uncompressedSizeRead).toBe(false)
+    expect(readState.compressedSizeRead).toBe(false)
+    for (const error of [overDepthError, overByteError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('archive-path-limit')
+    }
+  })
+
   it('rejects non-string archive entry path metadata before coercion or size reads', () => {
     let pathCoerced = false
     let uncompressedSizeRead = false
