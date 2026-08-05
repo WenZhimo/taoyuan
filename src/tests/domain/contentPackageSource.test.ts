@@ -2563,6 +2563,46 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('pack\\\\data')
   })
 
+  it('rejects non-string archive entry path metadata before coercion or size reads', () => {
+    let pathCoerced = false
+    let uncompressedSizeRead = false
+    let compressedSizeRead = false
+    const hostileArchivePath = {
+      toString() {
+        pathCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-path-to-string')
+      },
+      [Symbol.toPrimitive]() {
+        pathCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-path-to-primitive')
+      }
+    }
+    const hostileArchiveEntry = {
+      path: hostileArchivePath,
+      get uncompressedSizeBytes() {
+        uncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-path-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        compressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-path-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([hostileArchiveEntry]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry path metadata must be a string'
+    })
+    expect(pathCoerced).toBe(false)
+    expect(uncompressedSizeRead).toBe(false)
+    expect(compressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-path')
+  })
+
   it('rejects archive path conflicts before reading size metadata', () => {
     let sizeMetadataReadCount = 0
     const createHostileArchiveEntry = (archivePath: string) => ({
