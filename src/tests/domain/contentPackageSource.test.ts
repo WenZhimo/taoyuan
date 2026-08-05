@@ -2549,6 +2549,64 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-size')
   })
 
+  it('rejects non-finite archive size metadata before compressed or later size reads', () => {
+    let invalidUncompressedCompressedSizeRead = false
+    let invalidCompressedLaterUncompressedSizeRead = false
+    let invalidCompressedLaterCompressedSizeRead = false
+    const invalidUncompressedEntry = {
+      path: 'a-pack/manifest.json',
+      uncompressedSizeBytes: Number.NaN,
+      get compressedSizeBytes() {
+        invalidUncompressedCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-non-finite-compressed-size')
+      }
+    }
+    const invalidCompressedEntry = {
+      path: 'a-pack/manifest.json',
+      uncompressedSizeBytes: 0,
+      compressedSizeBytes: Number.NEGATIVE_INFINITY
+    }
+    const laterArchiveEntry = {
+      path: 'b-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        invalidCompressedLaterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-non-finite-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        invalidCompressedLaterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-non-finite-later-compressed-size')
+      }
+    }
+
+    const invalidUncompressedError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      invalidUncompressedEntry,
+      laterArchiveEntry
+    ]))
+    const invalidCompressedError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      invalidCompressedEntry,
+      laterArchiveEntry
+    ]))
+
+    expect(invalidUncompressedError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'uncompressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'a-pack/manifest.json'
+    })
+    expect(invalidCompressedError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'compressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'a-pack/manifest.json'
+    })
+    expect(invalidUncompressedCompressedSizeRead).toBe(false)
+    expect(invalidCompressedLaterUncompressedSizeRead).toBe(false)
+    expect(invalidCompressedLaterCompressedSizeRead).toBe(false)
+    for (const error of [invalidUncompressedError, invalidCompressedError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('archive-non-finite')
+    }
+  })
+
   it('rejects non-number optional archive compressed-size metadata before coercion or later size reads', () => {
     let compressedSizeCoerced = false
     let laterUncompressedSizeRead = false
