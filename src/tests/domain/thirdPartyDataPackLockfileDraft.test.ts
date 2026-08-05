@@ -701,18 +701,28 @@ describe('third-party data pack lockfile draft', () => {
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
 
     const reports = await buildReportsFromRoot(root)
+    let inheritedHostPathRead = false
+    const inheritedDetailsPrototype = {}
+    Object.defineProperty(inheritedDetailsPrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedHostPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = Object.assign(Object.create(inheritedDetailsPrototype), {
+      reason: 'candidate warning',
+      nested: {
+        status: 'original',
+        values: ['first', { stable: true }]
+      }
+    })
     const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
       stage: 'test.lockfile-draft.upstream',
       severity: 'warning',
       packageId: requirePackageId('discovery_valid'),
       relatedPackageIds: [requirePackageId('discovery_valid')],
-      details: {
-        reason: 'candidate warning',
-        nested: {
-          status: 'original',
-          values: ['first', { stable: true }]
-        }
-      }
+      details: diagnosticDetails
     })
     const candidateSnapshot = {
       ...reports.candidateSnapshot,
@@ -730,6 +740,8 @@ describe('third-party data pack lockfile draft', () => {
     expect(draftResult.diagnostics[0]).not.toBe(upstreamDiagnostic)
     expect(draftResult.diagnostics[0]!.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
     expect(draftResult.diagnostics[0]!.details).not.toBe(upstreamDiagnostic.details)
+    expect(draftResult.diagnostics[0]!.details).not.toHaveProperty('hostPath')
+    expect(inheritedHostPathRead).toBe(false)
 
     upstreamDiagnostic.stage = 'mutated'
     upstreamDiagnostic.relatedPackageIds!.push(requirePackageId('other_package'))
@@ -756,6 +768,7 @@ describe('third-party data pack lockfile draft', () => {
         }
       }
     })
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-diagnostic-detail')
     expectOfficialBaseline()
   }, 15_000)
 })
