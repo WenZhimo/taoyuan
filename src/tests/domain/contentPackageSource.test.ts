@@ -1079,6 +1079,78 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects unsupported symbol memory source metadata before own getters can run', () => {
+    const optionReads: string[] = []
+    let optionSymbolRead = false
+    const optionMetadata: Record<PropertyKey, unknown> = {}
+    for (const fieldName of ['sourceId', 'rootPath', 'files']) {
+      Object.defineProperty(optionMetadata, fieldName, {
+        enumerable: true,
+        get() {
+          optionReads.push(fieldName)
+          throw new Error(`EACCES: stat C:/Users/LENOVO/mods/memory-options-${fieldName}`)
+        }
+      })
+    }
+    Object.defineProperty(optionMetadata, Symbol('hostPath'), {
+      enumerable: true,
+      get() {
+        optionSymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/memory-options-symbol')
+      }
+    })
+
+    const optionError = captureSourceError(() =>
+      createMemoryContentPackageSource(optionMetadata as never)
+    )
+
+    expect(optionError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Memory source options metadata contains unsupported fields'
+    })
+    expect(optionReads).toEqual([])
+    expect(optionSymbolRead).toBe(false)
+    expect(JSON.stringify(optionError)).not.toContain('C:/Users')
+    expect(JSON.stringify(optionError)).not.toContain('LENOVO')
+    expect(JSON.stringify(optionError)).not.toContain('memory-options')
+
+    const fileReads: string[] = []
+    let fileSymbolRead = false
+    const fileMetadata: Record<PropertyKey, unknown> = {}
+    for (const fieldName of ['path', 'text']) {
+      Object.defineProperty(fileMetadata, fieldName, {
+        enumerable: true,
+        get() {
+          fileReads.push(fieldName)
+          throw new Error(`EACCES: stat C:/Users/LENOVO/mods/memory-file-${fieldName}`)
+        }
+      })
+    }
+    Object.defineProperty(fileMetadata, Symbol('hostPath'), {
+      enumerable: true,
+      get() {
+        fileSymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/memory-file-symbol')
+      }
+    })
+
+    const fileError = captureSourceError(() => createMemoryContentPackageSource({
+      sourceId: 'memory/symbol-file-metadata',
+      rootPath: 'packs',
+      files: [fileMetadata as never]
+    }))
+
+    expect(fileError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Memory source file metadata contains unsupported fields'
+    })
+    expect(fileReads).toEqual([])
+    expect(fileSymbolRead).toBe(false)
+    expect(JSON.stringify(fileError)).not.toContain('C:/Users')
+    expect(JSON.stringify(fileError)).not.toContain('LENOVO')
+    expect(JSON.stringify(fileError)).not.toContain('memory-file')
+  })
+
   it('redacts unsafe platform paths before direct reads or discovery diagnostics expose them', async() => {
     const source = createValidSource()
 

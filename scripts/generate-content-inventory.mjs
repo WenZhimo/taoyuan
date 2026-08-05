@@ -6741,7 +6741,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers memory source options sourceId/rootPath/files metadata being required as enumerable own fields before source publication, preventing inherited or hidden host-path-bearing getters from running while preserving the no-write source publication boundary.'
+    rationale: 'Covers memory source options sourceId/rootPath/files metadata being required as enumerable own fields and unsupported Symbol own option metadata being rejected before source publication, preventing inherited, hidden or Symbol host-path-bearing getters from running while preserving the no-write source publication boundary.'
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
@@ -6751,7 +6751,27 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers memory source file path/text metadata being required as enumerable own fields before source publication, preventing inherited or hidden host-path-bearing getters from running while preserving the no-write source publication boundary.'
+    rationale: 'Covers memory source file path/text metadata being required as enumerable own fields and unsupported Symbol own file metadata being rejected before source publication, preventing inherited, hidden or Symbol host-path-bearing getters from running while preserving the no-write source publication boundary.'
+  },
+  {
+    file: 'src/domain/mods/contentPackageSource.ts',
+    exportName: 'createMemoryContentPackageSource symbol metadata containment',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Audits the memory ContentPackageSource publication boundary for unsupported Symbol own metadata on options and file entries, requiring rejection before sourceId/rootPath/files/path/text getters can run and keeping host-path-bearing getter fragments out of diagnostics without opening platform sources or writing package, lockfile, settings, save, cache or transaction-log state.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'memory source symbol metadata containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers unsupported Symbol own metadata on memory source options and file entries being rejected before supported field getters or Symbol getters can run, preserving path-free no-write diagnostics for the memory source adapter.'
   },
   {
     file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
