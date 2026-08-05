@@ -1091,6 +1091,70 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('rejects Electron source adapter symbol metadata before supported getters can run', () => {
+    let optionHostRead = false
+    let optionSymbolRead = false
+    const optionsWithSymbol = {}
+    Object.defineProperty(optionsWithSymbol, 'host', {
+      enumerable: true,
+      get() {
+        optionHostRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/electron-options-host')
+      }
+    })
+    Object.defineProperty(optionsWithSymbol, Symbol('hostPath'), {
+      enumerable: true,
+      get() {
+        optionSymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/electron-options-symbol-hostPath')
+      }
+    })
+
+    let hostMethodRead = false
+    let hostSymbolRead = false
+    const hostWithSymbol = {}
+    for (const methodName of ['getEntry', 'readDirectory', 'readTextFile'] as const) {
+      Object.defineProperty(hostWithSymbol, methodName, {
+        enumerable: true,
+        get() {
+          hostMethodRead = true
+          throw new Error(`EACCES: stat C:/Users/LENOVO/mods/electron-host-${methodName}`)
+        }
+      })
+    }
+    Object.defineProperty(hostWithSymbol, Symbol('hostPath'), {
+      enumerable: true,
+      get() {
+        hostSymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/electron-host-symbol-hostPath')
+      }
+    })
+
+    const optionsError = captureProbeCreateError(optionsWithSymbol)
+    const hostError = captureProbeCreateError({ host: hostWithSymbol })
+
+    expect(optionsError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata contains unsupported fields'
+    })
+    expect(hostError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Electron read-only source adapter host metadata contains unsupported fields'
+    })
+    expect(optionHostRead).toBe(false)
+    expect(optionSymbolRead).toBe(false)
+    expect(hostMethodRead).toBe(false)
+    expect(hostSymbolRead).toBe(false)
+    for (const error of [optionsError, hostError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('hostPath')
+      expect(JSON.stringify(error)).not.toContain('electron-options')
+      expect(JSON.stringify(error)).not.toContain('electron-host')
+    }
+    expectOfficialBaseline()
+  })
+
   it('ignores inherited optional Electron host dispose metadata before release', async() => {
     let inheritedDisposeRead = false
     const inheritedDisposePrototype = {}
