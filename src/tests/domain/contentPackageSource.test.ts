@@ -2363,6 +2363,55 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-size')
   })
 
+  it('rejects non-number optional archive compressed-size metadata before coercion or later size reads', () => {
+    let compressedSizeCoerced = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const hostileCompressedSize = {
+      valueOf() {
+        compressedSizeCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size-valueOf')
+      },
+      [Symbol.toPrimitive]() {
+        compressedSizeCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size-to-primitive')
+      }
+    }
+    const hostileArchiveEntry = {
+      path: 'a-pack/manifest.json',
+      uncompressedSizeBytes: 0,
+      compressedSizeBytes: hostileCompressedSize
+    }
+    const laterArchiveEntry = {
+      path: 'b-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      hostileArchiveEntry,
+      laterArchiveEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'compressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'a-pack/manifest.json'
+    })
+    expect(compressedSizeCoerced).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-compressed-size')
+  })
+
   it('rejects oversized single archive entries before reading compressed or later size metadata', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     let oversizedCompressedSizeRead = false
