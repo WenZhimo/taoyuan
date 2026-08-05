@@ -191,6 +191,22 @@ const expectOfficialBaseline = (): void => {
   })
 }
 
+const createInheritedDiagnosticsFailure = () => {
+  let diagnosticsRead = false
+  const prototype = {}
+  Object.defineProperty(prototype, 'diagnostics', {
+    enumerable: true,
+    get() {
+      diagnosticsRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/electron-mod-lock-diagnostics')
+    }
+  })
+  return {
+    error: Object.create(prototype) as unknown,
+    wasRead: () => diagnosticsRead
+  }
+}
+
 describe('electron main-process mod-lock storage path probe', () => {
   it('resolves packaged executable directory userdata without using configured system userData', async() => {
     const root = await createRoot()
@@ -491,5 +507,39 @@ describe('electron main-process mod-lock storage path probe', () => {
       (diagnosticNested.list as unknown as string[]).push('mutated')
     }).toThrow(TypeError)
     expect(JSON.stringify(report)).toBe(snapshot)
+  })
+
+  it('ignores inherited path diagnostics before exposing failed reports', async() => {
+    const inherited = createInheritedDiagnosticsFailure()
+    const host = {
+      get isPackaged() {
+        throw inherited.error
+      },
+      executablePath: path.join('relative', 'taoyuan.exe')
+    } as unknown as ElectronThirdPartyDataPackModLockPathHost
+    const probe = createElectronThirdPartyDataPackModLockStorageProbe({ host })
+
+    const report = await probe.inspect()
+
+    expect(report).toMatchObject({
+      status: 'failed',
+      operation: 'inspect',
+      reason: 'electron main-process program-directory mod-lock storage path could not be resolved'
+    })
+    expectNoRuntimeEffects(report.effects)
+    expectFrozenProbeReport(report)
+    expect(report.diagnostics).toHaveLength(1)
+    expect(report.diagnostics[0]).toMatchObject({
+      code: 'LIFECYCLE-TRANSACTION-001',
+      stage: 'third-party.mod-lock.electron-path.inspect',
+      recovery: 'retry'
+    })
+    expect(report.diagnostics[0]?.details).not.toHaveProperty('hostPath')
+    expect(report.programDirectorySource).toBeUndefined()
+    expect(inherited.wasRead()).toBe(false)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('electron-mod-lock-diagnostics')
+    expectOfficialBaseline()
   })
 })

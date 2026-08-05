@@ -154,6 +154,22 @@ const expectOfficialBaseline = (): void => {
   })
 }
 
+const createInheritedDiagnosticsFailure = () => {
+  let diagnosticsRead = false
+  const prototype = {}
+  Object.defineProperty(prototype, 'diagnostics', {
+    enumerable: true,
+    get() {
+      diagnosticsRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/mod-lock-storage-diagnostics')
+    }
+  })
+  return {
+    error: Object.create(prototype) as unknown,
+    wasRead: () => diagnosticsRead
+  }
+}
+
 describe('third-party mod-lock program-directory storage adapter', () => {
   it('resolves program-directory userdata paths without creating files or directories', async() => {
     const root = await createRoot()
@@ -352,5 +368,37 @@ describe('third-party mod-lock program-directory storage adapter', () => {
       (report.diagnostics as unknown as unknown[]).push(upstreamDiagnostic)
     }).toThrow(TypeError)
     expect(JSON.stringify(report.diagnostics)).toBe(frozenSnapshot)
+  })
+
+  it('ignores inherited upstream diagnostics before exposing failed reports', async() => {
+    const inherited = createInheritedDiagnosticsFailure()
+    const adapter = createThirdPartyDataPackModLockStorageAdapter({
+      programDirectoryPath: () => {
+        throw inherited.error
+      }
+    })
+
+    const report = await adapter.inspect()
+
+    expect(report).toMatchObject({
+      status: 'failed',
+      operation: 'inspect',
+      reason: 'program-directory userdata mod-lock storage path could not be resolved',
+      paths: undefined
+    })
+    expectNoRuntimeEffects(report.effects)
+    expectFrozenStorageReport(report)
+    expect(report.diagnostics).toHaveLength(1)
+    expect(report.diagnostics[0]).toMatchObject({
+      code: 'LIFECYCLE-TRANSACTION-001',
+      stage: 'third-party.mod-lock.storage.inspect',
+      recovery: 'retry'
+    })
+    expect(report.diagnostics[0]?.details).not.toHaveProperty('hostPath')
+    expect(inherited.wasRead()).toBe(false)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('mod-lock-storage-diagnostics')
+    expectOfficialBaseline()
   })
 })

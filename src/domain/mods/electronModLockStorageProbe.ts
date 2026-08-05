@@ -111,6 +111,20 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
 
+const readOwnDiagnostics = (error: unknown): readonly ModDiagnostic[] | undefined => {
+  if (error === null || typeof error !== 'object') return undefined
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(error, 'diagnostics')
+  } catch {
+    return undefined
+  }
+  if (descriptor === undefined || !('value' in descriptor) || !Array.isArray(descriptor.value)) {
+    return undefined
+  }
+  return descriptor.value as readonly ModDiagnostic[]
+}
+
 const deepFreezeObjectGraph = <T>(value: T): T => {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {
     Object.freeze(value)
@@ -149,14 +163,8 @@ const diagnosticsForError = (
   stage: string,
   error: unknown
 ): readonly ModDiagnostic[] => {
-  if (
-    error !== null
-    && typeof error === 'object'
-    && 'diagnostics' in error
-    && Array.isArray((error as { diagnostics?: unknown }).diagnostics)
-  ) {
-    return cloneDiagnostics((error as { diagnostics: readonly ModDiagnostic[] }).diagnostics)
-  }
+  const diagnostics = readOwnDiagnostics(error)
+  if (diagnostics !== undefined) return cloneDiagnostics(diagnostics)
 
   return [pathProbeDiagnostic(stage, { message: errorMessage(error) })]
 }
