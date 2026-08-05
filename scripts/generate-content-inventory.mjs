@@ -6631,7 +6631,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied and frozen serializable candidate snapshot and lockfile draft availability only for ready preflights, frozen top-level report, package arrays, diagnostics, identities, preflight copy, no-write effects and mutation snapshot stability, compatibility with frozen Mount Preflight outputs, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds and nested details, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
+    rationale: 'Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied and frozen serializable candidate snapshot and lockfile draft availability only for ready preflights, frozen top-level report, package arrays, diagnostics, identities, preflight copy, no-write effects and mutation snapshot stability, compatibility with frozen Mount Preflight outputs, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds, nested details and inherited diagnostic detail metadata containment, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts',

@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { JsonValue } from '@/domain/mods/canonicalJson'
 import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId } from '@/domain/mods/ids'
@@ -467,14 +468,24 @@ describe('third-party data pack mount input', () => {
 
     const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult, preflight } = await buildReportsFromRoot(root)
     const relatedPackageId = requirePackageId('related_pack')
+    let inheritedDetailsRead = false
+    const inheritedDetailsPrototype = {}
+    Object.defineProperty(inheritedDetailsPrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-input-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = Object.assign(Object.create(inheritedDetailsPrototype), {
+      reason: 'original',
+      nested: { count: 1 },
+      list: ['original']
+    }) as Record<string, JsonValue>
     const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
       stage: 'third-party.mount-input.test',
       relatedPackageIds: [relatedPackageId],
-      details: {
-        reason: 'original',
-        nested: { count: 1 },
-        list: ['original']
-      }
+      details: diagnosticDetails
     })
     const mutablePreflight = {
       ...preflight,
@@ -491,10 +502,12 @@ describe('third-party data pack mount input', () => {
       preflight: mutablePreflight
     })
 
+    expect(inheritedDetailsRead).toBe(false)
     expect(mountInput.diagnostics).toEqual([upstreamDiagnostic])
     expect(mountInput.diagnostics[0]).not.toBe(upstreamDiagnostic)
     expect(mountInput.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
     expect(mountInput.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(mountInput.diagnostics[0]?.details).not.toHaveProperty('hostPath')
     expect(mountInput.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
     expect(mountInput.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
     expectFrozenMountInputOutput(mountInput)
@@ -522,6 +535,10 @@ describe('third-party data pack mount input', () => {
     if (!Array.isArray(listDetails)) throw new Error('Expected copied list diagnostic details.')
     listDetails.push('mutated')
 
+    expect(inheritedDetailsRead).toBe(false)
+    expect(JSON.stringify(mountInput)).not.toContain('C:/Users')
+    expect(JSON.stringify(mountInput)).not.toContain('LENOVO')
+    expect(JSON.stringify(mountInput)).not.toContain('mount-input-diagnostic-detail')
     expect(mountInput.diagnostics[0]).toMatchObject({
       stage: 'third-party.mount-input.test',
       relatedPackageIds: ['related_pack'],
