@@ -2779,6 +2779,48 @@ describe('content package source contract', () => {
     expect(compressedSizeRead).toBe(false)
   })
 
+  it('rejects unsupported archive entry metadata before own getters can run', () => {
+    let pathRead = false
+    let uncompressedSizeRead = false
+    let extraMetadataRead = false
+    const archiveEntry = {}
+    Object.defineProperty(archiveEntry, 'path', {
+      enumerable: true,
+      get() {
+        pathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-extra-path')
+      }
+    })
+    Object.defineProperty(archiveEntry, 'uncompressedSizeBytes', {
+      enumerable: true,
+      get() {
+        uncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-extra-size')
+      }
+    })
+    Object.defineProperty(archiveEntry, 'hostPath', {
+      enumerable: true,
+      get() {
+        extraMetadataRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-extra-hostPath\nhostile-fragment')
+      }
+    })
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([archiveEntry]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata contains unsupported fields'
+    })
+    expect(pathRead).toBe(false)
+    expect(uncompressedSizeRead).toBe(false)
+    expect(extraMetadataRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-extra')
+    expect(JSON.stringify(error)).not.toContain('hostile-fragment')
+  })
+
   it('freezes normalized directory and archive metadata before exposing safe-read results', () => {
     const directoryEntries = normalizeContentPackageSourceDirectoryEntries([
       { name: 'pack', kind: 'directory', isSymbolicLink: false },
