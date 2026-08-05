@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { JsonValue } from '@/domain/mods/canonicalJson'
 import { createDiagnostic } from '@/domain/mods/diagnostics'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import type { PackageId } from '@/domain/mods/ids'
@@ -494,16 +495,26 @@ describe('third-party data pack mount preflight', () => {
 
     const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult } = await buildReportsFromRoot(root)
     const relatedPackageId = 'related_pack' as PackageId
+    let inheritedDetailsRead = false
+    const inheritedDetailsPrototype = {}
+    Object.defineProperty(inheritedDetailsPrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-preflight-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = Object.assign(Object.create(inheritedDetailsPrototype), {
+      reason: 'original',
+      nested: { count: 1 },
+      list: ['original', { stable: true }]
+    }) as Record<string, JsonValue>
     const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
       stage: 'third-party.mount-preflight.test',
       severity: 'warning',
       packageId: 'discovery_valid' as PackageId,
       relatedPackageIds: [relatedPackageId],
-      details: {
-        reason: 'original',
-        nested: { count: 1 },
-        list: ['original', { stable: true }]
-      }
+      details: diagnosticDetails
     })
     const candidateSnapshotWithDiagnostic = {
       ...candidateSnapshot,
@@ -521,6 +532,7 @@ describe('third-party data pack mount preflight', () => {
     const candidateStage = preflight.stages.find(stage => stage.name === 'candidate-snapshot')
     if (!candidateStage) throw new Error('Expected candidate snapshot stage.')
 
+    expect(inheritedDetailsRead).toBe(false)
     expect(preflight.status).toBe('ready')
     expect(candidateStage.diagnostics).toEqual([upstreamDiagnostic])
     expect(preflight.diagnostics).toEqual([upstreamDiagnostic])
@@ -530,6 +542,8 @@ describe('third-party data pack mount preflight', () => {
     expect(preflight.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
     expect(candidateStage.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
     expect(preflight.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(candidateStage.diagnostics[0]?.details).not.toHaveProperty('hostPath')
+    expect(preflight.diagnostics[0]?.details).not.toHaveProperty('hostPath')
     expect(candidateStage.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
     expect(preflight.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
     expectFrozenPreflightOutput(preflight)
@@ -562,6 +576,10 @@ describe('third-party data pack mount preflight', () => {
     }
     listObject.stable = false
 
+    expect(inheritedDetailsRead).toBe(false)
+    expect(JSON.stringify(preflight)).not.toContain('C:/Users')
+    expect(JSON.stringify(preflight)).not.toContain('LENOVO')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-diagnostic-detail')
     const expectedDiagnostic = {
       stage: 'third-party.mount-preflight.test',
       relatedPackageIds: ['related_pack'],
