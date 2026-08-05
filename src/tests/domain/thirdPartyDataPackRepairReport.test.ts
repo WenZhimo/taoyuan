@@ -268,18 +268,28 @@ describe('third-party data pack repair report', () => {
     if (!upstreamDiagnostic) throw new Error('Expected schema diagnostics for invalid test package.')
 
     upstreamDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
-    upstreamDiagnostic.details = {
+    let inheritedDetailsRead = false
+    const inheritedDetailsPrototype = {}
+    Object.defineProperty(inheritedDetailsPrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-diagnostic-detail')
+      }
+    })
+    upstreamDiagnostic.details = Object.assign(Object.create(inheritedDetailsPrototype), {
       ...(upstreamDiagnostic.details ?? {}),
       reason: 'original diagnostic',
       nested: { marker: 'original' },
       list: ['original']
-    }
+    }) as NonNullable<typeof upstreamDiagnostic.details>
     const originalStage = upstreamDiagnostic.stage
 
     const report = buildThirdPartyDataPackRepairReport(discoveryReport)
     const actionDiagnostic = report.actions[0]?.diagnostics[0]
     const reportDiagnostic = report.diagnostics[0]
     if (!actionDiagnostic || !reportDiagnostic) throw new Error('Expected copied repair diagnostics.')
+    expect(inheritedDetailsRead).toBe(false)
 
     upstreamDiagnostic.stage = 'third-party.discovery.mutated'
     upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
@@ -294,6 +304,8 @@ describe('third-party data pack repair report', () => {
     expect(actionDiagnostic).not.toBe(upstreamDiagnostic)
     expect(reportDiagnostic).not.toBe(upstreamDiagnostic)
     expect(reportDiagnostic).not.toBe(actionDiagnostic)
+    expect(actionDiagnostic.details).not.toHaveProperty('hostPath')
+    expect(reportDiagnostic.details).not.toHaveProperty('hostPath')
     expect(actionDiagnostic).toMatchObject({
       stage: originalStage,
       relatedPackageIds: ['related_pack'],
@@ -313,6 +325,10 @@ describe('third-party data pack repair report', () => {
       }
     })
     expect(report.diagnostics.some(diagnostic => diagnostic.stage === 'third-party.discovery.mutated')).toBe(false)
+    expect(inheritedDetailsRead).toBe(false)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('repair-report-diagnostic-detail')
     expectNoWriteEffects(report)
   }, 15_000)
 

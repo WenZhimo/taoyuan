@@ -16366,7 +16366,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers clean, repairable and blocked repair report outcomes, whitelisted legacy dependencies default reporting, non-whitelisted schema error blocking, upstream diagnostic object copy boundaries including relatedPackageIds and nested details, frozen repair report output boundaries, deterministic repeated output, read-only protection for package files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers clean, repairable and blocked repair report outcomes, whitelisted legacy dependencies default reporting, non-whitelisted schema error blocking, upstream diagnostic object copy boundaries including relatedPackageIds, nested details and inherited diagnostic detail metadata containment, frozen repair report output boundaries, deterministic repeated output, read-only protection for package files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     }
   ]
 }
