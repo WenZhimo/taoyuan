@@ -2538,6 +2538,53 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-compressed-size')
   })
 
+  it('rejects unreadable uncompressed archive size metadata before compressed or later size reads', () => {
+    let uncompressedSizeRead = false
+    let compressedSizeRead = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const unreadableUncompressedSizeEntry = {
+      path: 'a-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        uncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-uncompressed-size-hostile-fragment')
+      },
+      get compressedSizeBytes() {
+        compressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-compressed-size-hostile-fragment')
+      }
+    }
+    const laterEntry = {
+      path: 'b-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterEntry,
+      unreadableUncompressedSizeEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata could not be read'
+    })
+    expect(uncompressedSizeRead).toBe(true)
+    expect(compressedSizeRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('hostile-fragment')
+    expect(JSON.stringify(error)).not.toContain('archive-later')
+  })
+
   it('rejects non-number archive size metadata before coercion or later size reads', () => {
     let sizeCoerced = false
     let compressedSizeRead = false
