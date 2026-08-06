@@ -485,6 +485,22 @@ describe('third-party data pack transaction preflight', () => {
       nested: { count: 1 },
       list: ['original']
     }) as Record<string, JsonValue>
+    let ownDetailsRead = false
+    let nestedDetailsRead = false
+    Object.defineProperty(diagnosticDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/transaction-preflight-own-diagnostic-detail')
+      }
+    })
+    Object.defineProperty(diagnosticDetails.nested as Record<string, JsonValue>, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        nestedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/transaction-preflight-nested-diagnostic-detail')
+      }
+    })
     const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
       stage: 'third-party.transaction-preflight.test',
       relatedPackageIds: [relatedPackageId],
@@ -537,17 +553,35 @@ describe('third-party data pack transaction preflight', () => {
     } as never)
 
     expect(inheritedDetailsRead).toBe(false)
+    expect(ownDetailsRead).toBe(false)
+    expect(nestedDetailsRead).toBe(false)
     expect(preflight.officialIdentity).toEqual(runtimeGate.officialIdentity)
     expect(preflight.candidateIdentity).toEqual(runtimeGate.candidateIdentity)
     expect(preflight.officialIdentity).not.toBe(runtimeGate.officialIdentity)
     expect(preflight.candidateIdentity).not.toBe(runtimeGate.candidateIdentity)
-    expect(preflight.diagnostics).toEqual([upstreamDiagnostic])
-    expect(preflight.diagnostics[0]).not.toBe(upstreamDiagnostic)
-    expect(preflight.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
-    expect(preflight.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(preflight.diagnostics).toHaveLength(1)
+    expect(preflight.diagnostics[0]).toMatchObject({
+      code: upstreamDiagnostic.code,
+      ruleId: upstreamDiagnostic.ruleId,
+      severity: upstreamDiagnostic.severity,
+      stage: upstreamDiagnostic.stage,
+      messageKey: upstreamDiagnostic.messageKey,
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      },
+      recovery: upstreamDiagnostic.recovery
+    })
+    expect(Object.is(preflight.diagnostics[0], upstreamDiagnostic)).toBe(false)
+    expect(Object.is(preflight.diagnostics[0]?.relatedPackageIds, upstreamDiagnostic.relatedPackageIds)).toBe(false)
+    expect(Object.is(preflight.diagnostics[0]?.details, upstreamDiagnostic.details)).toBe(false)
     expect(preflight.diagnostics[0]?.details).not.toHaveProperty('hostPath')
-    expect(preflight.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
-    expect(preflight.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+    expect(preflight.diagnostics[0]?.details).not.toHaveProperty('ownHostPath')
+    expect(Object.is(preflight.diagnostics[0]?.details?.nested, upstreamDiagnostic.details?.nested)).toBe(false)
+    expect(preflight.diagnostics[0]?.details?.nested).not.toHaveProperty('ownHostPath')
+    expect(Object.is(preflight.diagnostics[0]?.details?.list, upstreamDiagnostic.details?.list)).toBe(false)
 
     const mutableOfficialIdentity = runtimeGate.officialIdentity as { registryCount: number }
     const mutableCandidateIdentity = runtimeGate.candidateIdentity as { candidateHash: Sha256Hash }
@@ -568,9 +602,13 @@ describe('third-party data pack transaction preflight', () => {
     listDetails.push('mutated')
 
     expect(inheritedDetailsRead).toBe(false)
+    expect(ownDetailsRead).toBe(false)
+    expect(nestedDetailsRead).toBe(false)
     expect(JSON.stringify(preflight)).not.toContain('C:/Users')
     expect(JSON.stringify(preflight)).not.toContain('LENOVO')
     expect(JSON.stringify(preflight)).not.toContain('transaction-preflight-diagnostic-detail')
+    expect(JSON.stringify(preflight)).not.toContain('transaction-preflight-own-diagnostic-detail')
+    expect(JSON.stringify(preflight)).not.toContain('transaction-preflight-nested-diagnostic-detail')
     expect(preflight.officialIdentity.registryCount).toBe(54)
     expect(preflight.candidateIdentity?.candidateHash).toBe(testHash('3'))
     expect(preflight.diagnostics[0]).toMatchObject({
