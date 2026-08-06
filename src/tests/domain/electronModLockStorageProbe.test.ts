@@ -207,6 +207,33 @@ const createInheritedDiagnosticsFailure = () => {
   }
 }
 
+const createOwnDiagnosticDetailsFailure = () => {
+  let hostPathRead = false
+  const details = {
+    reason: 'original',
+    nested: {
+      list: ['before'],
+      value: 1
+    }
+  } as NonNullable<ReturnType<typeof createDiagnostic>['details']>
+  Object.defineProperty(details, 'hostPath', {
+    enumerable: true,
+    get() {
+      hostPathRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/electron-mod-lock-detail')
+    }
+  })
+  return {
+    upstreamDiagnostic: createDiagnostic('LIFECYCLE-TRANSACTION-001', {
+      stage: 'third-party.mod-lock.electron-path.inspect',
+      relatedPackageIds: ['sample_pack' as PackageId],
+      details,
+      recovery: 'retry'
+    }),
+    wasRead: () => hostPathRead
+  }
+}
+
 describe('electron main-process mod-lock storage path probe', () => {
   it('resolves packaged executable directory userdata without using configured system userData', async() => {
     const root = await createRoot()
@@ -507,6 +534,41 @@ describe('electron main-process mod-lock storage path probe', () => {
       (diagnosticNested.list as unknown as string[]).push('mutated')
     }).toThrow(TypeError)
     expect(JSON.stringify(report)).toBe(snapshot)
+  })
+
+  it('ignores own accessor diagnostic details before exposing failed reports', async() => {
+    const hostile = createOwnDiagnosticDetailsFailure()
+    const host = {
+      get isPackaged() {
+        throw { diagnostics: [hostile.upstreamDiagnostic] }
+      },
+      executablePath: path.join('relative', 'taoyuan.exe')
+    } as unknown as ElectronThirdPartyDataPackModLockPathHost
+    const probe = createElectronThirdPartyDataPackModLockStorageProbe({ host })
+
+    const report = await probe.inspect()
+
+    expect(report.status).toBe('failed')
+    expectNoRuntimeEffects(report.effects)
+    expectFrozenProbeReport(report)
+    const diagnostic = report.diagnostics[0]
+    if (diagnostic === undefined) throw new Error('Expected copied diagnostic.')
+    expect(hostile.wasRead()).toBe(false)
+    expect(diagnostic.details).toMatchObject({
+      reason: 'original',
+      nested: {
+        list: ['before'],
+        value: 1
+      }
+    })
+    expect(diagnostic.details).not.toHaveProperty('hostPath')
+    expect(Object.isFrozen(diagnostic.details)).toBe(true)
+    expect(Object.isFrozen(diagnostic.details?.nested)).toBe(true)
+    expect(Object.isFrozen((diagnostic.details?.nested as { readonly list?: readonly string[] }).list)).toBe(true)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('electron-mod-lock-detail')
+    expectOfficialBaseline()
   })
 
   it('ignores inherited path diagnostics before exposing failed reports', async() => {

@@ -170,6 +170,31 @@ const createInheritedDiagnosticsFailure = () => {
   }
 }
 
+const createOwnDiagnosticDetailsFailure = () => {
+  let hostPathRead = false
+  const details = {
+    reason: 'original',
+    nested: { marker: 'original' },
+    list: ['original']
+  } as NonNullable<ReturnType<typeof createDiagnostic>['details']>
+  Object.defineProperty(details, 'hostPath', {
+    enumerable: true,
+    get() {
+      hostPathRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/mod-lock-storage-detail')
+    }
+  })
+  return {
+    upstreamDiagnostic: createDiagnostic('LIFECYCLE-TRANSACTION-001', {
+      stage: 'third-party.mod-lock.storage.upstream',
+      relatedPackageIds: ['related_pack' as PackageId],
+      details,
+      recovery: 'retry'
+    }),
+    wasRead: () => hostPathRead
+  }
+}
+
 describe('third-party mod-lock program-directory storage adapter', () => {
   it('resolves program-directory userdata paths without creating files or directories', async() => {
     const root = await createRoot()
@@ -368,6 +393,36 @@ describe('third-party mod-lock program-directory storage adapter', () => {
       (report.diagnostics as unknown as unknown[]).push(upstreamDiagnostic)
     }).toThrow(TypeError)
     expect(JSON.stringify(report.diagnostics)).toBe(frozenSnapshot)
+  })
+
+  it('ignores own accessor diagnostic details before exposing failed reports', async() => {
+    const hostile = createOwnDiagnosticDetailsFailure()
+    const adapter = createThirdPartyDataPackModLockStorageAdapter({
+      programDirectoryPath: () => {
+        throw { diagnostics: [hostile.upstreamDiagnostic] }
+      }
+    })
+
+    const report = await adapter.inspect()
+
+    expect(report.status).toBe('failed')
+    expectFrozenStorageReport(report)
+    const exposedDiagnostic = report.diagnostics[0]
+    if (!exposedDiagnostic) throw new Error('Expected copied diagnostic.')
+    expect(hostile.wasRead()).toBe(false)
+    expect(exposedDiagnostic.details).toMatchObject({
+      reason: 'original',
+      nested: { marker: 'original' },
+      list: ['original']
+    })
+    expect(exposedDiagnostic.details).not.toHaveProperty('hostPath')
+    expect(Object.isFrozen(exposedDiagnostic.details)).toBe(true)
+    expect(Object.isFrozen(exposedDiagnostic.details?.nested)).toBe(true)
+    expect(Object.isFrozen(exposedDiagnostic.details?.list)).toBe(true)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('mod-lock-storage-detail')
+    expectOfficialBaseline()
   })
 
   it('ignores inherited upstream diagnostics before exposing failed reports', async() => {
