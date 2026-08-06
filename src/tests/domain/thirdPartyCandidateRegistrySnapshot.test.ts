@@ -10,6 +10,7 @@ import {
   RegistryError,
   type RegistryEntry
 } from '@/domain/mods/registry'
+import type { JsonValue } from '@/domain/mods/canonicalJson'
 import {
   requireContentId,
   requirePackageId,
@@ -524,6 +525,80 @@ describe('third-party candidate registry snapshot', () => {
     expect(JSON.stringify(result)).not.toContain('C:/Users')
     expect(JSON.stringify(result)).not.toContain('LENOVO')
     expect(JSON.stringify(result)).not.toContain('candidate-snapshot-diagnostics')
+    expectOfficialBaseline()
+  })
+
+  it('ignores own accessor discovery diagnostic details before exposing invalid results', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      items: [createItem('bad_library:broken', -1)]
+    })
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected discovery diagnostics for invalid test package.')
+
+    let ownDetailsRead = false
+    const listDetails = ['original', 'placeholder'] as JsonValue[]
+    Object.defineProperty(listDetails, '1', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-list-diagnostic-detail')
+      }
+    })
+    const nestedDetails: Record<string, JsonValue> = { marker: 'original' }
+    Object.defineProperty(nestedDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-nested-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = {
+      reason: 'original diagnostic',
+      nested: nestedDetails,
+      list: listDetails
+    } as NonNullable<typeof upstreamDiagnostic.details>
+    Object.defineProperty(diagnosticDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-own-diagnostic-detail')
+      }
+    })
+    upstreamDiagnostic.details = diagnosticDetails
+    const originalStage = upstreamDiagnostic.stage
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport
+    })
+    const copiedDiagnostic = result.diagnostics.find(diagnostic => diagnostic.stage === originalStage)
+    if (!copiedDiagnostic) throw new Error('Expected copied candidate snapshot diagnostic.')
+
+    expect(result.status).toBe('invalid')
+    expect(ownDetailsRead).toBe(false)
+    expect(copiedDiagnostic.details).toMatchObject({
+      reason: 'original diagnostic',
+      nested: { marker: 'original' },
+      list: ['original', null]
+    })
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic.details, 'ownHostPath')).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic.details?.nested, 'ownHostPath')).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic.details)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details?.nested)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details?.list)).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-own-diagnostic-detail')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-nested-diagnostic-detail')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-list-diagnostic-detail')
     expectOfficialBaseline()
   })
 
