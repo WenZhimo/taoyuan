@@ -6491,7 +6491,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Clones accepted ContentPackageSourceError host failures into clean source-operation envelopes so extra enumerable host fields cannot leak absolute paths or hostile fragments when the sanitizer result or bridge callers serialize errors; direct regressions preserve safe code/message/sourcePath semantics while proving unsafe fallback source paths are redacted, inherited host metadata getters are ignored, the returned error is detached from the host object and later host error metadata mutation, keeping the boundary read-only.'
+    rationale: 'Clones accepted ContentPackageSourceError host failures into clean source-operation envelopes so extra enumerable host fields cannot leak absolute paths or hostile fragments when the sanitizer result or bridge callers serialize errors; direct regressions preserve safe code/message/sourcePath semantics while proving unsafe fallback source paths, mismatched source error paths and host-path sourcePath fields are redacted, inherited host metadata getters are ignored, the returned error is detached from the host object and later host error metadata mutation, keeping the boundary read-only.'
   },
   {
     file: 'src/domain/mods/electronContentPackageSourceProbe.ts',

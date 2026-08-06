@@ -5447,6 +5447,46 @@ describe('content package source contract', () => {
     }
   })
 
+  it('redacts mismatched source paths at the host operation sanitizer boundary', () => {
+    const mismatchedPathError = new ContentPackageSourceError(
+      'SOURCE_PERMISSION_REVOKED',
+      'Content package source permission was revoked',
+      'other-pack/manifest.json'
+    )
+    const hostPathError = new ContentPackageSourceError(
+      'SOURCE_PERMISSION_REVOKED',
+      'Content package source permission was revoked',
+      'C:/Users/LENOVO/mods/pack/manifest.json'
+    )
+
+    const cleanedMismatchedPathError = toContentPackageSourceHostOperationError(
+      'read',
+      mismatchedPathError,
+      'pack/manifest.json'
+    )
+    const cleanedHostPathError = toContentPackageSourceHostOperationError(
+      'inspect',
+      hostPathError,
+      'pack'
+    )
+
+    expect(cleanedMismatchedPathError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source read operation failed',
+      sourcePath: 'pack/manifest.json'
+    })
+    expect(cleanedHostPathError).toMatchObject({
+      code: 'SOURCE_PERMISSION_REVOKED',
+      message: 'Content package source inspect operation failed',
+      sourcePath: 'pack'
+    })
+    for (const cleanedError of [cleanedMismatchedPathError, cleanedHostPathError]) {
+      expect(JSON.stringify(cleanedError)).not.toContain('other-pack')
+      expect(JSON.stringify(cleanedError)).not.toContain('C:/Users')
+      expect(JSON.stringify(cleanedError)).not.toContain('LENOVO')
+    }
+  })
+
   it('detaches sanitized host operation errors from later host error mutation', () => {
     const hostError = new ContentPackageSourceError(
       'SOURCE_PERMISSION_REVOKED',
