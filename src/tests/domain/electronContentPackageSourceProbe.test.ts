@@ -2303,6 +2303,100 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('redacts host source paths from Electron readiness root listing source errors', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    const sourcePathReads: string[] = []
+    let readAttempted = false
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          sourcePathReads.push(`inspect:${sourcePath}`)
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          sourcePathReads.push(`list:${sourcePath}`)
+          throw new ContentPackageSourceError(
+            'SOURCE_PERMISSION_REVOKED',
+            'Content package source permission was revoked',
+            `C:/Users/LENOVO/mods/${sourcePath || 'root'}`
+          )
+        },
+        async readTextFile(sourcePath) {
+          readAttempted = true
+          throw new Error(`root listing source errors must stop before payload reads: ${sourcePath}`)
+        }
+      }
+    })
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+    await source.dispose()
+
+    expect(sourceReport).toMatchObject({
+      status: 'ready',
+      inspectedPath: '',
+      inspectedEntryKind: 'directory',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'discovery failed',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'directory-not-found',
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(discoveryReport).toMatchObject({
+      status: 'directory-not-found',
+      summary: {
+        scannedEntries: 0,
+        candidateCount: 0,
+        validPackageCount: 0,
+        invalidPackageCount: 0,
+        issueCount: 1
+      }
+    })
+    expect(discoveryReport.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'fatal',
+      path: '.',
+      reason: 'Package source list operation failed'
+    })
+    expect(discoveryReport.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source list operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(sourcePathReads.every(operation => operation === 'inspect:' || operation === 'list:')).toBe(true)
+    expect(sourcePathReads.filter(operation => operation === 'list:')).toHaveLength(2)
+    expect(readAttempted).toBe(false)
+    for (const result of [sourceReport, readinessReport, discoveryReport]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('root listing source errors')
+    }
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('redacts arbitrary source inspect failures before Electron probe reports expose host paths', async() => {
     const source: ContentPackageSource = {
       identity: {
