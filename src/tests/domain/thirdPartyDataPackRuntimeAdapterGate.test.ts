@@ -473,6 +473,22 @@ describe('third-party data pack runtime adapter gate', () => {
       nested: { count: 1 },
       list: ['original']
     }) as Record<string, JsonValue>
+    let ownDetailsRead = false
+    let nestedDetailsRead = false
+    Object.defineProperty(diagnosticDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-adapter-own-diagnostic-detail')
+      }
+    })
+    Object.defineProperty(diagnosticDetails.nested as Record<string, JsonValue>, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        nestedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-adapter-nested-diagnostic-detail')
+      }
+    })
     const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
       stage: 'third-party.runtime-adapter.test',
       relatedPackageIds: [relatedPackageId],
@@ -530,17 +546,35 @@ describe('third-party data pack runtime adapter gate', () => {
     } as never)
 
     expect(inheritedDetailsRead).toBe(false)
+    expect(ownDetailsRead).toBe(false)
+    expect(nestedDetailsRead).toBe(false)
     expect(gate.officialIdentity).toEqual(transactionPreflight.officialIdentity)
     expect(gate.candidateIdentity).toEqual(transactionPreflight.candidateIdentity)
     expect(gate.officialIdentity).not.toBe(transactionPreflight.officialIdentity)
     expect(gate.candidateIdentity).not.toBe(transactionPreflight.candidateIdentity)
-    expect(gate.diagnostics).toEqual([upstreamDiagnostic])
-    expect(gate.diagnostics[0]).not.toBe(upstreamDiagnostic)
-    expect(gate.diagnostics[0]?.relatedPackageIds).not.toBe(upstreamDiagnostic.relatedPackageIds)
-    expect(gate.diagnostics[0]?.details).not.toBe(upstreamDiagnostic.details)
+    expect(gate.diagnostics).toHaveLength(1)
+    expect(gate.diagnostics[0]).toMatchObject({
+      code: upstreamDiagnostic.code,
+      ruleId: upstreamDiagnostic.ruleId,
+      severity: upstreamDiagnostic.severity,
+      stage: upstreamDiagnostic.stage,
+      messageKey: upstreamDiagnostic.messageKey,
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'original',
+        nested: { count: 1 },
+        list: ['original']
+      },
+      recovery: upstreamDiagnostic.recovery
+    })
+    expect(Object.is(gate.diagnostics[0], upstreamDiagnostic)).toBe(false)
+    expect(Object.is(gate.diagnostics[0]?.relatedPackageIds, upstreamDiagnostic.relatedPackageIds)).toBe(false)
+    expect(Object.is(gate.diagnostics[0]?.details, upstreamDiagnostic.details)).toBe(false)
     expect(gate.diagnostics[0]?.details).not.toHaveProperty('hostPath')
-    expect(gate.diagnostics[0]?.details?.nested).not.toBe(upstreamDiagnostic.details?.nested)
-    expect(gate.diagnostics[0]?.details?.list).not.toBe(upstreamDiagnostic.details?.list)
+    expect(gate.diagnostics[0]?.details).not.toHaveProperty('ownHostPath')
+    expect(Object.is(gate.diagnostics[0]?.details?.nested, upstreamDiagnostic.details?.nested)).toBe(false)
+    expect(gate.diagnostics[0]?.details?.nested).not.toHaveProperty('ownHostPath')
+    expect(Object.is(gate.diagnostics[0]?.details?.list, upstreamDiagnostic.details?.list)).toBe(false)
     expectRuntimeAdapterGateFrozen(gate)
 
     const exposedOutputSnapshot = JSON.stringify(gate)
@@ -592,9 +626,13 @@ describe('third-party data pack runtime adapter gate', () => {
     listDetails.push('mutated')
 
     expect(inheritedDetailsRead).toBe(false)
+    expect(ownDetailsRead).toBe(false)
+    expect(nestedDetailsRead).toBe(false)
     expect(JSON.stringify(gate)).not.toContain('C:/Users')
     expect(JSON.stringify(gate)).not.toContain('LENOVO')
     expect(JSON.stringify(gate)).not.toContain('runtime-adapter-diagnostic-detail')
+    expect(JSON.stringify(gate)).not.toContain('runtime-adapter-own-diagnostic-detail')
+    expect(JSON.stringify(gate)).not.toContain('runtime-adapter-nested-diagnostic-detail')
     expect(gate.officialIdentity.registryCount).toBe(54)
     expect(gate.candidateIdentity?.candidateHash).toBe(testHash('3'))
     expect(gate.diagnostics[0]).toMatchObject({
