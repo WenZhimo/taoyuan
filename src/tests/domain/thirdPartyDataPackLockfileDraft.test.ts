@@ -441,6 +441,48 @@ describe('third-party data pack lockfile draft', () => {
     }
   }, 15_000)
 
+  it('keeps host-path draft values out of schema validation diagnostics', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+    const reports = await buildReportsFromRoot(root)
+    const draft = cloneDraftAsJson(reports.draftResult.draft!)
+    const packages = draft.packages as JsonObject[]
+    const source = packages[0]!.source as JsonObject
+    let hostileToStringRead = false
+    const hostilePathObject = {
+      toString() {
+        hostileToStringRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-schema-to-string')
+      }
+    }
+
+    source.candidatePath = 'C:/Users/LENOVO/mods/lockfile-schema-path'
+    source.manifestPath = hostilePathObject
+
+    const validation = validateThirdPartyDataPackLockfileDraft({
+      ...reports,
+      draft
+    })
+
+    expect(validation.status).toBe('invalid')
+    expect(hostileToStringRead).toBe(false)
+    expect(validation.diagnostics).toContainEqual(expect.objectContaining({
+      code: 'SCHEMA-VALIDATE-001',
+      stage: 'third-party.lockfile-draft.schema',
+      fieldPath: '/packages/0/source/candidatePath'
+    }))
+    expect(validation.diagnostics).toContainEqual(expect.objectContaining({
+      code: 'SCHEMA-VALIDATE-001',
+      stage: 'third-party.lockfile-draft.schema',
+      fieldPath: '/packages/0/source/manifestPath'
+    }))
+    expect(JSON.stringify(validation)).not.toContain('C:/Users')
+    expect(JSON.stringify(validation)).not.toContain('LENOVO')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-schema-path')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-schema-to-string')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('validates matching drafts against the current package set and official baseline', async() => {
     const root = await createRoot()
     await createPack(root, 'a-library', { id: 'a_library' })
