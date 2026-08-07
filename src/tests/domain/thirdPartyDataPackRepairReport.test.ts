@@ -269,6 +269,9 @@ describe('third-party data pack repair report', () => {
 
     upstreamDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
     let inheritedDetailsRead = false
+    let ownDetailsRead = false
+    let nestedDetailsRead = false
+    let listDetailsRead = false
     const inheritedDetailsPrototype = {}
     Object.defineProperty(inheritedDetailsPrototype, 'hostPath', {
       enumerable: true,
@@ -277,12 +280,34 @@ describe('third-party data pack repair report', () => {
         throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-diagnostic-detail')
       }
     })
-    upstreamDiagnostic.details = Object.assign(Object.create(inheritedDetailsPrototype), {
+    const diagnosticDetails = Object.assign(Object.create(inheritedDetailsPrototype), {
       ...(upstreamDiagnostic.details ?? {}),
       reason: 'original diagnostic',
       nested: { marker: 'original' },
       list: ['original']
     }) as NonNullable<typeof upstreamDiagnostic.details>
+    Object.defineProperty(diagnosticDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-own-diagnostic-detail')
+      }
+    })
+    Object.defineProperty(diagnosticDetails.nested as Record<string, unknown>, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        nestedDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-nested-diagnostic-detail')
+      }
+    })
+    Object.defineProperty(diagnosticDetails.list as unknown[], '1', {
+      enumerable: true,
+      get() {
+        listDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-list-diagnostic-detail')
+      }
+    })
+    upstreamDiagnostic.details = diagnosticDetails
     const originalStage = upstreamDiagnostic.stage
 
     const report = buildThirdPartyDataPackRepairReport(discoveryReport)
@@ -290,6 +315,9 @@ describe('third-party data pack repair report', () => {
     const reportDiagnostic = report.diagnostics[0]
     if (!actionDiagnostic || !reportDiagnostic) throw new Error('Expected copied repair diagnostics.')
     expect(inheritedDetailsRead).toBe(false)
+    expect(ownDetailsRead).toBe(false)
+    expect(nestedDetailsRead).toBe(false)
+    expect(listDetailsRead).toBe(false)
 
     upstreamDiagnostic.stage = 'third-party.discovery.mutated'
     upstreamDiagnostic.relatedPackageIds?.push(requirePackageId('mutated_pack'))
@@ -301,34 +329,42 @@ describe('third-party data pack repair report', () => {
     const listDetails = upstreamDetails.list as unknown[]
     listDetails.push('mutated')
 
-    expect(actionDiagnostic).not.toBe(upstreamDiagnostic)
-    expect(reportDiagnostic).not.toBe(upstreamDiagnostic)
-    expect(reportDiagnostic).not.toBe(actionDiagnostic)
-    expect(actionDiagnostic.details).not.toHaveProperty('hostPath')
-    expect(reportDiagnostic.details).not.toHaveProperty('hostPath')
-    expect(actionDiagnostic).toMatchObject({
-      stage: originalStage,
-      relatedPackageIds: ['related_pack'],
-      details: {
-        reason: 'original diagnostic',
-        nested: { marker: 'original' },
-        list: ['original']
-      }
-    })
-    expect(reportDiagnostic).toMatchObject({
-      stage: originalStage,
-      relatedPackageIds: ['related_pack'],
-      details: {
-        reason: 'original diagnostic',
-        nested: { marker: 'original' },
-        list: ['original']
-      }
-    })
+    expect(Object.is(actionDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(reportDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(reportDiagnostic, actionDiagnostic)).toBe(false)
+    expect(actionDiagnostic.details && 'hostPath' in actionDiagnostic.details).toBe(false)
+    expect(Reflect.getOwnPropertyDescriptor(actionDiagnostic.details ?? {}, 'ownHostPath')).toBeUndefined()
+    expect(reportDiagnostic.details && 'hostPath' in reportDiagnostic.details).toBe(false)
+    expect(Reflect.getOwnPropertyDescriptor(reportDiagnostic.details ?? {}, 'ownHostPath')).toBeUndefined()
+    expect(Reflect.getOwnPropertyDescriptor(
+      actionDiagnostic.details?.nested as Record<string, unknown>,
+      'ownHostPath'
+    )).toBeUndefined()
+    expect(Reflect.getOwnPropertyDescriptor(
+      reportDiagnostic.details?.nested as Record<string, unknown>,
+      'ownHostPath'
+    )).toBeUndefined()
+    expect(actionDiagnostic.stage).toBe(originalStage)
+    expect(actionDiagnostic.relatedPackageIds).toEqual(['related_pack'])
+    expect(actionDiagnostic.details?.reason).toBe('original diagnostic')
+    expect((actionDiagnostic.details?.nested as Record<string, unknown>)?.marker).toBe('original')
+    expect(actionDiagnostic.details?.list).toEqual(['original', null])
+    expect(reportDiagnostic.stage).toBe(originalStage)
+    expect(reportDiagnostic.relatedPackageIds).toEqual(['related_pack'])
+    expect(reportDiagnostic.details?.reason).toBe('original diagnostic')
+    expect((reportDiagnostic.details?.nested as Record<string, unknown>)?.marker).toBe('original')
+    expect(reportDiagnostic.details?.list).toEqual(['original', null])
     expect(report.diagnostics.some(diagnostic => diagnostic.stage === 'third-party.discovery.mutated')).toBe(false)
     expect(inheritedDetailsRead).toBe(false)
+    expect(ownDetailsRead).toBe(false)
+    expect(nestedDetailsRead).toBe(false)
+    expect(listDetailsRead).toBe(false)
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
     expect(JSON.stringify(report)).not.toContain('repair-report-diagnostic-detail')
+    expect(JSON.stringify(report)).not.toContain('repair-report-own-diagnostic-detail')
+    expect(JSON.stringify(report)).not.toContain('repair-report-nested-diagnostic-detail')
+    expect(JSON.stringify(report)).not.toContain('repair-report-list-diagnostic-detail')
     expectNoWriteEffects(report)
   }, 15_000)
 

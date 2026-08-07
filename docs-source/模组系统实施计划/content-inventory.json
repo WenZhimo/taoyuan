@@ -15922,7 +15922,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Builds the first strict-whitelist, read-only Repair Report over discovery results: reports legacy manifest dependency defaults as staged normalization opportunities, blocks non-whitelisted errors, copies upstream diagnostic objects including relatedPackageIds and nested JSON details before exposing repair actions and report diagnostics, freezes the exposed repair report object graph including actions, diagnostics, nested JSON details, no-write effects and summary, records before/after summaries and diagnostics, and performs no package, registry, lockfile, settings, save or cache writes."
+      "rationale": "Builds the first strict-whitelist, read-only Repair Report over discovery results: reports legacy manifest dependency defaults as staged normalization opportunities, blocks non-whitelisted errors, copies upstream diagnostic objects including relatedPackageIds and nested JSON details from own enumerable data-only fields before exposing repair actions and report diagnostics, skips inherited diagnostic details, own accessor details, Symbol fields and unreadable descriptors without invoking hostile getters, freezes the exposed repair report object graph including actions, diagnostics, nested JSON details, no-write effects and summary, records before/after summaries and diagnostics, and performs no package, registry, lockfile, settings, save or cache writes."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackDiscovery.test.ts + src/tests/fixtures/mods/third-party-discovery",
@@ -16450,7 +16450,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers clean, repairable and blocked repair report outcomes, whitelisted legacy dependencies default reporting, non-whitelisted schema error blocking, upstream diagnostic object copy boundaries including relatedPackageIds, nested details and inherited diagnostic detail metadata containment, frozen repair report output boundaries, deterministic repeated output, read-only protection for package files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+      "rationale": "Covers clean, repairable and blocked repair report outcomes, whitelisted legacy dependencies default reporting, non-whitelisted schema error blocking, upstream diagnostic object copy boundaries including relatedPackageIds, nested details, inherited diagnostic detail metadata containment and own accessor diagnostic detail containment across top-level details, nested objects and array indexes, frozen repair report output boundaries, deterministic repeated output, read-only protection for package files/userdata/settings and unchanged official 54/4242 five-hash baseline."
     }
   ]
 }
