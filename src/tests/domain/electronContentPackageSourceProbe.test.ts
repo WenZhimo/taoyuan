@@ -2397,6 +2397,95 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('redacts host source paths from Electron readiness candidate inspect source errors', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    const sourcePathReads: string[] = []
+    let readAttempted = false
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          sourcePathReads.push(`inspect:${sourcePath}`)
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack') return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack/manifest.json') {
+            throw new ContentPackageSourceError(
+              'SOURCE_PERMISSION_REVOKED',
+              'Content package source permission was revoked',
+              `C:/Users/LENOVO/mods/${sourcePath}`
+            )
+          }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          sourcePathReads.push(`list:${sourcePath}`)
+          if (sourcePath === '') return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+          return []
+        },
+        async readTextFile(sourcePath) {
+          readAttempted = true
+          throw new Error(`candidate inspect source errors must stop before payload reads: ${sourcePath}`)
+        }
+      }
+    })
+
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+    await source.dispose()
+
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'discovery failed',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'completed',
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(readinessReport.diagnosticCount).toBeGreaterThan(0)
+    expect(discoveryReport.status).toBe('completed')
+    expect(discoveryReport.candidates[0]).toMatchObject({
+      path: 'private-pack',
+      status: 'invalid'
+    })
+    expect(discoveryReport.candidates[0]?.issues[0]).toMatchObject({
+      kind: 'file-read-failed',
+      severity: 'error',
+      path: 'private-pack/manifest.json',
+      candidatePath: 'private-pack',
+      reason: 'Package source inspect operation failed'
+    })
+    expect(discoveryReport.candidates[0]?.issues[0]?.diagnostics[0]?.details).toMatchObject({
+      message: 'Content package source inspect operation failed',
+      sourceCode: 'SOURCE_PERMISSION_REVOKED'
+    })
+    expect(sourcePathReads.every(operation =>
+      operation === 'inspect:'
+      || operation === 'list:'
+      || operation === 'inspect:private-pack/manifest.json'
+    )).toBe(true)
+    expect(sourcePathReads.filter(operation => operation === 'list:')).toHaveLength(2)
+    expect(sourcePathReads.filter(operation => operation === 'inspect:private-pack/manifest.json')).toHaveLength(2)
+    expect(readAttempted).toBe(false)
+    for (const result of [readinessReport, discoveryReport]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('candidate inspect source errors')
+    }
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('redacts arbitrary source inspect failures before Electron probe reports expose host paths', async() => {
     const source: ContentPackageSource = {
       identity: {
