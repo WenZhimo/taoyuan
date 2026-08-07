@@ -6725,6 +6725,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive zero-compressed zip-bomb metadata containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers nonzero uncompressed archive entries with zero compressed size being rejected as zip-bomb metadata before later archive entry uncompressed/compressed-size getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write ZIP source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive reverse path-prefix conflict containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
