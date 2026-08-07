@@ -6755,6 +6755,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'directory and archive entry own-key containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers unreadable directory entry and archive entry metadata own-key scans being redacted before supported name/kind/symlink/path/size field getters can run, keeping host-path-bearing key-scan and field getter fragments out of diagnostics while preserving the no-write directory and ZIP source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'directory and archive array index descriptor containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

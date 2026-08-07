@@ -2033,6 +2033,96 @@ describe('content package source contract', () => {
     }
   })
 
+  it('redacts unreadable entry metadata keys before reading supported fields', () => {
+    const directoryReads = {
+      name: false,
+      kind: false,
+      isSymbolicLink: false
+    }
+    const directoryEntry = new Proxy({}, {
+      ownKeys() {
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-entry-keys')
+      },
+      get(_target, property) {
+        if (property === 'name') {
+          directoryReads.name = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-entry-name')
+        }
+        if (property === 'kind') {
+          directoryReads.kind = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-entry-kind')
+        }
+        if (property === 'isSymbolicLink') {
+          directoryReads.isSymbolicLink = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-entry-symlink')
+        }
+        return undefined
+      }
+    })
+    const archiveReads = {
+      path: false,
+      uncompressedSizeBytes: false,
+      compressedSizeBytes: false
+    }
+    const archiveEntry = new Proxy({}, {
+      ownKeys() {
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-entry-keys')
+      },
+      get(_target, property) {
+        if (property === 'path') {
+          archiveReads.path = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-entry-path')
+        }
+        if (property === 'uncompressedSizeBytes') {
+          archiveReads.uncompressedSizeBytes = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-entry-size')
+        }
+        if (property === 'compressedSizeBytes') {
+          archiveReads.compressedSizeBytes = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-entry-compressed-size')
+        }
+        return undefined
+      }
+    })
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      directoryEntry
+    ]))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      archiveEntry
+    ]))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source entry metadata could not be read'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata could not be read'
+    })
+    expect(directoryReads).toEqual({
+      name: false,
+      kind: false,
+      isSymbolicLink: false
+    })
+    expect(archiveReads).toEqual({
+      path: false,
+      uncompressedSizeBytes: false,
+      compressedSizeBytes: false
+    })
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('entry-keys')
+      expect(JSON.stringify(error)).not.toContain('entry-name')
+      expect(JSON.stringify(error)).not.toContain('entry-kind')
+      expect(JSON.stringify(error)).not.toContain('entry-symlink')
+      expect(JSON.stringify(error)).not.toContain('entry-path')
+      expect(JSON.stringify(error)).not.toContain('entry-size')
+      expect(JSON.stringify(error)).not.toContain('entry-compressed-size')
+    }
+  })
+
   it('reads metadata array entries from own indexes without invoking presence traps', () => {
     const directoryEntry = { name: 'pack', kind: 'directory', isSymbolicLink: false }
     const archiveEntry = { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
