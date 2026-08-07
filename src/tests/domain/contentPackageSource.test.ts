@@ -443,6 +443,54 @@ const createHostileIndexDescriptorMetadataArray = (
   return { entries, wasDescriptorRead: () => descriptorRead, wasEntryRead: () => entryRead }
 }
 
+const createOutOfRangeIndexMetadataArray = (
+  fragment: string,
+  _entry: unknown
+): {
+  readonly entries: unknown[]
+  readonly wasOutOfRangeDescriptorRead: () => boolean
+  readonly wasOutOfRangeEntryRead: () => boolean
+  readonly wasEntryRead: () => boolean
+} => {
+  let outOfRangeDescriptorRead = false
+  let outOfRangeEntryRead = false
+  let entryRead = false
+  const entries = Array(1)
+  Object.defineProperty(entries, '0', {
+    configurable: true,
+    enumerable: true,
+    get() {
+      entryRead = true
+      throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-entry')
+    }
+  })
+  const proxiedEntries = new Proxy(entries, {
+    ownKeys() {
+      return ['1', '0', 'length']
+    },
+    get(target, property, receiver) {
+      if (property === '1') {
+        outOfRangeEntryRead = true
+        throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${fragment}-entry`)
+      }
+      return Reflect.get(target, property, receiver)
+    },
+    getOwnPropertyDescriptor(target, property) {
+      if (property === '1') {
+        outOfRangeDescriptorRead = true
+        throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${fragment}-descriptor`)
+      }
+      return Reflect.getOwnPropertyDescriptor(target, property)
+    }
+  })
+  return {
+    entries: proxiedEntries,
+    wasOutOfRangeDescriptorRead: () => outOfRangeDescriptorRead,
+    wasOutOfRangeEntryRead: () => outOfRangeEntryRead,
+    wasEntryRead: () => entryRead
+  }
+}
+
 const createHostileDirectoryMetadataOwnKeys = (): unknown =>
   new Proxy({ name: 'pack', kind: 'directory', isSymbolicLink: false }, {
     ownKeys() {
@@ -1854,6 +1902,44 @@ describe('content package source contract', () => {
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
       expect(JSON.stringify(error)).not.toContain('index-descriptor')
+      expect(JSON.stringify(error)).not.toContain('metadata-array-entry')
+    }
+  })
+
+  it('rejects metadata arrays with out-of-range indexes before reading descriptors or entries', () => {
+    const directoryArray = createOutOfRangeIndexMetadataArray(
+      'directory-out-of-range-index',
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    )
+    const archiveArray = createOutOfRangeIndexMetadataArray(
+      'archive-out-of-range-index',
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    )
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      directoryArray.entries
+    ))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      archiveArray.entries
+    ))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be a dense JSON array'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be a dense JSON array'
+    })
+    for (const metadataArray of [directoryArray, archiveArray]) {
+      expect(metadataArray.wasOutOfRangeDescriptorRead()).toBe(false)
+      expect(metadataArray.wasOutOfRangeEntryRead()).toBe(false)
+      expect(metadataArray.wasEntryRead()).toBe(false)
+    }
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('out-of-range-index')
       expect(JSON.stringify(error)).not.toContain('metadata-array-entry')
     }
   })
