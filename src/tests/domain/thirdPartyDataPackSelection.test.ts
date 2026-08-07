@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { JsonValue } from '@/domain/mods/canonicalJson'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { requirePackageId } from '@/domain/mods/ids'
@@ -542,7 +543,7 @@ describe('third-party data pack read-only selection', () => {
     )).toBe(false)
   })
 
-  it('ignores inherited discovery diagnostic details before exposing blocked reports', async() => {
+  it('ignores inherited and own accessor discovery diagnostic details before exposing blocked reports', async() => {
     const root = await createRoot()
     await createPack(root, 'bad-library', {
       id: 'bad_library',
@@ -576,11 +577,35 @@ describe('third-party data pack read-only selection', () => {
         throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-diagnostics')
       }
     })
+    let ownDetailsRead = false
+    const listDetails = ['original', 'placeholder'] as JsonValue[]
+    Object.defineProperty(listDetails, '1', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-list-diagnostic-detail')
+      }
+    })
+    const nestedDetails: Record<string, JsonValue> = { marker: 'original' }
+    Object.defineProperty(nestedDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-nested-diagnostic-detail')
+      }
+    })
     upstreamDiscoveryDiagnostic.details = Object.assign(Object.create(inheritedDetailsPrototype), {
       reason: 'original discovery diagnostic',
-      nested: { marker: 'original' },
-      list: ['original']
+      nested: nestedDetails,
+      list: listDetails
     }) as NonNullable<typeof upstreamDiscoveryDiagnostic.details>
+    Object.defineProperty(upstreamDiscoveryDiagnostic.details, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-own-diagnostic-detail')
+      }
+    })
 
     const selectionReport = selectThirdPartyDataPacks(discoveryReport)
     const blockedDiscoveryDiagnostic = selectionReport.blockedPackages
@@ -590,18 +615,24 @@ describe('third-party data pack read-only selection', () => {
 
     if (!blockedDiscoveryDiagnostic) throw new Error('Expected copied discovery diagnostic.')
     expect(inheritedDetailsRead).toBe(false)
+    expect(ownDetailsRead).toBe(false)
     expect(blockedDiscoveryDiagnostic.details).toMatchObject({
       reason: 'original discovery diagnostic',
       nested: { marker: 'original' },
-      list: ['original']
+      list: ['original', null]
     })
     expect(blockedDiscoveryDiagnostic.details).not.toHaveProperty('hostPath')
+    expect(blockedDiscoveryDiagnostic.details).not.toHaveProperty('ownHostPath')
+    expect(blockedDiscoveryDiagnostic.details?.nested).not.toHaveProperty('ownHostPath')
     expect(Object.isFrozen(blockedDiscoveryDiagnostic.details)).toBe(true)
     expect(Object.isFrozen(blockedDiscoveryDiagnostic.details?.nested)).toBe(true)
     expect(Object.isFrozen(blockedDiscoveryDiagnostic.details?.list)).toBe(true)
     expect(JSON.stringify(selectionReport)).not.toContain('C:/Users')
     expect(JSON.stringify(selectionReport)).not.toContain('LENOVO')
     expect(JSON.stringify(selectionReport)).not.toContain('selection-diagnostics')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-own-diagnostic-detail')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-nested-diagnostic-detail')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-list-diagnostic-detail')
     expect(officialCounts()).toEqual({
       registryCount: 54,
       entryCount: 4242,

@@ -89,11 +89,44 @@ const sortSelectableCandidates = (values: Iterable<SelectableCandidate>): Select
   [...values].sort((a, b) => compareCodePoints(a.packageId, b.packageId) || compareCodePoints(a.path, b.path))
 
 const cloneJsonValue = (value: JsonValue): JsonValue => {
+  if (Array.isArray(value)) {
+    const result: JsonValue[] = []
+    for (let index = 0; index < value.length; index += 1) {
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+      } catch {
+        result.push(null)
+        continue
+      }
+      result.push(descriptor?.enumerable === true && 'value' in descriptor
+        ? cloneJsonValue(descriptor.value as JsonValue)
+        : null)
+    }
+    return result
+  }
+
   if (value === null || typeof value !== 'object') return value
-  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
 
   const result: Record<string, JsonValue> = {}
-  for (const [key, entry] of Object.entries(value)) result[key] = cloneJsonValue(entry)
+  let keys: readonly (string | symbol)[]
+  try {
+    keys = Reflect.ownKeys(value)
+  } catch {
+    return result
+  }
+  for (const key of keys) {
+    if (typeof key !== 'string') continue
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, key)
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result[key] = cloneJsonValue(descriptor.value as JsonValue)
+    }
+  }
   return result
 }
 
@@ -111,7 +144,24 @@ const cloneDiagnosticDetails = (
   if (details === undefined) return undefined
 
   const result: Record<string, JsonValue> = {}
-  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  let keys: readonly (string | symbol)[]
+  try {
+    keys = Reflect.ownKeys(details)
+  } catch {
+    return result
+  }
+  for (const key of keys) {
+    if (typeof key !== 'string') continue
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(details, key)
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result[key] = cloneJsonValue(descriptor.value as JsonValue)
+    }
+  }
   return result
 }
 
