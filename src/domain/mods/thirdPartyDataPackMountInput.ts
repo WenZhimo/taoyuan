@@ -63,10 +63,43 @@ export interface BuildThirdPartyDataPackMountInputOptions {
 }
 
 const cloneJsonValue = (value: JsonValue): JsonValue => {
-  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
+  if (Array.isArray(value)) {
+    const result: JsonValue[] = []
+    for (let index = 0; index < value.length; index += 1) {
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+      } catch {
+        result.push(null)
+        continue
+      }
+      result.push(descriptor?.enumerable === true && 'value' in descriptor
+        ? cloneJsonValue(descriptor.value as JsonValue)
+        : null)
+    }
+    return result
+  }
+
   if (value !== null && typeof value === 'object') {
     const result: Record<string, JsonValue> = {}
-    for (const [key, entryValue] of Object.entries(value)) result[key] = cloneJsonValue(entryValue)
+    let keys: readonly (string | symbol)[]
+    try {
+      keys = Reflect.ownKeys(value)
+    } catch {
+      return result
+    }
+    for (const key of keys) {
+      if (typeof key !== 'string') continue
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(value, key)
+      } catch {
+        continue
+      }
+      if (descriptor?.enumerable === true && 'value' in descriptor) {
+        result[key] = cloneJsonValue(descriptor.value as JsonValue)
+      }
+    }
     return result
   }
   return value
@@ -87,17 +120,32 @@ const cloneDiagnosticDetails = (
 ): ModDiagnostic['details'] => {
   if (details === undefined) return undefined
   const result: Record<string, JsonValue> = {}
-  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  let keys: readonly (string | symbol)[]
+  try {
+    keys = Reflect.ownKeys(details)
+  } catch {
+    return result
+  }
+  for (const key of keys) {
+    if (typeof key !== 'string') continue
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(details, key)
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result[key] = cloneJsonValue(descriptor.value as JsonValue)
+    }
+  }
   return result
 }
 
 const freezeDiagnosticDetails = (
   details: ModDiagnostic['details']
 ): ModDiagnostic['details'] => {
-  if (details === undefined) return undefined
-  const result: Record<string, JsonValue> = {}
-  for (const [key, value] of Object.entries(details)) result[key] = freezeJsonValue(value)
-  return Object.freeze(result) as ModDiagnostic['details']
+  const cloned = cloneDiagnosticDetails(details)
+  return cloned === undefined ? undefined : freezeJsonValue(cloned) as ModDiagnostic['details']
 }
 
 const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
@@ -128,21 +176,22 @@ const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic
   const seen = new Set<string>()
   const result: ModDiagnostic[] = []
   for (const diagnostic of diagnostics) {
+    const copiedDiagnostic = cloneDiagnostic(diagnostic)
     const key = JSON.stringify({
-      code: diagnostic.code,
-      stage: diagnostic.stage,
-      severity: diagnostic.severity,
-      packageId: diagnostic.packageId,
-      file: diagnostic.file,
-      fieldPath: diagnostic.fieldPath,
-      registryId: diagnostic.registryId,
-      contentId: diagnostic.contentId,
-      relatedPackageIds: diagnostic.relatedPackageIds,
-      details: diagnostic.details
+      code: copiedDiagnostic.code,
+      stage: copiedDiagnostic.stage,
+      severity: copiedDiagnostic.severity,
+      packageId: copiedDiagnostic.packageId,
+      file: copiedDiagnostic.file,
+      fieldPath: copiedDiagnostic.fieldPath,
+      registryId: copiedDiagnostic.registryId,
+      contentId: copiedDiagnostic.contentId,
+      relatedPackageIds: copiedDiagnostic.relatedPackageIds,
+      details: copiedDiagnostic.details
     })
     if (seen.has(key)) continue
     seen.add(key)
-    result.push(freezeDiagnostic(cloneDiagnostic(diagnostic)))
+    result.push(freezeDiagnostic(copiedDiagnostic))
   }
   return result
 }
@@ -293,7 +342,30 @@ const freezeEffectSummary = (
 const freezePreflight = (
   preflight: ThirdPartyDataPackMountPreflightResult
 ): ThirdPartyDataPackMountPreflightResult =>
-  deepFreezeObjectGraph(JSON.parse(JSON.stringify(preflight)) as ThirdPartyDataPackMountPreflightResult)
+  Object.freeze({
+    status: preflight.status,
+    stages: Object.freeze(preflight.stages.map(currentStage => Object.freeze({
+      name: currentStage.name,
+      status: currentStage.status,
+      diagnostics: freezeDiagnostics(currentStage.diagnostics),
+      ...(currentStage.details
+        ? { details: Object.freeze(cloneJsonValue(currentStage.details as JsonValue)) as Readonly<Record<string, string | number | boolean>> }
+        : {})
+    }))),
+    diagnostics: freezeDiagnostics(preflight.diagnostics),
+    selectedPackageIds: freezePackageIds(preflight.selectedPackageIds),
+    blockedPackageIds: freezePackageIds(preflight.blockedPackageIds),
+    blockedCandidatePaths: freezeStringList(preflight.blockedCandidatePaths),
+    loadOrder: freezePackageIds(preflight.loadOrder),
+    registryCount: preflight.registryCount,
+    entryCount: preflight.entryCount,
+    officialIdentity: freezeOfficialIdentity(preflight.officialIdentity),
+    candidateIdentity: freezeCandidateIdentity(preflight.candidateIdentity),
+    lockfileHash: preflight.lockfileHash,
+    packageCount: preflight.packageCount,
+    effects: freezeEffectSummary(preflight.effects),
+    rollback: Object.freeze({ ...preflight.rollback })
+  })
 
 const baseResult = (
   status: ThirdPartyDataPackMountInputStatus,

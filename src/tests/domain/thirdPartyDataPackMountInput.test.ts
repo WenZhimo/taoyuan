@@ -552,6 +552,106 @@ describe('third-party data pack mount input', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('ignores own accessor preflight diagnostic details before exposing mount input reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult, preflight } = await buildReportsFromRoot(root)
+    let ownDetailsRead = false
+    const listDetails = ['first', 'placeholder'] as JsonValue[]
+    Object.defineProperty(listDetails, '1', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-input-list-diagnostic-detail')
+      }
+    })
+    const nestedDetails: Record<string, JsonValue> = { marker: 'original' }
+    Object.defineProperty(nestedDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-input-nested-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = {
+      reason: 'preflight warning',
+      nested: nestedDetails,
+      list: listDetails
+    } as Record<string, JsonValue>
+    Object.defineProperty(diagnosticDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-input-own-diagnostic-detail')
+      }
+    })
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.mount-input.own-accessor',
+      severity: 'warning',
+      packageId: requirePackageId('discovery_valid'),
+      relatedPackageIds: [requirePackageId('discovery_valid')],
+      details: diagnosticDetails
+    })
+    const mutablePreflight = {
+      ...preflight,
+      diagnostics: [upstreamDiagnostic],
+      stages: preflight.stages.map(currentStage =>
+        currentStage.name === 'runtime-publish'
+          ? { ...currentStage, diagnostics: [upstreamDiagnostic] }
+          : currentStage
+      )
+    }
+
+    const mountInput = buildThirdPartyDataPackMountInput({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot,
+      lockfileDraftResult,
+      lockfileValidationResult,
+      preflight: mutablePreflight
+    })
+    const copiedDiagnostic = mountInput.diagnostics[0]
+    const copiedStageDiagnostic = mountInput.preflight.stages
+      .find(currentStage => currentStage.name === 'runtime-publish')
+      ?.diagnostics[0]
+    if (copiedDiagnostic === undefined || copiedStageDiagnostic === undefined) {
+      throw new Error('Expected copied mount input diagnostics.')
+    }
+
+    expect(mountInput.status).toBe('ready')
+    expect(ownDetailsRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.mount-input.own-accessor',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'preflight warning',
+        nested: { marker: 'original' },
+        list: ['first', null]
+      }
+    })
+    expect(copiedStageDiagnostic).toMatchObject(copiedDiagnostic)
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic?.details, diagnosticDetails)).toBe(false)
+    expect(Object.is(copiedDiagnostic?.details?.nested, nestedDetails)).toBe(false)
+    expect(Object.is(copiedDiagnostic?.details?.list, listDetails)).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic?.details, 'ownHostPath')).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic?.details?.nested, 'ownHostPath')).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic?.details)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic?.details?.nested)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic?.details?.list)).toBe(true)
+    expect(Object.isFrozen(copiedStageDiagnostic?.details)).toBe(true)
+    expect(JSON.stringify(mountInput)).not.toContain('C:/Users')
+    expect(JSON.stringify(mountInput)).not.toContain('LENOVO')
+    expect(JSON.stringify(mountInput)).not.toContain('mount-input-own-diagnostic-detail')
+    expect(JSON.stringify(mountInput)).not.toContain('mount-input-nested-diagnostic-detail')
+    expect(JSON.stringify(mountInput)).not.toContain('mount-input-list-diagnostic-detail')
+    expectReadOnlyEffects(mountInput)
+    expectFrozenMountInputOutput(mountInput)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('copies the serializable candidate snapshot before exposing mount input artifacts', async() => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })

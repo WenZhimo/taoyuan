@@ -15826,7 +15826,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies and freezes the serializable candidate snapshot and lockfile draft before exposure, copies and freezes upstream preflight report, official/candidate identity summaries, diagnostic objects including relatedPackageIds and nested JSON details, package id/path arrays, no-write effects and the top-level mount input report, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
+      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies and freezes the serializable candidate snapshot and lockfile draft before exposure, copies and freezes upstream preflight report, official/candidate identity summaries, diagnostic objects including relatedPackageIds and nested JSON details from own enumerable data-only fields, skips inherited diagnostic details, own accessor details, Symbol fields and unreadable descriptors without invoking hostile getters, freezes nested stage diagnostics and the top-level mount input report, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRuntimeMountGate.ts",
