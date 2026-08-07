@@ -2833,6 +2833,7 @@ describe('content package source contract', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     let overflowingCompressedSizeRead = false
     let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
     const overflowingEntry = {
       path: 'b-overflow.bin',
       uncompressedSizeBytes: 1,
@@ -2846,6 +2847,10 @@ describe('content package source contract', () => {
       get uncompressedSizeBytes() {
         laterUncompressedSizeRead = true
         throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-compressed-size')
       }
     }
 
@@ -2865,10 +2870,12 @@ describe('content package source contract', () => {
     })
     expect(overflowingCompressedSizeRead).toBe(false)
     expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
     expect(JSON.stringify(error)).not.toContain('C:/Users')
     expect(JSON.stringify(error)).not.toContain('LENOVO')
     expect(JSON.stringify(error)).not.toContain('archive-overflow-compressed-size')
     expect(JSON.stringify(error)).not.toContain('archive-later-uncompressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-later-compressed-size')
   })
 
   it('rejects archive total compressed budget before reading later size metadata', () => {
