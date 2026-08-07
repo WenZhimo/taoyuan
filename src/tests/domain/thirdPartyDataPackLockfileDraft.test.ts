@@ -5,6 +5,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { cwd } from 'node:process'
 import { afterEach, describe, expect, it } from 'vitest'
+import type { JsonValue } from '@/domain/mods/canonicalJson'
 import { createDiagnostic } from '@/domain/mods/diagnostics'
 import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import type { Sha256Hash } from '@/domain/mods/hash'
@@ -769,6 +770,87 @@ describe('third-party data pack lockfile draft', () => {
       }
     })
     expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-diagnostic-detail')
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('ignores own accessor candidate snapshot diagnostic details before exposing draft reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    let ownDetailsRead = false
+    const listDetails = ['first', 'placeholder'] as JsonValue[]
+    Object.defineProperty(listDetails, '1', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-list-diagnostic-detail')
+      }
+    })
+    const nestedDetails: Record<string, JsonValue> = { marker: 'original' }
+    Object.defineProperty(nestedDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-nested-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = {
+      reason: 'candidate warning',
+      nested: nestedDetails,
+      list: listDetails
+    } as Record<string, JsonValue>
+    Object.defineProperty(diagnosticDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-own-diagnostic-detail')
+      }
+    })
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.lockfile-draft.own-accessor',
+      severity: 'warning',
+      packageId: requirePackageId('discovery_valid'),
+      relatedPackageIds: [requirePackageId('discovery_valid')],
+      details: diagnosticDetails
+    })
+    const candidateSnapshot = {
+      ...reports.candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot
+    })
+    const copiedDiagnostic = draftResult.diagnostics[0]
+
+    expect(draftResult.status).toBe('valid')
+    expect(ownDetailsRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.lockfile-draft.own-accessor',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'candidate warning',
+        nested: { marker: 'original' },
+        list: ['first', null]
+      }
+    })
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic?.details, diagnosticDetails)).toBe(false)
+    expect(Object.is(copiedDiagnostic?.details?.nested, nestedDetails)).toBe(false)
+    expect(Object.is(copiedDiagnostic?.details?.list, listDetails)).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic?.details, 'ownHostPath')).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic?.details?.nested, 'ownHostPath')).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic?.details)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic?.details?.nested)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic?.details?.list)).toBe(true)
+    expect(JSON.stringify(draftResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(draftResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-own-diagnostic-detail')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-nested-diagnostic-detail')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-list-diagnostic-detail')
     expectOfficialBaseline()
   }, 15_000)
 })
