@@ -6755,6 +6755,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'directory and archive array index descriptor containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers unreadable directory listing and archive entry array index descriptors being redacted before entry metadata getters can run, keeping host-path-bearing descriptor failures out of diagnostics while preserving the no-write directory and ZIP source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'directory and archive array symbol-key containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

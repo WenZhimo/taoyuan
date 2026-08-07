@@ -414,6 +414,35 @@ const createHostileLengthMetadataArray = (
   return { entries, wasOwnKeysRead: () => ownKeysRead, wasEntryRead: () => entryRead }
 }
 
+const createHostileIndexDescriptorMetadataArray = (
+  fragment: string,
+  entry: unknown
+): {
+  readonly entries: unknown[]
+  readonly wasDescriptorRead: () => boolean
+  readonly wasEntryRead: () => boolean
+} => {
+  let descriptorRead = false
+  let entryRead = false
+  const entries = new Proxy([entry], {
+    get(target, property, receiver) {
+      if (property === '0') {
+        entryRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/metadata-array-entry')
+      }
+      return Reflect.get(target, property, receiver)
+    },
+    getOwnPropertyDescriptor(target, property) {
+      if (property === '0') {
+        descriptorRead = true
+        throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${fragment}`)
+      }
+      return Reflect.getOwnPropertyDescriptor(target, property)
+    }
+  })
+  return { entries, wasDescriptorRead: () => descriptorRead, wasEntryRead: () => entryRead }
+}
+
 const createHostileDirectoryMetadataOwnKeys = (): unknown =>
   new Proxy({ name: 'pack', kind: 'directory', isSymbolicLink: false }, {
     ownKeys() {
@@ -1789,6 +1818,43 @@ describe('content package source contract', () => {
       expect(JSON.stringify(error)).not.toContain('directory-length')
       expect(JSON.stringify(error)).not.toContain('archive-length')
       expect(JSON.stringify(error)).not.toContain('metadata-array')
+    }
+  })
+
+  it('redacts unreadable metadata array index descriptors before reading entries', () => {
+    const directoryArray = createHostileIndexDescriptorMetadataArray(
+      'directory-index-descriptor',
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    )
+    const archiveArray = createHostileIndexDescriptorMetadataArray(
+      'archive-index-descriptor',
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    )
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      directoryArray.entries
+    ))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      archiveArray.entries
+    ))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata could not be read'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata could not be read'
+    })
+    expect(directoryArray.wasDescriptorRead()).toBe(true)
+    expect(directoryArray.wasEntryRead()).toBe(false)
+    expect(archiveArray.wasDescriptorRead()).toBe(true)
+    expect(archiveArray.wasEntryRead()).toBe(false)
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('index-descriptor')
+      expect(JSON.stringify(error)).not.toContain('metadata-array-entry')
     }
   })
 
