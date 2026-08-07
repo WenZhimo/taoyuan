@@ -3589,6 +3589,25 @@ describe('content package source contract', () => {
     expect(archiveEntries.map(entry => entry.path)).toEqual(['pack/data/items.json', 'pack/manifest.json'])
   })
 
+  it('detaches validated archive metadata from later host object mutations', () => {
+    const hostArchiveEntry = {
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 0,
+      compressedSizeBytes: 0
+    }
+    const archiveEntries = validateContentPackageSourceArchiveEntries([hostArchiveEntry])
+
+    hostArchiveEntry.path = 'pack/mutated.json'
+    hostArchiveEntry.uncompressedSizeBytes = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxSingleFileBytes
+    hostArchiveEntry.compressedSizeBytes = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS.maxPackageCompressedBytes
+
+    expect(archiveEntries).toEqual([
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
+    ])
+    expect(Object.isFrozen(archiveEntries)).toBe(true)
+    expect(Object.isFrozen(archiveEntries[0])).toBe(true)
+  })
+
   it('ignores inherited optional archive compressed-size metadata before prototype getters can run', () => {
     const inherited = defineInheritedHostileGetter({
       path: 'pack/manifest.json',
