@@ -594,4 +594,98 @@ describe('third-party data pack mount preflight', () => {
     expectReadOnlyEffects(preflight)
     expectOfficialBaseline()
   }, 15_000)
+
+  it('ignores own accessor candidate snapshot diagnostic details before exposing preflight reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult } = await buildReportsFromRoot(root)
+    let ownDetailsRead = false
+    const listDetails = ['first', 'placeholder'] as JsonValue[]
+    Object.defineProperty(listDetails, '1', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-preflight-list-diagnostic-detail')
+      }
+    })
+    const nestedDetails: Record<string, JsonValue> = { marker: 'original' }
+    Object.defineProperty(nestedDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-preflight-nested-diagnostic-detail')
+      }
+    })
+    const diagnosticDetails = {
+      reason: 'candidate warning',
+      nested: nestedDetails,
+      list: listDetails
+    } as Record<string, JsonValue>
+    Object.defineProperty(diagnosticDetails, 'ownHostPath', {
+      enumerable: true,
+      get() {
+        ownDetailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-preflight-own-diagnostic-detail')
+      }
+    })
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.mount-preflight.own-accessor',
+      severity: 'warning',
+      packageId: 'discovery_valid' as PackageId,
+      relatedPackageIds: ['discovery_valid' as PackageId],
+      details: diagnosticDetails
+    })
+    const candidateSnapshotWithDiagnostic = {
+      ...candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const preflight = buildThirdPartyDataPackMountPreflight({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotWithDiagnostic,
+      lockfileDraftResult,
+      lockfileValidationResult
+    })
+    const candidateStageDiagnostic = preflight.stages
+      .find(stage => stage.name === 'candidate-snapshot')
+      ?.diagnostics[0]
+    const copiedDiagnostic = preflight.diagnostics[0]
+    if (candidateStageDiagnostic === undefined || copiedDiagnostic === undefined) {
+      throw new Error('Expected copied mount preflight diagnostics.')
+    }
+
+    expect(preflight.status).toBe('ready')
+    expect(ownDetailsRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.mount-preflight.own-accessor',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'candidate warning',
+        nested: { marker: 'original' },
+        list: ['first', null]
+      }
+    })
+    expect(candidateStageDiagnostic).toMatchObject(copiedDiagnostic)
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.details, diagnosticDetails)).toBe(false)
+    expect(Object.is(copiedDiagnostic.details?.nested, nestedDetails)).toBe(false)
+    expect(Object.is(copiedDiagnostic.details?.list, listDetails)).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic.details, 'ownHostPath')).toBe(false)
+    expect(Object.prototype.hasOwnProperty.call(copiedDiagnostic.details?.nested, 'ownHostPath')).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic.details)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details?.nested)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details?.list)).toBe(true)
+    expect(Object.isFrozen(candidateStageDiagnostic.details)).toBe(true)
+    expect(JSON.stringify(preflight)).not.toContain('C:/Users')
+    expect(JSON.stringify(preflight)).not.toContain('LENOVO')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-own-diagnostic-detail')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-nested-diagnostic-detail')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-list-diagnostic-detail')
+    expectReadOnlyEffects(preflight)
+    expectFrozenPreflightOutput(preflight)
+    expectOfficialBaseline()
+  }, 15_000)
 })

@@ -97,32 +97,80 @@ const hasBlockingDiagnostic = (diagnostics: readonly ModDiagnostic[]): boolean =
   diagnostics.some(diagnostic => blockingSeverities.has(diagnostic.severity))
 
 const cloneJsonValue = (value: JsonValue): JsonValue => {
-  if (value === null || typeof value !== 'object') return value
-  if (Array.isArray(value)) return value.map(item => cloneJsonValue(item))
-
-  const result: Record<string, JsonValue> = {}
-  for (const [key, entry] of Object.entries(value)) result[key] = cloneJsonValue(entry)
-  return result
-}
-
-const freezeJsonValue = (value: JsonValue): JsonValue => {
-  if (value === null || typeof value !== 'object') return value
   if (Array.isArray(value)) {
-    return Object.freeze(value.map(item => freezeJsonValue(item))) as unknown as JsonValue
+    const result: JsonValue[] = []
+    for (let index = 0; index < value.length; index += 1) {
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+      } catch {
+        result.push(null)
+        continue
+      }
+      result.push(descriptor?.enumerable === true && 'value' in descriptor
+        ? cloneJsonValue(descriptor.value as JsonValue)
+        : null)
+    }
+    return result
   }
 
-  const result: Record<string, JsonValue> = {}
-  for (const [key, entry] of Object.entries(value)) result[key] = freezeJsonValue(entry)
-  return Object.freeze(result) as JsonValue
+  if (value !== null && typeof value === 'object') {
+    const result: Record<string, JsonValue> = {}
+    let keys: readonly (string | symbol)[]
+    try {
+      keys = Reflect.ownKeys(value)
+    } catch {
+      return result
+    }
+    for (const key of keys) {
+      if (typeof key !== 'string') continue
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(value, key)
+      } catch {
+        continue
+      }
+      if (descriptor?.enumerable === true && 'value' in descriptor) {
+        result[key] = cloneJsonValue(descriptor.value as JsonValue)
+      }
+    }
+    return result
+  }
+
+  return value
+}
+
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object') {
+    Object.freeze(value)
+    for (const child of Object.values(value as Record<string, unknown>)) deepFreezeObjectGraph(child)
+  }
+  return value
 }
 
 const cloneDiagnosticDetails = (
   details: ModDiagnostic['details']
 ): ModDiagnostic['details'] => {
   if (details === undefined) return undefined
-
   const result: Record<string, JsonValue> = {}
-  for (const [key, value] of Object.entries(details)) result[key] = cloneJsonValue(value)
+  let keys: readonly (string | symbol)[]
+  try {
+    keys = Reflect.ownKeys(details)
+  } catch {
+    return result
+  }
+  for (const key of keys) {
+    if (typeof key !== 'string') continue
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(details, key)
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result[key] = cloneJsonValue(descriptor.value as JsonValue)
+    }
+  }
   return result
 }
 
@@ -145,11 +193,8 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
 const freezeDiagnosticDetails = (
   details: ModDiagnostic['details']
 ): ModDiagnostic['details'] => {
-  if (details === undefined) return undefined
-
-  const result: Record<string, JsonValue> = {}
-  for (const [key, value] of Object.entries(details)) result[key] = freezeJsonValue(value)
-  return Object.freeze(result) as ModDiagnostic['details']
+  const cloned = cloneDiagnosticDetails(details)
+  return cloned === undefined ? undefined : deepFreezeObjectGraph(cloned) as ModDiagnostic['details']
 }
 
 const freezeDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => Object.freeze({
@@ -164,21 +209,22 @@ const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic
   const seen = new Set<string>()
   const result: ModDiagnostic[] = []
   for (const diagnostic of diagnostics) {
+    const copiedDiagnostic = cloneDiagnostic(diagnostic)
     const key = JSON.stringify({
-      code: diagnostic.code,
-      stage: diagnostic.stage,
-      severity: diagnostic.severity,
-      packageId: diagnostic.packageId,
-      file: diagnostic.file,
-      fieldPath: diagnostic.fieldPath,
-      registryId: diagnostic.registryId,
-      contentId: diagnostic.contentId,
-      relatedPackageIds: diagnostic.relatedPackageIds,
-      details: diagnostic.details
+      code: copiedDiagnostic.code,
+      stage: copiedDiagnostic.stage,
+      severity: copiedDiagnostic.severity,
+      packageId: copiedDiagnostic.packageId,
+      file: copiedDiagnostic.file,
+      fieldPath: copiedDiagnostic.fieldPath,
+      registryId: copiedDiagnostic.registryId,
+      contentId: copiedDiagnostic.contentId,
+      relatedPackageIds: copiedDiagnostic.relatedPackageIds,
+      details: copiedDiagnostic.details
     })
     if (seen.has(key)) continue
     seen.add(key)
-    result.push(freezeDiagnostic(cloneDiagnostic(diagnostic)))
+    result.push(freezeDiagnostic(copiedDiagnostic))
   }
   return result
 }
