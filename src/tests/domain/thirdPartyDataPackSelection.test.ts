@@ -640,6 +640,89 @@ describe('third-party data pack read-only selection', () => {
     })
   })
 
+  it('ignores own accessor discovery diagnostic fields before exposing blocked reports', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      itemEntries: [
+        {
+          id: 'bad_library:broken',
+          name: { key: 'bad_library.item.broken.name', fallback: 'Broken' },
+          category: 'gift',
+          description: { key: 'bad_library.item.broken.description', fallback: 'Broken.' },
+          sellPrice: -1,
+          edible: false
+        }
+      ]
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'bad_library', version: '1.0.0' }]
+    })
+    const discoveryReport = createMutableDiscoveryReport(await discover(root))
+    const upstreamDiscoveryDiagnostic = discoveryReport.candidates
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.issues[0]
+      ?.diagnostics[0]
+    if (!upstreamDiscoveryDiagnostic) throw new Error('Expected discovery diagnostic for invalid package.')
+    let stageRead = false
+    let relatedPackageIdsRead = false
+    let detailsRead = false
+    Object.defineProperty(upstreamDiscoveryDiagnostic, 'stage', {
+      enumerable: true,
+      get() {
+        stageRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-diagnostic-stage')
+      }
+    })
+    Object.defineProperty(upstreamDiscoveryDiagnostic, 'relatedPackageIds', {
+      enumerable: true,
+      get() {
+        relatedPackageIdsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-diagnostic-related')
+      }
+    })
+    Object.defineProperty(upstreamDiscoveryDiagnostic, 'details', {
+      enumerable: true,
+      get() {
+        detailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-diagnostic-details')
+      }
+    })
+
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const blockedDiscoveryDiagnostic = selectionReport.blockedPackages
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.discoveryIssues[0]
+      ?.diagnostics[0]
+
+    if (!blockedDiscoveryDiagnostic) throw new Error('Expected copied discovery diagnostic.')
+    expect(stageRead).toBe(false)
+    expect(relatedPackageIdsRead).toBe(false)
+    expect(detailsRead).toBe(false)
+    expect(blockedDiscoveryDiagnostic).toMatchObject({
+      code: upstreamDiscoveryDiagnostic.code,
+      ruleId: upstreamDiscoveryDiagnostic.ruleId,
+      severity: upstreamDiscoveryDiagnostic.severity,
+      stage: 'third-party.selection.diagnostic-copy',
+      messageKey: upstreamDiscoveryDiagnostic.messageKey,
+      recovery: upstreamDiscoveryDiagnostic.recovery
+    })
+    expect(blockedDiscoveryDiagnostic.relatedPackageIds).toBeUndefined()
+    expect(blockedDiscoveryDiagnostic.details).toBeUndefined()
+    expect(Object.isFrozen(blockedDiscoveryDiagnostic)).toBe(true)
+    expect(JSON.stringify(selectionReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(selectionReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-diagnostic-stage')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-diagnostic-related')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-diagnostic-details')
+    expect(officialCounts()).toEqual({
+      registryCount: 54,
+      entryCount: 4242,
+      snapshotHash: committedMetadata.snapshotHash
+    })
+  })
+
   it('freezes exposed selection report output graphs', async() => {
     const root = await createRoot()
     await createPack(root, 'bad-library', {
