@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 276
+    "reviewedArtifactCount": 277
   },
   "entries": [
     {
@@ -16151,6 +16151,18 @@
       ],
       "status": "verified",
       "rationale": "Covers unreadable uncompressed archive-size metadata being rejected before same-entry compressed-size or later archive entry size getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write ZIP source-safety boundary."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "archive hidden uncompressed-size metadata containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers non-enumerable required archive uncompressed-size metadata being rejected before its hidden getter can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write ZIP source-safety boundary."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",

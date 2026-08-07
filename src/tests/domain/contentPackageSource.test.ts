@@ -2483,6 +2483,19 @@ describe('content package source contract', () => {
     })
     expect(hiddenArchivePath.wasRead()).toBe(false)
 
+    const hiddenArchiveUncompressedSize = defineHiddenHostileGetter({
+      path: 'pack/manifest.json'
+    }, 'uncompressedSizeBytes')
+    const archiveUncompressedSizeError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      hiddenArchiveUncompressedSize.value
+    ]))
+
+    expect(archiveUncompressedSizeError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata contains unsupported fields'
+    })
+    expect(hiddenArchiveUncompressedSize.wasRead()).toBe(false)
+
     const hiddenArchiveCompressedSize = defineHiddenHostileGetter({
       path: 'pack/manifest.json',
       uncompressedSizeBytes: 0
@@ -2497,7 +2510,13 @@ describe('content package source contract', () => {
     })
     expect(hiddenArchiveCompressedSize.wasRead()).toBe(false)
 
-    for (const result of [identityError, directoryError, archivePathError, archiveCompressedSizeError]) {
+    for (const result of [
+      identityError,
+      directoryError,
+      archivePathError,
+      archiveUncompressedSizeError,
+      archiveCompressedSizeError
+    ]) {
       expect(JSON.stringify(result)).not.toContain('C:/Users')
       expect(JSON.stringify(result)).not.toContain('LENOVO')
     }
