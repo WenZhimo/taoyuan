@@ -3208,6 +3208,61 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-sorted-non-number')
   })
 
+  it('rejects non-number required archive uncompressed-size metadata in normalized path order before coercion or later size reads', () => {
+    let uncompressedSizeCoerced = false
+    let invalidCompressedSizeRead = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const hostileUncompressedSize = {
+      valueOf() {
+        uncompressedSizeCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-non-number-uncompressed-size-valueOf')
+      },
+      [Symbol.toPrimitive]() {
+        uncompressedSizeCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-non-number-uncompressed-size-to-primitive')
+      }
+    }
+    const invalidUncompressedEntry = {
+      path: 'm-pack/manifest.json',
+      uncompressedSizeBytes: hostileUncompressedSize,
+      get compressedSizeBytes() {
+        invalidCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-non-number-uncompressed-compressed-size')
+      }
+    }
+    const laterArchiveEntry = {
+      path: 'z-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-non-number-uncompressed-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-non-number-uncompressed-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterArchiveEntry,
+      invalidUncompressedEntry,
+      { path: 'a-safe.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'uncompressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'm-pack/manifest.json'
+    })
+    expect(uncompressedSizeCoerced).toBe(false)
+    expect(invalidCompressedSizeRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-non-number-uncompressed')
+  })
+
   it('rejects non-number optional archive compressed-size metadata before coercion or later size reads', () => {
     let compressedSizeCoerced = false
     let laterUncompressedSizeRead = false
