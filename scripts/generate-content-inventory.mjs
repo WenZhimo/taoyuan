@@ -6605,6 +6605,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackLockfileDraft.test.ts',
+    exportName: 'lockfile draft schema identity guard regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-lockfile-draft',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers the internal TypeBox lockfile draft candidate rejecting malformed formatVersion and kind identity fields before semantic lockfile comparison, including host-path-bearing kind values that must not be echoed in diagnostics; this remains a no-write 7C guardrail and does not freeze public mod-lock.json compatibility.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackLockfileDraft.test.ts',
     exportName: 'lockfile draft proxy array diagnostic detail containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/third-party-lockfile-draft',

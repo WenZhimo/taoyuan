@@ -400,6 +400,12 @@ describe('third-party data pack lockfile draft', () => {
     const withInvalidHash = cloneDraftAsJson(draft)
     withInvalidHash.lockfileHash = 'sha256:not-a-real-hash'
 
+    const withInvalidFormatVersion = cloneDraftAsJson(draft)
+    withInvalidFormatVersion.formatVersion = 2
+
+    const withInvalidKind = cloneDraftAsJson(draft)
+    withInvalidKind.kind = 'C:/Users/LENOVO/mod-lock'
+
     const withUnsafeDotDotPath = cloneDraftAsJson(draft)
     const dotDotPackages = withUnsafeDotDotPath.packages as JsonObject[]
     const dotDotSource = dotDotPackages[0]!.source as JsonObject
@@ -419,6 +425,8 @@ describe('third-party data pack lockfile draft', () => {
       { value: withExtraProperty, fieldPath: '/unexpected' },
       { value: withInvalidPackageId, fieldPath: '/selectedPackageIds/0' },
       { value: withInvalidHash, fieldPath: '/lockfileHash' },
+      { value: withInvalidFormatVersion, fieldPath: '/formatVersion' },
+      { value: withInvalidKind, fieldPath: '/kind' },
       { value: withUnsafeDotDotPath, fieldPath: '/packages/0/source/candidatePath' },
       { value: withUnsafeDrivePath, fieldPath: '/packages/0/source/manifestPath' },
       { value: withUnsafeBackslashPath, fieldPath: '/packages/0/source/contentFiles/0' }
@@ -438,7 +446,21 @@ describe('third-party data pack lockfile draft', () => {
         stage: 'third-party.lockfile-draft.schema',
         fieldPath: testCase.fieldPath
       }))
+      expect(validation.diagnostics).not.toContainEqual(expect.objectContaining({
+        stage: 'third-party.lockfile-draft.format'
+      }))
+      expect(validation.diagnostics).not.toContainEqual(expect.objectContaining({
+        stage: 'third-party.lockfile-draft.hash'
+      }))
     }
+
+    expect(JSON.stringify(validateThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot: reports.candidateSnapshot,
+      draft: withInvalidKind
+    }))).not.toContain('C:/Users')
+    expectOfficialBaseline()
   }, 15_000)
 
   it('keeps host-path draft values out of schema validation diagnostics', async() => {
