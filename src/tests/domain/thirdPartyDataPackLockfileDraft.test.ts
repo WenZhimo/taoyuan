@@ -895,4 +895,51 @@ describe('third-party data pack lockfile draft', () => {
     expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-list-diagnostic-detail')
     expectOfficialBaseline()
   }, 15_000)
+
+  it('copies candidate snapshot diagnostic array details without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    let lengthRead = false
+    const listDetails = new Proxy(['first', { stable: true }] as JsonValue[], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-list-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.lockfile-draft.proxy-array',
+      severity: 'warning',
+      packageId: requirePackageId('discovery_valid'),
+      details: {
+        reason: 'candidate warning',
+        list: listDetails as JsonValue
+      }
+    })
+    const candidateSnapshot = {
+      ...reports.candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot
+    })
+
+    expect(draftResult.status).toBe('valid')
+    expect(draftResult.diagnostics[0]?.details).toMatchObject({
+      reason: 'candidate warning',
+      list: ['first', { stable: true }]
+    })
+    expect(lengthRead).toBe(false)
+    expect(JSON.stringify(draftResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(draftResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-list-length')
+    expectOfficialBaseline()
+  }, 15_000)
 })
