@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 289
+    "reviewedArtifactCount": 290
   },
   "entries": [
     {
@@ -15826,7 +15826,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies and freezes the serializable candidate snapshot and lockfile draft before exposure, copies and freezes upstream preflight report, official/candidate identity summaries, diagnostic objects including relatedPackageIds and nested JSON details from own enumerable data-only fields, skips inherited diagnostic details, own accessor details, Symbol fields and unreadable descriptors without invoking hostile getters, freezes nested stage diagnostics and the top-level mount input report, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
+      "rationale": "Prepares the future runtime mount adapter input only from a ready read-only preflight: exposes the frozen in-memory candidate RegistrySet, copies and freezes the serializable candidate snapshot and lockfile draft before exposure, copies and freezes upstream preflight report, official/candidate identity summaries, diagnostic objects including relatedPackageIds and nested JSON details from own enumerable data-only fields, skips inherited diagnostic details, own accessor details, Symbol fields, hostile Proxy array length getters and unreadable descriptors without invoking hostile getters, freezes nested stage diagnostics and the top-level mount input report, returns skipped/blocked summaries without candidate artifacts, and still performs no registry publication, lockfile, settings, save, package or cache writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRuntimeMountGate.ts",
@@ -16103,6 +16103,18 @@
       ],
       "status": "verified",
       "rationale": "Covers ready, skipped and blocked mount input preparation, frozen candidate RegistrySet exposure, copied and frozen serializable candidate snapshot and lockfile draft availability only for ready preflights, frozen top-level report, package arrays, diagnostics, identities, preflight copy, no-write effects and mutation snapshot stability, compatibility with frozen Mount Preflight outputs, upstream frozen candidate snapshot handling, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds, nested details and inherited diagnostic detail metadata containment, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline."
+    },
+    {
+      "file": "src/tests/domain/thirdPartyDataPackMountInput.test.ts",
+      "exportName": "mount input proxy array diagnostic detail containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-mount-input",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers Mount Input diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write Phase 7 report boundary."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts",
