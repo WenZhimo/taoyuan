@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 313
+    "reviewedArtifactCount": 314
   },
   "entries": [
     {
@@ -16259,6 +16259,18 @@
       ],
       "status": "verified",
       "rationale": "Covers over-limit archive entry arrays being rejected before the boundary archive entry or its path/uncompressed/compressed size metadata getters can run, keeping host-path-bearing boundary metadata out of diagnostics while preserving the no-write ZIP source-safety boundary."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "metadata array length coercion containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers directory and archive metadata arrays whose length value is a non-number object being rejected before valueOf/toString/Symbol.toPrimitive coercion, own-key enumeration or entry metadata reads can run, preserving the no-write source-safety boundary."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",

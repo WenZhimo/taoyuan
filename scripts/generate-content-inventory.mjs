@@ -6805,6 +6805,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'metadata array length coercion containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers directory and archive metadata arrays whose length value is a non-number object being rejected before valueOf/toString/Symbol.toPrimitive coercion, own-key enumeration or entry metadata reads can run, preserving the no-write source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive path byte-depth limit containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

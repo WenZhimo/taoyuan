@@ -385,6 +385,27 @@ const createMalformedLengthMetadataArray = (
   return { entries, wasOwnKeysRead: () => ownKeysRead, wasEntryRead: () => entryRead }
 }
 
+const createHostileCoercionMetadataArrayLength = (
+  fragment: string
+): {
+  readonly value: object
+  readonly wasCoerced: () => boolean
+} => {
+  let wasCoerced = false
+  const markCoercion = () => {
+    wasCoerced = true
+    throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${fragment}`)
+  }
+  return {
+    value: {
+      valueOf: markCoercion,
+      toString: markCoercion,
+      [Symbol.toPrimitive]: markCoercion
+    },
+    wasCoerced: () => wasCoerced
+  }
+}
+
 const createHostileLengthMetadataArray = (
   fragment: string,
   entry: unknown
@@ -1827,6 +1848,47 @@ describe('content package source contract', () => {
     for (const error of [directoryError, archiveError]) {
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('metadata-array')
+    }
+  })
+
+  it('rejects non-number metadata array lengths before coercion or metadata reads', () => {
+    const directoryLength = createHostileCoercionMetadataArrayLength('directory-length-coercion')
+    const archiveLength = createHostileCoercionMetadataArrayLength('archive-length-coercion')
+    const directoryArray = createMalformedLengthMetadataArray(
+      directoryLength.value,
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    )
+    const archiveArray = createMalformedLengthMetadataArray(
+      archiveLength.value,
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    )
+
+    const directoryError = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(
+      directoryArray.entries
+    ))
+    const archiveError = captureSourceError(() => validateContentPackageSourceArchiveEntries(
+      archiveArray.entries
+    ))
+
+    expect(directoryError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be a dense JSON array'
+    })
+    expect(archiveError).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be a dense JSON array'
+    })
+    expect(directoryLength.wasCoerced()).toBe(false)
+    expect(archiveLength.wasCoerced()).toBe(false)
+    expect(directoryArray.wasOwnKeysRead()).toBe(false)
+    expect(directoryArray.wasEntryRead()).toBe(false)
+    expect(archiveArray.wasOwnKeysRead()).toBe(false)
+    expect(archiveArray.wasEntryRead()).toBe(false)
+    for (const error of [directoryError, archiveError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('length-coercion')
       expect(JSON.stringify(error)).not.toContain('metadata-array')
     }
   })
