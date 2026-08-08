@@ -3420,6 +3420,49 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-later-compressed-size')
   })
 
+  it('rejects archive compression ratio in normalized path order before reading later size metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const laterEntry = {
+      path: 'z-later.bin',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-ratio-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-ratio-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterEntry,
+      {
+        path: 'm-zip-bomb.bin',
+        uncompressedSizeBytes: limits.maxCompressedRatio + 1,
+        compressedSizeBytes: 1
+      },
+      {
+        path: 'a-safe.bin',
+        uncompressedSizeBytes: limits.maxCompressedRatio,
+        compressedSizeBytes: 1
+      }
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive entry exceeds ${limits.maxCompressedRatio}:1 compression ratio`,
+      sourcePath: 'm-zip-bomb.bin'
+    })
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-ratio-later-uncompressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-ratio-later-compressed-size')
+  })
+
   it('rejects zero compressed archive zip-bomb metadata before reading later size metadata', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     let laterUncompressedSizeRead = false
