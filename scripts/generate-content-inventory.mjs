@@ -6571,7 +6571,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Covers valid frozen candidate snapshots, frozen valid/skipped/invalid result graphs, mutation snapshot stability for package arrays, source summary, identities, diagnostics and candidate artifacts, empty-root skipped results, repeated deterministic candidate identity, schema-blocked dependencies, copied upstream discovery diagnostic objects and nested details, inherited and own accessor diagnostic detail metadata containment, official content id conflicts, selected third-party duplicate entries, dependency-cycle all-or-nothing invalidation, cross-registry semantic failures and immutability of official registries plus discovery and selection reports.'
+    rationale: 'Covers valid frozen candidate snapshots, frozen valid/skipped/invalid result graphs, mutation snapshot stability for package arrays, source summary, identities, diagnostics and candidate artifacts, empty-root skipped results, repeated deterministic candidate identity, schema-blocked dependencies, copied upstream discovery diagnostic objects and nested details, top-level diagnostic own data-field containment, inherited and own accessor diagnostic detail metadata containment, official content id conflicts, selected third-party duplicate entries, dependency-cycle all-or-nothing invalidation, cross-registry semantic failures and immutability of official registries plus discovery and selection reports.'
   },
   {
     file: 'src/tests/domain/thirdPartyCandidateRegistrySnapshot.test.ts',

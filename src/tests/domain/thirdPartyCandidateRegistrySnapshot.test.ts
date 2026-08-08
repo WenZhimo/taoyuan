@@ -602,6 +602,80 @@ describe('third-party candidate registry snapshot', () => {
     expectOfficialBaseline()
   })
 
+  it('ignores own accessor discovery diagnostic fields before exposing invalid results', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      items: [createItem('bad_library:broken', -1)]
+    })
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected discovery diagnostics for invalid test package.')
+
+    const originalCode = upstreamDiagnostic.code
+    const originalRuleId = upstreamDiagnostic.ruleId
+    const originalSeverity = upstreamDiagnostic.severity
+    const originalMessageKey = upstreamDiagnostic.messageKey
+    const originalRecovery = upstreamDiagnostic.recovery
+    let stageRead = false
+    let relatedPackageIdsRead = false
+    let detailsRead = false
+    Object.defineProperty(upstreamDiagnostic, 'stage', {
+      enumerable: true,
+      get() {
+        stageRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-diagnostic-stage')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'relatedPackageIds', {
+      enumerable: true,
+      get() {
+        relatedPackageIdsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-diagnostic-related')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'details', {
+      enumerable: true,
+      get() {
+        detailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-diagnostic-details')
+      }
+    })
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport
+    })
+    const copiedDiagnostic = result.diagnostics.find(diagnostic => diagnostic.code === originalCode)
+    if (!copiedDiagnostic) throw new Error('Expected copied candidate snapshot diagnostic.')
+
+    expect(stageRead).toBe(false)
+    expect(relatedPackageIdsRead).toBe(false)
+    expect(detailsRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      code: originalCode,
+      ruleId: originalRuleId,
+      severity: originalSeverity,
+      stage: 'third-party.candidate.diagnostic-copy',
+      messageKey: originalMessageKey,
+      recovery: originalRecovery
+    })
+    expect(copiedDiagnostic.relatedPackageIds).toBeUndefined()
+    expect(copiedDiagnostic.details).toBeUndefined()
+    expect(Object.isFrozen(copiedDiagnostic)).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-diagnostic-stage')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-diagnostic-related')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-diagnostic-details')
+    expectOfficialBaseline()
+  })
+
   it('copies discovery diagnostic array details without reading hostile proxy lengths', async() => {
     const root = await createRoot()
     await createPack(root, 'bad-library', {
