@@ -368,6 +368,53 @@ describe('third-party data pack repair report', () => {
     expectNoWriteEffects(report)
   }, 15_000)
 
+  it('copies diagnostic array details without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await copyPack(root, 'bad-schema', {
+      id: 'bad_schema',
+      itemSellPrice: -1
+    })
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const upstreamDiagnostic = discoveryReport.candidates
+      .flatMap(candidate => candidate.issues)
+      .flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected schema diagnostics for invalid test package.')
+
+    let lengthRead = false
+    const hostileList = new Proxy(['first', { stable: true }] as unknown[], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-list-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as unknown as NonNullable<typeof upstreamDiagnostic.details>[string]
+    upstreamDiagnostic.details = {
+      reason: 'proxy array details',
+      list: hostileList
+    } as NonNullable<typeof upstreamDiagnostic.details>
+
+    const report = buildThirdPartyDataPackRepairReport(discoveryReport)
+    const actionDiagnostic = report.actions[0]?.diagnostics[0]
+    const reportDiagnostic = report.diagnostics[0]
+    if (!actionDiagnostic || !reportDiagnostic) throw new Error('Expected copied repair diagnostics.')
+
+    expect(lengthRead).toBe(false)
+    expect(actionDiagnostic.details?.reason).toBe('proxy array details')
+    expect(actionDiagnostic.details?.list).toEqual(['first', { stable: true }])
+    expect(reportDiagnostic.details?.reason).toBe('proxy array details')
+    expect(reportDiagnostic.details?.list).toEqual(['first', { stable: true }])
+    expect(Object.isFrozen(actionDiagnostic.details?.list)).toBe(true)
+    expect(Object.isFrozen(reportDiagnostic.details?.list)).toBe(true)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('repair-report-list-length')
+    expectNoWriteEffects(report)
+  }, 15_000)
+
   it('freezes exposed repair report output graphs', async() => {
     const root = await createRoot()
     await copyPack(root, 'bad-schema', {
