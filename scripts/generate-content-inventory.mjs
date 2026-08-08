@@ -6574,6 +6574,16 @@ const reviewedArtifacts = [
     rationale: 'Covers valid frozen candidate snapshots, frozen valid/skipped/invalid result graphs, mutation snapshot stability for package arrays, source summary, identities, diagnostics and candidate artifacts, empty-root skipped results, repeated deterministic candidate identity, schema-blocked dependencies, copied upstream discovery diagnostic objects and nested details, inherited and own accessor diagnostic detail metadata containment, official content id conflicts, selected third-party duplicate entries, dependency-cycle all-or-nothing invalidation, cross-registry semantic failures and immutability of official registries plus discovery and selection reports.'
   },
   {
+    file: 'src/tests/domain/thirdPartyCandidateRegistrySnapshot.test.ts',
+    exportName: 'candidate snapshot proxy array diagnostic detail containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-candidate-registry-snapshot',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers discovery diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; candidate snapshot report cloning now reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write 7C report boundary.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackLockfileDraft.test.ts',
     exportName: 'third-party lockfile draft fixture matrix',
     classification: 'adapter',

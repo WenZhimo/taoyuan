@@ -602,6 +602,56 @@ describe('third-party candidate registry snapshot', () => {
     expectOfficialBaseline()
   })
 
+  it('copies discovery diagnostic array details without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      items: [createItem('bad_library:broken', -1)]
+    })
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected discovery diagnostics for invalid test package.')
+
+    let lengthRead = false
+    const listDetails = new Proxy(['first', { stable: true }] as JsonValue[], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-list-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+    upstreamDiagnostic.details = {
+      reason: 'candidate snapshot warning',
+      list: listDetails as JsonValue
+    }
+    const originalStage = upstreamDiagnostic.stage
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport
+    })
+    const copiedDiagnostic = result.diagnostics.find(diagnostic => diagnostic.stage === originalStage)
+    if (!copiedDiagnostic) throw new Error('Expected copied candidate snapshot diagnostic.')
+
+    expect(result.status).toBe('invalid')
+    expect(copiedDiagnostic.details).toMatchObject({
+      reason: 'candidate snapshot warning',
+      list: ['first', { stable: true }]
+    })
+    expect(lengthRead).toBe(false)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-list-length')
+    expectOfficialBaseline()
+  })
+
   it('rejects third-party entries that collide with official content ids', async() => {
     const root = await createRoot()
     await createPack(root, 'official-conflict', {
