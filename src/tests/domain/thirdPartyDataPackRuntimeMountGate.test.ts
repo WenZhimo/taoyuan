@@ -555,4 +555,90 @@ describe('third-party data pack runtime mount gate', () => {
     expectNoWriteEffects(gate)
     expectOfficialBaseline()
   })
+
+  it('copies mount input diagnostic array details without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    let lengthRead = false
+    const listDetails = new Proxy(['first', { stable: true }] as JsonValue[], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-mount-list-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.runtime-mount.proxy-array',
+      severity: 'warning',
+      packageId,
+      relatedPackageIds: [packageId],
+      details: {
+        reason: 'proxy array details',
+        list: listDetails as JsonValue
+      }
+    })
+    const mountInput: ThirdPartyDataPackMountInputResult = {
+      status: 'ready',
+      preflightStatus: 'ready',
+      reason: 'mount input is ready',
+      diagnostics: [upstreamDiagnostic],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false
+      },
+      runtimePublication: 'deferred',
+      preflight: {} as never
+    }
+
+    const gate = buildThirdPartyDataPackRuntimeMountGate({ mountInput } as never)
+    const copiedDiagnostic = gate.diagnostics[0]
+    if (copiedDiagnostic === undefined) throw new Error('Expected copied runtime mount diagnostic.')
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.runtime-mount.proxy-array',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'proxy array details',
+        list: ['first', { stable: true }]
+      }
+    })
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.details?.list, listDetails)).toBe(false)
+    expect(JSON.stringify(gate)).not.toContain('C:/Users')
+    expect(JSON.stringify(gate)).not.toContain('LENOVO')
+    expect(JSON.stringify(gate)).not.toContain('runtime-mount-list-length')
+    expectNoWriteEffects(gate)
+    expectOfficialBaseline()
+  })
 })

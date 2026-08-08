@@ -6694,6 +6694,16 @@ const reviewedArtifacts = [
     rationale: 'Covers deferred, skipped and blocked runtime gate outcomes, frozen required write/transaction gate enumeration, frozen no-write effect summary, absence of candidate artifact exposure, compatibility with frozen Mount Input outputs, upstream official/candidate identity summary and diagnostic object copy boundaries including relatedPackageIds, nested details and inherited plus own accessor diagnostic detail metadata containment, deterministic repeated output, read-only protection for reports/files/userdata/settings and unchanged official 54/4242 five-hash baseline.'
   },
   {
+    file: 'src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts',
+    exportName: 'runtime mount gate proxy array diagnostic detail containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-runtime-mount-gate',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Runtime Mount Gate diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
     exportName: 'third-party transaction preflight fixture matrix',
     classification: 'adapter',
