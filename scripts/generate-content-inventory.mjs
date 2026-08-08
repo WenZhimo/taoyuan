@@ -6875,6 +6875,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive sorted zero-compressed zip-bomb metadata containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers zero-compressed archive zip-bomb metadata being evaluated after deterministic normalized path ordering even when host-provided ZIP metadata is reversed, and rejected before any sorted-later size getters can run.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive reverse path-prefix conflict containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

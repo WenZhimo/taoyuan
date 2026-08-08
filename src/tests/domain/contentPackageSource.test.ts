@@ -3501,6 +3501,49 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-zero-compressed-later-compressed-size')
   })
 
+  it('rejects zero compressed archive zip-bomb metadata in normalized path order before reading later size metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const laterEntry = {
+      path: 'z-later.bin',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-zero-compressed-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-zero-compressed-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterEntry,
+      {
+        path: 'm-zero-compressed-zip-bomb.bin',
+        uncompressedSizeBytes: 1,
+        compressedSizeBytes: 0
+      },
+      {
+        path: 'a-empty.bin',
+        uncompressedSizeBytes: 0,
+        compressedSizeBytes: 0
+      }
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive entry exceeds ${limits.maxCompressedRatio}:1 compression ratio`,
+      sourcePath: 'm-zero-compressed-zip-bomb.bin'
+    })
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-zero-compressed-later-uncompressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-zero-compressed-later-compressed-size')
+  })
+
   it('rejects unsafe archive entry paths before reading size metadata', () => {
     let uncompressedSizeRead = false
     let compressedSizeRead = false
