@@ -1990,6 +1990,73 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   })
 
+  it('redacts host source paths from Electron source identity source errors', async() => {
+    let inspected = false
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        throw new ContentPackageSourceError(
+          'SOURCE_PERMISSION_REVOKED',
+          'EACCES: lstat C:/Users/LENOVO/mods/private-identity\nhostile-fragment',
+          'C:/Users/LENOVO/mods/private-identity'
+        )
+      },
+      async getEntry() {
+        inspected = true
+        throw new Error('identity source errors must be rejected before source inspection')
+      },
+      async readDirectory() {
+        throw new Error('identity source errors must be rejected before directory reads')
+      },
+      async readTextFile() {
+        throw new Error('identity source errors must be rejected before file reads')
+      },
+      async dispose() {}
+    }
+
+    const sourceReport = await buildElectronReadonlySourceAdapterProbeReport(source)
+    const readinessReport = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(inspected).toBe(false)
+    expect(sourceReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source identity operation failed',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/invalid-readonly-probe-source',
+        rootPath: 'mods'
+      },
+      sourceErrorCode: 'SOURCE_PERMISSION_REVOKED',
+      effects: {
+        runtimeEnablementAllowed: false,
+        electronIpcExposed: false,
+        sourceHandlesRetained: false
+      }
+    })
+    expect(readinessReport).toMatchObject({
+      status: 'blocked',
+      reason: 'Content package source identity operation failed',
+      sourceProbeStatus: 'blocked',
+      discoveryStatus: 'not-run',
+      sourceIdentity: sourceReport.sourceIdentity,
+      registryCount: 54,
+      entryCount: 4242,
+      diagnosticCount: 1,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    for (const result of [sourceReport, readinessReport]) {
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('private-identity')
+      expect(JSON.stringify(result)).not.toContain('hostile-fragment')
+    }
+    expectOfficialBaseline()
+  })
+
   it('does not re-read invalid Electron source identities for blocked reports', async() => {
     const createInvalidIdentitySource = () => {
       let identityReads = 0

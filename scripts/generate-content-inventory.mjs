@@ -6994,6 +6994,16 @@ const reviewedArtifacts = [
     rationale: 'Covers Electron runtime readiness reports copying the validated source identity into a frozen safe summary before exposure, so later host identity mutation cannot alter report sourceId/rootPath, leak host paths or imply lockfile/settings/save/cache/package/transaction-log writes.'
   },
   {
+    file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
+    exportName: 'electron identity source error path containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-source-adapter-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Electron source identity getters throwing structured ContentPackageSourceError values with host-path-bearing message/sourcePath metadata, proving source and readiness probe reports preserve the safe source error code while replacing path-bearing text, avoiding host inspection and keeping lockfile/settings/save/cache/package/transaction-log writes out of scope.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackDiscovery.test.ts',
     exportName: 'raw file system failure inherited metadata containment regression',
     classification: 'adapter',
