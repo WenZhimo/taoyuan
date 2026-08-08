@@ -569,6 +569,80 @@ describe('third-party data pack lockfile draft', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('keeps host-path content identity values out of schema validation diagnostics', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+    const reports = await buildReportsFromRoot(root)
+    const draft = cloneDraftAsJson(reports.draftResult.draft!)
+    const packages = draft.packages as JsonObject[]
+    const packageEntry = packages[0]!
+    const contentFiles = packageEntry.contentFiles as JsonObject[]
+    const contentFile = contentFiles[0]!
+    const contentEntries = contentFile.entries as JsonObject[]
+    const contentEntry = contentEntries[0]!
+    let hostileEntryToStringRead = false
+    const hostileEntryHash = {
+      toString() {
+        hostileEntryToStringRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-content-entry-hash')
+      }
+    }
+
+    contentFile.path = 'C:/Users/LENOVO/mods/lockfile-content-file-path'
+    contentFile.registryId = 'C:/Users/LENOVO/mods/lockfile-content-file-registry'
+    contentEntry.registryId = hostileEntryHash
+    contentEntry.contentId = 'C:/Users/LENOVO/mods/lockfile-content-entry-id'
+    contentEntry.canonicalHash = hostileEntryHash
+
+    const validation = validateThirdPartyDataPackLockfileDraft({
+      ...reports,
+      draft
+    })
+
+    expect(validation.status).toBe('invalid')
+    expect(hostileEntryToStringRead).toBe(false)
+    expect(validation.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/packages/0/contentFiles/0/path'
+      }),
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/packages/0/contentFiles/0/registryId'
+      }),
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/packages/0/contentFiles/0/entries/0/registryId'
+      }),
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/packages/0/contentFiles/0/entries/0/contentId'
+      }),
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/packages/0/contentFiles/0/entries/0/canonicalHash'
+      })
+    ]))
+    expect(validation.diagnostics).not.toContainEqual(expect.objectContaining({
+      stage: 'third-party.lockfile-draft.package-set'
+    }))
+    expect(validation.diagnostics).not.toContainEqual(expect.objectContaining({
+      stage: 'third-party.lockfile-draft.hash'
+    }))
+    expect(JSON.stringify(validation)).not.toContain('C:/Users')
+    expect(JSON.stringify(validation)).not.toContain('LENOVO')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-content-file-path')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-content-file-registry')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-content-entry-id')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-content-entry-hash')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('validates matching drafts against the current package set and official baseline', async() => {
     const root = await createRoot()
     await createPack(root, 'a-library', { id: 'a_library' })
