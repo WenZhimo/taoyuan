@@ -3120,6 +3120,44 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects non-finite optional archive compressed-size metadata in normalized path order before reading later sizes', () => {
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const invalidCompressedEntry = {
+      path: 'm-pack/manifest.json',
+      uncompressedSizeBytes: 0,
+      compressedSizeBytes: Number.POSITIVE_INFINITY
+    }
+    const laterArchiveEntry = {
+      path: 'z-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-non-finite-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-non-finite-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterArchiveEntry,
+      invalidCompressedEntry,
+      { path: 'a-safe.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'compressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'm-pack/manifest.json'
+    })
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-non-finite')
+  })
+
   it('rejects non-number optional archive compressed-size metadata before coercion or later size reads', () => {
     let compressedSizeCoerced = false
     let laterUncompressedSizeRead = false
