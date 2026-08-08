@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 304
+    "reviewedArtifactCount": 305
   },
   "entries": [
     {
@@ -16295,6 +16295,18 @@
       ],
       "status": "verified",
       "rationale": "Covers non-finite optional compressed archive-size metadata being evaluated after deterministic normalized path ordering even when host-provided ZIP metadata is reversed, and rejected before any sorted-later size getters can run."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "archive sorted non-number compressed-size metadata containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers non-number optional compressed archive-size metadata being evaluated after deterministic normalized path ordering even when host-provided ZIP metadata is reversed, and rejected before coercion or any sorted-later size getters can run."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",
