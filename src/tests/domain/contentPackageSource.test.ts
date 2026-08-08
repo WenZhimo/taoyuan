@@ -3175,6 +3175,52 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-later')
   })
 
+  it('rejects oversized single archive entries in normalized path order before reading later size metadata', () => {
+    const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+    let oversizedCompressedSizeRead = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const oversizedEntry = {
+      path: 'm-oversized.bin',
+      uncompressedSizeBytes: limits.maxSingleFileBytes + 1,
+      get compressedSizeBytes() {
+        oversizedCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-oversized-compressed-size')
+      }
+    }
+    const laterEntry = {
+      path: 'z-later.bin',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterEntry,
+      oversizedEntry,
+      { path: 'a-safe.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: `Archive entry exceeds ${limits.maxSingleFileBytes} bytes: ${limits.maxSingleFileBytes + 1}`,
+      sourcePath: 'm-oversized.bin'
+    })
+    expect(oversizedCompressedSizeRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-oversized-compressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-later-uncompressed-size')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-later-compressed-size')
+  })
+
   it('rejects unreadable optional archive compressed-size metadata before reading later sizes', () => {
     let laterUncompressedSizeRead = false
     let laterCompressedSizeRead = false
