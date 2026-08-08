@@ -6775,6 +6775,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'directory and archive metadata array detachment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers validated directory and archive metadata arrays being copied into frozen pure data before exposure so later host-owned array mutations cannot alter safe-read results, preserving no-write directory/ZIP source-safety boundaries and avoiding source-array retention.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'directory listing file-count metadata containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

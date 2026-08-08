@@ -2158,6 +2158,49 @@ describe('content package source contract', () => {
     expect(Object.isFrozen(directoryEntries[0])).toBe(true)
   })
 
+  it('detaches validated metadata arrays from later host array mutations', () => {
+    const hostDirectoryEntries: Array<{
+      name: string
+      kind: 'directory' | 'file' | 'other'
+      isSymbolicLink: boolean
+    }> = [
+      { name: 'pack', kind: 'directory', isSymbolicLink: false },
+      { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+    ]
+    const hostArchiveEntries: Array<{
+      path: string
+      uncompressedSizeBytes: number
+      compressedSizeBytes?: number
+    }> = [
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 },
+      { path: 'pack/data/items.json', uncompressedSizeBytes: 10, compressedSizeBytes: 2 }
+    ]
+
+    const directoryEntries = normalizeContentPackageSourceDirectoryEntries(hostDirectoryEntries)
+    const archiveEntries = validateContentPackageSourceArchiveEntries(hostArchiveEntries)
+
+    hostDirectoryEntries.splice(0, hostDirectoryEntries.length, {
+      name: 'mutated',
+      kind: 'file',
+      isSymbolicLink: true
+    })
+    hostArchiveEntries.reverse()
+    hostArchiveEntries.push({ path: 'pack/mutated.json', uncompressedSizeBytes: 1 })
+
+    expect(directoryEntries).toEqual([
+      { name: 'manifest.json', kind: 'file', isSymbolicLink: false },
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    ])
+    expect(archiveEntries).toEqual([
+      { path: 'pack/data/items.json', uncompressedSizeBytes: 10, compressedSizeBytes: 2 },
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    ])
+    expect(Object.is(directoryEntries, hostDirectoryEntries)).toBe(false)
+    expect(Object.is(archiveEntries, hostArchiveEntries)).toBe(false)
+    expect(Object.isFrozen(directoryEntries)).toBe(true)
+    expect(Object.isFrozen(archiveEntries)).toBe(true)
+  })
+
   it('requires metadata array entries to be own indexes before inherited getters can run', () => {
     const directoryArray = createInheritedIndexMetadataArray({
       name: 'pack',
