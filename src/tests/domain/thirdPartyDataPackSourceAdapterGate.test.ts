@@ -666,6 +666,120 @@ describe('third-party data pack source adapter gate', () => {
     expectOfficialBaseline()
   })
 
+  it('ignores own accessor runtime adapter diagnostic fields before exposing source adapter reports', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.source-adapter.accessor-test',
+      relatedPackageIds: [relatedPackageId],
+      details: { reason: 'original' }
+    })
+    const originalCode = upstreamDiagnostic.code
+    const originalRuleId = upstreamDiagnostic.ruleId
+    const originalSeverity = upstreamDiagnostic.severity
+    const originalMessageKey = upstreamDiagnostic.messageKey
+    const originalRecovery = upstreamDiagnostic.recovery
+    let stageRead = false
+    let relatedPackageIdsRead = false
+    let detailsRead = false
+    Object.defineProperty(upstreamDiagnostic, 'stage', {
+      enumerable: true,
+      get() {
+        stageRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/source-adapter-diagnostic-stage')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'relatedPackageIds', {
+      enumerable: true,
+      get() {
+        relatedPackageIdsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/source-adapter-diagnostic-related')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'details', {
+      enumerable: true,
+      get() {
+        detailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/source-adapter-diagnostic-details')
+      }
+    })
+    const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
+      status: 'deferred',
+      transactionPreflightStatus: 'deferred',
+      reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+      diagnostics: [upstreamDiagnostic],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      adapterReadiness: 'deferred',
+      runtimeEnablementAllowed: false,
+      requiredAdapters: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        electronIpcExposed: false,
+        webImportPersisted: false,
+        androidImportPersisted: false,
+        packageFilesWritten: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const gate = buildThirdPartyDataPackSourceAdapterGate({
+      runtimeAdapterGate
+    } as never)
+    const copiedDiagnostic = gate.diagnostics.find(diagnostic => diagnostic.code === originalCode)
+    if (!copiedDiagnostic) throw new Error('Expected copied source adapter diagnostic.')
+
+    expect(stageRead).toBe(false)
+    expect(relatedPackageIdsRead).toBe(false)
+    expect(detailsRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      code: originalCode,
+      ruleId: originalRuleId,
+      severity: originalSeverity,
+      stage: 'third-party.source-adapter.diagnostic-copy',
+      messageKey: originalMessageKey,
+      recovery: originalRecovery
+    })
+    expect(copiedDiagnostic.relatedPackageIds).toBeUndefined()
+    expect(copiedDiagnostic.details).toBeUndefined()
+    expect(Object.isFrozen(copiedDiagnostic)).toBe(true)
+    const serialized = JSON.stringify(gate)
+    expect(serialized).not.toContain('C:/Users')
+    expect(serialized).not.toContain('LENOVO')
+    expect(serialized).not.toContain('source-adapter-diagnostic-stage')
+    expect(serialized).not.toContain('source-adapter-diagnostic-related')
+    expect(serialized).not.toContain('source-adapter-diagnostic-details')
+    expectNoWriteEffects(gate)
+    expectSourceAdapterGateFrozen(gate)
+    expectOfficialBaseline()
+  })
+
   it('copies proxy array diagnostic details without reading hostile length getters', () => {
     const packageId = requirePackageId('discovery_valid')
     const relatedPackageId = requirePackageId('related_pack')
