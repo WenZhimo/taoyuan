@@ -2135,6 +2135,29 @@ describe('content package source contract', () => {
     )).toEqual([archiveEntry])
   })
 
+  it('detaches validated directory metadata from later host object mutations', () => {
+    const hostDirectoryEntry: {
+      name: string
+      kind: 'directory' | 'file' | 'other'
+      isSymbolicLink: boolean
+    } = {
+      name: 'pack',
+      kind: 'directory',
+      isSymbolicLink: false
+    }
+    const directoryEntries = normalizeContentPackageSourceDirectoryEntries([hostDirectoryEntry])
+
+    hostDirectoryEntry.name = 'mutated-pack'
+    hostDirectoryEntry.kind = 'file'
+    hostDirectoryEntry.isSymbolicLink = true
+
+    expect(directoryEntries).toEqual([
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    ])
+    expect(Object.isFrozen(directoryEntries)).toBe(true)
+    expect(Object.isFrozen(directoryEntries[0])).toBe(true)
+  })
+
   it('requires metadata array entries to be own indexes before inherited getters can run', () => {
     const directoryArray = createInheritedIndexMetadataArray({
       name: 'pack',
