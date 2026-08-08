@@ -665,4 +665,109 @@ describe('third-party data pack source adapter gate', () => {
     expectNoWriteEffects(gate)
     expectOfficialBaseline()
   })
+
+  it('copies proxy array diagnostic details without reading hostile length getters', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    let lengthRead = false
+    const listDetails = new Proxy(['first', { stable: true }] as JsonValue[], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/source-adapter-list-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.source-adapter.proxy-array-test',
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'proxy array details',
+        list: listDetails as JsonValue
+      }
+    })
+    const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
+      status: 'deferred',
+      transactionPreflightStatus: 'deferred',
+      reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+      diagnostics: [upstreamDiagnostic],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      adapterReadiness: 'deferred',
+      runtimeEnablementAllowed: false,
+      requiredAdapters: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        electronIpcExposed: false,
+        webImportPersisted: false,
+        androidImportPersisted: false,
+        packageFilesWritten: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const gate = buildThirdPartyDataPackSourceAdapterGate({
+      runtimeAdapterGate
+    } as never)
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(gate.diagnostics).toHaveLength(1)
+    expect(gate.diagnostics[0]).toMatchObject({
+      code: upstreamDiagnostic.code,
+      ruleId: upstreamDiagnostic.ruleId,
+      severity: upstreamDiagnostic.severity,
+      stage: upstreamDiagnostic.stage,
+      messageKey: upstreamDiagnostic.messageKey,
+      relatedPackageIds: [relatedPackageId],
+      details: {
+        reason: 'proxy array details',
+        list: ['first', { stable: true }]
+      },
+      recovery: upstreamDiagnostic.recovery
+    })
+    expect(Object.is(gate.diagnostics[0], upstreamDiagnostic)).toBe(false)
+    expect(Object.is(gate.diagnostics[0]?.details, upstreamDiagnostic.details)).toBe(false)
+    expect(Object.is(gate.diagnostics[0]?.details?.list, listDetails)).toBe(false)
+    const exposedListDetails = gate.diagnostics[0]?.details?.list
+    if (!Array.isArray(exposedListDetails)) throw new Error('Expected copied list diagnostic details.')
+    expect(() => {
+      (exposedListDetails as unknown as unknown[]).push('mutated')
+    }).toThrow(TypeError)
+    expect(lengthRead).toBe(false)
+    const serialized = JSON.stringify(gate)
+    expect(serialized).not.toContain('C:/Users')
+    expect(serialized).not.toContain('LENOVO')
+    expect(serialized).not.toContain('source-adapter-list-length')
+    expectNoWriteEffects(gate)
+    expectSourceAdapterGateFrozen(gate)
+    expectOfficialBaseline()
+  })
 })
