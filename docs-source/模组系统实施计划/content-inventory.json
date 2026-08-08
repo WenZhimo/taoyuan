@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 295
+    "reviewedArtifactCount": 296
   },
   "entries": [
     {
@@ -16295,6 +16295,18 @@
       ],
       "status": "verified",
       "rationale": "Covers total uncompressed archive-size budget overflow being rejected before the overflowing entry optional compressed-size getter or later archive entry uncompressed/compressed-size getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write ZIP source-safety boundary."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "archive sorted total uncompressed budget metadata containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers total uncompressed archive-size budget overflow being evaluated after deterministic normalized path ordering even when host-provided ZIP metadata is reversed, and rejected before the overflowing entry optional compressed-size getter or any sorted-later size getters can run."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",
