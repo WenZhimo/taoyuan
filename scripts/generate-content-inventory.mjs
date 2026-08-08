@@ -6935,6 +6935,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive sorted duplicate path containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers duplicate archive paths being rejected after deterministic normalized path ordering even when host-provided ZIP metadata is reversed, and before duplicate or sorted-later size getters can run.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive metadata detachment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

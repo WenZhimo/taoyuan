@@ -3904,6 +3904,53 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects duplicate archive paths in normalized path order before reading sorted-later sizes', () => {
+    let duplicateSizeReadCount = 0
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const createDuplicateArchiveEntry = () => ({
+      path: 'm-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        duplicateSizeReadCount += 1
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-duplicate-size')
+      },
+      get compressedSizeBytes() {
+        duplicateSizeReadCount += 1
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-duplicate-compressed-size')
+      }
+    })
+    const laterArchiveEntry = {
+      path: 'z-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-duplicate-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-duplicate-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterArchiveEntry,
+      createDuplicateArchiveEntry(),
+      { path: 'a-safe.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 },
+      createDuplicateArchiveEntry()
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Duplicate archive entry path'
+    })
+    expect(duplicateSizeReadCount).toBe(0)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-duplicate')
+    expect(JSON.stringify(error)).not.toContain('m-pack')
+  })
+
   it('does not read absent optional archive compressed-size metadata', () => {
     let compressedSizeRead = false
     const archiveEntry = new Proxy({ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }, {
