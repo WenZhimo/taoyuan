@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 312
+    "reviewedArtifactCount": 313
   },
   "entries": [
     {
@@ -16631,6 +16631,18 @@
       ],
       "status": "verified",
       "rationale": "Covers directory listing and archive entry metadata arrays containing unsupported Symbol own keys being rejected before entry getters or Symbol getters can run, keeping host-path-bearing array metadata out of diagnostics while preserving the no-write directory and ZIP source-safety boundary."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "directory sparse entry array containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers sparse directory listing arrays being rejected as non-dense before later directory entry name/kind/symbolic-link metadata getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write directory source-safety boundary."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",

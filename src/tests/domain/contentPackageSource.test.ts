@@ -1944,6 +1944,40 @@ describe('content package source contract', () => {
     }
   })
 
+  it('rejects sparse directory listing arrays before reading later entry metadata', () => {
+    let laterNameRead = false
+    let laterKindRead = false
+    let laterSymbolicLinkRead = false
+    const directoryEntries = Array(2)
+    directoryEntries[1] = {
+      get name() {
+        laterNameRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-sparse-name')
+      },
+      get kind() {
+        laterKindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-sparse-kind')
+      },
+      get isSymbolicLink() {
+        laterSymbolicLinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-sparse-symlink')
+      }
+    }
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(directoryEntries))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be a dense JSON array'
+    })
+    expect(laterNameRead).toBe(false)
+    expect(laterKindRead).toBe(false)
+    expect(laterSymbolicLinkRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-sparse')
+  })
+
   it('rejects sparse archive entry arrays before reading later entry metadata', () => {
     let laterPathRead = false
     let laterUncompressedSizeRead = false
