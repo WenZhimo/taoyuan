@@ -1056,6 +1056,60 @@ describe('third-party data pack lockfile draft', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('ignores own accessor candidate snapshot diagnostic fields before exposing draft reports', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    let topLevelFieldRead = false
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.lockfile-draft.top-level-accessor',
+      severity: 'warning',
+      packageId: requirePackageId('discovery_valid'),
+      relatedPackageIds: [requirePackageId('discovery_valid')],
+      details: { reason: 'candidate warning' }
+    })
+    for (const fieldName of ['stage', 'relatedPackageIds', 'details'] as const) {
+      Object.defineProperty(upstreamDiagnostic, fieldName, {
+        enumerable: true,
+        get() {
+          topLevelFieldRead = true
+          throw new Error(`EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-own-${fieldName}`)
+        }
+      })
+    }
+    const candidateSnapshot = {
+      ...reports.candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot
+    })
+    const copiedDiagnostic = draftResult.diagnostics[0]
+
+    expect(draftResult.status).toBe('valid')
+    expect(topLevelFieldRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      code: 'CACHE-INVALID-001',
+      ruleId: 'CACHE-INVALID-001',
+      severity: 'warning',
+      stage: 'third-party.lockfile-draft.diagnostic-copy',
+      recovery: 'none'
+    })
+    expect(copiedDiagnostic?.relatedPackageIds).toBeUndefined()
+    expect(copiedDiagnostic?.details).toBeUndefined()
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(JSON.stringify(draftResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(draftResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-own-stage')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-own-relatedPackageIds')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-own-details')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('copies candidate snapshot diagnostic array details without reading hostile proxy lengths', async() => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })

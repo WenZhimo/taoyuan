@@ -6351,7 +6351,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Creates a read-only, in-memory third-party lockfile draft only from valid candidate snapshots, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details from own enumerable data-only fields before exposing result and draft objects, skips inherited diagnostic details, own accessor details, Symbol fields and unreadable descriptors without invoking hostile getters, freezes draft creation and validation result graphs including diagnostics, package arrays, nested package source/content summaries and expectedDraft, and validates unknown draft input through the internal TypeBox draft schema before semantic comparison, then checks reproducibility of selected package ids, versions, stable load order, relative source paths, manifest/content hashes, official five-hash baseline and candidate identity without writing a real lockfile, enabling runtime packs, changing settings or touching saves.'
+    rationale: 'Creates a read-only, in-memory third-party lockfile draft only from valid candidate snapshots, copies upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details from own enumerable data-only fields before exposing result and draft objects, skips top-level diagnostic own accessors, inherited diagnostic details, own accessor details, Symbol fields and unreadable descriptors without invoking hostile getters, freezes draft creation and validation result graphs including diagnostics, package arrays, nested package source/content summaries and expectedDraft, and validates unknown draft input through the internal TypeBox draft schema before semantic comparison, then checks reproducibility of selected package ids, versions, stable load order, relative source paths, manifest/content hashes, official five-hash baseline and candidate identity without writing a real lockfile, enabling runtime packs, changing settings or touching saves.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackModLockFile.ts',
@@ -6642,6 +6642,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers candidate snapshot diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; lockfile draft report cloning now reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write 7C report boundary.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackLockfileDraft.test.ts',
+    exportName: 'lockfile draft top-level diagnostic own accessor containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-lockfile-draft',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers candidate snapshot diagnostics with hostile own accessor stage, relatedPackageIds and details fields; lockfile draft report cloning now reads top-level diagnostic metadata from enumerable own data descriptors only, falls back to safe diagnostic-copy metadata, and preserves the no-write 7C report boundary without leaking host paths.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackModLockFile.test.ts',
