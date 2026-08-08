@@ -6825,6 +6825,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'metadata array accessor index short-circuit regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers directory listing and archive entry metadata arrays whose first enumerable own index getter throws host-path-bearing errors; validation now stops at the unreadable index and does not read later entry getters, preserving the no-write directory and ZIP source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive path byte-depth limit containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
