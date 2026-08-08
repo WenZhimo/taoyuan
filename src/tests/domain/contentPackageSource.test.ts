@@ -3105,6 +3105,81 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-sorted-negative-uncompressed')
   })
 
+  it('rejects fractional archive size metadata in normalized path order before reading compressed or later sizes', () => {
+    let invalidUncompressedCompressedSizeRead = false
+    let requiredLaterUncompressedSizeRead = false
+    let requiredLaterCompressedSizeRead = false
+    let optionalLaterUncompressedSizeRead = false
+    let optionalLaterCompressedSizeRead = false
+    const invalidUncompressedEntry = {
+      path: 'm-pack/manifest.json',
+      uncompressedSizeBytes: 1.5,
+      get compressedSizeBytes() {
+        invalidUncompressedCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-fractional-uncompressed-compressed-size')
+      }
+    }
+    const requiredLaterArchiveEntry = {
+      path: 'z-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        requiredLaterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-fractional-uncompressed-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        requiredLaterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-fractional-uncompressed-later-compressed-size')
+      }
+    }
+    const invalidCompressedEntry = {
+      path: 'm-pack/manifest.json',
+      uncompressedSizeBytes: 0,
+      compressedSizeBytes: 1.5
+    }
+    const optionalLaterArchiveEntry = {
+      path: 'z-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        optionalLaterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-fractional-compressed-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        optionalLaterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-fractional-compressed-later-compressed-size')
+      }
+    }
+
+    const invalidUncompressedError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      requiredLaterArchiveEntry,
+      invalidUncompressedEntry,
+      { path: 'a-safe.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
+    ]))
+    const invalidCompressedError = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      optionalLaterArchiveEntry,
+      invalidCompressedEntry,
+      { path: 'a-safe.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
+    ]))
+
+    expect(invalidUncompressedError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'uncompressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'm-pack/manifest.json'
+    })
+    expect(invalidCompressedError).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'compressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'm-pack/manifest.json'
+    })
+    expect(invalidUncompressedCompressedSizeRead).toBe(false)
+    expect(requiredLaterUncompressedSizeRead).toBe(false)
+    expect(requiredLaterCompressedSizeRead).toBe(false)
+    expect(optionalLaterUncompressedSizeRead).toBe(false)
+    expect(optionalLaterCompressedSizeRead).toBe(false)
+    for (const error of [invalidUncompressedError, invalidCompressedError]) {
+      expect(JSON.stringify(error)).not.toContain('C:/Users')
+      expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('archive-sorted-fractional')
+    }
+  })
+
   it('rejects non-finite archive size metadata before compressed or later size reads', () => {
     let invalidUncompressedCompressedSizeRead = false
     let invalidCompressedLaterUncompressedSizeRead = false
