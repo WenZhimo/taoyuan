@@ -6984,6 +6984,16 @@ const reviewedArtifacts = [
     rationale: 'Covers Electron readiness discovery when a candidate manifest passes inspection but readTextFile throws a structured ContentPackageSourceError with a host-path-bearing sourcePath, proving readiness and discovery reports retain safe source codes without leaking absolute paths or writing lockfile/settings/save/cache/package/transaction-log state.'
   },
   {
+    file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
+    exportName: 'electron readiness source identity detachment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-source-adapter-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Electron runtime readiness reports copying the validated source identity into a frozen safe summary before exposure, so later host identity mutation cannot alter report sourceId/rootPath, leak host paths or imply lockfile/settings/save/cache/package/transaction-log writes.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackDiscovery.test.ts',
     exportName: 'raw file system failure inherited metadata containment regression',
     classification: 'adapter',

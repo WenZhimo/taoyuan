@@ -371,6 +371,76 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('detaches readiness source identity from later host identity mutation', async() => {
+    const sourceIdentity: ContentPackageSource['identity'] = {
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'electron-readonly-directory-probe',
+      sourceId: 'electron/mods-readonly-probe',
+      rootPath: 'mods'
+    }
+    let identityReads = 0
+    const source: ContentPackageSource = {
+      get identity() {
+        identityReads += 1
+        return sourceIdentity
+      },
+      async getEntry(sourcePath) {
+        if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+        return null
+      },
+      async readDirectory() {
+        return []
+      },
+      async readTextFile() {
+        throw new Error('empty readiness source must not read package payloads')
+      },
+      async dispose() {}
+    }
+
+    const report = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    const snapshot = JSON.stringify(report)
+
+    expect(report).toMatchObject({
+      status: 'skipped',
+      reason: 'no selected third-party data packs',
+      sourceIdentity: {
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind: 'electron-readonly-directory-probe',
+        sourceId: 'electron/mods-readonly-probe',
+        rootPath: 'mods'
+      },
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(identityReads).toBe(1)
+    expect(report.sourceIdentity).not.toBe(sourceIdentity)
+    expect(Object.isFrozen(report.sourceIdentity)).toBe(true)
+
+    const mutableIdentity = sourceIdentity as { sourceId: string; rootPath: string }
+    mutableIdentity.sourceId = 'C:/Users/LENOVO/mods/mutated-readiness-source'
+    mutableIdentity.rootPath = 'mods\\mutated-readiness-source'
+
+    expect(report.sourceIdentity).toEqual({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'electron-readonly-directory-probe',
+      sourceId: 'electron/mods-readonly-probe',
+      rootPath: 'mods'
+    })
+    expect(JSON.stringify(report)).toBe(snapshot)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('mutated-readiness-source')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('carries a sample pack to the deferred runtime boundary without exposing paths or writing data', async() => {
     const root = await createRoot()
     const modsRoot = path.join(root, 'mods')
