@@ -7215,6 +7215,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
+    exportName: 'electron readiness diagnostic summary containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-source-adapter-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Electron runtime readiness reports reducing upstream discovery/source-adapter diagnostics to diagnosticCount only, without exposing diagnostics, issues, details, source codes, candidate paths or host-path-bearing read failures in the readiness summary while preserving the no-write boundary.'
+  },
+  {
+    file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
     exportName: 'electron readiness source identity detachment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/electron-source-adapter-probe',

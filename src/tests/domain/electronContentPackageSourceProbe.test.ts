@@ -619,6 +619,83 @@ describe('electron content package source read-only probe', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('summarizes readiness diagnostics without exposing upstream diagnostic objects', async() => {
+    const root = await createRoot()
+    const before = await writeReadinessSentinels(root)
+    const source = createElectronReadonlyDirectoryProbeSource({
+      host: {
+        async getEntry(sourcePath) {
+          if (sourcePath === '') return { name: 'mods', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack') return { name: 'private-pack', kind: 'directory', isSymbolicLink: false }
+          if (sourcePath === 'private-pack/manifest.json') {
+            return { name: 'manifest.json', kind: 'file', isSymbolicLink: false }
+          }
+          return null
+        },
+        async readDirectory(sourcePath) {
+          if (sourcePath === '') return [{ name: 'private-pack', kind: 'directory', isSymbolicLink: false }]
+          return []
+        },
+        async readTextFile(sourcePath) {
+          throw new ContentPackageSourceError(
+            'SOURCE_PERMISSION_REVOKED',
+            'Electron probe permission was revoked while reading C:/Users/LENOVO/mods/private-pack/manifest.json',
+            `C:/Users/LENOVO/mods/${sourcePath}`
+          )
+        }
+      }
+    })
+
+    const report = await buildElectronReadonlyRuntimeReadinessProbeReport({
+      source,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+    await source.dispose()
+
+    expect(report).toMatchObject({
+      status: 'blocked',
+      reason: 'discovery failed',
+      sourceProbeStatus: 'ready',
+      discoveryStatus: 'completed',
+      selectedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
+      runtimePublication: 'deferred',
+      effects: createElectronReadonlyRuntimeReadinessProbeEffects()
+    })
+    expect(report.diagnosticCount).toBeGreaterThan(0)
+    for (const fieldName of [
+      'diagnostics',
+      'issues',
+      'candidates',
+      'discoveryReport',
+      'selectionReport',
+      'candidateRegistrySet',
+      'candidateSnapshot',
+      'lockfileDraft',
+      'mountInput',
+      'runtimeGate',
+      'transactionPreflight',
+      'runtimeAdapterGate',
+      'sourceAdapterGate'
+    ]) {
+      expect(fieldName in report).toBe(false)
+    }
+    const serialized = JSON.stringify(report)
+    expect(serialized).not.toContain('"diagnostics"')
+    expect(serialized).not.toContain('"details"')
+    expect(serialized).not.toContain('"sourceCode"')
+    expect(serialized).not.toContain('SOURCE_PERMISSION_REVOKED')
+    expect(serialized).not.toContain('private-pack')
+    expect(serialized).not.toContain('C:/Users')
+    expect(serialized).not.toContain('LENOVO')
+    expect(serialized).not.toContain('permission was revoked while reading')
+    expect(await collectFileContents(root)).toEqual(before)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('rejects unsafe paths and releases the source lifecycle', async() => {
     const root = await createRoot()
     const modsRoot = path.join(root, 'mods')
