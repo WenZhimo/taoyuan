@@ -4000,6 +4000,50 @@ describe('content package source contract', () => {
     expect(JSON.stringify(hostileIdentityReport)).not.toContain('LENOVO')
   })
 
+  it('detaches validated source identities from later host identity mutation', () => {
+    const hostIdentity: ContentPackageSource['identity'] = {
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/mutable-source-identity',
+      rootPath: 'packs'
+    }
+    const source: ContentPackageSource = {
+      get identity(): ContentPackageSource['identity'] {
+        return hostIdentity
+      },
+      async getEntry() {
+        throw new Error('identity detachment checks should not inspect entries')
+      },
+      async readDirectory() {
+        throw new Error('identity detachment checks should not list directories')
+      },
+      async readTextFile() {
+        throw new Error('identity detachment checks should not read payloads')
+      },
+      async dispose() {}
+    }
+
+    const validatedIdentity = validateContentPackageSourceIdentity(hostIdentity)
+    const readIdentity = readContentPackageSourceIdentity(source)
+    const hostIdentityForMutation = hostIdentity as { sourceId: string; rootPath: string }
+    hostIdentityForMutation.sourceId = 'C:/Users/LENOVO/mods/mutated-source'
+    hostIdentityForMutation.rootPath = 'C:/Users/LENOVO/mods/mutated-root'
+
+    expect(validatedIdentity).toEqual({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'memory',
+      sourceId: 'memory/mutable-source-identity',
+      rootPath: 'packs'
+    })
+    expect(readIdentity).toEqual(validatedIdentity)
+    expect(validatedIdentity).not.toBe(hostIdentity)
+    expect(readIdentity).not.toBe(hostIdentity)
+    expect(Object.isFrozen(validatedIdentity)).toBe(true)
+    expect(Object.isFrozen(readIdentity)).toBe(true)
+    expect(JSON.stringify({ validatedIdentity, readIdentity })).not.toContain('C:/Users')
+    expect(JSON.stringify({ validatedIdentity, readIdentity })).not.toContain('LENOVO')
+  })
+
   it('reuses a validated source identity inside the discovery bridge', async() => {
     let identityReads = 0
     const hostOperations: string[] = []

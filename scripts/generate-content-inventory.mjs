@@ -6785,6 +6785,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'source identity detachment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers validated ContentPackageSource identity metadata being copied into frozen pure data before exposure so later host-owned identity mutations cannot alter validated/read identity results, preserving no-write source-safety boundaries and avoiding source-identity object retention.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'directory listing file-count metadata containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
