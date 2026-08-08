@@ -6705,6 +6705,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
+    exportName: 'transaction preflight proxy array diagnostic detail containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-transaction-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Transaction Preflight diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
     exportName: 'third-party transaction preflight fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/third-party-transaction-preflight',
