@@ -688,4 +688,73 @@ describe('third-party data pack mount preflight', () => {
     expectFrozenPreflightOutput(preflight)
     expectOfficialBaseline()
   }, 15_000)
+
+  it('copies candidate snapshot diagnostic array details without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult } = await buildReportsFromRoot(root)
+    let lengthRead = false
+    const listDetails = new Proxy(['first', { stable: true }] as JsonValue[], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-preflight-list-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.mount-preflight.proxy-array',
+      severity: 'warning',
+      packageId: 'discovery_valid' as PackageId,
+      relatedPackageIds: ['discovery_valid' as PackageId],
+      details: {
+        reason: 'proxy array details',
+        list: listDetails as JsonValue
+      }
+    })
+    const candidateSnapshotWithDiagnostic = {
+      ...candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const preflight = buildThirdPartyDataPackMountPreflight({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotWithDiagnostic,
+      lockfileDraftResult,
+      lockfileValidationResult
+    })
+    const candidateStageDiagnostic = preflight.stages
+      .find(stage => stage.name === 'candidate-snapshot')
+      ?.diagnostics[0]
+    const copiedDiagnostic = preflight.diagnostics[0]
+    if (candidateStageDiagnostic === undefined || copiedDiagnostic === undefined) {
+      throw new Error('Expected copied mount preflight diagnostics.')
+    }
+
+    expect(preflight.status).toBe('ready')
+    expect(lengthRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.mount-preflight.proxy-array',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'proxy array details',
+        list: ['first', { stable: true }]
+      }
+    })
+    expect(candidateStageDiagnostic).toMatchObject(copiedDiagnostic)
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.details?.list, listDetails)).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic.details?.list)).toBe(true)
+    expect(Object.isFrozen(candidateStageDiagnostic.details?.list)).toBe(true)
+    expect(JSON.stringify(preflight)).not.toContain('C:/Users')
+    expect(JSON.stringify(preflight)).not.toContain('LENOVO')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-list-length')
+    expectReadOnlyEffects(preflight)
+    expectFrozenPreflightOutput(preflight)
+    expectOfficialBaseline()
+  }, 15_000)
 })
