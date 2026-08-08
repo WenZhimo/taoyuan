@@ -505,6 +505,70 @@ describe('third-party data pack lockfile draft', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('keeps host-path package identity values out of schema validation diagnostics', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+    const reports = await buildReportsFromRoot(root)
+    const draft = cloneDraftAsJson(reports.draftResult.draft!)
+    const packages = draft.packages as JsonObject[]
+    const packageEntry = packages[0]!
+    let hostileDependencyToStringRead = false
+    const hostileDependencyId = {
+      toString() {
+        hostileDependencyToStringRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-dependency-to-string')
+      }
+    }
+
+    draft.selectedPackageIds = ['C:/Users/LENOVO/mods/lockfile-selected-package']
+    draft.loadOrder = ['C:/Users/LENOVO/mods/lockfile-load-order']
+    packageEntry.packageId = 'C:/Users/LENOVO/mods/lockfile-package-id'
+    packageEntry.resolvedDependencies = [hostileDependencyId]
+
+    const validation = validateThirdPartyDataPackLockfileDraft({
+      ...reports,
+      draft
+    })
+
+    expect(validation.status).toBe('invalid')
+    expect(hostileDependencyToStringRead).toBe(false)
+    expect(validation.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/selectedPackageIds/0'
+      }),
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/loadOrder/0'
+      }),
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/packages/0/packageId'
+      }),
+      expect.objectContaining({
+        code: 'SCHEMA-VALIDATE-001',
+        stage: 'third-party.lockfile-draft.schema',
+        fieldPath: '/packages/0/resolvedDependencies/0'
+      })
+    ]))
+    expect(validation.diagnostics).not.toContainEqual(expect.objectContaining({
+      stage: 'third-party.lockfile-draft.package-set'
+    }))
+    expect(validation.diagnostics).not.toContainEqual(expect.objectContaining({
+      stage: 'third-party.lockfile-draft.hash'
+    }))
+    expect(JSON.stringify(validation)).not.toContain('C:/Users')
+    expect(JSON.stringify(validation)).not.toContain('LENOVO')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-selected-package')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-load-order')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-package-id')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-dependency-to-string')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('validates matching drafts against the current package set and official baseline', async() => {
     const root = await createRoot()
     await createPack(root, 'a-library', { id: 'a_library' })
