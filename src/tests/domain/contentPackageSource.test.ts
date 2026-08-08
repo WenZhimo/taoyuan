@@ -3062,6 +3062,49 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-sorted-negative')
   })
 
+  it('rejects negative required archive uncompressed-size metadata in normalized path order before reading compressed or later sizes', () => {
+    let invalidCompressedSizeRead = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const invalidUncompressedEntry = {
+      path: 'm-pack/manifest.json',
+      uncompressedSizeBytes: -1,
+      get compressedSizeBytes() {
+        invalidCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-negative-uncompressed-compressed-size')
+      }
+    }
+    const laterArchiveEntry = {
+      path: 'z-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-negative-uncompressed-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-sorted-negative-uncompressed-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      laterArchiveEntry,
+      invalidUncompressedEntry,
+      { path: 'a-safe.bin', uncompressedSizeBytes: 0, compressedSizeBytes: 0 }
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_LIMIT_EXCEEDED',
+      message: 'uncompressedSizeBytes must be a non-negative safe integer',
+      sourcePath: 'm-pack/manifest.json'
+    })
+    expect(invalidCompressedSizeRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-sorted-negative-uncompressed')
+  })
+
   it('rejects non-finite archive size metadata before compressed or later size reads', () => {
     let invalidUncompressedCompressedSizeRead = false
     let invalidCompressedLaterUncompressedSizeRead = false
