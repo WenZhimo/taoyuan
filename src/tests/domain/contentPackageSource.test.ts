@@ -2269,6 +2269,47 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-sparse')
   })
 
+  it('rejects directory array-like metadata before reading length, indexes or iterators', () => {
+    let lengthRead = false
+    let entryRead = false
+    let iteratorRead = false
+    const directoryEntries = {}
+    Object.defineProperty(directoryEntries, 'length', {
+      enumerable: true,
+      get() {
+        lengthRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-array-like-length')
+      }
+    })
+    Object.defineProperty(directoryEntries, '0', {
+      enumerable: true,
+      get() {
+        entryRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-array-like-entry')
+      }
+    })
+    Object.defineProperty(directoryEntries, Symbol.iterator, {
+      enumerable: true,
+      get() {
+        iteratorRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-array-like-iterator')
+      }
+    })
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries(directoryEntries))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source directory entries metadata must be an array'
+    })
+    expect(lengthRead).toBe(false)
+    expect(entryRead).toBe(false)
+    expect(iteratorRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-array-like')
+  })
+
   it('rejects archive array-like metadata before reading length, indexes or iterators', () => {
     let lengthRead = false
     let entryRead = false
