@@ -1056,6 +1056,37 @@ describe('electron content package source read-only probe', () => {
       message: 'Electron read-only source adapter options metadata could not be read'
     })
 
+    let sourceIdAfterHostRead = false
+    let rootPathAfterHostRead = false
+    const unreadableHostOptions = {}
+    Object.defineProperty(unreadableHostOptions, 'host', {
+      enumerable: true,
+      get() {
+        throw new Error('EACCES: get C:/Users/LENOVO/mods/host-short-circuit')
+      }
+    })
+    Object.defineProperty(unreadableHostOptions, 'sourceId', {
+      enumerable: true,
+      get() {
+        sourceIdAfterHostRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/sourceId-after-host')
+      }
+    })
+    Object.defineProperty(unreadableHostOptions, 'rootPath', {
+      enumerable: true,
+      get() {
+        rootPathAfterHostRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/rootPath-after-host')
+      }
+    })
+    const unreadableHostOptionsError = captureProbeCreateError(unreadableHostOptions)
+    expect(unreadableHostOptionsError).toMatchObject({
+      code: 'SOURCE_IDENTITY_INVALID',
+      message: 'Electron read-only source adapter options metadata could not be read'
+    })
+    expect(sourceIdAfterHostRead).toBe(false)
+    expect(rootPathAfterHostRead).toBe(false)
+
     let hostileSourceIdRead = false
     const hostileSourceIdOptions = { host }
     Object.defineProperty(hostileSourceIdOptions, 'sourceId', {
@@ -1220,6 +1251,7 @@ describe('electron content package source read-only probe', () => {
       inheritedOptionsError,
       hiddenOptionsError,
       hostileHostGetterError,
+      unreadableHostOptionsError,
       hostileSourceIdError,
       hostileRootPathError,
       hostExtraFieldError,
@@ -1233,6 +1265,8 @@ describe('electron content package source read-only probe', () => {
     ]) {
       expect(JSON.stringify(error)).not.toContain('C:/Users')
       expect(JSON.stringify(error)).not.toContain('LENOVO')
+      expect(JSON.stringify(error)).not.toContain('short-circuit')
+      expect(JSON.stringify(error)).not.toContain('after-host')
     }
     expect(hostOperations).toEqual([])
     expectOfficialBaseline()

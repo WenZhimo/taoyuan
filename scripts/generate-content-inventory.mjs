@@ -7245,6 +7245,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
+    exportName: 'electron probe options host accessor short-circuit regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/electron-source-adapter-probe',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Electron read-only source adapter options whose required host getter throws before source publication; validation stops at the unreadable host metadata and does not read later sourceId/rootPath getters, preserving path-free no-write diagnostics for the Electron source adapter boundary.'
+  },
+  {
+    file: 'src/tests/domain/electronContentPackageSourceProbe.test.ts',
     exportName: 'electron probe optional dispose getter containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/electron-source-adapter-probe',

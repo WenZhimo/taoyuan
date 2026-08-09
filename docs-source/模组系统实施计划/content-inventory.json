@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 316
+    "reviewedArtifactCount": 317
   },
   "entries": [
     {
@@ -16787,6 +16787,18 @@
       ],
       "status": "verified",
       "rationale": "Covers Electron read-only source host getEntry/readDirectory/readTextFile metadata being required as enumerable own fields before source publication, preventing inherited or hidden host-path-bearing method getters from running while preserving the no-write source adapter boundary."
+    },
+    {
+      "file": "src/tests/domain/electronContentPackageSourceProbe.test.ts",
+      "exportName": "electron probe options host accessor short-circuit regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/electron-source-adapter-probe",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers Electron read-only source adapter options whose required host getter throws before source publication; validation stops at the unreadable host metadata and does not read later sourceId/rootPath getters, preserving path-free no-write diagnostics for the Electron source adapter boundary."
     },
     {
       "file": "src/tests/domain/electronContentPackageSourceProbe.test.ts",
