@@ -7115,6 +7115,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive over-limit path global size preflight containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers over-depth and over-byte archive entry paths being rejected during path preflight before earlier, invalid or later entry size metadata getters can run, preserving no-write ZIP source-safety diagnostics.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive missing required field global metadata preflight containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
