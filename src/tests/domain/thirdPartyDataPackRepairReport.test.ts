@@ -368,6 +368,82 @@ describe('third-party data pack repair report', () => {
     expectNoWriteEffects(report)
   }, 15_000)
 
+  it('ignores own accessor discovery diagnostic fields before exposing repair reports', async() => {
+    const root = await createRoot()
+    await copyPack(root, 'bad-schema', {
+      id: 'bad_schema',
+      itemSellPrice: -1
+    })
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const upstreamDiagnostic = discoveryReport.candidates
+      .flatMap(candidate => candidate.issues)
+      .flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected schema diagnostics for invalid test package.')
+
+    upstreamDiagnostic.relatedPackageIds = [requirePackageId('related_pack')]
+    upstreamDiagnostic.details = { reason: 'original' }
+    const originalCode = upstreamDiagnostic.code
+    const originalRuleId = upstreamDiagnostic.ruleId
+    const originalSeverity = upstreamDiagnostic.severity
+    const originalMessageKey = upstreamDiagnostic.messageKey
+    const originalRecovery = upstreamDiagnostic.recovery
+    let stageRead = false
+    let relatedPackageIdsRead = false
+    let detailsRead = false
+    Object.defineProperty(upstreamDiagnostic, 'stage', {
+      enumerable: true,
+      get() {
+        stageRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-diagnostic-stage')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'relatedPackageIds', {
+      enumerable: true,
+      get() {
+        relatedPackageIdsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-diagnostic-related')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'details', {
+      enumerable: true,
+      get() {
+        detailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-diagnostic-details')
+      }
+    })
+
+    const report = buildThirdPartyDataPackRepairReport(discoveryReport)
+    const actionDiagnostic = report.actions[0]?.diagnostics[0]
+    const reportDiagnostic = report.diagnostics[0]
+    if (!actionDiagnostic || !reportDiagnostic) throw new Error('Expected copied repair diagnostics.')
+
+    expect(stageRead).toBe(false)
+    expect(relatedPackageIdsRead).toBe(false)
+    expect(detailsRead).toBe(false)
+    for (const diagnostic of [actionDiagnostic, reportDiagnostic]) {
+      expect(diagnostic).toMatchObject({
+        code: originalCode,
+        ruleId: originalRuleId,
+        severity: originalSeverity,
+        stage: 'third-party.repair-report.diagnostic-copy',
+        messageKey: originalMessageKey,
+        recovery: originalRecovery
+      })
+      expect(diagnostic.relatedPackageIds).toBeUndefined()
+      expect(diagnostic.details).toBeUndefined()
+    }
+    const serialized = JSON.stringify(report)
+    expect(serialized).not.toContain('C:/Users')
+    expect(serialized).not.toContain('LENOVO')
+    expect(serialized).not.toContain('repair-report-diagnostic-stage')
+    expect(serialized).not.toContain('repair-report-diagnostic-related')
+    expect(serialized).not.toContain('repair-report-diagnostic-details')
+    expectNoWriteEffects(report)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('copies diagnostic array details without reading hostile proxy lengths', async() => {
     const root = await createRoot()
     await copyPack(root, 'bad-schema', {

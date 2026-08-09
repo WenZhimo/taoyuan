@@ -6594,6 +6594,16 @@ const reviewedArtifacts = [
     rationale: 'Covers Repair Report diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; repair report cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write 7C report boundary.'
   },
   {
+    file: 'src/tests/domain/thirdPartyDataPackRepairReport.test.ts',
+    exportName: 'repair report top-level diagnostic own accessor containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-repair-report',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Discovery diagnostics with hostile own accessor stage, relatedPackageIds and details fields; Repair Report cloning now reads top-level diagnostic metadata from enumerable own data descriptors only, falls back to safe diagnostic-copy metadata, and preserves the no-write Phase 7 report boundary without leaking host paths.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackLockfileDraft.test.ts',
     exportName: 'third-party lockfile draft fixture matrix',
     classification: 'adapter',
