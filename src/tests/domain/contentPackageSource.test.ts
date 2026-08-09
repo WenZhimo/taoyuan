@@ -4464,6 +4464,74 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('m-private-pack')
   })
 
+  it('rejects missing archive required fields before reading current or later metadata', () => {
+    const readState = {
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidPath: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    }
+    const earlierEntry = {
+      path: 'a-safe-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        readState.earlierUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-missing-required-earlier-size')
+      },
+      get compressedSizeBytes() {
+        readState.earlierCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-missing-required-earlier-compressed-size')
+      }
+    }
+    const invalidEntry = {}
+    Object.defineProperty(invalidEntry, 'path', {
+      enumerable: true,
+      get() {
+        readState.invalidPath = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-missing-required-invalid-path')
+      }
+    })
+    const inheritedRequiredSize = defineInheritedHostileGetter(invalidEntry, 'uncompressedSizeBytes')
+    const laterEntry = {
+      get path() {
+        readState.laterPath = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-missing-required-later-path')
+      },
+      get uncompressedSizeBytes() {
+        readState.laterUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-missing-required-later-size')
+      },
+      get compressedSizeBytes() {
+        readState.laterCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-missing-required-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      earlierEntry,
+      inheritedRequiredSize.value,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata must include path and uncompressedSizeBytes own fields'
+    })
+    expect(readState).toEqual({
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidPath: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    })
+    expect(inheritedRequiredSize.wasRead()).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-missing-required')
+  })
+
   it('rejects over-limit archive entry paths before reading size metadata', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     const overDepthPath = 'a/'.repeat(limits.maxPathDepth) + 'manifest.json'

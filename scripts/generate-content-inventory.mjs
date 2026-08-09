@@ -7115,6 +7115,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive missing required field global metadata preflight containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers archive entries missing required own size metadata being rejected before earlier size getters, current path or inherited size getters, or later entry metadata can run, preserving no-write ZIP source-safety diagnostics.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'directory mixed-order duplicate name containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
