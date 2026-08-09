@@ -4616,6 +4616,90 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-hidden-path')
   })
 
+  it('rejects hidden required archive uncompressed-size metadata before reading earlier sizes or later metadata', () => {
+    const readState = {
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidPath: false,
+      hiddenUncompressed: false,
+      invalidCompressed: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    }
+    const earlierEntry = {
+      path: 'a-safe-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        readState.earlierUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-earlier-size')
+      },
+      get compressedSizeBytes() {
+        readState.earlierCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-earlier-compressed-size')
+      }
+    }
+    const invalidEntry = {}
+    Object.defineProperty(invalidEntry, 'path', {
+      enumerable: true,
+      get() {
+        readState.invalidPath = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-path')
+      }
+    })
+    Object.defineProperty(invalidEntry, 'uncompressedSizeBytes', {
+      enumerable: false,
+      get() {
+        readState.hiddenUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-size')
+      }
+    })
+    Object.defineProperty(invalidEntry, 'compressedSizeBytes', {
+      enumerable: true,
+      get() {
+        readState.invalidCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-compressed-size')
+      }
+    })
+    const laterEntry = {
+      get path() {
+        readState.laterPath = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-later-path')
+      },
+      get uncompressedSizeBytes() {
+        readState.laterUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-later-size')
+      },
+      get compressedSizeBytes() {
+        readState.laterCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-uncompressed-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      earlierEntry,
+      invalidEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata contains unsupported fields'
+    })
+    expect(readState).toEqual({
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidPath: false,
+      hiddenUncompressed: false,
+      invalidCompressed: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    })
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-hidden-uncompressed')
+  })
+
   it('rejects over-limit archive entry paths before reading size metadata', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     const overDepthPath = 'a/'.repeat(limits.maxPathDepth) + 'manifest.json'
