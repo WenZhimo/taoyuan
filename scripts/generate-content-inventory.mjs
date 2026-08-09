@@ -7105,6 +7105,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive non-normalized path global size preflight containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers non-normalized archive entry paths being rejected during path preflight before earlier, invalid or later entry size metadata getters can run, preserving no-write ZIP source-safety diagnostics.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'directory mixed-order duplicate name containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

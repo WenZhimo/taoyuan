@@ -4392,6 +4392,78 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('m-private-pack')
   })
 
+  it('rejects non-normalized archive paths before reading earlier or later size metadata', () => {
+    const readState = {
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidUncompressed: false,
+      invalidCompressed: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    }
+    const earlierEntry = {
+      path: 'a-safe-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        readState.earlierUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-nonnormalized-earlier-size')
+      },
+      get compressedSizeBytes() {
+        readState.earlierCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-nonnormalized-earlier-compressed-size')
+      }
+    }
+    const nonNormalizedEntry = {
+      path: 'm-private-pack/./manifest.json',
+      get uncompressedSizeBytes() {
+        readState.invalidUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-nonnormalized-invalid-size')
+      },
+      get compressedSizeBytes() {
+        readState.invalidCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-nonnormalized-invalid-compressed-size')
+      }
+    }
+    const laterEntry = {
+      get path() {
+        readState.laterPath = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-nonnormalized-later-path')
+      },
+      get uncompressedSizeBytes() {
+        readState.laterUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-nonnormalized-later-size')
+      },
+      get compressedSizeBytes() {
+        readState.laterCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-nonnormalized-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      earlierEntry,
+      nonNormalizedEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE',
+      message: 'Content package source path is unsafe'
+    })
+    expect(readState).toEqual({
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidUncompressed: false,
+      invalidCompressed: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    })
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-nonnormalized')
+    expect(JSON.stringify(error)).not.toContain('m-private-pack')
+  })
+
   it('rejects over-limit archive entry paths before reading size metadata', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     const overDepthPath = 'a/'.repeat(limits.maxPathDepth) + 'manifest.json'
