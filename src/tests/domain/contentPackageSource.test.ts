@@ -4873,6 +4873,70 @@ describe('content package source contract', () => {
     expect(compressedSizeRead).toBe(false)
   })
 
+  it('rejects hidden optional archive compressed-size metadata before required or later metadata can run', () => {
+    let pathRead = false
+    let uncompressedSizeRead = false
+    let compressedSizeRead = false
+    let laterPathRead = false
+    let laterUncompressedSizeRead = false
+    let laterCompressedSizeRead = false
+    const archiveEntry = {}
+    Object.defineProperty(archiveEntry, 'path', {
+      enumerable: true,
+      get() {
+        pathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-compressed-path')
+      }
+    })
+    Object.defineProperty(archiveEntry, 'uncompressedSizeBytes', {
+      enumerable: true,
+      get() {
+        uncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-compressed-uncompressed-size')
+      }
+    })
+    Object.defineProperty(archiveEntry, 'compressedSizeBytes', {
+      enumerable: false,
+      get() {
+        compressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-compressed-size')
+      }
+    })
+    const laterArchiveEntry = {
+      get path() {
+        laterPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-compressed-later-path')
+      },
+      get uncompressedSizeBytes() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-compressed-later-uncompressed-size')
+      },
+      get compressedSizeBytes() {
+        laterCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-hidden-compressed-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      archiveEntry,
+      laterArchiveEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata contains unsupported fields'
+    })
+    expect(pathRead).toBe(false)
+    expect(uncompressedSizeRead).toBe(false)
+    expect(compressedSizeRead).toBe(false)
+    expect(laterPathRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterCompressedSizeRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-hidden-compressed')
+  })
+
   it('rejects unsupported archive entry metadata before own getters can run', () => {
     let pathRead = false
     let uncompressedSizeRead = false
