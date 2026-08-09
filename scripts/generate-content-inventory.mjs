@@ -6744,6 +6744,16 @@ const reviewedArtifacts = [
     rationale: 'Covers Runtime Mount Gate diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
   },
   {
+    file: 'src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts',
+    exportName: 'runtime mount gate top-level diagnostic own accessor containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-runtime-mount-gate',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Mount Input diagnostics with hostile own accessor stage, relatedPackageIds and details fields; Runtime Mount Gate report cloning now reads top-level diagnostic metadata from enumerable own data descriptors only, falls back to safe diagnostic-copy metadata, and preserves the no-write Phase 7 report boundary without leaking host paths.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
     exportName: 'transaction preflight proxy array diagnostic detail containment regression',
     classification: 'adapter',

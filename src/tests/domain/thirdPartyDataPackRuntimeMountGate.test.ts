@@ -556,6 +556,114 @@ describe('third-party data pack runtime mount gate', () => {
     expectOfficialBaseline()
   })
 
+  it('ignores own accessor mount input diagnostic fields before exposing runtime mount gate reports', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'third-party.runtime-mount.accessor-test',
+      severity: 'warning',
+      packageId,
+      relatedPackageIds: [relatedPackageId],
+      details: { reason: 'original' }
+    })
+    const originalCode = upstreamDiagnostic.code
+    const originalRuleId = upstreamDiagnostic.ruleId
+    const originalSeverity = upstreamDiagnostic.severity
+    const originalMessageKey = upstreamDiagnostic.messageKey
+    const originalRecovery = upstreamDiagnostic.recovery
+    let stageRead = false
+    let relatedPackageIdsRead = false
+    let detailsRead = false
+    Object.defineProperty(upstreamDiagnostic, 'stage', {
+      enumerable: true,
+      get() {
+        stageRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-mount-diagnostic-stage')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'relatedPackageIds', {
+      enumerable: true,
+      get() {
+        relatedPackageIdsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-mount-diagnostic-related')
+      }
+    })
+    Object.defineProperty(upstreamDiagnostic, 'details', {
+      enumerable: true,
+      get() {
+        detailsRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-mount-diagnostic-details')
+      }
+    })
+    const mountInput: ThirdPartyDataPackMountInputResult = {
+      status: 'ready',
+      preflightStatus: 'ready',
+      reason: 'mount input is ready',
+      diagnostics: [upstreamDiagnostic],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false
+      },
+      runtimePublication: 'deferred',
+      preflight: {} as never
+    }
+
+    const gate = buildThirdPartyDataPackRuntimeMountGate({ mountInput } as never)
+    const copiedDiagnostic = gate.diagnostics.find(diagnostic => diagnostic.code === originalCode)
+    if (!copiedDiagnostic) throw new Error('Expected copied runtime mount diagnostic.')
+
+    expect(stageRead).toBe(false)
+    expect(relatedPackageIdsRead).toBe(false)
+    expect(detailsRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      code: originalCode,
+      ruleId: originalRuleId,
+      severity: originalSeverity,
+      stage: 'third-party.runtime-mount.diagnostic-copy',
+      messageKey: originalMessageKey,
+      packageId: 'discovery_valid',
+      recovery: originalRecovery
+    })
+    expect(copiedDiagnostic.relatedPackageIds).toBeUndefined()
+    expect(copiedDiagnostic.details).toBeUndefined()
+    const serialized = JSON.stringify(gate)
+    expect(serialized).not.toContain('C:/Users')
+    expect(serialized).not.toContain('LENOVO')
+    expect(serialized).not.toContain('runtime-mount-diagnostic-stage')
+    expect(serialized).not.toContain('runtime-mount-diagnostic-related')
+    expect(serialized).not.toContain('runtime-mount-diagnostic-details')
+    expectNoWriteEffects(gate)
+    expectOfficialBaseline()
+  })
+
   it('copies mount input diagnostic array details without reading hostile proxy lengths', () => {
     const packageId = requirePackageId('discovery_valid')
     let lengthRead = false
