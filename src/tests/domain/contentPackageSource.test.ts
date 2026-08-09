@@ -4937,6 +4937,66 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-hidden-compressed')
   })
 
+  it('rejects later unsupported archive metadata before reading earlier sizes', () => {
+    let earlierUncompressedSizeRead = false
+    let earlierCompressedSizeRead = false
+    let laterPathRead = false
+    let laterUncompressedSizeRead = false
+    let laterUnsupportedMetadataRead = false
+    const earlierArchiveEntry = {
+      path: 'a-safe.bin',
+      get uncompressedSizeBytes() {
+        earlierUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-unsupported-earlier-size')
+      },
+      get compressedSizeBytes() {
+        earlierCompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-unsupported-earlier-compressed-size')
+      }
+    }
+    const laterArchiveEntry = {}
+    Object.defineProperty(laterArchiveEntry, 'path', {
+      enumerable: true,
+      get() {
+        laterPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-unsupported-path')
+      }
+    })
+    Object.defineProperty(laterArchiveEntry, 'uncompressedSizeBytes', {
+      enumerable: true,
+      get() {
+        laterUncompressedSizeRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-unsupported-size')
+      }
+    })
+    Object.defineProperty(laterArchiveEntry, 'hostPath', {
+      enumerable: true,
+      get() {
+        laterUnsupportedMetadataRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-later-unsupported-hostPath')
+      }
+    })
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      earlierArchiveEntry,
+      laterArchiveEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry metadata contains unsupported fields'
+    })
+    expect(earlierUncompressedSizeRead).toBe(false)
+    expect(earlierCompressedSizeRead).toBe(false)
+    expect(laterPathRead).toBe(false)
+    expect(laterUncompressedSizeRead).toBe(false)
+    expect(laterUnsupportedMetadataRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-later-unsupported')
+    expect(JSON.stringify(error)).not.toContain('hostPath')
+  })
+
   it('rejects unsupported archive entry metadata before own getters can run', () => {
     let pathRead = false
     let uncompressedSizeRead = false
