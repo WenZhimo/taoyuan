@@ -5487,6 +5487,43 @@ describe('content package source contract', () => {
     expect(inherited.wasRead()).toBe(false)
   })
 
+  it('ignores inherited unsupported archive metadata before prototype getters can run', () => {
+    let inheritedHostPathRead = false
+    let inheritedSymbolRead = false
+    const inheritedSymbolKey = Symbol('hostPath')
+    const prototype = {}
+    Object.defineProperty(prototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedHostPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-inherited-unsupported-hostPath')
+      }
+    })
+    Object.defineProperty(prototype, inheritedSymbolKey, {
+      enumerable: true,
+      get() {
+        inheritedSymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-inherited-unsupported-symbol')
+      }
+    })
+    const archiveEntry = {
+      path: 'pack/manifest.json',
+      uncompressedSizeBytes: 0
+    }
+    Object.setPrototypeOf(archiveEntry, prototype)
+
+    const archiveEntries = validateContentPackageSourceArchiveEntries([archiveEntry])
+
+    expect(archiveEntries).toEqual([
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    ])
+    expect(inheritedHostPathRead).toBe(false)
+    expect(inheritedSymbolRead).toBe(false)
+    expect(JSON.stringify(archiveEntries)).not.toContain('C:/Users')
+    expect(JSON.stringify(archiveEntries)).not.toContain('LENOVO')
+    expect(JSON.stringify(archiveEntries)).not.toContain('archive-inherited-unsupported')
+  })
+
   it('narrows archive entry metadata from unknown before ZIP payloads can become sources', () => {
     expect(validateContentPackageSourceArchiveEntries([
       { path: 'pack/manifest.json', uncompressedSizeBytes: 0 },

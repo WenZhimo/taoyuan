@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 334
+    "reviewedArtifactCount": 335
   },
   "entries": [
     {
@@ -16895,6 +16895,18 @@
       ],
       "status": "verified",
       "rationale": "Covers sparse archive entry arrays being rejected as non-dense before later archive entry path/uncompressed/compressed size metadata getters can run, keeping host-path-bearing getter failures out of diagnostics while preserving the no-write ZIP source-safety boundary."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "archive inherited unsupported metadata containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers inherited unsupported string and Symbol archive entry metadata being ignored before prototype getters can run, while only enumerable own path and size fields are accepted into the no-write ZIP source-safety boundary."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",
