@@ -2351,6 +2351,67 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-array-like')
   })
 
+  it('ignores inherited unsupported metadata array fields before prototype getters can run', () => {
+    let inheritedDirectoryHostPathRead = false
+    let inheritedDirectorySymbolRead = false
+    let inheritedArchiveHostPathRead = false
+    let inheritedArchiveSymbolRead = false
+
+    const directoryPrototype = Object.create(Array.prototype)
+    Object.defineProperty(directoryPrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedDirectoryHostPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-array-inherited-hostPath')
+      }
+    })
+    Object.defineProperty(directoryPrototype, Symbol('hostPath'), {
+      enumerable: true,
+      get() {
+        inheritedDirectorySymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-array-inherited-symbol')
+      }
+    })
+
+    const archivePrototype = Object.create(Array.prototype)
+    Object.defineProperty(archivePrototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedArchiveHostPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-array-inherited-hostPath')
+      }
+    })
+    Object.defineProperty(archivePrototype, Symbol('hostPath'), {
+      enumerable: true,
+      get() {
+        inheritedArchiveSymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-array-inherited-symbol')
+      }
+    })
+
+    const directoryEntries: unknown[] = [{ name: 'pack', kind: 'directory', isSymbolicLink: false }]
+    const archiveEntries: unknown[] = [{ path: 'pack/manifest.json', uncompressedSizeBytes: 0 }]
+    Object.setPrototypeOf(directoryEntries, directoryPrototype)
+    Object.setPrototypeOf(archiveEntries, archivePrototype)
+
+    expect(normalizeContentPackageSourceDirectoryEntries(directoryEntries)).toEqual([
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    ])
+    expect(validateContentPackageSourceArchiveEntries(archiveEntries)).toEqual([
+      { path: 'pack/manifest.json', uncompressedSizeBytes: 0 }
+    ])
+    expect(inheritedDirectoryHostPathRead).toBe(false)
+    expect(inheritedDirectorySymbolRead).toBe(false)
+    expect(inheritedArchiveHostPathRead).toBe(false)
+    expect(inheritedArchiveSymbolRead).toBe(false)
+    expect(JSON.stringify(directoryEntries)).not.toContain('C:/Users')
+    expect(JSON.stringify(directoryEntries)).not.toContain('LENOVO')
+    expect(JSON.stringify(directoryEntries)).not.toContain('directory-array-inherited')
+    expect(JSON.stringify(archiveEntries)).not.toContain('C:/Users')
+    expect(JSON.stringify(archiveEntries)).not.toContain('LENOVO')
+    expect(JSON.stringify(archiveEntries)).not.toContain('archive-array-inherited')
+  })
+
   it('wraps revoked proxy metadata before raw platform errors can escape', () => {
     const revokedIdentityError = captureSourceError(() => validateContentPackageSourceIdentity(
       createRevokedProxy({

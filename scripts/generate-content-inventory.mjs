@@ -7365,6 +7365,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'metadata array inherited unsupported field containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers directory and archive metadata arrays ignoring inherited unsupported string and Symbol host fields before prototype getters can run, while only enumerable own dense indexes are accepted into the no-write source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'memory source file-count metadata containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
