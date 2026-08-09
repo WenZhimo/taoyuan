@@ -4706,6 +4706,89 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-path')
   })
 
+  it('rejects non-string archive paths before coercion or earlier and later size metadata', () => {
+    let pathCoerced = false
+    const readState = {
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidUncompressed: false,
+      invalidCompressed: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    }
+    const hostileArchivePath = {
+      toString() {
+        pathCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-to-string')
+      },
+      [Symbol.toPrimitive]() {
+        pathCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-to-primitive')
+      }
+    }
+    const earlierEntry = {
+      path: 'a-safe-pack/manifest.json',
+      get uncompressedSizeBytes() {
+        readState.earlierUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-earlier-size')
+      },
+      get compressedSizeBytes() {
+        readState.earlierCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-earlier-compressed-size')
+      }
+    }
+    const invalidPathEntry = {
+      path: hostileArchivePath,
+      get uncompressedSizeBytes() {
+        readState.invalidUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-invalid-size')
+      },
+      get compressedSizeBytes() {
+        readState.invalidCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-invalid-compressed-size')
+      }
+    }
+    const laterEntry = {
+      get path() {
+        readState.laterPath = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-later-path')
+      },
+      get uncompressedSizeBytes() {
+        readState.laterUncompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-later-size')
+      },
+      get compressedSizeBytes() {
+        readState.laterCompressed = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-global-path-later-compressed-size')
+      }
+    }
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries([
+      earlierEntry,
+      invalidPathEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entry path metadata must be a string'
+    })
+    expect(pathCoerced).toBe(false)
+    expect(readState).toEqual({
+      earlierUncompressed: false,
+      earlierCompressed: false,
+      invalidUncompressed: false,
+      invalidCompressed: false,
+      laterPath: false,
+      laterUncompressed: false,
+      laterCompressed: false
+    })
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-global-path')
+  })
+
   it('rejects archive path conflicts before reading size metadata', () => {
     let sizeMetadataReadCount = 0
     const createHostileArchiveEntry = (archivePath: string) => ({
