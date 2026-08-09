@@ -1,5 +1,5 @@
 import type { JsonValue } from './canonicalJson'
-import type { ModDiagnostic } from './diagnostics'
+import type { ModDiagnostic, ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
 import type {
@@ -152,6 +152,77 @@ const cloneCandidateIdentity = (
   identity: ThirdPartyCandidateIdentitySummary | undefined
 ): ThirdPartyCandidateIdentitySummary | undefined => identity === undefined ? undefined : { ...identity }
 
+const diagnosticCopyFallbackCode = 'LIFECYCLE-TRANSACTION-001'
+const diagnosticCopyFallbackStage = 'third-party.transaction-preflight.diagnostic-copy'
+const diagnosticSeverities = new Set<ModDiagnosticSeverity>(['info', 'warning', 'error', 'fatal'])
+const diagnosticRecoveries = new Set<ModDiagnostic['recovery']>([
+  'none',
+  'retry',
+  'disable-package',
+  'remove-package',
+  'safe-mode',
+  'restore-backup'
+])
+
+const readDiagnosticDataField = (
+  diagnostic: ModDiagnostic,
+  fieldName: keyof ModDiagnostic
+): unknown => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(diagnostic, fieldName)
+  } catch {
+    return undefined
+  }
+  return descriptor?.enumerable === true && 'value' in descriptor ? descriptor.value : undefined
+}
+
+const readDiagnosticStringField = (
+  diagnostic: ModDiagnostic,
+  fieldName: keyof ModDiagnostic
+): string | undefined => {
+  const value = readDiagnosticDataField(diagnostic, fieldName)
+  return typeof value === 'string' ? value : undefined
+}
+
+const readDiagnosticArrayLength = (value: readonly unknown[]): number | undefined => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, 'length')
+  } catch {
+    return undefined
+  }
+  return descriptor && 'value' in descriptor
+    && typeof descriptor.value === 'number'
+    && Number.isSafeInteger(descriptor.value)
+    && descriptor.value >= 0
+    ? descriptor.value
+    : undefined
+}
+
+const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
+  if (!Array.isArray(value)) return undefined
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return undefined
+
+  const result: PackageId[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value as PackageId)
+    }
+  }
+  return result
+}
+
+const fallbackMessageKey = (code: string): string =>
+  `mods.error.${code.toLowerCase().replace(/-/g, '.')}`
+
 const readJsonArrayLength = (value: readonly JsonValue[]): number | undefined => {
   let descriptor: PropertyDescriptor | undefined
   try {
@@ -238,21 +309,30 @@ const cloneDiagnosticDetails = (
   return result
 }
 
-const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
-  code: diagnostic.code,
-  ruleId: diagnostic.ruleId,
-  severity: diagnostic.severity,
-  stage: diagnostic.stage,
-  messageKey: diagnostic.messageKey,
-  packageId: diagnostic.packageId,
-  file: diagnostic.file,
-  fieldPath: diagnostic.fieldPath,
-  registryId: diagnostic.registryId,
-  contentId: diagnostic.contentId,
-  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
-  details: cloneDiagnosticDetails(diagnostic.details),
-  recovery: diagnostic.recovery
-})
+const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => {
+  const code = readDiagnosticStringField(diagnostic, 'code') ?? diagnosticCopyFallbackCode
+  const severity = readDiagnosticDataField(diagnostic, 'severity')
+  const recovery = readDiagnosticDataField(diagnostic, 'recovery')
+  return {
+    code,
+    ruleId: readDiagnosticStringField(diagnostic, 'ruleId') ?? code,
+    severity: diagnosticSeverities.has(severity as ModDiagnosticSeverity)
+      ? severity as ModDiagnosticSeverity
+      : 'error',
+    stage: readDiagnosticStringField(diagnostic, 'stage') ?? diagnosticCopyFallbackStage,
+    messageKey: readDiagnosticStringField(diagnostic, 'messageKey') ?? fallbackMessageKey(code),
+    packageId: readDiagnosticStringField(diagnostic, 'packageId') as PackageId | undefined,
+    file: readDiagnosticStringField(diagnostic, 'file'),
+    fieldPath: readDiagnosticStringField(diagnostic, 'fieldPath'),
+    registryId: readDiagnosticStringField(diagnostic, 'registryId') as ModDiagnostic['registryId'],
+    contentId: readDiagnosticStringField(diagnostic, 'contentId') as ModDiagnostic['contentId'],
+    relatedPackageIds: cloneDiagnosticPackageIds(readDiagnosticDataField(diagnostic, 'relatedPackageIds')),
+    details: cloneDiagnosticDetails(readDiagnosticDataField(diagnostic, 'details') as ModDiagnostic['details']),
+    recovery: diagnosticRecoveries.has(recovery as ModDiagnostic['recovery'])
+      ? recovery as ModDiagnostic['recovery']
+      : 'none'
+  }
+}
 
 const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
   diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))

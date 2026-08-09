@@ -6765,6 +6765,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
+    exportName: 'transaction preflight top-level diagnostic own accessor containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-transaction-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Runtime Mount Gate diagnostics with hostile own accessor stage, relatedPackageIds and details fields; Transaction Preflight report cloning now reads top-level diagnostic metadata from enumerable own data descriptors only, falls back to safe diagnostic-copy metadata, and preserves the no-write Phase 7 report boundary without leaking host paths.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
     exportName: 'third-party transaction preflight fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/third-party-transaction-preflight',
