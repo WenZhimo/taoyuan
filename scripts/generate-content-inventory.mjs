@@ -7015,6 +7015,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive hidden path global metadata preflight containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers non-enumerable required archive path metadata being rejected during global metadata preflight before earlier size getters, current hidden path/size getters or later entry metadata can run, preserving no-write ZIP source-safety diagnostics.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive later unsupported metadata global size preflight containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
