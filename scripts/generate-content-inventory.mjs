@@ -7345,6 +7345,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'archive array-like metadata containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers archive entry metadata being required to be a real Array before array-like length, numeric index or iterator getters can run, keeping host-path-bearing pseudo-array fragments out of diagnostics while preserving the no-write ZIP source-safety boundary.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'memory source file-count metadata containment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',

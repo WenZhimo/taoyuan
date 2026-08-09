@@ -2269,6 +2269,47 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('archive-sparse')
   })
 
+  it('rejects archive array-like metadata before reading length, indexes or iterators', () => {
+    let lengthRead = false
+    let entryRead = false
+    let iteratorRead = false
+    const archiveEntries = {}
+    Object.defineProperty(archiveEntries, 'length', {
+      enumerable: true,
+      get() {
+        lengthRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-array-like-length')
+      }
+    })
+    Object.defineProperty(archiveEntries, '0', {
+      enumerable: true,
+      get() {
+        entryRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-array-like-entry')
+      }
+    })
+    Object.defineProperty(archiveEntries, Symbol.iterator, {
+      enumerable: true,
+      get() {
+        iteratorRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/archive-array-like-iterator')
+      }
+    })
+
+    const error = captureSourceError(() => validateContentPackageSourceArchiveEntries(archiveEntries))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Archive entries metadata must be an array'
+    })
+    expect(lengthRead).toBe(false)
+    expect(entryRead).toBe(false)
+    expect(iteratorRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('archive-array-like')
+  })
+
   it('wraps revoked proxy metadata before raw platform errors can escape', () => {
     const revokedIdentityError = captureSourceError(() => validateContentPackageSourceIdentity(
       createRevokedProxy({
