@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 323
+    "reviewedArtifactCount": 324
   },
   "entries": [
     {
@@ -16619,6 +16619,18 @@
       ],
       "status": "verified",
       "rationale": "Covers duplicate directory entry names being rejected in mixed host listing order before previously name-read entries can advance to kind/symlink getters or later entries can be read, preserving no-write directory source-safety diagnostics."
+    },
+    {
+      "file": "src/tests/domain/contentPackageSource.test.ts",
+      "exportName": "directory unsupported kind short-circuit containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/content-package-source-contract",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers unsupported directory entry kinds being rejected before the unsupported entry symbolic-link flag or later entry kind/symlink metadata getters can run, preserving no-write directory source-safety diagnostics."
     },
     {
       "file": "src/tests/domain/contentPackageSource.test.ts",

@@ -1740,6 +1740,53 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('z-later-pack')
   })
 
+  it('rejects unsupported directory entry kinds before reading later kind or symlink metadata', () => {
+    let unsupportedSymlinkRead = false
+    let laterKindRead = false
+    let laterSymlinkRead = false
+    const unsupportedKindEntry: Record<string, unknown> = {
+      name: 'm-unsupported-pack',
+      kind: 'socket'
+    }
+    Object.defineProperty(unsupportedKindEntry, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        unsupportedSymlinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-unsupported-kind-symlink')
+      }
+    })
+    const laterEntry = {
+      name: 'z-later-pack',
+      get kind() {
+        laterKindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-unsupported-later-kind')
+      },
+      get isSymbolicLink() {
+        laterSymlinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-unsupported-later-symlink')
+      }
+    }
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      { name: 'a-safe-pack', kind: 'directory', isSymbolicLink: false },
+      unsupportedKindEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Unsupported content package source entry kind'
+    })
+    expect(unsupportedSymlinkRead).toBe(false)
+    expect(laterKindRead).toBe(false)
+    expect(laterSymlinkRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-unsupported')
+    expect(JSON.stringify(error)).not.toContain('m-unsupported-pack')
+    expect(JSON.stringify(error)).not.toContain('z-later-pack')
+  })
+
   it('turns hostile source directory entry names into structured unsafe-path diagnostics', async() => {
     const source: ContentPackageSource = {
       identity: {

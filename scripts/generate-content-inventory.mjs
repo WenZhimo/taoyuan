@@ -7105,6 +7105,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'directory unsupported kind short-circuit containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers unsupported directory entry kinds being rejected before the unsupported entry symbolic-link flag or later entry kind/symlink metadata getters can run, preserving no-write directory source-safety diagnostics.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive metadata detachment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
