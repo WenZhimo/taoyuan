@@ -1668,6 +1668,78 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('private-pack')
   })
 
+  it('rejects mixed-order duplicate directory names before reading later entry metadata', () => {
+    let earlierKindRead = false
+    let earlierSymlinkRead = false
+    let duplicateKindReadCount = 0
+    let duplicateSymlinkReadCount = 0
+    let afterDuplicateNameRead = false
+    const createDuplicateEntry = () => {
+      const entry: Record<string, unknown> = {}
+      Object.defineProperty(entry, 'name', {
+        enumerable: true,
+        value: 'm-private-pack'
+      })
+      Object.defineProperty(entry, 'kind', {
+        enumerable: true,
+        get() {
+          duplicateKindReadCount += 1
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-mixed-duplicate-kind')
+        }
+      })
+      Object.defineProperty(entry, 'isSymbolicLink', {
+        enumerable: true,
+        get() {
+          duplicateSymlinkReadCount += 1
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-mixed-duplicate-symlink')
+        }
+      })
+      return entry
+    }
+    const earlierEntry = {
+      name: 'z-later-pack',
+      get kind() {
+        earlierKindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-mixed-earlier-kind')
+      },
+      get isSymbolicLink() {
+        earlierSymlinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-mixed-earlier-symlink')
+      }
+    }
+    const afterDuplicateEntry = {
+      get name() {
+        afterDuplicateNameRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-mixed-after-duplicate-name')
+      },
+      kind: 'directory',
+      isSymbolicLink: false
+    }
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      earlierEntry,
+      createDuplicateEntry(),
+      { name: 'a-safe-pack', kind: 'directory', isSymbolicLink: false },
+      createDuplicateEntry(),
+      afterDuplicateEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH',
+      message: 'Duplicate source directory entry'
+    })
+    expect(earlierKindRead).toBe(false)
+    expect(earlierSymlinkRead).toBe(false)
+    expect(duplicateKindReadCount).toBe(0)
+    expect(duplicateSymlinkReadCount).toBe(0)
+    expect(afterDuplicateNameRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-mixed')
+    expect(JSON.stringify(error)).not.toContain('private-pack')
+    expect(JSON.stringify(error)).not.toContain('z-later-pack')
+  })
+
   it('turns hostile source directory entry names into structured unsafe-path diagnostics', async() => {
     const source: ContentPackageSource = {
       identity: {

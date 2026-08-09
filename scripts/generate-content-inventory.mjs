@@ -7095,6 +7095,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/contentPackageSource.test.ts',
+    exportName: 'directory mixed-order duplicate name containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/content-package-source-contract',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers duplicate directory entry names being rejected in mixed host listing order before previously name-read entries can advance to kind/symlink getters or later entries can be read, preserving no-write directory source-safety diagnostics.'
+  },
+  {
+    file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive metadata detachment regression',
     classification: 'adapter',
     targetRegistry: 'engine/loader/content-package-source-contract',
