@@ -859,4 +859,99 @@ describe('third-party data pack runtime adapter gate', () => {
     expectRuntimeAdapterGateFrozen(gate)
     expectOfficialBaseline()
   })
+
+  it('copies transaction preflight diagnostic related package ids without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    let lengthRead = false
+    const relatedPackageIds = new Proxy([packageId, relatedPackageId], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-adapter-related-package-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as ReturnType<typeof requirePackageId>[]
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.runtime-adapter.proxy-related-package-ids',
+      severity: 'warning',
+      packageId,
+      relatedPackageIds,
+      details: {
+        reason: 'proxy related package ids'
+      }
+    })
+    const transactionPreflight: ThirdPartyDataPackTransactionPreflightResult = {
+      status: 'deferred',
+      runtimeGateStatus: 'deferred',
+      reason: 'lifecycle transaction commit is intentionally deferred until atomic write and recovery primitives are implemented',
+      diagnostics: [upstreamDiagnostic],
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      transactionCommit: 'deferred',
+      commitAllowed: false,
+      recoveryRequired: false,
+      rollbackRequired: false,
+      requiredTransactions: [],
+      lifecycleOperations: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        packageFilesWritten: false,
+        packageBackupsWritten: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const gate = buildThirdPartyDataPackRuntimeAdapterGate({
+      transactionPreflight
+    } as never)
+    const copiedDiagnostic = gate.diagnostics[0]
+    if (copiedDiagnostic === undefined) throw new Error('Expected copied runtime adapter diagnostic.')
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.runtime-adapter.proxy-related-package-ids',
+      relatedPackageIds: ['discovery_valid', 'related_pack'],
+      details: {
+        reason: 'proxy related package ids'
+      }
+    })
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.relatedPackageIds, relatedPackageIds)).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic.relatedPackageIds)).toBe(true)
+    expect(JSON.stringify(gate)).not.toContain('C:/Users')
+    expect(JSON.stringify(gate)).not.toContain('LENOVO')
+    expect(JSON.stringify(gate)).not.toContain('runtime-adapter-related-package-length')
+    expectNoWriteEffects(gate)
+    expectRuntimeAdapterGateFrozen(gate)
+    expectOfficialBaseline()
+  })
 })

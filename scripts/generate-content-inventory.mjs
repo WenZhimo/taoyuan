@@ -6884,6 +6884,16 @@ const reviewedArtifacts = [
     rationale: 'Covers Transaction Preflight diagnostics with hostile own accessor stage, relatedPackageIds and details fields; Runtime Adapter Gate report cloning now reads top-level diagnostic metadata from enumerable own data descriptors only, falls back to safe diagnostic-copy metadata, and preserves the no-write Phase 7 report boundary without leaking host paths.'
   },
   {
+    file: 'src/tests/domain/thirdPartyDataPackRuntimeAdapterGate.test.ts',
+    exportName: 'runtime adapter gate related package id proxy array containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-runtime-adapter-gate',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Transaction Preflight diagnostics whose relatedPackageIds are hostile Proxy arrays with host-path-bearing length getters; Runtime Adapter Gate cloning reads array length from own data descriptors, copies enumerable package-id indexes without invoking length getters and exposes a frozen copied package-id array, preserving the no-write Phase 7 report boundary.'
+  },
+  {
     file: 'src/tests/domain/contentPackageSource.test.ts',
     exportName: 'archive single-file size containment regression',
     classification: 'adapter',
