@@ -133,8 +133,11 @@ const readDiagnosticStringField = (
 
 const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   if (!Array.isArray(value)) return undefined
+  const length = readJsonArrayLength(value)
+  if (length === undefined) return undefined
+
   const result: PackageId[] = []
-  for (let index = 0; index < value.length; index += 1) {
+  for (let index = 0; index < length; index += 1) {
     let descriptor: PropertyDescriptor | undefined
     try {
       descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
@@ -154,7 +157,7 @@ const fallbackMessageKey = (code: string): string =>
 const isBlockingDiagnostic = (diagnostic: ModDiagnostic): boolean =>
   blockingSeverity.has(readDiagnosticDataField(diagnostic, 'severity') as string)
 
-const readJsonArrayLength = (value: readonly JsonValue[]): number | undefined => {
+const readJsonArrayLength = (value: readonly unknown[]): number | undefined => {
   let descriptor: PropertyDescriptor | undefined
   try {
     descriptor = Reflect.getOwnPropertyDescriptor(value, 'length')

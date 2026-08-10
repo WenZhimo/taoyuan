@@ -676,6 +676,55 @@ describe('third-party candidate registry snapshot', () => {
     expectOfficialBaseline()
   })
 
+  it('copies discovery diagnostic related package ids without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      items: [createItem('bad_library:broken', -1)]
+    })
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const upstreamDiagnostic = discoveryReport.issues.flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected discovery diagnostics for invalid test package.')
+
+    let lengthRead = false
+    const relatedPackageIds = new Proxy([
+      requirePackageId('related_pack'),
+      requirePackageId('second_pack')
+    ], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-related-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+    upstreamDiagnostic.relatedPackageIds = relatedPackageIds
+    const originalStage = upstreamDiagnostic.stage
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport
+    })
+    const copiedDiagnostic = result.diagnostics.find(diagnostic => diagnostic.stage === originalStage)
+    if (!copiedDiagnostic) throw new Error('Expected copied candidate snapshot diagnostic.')
+
+    expect(result.status).toBe('invalid')
+    expect(lengthRead).toBe(false)
+    expect(copiedDiagnostic.relatedPackageIds).toEqual(['related_pack', 'second_pack'])
+    expect(Object.is(copiedDiagnostic.relatedPackageIds, relatedPackageIds)).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic.relatedPackageIds)).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-related-length')
+    expectOfficialBaseline()
+  })
+
   it('copies discovery diagnostic array details without reading hostile proxy lengths', async() => {
     const root = await createRoot()
     await createPack(root, 'bad-library', {
