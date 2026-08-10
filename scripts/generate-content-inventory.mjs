@@ -6564,6 +6564,16 @@ const reviewedArtifacts = [
     rationale: 'Covers stable dependency-first ordering independent of candidate array order, warning-only optional dependency selection, required dependency block propagation, duplicate package id blocking and dependent propagation without scan-order choice, lower gameVersion staged compatibility selection, newer game/engine/schema version blocking and dependent propagation, required and optional dependency cycle diagnostics, blocked discovery and selection issue diagnostic copy boundaries including top-level diagnostic own data-field containment, relatedPackageIds, nested details, inherited diagnostic detail metadata containment and own accessor diagnostic detail metadata containment for top-level, nested and array-index details, frozen exposed selection report output graphs, input immutability, repeated result stability and unchanged official registry counts and hashes.'
   },
   {
+    file: 'src/tests/domain/thirdPartyDataPackSelection.test.ts',
+    exportName: 'selection proxy array diagnostic detail containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-data-pack-selection',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Selection Report diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; selection report cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyCandidateRegistrySnapshot.test.ts',
     exportName: 'third-party candidate registry snapshot fixture matrix',
     classification: 'adapter',

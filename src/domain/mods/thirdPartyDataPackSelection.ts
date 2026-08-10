@@ -100,10 +100,28 @@ const diagnosticRecoveries = new Set<ModDiagnostic['recovery']>([
   'restore-backup'
 ])
 
+const readJsonArrayLength = (value: readonly unknown[]): number | undefined => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, 'length')
+  } catch {
+    return undefined
+  }
+  return descriptor && 'value' in descriptor
+    && typeof descriptor.value === 'number'
+    && Number.isSafeInteger(descriptor.value)
+    && descriptor.value >= 0
+    ? descriptor.value
+    : undefined
+}
+
 const cloneJsonValue = (value: JsonValue): JsonValue => {
   if (Array.isArray(value)) {
+    const length = readJsonArrayLength(value)
+    if (length === undefined) return []
+
     const result: JsonValue[] = []
-    for (let index = 0; index < value.length; index += 1) {
+    for (let index = 0; index < length; index += 1) {
       let descriptor: PropertyDescriptor | undefined
       try {
         descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
@@ -200,8 +218,11 @@ const readDiagnosticStringField = (
 
 const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   if (!Array.isArray(value)) return undefined
+  const length = readJsonArrayLength(value)
+  if (length === undefined) return undefined
+
   const result: PackageId[] = []
-  for (let index = 0; index < value.length; index += 1) {
+  for (let index = 0; index < length; index += 1) {
     let descriptor: PropertyDescriptor | undefined
     try {
       descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))

@@ -640,6 +640,71 @@ describe('third-party data pack read-only selection', () => {
     })
   })
 
+  it('copies discovery diagnostic array details without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      itemEntries: [
+        {
+          id: 'bad_library:broken',
+          name: { key: 'bad_library.item.broken.name', fallback: 'Broken' },
+          category: 'gift',
+          description: { key: 'bad_library.item.broken.description', fallback: 'Broken.' },
+          sellPrice: -1,
+          edible: false
+        }
+      ]
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'bad_library', version: '1.0.0' }]
+    })
+    const discoveryReport = createMutableDiscoveryReport(await discover(root))
+    const upstreamDiscoveryDiagnostic = discoveryReport.candidates
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.issues[0]
+      ?.diagnostics[0]
+    if (!upstreamDiscoveryDiagnostic) throw new Error('Expected discovery diagnostic for invalid package.')
+
+    let lengthRead = false
+    const listDetails = new Proxy(['first', { stable: true }] as JsonValue[], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-list-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    })
+    upstreamDiscoveryDiagnostic.details = {
+      reason: 'selection warning',
+      list: listDetails as JsonValue
+    }
+    const originalStage = upstreamDiscoveryDiagnostic.stage
+
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const copiedDiagnostic = selectionReport.blockedPackages
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.discoveryIssues[0]
+      ?.diagnostics
+      .find(diagnostic => diagnostic.stage === originalStage)
+    if (!copiedDiagnostic) throw new Error('Expected copied selection diagnostic.')
+
+    expect(copiedDiagnostic.details).toMatchObject({
+      reason: 'selection warning',
+      list: ['first', { stable: true }]
+    })
+    expect(lengthRead).toBe(false)
+    expect(JSON.stringify(selectionReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(selectionReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-list-length')
+    expect(officialCounts()).toEqual({
+      registryCount: 54,
+      entryCount: 4242,
+      snapshotHash: committedMetadata.snapshotHash
+    })
+  })
+
   it('ignores own accessor discovery diagnostic fields before exposing blocked reports', async() => {
     const root = await createRoot()
     await createPack(root, 'bad-library', {
