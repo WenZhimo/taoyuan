@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 347
+    "reviewedArtifactCount": 348
   },
   "entries": [
     {
@@ -16295,6 +16295,18 @@
       ],
       "status": "verified",
       "rationale": "Covers Runtime Mount Gate diagnostics with hostile own accessor stage, relatedPackageIds and details fields; Transaction Preflight report cloning now reads top-level diagnostic metadata from enumerable own data descriptors only, falls back to safe diagnostic-copy metadata, and preserves the no-write Phase 7 report boundary without leaking host paths."
+    },
+    {
+      "file": "src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts",
+      "exportName": "transaction preflight related package id proxy array containment regression",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-transaction-preflight",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers Runtime Mount Gate diagnostics whose relatedPackageIds are hostile Proxy arrays with host-path-bearing length getters; Transaction Preflight cloning reads array length from own data descriptors, copies enumerable package-id indexes without invoking length getters and exposes a frozen copied package-id array, preserving the no-write Phase 7 report boundary."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts",

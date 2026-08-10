@@ -6835,6 +6835,16 @@ const reviewedArtifacts = [
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
+    exportName: 'transaction preflight related package id proxy array containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-transaction-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Runtime Mount Gate diagnostics whose relatedPackageIds are hostile Proxy arrays with host-path-bearing length getters; Transaction Preflight cloning reads array length from own data descriptors, copies enumerable package-id indexes without invoking length getters and exposes a frozen copied package-id array, preserving the no-write Phase 7 report boundary.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackTransactionPreflight.test.ts',
     exportName: 'third-party transaction preflight fixture matrix',
     classification: 'adapter',
     targetRegistry: 'engine/loader/third-party-transaction-preflight',
