@@ -1944,6 +1944,98 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('hostile-fragment')
   })
 
+  it('rejects non-string directory entry names before coercion or earlier and later metadata', () => {
+    let nameCoerced = false
+    const readState = {
+      earlierKind: false,
+      earlierSymlink: false,
+      invalidKind: false,
+      invalidSymlink: false,
+      laterName: false,
+      laterKind: false,
+      laterSymlink: false
+    }
+    const hostileName = {
+      toString() {
+        nameCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-to-string')
+      },
+      [Symbol.toPrimitive]() {
+        nameCoerced = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-to-primitive')
+      }
+    }
+    const earlierEntry: Record<string, unknown> = { name: 'a-safe-pack' }
+    Object.defineProperty(earlierEntry, 'kind', {
+      enumerable: true,
+      get() {
+        readState.earlierKind = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-earlier-kind')
+      }
+    })
+    Object.defineProperty(earlierEntry, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        readState.earlierSymlink = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-earlier-symlink')
+      }
+    })
+    const invalidNameEntry: Record<string, unknown> = { name: hostileName }
+    Object.defineProperty(invalidNameEntry, 'kind', {
+      enumerable: true,
+      get() {
+        readState.invalidKind = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-invalid-kind')
+      }
+    })
+    Object.defineProperty(invalidNameEntry, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        readState.invalidSymlink = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-invalid-symlink')
+      }
+    })
+    const laterEntry = {
+      get name() {
+        readState.laterName = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-later-name')
+      },
+      get kind() {
+        readState.laterKind = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-later-kind')
+      },
+      get isSymbolicLink() {
+        readState.laterSymlink = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-global-name-later-symlink')
+      }
+    }
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      earlierEntry,
+      invalidNameEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source entry name metadata must be a string'
+    })
+    expect(nameCoerced).toBe(false)
+    expect(readState).toEqual({
+      earlierKind: false,
+      earlierSymlink: false,
+      invalidKind: false,
+      invalidSymlink: false,
+      laterName: false,
+      laterKind: false,
+      laterSymlink: false
+    })
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-global-name')
+    expect(JSON.stringify(error)).not.toContain('a-safe-pack')
+  })
+
   it('ignores inherited unsupported directory entry metadata before prototype getters can run', () => {
     let inheritedHostPathRead = false
     let inheritedSymbolRead = false
