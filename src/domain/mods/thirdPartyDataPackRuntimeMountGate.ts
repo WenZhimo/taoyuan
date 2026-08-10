@@ -189,7 +189,7 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
       result.push(descriptor.value as PackageId)
     }
   }
-  return result
+  return Object.freeze(result) as PackageId[]
 }
 
 const fallbackMessageKey = (code: string): string =>
