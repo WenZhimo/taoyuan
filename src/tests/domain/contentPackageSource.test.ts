@@ -1982,6 +1982,87 @@ describe('content package source contract', () => {
     expect(JSON.stringify(directoryEntries)).not.toContain('directory-inherited-unsupported')
   })
 
+  it('rejects hidden directory required fields before reading entry metadata', () => {
+    let earlierKindRead = false
+    let earlierSymlinkRead = false
+    let hiddenNameRead = false
+    let hiddenKindRead = false
+    let hiddenSymlinkRead = false
+    let laterNameRead = false
+
+    const earlierEntry: Record<string, unknown> = { name: 'a-public-pack' }
+    Object.defineProperty(earlierEntry, 'kind', {
+      enumerable: true,
+      get() {
+        earlierKindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-hidden-required-earlier-kind')
+      }
+    })
+    Object.defineProperty(earlierEntry, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        earlierSymlinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-hidden-required-earlier-symlink')
+      }
+    })
+
+    const hiddenRequiredEntry = {}
+    Object.defineProperty(hiddenRequiredEntry, 'name', {
+      enumerable: true,
+      get() {
+        hiddenNameRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-hidden-required-name')
+      }
+    })
+    Object.defineProperty(hiddenRequiredEntry, 'kind', {
+      enumerable: false,
+      get() {
+        hiddenKindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-hidden-required-kind')
+      }
+    })
+    Object.defineProperty(hiddenRequiredEntry, 'isSymbolicLink', {
+      enumerable: false,
+      get() {
+        hiddenSymlinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-hidden-required-symlink')
+      }
+    })
+
+    const laterEntry: Record<string, unknown> = {
+      kind: 'directory',
+      isSymbolicLink: false
+    }
+    Object.defineProperty(laterEntry, 'name', {
+      enumerable: true,
+      get() {
+        laterNameRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-hidden-required-later-name')
+      }
+    })
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      earlierEntry,
+      hiddenRequiredEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source entry metadata contains unsupported fields'
+    })
+    expect(earlierKindRead).toBe(false)
+    expect(earlierSymlinkRead).toBe(false)
+    expect(hiddenNameRead).toBe(false)
+    expect(hiddenKindRead).toBe(false)
+    expect(hiddenSymlinkRead).toBe(false)
+    expect(laterNameRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-hidden-required')
+    expect(JSON.stringify(error)).not.toContain('a-public-pack')
+  })
+
   it('rejects missing directory required fields before reading earlier or later metadata', () => {
     let earlierKindRead = false
     let earlierSymlinkRead = false
