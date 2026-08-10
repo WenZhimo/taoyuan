@@ -1944,6 +1944,44 @@ describe('content package source contract', () => {
     expect(JSON.stringify(error)).not.toContain('hostile-fragment')
   })
 
+  it('ignores inherited unsupported directory entry metadata before prototype getters can run', () => {
+    let inheritedHostPathRead = false
+    let inheritedSymbolRead = false
+    const inheritedSymbolKey = Symbol('hostPath')
+    const prototype = {}
+    Object.defineProperty(prototype, 'hostPath', {
+      enumerable: true,
+      get() {
+        inheritedHostPathRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-inherited-unsupported-hostPath')
+      }
+    })
+    Object.defineProperty(prototype, inheritedSymbolKey, {
+      enumerable: true,
+      get() {
+        inheritedSymbolRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-inherited-unsupported-symbol')
+      }
+    })
+    const directoryEntry = {
+      name: 'pack',
+      kind: 'directory',
+      isSymbolicLink: false
+    }
+    Object.setPrototypeOf(directoryEntry, prototype)
+
+    const directoryEntries = normalizeContentPackageSourceDirectoryEntries([directoryEntry])
+
+    expect(directoryEntries).toEqual([
+      { name: 'pack', kind: 'directory', isSymbolicLink: false }
+    ])
+    expect(inheritedHostPathRead).toBe(false)
+    expect(inheritedSymbolRead).toBe(false)
+    expect(JSON.stringify(directoryEntries)).not.toContain('C:/Users')
+    expect(JSON.stringify(directoryEntries)).not.toContain('LENOVO')
+    expect(JSON.stringify(directoryEntries)).not.toContain('directory-inherited-unsupported')
+  })
+
   it('rejects over-limit directory metadata arrays before reading first or boundary entries', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     const { entries, wasFirstEntryRead, wasBoundaryEntryRead } = createOverLimitMetadataArray(index => ({
