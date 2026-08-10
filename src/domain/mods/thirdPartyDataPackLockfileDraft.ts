@@ -217,6 +217,26 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   return result
 }
 
+const clonePackageIds = (value: unknown): PackageId[] => {
+  if (!Array.isArray(value)) return []
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return []
+
+  const result: PackageId[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value as PackageId)
+    }
+  }
+  return result
+}
+
 const fallbackMessageKey = (code: string): string =>
   `mods.error.${code.toLowerCase().replace(/-/g, '.')}`
 
@@ -484,9 +504,9 @@ export const createThirdPartyDataPackLockfileDraft = (
   const { candidateSnapshot, discoveryReport, selectionReport } = options
   const baseResult = {
     diagnostics: cloneDiagnostics(candidateSnapshot.diagnostics),
-    selectedPackageIds: [...candidateSnapshot.selectedPackageIds],
-    blockedPackageIds: [...candidateSnapshot.blockedPackageIds],
-    loadOrder: [...candidateSnapshot.loadOrder],
+    selectedPackageIds: clonePackageIds(candidateSnapshot.selectedPackageIds),
+    blockedPackageIds: clonePackageIds(candidateSnapshot.blockedPackageIds),
+    loadOrder: clonePackageIds(candidateSnapshot.loadOrder),
     registryCount: candidateSnapshot.registryCount,
     entryCount: candidateSnapshot.entryCount,
     officialIdentity: cloneOfficialIdentity(candidateSnapshot.officialIdentity),

@@ -899,6 +899,60 @@ describe('third-party data pack lockfile draft', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('copies candidate snapshot package id summaries without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    const lengthReads: string[] = []
+    const createHostilePackageIds = (marker: string, values: readonly string[]) => new Proxy(
+      values.map(value => requirePackageId(value)),
+      {
+        get(target, property, receiver) {
+          if (property === 'length') {
+            lengthReads.push(marker)
+            throw new Error(`EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-${marker}-length`)
+          }
+          return Reflect.get(target, property, receiver)
+        }
+      }
+    )
+    const selectedPackageIds = createHostilePackageIds('selected-package-ids', ['discovery_valid'])
+    const blockedPackageIds = createHostilePackageIds('blocked-package-ids', ['blocked_pack'])
+    const loadOrder = createHostilePackageIds('load-order', ['dependency_pack', 'discovery_valid'])
+    const candidateSnapshot = {
+      ...reports.candidateSnapshot,
+      status: 'invalid' as const,
+      selectedPackageIds,
+      blockedPackageIds,
+      loadOrder
+    }
+
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot
+    })
+
+    expect(draftResult.status).toBe('invalid')
+    expect(draftResult.selectedPackageIds).toEqual(['discovery_valid'])
+    expect(draftResult.blockedPackageIds).toEqual(['blocked_pack'])
+    expect(draftResult.loadOrder).toEqual(['dependency_pack', 'discovery_valid'])
+    expect(Object.is(draftResult.selectedPackageIds, selectedPackageIds)).toBe(false)
+    expect(Object.is(draftResult.blockedPackageIds, blockedPackageIds)).toBe(false)
+    expect(Object.is(draftResult.loadOrder, loadOrder)).toBe(false)
+    expect(Object.isFrozen(draftResult.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(draftResult.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(draftResult.loadOrder)).toBe(true)
+    expect(lengthReads).toEqual([])
+    expect(JSON.stringify(draftResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(draftResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-selected-package-ids-length')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-blocked-package-ids-length')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-load-order-length')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('copies upstream candidate snapshot diagnostics before exposing draft reports', async() => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
