@@ -77,6 +77,54 @@ const readJsonArrayLength = (value: readonly JsonValue[]): number | undefined =>
     : undefined
 }
 
+const readDiagnosticDataField = (
+  diagnostic: ModDiagnostic,
+  fieldName: keyof ModDiagnostic
+): unknown => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(diagnostic, fieldName)
+  } catch {
+    return undefined
+  }
+  return descriptor?.enumerable === true && 'value' in descriptor ? descriptor.value : undefined
+}
+
+const readDiagnosticArrayLength = (value: readonly unknown[]): number | undefined => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, 'length')
+  } catch {
+    return undefined
+  }
+  return descriptor && 'value' in descriptor
+    && typeof descriptor.value === 'number'
+    && Number.isSafeInteger(descriptor.value)
+    && descriptor.value >= 0
+    ? descriptor.value
+    : undefined
+}
+
+const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
+  if (!Array.isArray(value)) return undefined
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return undefined
+
+  const result: PackageId[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value as PackageId)
+    }
+  }
+  return result
+}
+
 const cloneJsonValue = (value: JsonValue): JsonValue => {
   if (Array.isArray(value)) {
     const length = readJsonArrayLength(value)
@@ -177,7 +225,7 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => ({
   fieldPath: diagnostic.fieldPath,
   registryId: diagnostic.registryId,
   contentId: diagnostic.contentId,
-  relatedPackageIds: diagnostic.relatedPackageIds ? [...diagnostic.relatedPackageIds] : undefined,
+  relatedPackageIds: cloneDiagnosticPackageIds(readDiagnosticDataField(diagnostic, 'relatedPackageIds')),
   details: cloneDiagnosticDetails(diagnostic.details),
   recovery: diagnostic.recovery
 })

@@ -727,6 +727,82 @@ describe('third-party data pack mount input', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('copies preflight diagnostic related package ids without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult, preflight } = await buildReportsFromRoot(root)
+    let lengthRead = false
+    const relatedPackageIds = new Proxy([
+      requirePackageId('discovery_valid'),
+      requirePackageId('related_pack')
+    ], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/mount-input-related-package-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as ReturnType<typeof requirePackageId>[]
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.mount-input.proxy-related-package-ids',
+      severity: 'warning',
+      packageId: requirePackageId('discovery_valid'),
+      relatedPackageIds,
+      details: {
+        reason: 'proxy related package ids'
+      }
+    })
+    const mutablePreflight = {
+      ...preflight,
+      diagnostics: [upstreamDiagnostic],
+      stages: preflight.stages.map(currentStage =>
+        currentStage.name === 'runtime-publish'
+          ? { ...currentStage, diagnostics: [upstreamDiagnostic] }
+          : currentStage
+      )
+    }
+
+    const mountInput = buildThirdPartyDataPackMountInput({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot,
+      lockfileDraftResult,
+      lockfileValidationResult,
+      preflight: mutablePreflight
+    })
+    const copiedDiagnostic = mountInput.diagnostics[0]
+    const copiedStageDiagnostic = mountInput.preflight.stages
+      .find(currentStage => currentStage.name === 'runtime-publish')
+      ?.diagnostics[0]
+    if (copiedDiagnostic === undefined || copiedStageDiagnostic === undefined) {
+      throw new Error('Expected copied mount input diagnostics.')
+    }
+
+    expect(mountInput.status).toBe('ready')
+    expect(lengthRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.mount-input.proxy-related-package-ids',
+      relatedPackageIds: ['discovery_valid', 'related_pack'],
+      details: {
+        reason: 'proxy related package ids'
+      }
+    })
+    expect(copiedStageDiagnostic).toMatchObject(copiedDiagnostic)
+    expect(Object.is(copiedDiagnostic.relatedPackageIds, relatedPackageIds)).toBe(false)
+    expect(Object.is(copiedStageDiagnostic.relatedPackageIds, relatedPackageIds)).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(copiedStageDiagnostic.relatedPackageIds)).toBe(true)
+    expect(JSON.stringify(mountInput)).not.toContain('C:/Users')
+    expect(JSON.stringify(mountInput)).not.toContain('LENOVO')
+    expect(JSON.stringify(mountInput)).not.toContain('mount-input-related-package-length')
+    expectReadOnlyEffects(mountInput)
+    expectFrozenMountInputOutput(mountInput)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('copies the serializable candidate snapshot before exposing mount input artifacts', async() => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })

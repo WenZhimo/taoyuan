@@ -6431,7 +6431,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [7],
     status: 'verified',
-    rationale: 'Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence, copied upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details, freezes exposed stage/report diagnostics, package id/path arrays, identity summaries, no-write effects, rollback summary and the top-level report object, and does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches.'
+    rationale: 'Composes discovery, selection, candidate snapshot, lockfile draft and draft validation into a read-only pre-mount lifecycle report with ready/skipped/rolled-back status, stage summaries, rollback evidence, copied upstream official/candidate identity summaries and diagnostic objects including relatedPackageIds and nested JSON details from own enumerable data-only fields, skips hostile Proxy array length getters and unreadable descriptors without invoking hostile getters, freezes exposed stage/report diagnostics, package id/path arrays, identity summaries, no-write effects, rollback summary and the top-level report object, and does not publish runtime registries, write lockfiles, touch settings, saves, packages or caches.'
   },
   {
     file: 'src/domain/mods/thirdPartyDataPackMountInput.ts',
@@ -6734,6 +6734,16 @@ const reviewedArtifacts = [
     rationale: 'Covers Mount Preflight diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write 7C report boundary.'
   },
   {
+    file: 'src/tests/domain/thirdPartyDataPackMountPreflight.test.ts',
+    exportName: 'mount preflight related package id proxy array containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-mount-preflight',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Mount Preflight diagnostics whose relatedPackageIds are hostile Proxy arrays with host-path-bearing length getters; preflight cloning reads array length from own data descriptors and copies enumerable package-id indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackMountInput.test.ts',
     exportName: 'third-party mount input fixture matrix',
     classification: 'adapter',
@@ -6752,6 +6762,16 @@ const reviewedArtifacts = [
     migrationPhase: [7],
     status: 'verified',
     rationale: 'Covers Mount Input diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
+  },
+  {
+    file: 'src/tests/domain/thirdPartyDataPackMountInput.test.ts',
+    exportName: 'mount input related package id proxy array containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-mount-input',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Mount Input diagnostics whose relatedPackageIds are hostile Proxy arrays with host-path-bearing length getters; mount input cloning reads array length from own data descriptors and copies enumerable package-id indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
   },
   {
     file: 'src/tests/domain/thirdPartyDataPackRuntimeMountGate.test.ts',
