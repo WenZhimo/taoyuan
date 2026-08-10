@@ -1982,6 +1982,89 @@ describe('content package source contract', () => {
     expect(JSON.stringify(directoryEntries)).not.toContain('directory-inherited-unsupported')
   })
 
+  it('rejects missing directory required fields before reading earlier or later metadata', () => {
+    let earlierKindRead = false
+    let earlierSymlinkRead = false
+    let missingNameRead = false
+    let missingSymlinkRead = false
+    let inheritedKindRead = false
+    let laterNameRead = false
+
+    const earlierEntry: Record<string, unknown> = { name: 'a-public-pack' }
+    Object.defineProperty(earlierEntry, 'kind', {
+      enumerable: true,
+      get() {
+        earlierKindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-missing-required-earlier-kind')
+      }
+    })
+    Object.defineProperty(earlierEntry, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        earlierSymlinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-missing-required-earlier-symlink')
+      }
+    })
+
+    const prototype = {}
+    Object.defineProperty(prototype, 'kind', {
+      enumerable: true,
+      get() {
+        inheritedKindRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-missing-required-inherited-kind')
+      }
+    })
+    const missingRequiredEntry = {}
+    Object.defineProperty(missingRequiredEntry, 'name', {
+      enumerable: true,
+      get() {
+        missingNameRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-missing-required-name')
+      }
+    })
+    Object.defineProperty(missingRequiredEntry, 'isSymbolicLink', {
+      enumerable: true,
+      get() {
+        missingSymlinkRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-missing-required-symlink')
+      }
+    })
+    Object.setPrototypeOf(missingRequiredEntry, prototype)
+
+    const laterEntry: Record<string, unknown> = {
+      kind: 'directory',
+      isSymbolicLink: false
+    }
+    Object.defineProperty(laterEntry, 'name', {
+      enumerable: true,
+      get() {
+        laterNameRead = true
+        throw new Error('EACCES: stat C:/Users/LENOVO/mods/directory-missing-required-later-name')
+      }
+    })
+
+    const error = captureSourceError(() => normalizeContentPackageSourceDirectoryEntries([
+      earlierEntry,
+      missingRequiredEntry,
+      laterEntry
+    ]))
+
+    expect(error).toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'Content package source entry metadata must include name, kind and isSymbolicLink own fields'
+    })
+    expect(earlierKindRead).toBe(false)
+    expect(earlierSymlinkRead).toBe(false)
+    expect(missingNameRead).toBe(false)
+    expect(missingSymlinkRead).toBe(false)
+    expect(inheritedKindRead).toBe(false)
+    expect(laterNameRead).toBe(false)
+    expect(JSON.stringify(error)).not.toContain('C:/Users')
+    expect(JSON.stringify(error)).not.toContain('LENOVO')
+    expect(JSON.stringify(error)).not.toContain('directory-missing-required')
+    expect(JSON.stringify(error)).not.toContain('a-public-pack')
+  })
+
   it('rejects over-limit directory metadata arrays before reading first or boundary entries', () => {
     const limits = CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
     const { entries, wasFirstEntryRead, wasBoundaryEntryRead } = createOverLimitMetadataArray(index => ({
