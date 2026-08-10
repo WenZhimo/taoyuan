@@ -318,6 +318,55 @@ const expectOfficialBaseline = (): void => {
   })
 }
 
+const createDeferredRuntimeAdapterGate = (
+  diagnostics: ThirdPartyDataPackRuntimeAdapterGateResult['diagnostics'],
+  packageId = requirePackageId('discovery_valid')
+): ThirdPartyDataPackRuntimeAdapterGateResult => ({
+  status: 'deferred',
+  transactionPreflightStatus: 'deferred',
+  reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+  diagnostics,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  blockedCandidatePaths: [],
+  loadOrder: [packageId],
+  registryCount: 54,
+  entryCount: 4244,
+  packageCount: 1,
+  officialIdentity: {
+    artifactHash: committedMetadata.artifactHash as Sha256Hash,
+    contentHash: committedMetadata.contentHash as Sha256Hash,
+    schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+    environmentHash: committedMetadata.environmentHash as Sha256Hash,
+    snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+    registryCount: 54,
+    entryCount: 4242
+  },
+  candidateIdentity: {
+    formatVersion: 1,
+    contentHash: testHash('1'),
+    snapshotHash: testHash('2'),
+    candidateHash: testHash('3')
+  },
+  lockfileHash: testHash('4'),
+  adapterReadiness: 'deferred',
+  runtimeEnablementAllowed: false,
+  requiredAdapters: [],
+  effects: {
+    officialRegistryPublished: false,
+    thirdPartyRegistryPublished: false,
+    electronIpcExposed: false,
+    webImportPersisted: false,
+    androidImportPersisted: false,
+    packageFilesWritten: false,
+    lockfileWritten: false,
+    settingsWritten: false,
+    savesWritten: false,
+    cacheWritten: false,
+    transactionLogWritten: false
+  }
+})
+
 describe('third-party data pack source adapter gate', () => {
   it('keeps runtime adapters deferred after the shared source contract is defined', async() => {
     const root = await createRoot()
@@ -775,6 +824,57 @@ describe('third-party data pack source adapter gate', () => {
     expect(serialized).not.toContain('source-adapter-diagnostic-stage')
     expect(serialized).not.toContain('source-adapter-diagnostic-related')
     expect(serialized).not.toContain('source-adapter-diagnostic-details')
+    expectNoWriteEffects(gate)
+    expectSourceAdapterGateFrozen(gate)
+    expectOfficialBaseline()
+  })
+
+  it('copies runtime adapter diagnostic related package ids without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const relatedPackageId = requirePackageId('related_pack')
+    let lengthRead = false
+    const relatedPackageIds = new Proxy([packageId, relatedPackageId], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/source-adapter-related-package-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as ReturnType<typeof requirePackageId>[]
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.source-adapter.proxy-related-package-ids',
+      severity: 'warning',
+      packageId,
+      relatedPackageIds,
+      details: {
+        reason: 'proxy related package ids'
+      }
+    })
+    const runtimeAdapterGate = createDeferredRuntimeAdapterGate([upstreamDiagnostic], packageId)
+
+    const gate = buildThirdPartyDataPackSourceAdapterGate({
+      runtimeAdapterGate
+    } as never)
+    const copiedDiagnostic = gate.diagnostics[0]
+    if (copiedDiagnostic === undefined) throw new Error('Expected copied source adapter diagnostic.')
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.source-adapter.proxy-related-package-ids',
+      relatedPackageIds: ['discovery_valid', 'related_pack'],
+      details: {
+        reason: 'proxy related package ids'
+      }
+    })
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.relatedPackageIds, relatedPackageIds)).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic.relatedPackageIds)).toBe(true)
+    const serialized = JSON.stringify(gate)
+    expect(serialized).not.toContain('C:/Users')
+    expect(serialized).not.toContain('LENOVO')
+    expect(serialized).not.toContain('source-adapter-related-package-length')
     expectNoWriteEffects(gate)
     expectSourceAdapterGateFrozen(gate)
     expectOfficialBaseline()

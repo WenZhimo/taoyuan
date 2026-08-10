@@ -7734,6 +7734,16 @@ const reviewedArtifacts = [
     rationale: 'Covers Source Adapter Gate diagnostic details containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the no-write Phase 7 report boundary.'
   },
   {
+    file: 'src/tests/domain/thirdPartyDataPackSourceAdapterGate.test.ts',
+    exportName: 'source adapter gate proxy array diagnostic related package id containment regression',
+    classification: 'adapter',
+    targetRegistry: 'engine/loader/third-party-source-adapter-gate',
+    persistentIds: false,
+    migrationPhase: [7],
+    status: 'verified',
+    rationale: 'Covers Source Adapter Gate diagnostic relatedPackageIds containing hostile Proxy arrays whose length getter throws host-path-bearing errors; cloning reads array length from own data descriptors and copies enumerable data indexes without invoking length getters, preserving the frozen no-write Phase 7 report boundary.'
+  },
+  {
     file: 'src/tests/domain/thirdPartyDataPackRepairReport.test.ts',
     exportName: 'third-party repair report fixture matrix',
     classification: 'adapter',
