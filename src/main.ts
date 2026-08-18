@@ -8,6 +8,9 @@ import {
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
 import { refreshOfficialRegistryDiskCache } from '@/domain/mods/officialRegistryCacheRefresh'
 import { bootstrapThirdPartyDataPackStartupGate } from '@/domain/mods/thirdPartyDataPackStartupGateBootstrapSource'
+import {
+  thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline
+} from '@/domain/mods/thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline'
 import './app.css'
 
 const runtimeProbeRequested = typeof window !== 'undefined'
@@ -32,7 +35,10 @@ void bootstrapApplication({
   installPinia: (app, pinia) => app.use(pinia),
   getRouter: async () => (await import('@/router')).default,
   installRouter: (app, router) => app.use(router),
-  mount: (app, router) => mountAfterRouterReady(app, router)
+  mount: (app, router) => mountAfterRouterReady(app, router),
+  afterMount: async () => {
+    await thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline()
+  }
 }).then(async () => {
   const cacheRefresh = refreshOfficialRegistryDiskCache()
   if (!runtimeProbeRequested) {

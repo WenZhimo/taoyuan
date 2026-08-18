@@ -6121,7 +6121,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Creates Vue, Pinia and the router only after taoyuan-core and the optional third-party startup gate succeed; returned blocked gate results or appBootstrapContinuationAllowed=false stop before app state, save reads and mounting with a path-free bootstrap error.'
+    rationale: 'Creates Vue, Pinia and the router only after taoyuan-core and the optional third-party startup gate succeed; returned blocked gate results or appBootstrapContinuationAllowed=false stop before app state, save reads and mounting with a path-free bootstrap error. After mounting, an optional lifecycle hook receives the mounted app, Pinia and router so default-disabled renderer UI/IPC response delivery wiring can run without weakening startup gate ordering.'
   },
   {
     file: 'src/main.ts',
@@ -6131,7 +6131,7 @@ const reviewedArtifacts = [
     persistentIds: false,
     migrationPhase: [6],
     status: 'verified',
-    rationale: 'Web, Electron and Android share this renderer entry; App.vue and the router are dynamically imported only after official content initialization and the default-disabled third-party startup gate source has resolved.'
+    rationale: 'Web, Electron and Android share this renderer entry; App.vue and the router are dynamically imported only after official content initialization and the default-disabled third-party startup gate source has resolved. After router-ready mount, the default-disabled Web/Electron renderer UI/IPC response delivery bridge is invoked as a post-mount hook; the default path remains skipped and does not resolve window, upstream handoffs, transactions or persistent writers.'
   },
   {
     file: 'src/domain/mods/registry.ts',
