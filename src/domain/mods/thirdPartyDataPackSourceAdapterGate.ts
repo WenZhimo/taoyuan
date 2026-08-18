@@ -1,4 +1,5 @@
 import type { JsonValue } from './canonicalJson'
+import type { ContentPackageSourceKind } from './contentPackageSource'
 import type { ModDiagnostic, ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
@@ -22,10 +23,20 @@ export type ThirdPartyDataPackSourceContractRequirementId =
   | 'normalized-relative-paths'
   | 'permission-revocation-diagnostics'
   | 'source-lifecycle-release'
+export type ThirdPartyDataPackPlatformSourceAdapterRequirementId =
+  | 'electron-readonly-directory-adapter'
+  | 'web-file-picker-import-adapter'
 
 export interface ThirdPartyDataPackSourceContractRequirement {
   readonly id: ThirdPartyDataPackSourceContractRequirementId
   readonly status: 'satisfied'
+  readonly reason: string
+}
+
+export interface ThirdPartyDataPackPlatformSourceAdapterRequirement {
+  readonly id: ThirdPartyDataPackPlatformSourceAdapterRequirementId
+  readonly status: 'satisfied'
+  readonly sourceKind: ContentPackageSourceKind
   readonly reason: string
 }
 
@@ -64,6 +75,7 @@ export interface ThirdPartyDataPackSourceAdapterGateResult {
   readonly contentPackageSourceContractStable: true
   readonly runtimeEnablementAllowed: false
   readonly requiredSourceContracts: readonly ThirdPartyDataPackSourceContractRequirement[]
+  readonly requiredPlatformSourceAdapters: readonly ThirdPartyDataPackPlatformSourceAdapterRequirement[]
   readonly effects: ThirdPartyDataPackSourceAdapterGateEffectSummary
 }
 
@@ -167,6 +179,29 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   }
   return result
 }
+
+const cloneStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return []
+
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value)
+    }
+  }
+  return result
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  cloneStringList(value) as PackageId[]
 
 const fallbackMessageKey = (code: string): string =>
   `mods.error.${code.toLowerCase().replace(/-/g, '.')}`
@@ -282,8 +317,25 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => {
   }
 }
 
-const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
-  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return []
+  const length = readDiagnosticArrayLength(diagnostics)
+  if (length === undefined) return []
+
+  const result: ModDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(cloneDiagnostic(descriptor.value as ModDiagnostic))
+    }
+  }
+  return result
+}
 
 const deepFreezeObjectGraph = <T>(value: T): T => {
   if (value && typeof value === 'object') {
@@ -315,6 +367,10 @@ const freezeSourceContractRequirement = (
   requirement: ThirdPartyDataPackSourceContractRequirement
 ): ThirdPartyDataPackSourceContractRequirement => Object.freeze(requirement)
 
+const freezePlatformSourceAdapterRequirement = (
+  requirement: ThirdPartyDataPackPlatformSourceAdapterRequirement
+): ThirdPartyDataPackPlatformSourceAdapterRequirement => Object.freeze(requirement)
+
 const satisfiedSourceContracts = (): readonly ThirdPartyDataPackSourceContractRequirement[] => Object.freeze([
   freezeSourceContractRequirement({
     id: 'source-identity-validation',
@@ -343,19 +399,35 @@ const satisfiedSourceContracts = (): readonly ThirdPartyDataPackSourceContractRe
   })
 ])
 
+const platformSourceAdapterRequirements = (): readonly ThirdPartyDataPackPlatformSourceAdapterRequirement[] => Object.freeze([
+  freezePlatformSourceAdapterRequirement({
+    id: 'electron-readonly-directory-adapter',
+    status: 'satisfied',
+    sourceKind: 'electron-readonly-directory',
+    reason: 'Production Electron reads executable-local mods/ through a restricted read-only IPC source and keeps all writes deferred.'
+  }),
+  freezePlatformSourceAdapterRequirement({
+    id: 'web-file-picker-import-adapter',
+    status: 'satisfied',
+    sourceKind: 'web-file-picker-import',
+    reason: 'Web file-picker imports and IndexedDB restored payloads are represented as read-only ContentPackageSource instances.'
+  })
+])
+
 const baseResult = (
   status: ThirdPartyDataPackSourceAdapterGateStatus,
   reason: string,
-  runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult
+  runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult,
+  requiredPlatformSourceAdapters: readonly ThirdPartyDataPackPlatformSourceAdapterRequirement[]
 ): ThirdPartyDataPackSourceAdapterGateResult => freezeSourceAdapterGateResult({
   status,
   runtimeAdapterGateStatus: runtimeAdapterGate.status,
   reason,
   diagnostics: cloneDiagnostics(runtimeAdapterGate.diagnostics),
-  selectedPackageIds: [...runtimeAdapterGate.selectedPackageIds],
-  blockedPackageIds: [...runtimeAdapterGate.blockedPackageIds],
-  blockedCandidatePaths: [...runtimeAdapterGate.blockedCandidatePaths],
-  loadOrder: [...runtimeAdapterGate.loadOrder],
+  selectedPackageIds: clonePackageIds(runtimeAdapterGate.selectedPackageIds),
+  blockedPackageIds: clonePackageIds(runtimeAdapterGate.blockedPackageIds),
+  blockedCandidatePaths: cloneStringList(runtimeAdapterGate.blockedCandidatePaths),
+  loadOrder: clonePackageIds(runtimeAdapterGate.loadOrder),
   registryCount: runtimeAdapterGate.registryCount,
   entryCount: runtimeAdapterGate.entryCount,
   packageCount: runtimeAdapterGate.packageCount,
@@ -366,6 +438,7 @@ const baseResult = (
   contentPackageSourceContractStable: true,
   runtimeEnablementAllowed: false,
   requiredSourceContracts: satisfiedSourceContracts(),
+  requiredPlatformSourceAdapters,
   effects: freezeEffectSummary(createEffectSummary())
 })
 
@@ -378,7 +451,8 @@ export const buildThirdPartyDataPackSourceAdapterGate = (
     return baseResult(
       'skipped',
       'no selected third-party data packs',
-      runtimeAdapterGate
+      runtimeAdapterGate,
+      []
     )
   }
 
@@ -386,13 +460,15 @@ export const buildThirdPartyDataPackSourceAdapterGate = (
     return baseResult(
       'blocked',
       runtimeAdapterGate.reason,
-      runtimeAdapterGate
+      runtimeAdapterGate,
+      []
     )
   }
 
   return baseResult(
     'deferred',
-    'content package source contract is defined; runtime platform source adapters remain intentionally deferred',
-    runtimeAdapterGate
+    'content package source contract and Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication and write gates are implemented',
+    runtimeAdapterGate,
+    platformSourceAdapterRequirements()
   )
 }

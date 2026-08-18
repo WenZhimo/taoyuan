@@ -1,0 +1,973 @@
+import type { ModDiagnosticRecovery, ModDiagnosticSeverity } from './diagnostics'
+import type { Sha256Hash } from './hash'
+import type { PackageId } from './ids'
+import {
+  THIRD_PARTY_DATA_PACK_NORMAL_STARTUP_GATE_PREFLIGHT_KIND,
+  THIRD_PARTY_DATA_PACK_NORMAL_STARTUP_GATE_PREFLIGHT_MODE,
+  type ThirdPartyDataPackNormalStartupGateDecision,
+  type ThirdPartyDataPackNormalStartupGatePersistentStateProofs,
+  type ThirdPartyDataPackNormalStartupGatePreflightResult,
+  type ThirdPartyDataPackNormalStartupGatePreflightStatus
+} from './thirdPartyDataPackNormalStartupGatePreflight'
+import type { ThirdPartyDataPackLauncherBoundaryPlatform } from './thirdPartyDataPackLauncherBoundaryPreflight'
+import type {
+  ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
+  ThirdPartyDataPackUiIpcResultEnvelopeSummary
+} from './thirdPartyDataPackUiIpcResultEnvelopeContract'
+
+export const THIRD_PARTY_DATA_PACK_APP_BOOTSTRAP_WIRING_PREFLIGHT_KIND =
+  'app-bootstrap-wiring-preflight'
+export const THIRD_PARTY_DATA_PACK_APP_BOOTSTRAP_WIRING_PREFLIGHT_MODE =
+  'readonly-app-bootstrap-wiring-preflight'
+
+export type ThirdPartyDataPackAppBootstrapWiringPreflightStatus =
+  | 'deferred'
+  | 'skipped'
+  | 'blocked'
+
+export type ThirdPartyDataPackAppBootstrapWiringPreflightCheckId =
+  | 'normal-startup-gate-wrapper'
+  | 'normal-startup-gate-deferred'
+  | 'startup-decision-ready'
+  | 'persistent-state-proof-summary-ready'
+  | 'package-summary-consistent'
+  | 'path-free-normal-startup-gate'
+  | 'no-app-bootstrap-runtime-or-write-effects'
+
+export type ThirdPartyDataPackAppBootstrapWiringStageId =
+  | 'normal-startup-gate-preflight-consumed'
+  | 'app-bootstrap-wiring-preflight'
+  | 'launcher-app-factory-binding'
+  | 'game-app-factory-binding'
+  | 'pinia-store-bootstrap'
+  | 'router-bootstrap'
+  | 'save-open-sequencing'
+  | 'ui-ipc-completion-sequencing'
+  | 'runtime-publication-sequencing'
+
+export type ThirdPartyDataPackAppBootstrapWiringRequirementId =
+  | 'app-bootstrap-wiring-contract'
+  | 'normal-startup-gate-result'
+  | 'persistent-state-proof-summary'
+  | 'launcher-app-factory-boundary'
+  | 'game-app-factory-boundary'
+  | 'pinia-bootstrap-boundary'
+  | 'router-bootstrap-boundary'
+  | 'save-open-protection'
+  | 'ui-ipc-completion-boundary'
+  | 'runtime-publication-boundary'
+  | 'path-free-app-bootstrap-diagnostics'
+  | 'no-app-bootstrap-side-effect-guard'
+
+export interface ThirdPartyDataPackAppBootstrapWiringPreflightCheck {
+  readonly id: ThirdPartyDataPackAppBootstrapWiringPreflightCheckId
+  readonly status: 'satisfied' | 'skipped' | 'blocked'
+  readonly reason: string
+}
+
+export interface ThirdPartyDataPackAppBootstrapWiringStage {
+  readonly id: ThirdPartyDataPackAppBootstrapWiringStageId
+  readonly status: 'satisfied' | 'deferred' | 'skipped' | 'blocked'
+  readonly requirementIds: readonly ThirdPartyDataPackAppBootstrapWiringRequirementId[]
+  readonly reason: string
+}
+
+export interface ThirdPartyDataPackAppBootstrapWiringRequirement {
+  readonly id: ThirdPartyDataPackAppBootstrapWiringRequirementId
+  readonly status: 'required'
+  readonly reason: string
+}
+
+export interface ThirdPartyDataPackAppBootstrapWiringPreflightEffectSummary {
+  readonly officialRegistryPublished: false
+  readonly thirdPartyRegistryPublished: false
+  readonly liveRegistryMutated: false
+  readonly liveRegistrySwapped: false
+  readonly previousRegistryReleased: false
+  readonly previousRegistryRestored: false
+  readonly candidateRegistryExposed: false
+  readonly runtimeEnablementAllowed: false
+  readonly modManagementUiMounted: false
+  readonly launcherAppMounted: false
+  readonly gameAppCreated: false
+  readonly piniaCreated: false
+  readonly routerMounted: false
+  readonly electronIpcExposed: false
+  readonly electronIpcResponseSent: false
+  readonly webFilePickerOpened: false
+  readonly webUiBridgeOpened: false
+  readonly webUiResponsePublished: false
+  readonly androidFilePickerOpened: false
+  readonly androidUiBridgeOpened: false
+  readonly androidUiResponsePublished: false
+  readonly commandDispatcherCalled: false
+  readonly commandDispatched: false
+  readonly atomicCommitExecutorCalled: false
+  readonly transactionCommitted: false
+  readonly transactionLogPrepared: false
+  readonly runtimePublicationCommitted: false
+  readonly postCommitVerificationExecutorCalled: false
+  readonly postCommitVerificationExecuted: false
+  readonly transactionLogRead: false
+  readonly packageStateRead: false
+  readonly settingsRead: false
+  readonly lockfileRead: false
+  readonly liveRegistryRead: false
+  readonly saveRead: false
+  readonly saveCacheIsolationChecked: false
+  readonly successEnvelopeDelivered: false
+  readonly failureEnvelopeDelivered: false
+  readonly retryStateDelivered: false
+  readonly rollbackStateDelivered: false
+  readonly uiIpcResponseDelivered: false
+  readonly packageFilesWritten: false
+  readonly packageBackupsWritten: false
+  readonly packageFilesRestored: false
+  readonly lockfileWritten: false
+  readonly lockfileRestored: false
+  readonly settingsWritten: false
+  readonly settingsRestored: false
+  readonly savesWritten: false
+  readonly cacheWritten: false
+  readonly transactionLogWritten: false
+  readonly recoveryLogRead: false
+  readonly recoveryLogReplayed: false
+  readonly rollbackExecuted: false
+  readonly diagnosticsWritten: false
+  readonly normalStartupGatePreflightConsumed: boolean
+  readonly appBootstrapWiringPreflightPrepared: boolean
+}
+
+export interface ThirdPartyDataPackAppBootstrapWiringPreflightResult {
+  readonly kind: typeof THIRD_PARTY_DATA_PACK_APP_BOOTSTRAP_WIRING_PREFLIGHT_KIND
+  readonly mode: typeof THIRD_PARTY_DATA_PACK_APP_BOOTSTRAP_WIRING_PREFLIGHT_MODE
+  readonly platform: ThirdPartyDataPackLauncherBoundaryPlatform
+  readonly status: ThirdPartyDataPackAppBootstrapWiringPreflightStatus
+  readonly normalStartupGatePreflightStatus: ThirdPartyDataPackNormalStartupGatePreflightStatus
+  readonly startupGateDecision: ThirdPartyDataPackNormalStartupGateDecision
+  readonly reason: string
+  readonly appBootstrapWiringPreflight: ThirdPartyDataPackAppBootstrapWiringPreflightStatus
+  readonly readOnly: true
+  readonly normalStartupGatePreflightConsumed: boolean
+  readonly appBootstrapWiringPreflightPrepared: boolean
+  readonly appBootstrapWiringAllowed: false
+  readonly normalStartupGateAllowed: false
+  readonly launcherBoundaryAllowed: false
+  readonly launcherAppAllowed: false
+  readonly launcherAppCreationAllowed: false
+  readonly gameAppCreationAllowed: false
+  readonly piniaCreationAllowed: false
+  readonly routerMountAllowed: false
+  readonly saveReadAllowed: false
+  readonly uiIpcResponseDeliveryAllowed: false
+  readonly commandDispatchAllowed: false
+  readonly transactionCommitAllowed: false
+  readonly runtimeEnablementAllowed: false
+  readonly writeAllowed: false
+  readonly rollbackRecoveryAllowed: false
+  readonly requestedCommandId?: 'install'
+  readonly targetPackageId?: PackageId
+  readonly selectedPackageIds: readonly PackageId[]
+  readonly blockedPackageIds: readonly PackageId[]
+  readonly blockedCandidateCount: number
+  readonly loadOrder: readonly PackageId[]
+  readonly registryCount: number
+  readonly entryCount: number
+  readonly packageCount: number
+  readonly candidateHash?: Sha256Hash
+  readonly lockfileHash?: Sha256Hash
+  readonly messageKey?: string
+  readonly recovery?: ModDiagnosticRecovery
+  readonly retryable: boolean
+  readonly rollbackRequired: boolean
+  readonly persistentStateProofs?: ThirdPartyDataPackNormalStartupGatePersistentStateProofs
+  readonly checks: readonly ThirdPartyDataPackAppBootstrapWiringPreflightCheck[]
+  readonly diagnostics: readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[]
+  readonly appBootstrapStages: readonly ThirdPartyDataPackAppBootstrapWiringStage[]
+  readonly appBootstrapRequirements: readonly ThirdPartyDataPackAppBootstrapWiringRequirement[]
+  readonly summary: ThirdPartyDataPackUiIpcResultEnvelopeSummary
+  readonly effects: ThirdPartyDataPackAppBootstrapWiringPreflightEffectSummary
+}
+
+export interface BuildThirdPartyDataPackAppBootstrapWiringPreflightOptions {
+  readonly normalStartupGatePreflight: ThirdPartyDataPackNormalStartupGatePreflightResult
+}
+
+const diagnosticSeverities = new Set<ModDiagnosticSeverity>(['info', 'warning', 'error', 'fatal'])
+const diagnosticRecoveries = new Set<ModDiagnosticRecovery>([
+  'none',
+  'retry',
+  'disable-package',
+  'remove-package',
+  'safe-mode',
+  'restore-backup'
+])
+
+const forbiddenNormalStartupGateFields = [
+  'launcherBoundaryPreflight',
+  'startupDecisionEnvelope',
+  'sourceAdapterExecution',
+  'adapterResult',
+  'startupStateSnapshot',
+  'electronHost',
+  'programDirectoryPath',
+  'normalStartupGate',
+  'normalStartupGateSource',
+  'webSourceHost',
+  'indexedDb',
+  'indexedDbStore',
+  'androidHost',
+  'appDataBridge',
+  'androidNativeBridge',
+  'androidPrivatePath',
+  'launcherApp',
+  'launcherAppFactory',
+  'gameApp',
+  'gameAppFactory',
+  'pinia',
+  'piniaStore',
+  'router',
+  'routerInstance',
+  'gameRouter',
+  'app',
+  'mount',
+  'saveStore',
+  'saveOpenGate'
+] as const
+
+const readArrayLength = (value: readonly unknown[]): number | undefined => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, 'length')
+  } catch {
+    return undefined
+  }
+  return descriptor && 'value' in descriptor
+    && typeof descriptor.value === 'number'
+    && Number.isSafeInteger(descriptor.value)
+    && descriptor.value >= 0
+    ? descriptor.value
+    : undefined
+}
+
+const cloneStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const length = readArrayLength(value)
+  if (length === undefined) return []
+
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value)
+    }
+  }
+  return Object.freeze(result) as string[]
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  cloneStringList(value) as PackageId[]
+
+const readOwnDataField = (
+  value: object | undefined,
+  fieldName: string
+): unknown => {
+  if (value === undefined) return undefined
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, fieldName)
+  } catch {
+    return undefined
+  }
+  return descriptor?.enumerable === true && 'value' in descriptor ? descriptor.value : undefined
+}
+
+const readOwnStringField = (
+  value: object | undefined,
+  fieldName: string
+): string | undefined => {
+  const field = readOwnDataField(value, fieldName)
+  return typeof field === 'string' ? field : undefined
+}
+
+const readOwnBooleanField = (
+  value: object | undefined,
+  fieldName: string
+): boolean | undefined => {
+  const field = readOwnDataField(value, fieldName)
+  return typeof field === 'boolean' ? field : undefined
+}
+
+const readOwnNumberField = (
+  value: object | undefined,
+  fieldName: string
+): number | undefined => {
+  const field = readOwnDataField(value, fieldName)
+  return typeof field === 'number' && Number.isFinite(field) ? field : undefined
+}
+
+const hasOwnEnumerableField = (
+  value: object,
+  fieldName: string
+): boolean => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, fieldName)
+  } catch {
+    return true
+  }
+  return descriptor?.enumerable === true
+}
+
+const safeRecovery = (value: unknown): ModDiagnosticRecovery =>
+  diagnosticRecoveries.has(value as ModDiagnosticRecovery) ? value as ModDiagnosticRecovery : 'none'
+
+const safeDiagnostic = (
+  diagnostic: object
+): ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic => {
+  const code = readOwnStringField(diagnostic, 'code') ?? 'LIFECYCLE-TRANSACTION-001'
+  const severity = readOwnDataField(diagnostic, 'severity')
+  const recovery = readOwnDataField(diagnostic, 'recovery')
+  return Object.freeze({
+    code,
+    ruleId: readOwnStringField(diagnostic, 'ruleId') ?? code,
+    severity: diagnosticSeverities.has(severity as ModDiagnosticSeverity)
+      ? severity as ModDiagnosticSeverity
+      : 'error',
+    stage: readOwnStringField(diagnostic, 'stage')
+      ?? 'third-party.app-bootstrap-wiring-preflight.diagnostic-copy',
+    messageKey: readOwnStringField(diagnostic, 'messageKey')
+      ?? `mods.error.${code.toLowerCase().replace(/-/g, '.')}`,
+    packageId: readOwnStringField(diagnostic, 'packageId') as PackageId | undefined,
+    recovery: diagnosticRecoveries.has(recovery as ModDiagnosticRecovery)
+      ? recovery as ModDiagnosticRecovery
+      : 'none'
+  })
+}
+
+const safeDiagnostics = (
+  diagnostics: readonly unknown[] | undefined
+): readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return Object.freeze([])
+  const length = readArrayLength(diagnostics)
+  if (length === undefined) return Object.freeze([])
+
+  const result: ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (
+      descriptor?.enumerable === true
+      && 'value' in descriptor
+      && descriptor.value !== null
+      && typeof descriptor.value === 'object'
+    ) {
+      result.push(safeDiagnostic(descriptor.value))
+    }
+  }
+  return Object.freeze(result)
+}
+
+const commandDiagnostic = (
+  stage: string,
+  packageId?: PackageId
+): ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic => Object.freeze({
+  code: 'LIFECYCLE-TRANSACTION-001',
+  ruleId: 'LIFECYCLE-TRANSACTION-001',
+  severity: 'error',
+  stage,
+  messageKey: 'mods.error.lifecycle.transaction.001',
+  packageId,
+  recovery: 'retry'
+})
+
+const check = (
+  id: ThirdPartyDataPackAppBootstrapWiringPreflightCheckId,
+  status: ThirdPartyDataPackAppBootstrapWiringPreflightCheck['status'],
+  reason: string
+): ThirdPartyDataPackAppBootstrapWiringPreflightCheck => Object.freeze({ id, status, reason })
+
+const skippedChecks = (
+  reason: string
+): readonly ThirdPartyDataPackAppBootstrapWiringPreflightCheck[] => Object.freeze([
+  'normal-startup-gate-wrapper',
+  'normal-startup-gate-deferred',
+  'startup-decision-ready',
+  'persistent-state-proof-summary-ready',
+  'package-summary-consistent',
+  'path-free-normal-startup-gate',
+  'no-app-bootstrap-runtime-or-write-effects'
+].map(id => check(id as ThirdPartyDataPackAppBootstrapWiringPreflightCheckId, 'skipped', reason)))
+
+const persistentProofs = (
+  source: ThirdPartyDataPackNormalStartupGatePreflightResult
+): ThirdPartyDataPackNormalStartupGatePersistentStateProofs | undefined => {
+  const proofs = readOwnDataField(source, 'persistentStateProofs')
+  if (proofs === undefined || proofs === null || typeof proofs !== 'object') return undefined
+  return Object.freeze({
+    transactionLogCommitted: readOwnBooleanField(proofs, 'transactionLogCommitted') === true,
+    packageStateMatched: readOwnBooleanField(proofs, 'packageStateMatched') === true,
+    settingsStateMatched: readOwnBooleanField(proofs, 'settingsStateMatched') === true,
+    modLockStateMatched: readOwnBooleanField(proofs, 'modLockStateMatched') === true,
+    liveRegistryMatched: readOwnBooleanField(proofs, 'liveRegistryMatched') === true,
+    saveCacheIsolated: readOwnBooleanField(proofs, 'saveCacheIsolated') === true
+  })
+}
+
+const proofsReady = (
+  proofs: ThirdPartyDataPackNormalStartupGatePersistentStateProofs | undefined
+): boolean => proofs !== undefined
+  && Object.values(proofs).every(value => value === true)
+
+const packageSummaryConsistent = (
+  source: ThirdPartyDataPackNormalStartupGatePreflightResult
+): boolean => {
+  const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+  const loadOrder = clonePackageIds(readOwnDataField(source, 'loadOrder'))
+  const targetPackageId = readOwnStringField(source, 'targetPackageId')
+  const blockedCandidateCount = readOwnNumberField(source, 'blockedCandidateCount')
+  const registryCount = readOwnNumberField(source, 'registryCount')
+  const entryCount = readOwnNumberField(source, 'entryCount')
+  const packageCount = readOwnNumberField(source, 'packageCount')
+
+  return blockedCandidateCount !== undefined
+    && registryCount !== undefined
+    && entryCount !== undefined
+    && packageCount !== undefined
+    && registryCount >= 54
+    && entryCount >= 4242
+    && packageCount >= selectedPackageIds.length
+    && loadOrder.length === selectedPackageIds.length
+    && (targetPackageId === undefined || selectedPackageIds.includes(targetPackageId as PackageId))
+}
+
+const pathFreeNormalStartupGate = (
+  source: ThirdPartyDataPackNormalStartupGatePreflightResult
+): boolean => forbiddenNormalStartupGateFields.every(fieldName => !hasOwnEnumerableField(source, fieldName))
+
+const allOwnBooleanFlagsFalse = (
+  value: object | undefined,
+  allowedTrueKeys: readonly string[] = []
+): boolean => {
+  if (value === undefined) return false
+  const allowedTrue = new Set(allowedTrueKeys)
+  let keys: readonly (string | symbol)[]
+  try {
+    keys = Reflect.ownKeys(value)
+  } catch {
+    return false
+  }
+  return keys.every(key => {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, key)
+    } catch {
+      return false
+    }
+    if (descriptor?.enumerable !== true) return true
+    if (!('value' in descriptor) || typeof descriptor.value !== 'boolean') return false
+    return descriptor.value === false || (typeof key === 'string' && allowedTrue.has(key))
+  })
+}
+
+const noAppBootstrapRuntimeOrWriteEffects = (
+  source: ThirdPartyDataPackNormalStartupGatePreflightResult
+): boolean => readOwnBooleanField(source, 'normalStartupGateAllowed') === false
+  && readOwnBooleanField(source, 'launcherBoundaryAllowed') === false
+  && readOwnBooleanField(source, 'launcherAppAllowed') === false
+  && readOwnBooleanField(source, 'launcherAppCreationAllowed') === false
+  && readOwnBooleanField(source, 'gameAppCreationAllowed') === false
+  && readOwnBooleanField(source, 'piniaCreationAllowed') === false
+  && readOwnBooleanField(source, 'routerMountAllowed') === false
+  && readOwnBooleanField(source, 'saveReadAllowed') === false
+  && readOwnBooleanField(source, 'uiIpcResponseDeliveryAllowed') === false
+  && readOwnBooleanField(source, 'commandDispatchAllowed') === false
+  && readOwnBooleanField(source, 'transactionCommitAllowed') === false
+  && readOwnBooleanField(source, 'runtimeEnablementAllowed') === false
+  && readOwnBooleanField(source, 'writeAllowed') === false
+  && readOwnBooleanField(source, 'rollbackRecoveryAllowed') === false
+  && allOwnBooleanFlagsFalse(
+    readOwnDataField(source, 'effects') as object | undefined,
+    [
+      'launcherBoundaryPreflightConsumed',
+      'normalStartupGatePreflightPrepared'
+    ]
+  )
+
+const buildChecks = (
+  source: ThirdPartyDataPackNormalStartupGatePreflightResult,
+  proofs: ThirdPartyDataPackNormalStartupGatePersistentStateProofs | undefined
+): readonly ThirdPartyDataPackAppBootstrapWiringPreflightCheck[] => Object.freeze([
+  check(
+    'normal-startup-gate-wrapper',
+    readOwnStringField(source, 'kind') === THIRD_PARTY_DATA_PACK_NORMAL_STARTUP_GATE_PREFLIGHT_KIND
+      && readOwnStringField(source, 'mode') === THIRD_PARTY_DATA_PACK_NORMAL_STARTUP_GATE_PREFLIGHT_MODE
+      && (
+        readOwnStringField(source, 'platform') === 'electron'
+        || readOwnStringField(source, 'platform') === 'web'
+        || readOwnStringField(source, 'platform') === 'android'
+      )
+      ? 'satisfied'
+      : 'blocked',
+    'App bootstrap wiring preflight must consume the narrow cross-platform normal startup gate preflight wrapper.'
+  ),
+  check(
+    'normal-startup-gate-deferred',
+    readOwnStringField(source, 'status') === 'deferred'
+      && readOwnStringField(source, 'normalStartupGatePreflight') === 'deferred'
+      && readOwnBooleanField(source, 'launcherBoundaryPreflightConsumed') === true
+      && readOwnBooleanField(source, 'normalStartupGatePreflightPrepared') === true
+      ? 'satisfied'
+      : 'blocked',
+    'Normal startup gate preflight must still be deferred and prepared before app bootstrap wiring is described.'
+  ),
+  check(
+    'startup-decision-ready',
+    readOwnStringField(source, 'startupGateDecision') === 'ready-for-launcher-boundary'
+      ? 'satisfied'
+      : 'blocked',
+    'App bootstrap wiring may only be planned from an explicit ready startup decision.'
+  ),
+  check(
+    'persistent-state-proof-summary-ready',
+    proofsReady(proofs) ? 'satisfied' : 'blocked',
+    'App bootstrap wiring needs summarized transaction log, package, settings, mod-lock, live registry and save/cache isolation proofs.'
+  ),
+  check(
+    'package-summary-consistent',
+    packageSummaryConsistent(source) ? 'satisfied' : 'blocked',
+    'App bootstrap wiring preflight needs consistent package counts, target package and load-order summaries.'
+  ),
+  check(
+    'path-free-normal-startup-gate',
+    pathFreeNormalStartupGate(source) ? 'satisfied' : 'blocked',
+    'App bootstrap wiring preflight cannot carry startup envelopes, source adapters, hosts, paths, app factories, app instances, Pinia or router objects.'
+  ),
+  check(
+    'no-app-bootstrap-runtime-or-write-effects',
+    noAppBootstrapRuntimeOrWriteEffects(source) ? 'satisfied' : 'blocked',
+    'App bootstrap wiring preflight must not inherit LauncherApp, GameApp, Pinia, router, save, UI/IPC, command, transaction, runtime, rollback or write effects.'
+  )
+])
+
+const diagnosticsForBlockedChecks = (
+  checks: readonly ThirdPartyDataPackAppBootstrapWiringPreflightCheck[],
+  packageId?: PackageId
+): readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[] => Object.freeze(checks
+  .filter(currentCheck => currentCheck.status === 'blocked')
+  .map(currentCheck => commandDiagnostic(
+    `third-party.app-bootstrap-wiring-preflight.checks.${currentCheck.id}`,
+    packageId
+  )))
+
+const requirement = (
+  id: ThirdPartyDataPackAppBootstrapWiringRequirementId,
+  reason: string
+): ThirdPartyDataPackAppBootstrapWiringRequirement => Object.freeze({
+  id,
+  status: 'required',
+  reason
+})
+
+const appBootstrapRequirements = (): readonly ThirdPartyDataPackAppBootstrapWiringRequirement[] => Object.freeze([
+  requirement(
+    'app-bootstrap-wiring-contract',
+    'App bootstrap wiring must consume a path-free normal startup gate result before binding any runtime factory.'
+  ),
+  requirement(
+    'normal-startup-gate-result',
+    'LauncherApp and GameApp startup wiring must only proceed from a deferred/blocked/skipped normal startup gate preflight.'
+  ),
+  requirement(
+    'persistent-state-proof-summary',
+    'App bootstrap wiring must use summarized persistent-state proofs instead of raw package, settings, lockfile or transaction-log reads.'
+  ),
+  requirement(
+    'launcher-app-factory-boundary',
+    'LauncherApp factory binding remains an application wiring concern and is not executed by this domain preflight.'
+  ),
+  requirement(
+    'game-app-factory-boundary',
+    'GameApp factory binding remains deferred until the app bootstrap wiring contract is accepted.'
+  ),
+  requirement(
+    'pinia-bootstrap-boundary',
+    'Pinia creation remains deferred and outside this pure domain preflight.'
+  ),
+  requirement(
+    'router-bootstrap-boundary',
+    'Router mounting remains deferred and outside this pure domain preflight.'
+  ),
+  requirement(
+    'save-open-protection',
+    'Opening saves remains deferred until app startup accepts the live registry and save/cache isolation proof.'
+  ),
+  requirement(
+    'ui-ipc-completion-boundary',
+    'Final UI/IPC completion delivery remains deferred to a later platform wiring boundary.'
+  ),
+  requirement(
+    'runtime-publication-boundary',
+    'Runtime registry publication remains deferred until the runtime publication boundary is explicitly accepted.'
+  ),
+  requirement(
+    'path-free-app-bootstrap-diagnostics',
+    'Startup-visible diagnostics must stay redacted and avoid source adapter internals, host paths and private package contents.'
+  ),
+  requirement(
+    'no-app-bootstrap-side-effect-guard',
+    'This preflight must not bind factories, create apps, mount Pinia/router, read saves or write package, lockfile, settings, save, cache, transaction or diagnostic data.'
+  )
+])
+
+const stage = (
+  id: ThirdPartyDataPackAppBootstrapWiringStageId,
+  status: ThirdPartyDataPackAppBootstrapWiringStage['status'],
+  requirementIds: readonly ThirdPartyDataPackAppBootstrapWiringRequirementId[],
+  reason: string
+): ThirdPartyDataPackAppBootstrapWiringStage => Object.freeze({
+  id,
+  status,
+  requirementIds: Object.freeze([...requirementIds]),
+  reason
+})
+
+const deferredStages = (): readonly ThirdPartyDataPackAppBootstrapWiringStage[] => Object.freeze([
+  stage(
+    'normal-startup-gate-preflight-consumed',
+    'satisfied',
+    ['normal-startup-gate-result', 'path-free-app-bootstrap-diagnostics'],
+    'Normal startup gate preflight is consistent enough to describe app bootstrap wiring requirements.'
+  ),
+  stage(
+    'app-bootstrap-wiring-preflight',
+    'satisfied',
+    ['app-bootstrap-wiring-contract', 'no-app-bootstrap-side-effect-guard'],
+    'App bootstrap wiring inputs were inspected without binding factories, creating apps, Pinia or router.'
+  ),
+  stage(
+    'launcher-app-factory-binding',
+    'deferred',
+    ['launcher-app-factory-boundary'],
+    'LauncherApp factory binding remains deferred to a later application startup wiring slice.'
+  ),
+  stage(
+    'game-app-factory-binding',
+    'deferred',
+    ['game-app-factory-boundary'],
+    'GameApp factory binding remains deferred behind the app bootstrap wiring gate.'
+  ),
+  stage(
+    'pinia-store-bootstrap',
+    'deferred',
+    ['pinia-bootstrap-boundary'],
+    'Pinia creation remains deferred.'
+  ),
+  stage(
+    'router-bootstrap',
+    'deferred',
+    ['router-bootstrap-boundary'],
+    'Router creation and mounting remain deferred.'
+  ),
+  stage(
+    'save-open-sequencing',
+    'deferred',
+    ['save-open-protection', 'persistent-state-proof-summary'],
+    'Save reads remain deferred until startup wiring accepts the live registry and save/cache isolation proof.'
+  ),
+  stage(
+    'ui-ipc-completion-sequencing',
+    'deferred',
+    ['ui-ipc-completion-boundary', 'path-free-app-bootstrap-diagnostics'],
+    'Final UI/IPC completion handoff remains deferred.'
+  ),
+  stage(
+    'runtime-publication-sequencing',
+    'deferred',
+    ['runtime-publication-boundary'],
+    'Runtime registry publication handoff remains deferred.'
+  )
+])
+
+const terminalStages = (
+  status: 'skipped' | 'blocked',
+  reason: string
+): readonly ThirdPartyDataPackAppBootstrapWiringStage[] => Object.freeze([
+  'normal-startup-gate-preflight-consumed',
+  'app-bootstrap-wiring-preflight',
+  'launcher-app-factory-binding',
+  'game-app-factory-binding',
+  'pinia-store-bootstrap',
+  'router-bootstrap',
+  'save-open-sequencing',
+  'ui-ipc-completion-sequencing',
+  'runtime-publication-sequencing'
+].map(id => stage(id as ThirdPartyDataPackAppBootstrapWiringStageId, status, [], reason)))
+
+const createEffectSummary = (
+  prepared: boolean
+): ThirdPartyDataPackAppBootstrapWiringPreflightEffectSummary => ({
+  officialRegistryPublished: false,
+  thirdPartyRegistryPublished: false,
+  liveRegistryMutated: false,
+  liveRegistrySwapped: false,
+  previousRegistryReleased: false,
+  previousRegistryRestored: false,
+  candidateRegistryExposed: false,
+  runtimeEnablementAllowed: false,
+  modManagementUiMounted: false,
+  launcherAppMounted: false,
+  gameAppCreated: false,
+  piniaCreated: false,
+  routerMounted: false,
+  electronIpcExposed: false,
+  electronIpcResponseSent: false,
+  webFilePickerOpened: false,
+  webUiBridgeOpened: false,
+  webUiResponsePublished: false,
+  androidFilePickerOpened: false,
+  androidUiBridgeOpened: false,
+  androidUiResponsePublished: false,
+  commandDispatcherCalled: false,
+  commandDispatched: false,
+  atomicCommitExecutorCalled: false,
+  transactionCommitted: false,
+  transactionLogPrepared: false,
+  runtimePublicationCommitted: false,
+  postCommitVerificationExecutorCalled: false,
+  postCommitVerificationExecuted: false,
+  transactionLogRead: false,
+  packageStateRead: false,
+  settingsRead: false,
+  lockfileRead: false,
+  liveRegistryRead: false,
+  saveRead: false,
+  saveCacheIsolationChecked: false,
+  successEnvelopeDelivered: false,
+  failureEnvelopeDelivered: false,
+  retryStateDelivered: false,
+  rollbackStateDelivered: false,
+  uiIpcResponseDelivered: false,
+  packageFilesWritten: false,
+  packageBackupsWritten: false,
+  packageFilesRestored: false,
+  lockfileWritten: false,
+  lockfileRestored: false,
+  settingsWritten: false,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  normalStartupGatePreflightConsumed: prepared,
+  appBootstrapWiringPreflightPrepared: prepared
+})
+
+const emptySummary = (): ThirdPartyDataPackUiIpcResultEnvelopeSummary => Object.freeze({
+  selectedPackageCount: 0,
+  blockedPackageCount: 0,
+  blockedCandidateCount: 0,
+  loadOrderCount: 0,
+  registryCount: 54,
+  entryCount: 4242,
+  packageCount: 0,
+  diagnosticCount: 0
+})
+
+const cloneSummary = (
+  value: unknown,
+  diagnosticCount: number
+): ThirdPartyDataPackUiIpcResultEnvelopeSummary => {
+  if (value === undefined || value === null || typeof value !== 'object') {
+    return Object.freeze({
+      ...emptySummary(),
+      diagnosticCount
+    })
+  }
+  return Object.freeze({
+    selectedPackageCount: readOwnNumberField(value, 'selectedPackageCount') ?? 0,
+    blockedPackageCount: readOwnNumberField(value, 'blockedPackageCount') ?? 0,
+    blockedCandidateCount: readOwnNumberField(value, 'blockedCandidateCount') ?? 0,
+    loadOrderCount: readOwnNumberField(value, 'loadOrderCount') ?? 0,
+    registryCount: readOwnNumberField(value, 'registryCount') ?? 54,
+    entryCount: readOwnNumberField(value, 'entryCount') ?? 4242,
+    packageCount: readOwnNumberField(value, 'packageCount') ?? 0,
+    diagnosticCount
+  })
+}
+
+const deepFreezeObjectGraph = <T>(value: T): T => {
+  if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+    Object.freeze(value)
+    let keys: readonly (string | symbol)[]
+    try {
+      keys = Reflect.ownKeys(value as object)
+    } catch {
+      return value
+    }
+    for (const key of keys) {
+      let descriptor: PropertyDescriptor | undefined
+      try {
+        descriptor = Reflect.getOwnPropertyDescriptor(value as object, key)
+      } catch {
+        continue
+      }
+      if (descriptor?.enumerable === true && 'value' in descriptor) {
+        deepFreezeObjectGraph(descriptor.value)
+      }
+    }
+  }
+  return value
+}
+
+const baseResult = (
+  status: ThirdPartyDataPackAppBootstrapWiringPreflightStatus,
+  reason: string,
+  source: ThirdPartyDataPackNormalStartupGatePreflightResult,
+  checks: readonly ThirdPartyDataPackAppBootstrapWiringPreflightCheck[],
+  diagnostics: readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[],
+  appBootstrapStages: readonly ThirdPartyDataPackAppBootstrapWiringStage[],
+  includeRequirements: boolean,
+  proofs: ThirdPartyDataPackNormalStartupGatePersistentStateProofs | undefined
+): ThirdPartyDataPackAppBootstrapWiringPreflightResult => {
+  const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+  const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+  const loadOrder = clonePackageIds(readOwnDataField(source, 'loadOrder'))
+  const prepared = status === 'deferred'
+    && checks.every(currentCheck => currentCheck.status === 'satisfied')
+
+  return deepFreezeObjectGraph({
+    kind: THIRD_PARTY_DATA_PACK_APP_BOOTSTRAP_WIRING_PREFLIGHT_KIND,
+    mode: THIRD_PARTY_DATA_PACK_APP_BOOTSTRAP_WIRING_PREFLIGHT_MODE,
+    platform: readOwnStringField(source, 'platform') as ThirdPartyDataPackLauncherBoundaryPlatform,
+    status,
+    normalStartupGatePreflightStatus: readOwnStringField(source, 'status') as ThirdPartyDataPackNormalStartupGatePreflightStatus,
+    startupGateDecision: readOwnStringField(source, 'startupGateDecision') as ThirdPartyDataPackNormalStartupGateDecision,
+    reason,
+    appBootstrapWiringPreflight: status,
+    readOnly: true,
+    normalStartupGatePreflightConsumed: prepared,
+    appBootstrapWiringPreflightPrepared: prepared,
+    appBootstrapWiringAllowed: false,
+    normalStartupGateAllowed: false,
+    launcherBoundaryAllowed: false,
+    launcherAppAllowed: false,
+    launcherAppCreationAllowed: false,
+    gameAppCreationAllowed: false,
+    piniaCreationAllowed: false,
+    routerMountAllowed: false,
+    saveReadAllowed: false,
+    uiIpcResponseDeliveryAllowed: false,
+    commandDispatchAllowed: false,
+    transactionCommitAllowed: false,
+    runtimeEnablementAllowed: false,
+    writeAllowed: false,
+    rollbackRecoveryAllowed: false,
+    requestedCommandId: readOwnStringField(source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
+    targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId | undefined,
+    selectedPackageIds,
+    blockedPackageIds,
+    blockedCandidateCount: readOwnNumberField(source, 'blockedCandidateCount') ?? 0,
+    loadOrder,
+    registryCount: readOwnNumberField(source, 'registryCount') ?? 54,
+    entryCount: readOwnNumberField(source, 'entryCount') ?? 4242,
+    packageCount: readOwnNumberField(source, 'packageCount') ?? selectedPackageIds.length,
+    candidateHash: readOwnStringField(source, 'candidateHash') as Sha256Hash | undefined,
+    lockfileHash: readOwnStringField(source, 'lockfileHash') as Sha256Hash | undefined,
+    messageKey: readOwnStringField(source, 'messageKey'),
+    recovery: safeRecovery(readOwnStringField(source, 'recovery')),
+    retryable: readOwnBooleanField(source, 'retryable') === true,
+    rollbackRequired: readOwnBooleanField(source, 'rollbackRequired') === true,
+    ...(proofs === undefined ? {} : { persistentStateProofs: proofs }),
+    checks,
+    diagnostics,
+    appBootstrapStages,
+    appBootstrapRequirements: includeRequirements ? appBootstrapRequirements() : Object.freeze([]),
+    summary: cloneSummary(readOwnDataField(source, 'summary'), diagnostics.length),
+    effects: createEffectSummary(prepared)
+  })
+}
+
+export const buildThirdPartyDataPackAppBootstrapWiringPreflight = (
+  options: BuildThirdPartyDataPackAppBootstrapWiringPreflightOptions
+): ThirdPartyDataPackAppBootstrapWiringPreflightResult => {
+  const source = options.normalStartupGatePreflight
+
+  if (readOwnStringField(source, 'status') === 'skipped') {
+    const reason = readOwnStringField(source, 'reason')
+      ?? 'app bootstrap wiring preflight is not required because normal startup gate was skipped'
+    return baseResult(
+      'skipped',
+      reason,
+      source,
+      skippedChecks(reason),
+      safeDiagnostics(readOwnDataField(source, 'diagnostics') as readonly unknown[] | undefined),
+      terminalStages('skipped', reason),
+      false,
+      undefined
+    )
+  }
+
+  if (readOwnStringField(source, 'status') === 'blocked') {
+    const reason = readOwnStringField(source, 'reason')
+      ?? 'app bootstrap wiring preflight is blocked by normal startup gate preflight'
+    return baseResult(
+      'blocked',
+      reason,
+      source,
+      skippedChecks(reason),
+      safeDiagnostics(readOwnDataField(source, 'diagnostics') as readonly unknown[] | undefined),
+      terminalStages('blocked', reason),
+      false,
+      persistentProofs(source)
+    )
+  }
+
+  const proofs = persistentProofs(source)
+  const checks = buildChecks(source, proofs)
+  const sourceDiagnostics = safeDiagnostics(readOwnDataField(source, 'diagnostics') as readonly unknown[] | undefined)
+  const blockedDiagnostics = diagnosticsForBlockedChecks(
+    checks,
+    readOwnStringField(source, 'targetPackageId') as PackageId | undefined
+  )
+  const diagnostics = Object.freeze([
+    ...sourceDiagnostics,
+    ...blockedDiagnostics
+  ])
+
+  if (blockedDiagnostics.length > 0) {
+    return baseResult(
+      'blocked',
+      'app bootstrap wiring preflight inputs are inconsistent',
+      source,
+      checks,
+      diagnostics,
+      terminalStages('blocked', 'app bootstrap wiring preflight inputs are inconsistent'),
+      false,
+      proofs
+    )
+  }
+
+  return baseResult(
+    'deferred',
+    'app bootstrap wiring preflight is prepared; real LauncherApp factories, GameApp factories, Pinia, router, save reads, UI/IPC delivery, runtime publication and writes remain deferred',
+    source,
+    checks,
+    diagnostics,
+    deferredStages(),
+    true,
+    proofs
+  )
+}

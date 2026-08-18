@@ -668,6 +668,59 @@ describe('third-party data pack lockfile draft', () => {
     expect(validation.diagnostics).toEqual([])
   }, 15_000)
 
+  it('validates draft package summaries without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+    const reports = await buildReportsFromRoot(root)
+    const draft = cloneDraftAsJson(reports.draftResult.draft!)
+    const lengthReads: string[] = []
+    const createHostilePackageIds = (marker: string, values: readonly string[]) => new Proxy(
+      values.map(value => requirePackageId(value)),
+      {
+        get(target, property, receiver) {
+          if (property === 'length') {
+            lengthReads.push(marker)
+            throw new Error(`EACCES: stat C:/Users/LENOVO/mods/lockfile-validation-${marker}-length`)
+          }
+          return Reflect.get(target, property, receiver)
+        }
+      }
+    )
+    const selectedPackageIds = createHostilePackageIds('selected-package-ids', ['different_package'])
+    const loadOrder = createHostilePackageIds('load-order', ['different_package'])
+    draft.selectedPackageIds = selectedPackageIds
+    draft.loadOrder = loadOrder
+
+    const validation = validateThirdPartyDataPackLockfileDraft({
+      ...reports,
+      draft
+    })
+    const packageSetDiagnostic = validation.diagnostics.find(diagnostic =>
+      diagnostic.stage === 'third-party.lockfile-draft.package-set'
+    )
+    const loadOrderDiagnostic = validation.diagnostics.find(diagnostic =>
+      diagnostic.stage === 'third-party.lockfile-draft.load-order'
+    )
+
+    expect(validation.status).toBe('invalid')
+    expect(lengthReads).toEqual([])
+    expect(packageSetDiagnostic).toMatchObject({
+      fieldPath: '/selectedPackageIds',
+      relatedPackageIds: ['different_package', 'discovery_valid']
+    })
+    expect(loadOrderDiagnostic).toMatchObject({
+      fieldPath: '/loadOrder',
+      relatedPackageIds: ['different_package', 'discovery_valid']
+    })
+    expect(Object.isFrozen(packageSetDiagnostic?.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(loadOrderDiagnostic?.relatedPackageIds)).toBe(true)
+    expect(JSON.stringify(validation)).not.toContain('C:/Users')
+    expect(JSON.stringify(validation)).not.toContain('LENOVO')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-validation-selected-package-ids-length')
+    expect(JSON.stringify(validation)).not.toContain('lockfile-validation-load-order-length')
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('diagnoses package id, version and load order mismatches', async() => {
     const root = await createRoot()
     await createPack(root, 'a-library', { id: 'a_library' })
@@ -950,6 +1003,53 @@ describe('third-party data pack lockfile draft', () => {
     expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-selected-package-ids-length')
     expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-blocked-package-ids-length')
     expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-load-order-length')
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies candidate snapshot diagnostic related package ids without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const reports = await buildReportsFromRoot(root)
+    let lengthRead = false
+    const relatedPackageIds = new Proxy(
+      [requirePackageId('dependency_pack'), requirePackageId('discovery_valid')],
+      {
+        get(target, property, receiver) {
+          if (property === 'length') {
+            lengthRead = true
+            throw new Error('EACCES: stat C:/Users/LENOVO/mods/lockfile-draft-related-package-ids-length')
+          }
+          return Reflect.get(target, property, receiver)
+        }
+      }
+    )
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.lockfile-draft.related-package-ids-proxy-array',
+      severity: 'warning',
+      packageId: requirePackageId('discovery_valid'),
+      relatedPackageIds
+    })
+    const candidateSnapshot = {
+      ...reports.candidateSnapshot,
+      diagnostics: [upstreamDiagnostic]
+    }
+
+    const draftResult = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot
+    })
+    const copiedDiagnostic = draftResult.diagnostics[0]
+
+    expect(draftResult.status).toBe('valid')
+    expect(copiedDiagnostic?.relatedPackageIds).toEqual(['dependency_pack', 'discovery_valid'])
+    expect(Object.is(copiedDiagnostic?.relatedPackageIds, relatedPackageIds)).toBe(false)
+    expect(Object.isFrozen(copiedDiagnostic?.relatedPackageIds)).toBe(true)
+    expect(lengthRead).toBe(false)
+    expect(JSON.stringify(draftResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(draftResult)).not.toContain('LENOVO')
+    expect(JSON.stringify(draftResult)).not.toContain('lockfile-draft-related-package-ids-length')
     expectOfficialBaseline()
   }, 15_000)
 

@@ -192,6 +192,29 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   return Object.freeze(result) as PackageId[]
 }
 
+const cloneStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return []
+
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value)
+    }
+  }
+  return Object.freeze(result) as string[]
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  cloneStringList(value) as PackageId[]
+
 const fallbackMessageKey = (code: string): string =>
   `mods.error.${code.toLowerCase().replace(/-/g, '.')}`
 
@@ -306,8 +329,25 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => {
   }
 }
 
-const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
-  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return []
+  const length = readDiagnosticArrayLength(diagnostics)
+  if (length === undefined) return []
+
+  const result: ModDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(cloneDiagnostic(descriptor.value as ModDiagnostic))
+    }
+  }
+  return result
+}
 
 const baseResult = (
   status: ThirdPartyDataPackRuntimeMountGateStatus,
@@ -319,10 +359,10 @@ const baseResult = (
   mountInputStatus: mountInput.status,
   reason,
   diagnostics: cloneDiagnostics(mountInput.diagnostics),
-  selectedPackageIds: [...mountInput.selectedPackageIds],
-  blockedPackageIds: [...mountInput.blockedPackageIds],
-  blockedCandidatePaths: [...mountInput.blockedCandidatePaths],
-  loadOrder: [...mountInput.loadOrder],
+  selectedPackageIds: clonePackageIds(mountInput.selectedPackageIds),
+  blockedPackageIds: clonePackageIds(mountInput.blockedPackageIds),
+  blockedCandidatePaths: cloneStringList(mountInput.blockedCandidatePaths),
+  loadOrder: clonePackageIds(mountInput.loadOrder),
   registryCount: mountInput.registryCount,
   entryCount: mountInput.entryCount,
   packageCount: mountInput.packageCount,

@@ -47,8 +47,13 @@ import { selectThirdPartyDataPacks } from './thirdPartyDataPackSelection'
 export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND =
   'electron-readonly-directory-probe' satisfies ContentPackageSourceKind
 
+export const ELECTRON_READONLY_DIRECTORY_SOURCE_KIND =
+  'electron-readonly-directory' satisfies ContentPackageSourceKind
+
 export const ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID = 'electron/mods-readonly-probe'
 export const ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH = 'mods'
+export const ELECTRON_READONLY_DIRECTORY_SOURCE_ID = 'electron/mods-readonly-directory'
+export const ELECTRON_READONLY_DIRECTORY_ROOT_PATH = 'mods'
 const ELECTRON_READONLY_DIRECTORY_PROBE_INVALID_SOURCE_ID = 'electron/invalid-readonly-probe-source'
 const ELECTRON_READONLY_DIRECTORY_PROBE_UNSAFE_PATH = '<unsafe-path>'
 const supportedElectronReadonlyProbeOptionsKeys = new Set(['host', 'sourceId', 'rootPath'])
@@ -67,6 +72,21 @@ export interface CreateElectronReadonlyDirectoryProbeSourceOptions {
   readonly host: ElectronReadonlyDirectoryProbeHost
   readonly sourceId?: string
   readonly rootPath?: string
+}
+
+export type ElectronReadonlyDirectoryHost = ElectronReadonlyDirectoryProbeHost
+
+export interface CreateElectronReadonlyDirectorySourceOptions {
+  readonly host: ElectronReadonlyDirectoryHost
+  readonly sourceId?: string
+  readonly rootPath?: string
+}
+
+interface ElectronReadonlyDirectorySourceIdentityOptions {
+  readonly kind: ContentPackageSourceKind
+  readonly defaultSourceId: string
+  readonly defaultRootPath: string
+  readonly disposedMessage: string
 }
 
 export interface ElectronReadonlySourceAdapterProbeEffectSummary {
@@ -622,16 +642,17 @@ const bindValidatedSourceIdentity = (
   dispose: () => source.dispose()
 })
 
-export const createElectronReadonlyDirectoryProbeSource = (
-  options: CreateElectronReadonlyDirectoryProbeSourceOptions
+const createElectronReadonlyDirectorySourceWithIdentity = (
+  options: CreateElectronReadonlyDirectoryProbeSourceOptions,
+  identityOptions: ElectronReadonlyDirectorySourceIdentityOptions
 ): ContentPackageSource => {
   const normalizedOptions = normalizeElectronReadonlyProbeOptions(options)
   const sourceId = normalizeIdentityPart(
-    normalizedOptions.sourceId ?? ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID,
+    normalizedOptions.sourceId ?? identityOptions.defaultSourceId,
     'sourceId'
   )
   const rootPath = normalizeIdentityPart(
-    normalizedOptions.rootPath ?? ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH,
+    normalizedOptions.rootPath ?? identityOptions.defaultRootPath,
     'rootPath'
   )
   const host = normalizedOptions.host
@@ -641,7 +662,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
     if (disposed) {
       throw new ContentPackageSourceError(
         'SOURCE_DISPOSED',
-        'Electron read-only source adapter probe has been disposed'
+        identityOptions.disposedMessage
       )
     }
   }
@@ -651,7 +672,7 @@ export const createElectronReadonlyDirectoryProbeSource = (
   return {
     identity: validateContentPackageSourceIdentity({
       contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
-      kind: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND,
+      kind: identityOptions.kind,
       sourceId,
       rootPath
     }),
@@ -703,6 +724,24 @@ export const createElectronReadonlyDirectoryProbeSource = (
     }
   }
 }
+
+export const createElectronReadonlyDirectoryProbeSource = (
+  options: CreateElectronReadonlyDirectoryProbeSourceOptions
+): ContentPackageSource => createElectronReadonlyDirectorySourceWithIdentity(options, {
+  kind: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_KIND,
+  defaultSourceId: ELECTRON_READONLY_DIRECTORY_PROBE_SOURCE_ID,
+  defaultRootPath: ELECTRON_READONLY_DIRECTORY_PROBE_ROOT_PATH,
+  disposedMessage: 'Electron read-only source adapter probe has been disposed'
+})
+
+export const createElectronReadonlyDirectorySource = (
+  options: CreateElectronReadonlyDirectorySourceOptions
+): ContentPackageSource => createElectronReadonlyDirectorySourceWithIdentity(options, {
+  kind: ELECTRON_READONLY_DIRECTORY_SOURCE_KIND,
+  defaultSourceId: ELECTRON_READONLY_DIRECTORY_SOURCE_ID,
+  defaultRootPath: ELECTRON_READONLY_DIRECTORY_ROOT_PATH,
+  disposedMessage: 'Electron read-only source adapter has been disposed'
+})
 
 export const buildElectronReadonlyRuntimeReadinessProbeReport = async(
   options: BuildElectronReadonlyRuntimeReadinessProbeReportOptions

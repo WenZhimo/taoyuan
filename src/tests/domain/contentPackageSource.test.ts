@@ -6012,6 +6012,40 @@ describe('content package source contract', () => {
     expect(Object.isFrozen(source.identity)).toBe(true)
     expect(Object.isFrozen(validatedIdentity)).toBe(true)
     expect(Object.isFrozen(readIdentity)).toBe(true)
+    for (const { kind, sourceId, rootPath } of [
+      {
+        kind: 'electron-readonly-directory',
+        sourceId: 'electron/mods-directory',
+        rootPath: 'mods'
+      },
+      {
+        kind: 'web-file-picker-import',
+        sourceId: 'web/file-picker-import',
+        rootPath: 'imports'
+      },
+      {
+        kind: 'android-file-picker-import',
+        sourceId: 'android/file-picker-import',
+        rootPath: 'imports'
+      }
+    ] as const) {
+      const platformIdentity = validateContentPackageSourceIdentity({
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind,
+        sourceId,
+        rootPath
+      })
+
+      expect(platformIdentity).toEqual({
+        contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+        kind,
+        sourceId,
+        rootPath
+      })
+      expect(Object.isFrozen(platformIdentity)).toBe(true)
+      expect(JSON.stringify(platformIdentity)).not.toContain('C:/Users')
+      expect(JSON.stringify(platformIdentity)).not.toContain(cwd())
+    }
     expect(() => validateContentPackageSourceIdentity({
       contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
       kind: 'memory',

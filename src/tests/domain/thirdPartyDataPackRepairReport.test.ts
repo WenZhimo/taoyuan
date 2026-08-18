@@ -444,6 +444,74 @@ describe('third-party data pack repair report', () => {
     expectOfficialBaseline()
   }, 15_000)
 
+  it('copies issue diagnostics without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await copyPack(root, 'bad-schema', {
+      id: 'bad_schema',
+      itemSellPrice: -1
+    })
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const upstreamIssue = discoveryReport.candidates
+      .flatMap(candidate => candidate.issues)
+      .find(issue => issue.diagnostics.length > 0)
+    const upstreamDiagnostic = upstreamIssue?.diagnostics[0]
+    if (!upstreamIssue || !upstreamDiagnostic) {
+      throw new Error('Expected schema diagnostics for invalid test package.')
+    }
+
+    upstreamDiagnostic.details = {
+      reason: 'repair report diagnostics proxy',
+      nested: { stable: true }
+    }
+    const originalStage = upstreamDiagnostic.stage
+    let lengthRead = false
+    const hostileDiagnostics = new Proxy([upstreamDiagnostic], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-diagnostics-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as unknown as typeof upstreamIssue.diagnostics
+    Object.defineProperty(upstreamIssue, 'diagnostics', {
+      enumerable: true,
+      value: hostileDiagnostics
+    })
+
+    const report = buildThirdPartyDataPackRepairReport(discoveryReport)
+    const actionDiagnostic = report.actions[0]?.diagnostics[0]
+    const reportDiagnostic = report.diagnostics[0]
+    if (!actionDiagnostic || !reportDiagnostic) throw new Error('Expected copied repair diagnostics.')
+
+    expect(report.status).toBe('blocked')
+    expect(lengthRead).toBe(false)
+    expect(Object.is(report.actions[0]?.diagnostics, hostileDiagnostics)).toBe(false)
+    expect(actionDiagnostic).not.toBe(upstreamDiagnostic)
+    expect(reportDiagnostic).not.toBe(upstreamDiagnostic)
+    expect(reportDiagnostic).not.toBe(actionDiagnostic)
+    for (const diagnostic of [actionDiagnostic, reportDiagnostic]) {
+      expect(diagnostic).toMatchObject({
+        stage: originalStage,
+        details: {
+          reason: 'repair report diagnostics proxy',
+          nested: { stable: true }
+        }
+      })
+      expect(Object.isFrozen(diagnostic)).toBe(true)
+      expect(Object.isFrozen(diagnostic.details)).toBe(true)
+    }
+    expect(Object.isFrozen(report.actions[0]?.diagnostics)).toBe(true)
+    expect(Object.isFrozen(report.diagnostics)).toBe(true)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('repair-report-diagnostics-length')
+    expectNoWriteEffects(report)
+    expectOfficialBaseline()
+  }, 15_000)
+
   it('copies diagnostic array details without reading hostile proxy lengths', async() => {
     const root = await createRoot()
     await copyPack(root, 'bad-schema', {
@@ -488,6 +556,53 @@ describe('third-party data pack repair report', () => {
     expect(JSON.stringify(report)).not.toContain('C:/Users')
     expect(JSON.stringify(report)).not.toContain('LENOVO')
     expect(JSON.stringify(report)).not.toContain('repair-report-list-length')
+    expectNoWriteEffects(report)
+  }, 15_000)
+
+  it('copies diagnostic related package ids without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await copyPack(root, 'bad-schema', {
+      id: 'bad_schema',
+      itemSellPrice: -1
+    })
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const upstreamDiagnostic = discoveryReport.candidates
+      .flatMap(candidate => candidate.issues)
+      .flatMap(issue => issue.diagnostics)[0]
+    if (!upstreamDiagnostic) throw new Error('Expected schema diagnostics for invalid test package.')
+
+    let lengthRead = false
+    const hostileRelatedPackageIds = new Proxy([
+      requirePackageId('related_pack'),
+      requirePackageId('safe_dependency')
+    ], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/repair-report-related-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as unknown as NonNullable<typeof upstreamDiagnostic.relatedPackageIds>
+    upstreamDiagnostic.relatedPackageIds = hostileRelatedPackageIds
+
+    const report = buildThirdPartyDataPackRepairReport(discoveryReport)
+    const actionDiagnostic = report.actions[0]?.diagnostics[0]
+    const reportDiagnostic = report.diagnostics[0]
+    if (!actionDiagnostic || !reportDiagnostic) throw new Error('Expected copied repair diagnostics.')
+
+    expect(lengthRead).toBe(false)
+    expect(actionDiagnostic.relatedPackageIds).toEqual(['related_pack', 'safe_dependency'])
+    expect(reportDiagnostic.relatedPackageIds).toEqual(['related_pack', 'safe_dependency'])
+    expect(Object.is(actionDiagnostic.relatedPackageIds, hostileRelatedPackageIds)).toBe(false)
+    expect(Object.is(reportDiagnostic.relatedPackageIds, hostileRelatedPackageIds)).toBe(false)
+    expect(Object.isFrozen(actionDiagnostic.relatedPackageIds)).toBe(true)
+    expect(Object.isFrozen(reportDiagnostic.relatedPackageIds)).toBe(true)
+    expect(JSON.stringify(report)).not.toContain('C:/Users')
+    expect(JSON.stringify(report)).not.toContain('LENOVO')
+    expect(JSON.stringify(report)).not.toContain('repair-report-related-length')
     expectNoWriteEffects(report)
   }, 15_000)
 

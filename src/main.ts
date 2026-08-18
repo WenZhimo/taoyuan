@@ -7,6 +7,7 @@ import {
 } from '@/bootstrap'
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
 import { refreshOfficialRegistryDiskCache } from '@/domain/mods/officialRegistryCacheRefresh'
+import { bootstrapThirdPartyDataPackStartupGate } from '@/domain/mods/thirdPartyDataPackStartupGateBootstrapSource'
 import './app.css'
 
 const runtimeProbeRequested = typeof window !== 'undefined'
@@ -14,6 +15,7 @@ const runtimeProbeRequested = typeof window !== 'undefined'
 
 void bootstrapApplication({
   bootstrapOfficialContent,
+  bootstrapThirdPartyStartupGate: bootstrapThirdPartyDataPackStartupGate,
   createApp: async () => createApp((await import('./App.vue')).default),
   createPinia,
   configurePinia: pinia => {

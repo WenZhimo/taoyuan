@@ -18,13 +18,12 @@ export type ThirdPartyDataPackRuntimeAdapterGateStatus = 'deferred' | 'skipped' 
 export type ThirdPartyDataPackRuntimeAdapterRequirementId =
   | 'electron-restricted-ipc-source-adapter'
   | 'web-file-picker-indexeddb-adapter'
-  | 'android-file-picker-app-data-adapter'
   | 'shared-core-mount-adapter'
   | 'platform-storage-isolation'
 
 export interface ThirdPartyDataPackRuntimeAdapterRequirement {
   readonly id: ThirdPartyDataPackRuntimeAdapterRequirementId
-  readonly status: 'required'
+  readonly status: 'satisfied' | 'required'
   readonly reason: string
 }
 
@@ -57,7 +56,7 @@ export interface ThirdPartyDataPackRuntimeAdapterGateResult {
   readonly officialIdentity: ThirdPartyCandidateOfficialIdentitySummary
   readonly candidateIdentity?: ThirdPartyCandidateIdentitySummary
   readonly lockfileHash?: Sha256Hash
-  readonly adapterReadiness: 'deferred'
+  readonly adapterReadiness: 'platform-sources-defined'
   readonly runtimeEnablementAllowed: false
   readonly requiredAdapters: readonly ThirdPartyDataPackRuntimeAdapterRequirement[]
   readonly effects: ThirdPartyDataPackRuntimeAdapterGateEffectSummary
@@ -93,28 +92,23 @@ const freezeRuntimeAdapterRequirement = (
 const runtimeAdapterRequirements = (): readonly ThirdPartyDataPackRuntimeAdapterRequirement[] => Object.freeze([
   freezeRuntimeAdapterRequirement({
     id: 'electron-restricted-ipc-source-adapter',
-    status: 'required',
-    reason: 'Define the Electron main-process discovery and read bridge through restricted IPC before desktop packages can be mounted.'
+    status: 'satisfied',
+    reason: 'Electron exposes a production read-only mods directory source through restricted IPC without renderer-controlled paths or write operations.'
   }),
   freezeRuntimeAdapterRequirement({
     id: 'web-file-picker-indexeddb-adapter',
-    status: 'required',
-    reason: 'Define the Web file picker import and IndexedDB persistence adapter before browser packages can be mounted.'
-  }),
-  freezeRuntimeAdapterRequirement({
-    id: 'android-file-picker-app-data-adapter',
-    status: 'required',
-    reason: 'Define the Android system picker and app-data import adapter before APK packages can be mounted.'
+    status: 'satisfied',
+    reason: 'Web file-picker import sources and IndexedDB payload persistence restore into the shared ContentPackageSource boundary.'
   }),
   freezeRuntimeAdapterRequirement({
     id: 'shared-core-mount-adapter',
     status: 'required',
-    reason: 'Define the shared adapter boundary that passes platform package sources into the same parse, repair, validate and register core.'
+    reason: 'Define the shared runtime handoff that passes verified platform package sources into publication without exposing partial RegistrySet state.'
   }),
   freezeRuntimeAdapterRequirement({
     id: 'platform-storage-isolation',
     status: 'required',
-    reason: 'Define platform storage boundaries so package sources, cache, settings and player saves remain isolated before runtime enablement.'
+    reason: 'Define final platform storage isolation for runtime publication, package settings, mod-lock, save and cache writes before enablement.'
   })
 ])
 
@@ -193,6 +187,29 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   }
   return result
 }
+
+const cloneStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return []
+
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value)
+    }
+  }
+  return result
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  cloneStringList(value) as PackageId[]
 
 const fallbackMessageKey = (code: string): string =>
   `mods.error.${code.toLowerCase().replace(/-/g, '.')}`
@@ -308,8 +325,25 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => {
   }
 }
 
-const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
-  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return []
+  const length = readDiagnosticArrayLength(diagnostics)
+  if (length === undefined) return []
+
+  const result: ModDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(cloneDiagnostic(descriptor.value as ModDiagnostic))
+    }
+  }
+  return result
+}
 
 const deepFreezeObjectGraph = <T>(value: T): T => {
   if (value && typeof value === 'object') {
@@ -347,17 +381,17 @@ const baseResult = (
   transactionPreflightStatus: transactionPreflight.status,
   reason,
   diagnostics: cloneDiagnostics(transactionPreflight.diagnostics),
-  selectedPackageIds: [...transactionPreflight.selectedPackageIds],
-  blockedPackageIds: [...transactionPreflight.blockedPackageIds],
-  blockedCandidatePaths: [...transactionPreflight.blockedCandidatePaths],
-  loadOrder: [...transactionPreflight.loadOrder],
+  selectedPackageIds: clonePackageIds(transactionPreflight.selectedPackageIds),
+  blockedPackageIds: clonePackageIds(transactionPreflight.blockedPackageIds),
+  blockedCandidatePaths: cloneStringList(transactionPreflight.blockedCandidatePaths),
+  loadOrder: clonePackageIds(transactionPreflight.loadOrder),
   registryCount: transactionPreflight.registryCount,
   entryCount: transactionPreflight.entryCount,
   packageCount: transactionPreflight.packageCount,
   officialIdentity: cloneOfficialIdentity(transactionPreflight.officialIdentity),
   candidateIdentity: cloneCandidateIdentity(transactionPreflight.candidateIdentity),
   lockfileHash: transactionPreflight.lockfileHash,
-  adapterReadiness: 'deferred',
+  adapterReadiness: 'platform-sources-defined',
   runtimeEnablementAllowed: false,
   requiredAdapters,
   effects: freezeEffectSummary(createEffectSummary())
@@ -388,7 +422,7 @@ export const buildThirdPartyDataPackRuntimeAdapterGate = (
 
   return baseResult(
     'deferred',
-    'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+    'Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication, transaction and write boundaries are implemented',
     transactionPreflight,
     runtimeAdapterRequirements()
   )

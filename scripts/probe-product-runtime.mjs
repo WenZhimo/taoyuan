@@ -1,17 +1,18 @@
-import { spawn } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import crypto from 'node:crypto'
 import { createRequire } from 'node:module'
 import fs from 'node:fs'
 import http from 'node:http'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
+import { unzipSync } from 'fflate'
 
 const root = process.cwd()
 const require = createRequire(import.meta.url)
 const targetArg = process.argv.find(argument => argument.startsWith('--target='))
 const target = targetArg?.slice('--target='.length) ?? 'all'
-if (!['web', 'electron', 'all'].includes(target)) {
-  throw new Error('Expected --target=web, --target=electron, or --target=all')
+if (!['web', 'electron', 'android', 'all'].includes(target)) {
+  throw new Error('Expected --target=web, --target=electron, --target=android, or --target=all')
 }
 
 const webRoot = path.join(root, 'docs')
@@ -24,6 +25,7 @@ const metadata = JSON.parse(fs.readFileSync(
   path.join(root, 'src', 'generated', 'mods', 'official-precompiled-metadata.json'),
   'utf8'
 ))
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
 const artifact = JSON.parse(fs.readFileSync(
   path.join(root, 'src', 'generated', 'mods', 'official-precompiled-registry.json'),
   'utf8'
@@ -275,6 +277,301 @@ const runProcess = (command, args, env, timeoutMs = 180_000) => new Promise((res
     }
   })
 })
+
+const runProcessBuffer = (command, args, env, timeoutMs = 180_000) => new Promise((resolve, reject) => {
+  const childEnv = { ...process.env, ...env }
+  delete childEnv.ELECTRON_RUN_AS_NODE
+  const child = spawn(command, args, {
+    cwd: root,
+    env: childEnv,
+    windowsHide: true,
+    stdio: ['ignore', 'pipe', 'pipe']
+  })
+  const stdout = []
+  const stderr = []
+  child.stdout.on('data', chunk => { stdout.push(chunk) })
+  child.stderr.on('data', chunk => { stderr.push(chunk) })
+  const timer = setTimeout(() => {
+    child.kill()
+    reject(new Error(`Runtime probe process timed out: ${path.basename(command)}`))
+  }, timeoutMs)
+  child.once('error', reject)
+  child.once('close', code => {
+    clearTimeout(timer)
+    if (code === 0) {
+      resolve({
+        stdout: Buffer.concat(stdout),
+        stderr: Buffer.concat(stderr).toString('utf8')
+      })
+    } else {
+      reject(new Error(
+        `Runtime probe process exited with ${code}: ${
+          Buffer.concat(stderr).toString('utf8').slice(0, 2000)
+        }`
+      ))
+    }
+  })
+})
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+const apkPath = path.join(
+  root,
+  'android',
+  'app',
+  'build',
+  'outputs',
+  'apk',
+  'release',
+  `taoyuan-${packageJson.version}.apk`
+)
+const androidPackageId = 'com.games.wenzi.taoyuan'
+const androidActivity = `${androidPackageId}/.MainActivity`
+const androidProbeRequiredLabels = ['新的旅程', '关于游戏']
+const androidProbeOptionalLabels = ['导入存档']
+
+const findAndroidAdb = () => {
+  const executableName = process.platform === 'win32' ? 'adb.exe' : 'adb'
+  const candidates = [
+    process.env.ANDROID_ADB,
+    process.env.ADB,
+    process.env.ANDROID_HOME
+      ? path.join(process.env.ANDROID_HOME, 'platform-tools', executableName)
+      : null,
+    process.env.ANDROID_SDK_ROOT
+      ? path.join(process.env.ANDROID_SDK_ROOT, 'platform-tools', executableName)
+      : null,
+    executableName
+  ].filter(Boolean)
+
+  return candidates.find(candidate => {
+    if (candidate !== executableName) return fs.existsSync(candidate)
+    const probe = spawnSync(candidate, ['version'], { stdio: 'ignore' })
+    return !probe.error || probe.error.code !== 'ENOENT'
+  })
+}
+
+const parseAdbDevices = stdout => stdout
+  .split(/\r?\n/)
+  .map(line => line.trim())
+  .filter(line => line && !line.startsWith('List of devices'))
+  .map(line => {
+    const [serial, state] = line.split(/\s+/)
+    return { serial, state }
+  })
+
+const resolveAndroidDevice = async adbPath => {
+  await runProcess(adbPath, ['start-server'], {}, 30_000)
+  const devicesOutput = await runProcess(adbPath, ['devices'], {}, 30_000)
+  const devices = parseAdbDevices(devicesOutput.stdout)
+  const requestedSerial = process.env.ANDROID_SERIAL
+  const onlineDevices = devices.filter(device => device.state === 'device')
+  const selected = requestedSerial
+    ? devices.find(device => device.serial === requestedSerial)
+    : onlineDevices[0]
+
+  assert(selected, requestedSerial
+    ? `Android device ${requestedSerial} was not listed by adb`
+    : 'No online Android device was listed by adb')
+  assert(selected.state === 'device', `Android device ${selected.serial} is ${selected.state}`)
+
+  return {
+    serial: selected.serial,
+    listedDevices: devices.map(device => ({
+      serial: device.serial,
+      state: device.state
+    }))
+  }
+}
+
+const runAdb = (adbPath, serial, args, timeoutMs = 60_000) =>
+  runProcess(adbPath, ['-s', serial, ...args], {}, timeoutMs)
+
+const readAndroidUiXml = async (adbPath, serial) => {
+  await runAdb(adbPath, serial, [
+    'shell',
+    'uiautomator',
+    'dump',
+    '/sdcard/taoyuan-window.xml'
+  ], 30_000)
+  const { stdout } = await runAdb(adbPath, serial, [
+    'exec-out',
+    'cat',
+    '/sdcard/taoyuan-window.xml'
+  ], 30_000)
+  return stdout
+}
+
+const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+const uiXmlIncludesLabel = (xml, label) =>
+  xml.includes(`text="${label}"`)
+  || xml.includes(`content-desc="${label}"`)
+  || xml.includes(label)
+
+const findUiNodeBounds = (xml, label) => {
+  const node = xml.match(new RegExp(
+    `<node\\b[^>]*(?:text|content-desc)="${escapeRegExp(label)}"[^>]*>`,
+    'u'
+  ))?.[0]
+  const bounds = node?.match(/bounds="\[(\d+),(\d+)\]\[(\d+),(\d+)\]"/)
+  if (!bounds) return null
+  return {
+    x: Math.round((Number(bounds[1]) + Number(bounds[3])) / 2),
+    y: Math.round((Number(bounds[2]) + Number(bounds[4])) / 2)
+  }
+}
+
+const waitForAndroidMainMenu = async (adbPath, serial, timeoutMs = 120_000) => {
+  const deadline = Date.now() + timeoutMs
+  let lastXml = ''
+  let tappedEnterButton = false
+
+  while (Date.now() < deadline) {
+    try {
+      const xml = await readAndroidUiXml(adbPath, serial)
+      lastXml = xml
+      const requiredLabelsReady = androidProbeRequiredLabels
+        .every(label => uiXmlIncludesLabel(xml, label))
+      if (requiredLabelsReady) {
+        return {
+          mainMenuReady: true,
+          labels: Object.fromEntries([
+            ...androidProbeRequiredLabels,
+            ...androidProbeOptionalLabels
+          ].map(label => [label, uiXmlIncludesLabel(xml, label)])),
+          tappedEnterButton
+        }
+      }
+
+      if (!tappedEnterButton) {
+        const enterBounds = findUiNodeBounds(xml, '进入游戏')
+        if (enterBounds) {
+          await runAdb(adbPath, serial, [
+            'shell',
+            'input',
+            'tap',
+            String(enterBounds.x),
+            String(enterBounds.y)
+          ], 30_000)
+          tappedEnterButton = true
+          await delay(1000)
+        }
+      }
+    } catch {
+      // The WebView may still be starting; keep polling until the deadline.
+    }
+    await delay(1000)
+  }
+
+  return {
+    mainMenuReady: false,
+    labels: Object.fromEntries([
+      ...androidProbeRequiredLabels,
+      ...androidProbeOptionalLabels
+    ].map(label => [label, uiXmlIncludesLabel(lastXml, label)])),
+    tappedEnterButton,
+    lastUiXmlPrefix: lastXml.slice(0, 2000)
+  }
+}
+
+const captureAndroidScreenshot = async (adbPath, serial, outputPath) => {
+  const { stdout } = await runProcessBuffer(adbPath, ['-s', serial,
+    'exec-out',
+    'screencap',
+    '-p'
+  ], {}, 30_000)
+  fs.mkdirSync(path.dirname(outputPath), { recursive: true })
+  fs.writeFileSync(outputPath, stdout)
+}
+
+const sha256File = filePath =>
+  crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex').toUpperCase()
+
+const verifyAndroidApkHashes = () => {
+  assert(fs.existsSync(apkPath), 'Android release APK is missing; run pnpm run build:android and assembleRelease')
+  const apkEntries = unzipSync(new Uint8Array(fs.readFileSync(apkPath)))
+  const jsAssets = Object.entries(apkEntries)
+    .filter(([name]) => name.startsWith('assets/public/assets/') && name.endsWith('.js'))
+    .map(([name, bytes]) => ({
+      name,
+      text: Buffer.from(bytes).toString('utf8')
+    }))
+  assert(jsAssets.length > 0, 'Android APK does not contain Vite JavaScript assets')
+
+  const foundHashes = Object.fromEntries(Object.entries(expectedHashes).map(([name, hash]) => [
+    name,
+    jsAssets.some(asset => asset.text.includes(hash))
+  ]))
+  const missing = Object.entries(foundHashes)
+    .filter(([, found]) => !found)
+    .map(([name]) => name)
+  assert(missing.length === 0, `Android APK is missing official hashes: ${missing.join(', ')}`)
+
+  return {
+    apkSha256: sha256File(apkPath),
+    jsAssetCount: jsAssets.length,
+    foundHashes
+  }
+}
+
+const readAndroidProbeLogSummary = async (adbPath, serial) => {
+  try {
+    const { stdout } = await runAdb(adbPath, serial, [
+      'logcat',
+      '-d',
+      '-t',
+      '500'
+    ], 30_000)
+    const lines = stdout.split(/\r?\n/)
+    return {
+      saveMigratorTimeouts: lines.filter(line => line.includes('SaveMigrator') && line.includes('迁移超时')).length,
+      skippedFrameLines: lines.filter(line => line.includes('Skipped') && line.includes('frames')).length
+    }
+  } catch {
+    return {
+      saveMigratorTimeouts: null,
+      skippedFrameLines: null
+    }
+  }
+}
+
+const runAndroidProbe = async () => {
+  const apk = verifyAndroidApkHashes()
+  const adbPath = findAndroidAdb()
+  assert(adbPath, 'adb was not found; set ANDROID_ADB, ANDROID_HOME, ANDROID_SDK_ROOT, or PATH')
+  const device = await resolveAndroidDevice(adbPath)
+  const scenarioRoot = path.join(runRoot, 'android-release')
+  const screenshotPath = path.join(scenarioRoot, 'main-menu.png')
+
+  await runAdb(adbPath, device.serial, ['install', '-r', '-d', apkPath], 180_000)
+  await runAdb(adbPath, device.serial, ['shell', 'am', 'force-stop', androidPackageId], 30_000)
+  await runAdb(adbPath, device.serial, ['logcat', '-c'], 30_000).catch(() => null)
+  await runAdb(adbPath, device.serial, [
+    'shell',
+    'am',
+    'start',
+    '-W',
+    '-n',
+    androidActivity
+  ], 30_000)
+
+  const ui = await waitForAndroidMainMenu(adbPath, device.serial)
+  await captureAndroidScreenshot(adbPath, device.serial, screenshotPath).catch(() => null)
+  const logSummary = await readAndroidProbeLogSummary(adbPath, device.serial)
+
+  assert(ui.mainMenuReady, 'Android main menu was not detected before timeout')
+
+  return {
+    apk,
+    device,
+    packageId: androidPackageId,
+    activity: androidActivity,
+    ui,
+    logSummary,
+    screenshot: path.relative(root, screenshotPath).replaceAll('\\', '/')
+  }
+}
 
 const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   assert(envelope?.schemaVersion === 1, `${scenario.name}: invalid envelope version`)
@@ -564,7 +861,8 @@ const summary = {
   registryCount: metadata.registryCount,
   entryCount: metadata.entryCount,
   ...(target === 'web' || target === 'all' ? { web: await runWebProbe() } : {}),
-  ...(target === 'electron' || target === 'all' ? { electron: await runElectronProbe() } : {})
+  ...(target === 'electron' || target === 'all' ? { electron: await runElectronProbe() } : {}),
+  ...(target === 'android' ? { android: await runAndroidProbe() } : {})
 }
 
 process.stdout.write(JSON.stringify(summary, null, 2) + '\n')

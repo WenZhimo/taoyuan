@@ -220,6 +220,29 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   return Object.freeze(result) as PackageId[]
 }
 
+const cloneStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return []
+
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value)
+    }
+  }
+  return Object.freeze(result) as string[]
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  cloneStringList(value) as PackageId[]
+
 const fallbackMessageKey = (code: string): string =>
   `mods.error.${code.toLowerCase().replace(/-/g, '.')}`
 
@@ -334,8 +357,25 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => {
   }
 }
 
-const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
-  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return []
+  const length = readDiagnosticArrayLength(diagnostics)
+  if (length === undefined) return []
+
+  const result: ModDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(cloneDiagnostic(descriptor.value as ModDiagnostic))
+    }
+  }
+  return result
+}
 
 const transactionRequirements = (): readonly ThirdPartyDataPackTransactionRequirement[] => [
   {
@@ -452,10 +492,10 @@ const baseResult = (
   runtimeGateStatus: runtimeGate.status,
   reason,
   diagnostics: cloneDiagnostics(runtimeGate.diagnostics),
-  selectedPackageIds: [...runtimeGate.selectedPackageIds],
-  blockedPackageIds: [...runtimeGate.blockedPackageIds],
-  blockedCandidatePaths: [...runtimeGate.blockedCandidatePaths],
-  loadOrder: [...runtimeGate.loadOrder],
+  selectedPackageIds: clonePackageIds(runtimeGate.selectedPackageIds),
+  blockedPackageIds: clonePackageIds(runtimeGate.blockedPackageIds),
+  blockedCandidatePaths: cloneStringList(runtimeGate.blockedCandidatePaths),
+  loadOrder: clonePackageIds(runtimeGate.loadOrder),
   registryCount: runtimeGate.registryCount,
   entryCount: runtimeGate.entryCount,
   packageCount: runtimeGate.packageCount,

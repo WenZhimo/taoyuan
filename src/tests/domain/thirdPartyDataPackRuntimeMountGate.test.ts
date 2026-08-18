@@ -835,4 +835,172 @@ describe('third-party data pack runtime mount gate', () => {
     expectNoWriteEffects(gate)
     expectOfficialBaseline()
   })
+
+  it('copies mount input diagnostics without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    let lengthRead = false
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.runtime-mount.proxy-diagnostics',
+      severity: 'warning',
+      packageId,
+      relatedPackageIds: [packageId],
+      details: {
+        reason: 'proxy diagnostics array'
+      }
+    })
+    const diagnostics = new Proxy([upstreamDiagnostic], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/runtime-mount-diagnostics-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as ThirdPartyDataPackMountInputResult['diagnostics']
+    const mountInput: ThirdPartyDataPackMountInputResult = {
+      status: 'ready',
+      preflightStatus: 'ready',
+      reason: 'mount input is ready',
+      diagnostics,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false
+      },
+      runtimePublication: 'deferred',
+      preflight: {} as never
+    }
+
+    const gate = buildThirdPartyDataPackRuntimeMountGate({ mountInput } as never)
+    const copiedDiagnostic = gate.diagnostics[0]
+    if (copiedDiagnostic === undefined) throw new Error('Expected copied runtime mount diagnostic.')
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(gate.diagnostics).toHaveLength(1)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.runtime-mount.proxy-diagnostics',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'proxy diagnostics array'
+      }
+    })
+    expect(Object.is(gate.diagnostics, diagnostics)).toBe(false)
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.relatedPackageIds, upstreamDiagnostic.relatedPackageIds)).toBe(false)
+    expect(JSON.stringify(gate)).not.toContain('C:/Users')
+    expect(JSON.stringify(gate)).not.toContain('LENOVO')
+    expect(JSON.stringify(gate)).not.toContain('runtime-mount-diagnostics-length')
+    expectNoWriteEffects(gate)
+    expectOfficialBaseline()
+  })
+
+  it('copies mount input package summaries without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const blockedPackageId = requirePackageId('blocked_pack')
+    let lengthRead = false
+    const createHostileStringArray = <T extends string>(values: T[], label: string): T[] =>
+      new Proxy(values, {
+        get(target, property, receiver) {
+          if (property === 'length') {
+            lengthRead = true
+            throw new Error(`EACCES: stat C:/Users/LENOVO/mods/runtime-mount-${label}-length`)
+          }
+          return Reflect.get(target, property, receiver)
+        }
+      }) as T[]
+    const selectedPackageIds = createHostileStringArray([packageId], 'selected-package-ids')
+    const blockedPackageIds = createHostileStringArray([blockedPackageId], 'blocked-package-ids')
+    const blockedCandidatePaths = createHostileStringArray(['blocked-pack'], 'blocked-candidate-paths')
+    const loadOrder = createHostileStringArray([packageId], 'load-order')
+    const mountInput: ThirdPartyDataPackMountInputResult = {
+      status: 'ready',
+      preflightStatus: 'ready',
+      reason: 'mount input is ready',
+      diagnostics: [],
+      selectedPackageIds,
+      blockedPackageIds,
+      blockedCandidatePaths,
+      loadOrder,
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false
+      },
+      runtimePublication: 'deferred',
+      preflight: {} as never
+    }
+
+    const gate = buildThirdPartyDataPackRuntimeMountGate({ mountInput } as never)
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(gate.selectedPackageIds).toEqual(['discovery_valid'])
+    expect(gate.blockedPackageIds).toEqual(['blocked_pack'])
+    expect(gate.blockedCandidatePaths).toEqual(['blocked-pack'])
+    expect(gate.loadOrder).toEqual(['discovery_valid'])
+    expect(Object.is(gate.selectedPackageIds, selectedPackageIds)).toBe(false)
+    expect(Object.is(gate.blockedPackageIds, blockedPackageIds)).toBe(false)
+    expect(Object.is(gate.blockedCandidatePaths, blockedCandidatePaths)).toBe(false)
+    expect(Object.is(gate.loadOrder, loadOrder)).toBe(false)
+    expect(Object.isFrozen(gate.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(gate.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(gate.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(gate.loadOrder)).toBe(true)
+    expect(JSON.stringify(gate)).not.toContain('C:/Users')
+    expect(JSON.stringify(gate)).not.toContain('LENOVO')
+    expect(JSON.stringify(gate)).not.toContain('runtime-mount-selected-package-ids-length')
+    expectNoWriteEffects(gate)
+    expectOfficialBaseline()
+  })
 })

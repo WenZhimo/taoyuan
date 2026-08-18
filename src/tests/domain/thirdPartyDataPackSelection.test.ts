@@ -705,6 +705,85 @@ describe('third-party data pack read-only selection', () => {
     })
   })
 
+  it('copies discovery issue diagnostics without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      itemEntries: [
+        {
+          id: 'bad_library:broken',
+          name: { key: 'bad_library.item.broken.name', fallback: 'Broken' },
+          category: 'gift',
+          description: { key: 'bad_library.item.broken.description', fallback: 'Broken.' },
+          sellPrice: -1,
+          edible: false
+        }
+      ]
+    })
+    await createPack(root, 'dependent-app', {
+      id: 'dependent_app',
+      dependencies: [{ id: 'bad_library', version: '1.0.0' }]
+    })
+    const discoveryReport = createMutableDiscoveryReport(await discover(root))
+    const upstreamDiscoveryIssue = discoveryReport.candidates
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.issues[0]
+    if (!upstreamDiscoveryIssue?.diagnostics[0]) {
+      throw new Error('Expected discovery diagnostic for invalid package.')
+    }
+    const upstreamDiscoveryDiagnostic = upstreamDiscoveryIssue.diagnostics[0]
+    upstreamDiscoveryDiagnostic.details = {
+      reason: 'selection diagnostics proxy',
+      nested: { stable: true }
+    }
+    const originalStage = upstreamDiscoveryDiagnostic.stage
+
+    let lengthRead = false
+    const proxyDiagnostics = new Proxy([upstreamDiscoveryDiagnostic], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/selection-diagnostics-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as unknown as typeof upstreamDiscoveryIssue.diagnostics
+    Object.defineProperty(upstreamDiscoveryIssue, 'diagnostics', {
+      enumerable: true,
+      value: proxyDiagnostics
+    })
+
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const copiedIssue = selectionReport.blockedPackages
+      .find(candidate => candidate.packageId === 'bad_library')
+      ?.discoveryIssues[0]
+    const copiedDiagnostic = copiedIssue?.diagnostics[0]
+
+    if (!copiedIssue || !copiedDiagnostic) throw new Error('Expected copied discovery issue and diagnostic.')
+    expect(lengthRead).toBe(false)
+    expect(Object.is(copiedIssue.diagnostics, proxyDiagnostics)).toBe(false)
+    expect(copiedDiagnostic).not.toBe(upstreamDiscoveryDiagnostic)
+    expect(copiedDiagnostic).toMatchObject({
+      code: upstreamDiscoveryDiagnostic.code,
+      stage: originalStage,
+      details: {
+        reason: 'selection diagnostics proxy',
+        nested: { stable: true }
+      }
+    })
+    expect(Object.isFrozen(copiedIssue.diagnostics)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details)).toBe(true)
+    expect(JSON.stringify(selectionReport)).not.toContain('C:/Users')
+    expect(JSON.stringify(selectionReport)).not.toContain('LENOVO')
+    expect(JSON.stringify(selectionReport)).not.toContain('selection-diagnostics-length')
+    expect(officialCounts()).toEqual({
+      registryCount: 54,
+      entryCount: 4242,
+      snapshotHash: committedMetadata.snapshotHash
+    })
+  })
+
   it('ignores own accessor discovery diagnostic fields before exposing blocked reports', async() => {
     const root = await createRoot()
     await createPack(root, 'bad-library', {

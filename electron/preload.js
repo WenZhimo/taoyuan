@@ -1,5 +1,14 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
+const electronReadonlyDirectorySource = Object.freeze({
+  getEntry: sourcePath => ipcRenderer.invoke('electron-readonly-directory-source-get-entry', sourcePath),
+  readDirectory: sourcePath => ipcRenderer.invoke('electron-readonly-directory-source-read-directory', sourcePath),
+  readTextFile: sourcePath => ipcRenderer.invoke('electron-readonly-directory-source-read-text-file', sourcePath)
+})
+
+const deliverThirdPartyDataPackResponse = envelope =>
+  ipcRenderer.invoke('third-party-data-pack-response-delivery', envelope)
+
 contextBridge.exposeInMainWorld('electronAPI', {
   // 获取设置
   getSettings: () => ipcRenderer.invoke('get-settings'),
@@ -21,5 +30,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Cache access is restricted to fixed program-local paths in the main process.
   readOfficialRegistryCache: () => ipcRenderer.invoke('official-registry-cache-read'),
-  writeOfficialRegistryCache: contents => ipcRenderer.invoke('official-registry-cache-write', contents)
+  writeOfficialRegistryCache: contents => ipcRenderer.invoke('official-registry-cache-write', contents),
+
+  // Read-only package source operations are fixed to the executable-local mods/ root.
+  electronReadonlyDirectorySource,
+
+  // Response delivery is restricted to one fixed acknowledgement channel.
+  deliverThirdPartyDataPackResponse
 })

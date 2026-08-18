@@ -59,6 +59,157 @@ describe('bootstrapApplication', () => {
     ])
   })
 
+  it('runs the third-party startup gate before creating application state', async () => {
+    const events: string[] = []
+    const app = { id: 'app' }
+    const pinia = { id: 'pinia' }
+    const router = { id: 'router' }
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => {
+        events.push('official-content')
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => {
+        events.push('third-party-startup-gate')
+      }),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return app
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return pinia
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => {
+        events.push('get-router')
+        return router
+      }),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async () => {
+        events.push('read-save')
+        events.push('mount')
+      })
+    })).resolves.toEqual({ app, pinia, router })
+
+    expect(events).toEqual([
+      'official-content',
+      'third-party-startup-gate',
+      'create-app',
+      'create-pinia',
+      'configure-pinia',
+      'install-pinia',
+      'get-router',
+      'install-router',
+      'read-save',
+      'mount'
+    ])
+  })
+
+  it('continues when the third-party startup gate explicitly allows app bootstrap', async () => {
+    const app = { id: 'app' }
+    const pinia = { id: 'pinia' }
+    const router = { id: 'router' }
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => undefined),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => ({
+        status: 'ready',
+        appBootstrapContinuationAllowed: true,
+        reason: 'path-free startup gate accepted app bootstrap'
+      })),
+      createApp: vi.fn(() => app),
+      createPinia: vi.fn(() => pinia),
+      configurePinia: vi.fn(),
+      installPinia: vi.fn(),
+      getRouter: vi.fn(() => router),
+      installRouter: vi.fn(),
+      mount: vi.fn(async () => undefined)
+    })).resolves.toEqual({ app, pinia, router })
+  })
+
+  it('does not create app state when a returned startup gate result blocks app bootstrap', async () => {
+    const events: string[] = []
+    const result = {
+      status: 'blocked',
+      appBootstrapContinuationAllowed: false,
+      reason: 'C:/Users/LENOVO/mods/sample_pack blocked before bootstrap'
+    }
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => {
+        events.push('official-content')
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => {
+        events.push('third-party-startup-gate')
+        return result
+      }),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return {}
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return {}
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => {
+        events.push('get-router')
+        return {}
+      }),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async () => {
+        events.push('read-save')
+        events.push('mount')
+      })
+    })).rejects.toThrow('third-party startup gate blocked application bootstrap')
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => undefined),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => result),
+      createApp: vi.fn(() => ({})),
+      createPinia: vi.fn(() => ({})),
+      configurePinia: vi.fn(),
+      installPinia: vi.fn(),
+      getRouter: vi.fn(() => ({})),
+      installRouter: vi.fn(),
+      mount: vi.fn(async () => undefined)
+    })).rejects.not.toThrow('C:/Users')
+    expect(events).toEqual(['official-content', 'third-party-startup-gate'])
+  })
+
+  it('does not create Pinia, read saves, or mount when the third-party startup gate fails', async () => {
+    const events: string[] = []
+    const error = new Error('third-party startup gate failed')
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => {
+        events.push('official-content')
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn().mockRejectedValue(error),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return {}
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return {}
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => ({})),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async () => {
+        events.push('read-save')
+        events.push('mount')
+      })
+    })).rejects.toBe(error)
+
+    expect(events).toEqual(['official-content'])
+  })
+
   it.each(['build', 'structure', 'semantics', 'freeze'])(
     'does not create Pinia, read saves, or mount when official %s fails',
     async stage => {

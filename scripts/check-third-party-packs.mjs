@@ -434,6 +434,12 @@ const loadDiscoveryModule = async() => {
           "export { buildThirdPartyDataPackTransactionPreflight } from './src/domain/mods/thirdPartyDataPackTransactionPreflight.ts'",
           "export { buildThirdPartyDataPackRuntimeAdapterGate } from './src/domain/mods/thirdPartyDataPackRuntimeAdapterGate.ts'",
           "export { buildThirdPartyDataPackSourceAdapterGate } from './src/domain/mods/thirdPartyDataPackSourceAdapterGate.ts'",
+          "export { buildThirdPartyDataPackRuntimePublicationPreflight } from './src/domain/mods/thirdPartyDataPackRuntimePublicationPreflight.ts'",
+          "export { buildThirdPartyDataPackTransactionPreCommitPlan } from './src/domain/mods/thirdPartyDataPackTransactionPreCommitPlan.ts'",
+          "export { buildThirdPartyDataPackLiveRegistrySwapProtection } from './src/domain/mods/thirdPartyDataPackLiveRegistrySwapProtection.ts'",
+          "export { buildThirdPartyDataPackPublicationRollbackRecovery } from './src/domain/mods/thirdPartyDataPackPublicationRollbackRecovery.ts'",
+          "export { buildThirdPartyDataPackRuntimePublicationCommitAdapter } from './src/domain/mods/thirdPartyDataPackRuntimePublicationCommitAdapter.ts'",
+          "export { buildThirdPartyDataPackRecoveryLogReplayRestoreAdapter } from './src/domain/mods/thirdPartyDataPackRecoveryLogReplayRestoreAdapter.ts'",
           "export { CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION, createDiscoveryFileSystemFromContentPackageSource, readContentPackageSourceIdentity } from './src/domain/mods/contentPackageSource.ts'",
           "export { buildOfficialRegistrySetFromStaticData } from './src/domain/mods/staticAdapters.ts'"
         ].join('\n'),
@@ -566,6 +572,12 @@ const reportHasFailure = (
   runtimeMountGateReport,
   transactionPreflightReport,
   runtimeAdapterGateReport,
+  runtimePublicationPreflightReport,
+  transactionPreCommitPlanReport,
+  liveRegistrySwapProtectionReport,
+  publicationRollbackRecoveryReport,
+  runtimePublicationCommitAdapterReport,
+  recoveryLogReplayRestoreAdapterReport,
   sourceAdapterGateReport
 ) =>
   report.status !== 'completed'
@@ -605,6 +617,30 @@ const reportHasFailure = (
   ))
   || runtimeAdapterGateReport?.status === 'blocked'
   || Boolean(runtimeAdapterGateReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || runtimePublicationPreflightReport?.status === 'blocked'
+  || Boolean(runtimePublicationPreflightReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || transactionPreCommitPlanReport?.status === 'blocked'
+  || Boolean(transactionPreCommitPlanReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || liveRegistrySwapProtectionReport?.status === 'blocked'
+  || Boolean(liveRegistrySwapProtectionReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || publicationRollbackRecoveryReport?.status === 'blocked'
+  || Boolean(publicationRollbackRecoveryReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || runtimePublicationCommitAdapterReport?.status === 'blocked'
+  || Boolean(runtimePublicationCommitAdapterReport?.diagnostics.some(diagnostic =>
+    diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
+  ))
+  || recoveryLogReplayRestoreAdapterReport?.status === 'blocked'
+  || Boolean(recoveryLogReplayRestoreAdapterReport?.diagnostics.some(diagnostic =>
     diagnostic.severity === 'error' || diagnostic.severity === 'fatal'
   ))
   || sourceAdapterGateReport?.status === 'blocked'
@@ -1094,6 +1130,498 @@ const formatRuntimeAdapterGateReport = runtimeAdapterGateReport => {
   return lines.join('\n')
 }
 
+const formatRuntimePublicationPreflightReport = runtimePublicationPreflightReport => {
+  const lines = [
+    'Runtime Publication Preflight:',
+    `  status: ${runtimePublicationPreflightReport.status}`,
+    `  mountInputStatus: ${runtimePublicationPreflightReport.mountInputStatus}`,
+    `  sourceAdapterGateStatus: ${runtimePublicationPreflightReport.sourceAdapterGateStatus}`,
+    `  reason: ${runtimePublicationPreflightReport.reason}`,
+    `  registryCount: ${runtimePublicationPreflightReport.registryCount}`,
+    `  entryCount: ${runtimePublicationPreflightReport.entryCount}`,
+    `  selectedPackageIds: ${runtimePublicationPreflightReport.selectedPackageIds.length > 0 ? runtimePublicationPreflightReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${runtimePublicationPreflightReport.blockedPackageIds.length > 0 ? runtimePublicationPreflightReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${runtimePublicationPreflightReport.loadOrder.length > 0 ? runtimePublicationPreflightReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${runtimePublicationPreflightReport.packageCount}`,
+    `  runtimePublication: ${runtimePublicationPreflightReport.runtimePublication}`,
+    `  publicationAllowed: ${runtimePublicationPreflightReport.publicationAllowed}`,
+    `  candidateRegistryFrozen: ${runtimePublicationPreflightReport.candidateRegistryFrozen}`,
+    `  candidateSnapshotAvailable: ${runtimePublicationPreflightReport.candidateSnapshotAvailable}`,
+    `  lockfileDraftAvailable: ${runtimePublicationPreflightReport.lockfileDraftAvailable}`,
+    `  handoffChecks: ${runtimePublicationPreflightReport.handoffChecks.length}`,
+    `  remainingRequirements: ${runtimePublicationPreflightReport.remainingRequirements.length}`,
+    `  candidatePublished: ${runtimePublicationPreflightReport.effects.thirdPartyRegistryPublished}`,
+    `  candidateRegistryExposed: ${runtimePublicationPreflightReport.effects.candidateRegistryExposed}`,
+    `  liveRegistryMutated: ${runtimePublicationPreflightReport.effects.liveRegistryMutated}`,
+    `  packageFilesWritten: ${runtimePublicationPreflightReport.effects.packageFilesWritten}`,
+    `  packageBackupsWritten: ${runtimePublicationPreflightReport.effects.packageBackupsWritten}`,
+    `  lockfileWritten: ${runtimePublicationPreflightReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${runtimePublicationPreflightReport.effects.settingsWritten}`,
+    `  savesWritten: ${runtimePublicationPreflightReport.effects.savesWritten}`,
+    `  cacheWritten: ${runtimePublicationPreflightReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${runtimePublicationPreflightReport.effects.transactionLogWritten}`
+  ]
+  if (runtimePublicationPreflightReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${runtimePublicationPreflightReport.candidateIdentity.candidateHash}`)
+  }
+  if (runtimePublicationPreflightReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${runtimePublicationPreflightReport.lockfileHash}`)
+  }
+  if (runtimePublicationPreflightReport.handoffChecks.length > 0) {
+    lines.push('  handoff:')
+    for (const check of runtimePublicationPreflightReport.handoffChecks) {
+      lines.push(`    - ${check.id}: ${check.status}`)
+      lines.push(`      reason: ${check.reason}`)
+    }
+  }
+  if (runtimePublicationPreflightReport.remainingRequirements.length > 0) {
+    lines.push('  publication requirements:')
+    for (const requirement of runtimePublicationPreflightReport.remainingRequirements) {
+      lines.push(`    - ${requirement.id}: ${requirement.status}`)
+      lines.push(`      reason: ${requirement.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = runtimePublicationPreflightReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
+const formatTransactionPreCommitPlanReport = transactionPreCommitPlanReport => {
+  const lines = [
+    'Transaction Pre-commit Plan:',
+    `  status: ${transactionPreCommitPlanReport.status}`,
+    `  transactionPreflightStatus: ${transactionPreCommitPlanReport.transactionPreflightStatus}`,
+    `  runtimePublicationPreflightStatus: ${transactionPreCommitPlanReport.runtimePublicationPreflightStatus}`,
+    `  reason: ${transactionPreCommitPlanReport.reason}`,
+    `  registryCount: ${transactionPreCommitPlanReport.registryCount}`,
+    `  entryCount: ${transactionPreCommitPlanReport.entryCount}`,
+    `  selectedPackageIds: ${transactionPreCommitPlanReport.selectedPackageIds.length > 0 ? transactionPreCommitPlanReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${transactionPreCommitPlanReport.blockedPackageIds.length > 0 ? transactionPreCommitPlanReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${transactionPreCommitPlanReport.loadOrder.length > 0 ? transactionPreCommitPlanReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${transactionPreCommitPlanReport.packageCount}`,
+    `  preCommitPlan: ${transactionPreCommitPlanReport.preCommitPlan}`,
+    `  commitAllowed: ${transactionPreCommitPlanReport.commitAllowed}`,
+    `  writeAllowed: ${transactionPreCommitPlanReport.writeAllowed}`,
+    `  recoveryRequired: ${transactionPreCommitPlanReport.recoveryRequired}`,
+    `  rollbackRequired: ${transactionPreCommitPlanReport.rollbackRequired}`,
+    `  preCommitChecks: ${transactionPreCommitPlanReport.preCommitChecks.length}`,
+    `  phases: ${transactionPreCommitPlanReport.phases.length}`,
+    `  writeBoundaries: ${transactionPreCommitPlanReport.writeBoundaries.length}`,
+    `  rollbackCheckpoints: ${transactionPreCommitPlanReport.rollbackCheckpoints.length}`,
+    `  candidatePublished: ${transactionPreCommitPlanReport.effects.thirdPartyRegistryPublished}`,
+    `  candidateRegistryExposed: ${transactionPreCommitPlanReport.effects.candidateRegistryExposed}`,
+    `  liveRegistryMutated: ${transactionPreCommitPlanReport.effects.liveRegistryMutated}`,
+    `  packageFilesWritten: ${transactionPreCommitPlanReport.effects.packageFilesWritten}`,
+    `  packageBackupsWritten: ${transactionPreCommitPlanReport.effects.packageBackupsWritten}`,
+    `  lockfileWritten: ${transactionPreCommitPlanReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${transactionPreCommitPlanReport.effects.settingsWritten}`,
+    `  savesWritten: ${transactionPreCommitPlanReport.effects.savesWritten}`,
+    `  cacheWritten: ${transactionPreCommitPlanReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${transactionPreCommitPlanReport.effects.transactionLogWritten}`
+  ]
+  if (transactionPreCommitPlanReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${transactionPreCommitPlanReport.candidateIdentity.candidateHash}`)
+  }
+  if (transactionPreCommitPlanReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${transactionPreCommitPlanReport.lockfileHash}`)
+  }
+  if (transactionPreCommitPlanReport.preCommitChecks.length > 0) {
+    lines.push('  preCommitChecks:')
+    for (const check of transactionPreCommitPlanReport.preCommitChecks) {
+      lines.push(`    - ${check.id}: ${check.status}`)
+      lines.push(`      reason: ${check.reason}`)
+    }
+  }
+  if (transactionPreCommitPlanReport.phases.length > 0) {
+    lines.push('  phases:')
+    for (const phase of transactionPreCommitPlanReport.phases) {
+      lines.push(`    - ${phase.id}: ${phase.status}`)
+      if (phase.writeBoundaryIds.length > 0) {
+        lines.push(`      writeBoundaries: ${phase.writeBoundaryIds.join(', ')}`)
+      }
+      if (phase.rollbackCheckpointIds.length > 0) {
+        lines.push(`      rollbackCheckpoints: ${phase.rollbackCheckpointIds.join(', ')}`)
+      }
+      lines.push(`      reason: ${phase.reason}`)
+    }
+  }
+  if (transactionPreCommitPlanReport.writeBoundaries.length > 0) {
+    lines.push('  write boundaries:')
+    for (const boundary of transactionPreCommitPlanReport.writeBoundaries) {
+      lines.push(`    - ${boundary.id}: ${boundary.status}`)
+      lines.push(`      writeAllowed: ${boundary.writeAllowed}`)
+      lines.push(`      reason: ${boundary.reason}`)
+    }
+  }
+  if (transactionPreCommitPlanReport.rollbackCheckpoints.length > 0) {
+    lines.push('  rollback checkpoints:')
+    for (const checkpoint of transactionPreCommitPlanReport.rollbackCheckpoints) {
+      lines.push(`    - ${checkpoint.id}: ${checkpoint.status}`)
+      lines.push(`      reason: ${checkpoint.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = transactionPreCommitPlanReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
+const formatLiveRegistrySwapProtectionReport = liveRegistrySwapProtectionReport => {
+  const lines = [
+    'Live Registry Swap Protection:',
+    `  status: ${liveRegistrySwapProtectionReport.status}`,
+    `  runtimePublicationPreflightStatus: ${liveRegistrySwapProtectionReport.runtimePublicationPreflightStatus}`,
+    `  transactionPreCommitPlanStatus: ${liveRegistrySwapProtectionReport.transactionPreCommitPlanStatus}`,
+    `  reason: ${liveRegistrySwapProtectionReport.reason}`,
+    `  registryCount: ${liveRegistrySwapProtectionReport.registryCount}`,
+    `  entryCount: ${liveRegistrySwapProtectionReport.entryCount}`,
+    `  selectedPackageIds: ${liveRegistrySwapProtectionReport.selectedPackageIds.length > 0 ? liveRegistrySwapProtectionReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${liveRegistrySwapProtectionReport.blockedPackageIds.length > 0 ? liveRegistrySwapProtectionReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${liveRegistrySwapProtectionReport.loadOrder.length > 0 ? liveRegistrySwapProtectionReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${liveRegistrySwapProtectionReport.packageCount}`,
+    `  liveRegistrySwap: ${liveRegistrySwapProtectionReport.liveRegistrySwap}`,
+    `  swapAllowed: ${liveRegistrySwapProtectionReport.swapAllowed}`,
+    `  liveRegistryMutable: ${liveRegistrySwapProtectionReport.liveRegistryMutable}`,
+    `  protectionChecks: ${liveRegistrySwapProtectionReport.protectionChecks.length}`,
+    `  requiredProtections: ${liveRegistrySwapProtectionReport.requiredProtections.length}`,
+    `  candidatePublished: ${liveRegistrySwapProtectionReport.effects.thirdPartyRegistryPublished}`,
+    `  candidateRegistryExposed: ${liveRegistrySwapProtectionReport.effects.candidateRegistryExposed}`,
+    `  liveRegistryMutated: ${liveRegistrySwapProtectionReport.effects.liveRegistryMutated}`,
+    `  liveRegistrySwapped: ${liveRegistrySwapProtectionReport.effects.liveRegistrySwapped}`,
+    `  previousRegistryReleased: ${liveRegistrySwapProtectionReport.effects.previousRegistryReleased}`,
+    `  packageFilesWritten: ${liveRegistrySwapProtectionReport.effects.packageFilesWritten}`,
+    `  packageBackupsWritten: ${liveRegistrySwapProtectionReport.effects.packageBackupsWritten}`,
+    `  lockfileWritten: ${liveRegistrySwapProtectionReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${liveRegistrySwapProtectionReport.effects.settingsWritten}`,
+    `  savesWritten: ${liveRegistrySwapProtectionReport.effects.savesWritten}`,
+    `  cacheWritten: ${liveRegistrySwapProtectionReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${liveRegistrySwapProtectionReport.effects.transactionLogWritten}`
+  ]
+  if (liveRegistrySwapProtectionReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${liveRegistrySwapProtectionReport.candidateIdentity.candidateHash}`)
+  }
+  if (liveRegistrySwapProtectionReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${liveRegistrySwapProtectionReport.lockfileHash}`)
+  }
+  if (liveRegistrySwapProtectionReport.protectionChecks.length > 0) {
+    lines.push('  protectionChecks:')
+    for (const check of liveRegistrySwapProtectionReport.protectionChecks) {
+      lines.push(`    - ${check.id}: ${check.status}`)
+      lines.push(`      reason: ${check.reason}`)
+    }
+  }
+  if (liveRegistrySwapProtectionReport.requiredProtections.length > 0) {
+    lines.push('  required protections:')
+    for (const requirement of liveRegistrySwapProtectionReport.requiredProtections) {
+      lines.push(`    - ${requirement.id}: ${requirement.status}`)
+      lines.push(`      reason: ${requirement.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = liveRegistrySwapProtectionReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
+const formatPublicationRollbackRecoveryReport = publicationRollbackRecoveryReport => {
+  const lines = [
+    'Publication Rollback Recovery:',
+    `  status: ${publicationRollbackRecoveryReport.status}`,
+    `  runtimePublicationPreflightStatus: ${publicationRollbackRecoveryReport.runtimePublicationPreflightStatus}`,
+    `  transactionPreCommitPlanStatus: ${publicationRollbackRecoveryReport.transactionPreCommitPlanStatus}`,
+    `  liveRegistrySwapProtectionStatus: ${publicationRollbackRecoveryReport.liveRegistrySwapProtectionStatus}`,
+    `  reason: ${publicationRollbackRecoveryReport.reason}`,
+    `  registryCount: ${publicationRollbackRecoveryReport.registryCount}`,
+    `  entryCount: ${publicationRollbackRecoveryReport.entryCount}`,
+    `  selectedPackageIds: ${publicationRollbackRecoveryReport.selectedPackageIds.length > 0 ? publicationRollbackRecoveryReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${publicationRollbackRecoveryReport.blockedPackageIds.length > 0 ? publicationRollbackRecoveryReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${publicationRollbackRecoveryReport.loadOrder.length > 0 ? publicationRollbackRecoveryReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${publicationRollbackRecoveryReport.packageCount}`,
+    `  rollbackRecovery: ${publicationRollbackRecoveryReport.rollbackRecovery}`,
+    `  recoveryAllowed: ${publicationRollbackRecoveryReport.recoveryAllowed}`,
+    `  rollbackExecutionAllowed: ${publicationRollbackRecoveryReport.rollbackExecutionAllowed}`,
+    `  liveRegistryMutable: ${publicationRollbackRecoveryReport.liveRegistryMutable}`,
+    `  recoveryChecks: ${publicationRollbackRecoveryReport.recoveryChecks.length}`,
+    `  recoveryStages: ${publicationRollbackRecoveryReport.recoveryStages.length}`,
+    `  requiredRecoveryActions: ${publicationRollbackRecoveryReport.requiredRecoveryActions.length}`,
+    `  candidatePublished: ${publicationRollbackRecoveryReport.effects.thirdPartyRegistryPublished}`,
+    `  candidateRegistryExposed: ${publicationRollbackRecoveryReport.effects.candidateRegistryExposed}`,
+    `  liveRegistryMutated: ${publicationRollbackRecoveryReport.effects.liveRegistryMutated}`,
+    `  liveRegistrySwapped: ${publicationRollbackRecoveryReport.effects.liveRegistrySwapped}`,
+    `  previousRegistryReleased: ${publicationRollbackRecoveryReport.effects.previousRegistryReleased}`,
+    `  previousRegistryRestored: ${publicationRollbackRecoveryReport.effects.previousRegistryRestored}`,
+    `  packageFilesWritten: ${publicationRollbackRecoveryReport.effects.packageFilesWritten}`,
+    `  packageBackupsWritten: ${publicationRollbackRecoveryReport.effects.packageBackupsWritten}`,
+    `  lockfileWritten: ${publicationRollbackRecoveryReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${publicationRollbackRecoveryReport.effects.settingsWritten}`,
+    `  savesWritten: ${publicationRollbackRecoveryReport.effects.savesWritten}`,
+    `  cacheWritten: ${publicationRollbackRecoveryReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${publicationRollbackRecoveryReport.effects.transactionLogWritten}`,
+    `  recoveryLogRead: ${publicationRollbackRecoveryReport.effects.recoveryLogRead}`,
+    `  rollbackExecuted: ${publicationRollbackRecoveryReport.effects.rollbackExecuted}`,
+    `  diagnosticsWritten: ${publicationRollbackRecoveryReport.effects.diagnosticsWritten}`
+  ]
+  if (publicationRollbackRecoveryReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${publicationRollbackRecoveryReport.candidateIdentity.candidateHash}`)
+  }
+  if (publicationRollbackRecoveryReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${publicationRollbackRecoveryReport.lockfileHash}`)
+  }
+  if (publicationRollbackRecoveryReport.recoveryChecks.length > 0) {
+    lines.push('  recoveryChecks:')
+    for (const check of publicationRollbackRecoveryReport.recoveryChecks) {
+      lines.push(`    - ${check.id}: ${check.status}`)
+      lines.push(`      reason: ${check.reason}`)
+    }
+  }
+  if (publicationRollbackRecoveryReport.recoveryStages.length > 0) {
+    lines.push('  recovery stages:')
+    for (const stage of publicationRollbackRecoveryReport.recoveryStages) {
+      lines.push(`    - ${stage.id}: ${stage.status}`)
+      if (stage.actionIds.length > 0) {
+        lines.push(`      actions: ${stage.actionIds.join(', ')}`)
+      }
+      if (stage.rollbackCheckpointIds.length > 0) {
+        lines.push(`      rollbackCheckpoints: ${stage.rollbackCheckpointIds.join(', ')}`)
+      }
+      lines.push(`      reason: ${stage.reason}`)
+    }
+  }
+  if (publicationRollbackRecoveryReport.requiredRecoveryActions.length > 0) {
+    lines.push('  required recovery actions:')
+    for (const action of publicationRollbackRecoveryReport.requiredRecoveryActions) {
+      lines.push(`    - ${action.id}: ${action.status}`)
+      lines.push(`      reason: ${action.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = publicationRollbackRecoveryReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
+const formatRuntimePublicationCommitAdapterReport = runtimePublicationCommitAdapterReport => {
+  const lines = [
+    'Runtime Publication Commit Adapter:',
+    `  status: ${runtimePublicationCommitAdapterReport.status}`,
+    `  runtimePublicationPreflightStatus: ${runtimePublicationCommitAdapterReport.runtimePublicationPreflightStatus}`,
+    `  transactionPreCommitPlanStatus: ${runtimePublicationCommitAdapterReport.transactionPreCommitPlanStatus}`,
+    `  liveRegistrySwapProtectionStatus: ${runtimePublicationCommitAdapterReport.liveRegistrySwapProtectionStatus}`,
+    `  publicationRollbackRecoveryStatus: ${runtimePublicationCommitAdapterReport.publicationRollbackRecoveryStatus}`,
+    `  reason: ${runtimePublicationCommitAdapterReport.reason}`,
+    `  registryCount: ${runtimePublicationCommitAdapterReport.registryCount}`,
+    `  entryCount: ${runtimePublicationCommitAdapterReport.entryCount}`,
+    `  selectedPackageIds: ${runtimePublicationCommitAdapterReport.selectedPackageIds.length > 0 ? runtimePublicationCommitAdapterReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${runtimePublicationCommitAdapterReport.blockedPackageIds.length > 0 ? runtimePublicationCommitAdapterReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${runtimePublicationCommitAdapterReport.loadOrder.length > 0 ? runtimePublicationCommitAdapterReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${runtimePublicationCommitAdapterReport.packageCount}`,
+    `  runtimePublicationCommit: ${runtimePublicationCommitAdapterReport.runtimePublicationCommit}`,
+    `  commitAllowed: ${runtimePublicationCommitAdapterReport.commitAllowed}`,
+    `  publicationAllowed: ${runtimePublicationCommitAdapterReport.publicationAllowed}`,
+    `  writeAllowed: ${runtimePublicationCommitAdapterReport.writeAllowed}`,
+    `  liveRegistryMutable: ${runtimePublicationCommitAdapterReport.liveRegistryMutable}`,
+    `  rollbackExecutionAllowed: ${runtimePublicationCommitAdapterReport.rollbackExecutionAllowed}`,
+    `  commitChecks: ${runtimePublicationCommitAdapterReport.commitChecks.length}`,
+    `  commitStages: ${runtimePublicationCommitAdapterReport.commitStages.length}`,
+    `  requiredCommitAdapters: ${runtimePublicationCommitAdapterReport.requiredCommitAdapters.length}`,
+    `  candidatePublished: ${runtimePublicationCommitAdapterReport.effects.thirdPartyRegistryPublished}`,
+    `  candidateRegistryExposed: ${runtimePublicationCommitAdapterReport.effects.candidateRegistryExposed}`,
+    `  liveRegistryMutated: ${runtimePublicationCommitAdapterReport.effects.liveRegistryMutated}`,
+    `  liveRegistrySwapped: ${runtimePublicationCommitAdapterReport.effects.liveRegistrySwapped}`,
+    `  previousRegistryReleased: ${runtimePublicationCommitAdapterReport.effects.previousRegistryReleased}`,
+    `  previousRegistryRestored: ${runtimePublicationCommitAdapterReport.effects.previousRegistryRestored}`,
+    `  packageFilesWritten: ${runtimePublicationCommitAdapterReport.effects.packageFilesWritten}`,
+    `  packageBackupsWritten: ${runtimePublicationCommitAdapterReport.effects.packageBackupsWritten}`,
+    `  lockfileWritten: ${runtimePublicationCommitAdapterReport.effects.lockfileWritten}`,
+    `  settingsWritten: ${runtimePublicationCommitAdapterReport.effects.settingsWritten}`,
+    `  savesWritten: ${runtimePublicationCommitAdapterReport.effects.savesWritten}`,
+    `  cacheWritten: ${runtimePublicationCommitAdapterReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${runtimePublicationCommitAdapterReport.effects.transactionLogWritten}`,
+    `  recoveryLogRead: ${runtimePublicationCommitAdapterReport.effects.recoveryLogRead}`,
+    `  rollbackExecuted: ${runtimePublicationCommitAdapterReport.effects.rollbackExecuted}`,
+    `  diagnosticsWritten: ${runtimePublicationCommitAdapterReport.effects.diagnosticsWritten}`
+  ]
+  if (runtimePublicationCommitAdapterReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${runtimePublicationCommitAdapterReport.candidateIdentity.candidateHash}`)
+  }
+  if (runtimePublicationCommitAdapterReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${runtimePublicationCommitAdapterReport.lockfileHash}`)
+  }
+  if (runtimePublicationCommitAdapterReport.commitChecks.length > 0) {
+    lines.push('  commitChecks:')
+    for (const check of runtimePublicationCommitAdapterReport.commitChecks) {
+      lines.push(`    - ${check.id}: ${check.status}`)
+      lines.push(`      reason: ${check.reason}`)
+    }
+  }
+  if (runtimePublicationCommitAdapterReport.commitStages.length > 0) {
+    lines.push('  commit stages:')
+    for (const stage of runtimePublicationCommitAdapterReport.commitStages) {
+      lines.push(`    - ${stage.id}: ${stage.status}`)
+      if (stage.adapterIds.length > 0) {
+        lines.push(`      adapters: ${stage.adapterIds.join(', ')}`)
+      }
+      if (stage.writeBoundaryIds.length > 0) {
+        lines.push(`      writeBoundaries: ${stage.writeBoundaryIds.join(', ')}`)
+      }
+      if (stage.rollbackCheckpointIds.length > 0) {
+        lines.push(`      rollbackCheckpoints: ${stage.rollbackCheckpointIds.join(', ')}`)
+      }
+      lines.push(`      reason: ${stage.reason}`)
+    }
+  }
+  if (runtimePublicationCommitAdapterReport.requiredCommitAdapters.length > 0) {
+    lines.push('  required commit adapters:')
+    for (const adapter of runtimePublicationCommitAdapterReport.requiredCommitAdapters) {
+      lines.push(`    - ${adapter.id}: ${adapter.status}`)
+      lines.push(`      reason: ${adapter.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = runtimePublicationCommitAdapterReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
+const formatRecoveryLogReplayRestoreAdapterReport = recoveryLogReplayRestoreAdapterReport => {
+  const lines = [
+    'Recovery Log Replay Restore Adapter:',
+    `  status: ${recoveryLogReplayRestoreAdapterReport.status}`,
+    `  publicationRollbackRecoveryStatus: ${recoveryLogReplayRestoreAdapterReport.publicationRollbackRecoveryStatus}`,
+    `  runtimePublicationCommitAdapterStatus: ${recoveryLogReplayRestoreAdapterReport.runtimePublicationCommitAdapterStatus}`,
+    `  reason: ${recoveryLogReplayRestoreAdapterReport.reason}`,
+    `  registryCount: ${recoveryLogReplayRestoreAdapterReport.registryCount}`,
+    `  entryCount: ${recoveryLogReplayRestoreAdapterReport.entryCount}`,
+    `  selectedPackageIds: ${recoveryLogReplayRestoreAdapterReport.selectedPackageIds.length > 0 ? recoveryLogReplayRestoreAdapterReport.selectedPackageIds.join(', ') : '(empty)'}`,
+    `  blockedPackageIds: ${recoveryLogReplayRestoreAdapterReport.blockedPackageIds.length > 0 ? recoveryLogReplayRestoreAdapterReport.blockedPackageIds.join(', ') : '(empty)'}`,
+    `  loadOrder: ${recoveryLogReplayRestoreAdapterReport.loadOrder.length > 0 ? recoveryLogReplayRestoreAdapterReport.loadOrder.join(', ') : '(empty)'}`,
+    `  packageCount: ${recoveryLogReplayRestoreAdapterReport.packageCount}`,
+    `  recoveryLogReplayRestore: ${recoveryLogReplayRestoreAdapterReport.recoveryLogReplayRestore}`,
+    `  recoveryLogReplayAllowed: ${recoveryLogReplayRestoreAdapterReport.recoveryLogReplayAllowed}`,
+    `  persistentRestoreAllowed: ${recoveryLogReplayRestoreAdapterReport.persistentRestoreAllowed}`,
+    `  writeAllowed: ${recoveryLogReplayRestoreAdapterReport.writeAllowed}`,
+    `  liveRegistryMutable: ${recoveryLogReplayRestoreAdapterReport.liveRegistryMutable}`,
+    `  rollbackExecutionAllowed: ${recoveryLogReplayRestoreAdapterReport.rollbackExecutionAllowed}`,
+    `  replayRestoreChecks: ${recoveryLogReplayRestoreAdapterReport.replayRestoreChecks.length}`,
+    `  replayRestoreStages: ${recoveryLogReplayRestoreAdapterReport.replayRestoreStages.length}`,
+    `  requiredReplayRestoreAdapters: ${recoveryLogReplayRestoreAdapterReport.requiredReplayRestoreAdapters.length}`,
+    `  candidatePublished: ${recoveryLogReplayRestoreAdapterReport.effects.thirdPartyRegistryPublished}`,
+    `  candidateRegistryExposed: ${recoveryLogReplayRestoreAdapterReport.effects.candidateRegistryExposed}`,
+    `  liveRegistryMutated: ${recoveryLogReplayRestoreAdapterReport.effects.liveRegistryMutated}`,
+    `  liveRegistrySwapped: ${recoveryLogReplayRestoreAdapterReport.effects.liveRegistrySwapped}`,
+    `  previousRegistryRestored: ${recoveryLogReplayRestoreAdapterReport.effects.previousRegistryRestored}`,
+    `  packageFilesWritten: ${recoveryLogReplayRestoreAdapterReport.effects.packageFilesWritten}`,
+    `  packageBackupsWritten: ${recoveryLogReplayRestoreAdapterReport.effects.packageBackupsWritten}`,
+    `  packageFilesRestored: ${recoveryLogReplayRestoreAdapterReport.effects.packageFilesRestored}`,
+    `  lockfileWritten: ${recoveryLogReplayRestoreAdapterReport.effects.lockfileWritten}`,
+    `  lockfileRestored: ${recoveryLogReplayRestoreAdapterReport.effects.lockfileRestored}`,
+    `  settingsWritten: ${recoveryLogReplayRestoreAdapterReport.effects.settingsWritten}`,
+    `  settingsRestored: ${recoveryLogReplayRestoreAdapterReport.effects.settingsRestored}`,
+    `  savesWritten: ${recoveryLogReplayRestoreAdapterReport.effects.savesWritten}`,
+    `  cacheWritten: ${recoveryLogReplayRestoreAdapterReport.effects.cacheWritten}`,
+    `  transactionLogWritten: ${recoveryLogReplayRestoreAdapterReport.effects.transactionLogWritten}`,
+    `  recoveryLogRead: ${recoveryLogReplayRestoreAdapterReport.effects.recoveryLogRead}`,
+    `  recoveryLogReplayed: ${recoveryLogReplayRestoreAdapterReport.effects.recoveryLogReplayed}`,
+    `  rollbackExecuted: ${recoveryLogReplayRestoreAdapterReport.effects.rollbackExecuted}`,
+    `  diagnosticsWritten: ${recoveryLogReplayRestoreAdapterReport.effects.diagnosticsWritten}`
+  ]
+  if (recoveryLogReplayRestoreAdapterReport.candidateIdentity) {
+    lines.push(`  candidateHash: ${recoveryLogReplayRestoreAdapterReport.candidateIdentity.candidateHash}`)
+  }
+  if (recoveryLogReplayRestoreAdapterReport.lockfileHash) {
+    lines.push(`  lockfileHash: ${recoveryLogReplayRestoreAdapterReport.lockfileHash}`)
+  }
+  if (recoveryLogReplayRestoreAdapterReport.replayRestoreChecks.length > 0) {
+    lines.push('  replayRestoreChecks:')
+    for (const check of recoveryLogReplayRestoreAdapterReport.replayRestoreChecks) {
+      lines.push(`    - ${check.id}: ${check.status}`)
+      lines.push(`      reason: ${check.reason}`)
+    }
+  }
+  if (recoveryLogReplayRestoreAdapterReport.replayRestoreStages.length > 0) {
+    lines.push('  replay restore stages:')
+    for (const stage of recoveryLogReplayRestoreAdapterReport.replayRestoreStages) {
+      lines.push(`    - ${stage.id}: ${stage.status}`)
+      if (stage.adapterIds.length > 0) {
+        lines.push(`      adapters: ${stage.adapterIds.join(', ')}`)
+      }
+      if (stage.recoveryActionIds.length > 0) {
+        lines.push(`      recoveryActions: ${stage.recoveryActionIds.join(', ')}`)
+      }
+      if (stage.upstreamStageIds.length > 0) {
+        lines.push(`      upstreamStages: ${stage.upstreamStageIds.join(', ')}`)
+      }
+      lines.push(`      reason: ${stage.reason}`)
+    }
+  }
+  if (recoveryLogReplayRestoreAdapterReport.requiredReplayRestoreAdapters.length > 0) {
+    lines.push('  required replay restore adapters:')
+    for (const adapter of recoveryLogReplayRestoreAdapterReport.requiredReplayRestoreAdapters) {
+      lines.push(`    - ${adapter.id}: ${adapter.status}`)
+      lines.push(`      reason: ${adapter.reason}`)
+    }
+  }
+
+  const visibleDiagnostics = recoveryLogReplayRestoreAdapterReport.diagnostics
+    .filter(diagnostic => diagnostic.severity === 'error' || diagnostic.severity === 'fatal')
+  if (visibleDiagnostics.length > 0) {
+    lines.push('  diagnostics:')
+    for (const diagnostic of visibleDiagnostics.slice(0, 20)) {
+      lines.push(formatDiagnostic(diagnostic).replace(/^/gm, '  '))
+    }
+    if (visibleDiagnostics.length > 20) {
+      lines.push(`    ... ${visibleDiagnostics.length - 20} more diagnostic(s)`)
+    }
+  }
+  return lines.join('\n')
+}
+
 const formatSourceAdapterGateReport = sourceAdapterGateReport => {
   const lines = [
     'Source Adapter Gate:',
@@ -1110,6 +1638,7 @@ const formatSourceAdapterGateReport = sourceAdapterGateReport => {
     `  contentPackageSourceContractStable: ${sourceAdapterGateReport.contentPackageSourceContractStable}`,
     `  runtimeEnablementAllowed: ${sourceAdapterGateReport.runtimeEnablementAllowed}`,
     `  requiredSourceContracts: ${sourceAdapterGateReport.requiredSourceContracts.length}`,
+    `  requiredPlatformSourceAdapters: ${sourceAdapterGateReport.requiredPlatformSourceAdapters.length}`,
     `  candidatePublished: ${sourceAdapterGateReport.effects.thirdPartyRegistryPublished}`,
     `  electronIpcExposed: ${sourceAdapterGateReport.effects.electronIpcExposed}`,
     `  webImportPersisted: ${sourceAdapterGateReport.effects.webImportPersisted}`,
@@ -1133,6 +1662,14 @@ const formatSourceAdapterGateReport = sourceAdapterGateReport => {
     lines.push('  sourceContracts:')
     for (const requirement of sourceAdapterGateReport.requiredSourceContracts) {
       lines.push(`    - ${requirement.id}: ${requirement.status}`)
+      lines.push(`      reason: ${requirement.reason}`)
+    }
+  }
+  if (sourceAdapterGateReport.requiredPlatformSourceAdapters.length > 0) {
+    lines.push('  platformSourceAdapters:')
+    for (const requirement of sourceAdapterGateReport.requiredPlatformSourceAdapters) {
+      lines.push(`    - ${requirement.id}: ${requirement.status}`)
+      lines.push(`      sourceKind: ${requirement.sourceKind}`)
       lines.push(`      reason: ${requirement.reason}`)
     }
   }
@@ -1163,6 +1700,12 @@ export const formatDiscoveryReport = (
   runtimeMountGateReport,
   transactionPreflightReport,
   runtimeAdapterGateReport,
+  runtimePublicationPreflightReport,
+  transactionPreCommitPlanReport,
+  liveRegistrySwapProtectionReport,
+  publicationRollbackRecoveryReport,
+  runtimePublicationCommitAdapterReport,
+  recoveryLogReplayRestoreAdapterReport,
   sourceAdapterGateReport
 ) => {
   const lines = [
@@ -1230,11 +1773,35 @@ export const formatDiscoveryReport = (
     lines.push('', formatRuntimeAdapterGateReport(runtimeAdapterGateReport))
   }
 
+  if (runtimePublicationPreflightReport) {
+    lines.push('', formatRuntimePublicationPreflightReport(runtimePublicationPreflightReport))
+  }
+
+  if (transactionPreCommitPlanReport) {
+    lines.push('', formatTransactionPreCommitPlanReport(transactionPreCommitPlanReport))
+  }
+
+  if (liveRegistrySwapProtectionReport) {
+    lines.push('', formatLiveRegistrySwapProtectionReport(liveRegistrySwapProtectionReport))
+  }
+
+  if (publicationRollbackRecoveryReport) {
+    lines.push('', formatPublicationRollbackRecoveryReport(publicationRollbackRecoveryReport))
+  }
+
+  if (runtimePublicationCommitAdapterReport) {
+    lines.push('', formatRuntimePublicationCommitAdapterReport(runtimePublicationCommitAdapterReport))
+  }
+
+  if (recoveryLogReplayRestoreAdapterReport) {
+    lines.push('', formatRecoveryLogReplayRestoreAdapterReport(recoveryLogReplayRestoreAdapterReport))
+  }
+
   if (sourceAdapterGateReport) {
     lines.push('', formatSourceAdapterGateReport(sourceAdapterGateReport))
   }
 
-  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport, sourceAdapterGateReport) ? 'FAILED' : 'OK'}`)
+  lines.push('', `Result: ${reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport, runtimePublicationPreflightReport, transactionPreCommitPlanReport, liveRegistrySwapProtectionReport, publicationRollbackRecoveryReport, runtimePublicationCommitAdapterReport, recoveryLogReplayRestoreAdapterReport, sourceAdapterGateReport) ? 'FAILED' : 'OK'}`)
 
   return `${lines.join('\n')}\n`
 }
@@ -1250,9 +1817,15 @@ export const exitCodeForReport = (
   runtimeMountGateReport,
   transactionPreflightReport,
   runtimeAdapterGateReport,
+  runtimePublicationPreflightReport,
+  transactionPreCommitPlanReport,
+  liveRegistrySwapProtectionReport,
+  publicationRollbackRecoveryReport,
+  runtimePublicationCommitAdapterReport,
+  recoveryLogReplayRestoreAdapterReport,
   sourceAdapterGateReport
 ) =>
-  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport, sourceAdapterGateReport) ? 1 : 0
+  reportHasFailure(report, selectionReport, repairReport, candidateSnapshotReport, lockfileDraftReport, mountPreflightReport, mountInputReport, runtimeMountGateReport, transactionPreflightReport, runtimeAdapterGateReport, runtimePublicationPreflightReport, transactionPreCommitPlanReport, liveRegistrySwapProtectionReport, publicationRollbackRecoveryReport, runtimePublicationCommitAdapterReport, recoveryLogReplayRestoreAdapterReport, sourceAdapterGateReport) ? 1 : 0
 
 const usage = () => [
   'Usage: pnpm run mod:check-packs -- <directory>',
@@ -1307,6 +1880,12 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       buildThirdPartyDataPackTransactionPreflight,
       buildThirdPartyDataPackRuntimeAdapterGate,
       buildThirdPartyDataPackSourceAdapterGate,
+      buildThirdPartyDataPackRuntimePublicationPreflight,
+      buildThirdPartyDataPackTransactionPreCommitPlan,
+      buildThirdPartyDataPackLiveRegistrySwapProtection,
+      buildThirdPartyDataPackPublicationRollbackRecovery,
+      buildThirdPartyDataPackRuntimePublicationCommitAdapter,
+      buildThirdPartyDataPackRecoveryLogReplayRestoreAdapter,
       CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
       createDiscoveryFileSystemFromContentPackageSource,
       readContentPackageSourceIdentity,
@@ -1401,6 +1980,105 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       transactionPreflight: transactionPreflightReport,
       runtimeAdapterGate: runtimeAdapterGateReport
     })
+    const runtimePublicationPreflightReport = buildThirdPartyDataPackRuntimePublicationPreflight({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport,
+      runtimeAdapterGate: runtimeAdapterGateReport,
+      sourceAdapterGate: sourceAdapterGateReport
+    })
+    const transactionPreCommitPlanReport = buildThirdPartyDataPackTransactionPreCommitPlan({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport,
+      runtimeAdapterGate: runtimeAdapterGateReport,
+      sourceAdapterGate: sourceAdapterGateReport,
+      runtimePublicationPreflight: runtimePublicationPreflightReport
+    })
+    const liveRegistrySwapProtectionReport = buildThirdPartyDataPackLiveRegistrySwapProtection({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport,
+      runtimeAdapterGate: runtimeAdapterGateReport,
+      sourceAdapterGate: sourceAdapterGateReport,
+      runtimePublicationPreflight: runtimePublicationPreflightReport,
+      transactionPreCommitPlan: transactionPreCommitPlanReport
+    })
+    const publicationRollbackRecoveryReport = buildThirdPartyDataPackPublicationRollbackRecovery({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport,
+      runtimeAdapterGate: runtimeAdapterGateReport,
+      sourceAdapterGate: sourceAdapterGateReport,
+      runtimePublicationPreflight: runtimePublicationPreflightReport,
+      transactionPreCommitPlan: transactionPreCommitPlanReport,
+      liveRegistrySwapProtection: liveRegistrySwapProtectionReport
+    })
+    const runtimePublicationCommitAdapterReport = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport,
+      runtimeAdapterGate: runtimeAdapterGateReport,
+      sourceAdapterGate: sourceAdapterGateReport,
+      runtimePublicationPreflight: runtimePublicationPreflightReport,
+      transactionPreCommitPlan: transactionPreCommitPlanReport,
+      liveRegistrySwapProtection: liveRegistrySwapProtectionReport,
+      publicationRollbackRecovery: publicationRollbackRecoveryReport
+    })
+    const recoveryLogReplayRestoreAdapterReport = buildThirdPartyDataPackRecoveryLogReplayRestoreAdapter({
+      officialRegistrySet,
+      discoveryReport: report,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotReport,
+      lockfileDraftResult: draftResult,
+      lockfileValidationResult: validationResult,
+      preflight: mountPreflightReport,
+      mountInput: mountInputReport,
+      runtimeGate: runtimeMountGateReport,
+      transactionPreflight: transactionPreflightReport,
+      runtimeAdapterGate: runtimeAdapterGateReport,
+      sourceAdapterGate: sourceAdapterGateReport,
+      runtimePublicationPreflight: runtimePublicationPreflightReport,
+      transactionPreCommitPlan: transactionPreCommitPlanReport,
+      liveRegistrySwapProtection: liveRegistrySwapProtectionReport,
+      publicationRollbackRecovery: publicationRollbackRecoveryReport,
+      runtimePublicationCommitAdapter: runtimePublicationCommitAdapterReport
+    })
     stdout.write(formatDiscoveryReport(
       scanRoot,
       discoveryInput.sourceIdentity,
@@ -1414,6 +2092,12 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       runtimeMountGateReport,
       transactionPreflightReport,
       runtimeAdapterGateReport,
+      runtimePublicationPreflightReport,
+      transactionPreCommitPlanReport,
+      liveRegistrySwapProtectionReport,
+      publicationRollbackRecoveryReport,
+      runtimePublicationCommitAdapterReport,
+      recoveryLogReplayRestoreAdapterReport,
       sourceAdapterGateReport
     ))
     return exitCodeForReport(
@@ -1427,6 +2111,12 @@ export const runCheckPacksCli = async(argv, streams = {}) => {
       runtimeMountGateReport,
       transactionPreflightReport,
       runtimeAdapterGateReport,
+      runtimePublicationPreflightReport,
+      transactionPreCommitPlanReport,
+      liveRegistrySwapProtectionReport,
+      publicationRollbackRecoveryReport,
+      runtimePublicationCommitAdapterReport,
+      recoveryLogReplayRestoreAdapterReport,
       sourceAdapterGateReport
     )
   } catch (error) {

@@ -1,0 +1,55 @@
+import {
+  createThirdPartyDataPackElectronStartupPersistentStateSourceAdapterBridge,
+  THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND,
+  THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE
+} from './thirdPartyDataPackElectronStartupPersistentStateSourceAdapterBridge'
+import type {
+  ThirdPartyDataPackElectronStartupPersistentStateSourceHost
+} from './thirdPartyDataPackElectronStartupPersistentStateSourceHost'
+import type {
+  ThirdPartyDataPackStartupGatePersistentStatePreflightResult
+} from './thirdPartyDataPackStartupGatePersistentStatePreflight'
+import {
+  executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter,
+  type ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
+} from './thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
+
+export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_EXECUTION_KIND =
+  'electron-startup-persistent-state-source-adapter-execution'
+export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_EXECUTION_MODE =
+  'electron-program-directory-readonly-source-host-execution'
+
+export interface ThirdPartyDataPackElectronStartupPersistentStateSourceAdapterExecutionResult {
+  readonly kind: typeof THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_EXECUTION_KIND
+  readonly mode: typeof THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_EXECUTION_MODE
+  readonly platform: 'electron'
+  readonly bridgeKind: typeof THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND
+  readonly bridgeMode: typeof THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE
+  readonly adapterResult: ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
+}
+
+export interface ExecuteThirdPartyDataPackElectronStartupPersistentStateSourceAdapterOptions {
+  readonly preflight: ThirdPartyDataPackStartupGatePersistentStatePreflightResult
+  readonly electronHost: ThirdPartyDataPackElectronStartupPersistentStateSourceHost
+}
+
+export const executeThirdPartyDataPackElectronStartupPersistentStateSourceAdapter = async(
+  options: ExecuteThirdPartyDataPackElectronStartupPersistentStateSourceAdapterOptions
+): Promise<ThirdPartyDataPackElectronStartupPersistentStateSourceAdapterExecutionResult> => {
+  const bridge = createThirdPartyDataPackElectronStartupPersistentStateSourceAdapterBridge(
+    options.electronHost
+  )
+  const adapterResult = await executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter({
+    preflight: options.preflight,
+    host: bridge.host
+  })
+
+  return Object.freeze({
+    kind: THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_EXECUTION_KIND,
+    mode: THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_EXECUTION_MODE,
+    platform: 'electron',
+    bridgeKind: THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND,
+    bridgeMode: THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE,
+    adapterResult
+  })
+}

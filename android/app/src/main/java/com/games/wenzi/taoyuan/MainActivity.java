@@ -29,6 +29,7 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        registerPlugin(TaoyuanModImportPlugin.class);
         super.onCreate(savedInstanceState);
 
         // 沉浸式状态栏

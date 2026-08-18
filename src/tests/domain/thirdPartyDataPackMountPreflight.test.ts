@@ -252,6 +252,17 @@ const expectOfficialBaseline = (): void => {
   })
 }
 
+const createHostileArray = <T>(items: readonly T[], label: string, lengthReads: string[]): readonly T[] =>
+  new Proxy([...items], {
+    get(target, property, receiver) {
+      if (property === 'length') {
+        lengthReads.push(label)
+        throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${label}`)
+      }
+      return Reflect.get(target, property, receiver)
+    }
+  })
+
 describe('third-party data pack mount preflight', () => {
   it('marks valid candidate and lockfile drafts ready without publishing runtime state', async() => {
     const root = await createRoot()
@@ -321,6 +332,131 @@ describe('third-party data pack mount preflight', () => {
       effects: preflight.effects,
       rollback: preflight.rollback
     })).toBe(frozenOutputSnapshot)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies candidate snapshot package summaries without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult } = await buildReportsFromRoot(root)
+    const lengthReads: string[] = []
+    const selectedPackageIds = createHostileArray(
+      candidateSnapshot.selectedPackageIds,
+      'mount-preflight-selected-package-ids-length',
+      lengthReads
+    )
+    const blockedPackageIds = createHostileArray(
+      ['blocked_pack' as PackageId],
+      'mount-preflight-blocked-package-ids-length',
+      lengthReads
+    )
+    const blockedCandidatePaths = createHostileArray(
+      ['blocked-pack'],
+      'mount-preflight-blocked-candidate-paths-length',
+      lengthReads
+    )
+    const loadOrder = createHostileArray(
+      candidateSnapshot.loadOrder,
+      'mount-preflight-load-order-length',
+      lengthReads
+    )
+    const candidateSnapshotWithSummaries: ThirdPartyCandidateRegistrySnapshotResult = {
+      ...candidateSnapshot,
+      selectedPackageIds,
+      blockedPackageIds,
+      blockedCandidatePaths,
+      loadOrder
+    }
+
+    const preflight = buildThirdPartyDataPackMountPreflight({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotWithSummaries,
+      lockfileDraftResult,
+      lockfileValidationResult
+    })
+
+    expect(preflight.status).toBe('ready')
+    expect(lengthReads).toEqual([])
+    expect(preflight.selectedPackageIds).toEqual(['discovery_valid'])
+    expect(preflight.blockedPackageIds).toEqual(['blocked_pack'])
+    expect(preflight.blockedCandidatePaths).toEqual(['blocked-pack'])
+    expect(preflight.loadOrder).toEqual(['discovery_valid'])
+    expect(Object.is(preflight.selectedPackageIds, selectedPackageIds)).toBe(false)
+    expect(Object.is(preflight.blockedPackageIds, blockedPackageIds)).toBe(false)
+    expect(Object.is(preflight.blockedCandidatePaths, blockedCandidatePaths)).toBe(false)
+    expect(Object.is(preflight.loadOrder, loadOrder)).toBe(false)
+    expect(Object.isFrozen(preflight.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(preflight.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(preflight.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(preflight.loadOrder)).toBe(true)
+    expect(JSON.stringify(preflight)).not.toContain('C:/Users')
+    expect(JSON.stringify(preflight)).not.toContain('LENOVO')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-selected-package-ids-length')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-blocked-package-ids-length')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-blocked-candidate-paths-length')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-load-order-length')
+    expectReadOnlyEffects(preflight)
+    expectFrozenPreflightOutput(preflight)
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies candidate snapshot diagnostics without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const { officialRegistrySet, discoveryReport, selectionReport, candidateSnapshot, lockfileDraftResult, lockfileValidationResult } = await buildReportsFromRoot(root)
+    const lengthReads: string[] = []
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.mount-preflight.proxy-diagnostics',
+      severity: 'warning',
+      packageId: 'discovery_valid' as PackageId,
+      relatedPackageIds: ['discovery_valid' as PackageId],
+      details: {
+        reason: 'proxy diagnostics array'
+      }
+    })
+    const diagnostics = createHostileArray(
+      [upstreamDiagnostic],
+      'mount-preflight-diagnostics-length',
+      lengthReads
+    )
+    const candidateSnapshotWithDiagnostic: ThirdPartyCandidateRegistrySnapshotResult = {
+      ...candidateSnapshot,
+      diagnostics
+    }
+
+    const preflight = buildThirdPartyDataPackMountPreflight({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport,
+      candidateSnapshot: candidateSnapshotWithDiagnostic,
+      lockfileDraftResult,
+      lockfileValidationResult
+    })
+    const candidateStage = preflight.stages.find(stage => stage.name === 'candidate-snapshot')
+    if (!candidateStage) throw new Error('Expected candidate snapshot stage.')
+
+    expect(preflight.status).toBe('ready')
+    expect(lengthReads).toEqual([])
+    expect(candidateStage.diagnostics).toEqual([upstreamDiagnostic])
+    expect(preflight.diagnostics).toEqual([upstreamDiagnostic])
+    expect(Object.is(candidateStage.diagnostics, diagnostics)).toBe(false)
+    expect(Object.is(preflight.diagnostics, diagnostics)).toBe(false)
+    expect(Object.is(candidateStage.diagnostics[0], upstreamDiagnostic)).toBe(false)
+    expect(Object.is(preflight.diagnostics[0], upstreamDiagnostic)).toBe(false)
+    expect(Object.is(candidateStage.diagnostics[0], preflight.diagnostics[0])).toBe(false)
+    expect(Object.isFrozen(candidateStage.diagnostics)).toBe(true)
+    expect(Object.isFrozen(preflight.diagnostics)).toBe(true)
+    expect(Object.isFrozen(candidateStage.diagnostics[0])).toBe(true)
+    expect(Object.isFrozen(preflight.diagnostics[0])).toBe(true)
+    expect(JSON.stringify(preflight)).not.toContain('C:/Users')
+    expect(JSON.stringify(preflight)).not.toContain('LENOVO')
+    expect(JSON.stringify(preflight)).not.toContain('mount-preflight-diagnostics-length')
+    expectReadOnlyEffects(preflight)
+    expectFrozenPreflightOutput(preflight)
     expectOfficialBaseline()
   }, 15_000)
 

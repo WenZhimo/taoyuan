@@ -92,6 +92,17 @@ interface CandidateContentSource {
   readonly index: number
 }
 
+interface CandidateSelectionSummary {
+  readonly selectedPackages: readonly {
+    readonly packageId: PackageId
+    readonly version: string
+  }[]
+  readonly selectedPackageIds: readonly PackageId[]
+  readonly blockedPackageIds: readonly PackageId[]
+  readonly blockedCandidatePaths: readonly string[]
+  readonly loadOrder: readonly PackageId[]
+}
+
 const schemaEntries = Object.entries(OFFICIAL_REGISTRY_SCHEMAS) as Array<
   [string, TSchema]
 >
@@ -170,6 +181,74 @@ const readJsonArrayLength = (value: readonly unknown[]): number | undefined => {
     && descriptor.value >= 0
     ? descriptor.value
     : undefined
+}
+
+const readOwnArrayEntries = (value: unknown): unknown[] => {
+  if (!Array.isArray(value)) return []
+  const length = readJsonArrayLength(value)
+  if (length === undefined) return []
+
+  const result: unknown[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(descriptor.value)
+    }
+  }
+  return result
+}
+
+const readOwnStringField = (value: unknown, fieldName: string): string | undefined => {
+  if (value === null || typeof value !== 'object') return undefined
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, fieldName)
+  } catch {
+    return undefined
+  }
+  return descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string'
+    ? descriptor.value
+    : undefined
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  readOwnArrayEntries(value)
+    .filter((item): item is string => typeof item === 'string')
+    .map(item => item as PackageId)
+
+const createCandidateSelectionSummary = (
+  selectionReport: ThirdPartyDataPackSelectionReport
+): CandidateSelectionSummary => {
+  const selectedPackages: Array<{ readonly packageId: PackageId; readonly version: string }> = []
+  const selectedPackageIds: PackageId[] = []
+  for (const item of readOwnArrayEntries(selectionReport.selectedPackages)) {
+    const packageId = readOwnStringField(item, 'packageId') as PackageId | undefined
+    const version = readOwnStringField(item, 'version')
+    if (packageId !== undefined) selectedPackageIds.push(packageId)
+    if (packageId !== undefined && version !== undefined) selectedPackages.push({ packageId, version })
+  }
+
+  const blockedPackageIds: PackageId[] = []
+  const blockedCandidatePaths: string[] = []
+  for (const item of readOwnArrayEntries(selectionReport.blockedPackages)) {
+    const packageId = readOwnStringField(item, 'packageId') as PackageId | undefined
+    const path = readOwnStringField(item, 'path')
+    if (packageId !== undefined) blockedPackageIds.push(packageId)
+    if (path !== undefined) blockedCandidatePaths.push(path)
+  }
+
+  return {
+    selectedPackages,
+    selectedPackageIds,
+    blockedPackageIds,
+    blockedCandidatePaths,
+    loadOrder: clonePackageIds(selectionReport.loadOrder)
+  }
 }
 
 const cloneJsonValue = (value: JsonValue): JsonValue => {
@@ -271,8 +350,25 @@ const cloneDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => {
   }
 }
 
-const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] =>
-  diagnostics.map(diagnostic => cloneDiagnostic(diagnostic))
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return []
+  const length = readJsonArrayLength(diagnostics)
+  if (length === undefined) return []
+
+  const result: ModDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(cloneDiagnostic(descriptor.value as ModDiagnostic))
+    }
+  }
+  return result
+}
 
 const deepFreezeObjectGraph = <T>(value: T): T => {
   if (value && typeof value === 'object') {
@@ -334,6 +430,7 @@ const createBaseResult = (
     officialRegistrySet: RegistrySet
     discoveryReport: ThirdPartyDataPackDiscoveryReport
     selectionReport: ThirdPartyDataPackSelectionReport
+    selectionSummary: CandidateSelectionSummary
     diagnostics: readonly ModDiagnostic[]
   }
 ): ThirdPartyCandidateRegistrySnapshotResult => {
@@ -341,12 +438,10 @@ const createBaseResult = (
   return freezeCandidateRegistrySnapshotResult({
     status: options.status,
     sourceSummary: createSourceSummary(options.discoveryReport, options.selectionReport),
-    selectedPackageIds: options.selectionReport.selectedPackages.map(item => item.packageId),
-    blockedPackageIds: options.selectionReport.blockedPackages
-      .map(item => item.packageId)
-      .filter((packageId): packageId is PackageId => packageId !== undefined),
-    blockedCandidatePaths: options.selectionReport.blockedPackages.map(item => item.path),
-    loadOrder: [...options.selectionReport.loadOrder],
+    selectedPackageIds: options.selectionSummary.selectedPackageIds,
+    blockedPackageIds: options.selectionSummary.blockedPackageIds,
+    blockedCandidatePaths: options.selectionSummary.blockedCandidatePaths,
+    loadOrder: options.selectionSummary.loadOrder,
     diagnostics: cloneDiagnostics(options.diagnostics),
     registryCount: officialIdentity.registryCount,
     entryCount: officialIdentity.entryCount,
@@ -379,12 +474,20 @@ const cloneRegistrySetForCandidate = (officialRegistrySet: RegistrySet): Registr
   return candidate
 }
 
+const collectIssueDiagnostics = (
+  issues: readonly { readonly diagnostics: readonly ModDiagnostic[] }[]
+): ModDiagnostic[] => {
+  const result: ModDiagnostic[] = []
+  for (const issue of issues) result.push(...cloneDiagnostics(issue.diagnostics))
+  return result
+}
+
 const collectReportDiagnostics = (
   discoveryReport: ThirdPartyDataPackDiscoveryReport,
   selectionReport: ThirdPartyDataPackSelectionReport
 ): ModDiagnostic[] => [
-  ...discoveryReport.issues.flatMap(issue => issue.diagnostics),
-  ...selectionReport.issues.flatMap(issue => issue.diagnostics)
+  ...collectIssueDiagnostics(discoveryReport.issues),
+  ...collectIssueDiagnostics(selectionReport.issues)
 ]
 
 const createCandidateDiagnostic = (
@@ -501,17 +604,14 @@ const createThirdPartyDuplicateDiagnostic = (
 const createCandidateIdentity = (
   snapshot: SerializableRegistrySnapshot,
   officialIdentity: ThirdPartyCandidateOfficialIdentitySummary,
-  selectionReport: ThirdPartyDataPackSelectionReport
+  selectionSummary: CandidateSelectionSummary
 ): ThirdPartyCandidateIdentitySummary => {
   const contentHash = createOfficialContentHash(snapshot)
   const identityBody = {
     formatVersion: 1,
     officialIdentity,
-    selectedPackages: selectionReport.selectedPackages.map(item => ({
-      packageId: item.packageId,
-      version: item.version
-    })),
-    loadOrder: [...selectionReport.loadOrder],
+    selectedPackages: selectionSummary.selectedPackages,
+    loadOrder: selectionSummary.loadOrder,
     contentHash,
     snapshotHash: snapshot.snapshotHash
   }
@@ -526,13 +626,13 @@ const createCandidateIdentity = (
 const registerSelectedThirdPartyEntries = (
   candidateRegistrySet: RegistrySet,
   discoveryReport: ThirdPartyDataPackDiscoveryReport,
-  selectionReport: ThirdPartyDataPackSelectionReport
+  loadOrder: readonly PackageId[]
 ): ModDiagnostic[] => {
   const diagnostics: ModDiagnostic[] = []
   const candidates = candidateByPackageId(discoveryReport)
   const registeredThirdPartySources = new Map<string, CandidateContentSource>()
 
-  for (const packageId of selectionReport.loadOrder) {
+  for (const packageId of loadOrder) {
     const candidate = candidates.get(packageId)
     if (!candidate) {
       diagnostics.push(createCandidateDiagnostic('PKG-DISCOVERY-001', {
@@ -601,6 +701,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
   options: BuildThirdPartyCandidateRegistrySnapshotOptions
 ): ThirdPartyCandidateRegistrySnapshotResult => {
   const selectionReport = options.selectionReport ?? selectThirdPartyDataPacks(options.discoveryReport)
+  const selectionSummary = createCandidateSelectionSummary(selectionReport)
   const reportDiagnostics = collectReportDiagnostics(options.discoveryReport, selectionReport)
 
   if (options.discoveryReport.status === 'directory-not-found') {
@@ -609,6 +710,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport: options.discoveryReport,
       selectionReport,
+      selectionSummary,
       diagnostics: reportDiagnostics
     })
   }
@@ -619,16 +721,18 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport: options.discoveryReport,
       selectionReport,
+      selectionSummary,
       diagnostics: reportDiagnostics
     })
   }
 
-  if (selectionReport.loadOrder.length === 0) {
+  if (selectionSummary.loadOrder.length === 0) {
     return createBaseResult({
       status: 'skipped',
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport: options.discoveryReport,
       selectionReport,
+      selectionSummary,
       diagnostics: reportDiagnostics
     })
   }
@@ -637,7 +741,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
   const registrationDiagnostics = registerSelectedThirdPartyEntries(
     candidateRegistrySet,
     options.discoveryReport,
-    selectionReport
+    selectionSummary.loadOrder
   )
   const structureDiagnostics = registrationDiagnostics.some(isBlockingDiagnostic)
     ? []
@@ -658,6 +762,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport: options.discoveryReport,
       selectionReport,
+      selectionSummary,
       diagnostics
     })
   }
@@ -670,6 +775,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport: options.discoveryReport,
       selectionReport,
+      selectionSummary,
       diagnostics: [
         ...diagnostics,
         error instanceof RegistryError
@@ -690,6 +796,7 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport: options.discoveryReport,
       selectionReport,
+      selectionSummary,
       diagnostics: [
         ...diagnostics,
         createCandidateDiagnostic('REG-FROZEN-001', {
@@ -706,14 +813,14 @@ export const buildThirdPartyCandidateRegistrySnapshot = (
   return freezeCandidateRegistrySnapshotResult({
     status: 'valid',
     sourceSummary: createSourceSummary(options.discoveryReport, selectionReport),
-    selectedPackageIds: selectionReport.selectedPackages.map(item => item.packageId),
+    selectedPackageIds: selectionSummary.selectedPackageIds,
     blockedPackageIds: [],
     blockedCandidatePaths: [],
-    loadOrder: [...selectionReport.loadOrder],
+    loadOrder: selectionSummary.loadOrder,
     diagnostics: cloneDiagnostics(diagnostics),
     ...counts,
     officialIdentity,
-    candidateIdentity: createCandidateIdentity(candidateSnapshot, officialIdentity, selectionReport),
+    candidateIdentity: createCandidateIdentity(candidateSnapshot, officialIdentity, selectionSummary),
     candidateSnapshot: deepFreezeObjectGraph(candidateSnapshot),
     candidateRegistrySet
   })

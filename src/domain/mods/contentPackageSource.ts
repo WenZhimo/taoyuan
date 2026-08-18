@@ -8,6 +8,9 @@ export type ContentPackageSourceKind =
   | 'memory'
   | 'developer-cli-directory'
   | 'electron-readonly-directory-probe'
+  | 'electron-readonly-directory'
+  | 'web-file-picker-import'
+  | 'android-file-picker-import'
 export type ContentPackageSourceEntryKind = 'file' | 'directory' | 'other'
 
 export type ContentPackageSourceErrorCode =
@@ -377,7 +380,10 @@ export const CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS: ContentPackageSourceSafeRe
 const supportedSourceKinds = new Set<ContentPackageSourceKind>([
   'memory',
   'developer-cli-directory',
-  'electron-readonly-directory-probe'
+  'electron-readonly-directory-probe',
+  'electron-readonly-directory',
+  'web-file-picker-import',
+  'android-file-picker-import'
 ])
 const supportedEntryKinds = new Set<ContentPackageSourceEntryKind>(['file', 'directory', 'other'])
 const supportedSourceIdentityMetadataKeys = new Set(['contractVersion', 'kind', 'sourceId', 'rootPath'])

@@ -23,7 +23,10 @@ import {
   type ThirdPartyDiscoveryDirectoryEntry,
   type ThirdPartyDiscoveryFileSystem
 } from '@/domain/mods/thirdPartyDataPackDiscovery'
-import { selectThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackSelection'
+import {
+  selectThirdPartyDataPacks,
+  type ThirdPartyDataPackSelectionReport
+} from '@/domain/mods/thirdPartyDataPackSelection'
 import { buildThirdPartyCandidateRegistrySnapshot } from '@/domain/mods/thirdPartyCandidateRegistrySnapshot'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
@@ -170,6 +173,17 @@ const buildCandidateFromRoot = async(root: string) => {
   return { officialRegistrySet, discoveryReport, selectionReport, result }
 }
 
+const createHostileArray = <T>(items: readonly T[], label: string, lengthReads: string[]): readonly T[] =>
+  new Proxy([...items], {
+    get(target, property, receiver) {
+      if (property === 'length') {
+        lengthReads.push(label)
+        throw new Error(`EACCES: stat C:/Users/LENOVO/mods/${label}`)
+      }
+      return Reflect.get(target, property, receiver)
+    }
+  })
+
 const countOfficialEntries = () => {
   const registrySet = buildOfficialRegistrySetFromStaticData()
   const snapshot = createSerializableRegistrySnapshot(registrySet)
@@ -229,6 +243,124 @@ describe('third-party candidate registry snapshot', () => {
     expect(() => itemRegistry.register(requirePackageId('probe_pack'), { id: 'probe_pack:item' }))
       .toThrow(RegistryError)
   })
+
+  it('copies valid selection package summaries without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const lengthReads: string[] = []
+    const selectedPackages = createHostileArray(
+      selectionReport.selectedPackages,
+      'candidate-snapshot-selected-packages-length',
+      lengthReads
+    )
+    const loadOrder = createHostileArray(
+      selectionReport.loadOrder,
+      'candidate-snapshot-load-order-length',
+      lengthReads
+    )
+    const hostileSelectionReport: ThirdPartyDataPackSelectionReport = {
+      ...selectionReport,
+      selectedPackages,
+      loadOrder
+    }
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport: hostileSelectionReport
+    })
+
+    expect(result.status).toBe('valid')
+    expect(lengthReads).toEqual([])
+    expect(result.selectedPackageIds).toEqual(['discovery_valid'])
+    expect(result.loadOrder).toEqual(['discovery_valid'])
+    expect(Object.is(result.selectedPackageIds, selectedPackages)).toBe(false)
+    expect(Object.is(result.loadOrder, loadOrder)).toBe(false)
+    expect(Object.isFrozen(result.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(result.loadOrder)).toBe(true)
+    expect(result.candidateIdentity).toBeDefined()
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-selected-packages-length')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-load-order-length')
+    expectOfficialBaseline()
+  }, 15_000)
+
+  it('copies blocked selection package summaries without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
+
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const packageId = requirePackageId('discovery_valid')
+    const blockedPackageId = requirePackageId('blocked_pack')
+    const lengthReads: string[] = []
+    const selectedPackages = createHostileArray(
+      [{ path: 'valid-gift-pack', packageId, version: '1.0.0' }],
+      'candidate-snapshot-blocked-selected-length',
+      lengthReads
+    )
+    const blockedPackages = createHostileArray(
+      [{
+        path: 'blocked-pack',
+        packageId: blockedPackageId,
+        version: '1.0.0',
+        reasons: ['discovery-blocked'] as const,
+        discoveryIssues: [],
+        selectionIssues: []
+      }],
+      'candidate-snapshot-blocked-packages-length',
+      lengthReads
+    )
+    const loadOrder = createHostileArray(
+      [packageId],
+      'candidate-snapshot-blocked-load-order-length',
+      lengthReads
+    )
+    const hostileSelectionReport: ThirdPartyDataPackSelectionReport = {
+      ...selectionReport,
+      status: 'blocked',
+      selectedPackages,
+      blockedPackages,
+      loadOrder,
+      summary: {
+        ...selectionReport.summary,
+        selectedPackageCount: 1,
+        blockedPackageCount: 1
+      }
+    }
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport: hostileSelectionReport
+    })
+
+    expect(result.status).toBe('invalid')
+    expect(lengthReads).toEqual([])
+    expect(result.selectedPackageIds).toEqual(['discovery_valid'])
+    expect(result.blockedPackageIds).toEqual(['blocked_pack'])
+    expect(result.blockedCandidatePaths).toEqual(['blocked-pack'])
+    expect(result.loadOrder).toEqual(['discovery_valid'])
+    expect(Object.is(result.selectedPackageIds, selectedPackages)).toBe(false)
+    expect(Object.is(result.blockedPackageIds, blockedPackages)).toBe(false)
+    expect(Object.is(result.loadOrder, loadOrder)).toBe(false)
+    expect(Object.isFrozen(result.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(result.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(result.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(result.loadOrder)).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-blocked-selected-length')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-blocked-packages-length')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-blocked-load-order-length')
+    expectOfficialBaseline()
+  }, 15_000)
 
   it('freezes the exposed serializable candidate snapshot', async() => {
     const root = await createRoot()
@@ -722,6 +854,72 @@ describe('third-party candidate registry snapshot', () => {
     expect(JSON.stringify(result)).not.toContain('C:/Users')
     expect(JSON.stringify(result)).not.toContain('LENOVO')
     expect(JSON.stringify(result)).not.toContain('candidate-snapshot-related-length')
+    expectOfficialBaseline()
+  })
+
+  it('copies discovery issue diagnostics without reading hostile proxy lengths', async() => {
+    const root = await createRoot()
+    await createPack(root, 'bad-library', {
+      id: 'bad_library',
+      items: [createItem('bad_library:broken', -1)]
+    })
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const discoveryReport = createMutableDiscoveryReport(
+      await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    )
+    const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+    const upstreamIssue = discoveryReport.issues[0]
+    const upstreamDiagnostic = upstreamIssue?.diagnostics[0]
+    if (!upstreamIssue || !upstreamDiagnostic) {
+      throw new Error('Expected discovery issue diagnostics for invalid test package.')
+    }
+
+    upstreamDiagnostic.details = {
+      reason: 'candidate snapshot diagnostics proxy',
+      nested: { stable: true }
+    }
+    const originalStage = upstreamDiagnostic.stage
+
+    let lengthRead = false
+    const proxyDiagnostics = new Proxy([upstreamDiagnostic], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/candidate-snapshot-diagnostics-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as unknown as typeof upstreamIssue.diagnostics
+    Object.defineProperty(upstreamIssue, 'diagnostics', {
+      enumerable: true,
+      value: proxyDiagnostics
+    })
+
+    const result = buildThirdPartyCandidateRegistrySnapshot({
+      officialRegistrySet,
+      discoveryReport,
+      selectionReport
+    })
+    const copiedDiagnostic = result.diagnostics.find(diagnostic => diagnostic.stage === originalStage)
+
+    if (!copiedDiagnostic) throw new Error('Expected copied candidate snapshot diagnostic.')
+    expect(result.status).toBe('invalid')
+    expect(lengthRead).toBe(false)
+    expect(Object.is(result.diagnostics, proxyDiagnostics)).toBe(false)
+    expect(copiedDiagnostic).not.toBe(upstreamDiagnostic)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: originalStage,
+      details: {
+        reason: 'candidate snapshot diagnostics proxy',
+        nested: { stable: true }
+      }
+    })
+    expect(Object.isFrozen(result.diagnostics)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic.details)).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('candidate-snapshot-diagnostics-length')
     expectOfficialBaseline()
   })
 

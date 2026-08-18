@@ -125,6 +125,29 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   return result
 }
 
+const cloneStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return []
+
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value)
+    }
+  }
+  return result
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  cloneStringList(value).map(item => item as PackageId)
+
 const cloneJsonValue = (value: JsonValue): JsonValue => {
   if (Array.isArray(value)) {
     const length = readJsonArrayLength(value)
@@ -238,6 +261,26 @@ const freezeDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => Object.fr
   details: freezeDiagnosticDetails(diagnostic.details)
 })
 
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return []
+  const length = readDiagnosticArrayLength(diagnostics)
+  if (length === undefined) return []
+
+  const result: ModDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(cloneDiagnostic(descriptor.value as ModDiagnostic))
+    }
+  }
+  return result
+}
+
 const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
   const seen = new Set<string>()
   const result: ModDiagnostic[] = []
@@ -263,7 +306,7 @@ const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic
 }
 
 const freezeDiagnostics = (diagnostics: readonly ModDiagnostic[]): readonly ModDiagnostic[] =>
-  Object.freeze(uniqueDiagnostics(diagnostics))
+  Object.freeze(uniqueDiagnostics(cloneDiagnostics(diagnostics)))
 
 const createMountInputDiagnostic = (
   fieldPath: string,
@@ -396,10 +439,10 @@ const freezeLockfileDraft = (
     : deepFreezeObjectGraph(JSON.parse(JSON.stringify(draft)) as ThirdPartyDataPackLockfileDraft)
 
 const freezePackageIds = (packageIds: readonly PackageId[]): readonly PackageId[] =>
-  Object.freeze([...packageIds])
+  Object.freeze(clonePackageIds(packageIds))
 
 const freezeStringList = (values: readonly string[]): readonly string[] =>
-  Object.freeze([...values])
+  Object.freeze(cloneStringList(values))
 
 const freezeEffectSummary = (
   effects: ThirdPartyDataPackMountPreflightEffectSummary
@@ -489,13 +532,14 @@ export const buildThirdPartyDataPackMountInput = (
     lockfileDraftResult,
     lockfileValidationResult
   })
+  const preflightDiagnostics = cloneDiagnostics(preflight.diagnostics)
 
   if (preflight.status === 'skipped') {
-    return baseResult('skipped', 'no selected third-party data packs', preflight, preflight.diagnostics)
+    return baseResult('skipped', 'no selected third-party data packs', preflight, preflightDiagnostics)
   }
 
   if (preflight.status !== 'ready') {
-    return baseResult('blocked', preflight.rollback.reason, preflight, preflight.diagnostics)
+    return baseResult('blocked', preflight.rollback.reason, preflight, preflightDiagnostics)
   }
 
   const readyDiagnostics = validateReadyInput(
@@ -506,13 +550,13 @@ export const buildThirdPartyDataPackMountInput = (
   )
   if (readyDiagnostics.length > 0) {
     return baseResult('blocked', 'ready preflight is missing verified mount input artifacts', preflight, [
-      ...preflight.diagnostics,
+      ...preflightDiagnostics,
       ...readyDiagnostics
     ])
   }
 
   return Object.freeze({
-    ...baseResult('ready', 'ready for future runtime mount adapter', preflight, preflight.diagnostics),
+    ...baseResult('ready', 'ready for future runtime mount adapter', preflight, preflightDiagnostics),
     candidateSnapshot: freezeCandidateSnapshot(candidateSnapshot.candidateSnapshot),
     candidateRegistrySet: candidateSnapshot.candidateRegistrySet,
     lockfileDraft: freezeLockfileDraft(lockfileDraftResult.draft)

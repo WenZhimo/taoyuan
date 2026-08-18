@@ -159,6 +159,29 @@ const cloneDiagnosticPackageIds = (value: unknown): PackageId[] | undefined => {
   return result
 }
 
+const cloneStringList = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return []
+  const length = readDiagnosticArrayLength(value)
+  if (length === undefined) return []
+
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(value, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'string') {
+      result.push(descriptor.value)
+    }
+  }
+  return result
+}
+
+const clonePackageIds = (value: unknown): PackageId[] =>
+  cloneStringList(value).map(item => item as PackageId)
+
 const cloneJsonValue = (value: JsonValue): JsonValue => {
   if (Array.isArray(value)) {
     const length = readJsonArrayLength(value)
@@ -271,6 +294,26 @@ const freezeDiagnostic = (diagnostic: ModDiagnostic): ModDiagnostic => Object.fr
   details: freezeDiagnosticDetails(diagnostic.details)
 })
 
+const cloneDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
+  if (!Array.isArray(diagnostics)) return []
+  const length = readDiagnosticArrayLength(diagnostics)
+  if (length === undefined) return []
+
+  const result: ModDiagnostic[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(diagnostics, String(index))
+    } catch {
+      continue
+    }
+    if (descriptor?.enumerable === true && 'value' in descriptor) {
+      result.push(cloneDiagnostic(descriptor.value as ModDiagnostic))
+    }
+  }
+  return result
+}
+
 const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic[] => {
   const seen = new Set<string>()
   const result: ModDiagnostic[] = []
@@ -296,7 +339,7 @@ const uniqueDiagnostics = (diagnostics: readonly ModDiagnostic[]): ModDiagnostic
 }
 
 const freezeDiagnostics = (diagnostics: readonly ModDiagnostic[]): readonly ModDiagnostic[] =>
-  Object.freeze(uniqueDiagnostics(diagnostics))
+  Object.freeze(uniqueDiagnostics(cloneDiagnostics(diagnostics)))
 
 const createEffectSummary = (): ThirdPartyDataPackMountPreflightEffectSummary => ({
   officialRegistryPublished: false,
@@ -330,10 +373,10 @@ const freezeStages = (
   Object.freeze(stages.map(currentStage => freezeStage(currentStage)))
 
 const freezePackageIds = (packageIds: readonly PackageId[]): readonly PackageId[] =>
-  Object.freeze([...packageIds])
+  Object.freeze(clonePackageIds(packageIds))
 
 const freezeStringList = (values: readonly string[]): readonly string[] =>
-  Object.freeze([...values])
+  Object.freeze(cloneStringList(values))
 
 const freezeOfficialIdentity = (
   identity: ThirdPartyCandidateOfficialIdentitySummary
@@ -445,6 +488,9 @@ export const buildThirdPartyDataPackMountPreflight = (
 
   const discoveryStageDiagnostics = discoveryDiagnostics(options.discoveryReport)
   const selectionStageDiagnostics = selectionDiagnostics(selectionReport)
+  const candidateSnapshotDiagnostics = cloneDiagnostics(candidateSnapshot.diagnostics)
+  const lockfileDraftDiagnostics = cloneDiagnostics(lockfileDraftResult.diagnostics)
+  const lockfileValidationDiagnostics = cloneDiagnostics(lockfileValidationResult.diagnostics)
   const discoveryFailed = discoveryStageStatus(options.discoveryReport) === 'failed'
   const selectionFailed = selectionStageStatus(selectionReport, discoveryFailed) === 'failed'
   const candidateFailed = candidateSnapshot.status === 'invalid'
@@ -475,14 +521,14 @@ export const buildThirdPartyDataPackMountPreflight = (
       selectedPackageCount: selectionReport.summary.selectedPackageCount,
       blockedPackageCount: selectionReport.summary.blockedPackageCount
     }),
-    stage('candidate-snapshot', candidateStageStatus(candidateSnapshot), candidateSnapshot.diagnostics, {
+    stage('candidate-snapshot', candidateStageStatus(candidateSnapshot), candidateSnapshotDiagnostics, {
       registryCount: candidateSnapshot.registryCount,
       entryCount: candidateSnapshot.entryCount
     }),
-    stage('lockfile-draft', draftStageStatus(lockfileDraftResult), lockfileDraftResult.diagnostics, {
+    stage('lockfile-draft', draftStageStatus(lockfileDraftResult), lockfileDraftDiagnostics, {
       packageCount: lockfileDraftResult.draft?.packages.length ?? 0
     }),
-    stage('lockfile-validation', validationStageStatus(lockfileDraftResult, lockfileValidationResult), lockfileValidationResult.diagnostics),
+    stage('lockfile-validation', validationStageStatus(lockfileDraftResult, lockfileValidationResult), lockfileValidationDiagnostics),
     stage('runtime-publish', status === 'ready' ? 'deferred' : 'skipped', [], {
       reason: 'Runtime third-party registry publication is outside this read-only preflight slice.'
     }),
@@ -494,9 +540,9 @@ export const buildThirdPartyDataPackMountPreflight = (
   const diagnostics = freezeDiagnostics([
     ...discoveryStageDiagnostics,
     ...selectionStageDiagnostics,
-    ...candidateSnapshot.diagnostics,
-    ...lockfileDraftResult.diagnostics,
-    ...lockfileValidationResult.diagnostics
+    ...candidateSnapshotDiagnostics,
+    ...lockfileDraftDiagnostics,
+    ...lockfileValidationDiagnostics
   ])
 
   return Object.freeze({

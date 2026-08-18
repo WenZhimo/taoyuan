@@ -9,6 +9,14 @@ import {
   writeOfficialRegistryCacheFile
 } from '../src/domain/mods/officialRegistryCacheFile'
 import { createElectronThirdPartyDataPackModLockStorageProbe } from '../src/domain/mods/electronModLockStorageProbe'
+import {
+  createElectronReadonlyDirectoryNodeHost,
+  toElectronReadonlyDirectorySourceIpcResult
+} from '../src/domain/mods/electronReadonlyDirectorySourceHost'
+import {
+  createThirdPartyDataPackElectronIpcResponseDeliveryMainHandler,
+  thirdPartyDataPackElectronResponseDeliveryIpcChannel
+} from '../src/domain/mods/thirdPartyDataPackElectronIpcResponseDeliveryBridge'
 import { hashCanonicalJson } from '../src/domain/mods/hash'
 
 const runtimeProbeOutputPath = typeof process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT === 'string'
@@ -26,6 +34,11 @@ const runtimeProbeModLockWriteRead = process.env.TAOYUAN_RUNTIME_PROBE_MOD_LOCK_
 const getExecutableUserDataPath = () => path.join(
   process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath),
   'userdata'
+)
+
+const getExecutableModsPath = () => path.join(
+  process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath),
+  'mods'
 )
 
 const configurePackagedUserData = () => {
@@ -75,6 +88,9 @@ const officialCachePaths = getOfficialRegistryCacheFilePaths(
   app.getPath('userData'),
   officialCacheMetadata.environmentHash
 )
+const electronReadonlyDirectorySourceHost = createElectronReadonlyDirectoryNodeHost(getExecutableModsPath())
+const thirdPartyDataPackResponseDeliveryHandler =
+  createThirdPartyDataPackElectronIpcResponseDeliveryMainHandler()
 const isOfficialRegistryDiskCacheAvailable = () => {
   if (!app.isPackaged) return false
   return path.resolve(app.getPath('userData')) === path.resolve(getExecutableUserDataPath())
@@ -510,6 +526,30 @@ ipcMain.handle('official-registry-cache-write', async (_event, contents) => {
   )
   return { status: 'written' }
 })
+
+ipcMain.handle('electron-readonly-directory-source-get-entry', async (_event, sourcePath) =>
+  toElectronReadonlyDirectorySourceIpcResult(
+    'inspect',
+    sourcePath,
+    () => electronReadonlyDirectorySourceHost.getEntry(sourcePath)
+  ))
+
+ipcMain.handle('electron-readonly-directory-source-read-directory', async (_event, sourcePath) =>
+  toElectronReadonlyDirectorySourceIpcResult(
+    'list',
+    sourcePath,
+    () => electronReadonlyDirectorySourceHost.readDirectory(sourcePath)
+  ))
+
+ipcMain.handle('electron-readonly-directory-source-read-text-file', async (_event, sourcePath) =>
+  toElectronReadonlyDirectorySourceIpcResult(
+    'read',
+    sourcePath,
+    () => electronReadonlyDirectorySourceHost.readTextFile(sourcePath)
+  ))
+
+ipcMain.handle(thirdPartyDataPackElectronResponseDeliveryIpcChannel, (_event, envelope) =>
+  thirdPartyDataPackResponseDeliveryHandler(envelope))
 
 ipcMain.on('startup-failure', (_event, message) => {
   if (typeof message !== 'string') return

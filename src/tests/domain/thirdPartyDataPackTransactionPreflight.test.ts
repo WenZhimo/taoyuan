@@ -912,4 +912,176 @@ describe('third-party data pack transaction preflight', () => {
     expectNoWriteEffects(preflight)
     expectOfficialBaseline()
   })
+
+  it('copies runtime gate diagnostics without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    let lengthRead = false
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.transaction-preflight.proxy-diagnostics',
+      severity: 'warning',
+      packageId,
+      relatedPackageIds: [packageId],
+      details: {
+        reason: 'proxy diagnostics array'
+      }
+    })
+    const diagnostics = new Proxy([upstreamDiagnostic], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/transaction-preflight-diagnostics-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as ThirdPartyDataPackRuntimeMountGateResult['diagnostics']
+    const runtimeGate: ThirdPartyDataPackRuntimeMountGateResult = {
+      status: 'deferred',
+      mountInputStatus: 'ready',
+      reason: 'runtime publication is intentionally deferred until write and transaction gates are implemented',
+      diagnostics,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      runtimePublication: 'deferred',
+      requiredGates: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const preflight = buildThirdPartyDataPackTransactionPreflight({
+      runtimeGate
+    } as never)
+    const copiedDiagnostic = preflight.diagnostics[0]
+    if (copiedDiagnostic === undefined) throw new Error('Expected copied transaction preflight diagnostic.')
+
+    expect(preflight.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(preflight.diagnostics).toHaveLength(1)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.transaction-preflight.proxy-diagnostics',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'proxy diagnostics array'
+      }
+    })
+    expect(Object.is(preflight.diagnostics, diagnostics)).toBe(false)
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.relatedPackageIds, upstreamDiagnostic.relatedPackageIds)).toBe(false)
+    expect(JSON.stringify(preflight)).not.toContain('C:/Users')
+    expect(JSON.stringify(preflight)).not.toContain('LENOVO')
+    expect(JSON.stringify(preflight)).not.toContain('transaction-preflight-diagnostics-length')
+    expectNoWriteEffects(preflight)
+    expectOfficialBaseline()
+  })
+
+  it('copies runtime gate package summaries without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const blockedPackageId = requirePackageId('blocked_pack')
+    let lengthRead = false
+    const createHostileStringArray = <T extends string>(values: T[], label: string): T[] =>
+      new Proxy(values, {
+        get(target, property, receiver) {
+          if (property === 'length') {
+            lengthRead = true
+            throw new Error(`EACCES: stat C:/Users/LENOVO/mods/transaction-preflight-${label}-length`)
+          }
+          return Reflect.get(target, property, receiver)
+        }
+      }) as T[]
+    const selectedPackageIds = createHostileStringArray([packageId], 'selected-package-ids')
+    const blockedPackageIds = createHostileStringArray([blockedPackageId], 'blocked-package-ids')
+    const blockedCandidatePaths = createHostileStringArray(['blocked-pack'], 'blocked-candidate-paths')
+    const loadOrder = createHostileStringArray([packageId], 'load-order')
+    const runtimeGate: ThirdPartyDataPackRuntimeMountGateResult = {
+      status: 'deferred',
+      mountInputStatus: 'ready',
+      reason: 'runtime publication is intentionally deferred until write and transaction gates are implemented',
+      diagnostics: [],
+      selectedPackageIds,
+      blockedPackageIds,
+      blockedCandidatePaths,
+      loadOrder,
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      runtimePublication: 'deferred',
+      requiredGates: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        packageFilesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const preflight = buildThirdPartyDataPackTransactionPreflight({ runtimeGate } as never)
+
+    expect(preflight.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(preflight.selectedPackageIds).toEqual(['discovery_valid'])
+    expect(preflight.blockedPackageIds).toEqual(['blocked_pack'])
+    expect(preflight.blockedCandidatePaths).toEqual(['blocked-pack'])
+    expect(preflight.loadOrder).toEqual(['discovery_valid'])
+    expect(Object.is(preflight.selectedPackageIds, selectedPackageIds)).toBe(false)
+    expect(Object.is(preflight.blockedPackageIds, blockedPackageIds)).toBe(false)
+    expect(Object.is(preflight.blockedCandidatePaths, blockedCandidatePaths)).toBe(false)
+    expect(Object.is(preflight.loadOrder, loadOrder)).toBe(false)
+    expect(Object.isFrozen(preflight.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(preflight.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(preflight.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(preflight.loadOrder)).toBe(true)
+    expect(JSON.stringify(preflight)).not.toContain('C:/Users')
+    expect(JSON.stringify(preflight)).not.toContain('LENOVO')
+    expect(JSON.stringify(preflight)).not.toContain('transaction-preflight-selected-package-ids-length')
+    expectNoWriteEffects(preflight)
+    expectOfficialBaseline()
+  })
 })

@@ -5,6 +5,7 @@ type Awaitable<T> = T | Promise<T>
 
 export interface ApplicationBootstrapDependencies<AppInstance, PiniaInstance, RouterInstance> {
   bootstrapOfficialContent: () => Promise<unknown>
+  bootstrapThirdPartyStartupGate?: () => Promise<unknown>
   createApp: () => Awaitable<AppInstance>
   createPinia: () => Awaitable<PiniaInstance>
   configurePinia: (pinia: PiniaInstance) => void
@@ -20,10 +21,55 @@ export interface ApplicationBootstrapResult<AppInstance, PiniaInstance, RouterIn
   router: RouterInstance
 }
 
+const THIRD_PARTY_STARTUP_GATE_BLOCKED_MESSAGE =
+  'third-party startup gate blocked application bootstrap'
+
+const readOwnStartupGateResultField = (
+  value: object,
+  fieldName: string
+): { readonly unsafe: boolean; readonly value?: unknown } => {
+  let descriptor: PropertyDescriptor | undefined
+  try {
+    descriptor = Reflect.getOwnPropertyDescriptor(value, fieldName)
+  } catch {
+    return { unsafe: true }
+  }
+
+  if (descriptor === undefined || descriptor.enumerable !== true) return { unsafe: false }
+  if (!('value' in descriptor)) return { unsafe: true }
+  return { unsafe: false, value: descriptor.value }
+}
+
+const thirdPartyStartupGateBlocksApplicationBootstrap = (
+  result: unknown
+): boolean => {
+  if (result === null || typeof result !== 'object') return false
+
+  const continuationAllowed = readOwnStartupGateResultField(
+    result,
+    'appBootstrapContinuationAllowed'
+  )
+  if (continuationAllowed.unsafe || continuationAllowed.value === false) return true
+
+  const status = readOwnStartupGateResultField(result, 'status')
+  if (status.unsafe || status.value === 'blocked') return true
+
+  return false
+}
+
+const assertThirdPartyStartupGateAllowsApplicationBootstrap = (
+  result: unknown
+): void => {
+  if (!thirdPartyStartupGateBlocksApplicationBootstrap(result)) return
+  throw new Error(THIRD_PARTY_STARTUP_GATE_BLOCKED_MESSAGE)
+}
+
 export const bootstrapApplication = async <AppInstance, PiniaInstance, RouterInstance>(
   dependencies: ApplicationBootstrapDependencies<AppInstance, PiniaInstance, RouterInstance>
 ): Promise<ApplicationBootstrapResult<AppInstance, PiniaInstance, RouterInstance>> => {
   await dependencies.bootstrapOfficialContent()
+  const thirdPartyStartupGateResult = await dependencies.bootstrapThirdPartyStartupGate?.()
+  assertThirdPartyStartupGateAllowsApplicationBootstrap(thirdPartyStartupGateResult)
 
   const app = await dependencies.createApp()
   const pinia = await dependencies.createPinia()

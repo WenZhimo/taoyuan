@@ -458,7 +458,7 @@ describe('electron content package source read-only probe', () => {
 
     expect(report).toMatchObject({
       status: 'deferred',
-      reason: 'content package source contract is defined; runtime platform source adapters remain intentionally deferred',
+      reason: 'content package source contract and Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication and write gates are implemented',
       sourceProbeStatus: 'ready',
       discoveryStatus: 'completed',
       mountInputStatus: 'ready',

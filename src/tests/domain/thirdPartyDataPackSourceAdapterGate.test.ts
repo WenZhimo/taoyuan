@@ -287,6 +287,30 @@ const expectSatisfiedSourceContracts = (
   expect(gate.requiredSourceContracts.every(contract => Object.isFrozen(contract))).toBe(true)
 }
 
+const expectSatisfiedPlatformSourceAdapters = (
+  gate: ReturnType<typeof buildThirdPartyDataPackSourceAdapterGate>
+): void => {
+  expect(gate.requiredPlatformSourceAdapters.map(requirement => ({
+    id: requirement.id,
+    status: requirement.status,
+    sourceKind: requirement.sourceKind
+  }))).toEqual([
+    {
+      id: 'electron-readonly-directory-adapter',
+      status: 'satisfied',
+      sourceKind: 'electron-readonly-directory'
+    },
+    {
+      id: 'web-file-picker-import-adapter',
+      status: 'satisfied',
+      sourceKind: 'web-file-picker-import'
+    }
+  ])
+  expect(gate.requiredPlatformSourceAdapters.every(requirement => requirement.reason.length > 0)).toBe(true)
+  expect(Object.isFrozen(gate.requiredPlatformSourceAdapters)).toBe(true)
+  expect(gate.requiredPlatformSourceAdapters.every(requirement => Object.isFrozen(requirement))).toBe(true)
+}
+
 const expectJsonGraphFrozen = (value: unknown): void => {
   if (value && typeof value === 'object') {
     expect(Object.isFrozen(value)).toBe(true)
@@ -324,7 +348,7 @@ const createDeferredRuntimeAdapterGate = (
 ): ThirdPartyDataPackRuntimeAdapterGateResult => ({
   status: 'deferred',
   transactionPreflightStatus: 'deferred',
-  reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+  reason: 'Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication, transaction and write boundaries are implemented',
   diagnostics,
   selectedPackageIds: [packageId],
   blockedPackageIds: [],
@@ -349,7 +373,7 @@ const createDeferredRuntimeAdapterGate = (
     candidateHash: testHash('3')
   },
   lockfileHash: testHash('4'),
-  adapterReadiness: 'deferred',
+  adapterReadiness: 'platform-sources-defined',
   runtimeEnablementAllowed: false,
   requiredAdapters: [],
   effects: {
@@ -368,7 +392,7 @@ const createDeferredRuntimeAdapterGate = (
 })
 
 describe('third-party data pack source adapter gate', () => {
-  it('keeps runtime adapters deferred after the shared source contract is defined', async() => {
+  it('recognizes platform source adapters while keeping runtime enablement deferred', async() => {
     const root = await createRoot()
     await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(root, 'valid-gift-pack'), { recursive: true })
 
@@ -377,7 +401,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.status).toBe('deferred')
     expect(sourceAdapterGate.runtimeAdapterGateStatus).toBe('deferred')
     expect(sourceAdapterGate.reason).toBe(
-      'content package source contract is defined; runtime platform source adapters remain intentionally deferred'
+      'content package source contract and Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication and write gates are implemented'
     )
     expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
     expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
@@ -390,6 +414,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.candidateIdentity?.candidateHash).toBe(candidateSnapshot.candidateIdentity?.candidateHash)
     expect(sourceAdapterGate.lockfileHash).toBe(lockfileDraftResult.draft?.lockfileHash)
     expectSatisfiedSourceContracts(sourceAdapterGate)
+    expectSatisfiedPlatformSourceAdapters(sourceAdapterGate)
     expect('candidateRegistrySet' in sourceAdapterGate).toBe(false)
     expect('candidateSnapshot' in sourceAdapterGate).toBe(false)
     expect('lockfileDraft' in sourceAdapterGate).toBe(false)
@@ -401,8 +426,13 @@ describe('third-party data pack source adapter gate', () => {
     const frozenOutputSnapshot = JSON.stringify(sourceAdapterGate)
     const firstContract = sourceAdapterGate.requiredSourceContracts[0]
     if (firstContract === undefined) throw new Error('Expected at least one frozen source contract requirement.')
+    const firstPlatformAdapter = sourceAdapterGate.requiredPlatformSourceAdapters[0]
+    if (firstPlatformAdapter === undefined) throw new Error('Expected at least one frozen platform source adapter requirement.')
     expect(() => {
       (sourceAdapterGate.requiredSourceContracts as unknown as unknown[]).push({})
+    }).toThrow(TypeError)
+    expect(() => {
+      (sourceAdapterGate.requiredPlatformSourceAdapters as unknown as unknown[]).push({})
     }).toThrow(TypeError)
     expect(Reflect.set(sourceAdapterGate as unknown as Record<string, unknown>, 'status', 'blocked')).toBe(false)
     expect(() => {
@@ -423,6 +453,7 @@ describe('third-party data pack source adapter gate', () => {
       testHash('9')
     )).toBe(false)
     expect(Reflect.set(firstContract as unknown as Record<string, unknown>, 'reason', 'mutated')).toBe(false)
+    expect(Reflect.set(firstPlatformAdapter as unknown as Record<string, unknown>, 'status', 'required')).toBe(false)
     expect(Reflect.set(sourceAdapterGate.effects as unknown as Record<string, unknown>, 'cacheWritten', true)).toBe(false)
     expect(JSON.stringify(sourceAdapterGate)).toBe(frozenOutputSnapshot)
     expectOfficialBaseline()
@@ -442,6 +473,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
     expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
     expectSatisfiedSourceContracts(sourceAdapterGate)
+    expect(sourceAdapterGate.requiredPlatformSourceAdapters).toEqual([])
     expectNoWriteEffects(sourceAdapterGate)
     expectSourceAdapterGateFrozen(sourceAdapterGate)
     expectOfficialBaseline()
@@ -464,6 +496,7 @@ describe('third-party data pack source adapter gate', () => {
     expect(sourceAdapterGate.sourceContractReadiness).toBe('defined')
     expect(sourceAdapterGate.contentPackageSourceContractStable).toBe(true)
     expectSatisfiedSourceContracts(sourceAdapterGate)
+    expect(sourceAdapterGate.requiredPlatformSourceAdapters).toEqual([])
     expect(sourceAdapterGate.diagnostics).toEqual(expect.arrayContaining([
       expect.objectContaining({ code: 'SCHEMA-VALIDATE-001' }),
       expect.objectContaining({ stage: 'third-party.lockfile-draft.candidate' })
@@ -565,7 +598,7 @@ describe('third-party data pack source adapter gate', () => {
     const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
       status: 'deferred',
       transactionPreflightStatus: 'deferred',
-      reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+      reason: 'Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication, transaction and write boundaries are implemented',
       diagnostics: [upstreamDiagnostic],
       selectedPackageIds: [packageId],
       blockedPackageIds: [],
@@ -590,7 +623,7 @@ describe('third-party data pack source adapter gate', () => {
         candidateHash: testHash('3')
       },
       lockfileHash: testHash('4'),
-      adapterReadiness: 'deferred',
+      adapterReadiness: 'platform-sources-defined',
       runtimeEnablementAllowed: false,
       requiredAdapters: [],
       effects: {
@@ -755,7 +788,7 @@ describe('third-party data pack source adapter gate', () => {
     const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
       status: 'deferred',
       transactionPreflightStatus: 'deferred',
-      reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+      reason: 'Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication, transaction and write boundaries are implemented',
       diagnostics: [upstreamDiagnostic],
       selectedPackageIds: [packageId],
       blockedPackageIds: [],
@@ -780,7 +813,7 @@ describe('third-party data pack source adapter gate', () => {
         candidateHash: testHash('3')
       },
       lockfileHash: testHash('4'),
-      adapterReadiness: 'deferred',
+      adapterReadiness: 'platform-sources-defined',
       runtimeEnablementAllowed: false,
       requiredAdapters: [],
       effects: {
@@ -904,7 +937,7 @@ describe('third-party data pack source adapter gate', () => {
     const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
       status: 'deferred',
       transactionPreflightStatus: 'deferred',
-      reason: 'runtime platform adapters are intentionally deferred until desktop, web and android source boundaries are implemented',
+      reason: 'Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication, transaction and write boundaries are implemented',
       diagnostics: [upstreamDiagnostic],
       selectedPackageIds: [packageId],
       blockedPackageIds: [],
@@ -929,7 +962,7 @@ describe('third-party data pack source adapter gate', () => {
         candidateHash: testHash('3')
       },
       lockfileHash: testHash('4'),
-      adapterReadiness: 'deferred',
+      adapterReadiness: 'platform-sources-defined',
       runtimeEnablementAllowed: false,
       requiredAdapters: [],
       effects: {
@@ -980,6 +1013,147 @@ describe('third-party data pack source adapter gate', () => {
     expect(serialized).not.toContain('C:/Users')
     expect(serialized).not.toContain('LENOVO')
     expect(serialized).not.toContain('source-adapter-list-length')
+    expectNoWriteEffects(gate)
+    expectSourceAdapterGateFrozen(gate)
+    expectOfficialBaseline()
+  })
+
+  it('copies runtime adapter diagnostics without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    let lengthRead = false
+    const upstreamDiagnostic = createDiagnostic('CACHE-INVALID-001', {
+      stage: 'test.source-adapter.proxy-diagnostics',
+      severity: 'warning',
+      packageId,
+      relatedPackageIds: [packageId],
+      details: {
+        reason: 'proxy diagnostics array'
+      }
+    })
+    const diagnostics = new Proxy([upstreamDiagnostic], {
+      get(target, property, receiver) {
+        if (property === 'length') {
+          lengthRead = true
+          throw new Error('EACCES: stat C:/Users/LENOVO/mods/source-adapter-diagnostics-length')
+        }
+        return Reflect.get(target, property, receiver)
+      }
+    }) as ThirdPartyDataPackRuntimeAdapterGateResult['diagnostics']
+    const runtimeAdapterGate = createDeferredRuntimeAdapterGate(diagnostics, packageId)
+
+    const gate = buildThirdPartyDataPackSourceAdapterGate({
+      runtimeAdapterGate
+    } as never)
+    const copiedDiagnostic = gate.diagnostics[0]
+    if (copiedDiagnostic === undefined) throw new Error('Expected copied source adapter diagnostic.')
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(gate.diagnostics).toHaveLength(1)
+    expect(copiedDiagnostic).toMatchObject({
+      stage: 'test.source-adapter.proxy-diagnostics',
+      relatedPackageIds: ['discovery_valid'],
+      details: {
+        reason: 'proxy diagnostics array'
+      }
+    })
+    expect(Object.is(gate.diagnostics, diagnostics)).toBe(false)
+    expect(Object.is(copiedDiagnostic, upstreamDiagnostic)).toBe(false)
+    expect(Object.is(copiedDiagnostic.relatedPackageIds, upstreamDiagnostic.relatedPackageIds)).toBe(false)
+    expect(Object.isFrozen(gate.diagnostics)).toBe(true)
+    expect(Object.isFrozen(copiedDiagnostic)).toBe(true)
+    const serialized = JSON.stringify(gate)
+    expect(serialized).not.toContain('C:/Users')
+    expect(serialized).not.toContain('LENOVO')
+    expect(serialized).not.toContain('source-adapter-diagnostics-length')
+    expectNoWriteEffects(gate)
+    expectSourceAdapterGateFrozen(gate)
+    expectOfficialBaseline()
+  })
+
+  it('copies runtime adapter package summaries without reading hostile proxy lengths', () => {
+    const packageId = requirePackageId('discovery_valid')
+    const blockedPackageId = requirePackageId('blocked_pack')
+    let lengthRead = false
+    const createHostileStringArray = <T extends string>(values: T[], label: string): T[] =>
+      new Proxy(values, {
+        get(target, property, receiver) {
+          if (property === 'length') {
+            lengthRead = true
+            throw new Error(`EACCES: stat C:/Users/LENOVO/mods/source-adapter-${label}-length`)
+          }
+          return Reflect.get(target, property, receiver)
+        }
+      }) as T[]
+    const selectedPackageIds = createHostileStringArray([packageId], 'selected-package-ids')
+    const blockedPackageIds = createHostileStringArray([blockedPackageId], 'blocked-package-ids')
+    const blockedCandidatePaths = createHostileStringArray(['blocked-pack'], 'blocked-candidate-paths')
+    const loadOrder = createHostileStringArray([packageId], 'load-order')
+    const runtimeAdapterGate: ThirdPartyDataPackRuntimeAdapterGateResult = {
+      status: 'deferred',
+      transactionPreflightStatus: 'deferred',
+      reason: 'Web/Electron platform source adapters are defined; runtime enablement remains deferred until publication, transaction and write boundaries are implemented',
+      diagnostics: [],
+      selectedPackageIds,
+      blockedPackageIds,
+      blockedCandidatePaths,
+      loadOrder,
+      registryCount: 54,
+      entryCount: 4244,
+      packageCount: 1,
+      officialIdentity: {
+        artifactHash: committedMetadata.artifactHash as Sha256Hash,
+        contentHash: committedMetadata.contentHash as Sha256Hash,
+        schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+        environmentHash: committedMetadata.environmentHash as Sha256Hash,
+        snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+        registryCount: 54,
+        entryCount: 4242
+      },
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: testHash('1'),
+        snapshotHash: testHash('2'),
+        candidateHash: testHash('3')
+      },
+      lockfileHash: testHash('4'),
+      adapterReadiness: 'platform-sources-defined',
+      runtimeEnablementAllowed: false,
+      requiredAdapters: [],
+      effects: {
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        electronIpcExposed: false,
+        webImportPersisted: false,
+        androidImportPersisted: false,
+        packageFilesWritten: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    }
+
+    const gate = buildThirdPartyDataPackSourceAdapterGate({ runtimeAdapterGate } as never)
+
+    expect(gate.status).toBe('deferred')
+    expect(lengthRead).toBe(false)
+    expect(gate.selectedPackageIds).toEqual(['discovery_valid'])
+    expect(gate.blockedPackageIds).toEqual(['blocked_pack'])
+    expect(gate.blockedCandidatePaths).toEqual(['blocked-pack'])
+    expect(gate.loadOrder).toEqual(['discovery_valid'])
+    expect(Object.is(gate.selectedPackageIds, selectedPackageIds)).toBe(false)
+    expect(Object.is(gate.blockedPackageIds, blockedPackageIds)).toBe(false)
+    expect(Object.is(gate.blockedCandidatePaths, blockedCandidatePaths)).toBe(false)
+    expect(Object.is(gate.loadOrder, loadOrder)).toBe(false)
+    expect(Object.isFrozen(gate.selectedPackageIds)).toBe(true)
+    expect(Object.isFrozen(gate.blockedPackageIds)).toBe(true)
+    expect(Object.isFrozen(gate.blockedCandidatePaths)).toBe(true)
+    expect(Object.isFrozen(gate.loadOrder)).toBe(true)
+    expect(JSON.stringify(gate)).not.toContain('C:/Users')
+    expect(JSON.stringify(gate)).not.toContain('LENOVO')
+    expect(JSON.stringify(gate)).not.toContain('source-adapter-selected-package-ids-length')
     expectNoWriteEffects(gate)
     expectSourceAdapterGateFrozen(gate)
     expectOfficialBaseline()

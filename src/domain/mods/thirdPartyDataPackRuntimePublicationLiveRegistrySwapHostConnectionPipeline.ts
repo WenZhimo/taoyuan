@@ -1,0 +1,27 @@
+import type {
+  ThirdPartyDataPackLiveRegistrySwapHost
+} from './thirdPartyDataPackLiveRegistrySwapHost'
+import {
+  createThirdPartyDataPackRuntimePublicationLiveRegistrySwapPipeline,
+  type CreateThirdPartyDataPackRuntimePublicationLiveRegistrySwapPipelineOptions
+} from './thirdPartyDataPackRuntimePublicationLiveRegistrySwapPipeline'
+
+export interface CreateThirdPartyDataPackRuntimePublicationLiveRegistrySwapHostConnectionPipelineOptions
+  extends Omit<CreateThirdPartyDataPackRuntimePublicationLiveRegistrySwapPipelineOptions, 'executeLiveRegistrySwap'> {
+  readonly liveRegistrySwapHost?: ThirdPartyDataPackLiveRegistrySwapHost
+}
+
+export const createThirdPartyDataPackRuntimePublicationLiveRegistrySwapHostConnectionPipeline = (
+  options: CreateThirdPartyDataPackRuntimePublicationLiveRegistrySwapHostConnectionPipelineOptions = {}
+) => createThirdPartyDataPackRuntimePublicationLiveRegistrySwapPipeline({
+  enabled: options.enabled,
+  readRuntimePublicationPreflight: options.readRuntimePublicationPreflight,
+  readTransactionPreCommitPlan: options.readTransactionPreCommitPlan,
+  readLiveRegistrySwapProtection: options.readLiveRegistrySwapProtection,
+  readPublicationRollbackRecovery: options.readPublicationRollbackRecovery,
+  acknowledgeRuntimePublicationCommit: options.acknowledgeRuntimePublicationCommit,
+  executeLiveRegistrySwap: options.liveRegistrySwapHost?.executeLiveRegistrySwap
+})
+
+export const thirdPartyDataPackRuntimePublicationLiveRegistrySwapHostConnectionPipeline =
+  createThirdPartyDataPackRuntimePublicationLiveRegistrySwapHostConnectionPipeline()

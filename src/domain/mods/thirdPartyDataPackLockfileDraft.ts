@@ -713,9 +713,12 @@ export const validateThirdPartyDataPackLockfileDraft = (
   options: ValidateThirdPartyDataPackLockfileDraftOptions
 ): ThirdPartyDataPackLockfileDraftValidationResult => {
   const created = createThirdPartyDataPackLockfileDraft(options)
-  const draftSchemaResult = options.draft === undefined
+  const draftInput = options.draft === undefined
     ? undefined
-    : validateUnknown(ThirdPartyDataPackLockfileDraftSchema, options.draft, {
+    : cloneJsonValue(options.draft as JsonValue)
+  const draftSchemaResult = draftInput === undefined
+    ? undefined
+    : validateUnknown(ThirdPartyDataPackLockfileDraftSchema, draftInput, {
         stage: 'third-party.lockfile-draft.schema',
         file: 'third-party-data-pack-lockfile-draft.schema.json'
       })
