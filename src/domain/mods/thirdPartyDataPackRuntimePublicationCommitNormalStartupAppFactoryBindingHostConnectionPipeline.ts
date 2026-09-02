@@ -65,8 +65,8 @@ export interface ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFacto
   readonly normalStartupContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
   readonly uiIpcResultContinuationAllowed: boolean
-  readonly realRuntimePublicationCommitCalled: false
-  readonly realNormalStartupHostCalled: false
+  readonly realRuntimePublicationCommitCalled: boolean
+  readonly realNormalStartupHostCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -83,7 +83,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFacto
   readonly uiIpcResponseDelivered: false
   readonly commandDispatched: false
   readonly transactionCommitted: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly packageFilesWritten: false
   readonly lockfileWritten: false
   readonly settingsWritten: false
@@ -345,39 +345,49 @@ const allOwnBooleanFlagsFalse = (
 
 const safeAcceptedCommit = (
   result: ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult
-): boolean => readOwnStringField(result, 'status') === 'accepted'
-  && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
-  && readOwnBooleanField(result, 'commandContinuationAllowed') === true
-  && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
-  && readOwnStringField(result, 'requestedCommandId') === 'install'
-  && readOwnStringField(result, 'targetPackageId') !== undefined
-  && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
-    readOwnStringField(result, 'targetPackageId') as PackageId
-  )
-  && cloneCandidateIdentity(readOwnDataField(result, 'candidateIdentity')) !== undefined
-  && readOwnStringField(result, 'lockfileHash') !== undefined
-  && allOwnBooleanFlagsFalse(readOwnDataField(result, 'effects') as object | undefined, [
-    'runtimePublicationCommitAfterPostCommitVerificationPipelineCalled',
-    'postCommitVerificationAfterInstallTransactionCommitPipelineCalled',
-    'runtimePublicationCommitPipelineCalled',
-    'runtimePublicationCommitHostAccepted',
-    'transactionCommitted',
-    'transactionLogCommitted',
-    'postCommitVerificationAcknowledged',
-    'persistentReadProofAcknowledged',
-    'runtimePublicationCommitAcknowledged',
-    'appBootstrapContinuationAllowed',
-    'commandContinuationAllowed',
-    'uiIpcResultContinuationAllowed',
-    'transactionLogPrepared',
-    'transactionLogWritten',
-    'transactionLogRead',
-    'packageFilesWritten',
-    'packageBackupsWritten',
-    'lockfileWritten',
-    'settingsWritten'
-  ])
-  && pathFree(result, forbiddenCommitFields)
+): boolean => {
+  const effects = readOwnDataField(result, 'effects') as object | undefined
+  const realRuntimePublicationCommitCalled =
+    readOwnBooleanField(effects, 'realRuntimePublicationCommitCalled') === true
+  const runtimePublicationCommitted =
+    readOwnBooleanField(effects, 'runtimePublicationCommitted') === true
+  return readOwnStringField(result, 'status') === 'accepted'
+    && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
+    && readOwnBooleanField(result, 'commandContinuationAllowed') === true
+    && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
+    && readOwnStringField(result, 'requestedCommandId') === 'install'
+    && readOwnStringField(result, 'targetPackageId') !== undefined
+    && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
+      readOwnStringField(result, 'targetPackageId') as PackageId
+    )
+    && cloneCandidateIdentity(readOwnDataField(result, 'candidateIdentity')) !== undefined
+    && readOwnStringField(result, 'lockfileHash') !== undefined
+    && realRuntimePublicationCommitCalled === runtimePublicationCommitted
+    && allOwnBooleanFlagsFalse(effects, [
+      'runtimePublicationCommitAfterPostCommitVerificationPipelineCalled',
+      'postCommitVerificationAfterInstallTransactionCommitPipelineCalled',
+      'runtimePublicationCommitPipelineCalled',
+      'runtimePublicationCommitHostAccepted',
+      'transactionCommitted',
+      'transactionLogCommitted',
+      'postCommitVerificationAcknowledged',
+      'persistentReadProofAcknowledged',
+      'runtimePublicationCommitAcknowledged',
+      'appBootstrapContinuationAllowed',
+      'commandContinuationAllowed',
+      'uiIpcResultContinuationAllowed',
+      'realRuntimePublicationCommitCalled',
+      'runtimePublicationCommitted',
+      'transactionLogPrepared',
+      'transactionLogWritten',
+      'transactionLogRead',
+      'packageFilesWritten',
+      'packageBackupsWritten',
+      'lockfileWritten',
+      'settingsWritten'
+    ])
+    && pathFree(result, forbiddenCommitFields)
+}
 
 const safeReadyNormalStartup = (
   result: ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult
@@ -395,6 +405,7 @@ const safeReadyNormalStartup = (
     'injectedNormalStartupHandoffHostCalled',
     'normalStartupHandoffHostCalled',
     'normalStartupHandoffHostAccepted',
+    'realNormalStartupHostCalled',
     'normalStartupContinuationAllowed'
   ])
   && pathFree(result, forbiddenNormalStartupFields)
@@ -607,9 +618,19 @@ const deepFreezeObjectGraph = <T>(value: T): T => {
 const effectSummary = (
   status: ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineStatus,
   commitCalled: boolean,
-  startupCalled: boolean
+  startupCalled: boolean,
+  commitResult?: ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult,
+  startupResult?: ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult
 ): ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionEffectSummary => {
   const ready = status === 'ready'
+  const commitEffects = readOwnDataField(commitResult, 'effects') as object | undefined
+  const startupEffects = readOwnDataField(startupResult, 'effects') as object | undefined
+  const realRuntimePublicationCommit =
+    ready
+    && readOwnBooleanField(commitEffects, 'realRuntimePublicationCommitCalled') === true
+    && readOwnBooleanField(commitEffects, 'runtimePublicationCommitted') === true
+  const realNormalStartupHostCalled =
+    ready && readOwnBooleanField(startupEffects, 'realNormalStartupHostCalled') === true
   return Object.freeze({
     runtimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineCalled: true,
     runtimePublicationCommitAfterPostCommitVerificationPipelineCalled: commitCalled,
@@ -622,8 +643,8 @@ const effectSummary = (
     normalStartupContinuationAllowed: ready,
     commandContinuationAllowed: ready,
     uiIpcResultContinuationAllowed: ready,
-    realRuntimePublicationCommitCalled: false,
-    realNormalStartupHostCalled: false,
+    realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
+    realNormalStartupHostCalled,
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: false,
     liveRegistryMutated: false,
@@ -640,7 +661,7 @@ const effectSummary = (
     uiIpcResponseDelivered: false,
     commandDispatched: false,
     transactionCommitted: false,
-    runtimePublicationCommitted: false,
+    runtimePublicationCommitted: realRuntimePublicationCommit,
     packageFilesWritten: false,
     lockfileWritten: false,
     settingsWritten: false,
@@ -709,7 +730,13 @@ const baseResult = (
       ?? readOwnStringField(options.startupResult, 'lockfileHash') as Sha256Hash | undefined,
     checks: options.checks ?? skippedChecks(options.status === 'blocked' ? 'blocked' : 'skipped'),
     diagnostics: Object.freeze([...(options.diagnostics ?? [])]),
-    effects: effectSummary(options.status, options.commitCalled, options.startupCalled)
+    effects: effectSummary(
+      options.status,
+      options.commitCalled,
+      options.startupCalled,
+      options.commitResult,
+      options.startupResult
+    )
   })
 }
 

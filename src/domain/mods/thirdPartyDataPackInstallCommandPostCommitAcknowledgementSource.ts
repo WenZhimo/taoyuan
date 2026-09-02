@@ -63,6 +63,8 @@ export interface ThirdPartyDataPackInstallCommandPostCommitAcknowledgementEffect
   readonly postCommitVerificationReadAcknowledgementSourceCalled: boolean
   readonly commandDispatched: boolean
   readonly atomicCommitExecutorAcknowledged: boolean
+  readonly injectedCommitHostCalled: boolean
+  readonly realAtomicCommitExecutorCalled: boolean
   readonly postCommitVerificationAcknowledged: boolean
   readonly persistentReadProofAcknowledged: boolean
   readonly appBootstrapContinuationAllowed: boolean
@@ -124,8 +126,12 @@ export interface ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSource
     ThirdPartyDataPackTransactionCommandDispatcherSourceResult['status']
   readonly atomicTransactionCommitExecutorSourceStatus?:
     ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult['status']
+  readonly atomicTransactionCommitExecutorHostMode?:
+    ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult['atomicTransactionCommitExecutorHostMode']
   readonly postCommitVerificationReadAcknowledgementSourceStatus?:
     ThirdPartyDataPackPostCommitVerificationReadAcknowledgementSourceResult['status']
+  readonly postCommitVerificationExecutorHostMode?:
+    ThirdPartyDataPackPostCommitVerificationReadAcknowledgementSourceResult['postCommitVerificationExecutorHostMode']
   readonly requestedCommandId?: 'install'
   readonly targetPackageId?: PackageId
   readonly verificationOutcomeKind?: ThirdPartyDataPackPostCommitVerificationOutcomeKind
@@ -222,7 +228,8 @@ const atomicAllowedEffectFields = new Set<string>([
   'committedOutcomeReceived',
   'failedOutcomeReceived',
   'retryOutcomeReceived',
-  'rollbackOutcomeReceived'
+  'rollbackOutcomeReceived',
+  'realAtomicCommitExecutorCalled'
 ])
 
 const acknowledgementAllowedEffectFields = new Set<string>([
@@ -658,6 +665,7 @@ const createEffectSummary = (
 ): ThirdPartyDataPackInstallCommandPostCommitAcknowledgementEffectSummary => {
   const ready = status === 'ready'
   const continuationAllowed = status !== 'blocked'
+  const commitEffects = readOwnDataField(commitSource, 'effects') as object | undefined
   return Object.freeze({
     installCommandPostCommitAcknowledgementSourceCalled: true,
     transactionCommandDispatcherSourceCalled: commandSource !== undefined,
@@ -665,6 +673,9 @@ const createEffectSummary = (
     postCommitVerificationReadAcknowledgementSourceCalled: acknowledgementSource !== undefined,
     commandDispatched: readOwnStringField(commandSource, 'status') === 'dispatched',
     atomicCommitExecutorAcknowledged: readOwnStringField(commitSource, 'status') === 'executed',
+    injectedCommitHostCalled: readOwnBooleanField(commitEffects, 'injectedCommitHostCalled') ?? false,
+    realAtomicCommitExecutorCalled:
+      readOwnBooleanField(commitEffects, 'realAtomicCommitExecutorCalled') ?? false,
     postCommitVerificationAcknowledged: readOwnStringField(acknowledgementSource, 'status') === 'ready',
     persistentReadProofAcknowledged:
       readOwnBooleanField(readOwnDataField(acknowledgementSource, 'effects') as object | undefined, 'persistentReadProofAcknowledged') === true,
@@ -750,8 +761,14 @@ const baseResult = (
     atomicTransactionCommitExecutorSourceStatus: readOwnStringField(options.commitSource, 'status') as
       | ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult['status']
       | undefined,
+    atomicTransactionCommitExecutorHostMode: readOwnStringField(options.commitSource, 'atomicTransactionCommitExecutorHostMode') as
+      | ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult['atomicTransactionCommitExecutorHostMode']
+      | undefined,
     postCommitVerificationReadAcknowledgementSourceStatus: readOwnStringField(options.acknowledgementSource, 'status') as
       | ThirdPartyDataPackPostCommitVerificationReadAcknowledgementSourceResult['status']
+      | undefined,
+    postCommitVerificationExecutorHostMode: readOwnStringField(options.acknowledgementSource, 'postCommitVerificationExecutorHostMode') as
+      | ThirdPartyDataPackPostCommitVerificationReadAcknowledgementSourceResult['postCommitVerificationExecutorHostMode']
       | undefined,
     requestedCommandId: readOwnStringField(source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
     targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId | undefined,

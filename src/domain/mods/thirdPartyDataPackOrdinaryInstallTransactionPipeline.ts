@@ -95,7 +95,7 @@ export interface ThirdPartyDataPackOrdinaryInstallTransactionEffectSummary {
   readonly rollbackRecoveryExecutionAcknowledged: boolean
   readonly packageFilesWritten: boolean
   readonly packageBackupsWritten: boolean
-  readonly packageFilesRestored: false
+  readonly packageFilesRestored: boolean
   readonly lockfileWritten: boolean
   readonly lockfileRestored: false
   readonly settingsWritten: boolean
@@ -105,7 +105,7 @@ export interface ThirdPartyDataPackOrdinaryInstallTransactionEffectSummary {
   readonly transactionLogWritten: false
   readonly recoveryLogRead: false
   readonly recoveryLogReplayed: false
-  readonly rollbackExecuted: false
+  readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
 
@@ -360,7 +360,13 @@ const effectsFromSource = (
   source?: ThirdPartyDataPackModLockTransactionSemanticsSourceResult,
   ready = false,
   sourceCalled = false
-): ThirdPartyDataPackOrdinaryInstallTransactionEffectSummary => Object.freeze({
+): ThirdPartyDataPackOrdinaryInstallTransactionEffectSummary => {
+  const rollbackRestoreAcknowledged = ready
+    && source?.outcomeKind === 'rollback'
+    && source.effects.packageFilesRestored === true
+    && source.effects.rollbackExecuted === true
+
+  return Object.freeze({
   ordinaryInstallTransactionPipelineCalled: true,
   modLockTransactionSemanticsSourceCalled: sourceCalled,
   ordinaryInstallTransactionReady: ready,
@@ -411,7 +417,7 @@ const effectsFromSource = (
   rollbackRecoveryExecutionAcknowledged: source?.effects.rollbackRecoveryExecutionAcknowledged === true,
   packageFilesWritten: source?.effects.packageFilesWritten === true,
   packageBackupsWritten: source?.effects.packageBackupsWritten === true,
-  packageFilesRestored: false,
+  packageFilesRestored: rollbackRestoreAcknowledged,
   lockfileWritten: source?.effects.lockfileWritten === true,
   lockfileRestored: false,
   settingsWritten: source?.effects.settingsWritten === true,
@@ -421,9 +427,10 @@ const effectsFromSource = (
   transactionLogWritten: false,
   recoveryLogRead: false,
   recoveryLogReplayed: false,
-  rollbackExecuted: false,
+  rollbackExecuted: rollbackRestoreAcknowledged,
   diagnosticsWritten: false
-})
+  })
+}
 
 const publicApiDeferred = (source: ThirdPartyDataPackModLockTransactionSemanticsSourceResult): boolean =>
   source.publicModLockSchemaFrozen === false
@@ -436,27 +443,41 @@ const publicApiDeferred = (source: ThirdPartyDataPackModLockTransactionSemantics
   && source.effects.publicSchemaSetHashChanged === false
 
 const containedEffectsIntact = (source: ThirdPartyDataPackModLockTransactionSemanticsSourceResult): boolean =>
-  source.effects.transactionCommitted === false
-  && source.effects.transactionLogPrepared === false
-  && source.effects.runtimePublicationCommitted === false
-  && source.effects.postCommitVerificationExecuted === false
-  && source.effects.transactionLogRead === false
-  && source.effects.packageStateRead === false
-  && source.effects.settingsRead === false
-  && source.effects.lockfileRead === false
-  && source.effects.liveRegistryRead === false
-  && source.effects.saveRead === false
-  && source.effects.saveCacheIsolationChecked === false
-  && source.effects.packageFilesRestored === false
-  && source.effects.lockfileRestored === false
-  && source.effects.settingsRestored === false
-  && source.effects.savesWritten === false
-  && source.effects.cacheWritten === false
-  && source.effects.transactionLogWritten === false
-  && source.effects.recoveryLogRead === false
-  && source.effects.recoveryLogReplayed === false
-  && source.effects.rollbackExecuted === false
-  && source.effects.diagnosticsWritten === false
+{
+  const packageFilesRestored = source.effects.packageFilesRestored === true
+  const rollbackExecuted = source.effects.rollbackExecuted === true
+  const rollbackRestoreContained =
+    (!packageFilesRestored && !rollbackExecuted)
+    || (
+      packageFilesRestored
+      && rollbackExecuted
+      && source.outcomeKind === 'rollback'
+      && source.rollbackRequired === true
+      && source.rollbackRecoveryExecutionAcknowledged === true
+      && source.recovery === 'restore-backup'
+    )
+
+  return source.effects.transactionCommitted === false
+    && source.effects.transactionLogPrepared === false
+    && source.effects.runtimePublicationCommitted === false
+    && source.effects.postCommitVerificationExecuted === false
+    && source.effects.transactionLogRead === false
+    && source.effects.packageStateRead === false
+    && source.effects.settingsRead === false
+    && source.effects.lockfileRead === false
+    && source.effects.liveRegistryRead === false
+    && source.effects.saveRead === false
+    && source.effects.saveCacheIsolationChecked === false
+    && rollbackRestoreContained
+    && source.effects.lockfileRestored === false
+    && source.effects.settingsRestored === false
+    && source.effects.savesWritten === false
+    && source.effects.cacheWritten === false
+    && source.effects.transactionLogWritten === false
+    && source.effects.recoveryLogRead === false
+    && source.effects.recoveryLogReplayed === false
+    && source.effects.diagnosticsWritten === false
+}
 
 const deepFreeze = <T>(value: T): T => {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {

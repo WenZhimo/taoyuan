@@ -4,11 +4,15 @@ import type { PackageId } from './ids'
 import type {
   ThirdPartyCandidateIdentitySummary
 } from './thirdPartyCandidateRegistrySnapshot'
-import type {
-  ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult
+import {
+  createThirdPartyDataPackInstallPersistentStagingLifecyclePipeline,
+  type CreateThirdPartyDataPackInstallPersistentStagingLifecyclePipelineOptions,
+  type ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult
 } from './thirdPartyDataPackInstallPersistentStagingLifecyclePipeline'
 import {
+  createThirdPartyDataPackSettingsLockfilePersistentWriterSource,
   ThirdPartyDataPackSettingsLockfilePersistentWriterBlockedError,
+  type CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions,
   type ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult
 } from './thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
@@ -141,8 +145,18 @@ export interface CreateThirdPartyDataPackInstallPersistentStagingSettingsLockfil
   readonly enabled?: boolean
   readonly readInstallPersistentStagingLifecyclePipeline?: () =>
     Awaitable<ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult>
+  readonly readPackageFilePersistentStagingPipeline?:
+    CreateThirdPartyDataPackInstallPersistentStagingLifecyclePipelineOptions[
+      'readPackageFilePersistentStagingPipeline'
+    ]
+  readonly readInstallCommandLifecyclePipeline?:
+    CreateThirdPartyDataPackInstallPersistentStagingLifecyclePipelineOptions['readInstallCommandLifecyclePipeline']
   readonly readSettingsLockfilePersistentWriterSource?: () =>
     Awaitable<ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult>
+  readonly readSettingsLockfileCommitSource?:
+    CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions['readSettingsLockfileCommitSource']
+  readonly writeSettingsLockfile?:
+    CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions['writeSettingsLockfile']
 }
 
 const diagnosticSeverities = new Set<ModDiagnosticSeverity>(['info', 'warning', 'error', 'fatal'])
@@ -768,9 +782,32 @@ const evaluateInstallPersistentStagingSettingsLockfileLifecyclePipeline = async(
     })
   }
 
+  const readInstallPersistentStagingLifecyclePipeline =
+    options.readInstallPersistentStagingLifecyclePipeline ?? (
+      options.readPackageFilePersistentStagingPipeline !== undefined
+      || options.readInstallCommandLifecyclePipeline !== undefined
+        ? createThirdPartyDataPackInstallPersistentStagingLifecyclePipeline({
+            enabled: options.enabled,
+            readPackageFilePersistentStagingPipeline: options.readPackageFilePersistentStagingPipeline,
+            readInstallCommandLifecyclePipeline: options.readInstallCommandLifecyclePipeline
+          })
+        : undefined
+    )
+  const readSettingsLockfilePersistentWriterSource =
+    options.readSettingsLockfilePersistentWriterSource ?? (
+      options.readSettingsLockfileCommitSource !== undefined
+      || options.writeSettingsLockfile !== undefined
+        ? createThirdPartyDataPackSettingsLockfilePersistentWriterSource({
+            enabled: options.enabled,
+            readSettingsLockfileCommitSource: options.readSettingsLockfileCommitSource,
+            writeSettingsLockfile: options.writeSettingsLockfile
+          })
+        : undefined
+    )
+
   if (
-    options.readInstallPersistentStagingLifecyclePipeline === undefined
-    || options.readSettingsLockfilePersistentWriterSource === undefined
+    readInstallPersistentStagingLifecyclePipeline === undefined
+    || readSettingsLockfilePersistentWriterSource === undefined
   ) {
     return baseResult({
       status: 'blocked',
@@ -784,7 +821,7 @@ const evaluateInstallPersistentStagingSettingsLockfileLifecyclePipeline = async(
 
   let lifecycle: ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult
   try {
-    lifecycle = await options.readInstallPersistentStagingLifecyclePipeline()
+    lifecycle = await readInstallPersistentStagingLifecyclePipeline()
   } catch {
     return baseResult({
       status: 'blocked',
@@ -826,7 +863,7 @@ const evaluateInstallPersistentStagingSettingsLockfileLifecyclePipeline = async(
 
   let settingsWriter: ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult
   try {
-    settingsWriter = await options.readSettingsLockfilePersistentWriterSource()
+    settingsWriter = await readSettingsLockfilePersistentWriterSource()
   } catch (error) {
     const blockedSettingsWriter = error instanceof ThirdPartyDataPackSettingsLockfilePersistentWriterBlockedError
       ? error.result

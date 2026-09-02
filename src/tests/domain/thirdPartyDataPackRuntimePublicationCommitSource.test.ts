@@ -9,6 +9,9 @@ import {
   type ThirdPartyDataPackRuntimePublicationCommitHostEffectSummary,
   type ThirdPartyDataPackRuntimePublicationCommitSourceResult
 } from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
+import {
+  createThirdPartyDataPackRuntimePublicationCommitHost
+} from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitHost'
 import type {
   ThirdPartyDataPackRuntimePublicationCommitAdapterResult
 } from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitAdapter'
@@ -36,6 +39,15 @@ const candidateIdentity = {
 } as const
 
 const lockfileHash = testHash('d')
+const requiredCommitAdapterIds = [
+  'atomic-runtime-publication-commit-adapter',
+  'transaction-log-writer',
+  'package-file-commit-adapter',
+  'settings-lockfile-commit-adapter',
+  'live-registry-publication-adapter',
+  'post-commit-verification-adapter',
+  'rollback-recovery-orchestrator'
+] as const
 
 const effects = () => ({
   officialRegistryPublished: false,
@@ -174,6 +186,17 @@ const createDeferredCommitAdapterResult = (
     }
   ],
   effects: effects(),
+  ...overrides
+})
+
+const createRealCommitAdapterResult = (
+  overrides: Partial<ThirdPartyDataPackRuntimePublicationCommitAdapterResult> = {}
+): ThirdPartyDataPackRuntimePublicationCommitAdapterResult => createDeferredCommitAdapterResult({
+  requiredCommitAdapters: requiredCommitAdapterIds.map(id => ({
+    id,
+    status: 'required',
+    reason: 'required for real in-memory runtime publication commit host acknowledgement'
+  })),
   ...overrides
 })
 
@@ -448,6 +471,49 @@ describe('third-party runtime publication commit source', () => {
     expect(serialized).not.toContain('lockfileDraft')
     expect(serialized).not.toContain('programDirectoryPath')
     expectNoRuntimePublicationOrWrites(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('accepts a real in-memory runtime publication commit host without persistent writes', async() => {
+    const runtimePublicationCommitHost = createThirdPartyDataPackRuntimePublicationCommitHost({
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: 55,
+      entryCount: 4243,
+      packageCount: 1,
+      candidateIdentity,
+      lockfileHash
+    })
+    const source = createThirdPartyDataPackRuntimePublicationCommitSource({
+      enabled: true,
+      readRuntimePublicationCommitAdapter: async() => createRealCommitAdapterResult(),
+      acknowledgeRuntimePublicationCommit:
+        runtimePublicationCommitHost.acknowledgeRuntimePublicationCommit
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('accepted')
+    expect(result.runtimePublicationCommitHostStatus).toBe('accepted')
+    expect(result.requiredCommitAdapterIds).toEqual([...requiredCommitAdapterIds])
+    expect(result.effects.runtimePublicationCommitHostCalled).toBe(true)
+    expect(result.effects.runtimePublicationCommitHostAccepted).toBe(true)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.runtimePublicationCommitted).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expect(runtimePublicationCommitHost.getLastCommitRecord()).toEqual(expect.objectContaining({
+      targetPackageId: packageId,
+      candidateHash: candidateIdentity.candidateHash,
+      lockfileHash,
+      sequenceNumber: 1
+    }))
     expectJsonGraphFrozen(result)
   })
 

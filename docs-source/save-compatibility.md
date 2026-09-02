@@ -149,7 +149,7 @@ const currentValue = data.newField ?? data.oldField ?? DEFAULT_VALUE
 
 ## 桌面端保存位置
 
-Electron 正式版会尝试将 Chromium `Local Storage` 和 `settings.json` 放在可执行文件旁的 `userdata/`。目录不可写时会回退到系统默认用户目录。具体策略见 [桌面打包指南](./electron-packaging.md)。
+Electron 正式版必须将 Chromium `Local Storage` 和 `settings.json` 放在可执行文件旁的 `userdata/`。目录不可写或无法设置时会中止启动，不得回退到系统默认用户目录。具体策略见 [桌面打包指南](./electron-packaging.md)。
 
 ## 变更检查清单
 

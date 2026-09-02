@@ -550,8 +550,8 @@ describe('third-party Web startup gate persistent state execution', () => {
     expect(bridge.kind).toBe(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND)
     expect(bridge.mode).toBe(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE)
     expect(bridge.host).toMatchObject({
-      kind: 'injected-startup-persistent-state-source-adapter',
-      mode: 'injected-test-only'
+      kind: 'web-indexeddb-startup-persistent-state-source-adapter',
+      mode: 'web-indexeddb-startup-persistent-state'
     })
     expect(Object.isFrozen(execution)).toBe(true)
     expect(execution.kind).toBe(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_EXECUTION_KIND)
@@ -560,6 +560,10 @@ describe('third-party Web startup gate persistent state execution', () => {
     expect(execution.bridgeKind).toBe(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND)
     expect(execution.bridgeMode).toBe(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE)
     expect(execution.adapterResult.status).toBe('executed')
+    expect(execution.adapterResult.startupPersistentStateSourceHostMode)
+      .toBe('web-indexeddb-startup-persistent-state')
+    expect(execution.adapterResult.injectedSourceHostMode)
+      .toBe('web-indexeddb-startup-persistent-state')
     expect(execution.adapterResult.startupStateSnapshot).toEqual(expect.objectContaining({
       kind: 'startup-persistent-state-snapshot',
       commandId: 'install',
@@ -594,7 +598,9 @@ describe('third-party Web startup gate persistent state execution', () => {
 
     expect(readCalled).toBe(false)
     expect(execution.adapterResult.status).toBe('blocked')
-    expect(execution.adapterResult.reason).toBe('injected startup persistent state source host failed before snapshot')
+    expect(execution.adapterResult.reason).toBe('startup persistent state source host failed before snapshot')
+    expect(execution.adapterResult.startupPersistentStateSourceHostMode)
+      .toBe('web-indexeddb-startup-persistent-state')
     expect(execution.adapterResult.sourceHostCalled).toBe(true)
     expect(execution.adapterResult.startupStateSnapshotReceived).toBe(false)
     expect(JSON.stringify(execution)).not.toContain('C:/Users')

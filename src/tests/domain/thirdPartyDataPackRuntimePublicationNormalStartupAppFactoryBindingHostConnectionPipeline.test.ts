@@ -309,6 +309,7 @@ const createAcceptedNormalStartupHandoffHostResult = (
   effects: {
     normalStartupHandoffHostCalled: true,
     normalStartupHandoffHostAccepted: true,
+    realNormalStartupHostCalled: false,
     launcherAppFactoryCalled: false,
     gameAppFactoryCalled: false,
     launcherAppCreated: false,

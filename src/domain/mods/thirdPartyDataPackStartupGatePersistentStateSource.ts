@@ -67,6 +67,9 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSourceResult {
   readonly sourceCalled: boolean
   readonly normalStartupContinuationAllowed: boolean
   readonly sourceAdapterStatus?: ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['status']
+  readonly startupPersistentStateSourceHostMode?:
+    ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['startupPersistentStateSourceHostMode']
+  readonly injectedSourceHostMode?: ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['injectedSourceHostMode']
   readonly requestedCommandId?: 'install'
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
@@ -135,6 +138,12 @@ const forbiddenPersistentStateSourceFields = [
   'routerInstance',
   'gameRouter'
 ] as const
+
+const startupPersistentStateSourceHostModes = new Set([
+  'injected-test-only',
+  'web-indexeddb-startup-persistent-state',
+  'electron-program-directory-startup-persistent-state'
+])
 
 const readArrayLength = (value: readonly unknown[]): number | undefined => {
   let descriptor: PropertyDescriptor | undefined
@@ -210,6 +219,16 @@ const readOwnNumberField = (
 ): number | undefined => {
   const field = readOwnDataField(value, fieldName)
   return typeof field === 'number' && Number.isFinite(field) ? field : undefined
+}
+
+const readStartupPersistentStateSourceHostMode = (
+  value: object | undefined,
+  fieldName: string
+): ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['injectedSourceHostMode'] | undefined => {
+  const mode = readOwnStringField(value, fieldName)
+  return startupPersistentStateSourceHostModes.has(mode ?? '')
+    ? mode as ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['injectedSourceHostMode']
+    : undefined
 }
 
 const hasOwnEnumerableField = (
@@ -520,6 +539,14 @@ const baseResult = (
   const blockedPackageIds = clonePackageIds(readOwnDataField(options.source, 'blockedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(options.source, 'loadOrder'))
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(options.source, 'candidateIdentity'))
+  const startupPersistentStateSourceHostMode = readStartupPersistentStateSourceHostMode(
+    options.source,
+    'startupPersistentStateSourceHostMode'
+  )
+  const injectedSourceHostMode = readStartupPersistentStateSourceHostMode(
+    options.source,
+    'injectedSourceHostMode'
+  )
   const continuationAllowed = options.status === 'ready' || options.status === 'skipped'
 
   return deepFreezeObjectGraph({
@@ -534,6 +561,10 @@ const baseResult = (
     sourceAdapterStatus: readOwnStringField(options.source, 'status') as
       | ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['status']
       | undefined,
+    ...(startupPersistentStateSourceHostMode === undefined
+      ? {}
+      : { startupPersistentStateSourceHostMode }),
+    ...(injectedSourceHostMode === undefined ? {} : { injectedSourceHostMode }),
     requestedCommandId: readOwnStringField(options.source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
     targetPackageId: readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,

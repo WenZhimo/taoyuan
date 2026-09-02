@@ -444,6 +444,40 @@ describe('third-party rollback recovery execution pipeline', () => {
     expectJsonGraphFrozen(result)
   })
 
+  it('accepts rollback-only package restore evidence from the execution host', async() => {
+    const readAtomicTransactionCommitOutcomeContract = vi.fn(async() => createCommitOutcome())
+    const readRecoveryLogReplayRestoreSource = vi.fn(async() => createRecoverySource())
+    const executeRollbackRecovery = vi.fn(async() => createAcceptedHostResult({
+      effects: hostEffects({
+        packageFilesRestored: true,
+        rollbackExecuted: true
+      })
+    }))
+    const pipeline = createThirdPartyDataPackRollbackRecoveryExecutionPipeline({
+      enabled: true,
+      readAtomicTransactionCommitOutcomeContract,
+      readRecoveryLogReplayRestoreSource,
+      executeRollbackRecovery
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('executed')
+    expect(result.outcomeKind).toBe('rollback')
+    expect(result.recovery).toBe('restore-backup')
+    expect(result.rollbackRequired).toBe(true)
+    expect(result.rollbackRecoveryExecutionAcknowledged).toBe(true)
+    expect(result.effects.packageFilesRestored).toBe(true)
+    expect(result.effects.rollbackExecuted).toBe(true)
+    expect(result.effects.transactionCommitted).toBe(false)
+    expect(result.effects.settingsRestored).toBe(false)
+    expect(result.effects.lockfileRestored).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expect(executeRollbackRecovery).toHaveBeenCalledOnce()
+    expectJsonGraphFrozen(result)
+  })
+
   it('blocks missing upstream settlement prerequisites before calling execution host', async() => {
     const executeRollbackRecovery = vi.fn()
     const pipeline = createThirdPartyDataPackRollbackRecoveryExecutionPipeline({

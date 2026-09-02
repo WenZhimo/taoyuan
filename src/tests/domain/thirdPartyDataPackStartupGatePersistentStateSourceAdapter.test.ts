@@ -264,10 +264,15 @@ const createPreflight = (
 })
 
 const createHost = (
-  read: ThirdPartyDataPackStartupGatePersistentStateSourceHost['read']
+  read: ThirdPartyDataPackStartupGatePersistentStateSourceHost['read'],
+  mode: ThirdPartyDataPackStartupGatePersistentStateSourceHost['mode'] = 'injected-test-only'
 ): ThirdPartyDataPackStartupGatePersistentStateSourceHost => ({
-  kind: 'injected-startup-persistent-state-source-adapter',
-  mode: 'injected-test-only',
+  kind: mode === 'web-indexeddb-startup-persistent-state'
+    ? 'web-indexeddb-startup-persistent-state-source-adapter'
+    : mode === 'electron-program-directory-startup-persistent-state'
+      ? 'electron-program-directory-startup-persistent-state-source-adapter'
+      : 'injected-startup-persistent-state-source-adapter',
+  mode,
   read
 })
 
@@ -344,6 +349,8 @@ describe('third-party startup gate persistent state source adapter', () => {
     expect(result.sourceHostCalled).toBe(true)
     expect(result.startupStateSnapshotReceived).toBe(true)
     expect(result.startupStateSnapshotNormalized).toBe(true)
+    expect(result.startupPersistentStateSourceHostMode).toBe('injected-test-only')
+    expect(result.injectedSourceHostMode).toBe('injected-test-only')
     expect(result.startupPersistentStateSourceAdapterAllowed).toBe(true)
     expect(result.requestedCommandId).toBe('install')
     expect(result.targetPackageId).toBe(packageId)
@@ -413,6 +420,55 @@ describe('third-party startup gate persistent state source adapter', () => {
     expect('lockfileDraft' in result).toBe(false)
     expectNoRealStartupReadsOrWrites(result)
     expectJsonGraphFrozen(result)
+  })
+
+  it('executes Web and Electron startup source hosts without falling back to injected-test-only mode', async() => {
+    const createRead = (): ThirdPartyDataPackStartupGatePersistentStateSourceHost['read'] => request => ({
+      kind: 'startup-persistent-state-snapshot',
+      settled: true,
+      packageId: request.packageId,
+      candidateIdentity: request.candidateIdentity,
+      lockfileHash: request.lockfileHash,
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    })
+    const webResult = await executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter({
+      preflight: createPreflight(),
+      host: createHost(createRead(), 'web-indexeddb-startup-persistent-state')
+    })
+    const electronResult = await executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter({
+      preflight: createPreflight(),
+      host: createHost(createRead(), 'electron-program-directory-startup-persistent-state')
+    })
+
+    expect(webResult.status).toBe('executed')
+    expect(webResult.startupPersistentStateSourceHostMode).toBe('web-indexeddb-startup-persistent-state')
+    expect(webResult.injectedSourceHostMode).toBe('web-indexeddb-startup-persistent-state')
+    expect(webResult.reason).toBe(
+      'startup gate persistent state source adapter executed a platform startup state source host and normalized its path-free startup snapshot'
+    )
+    expect(webResult.checks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'injected-test-boundary',
+        status: 'satisfied'
+      })
+    ]))
+    expect(electronResult.status).toBe('executed')
+    expect(electronResult.startupPersistentStateSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
+    expect(electronResult.injectedSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
+    expect(electronResult.reason).toBe(
+      'startup gate persistent state source adapter executed a platform startup state source host and normalized its path-free startup snapshot'
+    )
+    expectNoRealStartupReadsOrWrites(webResult)
+    expectNoRealStartupReadsOrWrites(electronResult)
+    expectJsonGraphFrozen(webResult)
+    expectJsonGraphFrozen(electronResult)
   })
 
   it('skips or blocks non-ready preflight states while stripping path-bearing diagnostics', async () => {

@@ -345,6 +345,109 @@ describe('third-party runtime publication commit app startup host connection pip
     expectJsonGraphFrozen(result)
   })
 
+  it('propagates real runtime publication commit from readiness through app-startup host acceptance', async() => {
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline({
+      enabled: true,
+      platform: 'web',
+      readRuntimePublicationCommitAppStartupReadiness: async() => createReadyReadiness({
+        effects: readinessEffects({
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true
+        })
+      }),
+      acknowledgeAppStartupHostWiring: async envelope =>
+        createAcceptedHostResult(envelope)
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('accepted')
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.runtimePublicationCommitted).toBe(true)
+    expect(result.effects.realAppStartupHostCalled).toBe(false)
+    expect(result.effects.launcherAppCreated).toBe(false)
+    expect(result.effects.gameAppCreated).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('propagates real normal-startup host evidence from app-startup readiness', async() => {
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline({
+      enabled: true,
+      platform: 'web',
+      readRuntimePublicationCommitAppStartupReadiness: async() => createReadyReadiness({
+        effects: readinessEffects({
+          realNormalStartupHostCalled: true
+        })
+      }),
+      acknowledgeAppStartupHostWiring: async envelope =>
+        createAcceptedHostResult(envelope)
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('accepted')
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(false)
+    expect(result.effects.realAppStartupHostCalled).toBe(false)
+    expect(result.effects.gameAppCreated).toBe(false)
+    expect(result.effects.piniaCreated).toBe(false)
+    expect(result.effects.routerMounted).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('accepts path-free mounted app startup host evidence without exposing runtime handles', async() => {
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline({
+      enabled: true,
+      platform: 'web',
+      readRuntimePublicationCommitAppStartupReadiness: async() => createReadyReadiness({
+        effects: readinessEffects({
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true
+        })
+      }),
+      acknowledgeAppStartupHostWiring: async envelope =>
+        createAcceptedHostResult(envelope, {
+          effects: hostEffects({
+            realAppStartupHostCalled: true,
+            gameAppCreated: true,
+            piniaCreated: true,
+            routerMounted: true
+          })
+        })
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('accepted')
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.runtimePublicationCommitted).toBe(true)
+    expect(result.effects.realAppStartupHostCalled).toBe(true)
+    expect(result.effects.gameAppCreated).toBe(true)
+    expect(result.effects.piniaCreated).toBe(true)
+    expect(result.effects.routerMounted).toBe(true)
+    expect(result.effects.launcherAppCreated).toBe(false)
+    expect(result.effects.saveRead).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
   it('defers host wiring when app-startup readiness is ready but no host is injected', async() => {
     const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline({
       enabled: true,

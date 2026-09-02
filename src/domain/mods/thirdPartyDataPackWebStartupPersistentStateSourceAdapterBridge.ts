@@ -12,7 +12,7 @@ import type {
 export const THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND =
   'web-startup-persistent-state-source-adapter-bridge'
 export const THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE =
-  'web-indexeddb-source-host-to-injected-test-only-adapter'
+  'web-indexeddb-source-host-to-startup-persistent-state-adapter'
 
 export interface ThirdPartyDataPackWebStartupPersistentStateSourceAdapterBridge {
   readonly kind: typeof THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND
@@ -62,8 +62,8 @@ export const createThirdPartyDataPackWebStartupPersistentStateSourceAdapterBridg
   webHost: ThirdPartyDataPackWebStartupPersistentStateSourceHost
 ): ThirdPartyDataPackWebStartupPersistentStateSourceAdapterBridge => {
   const host: ThirdPartyDataPackStartupGatePersistentStateSourceHost = Object.freeze({
-    kind: 'injected-startup-persistent-state-source-adapter',
-    mode: 'injected-test-only',
+    kind: 'web-indexeddb-startup-persistent-state-source-adapter',
+    mode: 'web-indexeddb-startup-persistent-state',
     read: async(
       request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest
     ): Promise<ThirdPartyDataPackStartupGatePersistentStateSnapshotSource> => {

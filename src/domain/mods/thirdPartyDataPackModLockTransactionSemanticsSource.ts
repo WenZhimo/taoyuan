@@ -101,7 +101,7 @@ export interface ThirdPartyDataPackModLockTransactionSemanticsEffectSummary {
   readonly rollbackRecoveryExecutionAcknowledged: boolean
   readonly packageFilesWritten: boolean
   readonly packageBackupsWritten: boolean
-  readonly packageFilesRestored: false
+  readonly packageFilesRestored: boolean
   readonly lockfileWritten: boolean
   readonly lockfileRestored: false
   readonly settingsWritten: boolean
@@ -111,7 +111,7 @@ export interface ThirdPartyDataPackModLockTransactionSemanticsEffectSummary {
   readonly transactionLogWritten: false
   readonly recoveryLogRead: false
   readonly recoveryLogReplayed: false
-  readonly rollbackExecuted: false
+  readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
 
@@ -436,27 +436,42 @@ const containedPostCommitEffects = (
 
 const containedRollbackEffects = (
   source: ThirdPartyDataPackRollbackRecoveryExecutionSourceResult
-): boolean => (source.status === 'executed' || (source.status === 'skipped' && source.outcomeKind === 'committed'))
-  && source.commandContinuationAllowed === true
-  && source.uiIpcResultContinuationAllowed === true
-  && readOwnBooleanField(source.effects, 'transactionCommitted') === false
-  && readOwnBooleanField(source.effects, 'transactionLogPrepared') === false
-  && readOwnBooleanField(source.effects, 'runtimePublicationCommitted') === false
-  && readOwnBooleanField(source.effects, 'postCommitVerificationExecuted') === false
-  && readOwnBooleanField(source.effects, 'uiIpcResponseDelivered') === false
-  && readOwnBooleanField(source.effects, 'packageFilesWritten') === false
-  && readOwnBooleanField(source.effects, 'packageFilesRestored') === false
-  && readOwnBooleanField(source.effects, 'lockfileWritten') === false
-  && readOwnBooleanField(source.effects, 'lockfileRestored') === false
-  && readOwnBooleanField(source.effects, 'settingsWritten') === false
-  && readOwnBooleanField(source.effects, 'settingsRestored') === false
-  && readOwnBooleanField(source.effects, 'savesWritten') === false
-  && readOwnBooleanField(source.effects, 'cacheWritten') === false
-  && readOwnBooleanField(source.effects, 'transactionLogWritten') === false
-  && readOwnBooleanField(source.effects, 'recoveryLogRead') === false
-  && readOwnBooleanField(source.effects, 'recoveryLogReplayed') === false
-  && readOwnBooleanField(source.effects, 'rollbackExecuted') === false
-  && hasForbiddenField(source) === false
+): boolean => {
+  const packageFilesRestored = readOwnBooleanField(source.effects, 'packageFilesRestored') ?? false
+  const rollbackExecuted = readOwnBooleanField(source.effects, 'rollbackExecuted') ?? false
+  const rollbackRestoreContained =
+    (packageFilesRestored === false && rollbackExecuted === false)
+    || (
+      packageFilesRestored === true
+      && rollbackExecuted === true
+      && source.status === 'executed'
+      && source.outcomeKind === 'rollback'
+      && source.recovery === 'restore-backup'
+      && source.rollbackRequired === true
+      && source.rollbackRecoveryExecutionAcknowledged === true
+    )
+
+  return (source.status === 'executed' || (source.status === 'skipped' && source.outcomeKind === 'committed'))
+    && source.commandContinuationAllowed === true
+    && source.uiIpcResultContinuationAllowed === true
+    && readOwnBooleanField(source.effects, 'transactionCommitted') === false
+    && readOwnBooleanField(source.effects, 'transactionLogPrepared') === false
+    && readOwnBooleanField(source.effects, 'runtimePublicationCommitted') === false
+    && readOwnBooleanField(source.effects, 'postCommitVerificationExecuted') === false
+    && readOwnBooleanField(source.effects, 'uiIpcResponseDelivered') === false
+    && readOwnBooleanField(source.effects, 'packageFilesWritten') === false
+    && rollbackRestoreContained
+    && readOwnBooleanField(source.effects, 'lockfileWritten') === false
+    && readOwnBooleanField(source.effects, 'lockfileRestored') === false
+    && readOwnBooleanField(source.effects, 'settingsWritten') === false
+    && readOwnBooleanField(source.effects, 'settingsRestored') === false
+    && readOwnBooleanField(source.effects, 'savesWritten') === false
+    && readOwnBooleanField(source.effects, 'cacheWritten') === false
+    && readOwnBooleanField(source.effects, 'transactionLogWritten') === false
+    && readOwnBooleanField(source.effects, 'recoveryLogRead') === false
+    && readOwnBooleanField(source.effects, 'recoveryLogReplayed') === false
+    && hasForbiddenField(source) === false
+}
 
 const sourceCandidateHash = (
   source: unknown
@@ -624,7 +639,9 @@ const effectSummary = (
       readOwnBooleanField(options.terminalSource, 'rollbackRecoveryExecutionAcknowledged') ?? false,
     packageFilesWritten: readOwnBooleanField(effects, 'packageFilesWritten') ?? false,
     packageBackupsWritten: readOwnBooleanField(effects, 'packageBackupsWritten') ?? false,
-    packageFilesRestored: false,
+    packageFilesRestored: stable
+      && options.outcomeKind === 'rollback'
+      && readOwnBooleanField(effects, 'packageFilesRestored') === true,
     lockfileWritten: readOwnBooleanField(effects, 'lockfileWritten') ?? false,
     lockfileRestored: false,
     settingsWritten: readOwnBooleanField(effects, 'settingsWritten') ?? false,
@@ -634,7 +651,9 @@ const effectSummary = (
     transactionLogWritten: false,
     recoveryLogRead: false,
     recoveryLogReplayed: false,
-    rollbackExecuted: false,
+    rollbackExecuted: stable
+      && options.outcomeKind === 'rollback'
+      && readOwnBooleanField(effects, 'rollbackExecuted') === true,
     diagnosticsWritten: false
   })
 }

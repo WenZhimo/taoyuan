@@ -24,6 +24,8 @@ export const THIRD_PARTY_DATA_PACK_INSTALL_TRANSACTION_LOG_PREPARED_USERDATA_DIR
   'userdata'
 export const THIRD_PARTY_DATA_PACK_INSTALL_TRANSACTION_LOG_PREPARED_STORAGE_KIND =
   'program-directory-userdata-install-transaction-log-prepared'
+export const THIRD_PARTY_DATA_PACK_WEB_INSTALL_TRANSACTION_LOG_PREPARED_STORAGE_KIND =
+  'web-indexeddb-install-transaction-log-prepared'
 export const THIRD_PARTY_DATA_PACK_INSTALL_TRANSACTION_LOG_PREPARED_PIPELINE_KIND =
   'third-party-install-transaction-log-prepared-commit-host-connection-pipeline'
 export const THIRD_PARTY_DATA_PACK_INSTALL_TRANSACTION_LOG_PREPARED_PIPELINE_MODE =
@@ -43,6 +45,9 @@ export type ThirdPartyDataPackInstallTransactionLogPreparedPipelineStatus =
 export type ThirdPartyDataPackInstallTransactionLogPreparedStorageStatus =
   | 'written'
   | 'failed'
+export type ThirdPartyDataPackInstallTransactionLogPreparedStorageKind =
+  | typeof THIRD_PARTY_DATA_PACK_INSTALL_TRANSACTION_LOG_PREPARED_STORAGE_KIND
+  | typeof THIRD_PARTY_DATA_PACK_WEB_INSTALL_TRANSACTION_LOG_PREPARED_STORAGE_KIND
 export type ThirdPartyDataPackInstallTransactionLogPreparedCheckId =
   | 'transaction-commit-connection-accepted'
   | 'install-target-present'
@@ -113,7 +118,7 @@ export interface ThirdPartyDataPackInstallTransactionLogPreparedStorageEffects {
 export interface ThirdPartyDataPackInstallTransactionLogPreparedStorageReport {
   readonly status: ThirdPartyDataPackInstallTransactionLogPreparedStorageStatus
   readonly operation: 'prepare-install-transaction'
-  readonly storageKind: typeof THIRD_PARTY_DATA_PACK_INSTALL_TRANSACTION_LOG_PREPARED_STORAGE_KIND
+  readonly storageKind: ThirdPartyDataPackInstallTransactionLogPreparedStorageKind
   readonly reason: string
   readonly paths?: ThirdPartyDataPackInstallTransactionLogPreparedStoragePaths
   readonly diagnostics: readonly ModDiagnostic[]
@@ -200,7 +205,7 @@ export interface ThirdPartyDataPackInstallTransactionLogPreparedPipelineResult {
   readonly lockfileHash?: Sha256Hash
   readonly transactionId?: string
   readonly transactionLogEntryHash?: Sha256Hash
-  readonly storageKind?: typeof THIRD_PARTY_DATA_PACK_INSTALL_TRANSACTION_LOG_PREPARED_STORAGE_KIND
+  readonly storageKind?: ThirdPartyDataPackInstallTransactionLogPreparedStorageKind
   readonly storageStatus?: ThirdPartyDataPackInstallTransactionLogPreparedStorageStatus
   readonly storageOperation?: 'prepare-install-transaction'
   readonly storageReason?: string

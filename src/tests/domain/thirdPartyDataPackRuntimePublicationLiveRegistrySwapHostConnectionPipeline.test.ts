@@ -553,6 +553,60 @@ describe('third-party runtime publication live registry swap host connection pip
     expectJsonGraphFrozen(host.getLastSwapRecord())
   })
 
+  it('derives the live registry swap host from a runtime registry reference when no explicit host is injected', async() => {
+    const harness = createHarness()
+    const bundle = createReportBundle(harness)
+    const reference = createThirdPartyDataPackInMemoryLiveRegistryReference(harness.previousRegistrySet)
+    const acknowledgeRuntimePublicationCommit = vi.fn(async(
+      envelope: ThirdPartyDataPackRuntimePublicationCommitHostEnvelope
+    ) => ({
+      status: 'accepted' as const,
+      requestedCommandId: 'install' as const,
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: harness.registryCount,
+      entryCount: harness.entryCount,
+      packageCount: 1,
+      candidateHash: envelope.candidateIdentity.candidateHash,
+      lockfileHash: envelope.lockfileHash,
+      runtimePublicationCommitAdapterStatus: 'deferred' as const,
+      effects: runtimeHostEffects()
+    }))
+    const pipeline = createThirdPartyDataPackRuntimePublicationLiveRegistrySwapHostConnectionPipeline({
+      enabled: true,
+      readRuntimePublicationPreflight: async() => bundle.runtimePublicationPreflight,
+      readTransactionPreCommitPlan: async() => bundle.transactionPreCommitPlan,
+      readLiveRegistrySwapProtection: async() => bundle.liveRegistrySwapProtection,
+      readPublicationRollbackRecovery: async() => bundle.publicationRollbackRecovery,
+      acknowledgeRuntimePublicationCommit,
+      liveRegistryReference: reference,
+      candidateRegistrySet: harness.candidateRegistrySet,
+      candidateIdentity: harness.candidateIdentity
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('swapped')
+    expect(result.commandContinuationAllowed).toBe(true)
+    expect(result.liveRegistrySwapHostStatus).toBe('swapped')
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.candidateIdentity?.candidateHash).toBe(harness.candidateIdentity.candidateHash)
+    expect(result.lockfileHash).toBe(lockfileHash)
+    expect(reference.current).toBe(harness.candidateRegistrySet)
+    expect(result.effects.injectedLiveRegistrySwapHostCalled).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(true)
+    expect(result.effects.runtimeEnablementAllowed).toBe(true)
+    expect(result.effects.officialRegistryPublished).toBe(false)
+    expect(result.effects.candidateRegistryExposed).toBe(false)
+    expect(acknowledgeRuntimePublicationCommit).toHaveBeenCalledOnce()
+    expectNoPersistentWrites(result)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
   it('propagates real host rejection without replacing the live registry reference', async() => {
     const harness = createHarness()
     const bundle = createReportBundle(harness)

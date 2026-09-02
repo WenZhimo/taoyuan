@@ -49,7 +49,10 @@ const createStartupGateBootstrapEffects = (
   startupStateSnapshotAccepted: true,
   appFactoryBindingSourceCalled: true,
   appFactoryBindingContinuationAllowed: true,
+  appStartupHostConnectionSourceCalled: false,
+  appStartupHostConnectionAccepted: false,
   appBootstrapContinuationAllowed: true,
+  realRuntimePublicationCommitCalled: false,
   launcherAppCreated: false,
   gameAppCreated: false,
   piniaCreated: false,
@@ -57,6 +60,9 @@ const createStartupGateBootstrapEffects = (
   saveRead: false,
   uiIpcResponseDelivered: false,
   commandDispatched: false,
+  thirdPartyRegistryPublished: false,
+  liveRegistrySwapped: false,
+  runtimeEnablementAllowed: false,
   transactionCommitted: false,
   runtimePublicationCommitted: false,
   packageFilesWritten: false,
@@ -134,6 +140,7 @@ const createAcceptedHostResult = (
   effects: {
     normalStartupHandoffHostCalled: true,
     normalStartupHandoffHostAccepted: true,
+    realNormalStartupHostCalled: false,
     launcherAppFactoryCalled: false,
     gameAppFactoryCalled: false,
     launcherAppCreated: false,
@@ -290,6 +297,47 @@ describe('third-party normal startup handoff execution source', () => {
     expect('pinia' in result).toBe(false)
     expect('router' in result).toBe(false)
     expectNoRuntimeOrWriteEffects(result, true, true)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('accepts a ready startup bootstrap through a real path-free handoff acknowledgement', async() => {
+    const readStartupGateBootstrapSource = vi.fn(async() => createStartupGateBootstrapSource())
+    const acknowledgeNormalStartupHandoff = vi.fn(async(
+      envelope: ThirdPartyDataPackNormalStartupHandoffHostEnvelope
+    ) => {
+      const accepted = createAcceptedHostResult(envelope)
+      return {
+        ...accepted,
+        effects: {
+          ...accepted.effects,
+          realNormalStartupHostCalled: true
+        }
+      }
+    })
+    const source = createThirdPartyDataPackNormalStartupHandoffExecutionSource({
+      enabled: true,
+      readStartupGateBootstrapSource,
+      acknowledgeNormalStartupHandoff
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('ready')
+    expect(result.normalStartupHandoffHostStatus).toBe('accepted')
+    expect(result.effects.injectedNormalStartupHandoffHostCalled).toBe(false)
+    expect(result.effects.normalStartupHandoffHostCalled).toBe(true)
+    expect(result.effects.normalStartupHandoffHostAccepted).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    const {
+      normalStartupHandoffExecutionSourceCalled: _normalStartupHandoffExecutionSourceCalled,
+      startupGateBootstrapSourceCalled: _startupGateBootstrapSourceCalled,
+      normalStartupHandoffHostCalled: _normalStartupHandoffHostCalled,
+      normalStartupHandoffHostAccepted: _normalStartupHandoffHostAccepted,
+      realNormalStartupHostCalled: _realNormalStartupHostCalled,
+      normalStartupContinuationAllowed: _normalStartupContinuationAllowed,
+      ...realEffects
+    } = result.effects
+    expect(Object.values(realEffects).every(value => value === false)).toBe(true)
     expectJsonGraphFrozen(result)
   })
 

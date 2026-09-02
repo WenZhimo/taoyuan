@@ -11,6 +11,14 @@ import type {
   ThirdPartyDataPackStartupGatePersistentStateSnapshotSource,
   ThirdPartyDataPackStartupGatePersistentStateSourceRequest
 } from './thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
+import {
+  parseThirdPartyDataPackModLockText,
+  THIRD_PARTY_DATA_PACK_MOD_LOCK_FILE_NAME,
+  THIRD_PARTY_DATA_PACK_MOD_LOCK_MAX_BYTES
+} from './thirdPartyDataPackModLockFile'
+import type {
+  ThirdPartyDataPackLockfileDraft
+} from './thirdPartyDataPackLockfileDraft'
 
 export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_KIND =
   'electron-program-directory-startup-persistent-state-source-host'
@@ -26,6 +34,8 @@ export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_MAX_BYTES =
   16 * 1024 * 1024
 export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_STORAGE_KIND =
   'electron-program-directory-userdata-startup-persistent-state'
+export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_SETTINGS_FILE_NAME = 'settings.json'
+export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_SETTINGS_MAX_BYTES = 16 * 1024 * 1024
 
 export type ThirdPartyDataPackElectronStartupPersistentStateSourceHostStatus =
   | 'ready'
@@ -45,6 +55,8 @@ export interface ThirdPartyDataPackElectronStartupPersistentStateSourceHostPaths
   readonly userDataPath: string
   readonly startupStateDirectoryPath: string
   readonly snapshotFilePath: string
+  readonly settingsFilePath: string
+  readonly modLockFilePath: string
 }
 
 export interface ThirdPartyDataPackElectronStartupPersistentStateSourceHostEffects {
@@ -66,6 +78,8 @@ export interface ThirdPartyDataPackElectronStartupPersistentStateSourceHostEffec
   readonly transactionCommitted: false
   readonly runtimePublicationCommitted: false
   readonly startupPersistentStateSnapshotRead: boolean
+  readonly settingsStateRead: boolean
+  readonly modLockStateRead: boolean
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
   readonly packageFilesRestored: false
@@ -93,8 +107,17 @@ export interface ThirdPartyDataPackElectronStartupPersistentStateSourceHostRepor
   readonly programDirectoryContained: boolean
   readonly snapshotFilePresent: boolean
   readonly snapshotFileSizeBytes?: number
+  readonly settingsFileRead: boolean
+  readonly modLockFileRead: boolean
   readonly diagnostics: readonly ModDiagnostic[]
   readonly effects: ThirdPartyDataPackElectronStartupPersistentStateSourceHostEffects
+}
+
+interface ElectronStartupSettingsSummary {
+  readonly candidateHash: Sha256Hash
+  readonly lockfileHash: Sha256Hash
+  readonly selectedPackageIds: readonly PackageId[]
+  readonly loadOrder: readonly PackageId[]
 }
 
 export interface ThirdPartyDataPackElectronStartupPersistentStateSourceHostReadResult {
@@ -146,7 +169,9 @@ const fileSystem = (
 })
 
 const createEffects = (
-  snapshotRead: boolean
+  snapshotRead: boolean,
+  settingsRead = false,
+  modLockRead = false
 ): ThirdPartyDataPackElectronStartupPersistentStateSourceHostEffects => ({
   officialRegistryPublished: false,
   thirdPartyRegistryPublished: false,
@@ -166,6 +191,8 @@ const createEffects = (
   transactionCommitted: false,
   runtimePublicationCommitted: false,
   startupPersistentStateSnapshotRead: snapshotRead,
+  settingsStateRead: settingsRead,
+  modLockStateRead: modLockRead,
   packageFilesWritten: false,
   packageBackupsWritten: false,
   packageFilesRestored: false,
@@ -234,6 +261,8 @@ const createReport = (
     readonly snapshotFileSizeBytes?: number
     readonly diagnostics?: readonly ModDiagnostic[]
     readonly snapshotRead?: boolean
+    readonly settingsRead?: boolean
+    readonly modLockRead?: boolean
   }
 ): ThirdPartyDataPackElectronStartupPersistentStateSourceHostReport => deepFreezeObjectGraph({
   status: options.status,
@@ -246,8 +275,14 @@ const createReport = (
   programDirectoryContained: options.programDirectoryContained ?? false,
   snapshotFilePresent: options.snapshotFilePresent ?? false,
   ...(options.snapshotFileSizeBytes === undefined ? {} : { snapshotFileSizeBytes: options.snapshotFileSizeBytes }),
+  settingsFileRead: options.settingsRead === true,
+  modLockFileRead: options.modLockRead === true,
   diagnostics: Object.freeze([...(options.diagnostics ?? [])]),
-  effects: createEffects(options.snapshotRead === true)
+  effects: createEffects(
+    options.snapshotRead === true,
+    options.settingsRead === true,
+    options.modLockRead === true
+  )
 })
 
 const assertInsideProgramDirectory = (
@@ -284,14 +319,26 @@ export const resolveThirdPartyDataPackElectronStartupPersistentStateSourceHostPa
     startupStateDirectoryPath,
     THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_FILE_NAME
   )
+  const settingsFilePath = path.join(
+    userDataPath,
+    THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_SETTINGS_FILE_NAME
+  )
+  const modLockFilePath = path.join(
+    userDataPath,
+    THIRD_PARTY_DATA_PACK_MOD_LOCK_FILE_NAME
+  )
   assertInsideProgramDirectory(resolvedProgramDirectoryPath, userDataPath)
   assertInsideProgramDirectory(resolvedProgramDirectoryPath, startupStateDirectoryPath)
   assertInsideProgramDirectory(resolvedProgramDirectoryPath, snapshotFilePath)
+  assertInsideProgramDirectory(resolvedProgramDirectoryPath, settingsFilePath)
+  assertInsideProgramDirectory(resolvedProgramDirectoryPath, modLockFilePath)
   return {
     programDirectoryPath: resolvedProgramDirectoryPath,
     userDataPath,
     startupStateDirectoryPath,
-    snapshotFilePath
+    snapshotFilePath,
+    settingsFilePath,
+    modLockFilePath
   }
 }
 
@@ -330,6 +377,20 @@ const readOwnBooleanField = (
 ): boolean | undefined => {
   const field = readOwnDataField(value, fieldName)
   return typeof field === 'boolean' ? field : undefined
+}
+
+const readStringArrayField = (
+  value: object,
+  fieldName: string
+): readonly string[] | undefined => {
+  const field = readOwnDataField(value, fieldName)
+  if (!Array.isArray(field)) return undefined
+  const result: string[] = []
+  for (const item of field) {
+    if (typeof item !== 'string') return undefined
+    result.push(item)
+  }
+  return Object.freeze(result)
 }
 
 const cloneCandidateIdentity = (
@@ -438,6 +499,129 @@ const snapshotMatchesRequest = (
   && snapshot.modLockState.matched === true
   && snapshot.liveRegistry.matched === true
   && snapshot.saveCache.isolated === true
+
+const arraysEqual = (
+  left: readonly string[],
+  right: readonly string[]
+): boolean => left.length === right.length && left.every((value, index) => value === right[index])
+
+const parseSettingsSummary = (
+  text: string
+): ElectronStartupSettingsSummary | undefined => {
+  let value: unknown
+  try {
+    value = JSON.parse(text) as unknown
+    assertPureJsonValue(value)
+  } catch {
+    return undefined
+  }
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return undefined
+  const thirdPartyDataPacks = readOwnDataField(value, 'thirdPartyDataPacks')
+  if (
+    thirdPartyDataPacks === null
+    || typeof thirdPartyDataPacks !== 'object'
+    || Array.isArray(thirdPartyDataPacks)
+  ) {
+    return undefined
+  }
+
+  const candidateHash = readOwnStringField(thirdPartyDataPacks, 'candidateHash')
+  const lockfileHash = readOwnStringField(thirdPartyDataPacks, 'lockfileHash')
+  const selectedPackageIds = readStringArrayField(thirdPartyDataPacks, 'selectedPackageIds')
+  const loadOrder = readStringArrayField(thirdPartyDataPacks, 'loadOrder')
+  if (
+    candidateHash === undefined
+    || !sha256Pattern.test(candidateHash)
+    || lockfileHash === undefined
+    || !sha256Pattern.test(lockfileHash)
+    || selectedPackageIds === undefined
+    || loadOrder === undefined
+  ) {
+    return undefined
+  }
+
+  return Object.freeze({
+    candidateHash: candidateHash as Sha256Hash,
+    lockfileHash: lockfileHash as Sha256Hash,
+    selectedPackageIds: selectedPackageIds as readonly PackageId[],
+    loadOrder: loadOrder as readonly PackageId[]
+  })
+}
+
+const settingsSummaryMatchesRequest = (
+  request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest,
+  summary: ElectronStartupSettingsSummary
+): boolean => summary.candidateHash === request.candidateIdentity.candidateHash
+  && summary.lockfileHash === request.lockfileHash
+  && arraysEqual(summary.selectedPackageIds, request.selectedPackageIds)
+  && arraysEqual(summary.loadOrder, request.loadOrder)
+
+const modLockDraftMatchesRequest = (
+  request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest,
+  draft: ThirdPartyDataPackLockfileDraft
+): boolean => draft.candidateIdentity.candidateHash === request.candidateIdentity.candidateHash
+  && draft.lockfileHash === request.lockfileHash
+  && draft.registryCount === request.registryCount
+  && draft.entryCount === request.entryCount
+  && draft.packages.length === request.packageCount
+  && arraysEqual(draft.selectedPackageIds, request.selectedPackageIds)
+  && arraysEqual(draft.loadOrder, request.loadOrder)
+
+const createBlockedReadResult = (
+  options: {
+    readonly reason: string
+    readonly snapshotFileSizeBytes: number
+    readonly stage: string
+    readonly diagnosticsDetails?: Record<string, string | number | boolean | null>
+    readonly settingsRead?: boolean
+    readonly modLockRead?: boolean
+  }
+): ThirdPartyDataPackElectronStartupPersistentStateSourceHostReadResult => deepFreezeObjectGraph({
+  report: createReport({
+    status: 'blocked',
+    operation: 'read',
+    reason: options.reason,
+    programDirectoryContained: true,
+    snapshotFilePresent: true,
+    snapshotFileSizeBytes: options.snapshotFileSizeBytes,
+    snapshotRead: true,
+    settingsRead: options.settingsRead,
+    modLockRead: options.modLockRead,
+    diagnostics: [
+      diagnostic(options.stage, options.diagnosticsDetails)
+    ]
+  }),
+  snapshot: null
+})
+
+const createFailedReadResult = (
+  options: {
+    readonly reason: string
+    readonly snapshotFileSizeBytes: number
+    readonly stage: string
+    readonly error: unknown
+    readonly settingsRead?: boolean
+    readonly modLockRead?: boolean
+  }
+): ThirdPartyDataPackElectronStartupPersistentStateSourceHostReadResult => deepFreezeObjectGraph({
+  report: createReport({
+    status: 'failed',
+    operation: 'read',
+    reason: options.reason,
+    programDirectoryContained: true,
+    snapshotFilePresent: true,
+    snapshotFileSizeBytes: options.snapshotFileSizeBytes,
+    snapshotRead: true,
+    settingsRead: options.settingsRead,
+    modLockRead: options.modLockRead,
+    diagnostics: [
+      diagnostic(options.stage, {
+        errorName: errorName(options.error)
+      })
+    ]
+  }),
+  snapshot: null
+})
 
 const toSnapshotSource = (
   snapshot: ElectronStartupPersistentStateSnapshotFile
@@ -604,15 +788,151 @@ export const readThirdPartyDataPackElectronStartupPersistentStateSnapshot = asyn
     })
   }
 
+  let settingsSize = 0
+  try {
+    const settingsStat = await fs.stat(paths.settingsFilePath)
+    settingsSize = settingsStat.size
+  } catch (error) {
+    if (isNotFound(error)) {
+      return createBlockedReadResult({
+        reason: 'electron startup settings state file is absent',
+        snapshotFileSizeBytes: fileSize,
+        stage: 'third-party.startup-persistent-state.electron.settings-missing'
+      })
+    }
+    return createFailedReadResult({
+      reason: 'electron startup settings state file could not be inspected',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.settings-stat',
+      error
+    })
+  }
+
+  if (settingsSize > THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_SETTINGS_MAX_BYTES) {
+    return createBlockedReadResult({
+      reason: 'electron startup settings state file exceeds the size limit',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.settings-size',
+      diagnosticsDetails: {
+        size: settingsSize,
+        maxBytes: THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_SETTINGS_MAX_BYTES
+      }
+    })
+  }
+
+  let settingsText: string
+  try {
+    settingsText = await fs.readFile(paths.settingsFilePath, 'utf8')
+  } catch (error) {
+    return createFailedReadResult({
+      reason: 'electron startup settings state file could not be read',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.settings-read',
+      error
+    })
+  }
+
+  const settingsSummary = parseSettingsSummary(settingsText)
+  if (settingsSummary === undefined) {
+    return createBlockedReadResult({
+      reason: 'electron startup settings state structure is invalid',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.settings-structure',
+      settingsRead: true
+    })
+  }
+
+  if (!settingsSummaryMatchesRequest(options.request, settingsSummary)) {
+    return createBlockedReadResult({
+      reason: 'electron startup settings state does not match the startup request identity',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.settings-identity',
+      settingsRead: true
+    })
+  }
+
+  let modLockSize = 0
+  try {
+    const modLockStat = await fs.stat(paths.modLockFilePath)
+    modLockSize = modLockStat.size
+  } catch (error) {
+    if (isNotFound(error)) {
+      return createBlockedReadResult({
+        reason: 'electron startup mod-lock state file is absent',
+        snapshotFileSizeBytes: fileSize,
+        stage: 'third-party.startup-persistent-state.electron.mod-lock-missing',
+        settingsRead: true
+      })
+    }
+    return createFailedReadResult({
+      reason: 'electron startup mod-lock state file could not be inspected',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.mod-lock-stat',
+      error,
+      settingsRead: true
+    })
+  }
+
+  if (modLockSize > THIRD_PARTY_DATA_PACK_MOD_LOCK_MAX_BYTES) {
+    return createBlockedReadResult({
+      reason: 'electron startup mod-lock state file exceeds the size limit',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.mod-lock-size',
+      diagnosticsDetails: {
+        size: modLockSize,
+        maxBytes: THIRD_PARTY_DATA_PACK_MOD_LOCK_MAX_BYTES
+      },
+      settingsRead: true
+    })
+  }
+
+  let modLockText: string
+  try {
+    modLockText = await fs.readFile(paths.modLockFilePath, 'utf8')
+  } catch (error) {
+    return createFailedReadResult({
+      reason: 'electron startup mod-lock state file could not be read',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.mod-lock-read',
+      error,
+      settingsRead: true
+    })
+  }
+
+  let modLockDraft: ThirdPartyDataPackLockfileDraft
+  try {
+    modLockDraft = parseThirdPartyDataPackModLockText(modLockText)
+  } catch {
+    return createBlockedReadResult({
+      reason: 'electron startup mod-lock state structure is invalid',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.mod-lock-structure',
+      settingsRead: true,
+      modLockRead: true
+    })
+  }
+
+  if (!modLockDraftMatchesRequest(options.request, modLockDraft)) {
+    return createBlockedReadResult({
+      reason: 'electron startup mod-lock state does not match the startup request identity',
+      snapshotFileSizeBytes: fileSize,
+      stage: 'third-party.startup-persistent-state.electron.mod-lock-identity',
+      settingsRead: true,
+      modLockRead: true
+    })
+  }
+
   return deepFreezeObjectGraph({
     report: createReport({
       status: 'loaded',
       operation: 'read',
-      reason: 'electron startup persistent state snapshot was loaded from program-directory userdata',
+      reason: 'electron startup persistent state snapshot, settings and mod-lock were loaded from program-directory userdata',
       programDirectoryContained: true,
       snapshotFilePresent: true,
       snapshotFileSizeBytes: fileSize,
-      snapshotRead: true
+      snapshotRead: true,
+      settingsRead: true,
+      modLockRead: true
     }),
     snapshot: toSnapshotSource(parsed)
   })

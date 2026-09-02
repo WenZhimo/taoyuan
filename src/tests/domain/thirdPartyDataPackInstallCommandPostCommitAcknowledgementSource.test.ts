@@ -217,7 +217,7 @@ const createCommitSource = (
   kind: 'third-party-atomic-transaction-commit-executor-source',
   mode: 'default-disabled-atomic-transaction-commit-executor-source',
   status: 'executed',
-  reason: 'third-party atomic transaction commit executor source accepted an injected path-free commit host result',
+  reason: 'third-party atomic transaction commit executor source accepted a path-free commit host result',
   readOnly: true,
   enabled: true,
   sourceCalled: true,
@@ -226,6 +226,7 @@ const createCommitSource = (
   atomicTransactionCommitExecutorHostStatus: 'accepted',
   sourcePreflightStatus: 'deferred',
   outcomeContractStatus: 'ready',
+  atomicTransactionCommitExecutorHostMode: 'injected-test-only',
   injectedExecutorHostMode: 'injected-test-only',
   commitOutcomeKind: 'committed',
   requestedCommandId: 'install',
@@ -260,6 +261,7 @@ const createAcknowledgementSource = (
   commandContinuationAllowed: true,
   uiIpcResultContinuationAllowed: true,
   postCommitVerificationExecutorSourceStatus: 'executed',
+  postCommitVerificationExecutorHostMode: 'injected-test-only',
   postCommitPersistentVerificationReadSourceStatus: 'ready',
   requestedCommandId: 'install',
   targetPackageId: packageId,
@@ -363,7 +365,9 @@ describe('third-party install command post-commit acknowledgement source', () =>
     expect(result.status).toBe('ready')
     expect(result.transactionCommandDispatcherSourceStatus).toBe('dispatched')
     expect(result.atomicTransactionCommitExecutorSourceStatus).toBe('executed')
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('injected-test-only')
     expect(result.postCommitVerificationReadAcknowledgementSourceStatus).toBe('ready')
+    expect(result.postCommitVerificationExecutorHostMode).toBe('injected-test-only')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.candidateIdentity?.candidateHash).toBe(candidateIdentity.candidateHash)
@@ -372,6 +376,8 @@ describe('third-party install command post-commit acknowledgement source', () =>
     expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
     expect(result.effects.commandDispatched).toBe(true)
     expect(result.effects.atomicCommitExecutorAcknowledged).toBe(true)
+    expect(result.effects.injectedCommitHostCalled).toBe(true)
+    expect(result.effects.realAtomicCommitExecutorCalled).toBe(false)
     expect(result.effects.postCommitVerificationAcknowledged).toBe(true)
     expect(result.effects.persistentReadProofAcknowledged).toBe(true)
     expect(readTransactionCommandDispatcherSource).toHaveBeenCalledOnce()
@@ -379,6 +385,34 @@ describe('third-party install command post-commit acknowledgement source', () =>
     expect(readPostCommitVerificationReadAcknowledgementSource).toHaveBeenCalledOnce()
     expect('candidateRegistrySet' in result).toBe(false)
     expect('programDirectoryPath' in result).toBe(false)
+    expectNoRealEffects(result, true)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('preserves real atomic commit host evidence through post-commit acknowledgement', async() => {
+    const realCommitEffects = {
+      ...commitEffects,
+      injectedCommitHostCalled: false,
+      realAtomicCommitExecutorCalled: true
+    } as unknown as ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult['effects']
+    const source = createThirdPartyDataPackInstallCommandPostCommitAcknowledgementSource({
+      enabled: true,
+      readTransactionCommandDispatcherSource: async() => createCommandSource(),
+      readAtomicTransactionCommitExecutorSource: async() => createCommitSource({
+        atomicTransactionCommitExecutorHostMode: 'electron-main-visible-import',
+        injectedExecutorHostMode: 'electron-main-visible-import',
+        effects: realCommitEffects
+      }),
+      readPostCommitVerificationReadAcknowledgementSource: async() => createAcknowledgementSource()
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('ready')
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.effects.atomicCommitExecutorAcknowledged).toBe(true)
+    expect(result.effects.injectedCommitHostCalled).toBe(false)
+    expect(result.effects.realAtomicCommitExecutorCalled).toBe(true)
     expectNoRealEffects(result, true)
     expectJsonGraphFrozen(result)
   })

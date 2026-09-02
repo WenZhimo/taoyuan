@@ -1,6 +1,7 @@
 import type { ModDiagnosticRecovery, ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
+import type { ThirdPartyDataPackRuntimeCommandId } from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyCandidateIdentitySummary
 } from './thirdPartyCandidateRegistrySnapshot'
@@ -18,6 +19,16 @@ export type ThirdPartyDataPackStartupGatePersistentStateSourceAdapterStatus =
   | 'executed'
   | 'skipped'
   | 'blocked'
+
+export type ThirdPartyDataPackStartupGatePersistentStateSourceHostKind =
+  | 'injected-startup-persistent-state-source-adapter'
+  | 'web-indexeddb-startup-persistent-state-source-adapter'
+  | 'electron-program-directory-startup-persistent-state-source-adapter'
+
+export type ThirdPartyDataPackStartupGatePersistentStateSourceHostMode =
+  | 'injected-test-only'
+  | 'web-indexeddb-startup-persistent-state'
+  | 'electron-program-directory-startup-persistent-state'
 
 export type ThirdPartyDataPackStartupGatePersistentStateSourceAdapterCheckId =
   | 'persistent-state-preflight-deferred'
@@ -39,7 +50,7 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSourceAdapterCheck 
 
 export interface ThirdPartyDataPackStartupGatePersistentStateSourceRequest {
   readonly formatVersion: 1
-  readonly commandId: 'install'
+  readonly commandId: ThirdPartyDataPackRuntimeCommandId
   readonly packageId: PackageId
   readonly candidateIdentity: ThirdPartyCandidateIdentitySummary
   readonly lockfileHash: Sha256Hash
@@ -55,8 +66,8 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSourceRequest {
 }
 
 export interface ThirdPartyDataPackStartupGatePersistentStateSourceHost {
-  readonly kind: 'injected-startup-persistent-state-source-adapter'
-  readonly mode: 'injected-test-only'
+  readonly kind: ThirdPartyDataPackStartupGatePersistentStateSourceHostKind
+  readonly mode: ThirdPartyDataPackStartupGatePersistentStateSourceHostMode
   readonly read: (
     request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest
   ) => ThirdPartyDataPackStartupGatePersistentStateSnapshotSource
@@ -172,7 +183,8 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
   readonly startupGatePersistentStateSourceAdapter: ThirdPartyDataPackStartupGatePersistentStateSourceAdapterStatus
   readonly readOnly: true
   readonly injectedSourceHostRequired: true
-  readonly injectedSourceHostMode: 'injected-test-only'
+  readonly startupPersistentStateSourceHostMode?: ThirdPartyDataPackStartupGatePersistentStateSourceHostMode
+  readonly injectedSourceHostMode: ThirdPartyDataPackStartupGatePersistentStateSourceHostMode
   readonly sourceHostCalled: boolean
   readonly startupStateSnapshotReceived: boolean
   readonly startupStateSnapshotNormalized: boolean
@@ -589,6 +601,40 @@ const check = (
   reason: string
 ): ThirdPartyDataPackStartupGatePersistentStateSourceAdapterCheck => Object.freeze({ id, status, reason })
 
+const defaultHostMode: ThirdPartyDataPackStartupGatePersistentStateSourceHostMode = 'injected-test-only'
+
+const sourceHostModes = new Set<ThirdPartyDataPackStartupGatePersistentStateSourceHostMode>([
+  'injected-test-only',
+  'web-indexeddb-startup-persistent-state',
+  'electron-program-directory-startup-persistent-state'
+])
+
+const safeHostMode = (
+  mode: unknown
+): ThirdPartyDataPackStartupGatePersistentStateSourceHostMode =>
+  sourceHostModes.has(mode as ThirdPartyDataPackStartupGatePersistentStateSourceHostMode)
+    ? mode as ThirdPartyDataPackStartupGatePersistentStateSourceHostMode
+    : defaultHostMode
+
+const hostBoundaryAccepted = (
+  host: ThirdPartyDataPackStartupGatePersistentStateSourceHost | undefined
+): boolean => (
+  host?.kind === 'injected-startup-persistent-state-source-adapter'
+    && host.mode === 'injected-test-only'
+) || (
+  host?.kind === 'web-indexeddb-startup-persistent-state-source-adapter'
+    && host.mode === 'web-indexeddb-startup-persistent-state'
+) || (
+  host?.kind === 'electron-program-directory-startup-persistent-state-source-adapter'
+    && host.mode === 'electron-program-directory-startup-persistent-state'
+)
+
+const platformHostReason = (
+  hostMode: ThirdPartyDataPackStartupGatePersistentStateSourceHostMode,
+  injectedReason: string,
+  platformReason: string
+): string => hostMode === 'injected-test-only' ? injectedReason : platformReason
+
 const skippedChecks = (
   reason: string
 ): readonly ThirdPartyDataPackStartupGatePersistentStateSourceAdapterCheck[] => Object.freeze([
@@ -617,42 +663,39 @@ const preExecutionChecks = (
     check(
       'persistent-state-preflight-deferred',
       preflight.status === 'deferred' ? 'satisfied' : 'blocked',
-      'Injected startup state source execution requires the source persistent-state preflight to remain deferred.'
+      'Startup state source execution requires the source persistent-state preflight to remain deferred.'
     ),
     check(
       'install-command-source',
       preflight.requestedCommandId === 'install' ? 'satisfied' : 'blocked',
-      'This injected startup state source adapter only covers install commands.'
+      'This startup state source adapter only covers install commands.'
     ),
     check(
       'target-package-selected',
       preflight.targetPackageId !== undefined && selectedPackageIds.includes(preflight.targetPackageId)
         ? 'satisfied'
         : 'blocked',
-      'The selected install target must be present before constructing an injected startup state request.'
+      'The selected install target must be present before constructing a startup state request.'
     ),
     check(
       'candidate-identity-present',
       preflight.candidateIdentity?.candidateHash !== undefined ? 'satisfied' : 'blocked',
-      'Injected startup state source execution requires the candidate identity that persistent state must prove.'
+      'Startup state source execution requires the candidate identity that persistent state must prove.'
     ),
     check(
       'lockfile-hash-present',
       preflight.lockfileHash !== undefined ? 'satisfied' : 'blocked',
-      'Injected startup state source execution requires the lockfile hash that persistent state must prove.'
+      'Startup state source execution requires the lockfile hash that persistent state must prove.'
     ),
     check(
       'injected-source-host-ready',
       host !== undefined && typeof host.read === 'function' ? 'satisfied' : 'blocked',
-      'A fixed injected startup state source host must be present before the adapter can execute.'
+      'A fixed startup state source host must be present before the adapter can execute.'
     ),
     check(
       'injected-test-boundary',
-      host?.kind === 'injected-startup-persistent-state-source-adapter'
-        && host.mode === 'injected-test-only'
-        ? 'satisfied'
-        : 'blocked',
-      'This first startup state source adapter slice only accepts an injected-test-only host and must not bind real persistent readers.'
+      hostBoundaryAccepted(host) ? 'satisfied' : 'blocked',
+      'The adapter only accepts explicit path-free startup state source host modes.'
     ),
     check(
       'no-upstream-startup-read-write-effects',
@@ -829,6 +872,7 @@ const baseResult = (
   diagnostics: readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[],
   hostCalled: boolean,
   snapshotReceived: boolean,
+  hostMode: ThirdPartyDataPackStartupGatePersistentStateSourceHostMode = defaultHostMode,
   startupStateRequest?: ThirdPartyDataPackStartupGatePersistentStateSourceRequest,
   startupStateSnapshot?: ThirdPartyDataPackStartupGatePersistentStateSnapshot
 ): ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult => {
@@ -844,7 +888,8 @@ const baseResult = (
     startupGatePersistentStateSourceAdapter: status,
     readOnly: true,
     injectedSourceHostRequired: true,
-    injectedSourceHostMode: 'injected-test-only',
+    startupPersistentStateSourceHostMode: hostMode,
+    injectedSourceHostMode: hostMode,
     sourceHostCalled: hostCalled,
     startupStateSnapshotReceived: snapshotReceived,
     startupStateSnapshotNormalized: snapshotNormalized,
@@ -933,7 +978,8 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
         ...blockedDiagnostics
       ],
       false,
-      false
+      false,
+      safeHostMode(options.host?.mode)
     )
   }
 
@@ -950,7 +996,11 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
     )
     return baseResult(
       'blocked',
-      'injected startup persistent state source host failed before snapshot',
+      platformHostReason(
+        options.host.mode,
+        'injected startup persistent state source host failed before snapshot',
+        'startup persistent state source host failed before snapshot'
+      ),
       preflight,
       snapshotChecks,
       [
@@ -962,6 +1012,7 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
       ],
       true,
       false,
+      options.host.mode,
       startupStateRequest
     )
   }
@@ -977,7 +1028,11 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
     )
     return baseResult(
       'blocked',
-      'injected startup persistent state source host returned an invalid snapshot',
+      platformHostReason(
+        options.host.mode,
+        'injected startup persistent state source host returned an invalid snapshot',
+        'startup persistent state source host returned an invalid snapshot'
+      ),
       preflight,
       snapshotChecks,
       [
@@ -989,6 +1044,7 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
       ],
       true,
       false,
+      options.host.mode,
       startupStateRequest
     )
   }
@@ -998,7 +1054,7 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
   const snapshotChecks = checksWithSnapshot(
     checks,
     'satisfied',
-    'The injected startup state source host returned a safe path-free snapshot source.',
+    'The startup state source host returned a safe path-free snapshot source.',
     ready ? 'satisfied' : 'blocked',
     ready
       ? 'The startup state snapshot proves transaction log, package, settings, mod-lock, live registry and save/cache isolation identity.'
@@ -1008,7 +1064,11 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
   if (!ready) {
     return baseResult(
       'blocked',
-      'injected startup persistent state source snapshot failed adapter normalization',
+      platformHostReason(
+        options.host.mode,
+        'injected startup persistent state source snapshot failed adapter normalization',
+        'startup persistent state source snapshot failed adapter normalization'
+      ),
       preflight,
       snapshotChecks,
       [
@@ -1018,6 +1078,7 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
       ],
       true,
       true,
+      options.host.mode,
       startupStateRequest
     )
   }
@@ -1031,12 +1092,17 @@ export const executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter = 
 
   return baseResult(
     'executed',
-    'startup gate persistent state source adapter executed the injected-test-only host and normalized its path-free startup snapshot',
+    platformHostReason(
+      options.host.mode,
+      'startup gate persistent state source adapter executed the injected-test-only host and normalized its path-free startup snapshot',
+      'startup gate persistent state source adapter executed a platform startup state source host and normalized its path-free startup snapshot'
+    ),
     preflight,
     snapshotChecks,
     diagnostics,
     true,
     true,
+    options.host.mode,
     startupStateRequest,
     snapshot
   )

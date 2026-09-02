@@ -14,6 +14,18 @@ import type {
   ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionEffectSummary,
   ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult
 } from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline'
+import type {
+  ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationEffectSummary,
+  ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult
+} from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline'
+import type {
+  ThirdPartyDataPackLiveRegistrySwapExecutionEffectSummary,
+  ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult
+} from '@/domain/mods/thirdPartyDataPackLiveRegistrySwapExecutionSource'
+import type {
+  ThirdPartyDataPackNormalStartupHandoffExecutionSourceEffectSummary,
+  ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult
+} from '@/domain/mods/thirdPartyDataPackNormalStartupHandoffExecutionSource'
 
 const packageId = 'sample_pack' as PackageId
 const otherPackageId = 'other_pack' as PackageId
@@ -27,6 +39,143 @@ const candidateIdentity: ThirdPartyCandidateIdentitySummary = {
 }
 
 const lockfileHash = testHash('d')
+
+const commitAfterPostCommitEffects = (
+  overrides: Partial<ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationEffectSummary> = {}
+): ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationEffectSummary => ({
+  runtimePublicationCommitAfterPostCommitVerificationPipelineCalled: true,
+  postCommitVerificationAfterInstallTransactionCommitPipelineCalled: true,
+  runtimePublicationCommitPipelineCalled: true,
+  runtimePublicationCommitHostAccepted: true,
+  transactionCommitted: true,
+  transactionLogCommitted: true,
+  postCommitVerificationAcknowledged: true,
+  persistentReadProofAcknowledged: true,
+  runtimePublicationCommitAcknowledged: true,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  uiIpcResultContinuationAllowed: true,
+  realRuntimePublicationCommitCalled: false,
+  officialRegistryPublished: false,
+  thirdPartyRegistryPublished: false,
+  liveRegistryMutated: false,
+  liveRegistrySwapped: false,
+  previousRegistryReleased: false,
+  previousRegistryRestored: false,
+  candidateRegistryExposed: false,
+  runtimeEnablementAllowed: false,
+  modManagementUiMounted: false,
+  electronIpcExposed: false,
+  webFilePickerOpened: false,
+  androidFilePickerOpened: false,
+  commandDispatcherCalled: false,
+  commandDispatched: false,
+  atomicCommitExecutorCalled: false,
+  runtimePublicationCommitted: false,
+  postCommitVerificationExecuted: false,
+  uiIpcResponseDelivered: false,
+  transactionLogPrepared: true,
+  transactionLogWritten: true,
+  transactionLogRead: true,
+  packageStateRead: false,
+  settingsRead: false,
+  lockfileRead: false,
+  liveRegistryRead: false,
+  saveCacheIsolationChecked: false,
+  packageFilesWritten: true,
+  packageBackupsWritten: true,
+  packageFilesRestored: false,
+  lockfileWritten: true,
+  lockfileRestored: false,
+  settingsWritten: true,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  ...overrides
+})
+
+const liveRegistrySwapSourceEffects = (
+  overrides: Partial<ThirdPartyDataPackLiveRegistrySwapExecutionEffectSummary> = {}
+): ThirdPartyDataPackLiveRegistrySwapExecutionEffectSummary => ({
+  liveRegistrySwapExecutionSourceCalled: true,
+  liveRegistrySwapProtectionSourceCalled: true,
+  injectedLiveRegistrySwapHostCalled: true,
+  liveRegistrySwapHostCalled: true,
+  liveRegistrySwapHostAccepted: true,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  thirdPartyRegistryPublished: true,
+  liveRegistryMutated: true,
+  liveRegistrySwapped: true,
+  runtimeEnablementAllowed: true,
+  officialRegistryPublished: false,
+  previousRegistryReleased: false,
+  previousRegistryRestored: false,
+  candidateRegistryExposed: false,
+  modManagementUiMounted: false,
+  electronIpcExposed: false,
+  webFilePickerOpened: false,
+  androidFilePickerOpened: false,
+  commandDispatcherCalled: false,
+  commandDispatched: false,
+  transactionCommitted: false,
+  runtimePublicationCommitted: false,
+  postCommitVerificationExecuted: false,
+  uiIpcResponseDelivered: false,
+  packageFilesWritten: false,
+  packageBackupsWritten: false,
+  packageFilesRestored: false,
+  lockfileWritten: false,
+  lockfileRestored: false,
+  settingsWritten: false,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  ...overrides
+})
+
+const normalStartupSourceEffects = (
+  overrides: Partial<ThirdPartyDataPackNormalStartupHandoffExecutionSourceEffectSummary> = {}
+): ThirdPartyDataPackNormalStartupHandoffExecutionSourceEffectSummary => ({
+  normalStartupHandoffExecutionSourceCalled: true,
+  startupGateBootstrapSourceCalled: true,
+  injectedNormalStartupHandoffHostCalled: true,
+  normalStartupHandoffHostCalled: true,
+  normalStartupHandoffHostAccepted: true,
+  realNormalStartupHostCalled: false,
+  normalStartupContinuationAllowed: true,
+  launcherAppFactoryCalled: false,
+  gameAppFactoryCalled: false,
+  launcherAppCreated: false,
+  launcherAppMounted: false,
+  gameAppCreated: false,
+  gameAppMounted: false,
+  piniaCreated: false,
+  routerMounted: false,
+  saveRead: false,
+  uiIpcResponseDelivered: false,
+  commandDispatched: false,
+  transactionCommitted: false,
+  runtimePublicationCommitted: false,
+  packageFilesWritten: false,
+  lockfileWritten: false,
+  settingsWritten: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  ...overrides
+})
 
 const liveSwapEffects = (
   overrides: Partial<ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionEffectSummary> = {}
@@ -192,6 +341,120 @@ const createReadyNormalStartup = (
   ...overrides
 } as unknown as ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult)
 
+const createAcceptedCommitAfterPostCommit = (
+  overrides: Partial<ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult> = {}
+): ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult => ({
+  kind: 'third-party-runtime-publication-commit-after-post-commit-verification-pipeline',
+  mode: 'default-disabled-runtime-publication-commit-after-post-commit-verification-pipeline',
+  status: 'accepted',
+  reason: 'runtime publication commit accepted after committed post-commit verification',
+  readOnly: true,
+  enabled: true,
+  postCommitVerificationAfterInstallTransactionCommitSourceCalled: true,
+  runtimePublicationCommitSourceCalled: true,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  uiIpcResultContinuationAllowed: true,
+  postCommitVerificationAfterInstallTransactionCommitStatus: 'ready',
+  runtimePublicationCommitStatus: 'accepted',
+  runtimePublicationCommitHostStatus: 'accepted',
+  requestedCommandId: 'install',
+  targetPackageId: packageId,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  candidateIdentity,
+  candidateHash: candidateIdentity.candidateHash,
+  lockfileHash,
+  transactionId: 'install-transaction-1',
+  committedTransactionId: 'install-transaction-1',
+  committedTransactionLogEntryHash: testHash('e'),
+  checks: [],
+  diagnostics: [],
+  effects: commitAfterPostCommitEffects(),
+  ...overrides
+} as unknown as ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult)
+
+const createSwappedLiveRegistrySource = (
+  overrides: Partial<ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult> = {}
+): ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult => ({
+  kind: 'third-party-live-registry-swap-execution-source',
+  mode: 'default-disabled-live-registry-swap-execution-source',
+  status: 'swapped',
+  reason: 'live registry swap execution source accepted a runtime-only host swap acknowledgement',
+  runtimeOnly: true,
+  persistentWrite: false,
+  enabled: true,
+  sourceCalled: true,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  liveRegistrySwapProtectionStatus: 'deferred',
+  liveRegistrySwapHostStatus: 'swapped',
+  requestedCommandId: 'install',
+  targetPackageId: packageId,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  blockedCandidatePaths: [],
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  candidateIdentity,
+  lockfileHash,
+  requiredProtectionIds: [],
+  diagnostics: [],
+  effects: liveRegistrySwapSourceEffects(),
+  ...overrides
+} as unknown as ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult)
+
+const createReadyNormalStartupSource = (
+  overrides: Partial<ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult> = {}
+): ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult => ({
+  kind: 'third-party-normal-startup-handoff-execution-source',
+  mode: 'default-disabled-normal-startup-handoff-execution-source',
+  status: 'ready',
+  reason: 'normal startup handoff accepted',
+  readOnly: true,
+  enabled: true,
+  sourceCalled: true,
+  normalStartupContinuationAllowed: true,
+  startupGateBootstrapSourceStatus: 'ready',
+  normalStartupHandoffHostStatus: 'accepted',
+  targetPackageId: packageId,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  blockedCandidateCount: 0,
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  lockfileHash,
+  persistentStateProofs: {
+    transactionLogCommitted: true,
+    packageStateMatched: true,
+    settingsStateMatched: true,
+    modLockStateMatched: true,
+    liveRegistryMatched: true,
+    saveCacheIsolated: true
+  },
+  diagnostics: [],
+  summary: {
+    selectedPackageCount: 1,
+    blockedPackageCount: 0,
+    blockedCandidateCount: 0,
+    loadOrderCount: 1,
+    registryCount: 55,
+    entryCount: 4243,
+    packageCount: 1,
+    diagnosticCount: 0
+  },
+  effects: normalStartupSourceEffects(),
+  ...overrides
+} as unknown as ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult)
+
 const expectJsonGraphFrozen = (value: unknown): void => {
   if (value && typeof value === 'object') {
     expect(Object.isFrozen(value)).toBe(true)
@@ -298,6 +561,120 @@ describe('third-party runtime publication commit app startup readiness pipeline'
       'runtime-publication-commit-live-registry-swap',
       'runtime-publication-commit-normal-startup-app-factory-binding'
     ])
+    expect(result.status).toBe('ready')
+    expect(result.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
+    expect(result.runtimePublicationCommitNormalStartupAppFactoryBindingHostConnectionStatus).toBe('ready')
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([packageId])
+    expect(result.blockedPackageIds).toEqual([])
+    expect(result.loadOrder).toEqual([packageId])
+    expect(result.registryCount).toBe(55)
+    expect(result.entryCount).toBe(4243)
+    expect(result.packageCount).toBe(1)
+    expect(result.candidateIdentity).toEqual(candidateIdentity)
+    expect(result.candidateHash).toBe(candidateIdentity.candidateHash)
+    expect(result.lockfileHash).toBe(lockfileHash)
+    expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
+    expectNoRealAppStartupOrPersistentWrites(result, true)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('propagates real normal-startup host evidence from the normal-startup branch', async() => {
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline({
+      enabled: true,
+      readRuntimePublicationCommitLiveRegistrySwapHostConnection: async() => createSwappedLiveRegistry(),
+      readRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnection: async() => createReadyNormalStartup({
+        effects: normalStartupEffects({
+          realNormalStartupHostCalled: true
+        })
+      })
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('ready')
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(false)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(true)
+    expect(result.effects.runtimeEnablementAllowed).toBe(true)
+    expect(result.effects.gameAppCreated).toBe(false)
+    expect(result.effects.piniaCreated).toBe(false)
+    expect(result.effects.routerMounted).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('propagates real runtime publication commit only when both startup prerequisite branches agree', async() => {
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline({
+      enabled: true,
+      readRuntimePublicationCommitLiveRegistrySwapHostConnection: async() => createSwappedLiveRegistry({
+        effects: liveSwapEffects({
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true
+        })
+      }),
+      readRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnection: async() => createReadyNormalStartup({
+        effects: normalStartupEffects({
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true
+        })
+      })
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('ready')
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.runtimePublicationCommitted).toBe(true)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(true)
+    expect(result.effects.launcherAppCreated).toBe(false)
+    expect(result.effects.gameAppCreated).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('reuses one post-commit runtime publication commit for default live-registry and normal-startup branches', async() => {
+    const calls: string[] = []
+    const readRuntimePublicationCommitAfterPostCommitVerification = vi.fn(async() => {
+      calls.push('runtime-publication-commit-after-post-commit')
+      return createAcceptedCommitAfterPostCommit()
+    })
+    const readRuntimePublicationLiveRegistrySwapHostConnection = vi.fn(async() => {
+      calls.push('runtime-publication-live-registry-swap-host-connection')
+      return createSwappedLiveRegistrySource()
+    })
+    const readRuntimePublicationNormalStartupAppFactoryBindingHostConnection = vi.fn(async() => {
+      calls.push('runtime-publication-normal-startup-app-factory-binding-host-connection')
+      return createReadyNormalStartupSource()
+    })
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline({
+      enabled: true,
+      readRuntimePublicationCommitAfterPostCommitVerification,
+      readRuntimePublicationLiveRegistrySwapHostConnection,
+      readRuntimePublicationNormalStartupAppFactoryBindingHostConnection
+    })
+
+    const result = await pipeline()
+
+    expect(calls).toEqual([
+      'runtime-publication-commit-after-post-commit',
+      'runtime-publication-live-registry-swap-host-connection',
+      'runtime-publication-normal-startup-app-factory-binding-host-connection'
+    ])
+    expect(readRuntimePublicationCommitAfterPostCommitVerification).toHaveBeenCalledOnce()
+    expect(readRuntimePublicationLiveRegistrySwapHostConnection).toHaveBeenCalledOnce()
+    expect(readRuntimePublicationNormalStartupAppFactoryBindingHostConnection).toHaveBeenCalledOnce()
     expect(result.status).toBe('ready')
     expect(result.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
     expect(result.runtimePublicationCommitNormalStartupAppFactoryBindingHostConnectionStatus).toBe('ready')

@@ -8,6 +8,10 @@ import {
   type ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipelineResult
 } from './thirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline'
 import {
+  createThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline,
+  type ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult
+} from './thirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline'
+import {
   createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline,
   type CreateThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineOptions,
   type ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult
@@ -65,8 +69,8 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessEf
   readonly normalStartupContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
   readonly uiIpcResultContinuationAllowed: boolean
-  readonly realRuntimePublicationCommitCalled: false
-  readonly realNormalStartupHostCalled: false
+  readonly realRuntimePublicationCommitCalled: boolean
+  readonly realNormalStartupHostCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: boolean
   readonly liveRegistryMutated: boolean
@@ -83,7 +87,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessEf
   readonly uiIpcResponseDelivered: false
   readonly commandDispatched: false
   readonly transactionCommitted: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly postCommitVerificationExecuted: false
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
@@ -365,6 +369,8 @@ const safeSwappedLiveRegistry = (
     'thirdPartyRegistryPublished',
     'liveRegistryMutated',
     'liveRegistrySwapped',
+    'realRuntimePublicationCommitCalled',
+    'runtimePublicationCommitted',
     'runtimeEnablementAllowed'
   ])
   && pathFree(result, forbiddenLiveSwapFields)
@@ -393,7 +399,10 @@ const safeReadyNormalStartup = (
     'appBootstrapContinuationAllowed',
     'normalStartupContinuationAllowed',
     'commandContinuationAllowed',
-    'uiIpcResultContinuationAllowed'
+    'uiIpcResultContinuationAllowed',
+    'realRuntimePublicationCommitCalled',
+    'realNormalStartupHostCalled',
+    'runtimePublicationCommitted'
   ])
   && pathFree(result, forbiddenNormalStartupFields)
 
@@ -619,9 +628,20 @@ const deepFreezeObjectGraph = <T>(value: T): T => {
 const effectSummary = (
   status: ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineStatus,
   liveSwapCalled: boolean,
-  normalStartupCalled: boolean
+  normalStartupCalled: boolean,
+  liveSwapResult?: ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipelineResult,
+  normalStartupResult?: ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult
 ): ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessEffectSummary => {
   const ready = status === 'ready'
+  const liveSwapEffects = readOwnDataField(liveSwapResult, 'effects') as object | undefined
+  const normalStartupEffects = readOwnDataField(normalStartupResult, 'effects') as object | undefined
+  const realRuntimePublicationCommit = ready
+    && readOwnBooleanField(liveSwapEffects, 'realRuntimePublicationCommitCalled') === true
+    && readOwnBooleanField(liveSwapEffects, 'runtimePublicationCommitted') === true
+    && readOwnBooleanField(normalStartupEffects, 'realRuntimePublicationCommitCalled') === true
+    && readOwnBooleanField(normalStartupEffects, 'runtimePublicationCommitted') === true
+  const realNormalStartupHostCalled =
+    ready && readOwnBooleanField(normalStartupEffects, 'realNormalStartupHostCalled') === true
   return Object.freeze({
     runtimePublicationCommitAppStartupReadinessPipelineCalled: true,
     runtimePublicationCommitLiveRegistrySwapHostConnectionPipelineCalled: liveSwapCalled,
@@ -636,8 +656,8 @@ const effectSummary = (
     normalStartupContinuationAllowed: ready,
     commandContinuationAllowed: ready,
     uiIpcResultContinuationAllowed: ready,
-    realRuntimePublicationCommitCalled: false,
-    realNormalStartupHostCalled: false,
+    realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
+    realNormalStartupHostCalled,
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: ready,
     liveRegistryMutated: ready,
@@ -654,7 +674,7 @@ const effectSummary = (
     uiIpcResponseDelivered: false,
     commandDispatched: false,
     transactionCommitted: false,
-    runtimePublicationCommitted: false,
+    runtimePublicationCommitted: realRuntimePublicationCommit,
     postCommitVerificationExecuted: false,
     packageFilesWritten: false,
     packageBackupsWritten: false,
@@ -734,7 +754,13 @@ const baseResult = (
       ?? readOwnStringField(options.normalStartupResult, 'lockfileHash') as Sha256Hash | undefined,
     checks: options.checks ?? skippedChecks(options.status === 'blocked' ? 'blocked' : 'skipped'),
     diagnostics: Object.freeze([...(options.diagnostics ?? [])]),
-    effects: effectSummary(options.status, options.liveSwapCalled, options.normalStartupCalled)
+    effects: effectSummary(
+      options.status,
+      options.liveSwapCalled,
+      options.normalStartupCalled,
+      options.liveSwapResult,
+      options.normalStartupResult
+    )
   })
 }
 
@@ -746,6 +772,24 @@ const statusFromLiveSwap = (
   if (status === 'blocked') return 'blocked'
   if (status === 'skipped') return 'skipped'
   return 'blocked'
+}
+
+const createSharedRuntimePublicationCommitAfterPostCommitVerificationReader = (
+  options: CreateThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineOptions
+): (() => Promise<ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult>) => {
+  const readCommit = options.readRuntimePublicationCommitAfterPostCommitVerification
+    ?? createThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline({
+      ...options,
+      enabled: true
+    })
+  let pendingCommit:
+    Promise<ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult>
+    | undefined
+
+  return () => {
+    pendingCommit ??= (async() => readCommit())()
+    return pendingCommit
+  }
 }
 
 const evaluatePipeline = async(
@@ -761,10 +805,24 @@ const evaluatePipeline = async(
     })
   }
 
+  const usesDefaultLiveSwapSource = options.readRuntimePublicationCommitLiveRegistrySwapHostConnection === undefined
+  const usesDefaultNormalStartupSource =
+    options.readRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnection === undefined
+  const readSharedCommitAfterPostCommitVerification =
+    usesDefaultLiveSwapSource && usesDefaultNormalStartupSource
+      ? createSharedRuntimePublicationCommitAfterPostCommitVerificationReader(options)
+      : undefined
+
   const readLiveSwap = options.readRuntimePublicationCommitLiveRegistrySwapHostConnection
     ?? createThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline({
       ...options,
-      enabled: true
+      enabled: true,
+      ...(readSharedCommitAfterPostCommitVerification === undefined
+        ? {}
+        : {
+            readRuntimePublicationCommitAfterPostCommitVerification:
+              readSharedCommitAfterPostCommitVerification
+          })
     })
 
   let liveSwapResult: ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipelineResult
@@ -810,7 +868,13 @@ const evaluatePipeline = async(
   const readNormalStartup = options.readRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnection
     ?? createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline({
       ...options,
-      enabled: true
+      enabled: true,
+      ...(readSharedCommitAfterPostCommitVerification === undefined
+        ? {}
+        : {
+            readRuntimePublicationCommitAfterPostCommitVerification:
+              readSharedCommitAfterPostCommitVerification
+          })
     })
 
   let normalStartupResult: ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult

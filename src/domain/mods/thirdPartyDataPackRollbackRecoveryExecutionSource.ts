@@ -79,7 +79,7 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionHostEffectSummary {
   readonly uiIpcResponseDelivered: false
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
-  readonly packageFilesRestored: false
+  readonly packageFilesRestored: boolean
   readonly lockfileWritten: false
   readonly lockfileRestored: false
   readonly settingsWritten: false
@@ -89,7 +89,7 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionHostEffectSummary {
   readonly transactionLogWritten: false
   readonly recoveryLogRead: false
   readonly recoveryLogReplayed: false
-  readonly rollbackExecuted: false
+  readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
 
@@ -166,7 +166,7 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionEffectSummary {
   readonly uiIpcResponseDelivered: false
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
-  readonly packageFilesRestored: false
+  readonly packageFilesRestored: boolean
   readonly lockfileWritten: false
   readonly lockfileRestored: false
   readonly settingsWritten: false
@@ -176,7 +176,7 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionEffectSummary {
   readonly transactionLogWritten: false
   readonly recoveryLogRead: false
   readonly recoveryLogReplayed: false
-  readonly rollbackExecuted: false
+  readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
 
@@ -575,8 +575,29 @@ const hostEffectsContained = (
     if (key === 'rollbackRecoveryExecutionAcknowledged') return descriptor.value === accepted
     if (key === 'commandContinuationAllowed') return descriptor.value === accepted
     if (key === 'uiIpcResultContinuationAllowed') return descriptor.value === accepted
+    if (key === 'packageFilesRestored') return accepted
+      ? typeof descriptor.value === 'boolean'
+      : descriptor.value === false
+    if (key === 'rollbackExecuted') return accepted
+      ? typeof descriptor.value === 'boolean'
+      : descriptor.value === false
     return descriptor.value === false
   })
+}
+
+const rollbackRestoreEffectsContained = (
+  source: ThirdPartyDataPackRollbackRecoverySettlementSourceResult,
+  hostResult: ThirdPartyDataPackRollbackRecoveryExecutionHostResult
+): boolean => {
+  const effects = readOwnDataField(hostResult, 'effects')
+  const packageFilesRestored = readOwnBooleanField(effects, 'packageFilesRestored') ?? false
+  const rollbackExecuted = readOwnBooleanField(effects, 'rollbackExecuted') ?? false
+  if (packageFilesRestored === false && rollbackExecuted === false) return true
+  return packageFilesRestored === true
+    && rollbackExecuted === true
+    && source.outcomeKind === 'rollback'
+    && source.recovery === 'restore-backup'
+    && source.rollbackRequired === true
 }
 
 const safeAcceptedHostResult = (
@@ -601,6 +622,7 @@ const safeAcceptedHostResult = (
   && readOwnStringField(hostResult, 'rollbackRecoverySettlementStatus') === 'ready'
   && readOwnBooleanField(hostResult, 'rollbackRecoverySettled') === true
   && hostEffectsContained(readOwnDataField(hostResult, 'effects'), true)
+  && rollbackRestoreEffectsContained(source, hostResult)
   && !hasForbiddenField(hostResult, forbiddenHostFields)
 
 const deepFreezeObjectGraph = <T>(value: T): T => {
@@ -632,6 +654,7 @@ const effectSummary = (
     readonly status: ThirdPartyDataPackRollbackRecoveryExecutionSourceStatus
     readonly sourceCalled: boolean
     readonly source?: ThirdPartyDataPackRollbackRecoverySettlementSourceResult
+    readonly hostResult?: ThirdPartyDataPackRollbackRecoveryExecutionHostResult
     readonly hostCalled?: boolean
     readonly hostAccepted?: boolean
   }
@@ -642,6 +665,7 @@ const effectSummary = (
     && outcomeKind === 'committed'
     && options.source?.commandContinuationAllowed === true
   const settlementEffects = readOwnDataField(options.source, 'effects')
+  const hostEffects = readOwnDataField(options.hostResult, 'effects')
 
   return Object.freeze({
     rollbackRecoveryExecutionSourceCalled: true,
@@ -685,7 +709,9 @@ const effectSummary = (
     uiIpcResponseDelivered: false,
     packageFilesWritten: false,
     packageBackupsWritten: false,
-    packageFilesRestored: false,
+    packageFilesRestored: executed
+      ? readOwnBooleanField(hostEffects, 'packageFilesRestored') ?? false
+      : false,
     lockfileWritten: false,
     lockfileRestored: false,
     settingsWritten: false,
@@ -695,7 +721,9 @@ const effectSummary = (
     transactionLogWritten: false,
     recoveryLogRead: false,
     recoveryLogReplayed: false,
-    rollbackExecuted: false,
+    rollbackExecuted: executed
+      ? readOwnBooleanField(hostEffects, 'rollbackExecuted') ?? false
+      : false,
     diagnosticsWritten: false
   })
 }

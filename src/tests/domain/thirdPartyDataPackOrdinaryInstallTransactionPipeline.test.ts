@@ -215,8 +215,10 @@ const createRollbackSemantics = (): ThirdPartyDataPackModLockTransactionSemantic
       rollbackRecoveryExecutionAcknowledged: true,
       packageFilesWritten: false,
       packageBackupsWritten: false,
+      packageFilesRestored: true,
       lockfileWritten: false,
-      settingsWritten: false
+      settingsWritten: false,
+      rollbackExecuted: true
     })
   })
 
@@ -241,7 +243,8 @@ const expectJsonGraphFrozen = (value: unknown): void => {
 
 const expectNoPublicOrRealTransactionEffects = (
   result: ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult,
-  ready: boolean
+  ready: boolean,
+  options: { readonly rollbackRestoreAllowed?: boolean } = {}
 ): void => {
   expect(result.publicModLockSchemaFrozen).toBe(false)
   expect(result.publicTransactionApiFrozen).toBe(false)
@@ -268,7 +271,8 @@ const expectNoPublicOrRealTransactionEffects = (
   expect(result.effects.transactionLogWritten).toBe(false)
   expect(result.effects.recoveryLogRead).toBe(false)
   expect(result.effects.recoveryLogReplayed).toBe(false)
-  expect(result.effects.rollbackExecuted).toBe(false)
+  expect(result.effects.packageFilesRestored).toBe(options.rollbackRestoreAllowed === true)
+  expect(result.effects.rollbackExecuted).toBe(options.rollbackRestoreAllowed === true)
   expect('modLockStorage' in result).toBe(false)
   expect('transactionLogStorage' in result).toBe(false)
   expect('publicJsonSchema' in result).toBe(false)
@@ -349,10 +353,12 @@ describe('third-party ordinary install transaction pipeline', () => {
     expect(result.rollbackRecoveryExecutionAcknowledged).toBe(true)
     expect(result.effects.rollbackOutcomeAccepted).toBe(true)
     expect(result.effects.rollbackStateDelivered).toBe(true)
+    expect(result.effects.packageFilesRestored).toBe(true)
+    expect(result.effects.rollbackExecuted).toBe(true)
     expect(result.effects.packageFilesWritten).toBe(false)
     expect(result.effects.lockfileWritten).toBe(false)
     expect(result.effects.settingsWritten).toBe(false)
-    expectNoPublicOrRealTransactionEffects(result, true)
+    expectNoPublicOrRealTransactionEffects(result, true, { rollbackRestoreAllowed: true })
     expectJsonGraphFrozen(result)
   })
 

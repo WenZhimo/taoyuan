@@ -69,13 +69,13 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnect
 export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionHostEffectSummary {
   readonly appStartupHostCalled: boolean
   readonly appStartupHostAccepted: boolean
-  readonly realAppStartupHostCalled: false
+  readonly realAppStartupHostCalled: boolean
   readonly launcherAppFactoryCalled: false
   readonly gameAppFactoryCalled: false
   readonly launcherAppCreated: false
-  readonly gameAppCreated: false
-  readonly piniaCreated: false
-  readonly routerMounted: false
+  readonly gameAppCreated: boolean
+  readonly piniaCreated: boolean
+  readonly routerMounted: boolean
   readonly saveRead: false
   readonly uiIpcResponseDelivered: false
   readonly commandDispatched: false
@@ -126,9 +126,9 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnect
   readonly normalStartupContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
   readonly uiIpcResultContinuationAllowed: boolean
-  readonly realAppStartupHostCalled: false
-  readonly realRuntimePublicationCommitCalled: false
-  readonly realNormalStartupHostCalled: false
+  readonly realAppStartupHostCalled: boolean
+  readonly realRuntimePublicationCommitCalled: boolean
+  readonly realNormalStartupHostCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: boolean
   readonly liveRegistryMutated: boolean
@@ -138,14 +138,14 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnect
   readonly launcherAppFactoryCalled: false
   readonly gameAppFactoryCalled: false
   readonly launcherAppCreated: false
-  readonly gameAppCreated: false
-  readonly piniaCreated: false
-  readonly routerMounted: false
+  readonly gameAppCreated: boolean
+  readonly piniaCreated: boolean
+  readonly routerMounted: boolean
   readonly saveRead: false
   readonly uiIpcResponseDelivered: false
   readonly commandDispatched: false
   readonly transactionCommitted: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly postCommitVerificationExecuted: false
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
@@ -424,13 +424,40 @@ const allOwnBooleanFlagsFalse = (
   })
 }
 
+const hasSafeMountedAppStartupHostEvidence = (
+  effects: object | undefined,
+  accepted: boolean
+): boolean => {
+  if (effects === undefined) return false
+  const realAppStartupHostCalled = readOwnBooleanField(effects, 'realAppStartupHostCalled') === true
+  if (!realAppStartupHostCalled) {
+    return readOwnBooleanField(effects, 'gameAppCreated') !== true
+      && readOwnBooleanField(effects, 'piniaCreated') !== true
+      && readOwnBooleanField(effects, 'routerMounted') !== true
+  }
+  return accepted
+    && readOwnBooleanField(effects, 'appStartupHostAccepted') === true
+    && readOwnBooleanField(effects, 'gameAppCreated') === true
+    && readOwnBooleanField(effects, 'piniaCreated') === true
+    && readOwnBooleanField(effects, 'routerMounted') === true
+}
+
 const hostEffectsContained = (
   effects: object | undefined,
   accepted: boolean
 ): boolean => allOwnBooleanFlagsFalse(effects, [
   'appStartupHostCalled',
-  ...(accepted ? ['appStartupHostAccepted'] : [])
+  ...(accepted
+    ? [
+        'appStartupHostAccepted',
+        'realAppStartupHostCalled',
+        'gameAppCreated',
+        'piniaCreated',
+        'routerMounted'
+      ]
+    : [])
 ])
+  && hasSafeMountedAppStartupHostEvidence(effects, accepted)
 
 const safeReadyAppStartupReadiness = (
   result: ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult
@@ -463,6 +490,9 @@ const safeReadyAppStartupReadiness = (
     'thirdPartyRegistryPublished',
     'liveRegistryMutated',
     'liveRegistrySwapped',
+    'realRuntimePublicationCommitCalled',
+    'realNormalStartupHostCalled',
+    'runtimePublicationCommitted',
     'runtimeEnablementAllowed'
   ])
   && pathFree(result, forbiddenReadinessFields)
@@ -814,9 +844,22 @@ const effectSummary = (
   readinessCalled: boolean,
   hostCalled: boolean,
   readinessReady: boolean,
-  hostAccepted: boolean
+  hostAccepted: boolean,
+  readinessResult?: ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult,
+  hostResult?: ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionHostResult
 ): ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionEffectSummary => {
   const accepted = status === 'accepted'
+  const readinessEffects = readOwnDataField(readinessResult, 'effects') as object | undefined
+  const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
+  const realRuntimePublicationCommit = accepted
+    && readOwnBooleanField(readinessEffects, 'realRuntimePublicationCommitCalled') === true
+    && readOwnBooleanField(readinessEffects, 'runtimePublicationCommitted') === true
+  const realAppStartupHostCalled =
+    accepted
+    && hasSafeMountedAppStartupHostEvidence(hostEffects, hostAccepted)
+    && readOwnBooleanField(hostEffects, 'realAppStartupHostCalled') === true
+  const realNormalStartupHostCalled =
+    accepted && readOwnBooleanField(readinessEffects, 'realNormalStartupHostCalled') === true
   return Object.freeze({
     runtimePublicationCommitAppStartupHostConnectionPipelineCalled: true,
     runtimePublicationCommitAppStartupReadinessPipelineCalled: readinessCalled,
@@ -834,9 +877,9 @@ const effectSummary = (
     normalStartupContinuationAllowed: accepted,
     commandContinuationAllowed: accepted,
     uiIpcResultContinuationAllowed: accepted,
-    realAppStartupHostCalled: false,
-    realRuntimePublicationCommitCalled: false,
-    realNormalStartupHostCalled: false,
+    realAppStartupHostCalled,
+    realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
+    realNormalStartupHostCalled,
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: readinessReady,
     liveRegistryMutated: readinessReady,
@@ -846,14 +889,17 @@ const effectSummary = (
     launcherAppFactoryCalled: false,
     gameAppFactoryCalled: false,
     launcherAppCreated: false,
-    gameAppCreated: false,
-    piniaCreated: false,
-    routerMounted: false,
+    gameAppCreated: realAppStartupHostCalled
+      && readOwnBooleanField(hostEffects, 'gameAppCreated') === true,
+    piniaCreated: realAppStartupHostCalled
+      && readOwnBooleanField(hostEffects, 'piniaCreated') === true,
+    routerMounted: realAppStartupHostCalled
+      && readOwnBooleanField(hostEffects, 'routerMounted') === true,
     saveRead: false,
     uiIpcResponseDelivered: false,
     commandDispatched: false,
     transactionCommitted: false,
-    runtimePublicationCommitted: false,
+    runtimePublicationCommitted: realRuntimePublicationCommit,
     postCommitVerificationExecuted: false,
     packageFilesWritten: false,
     packageBackupsWritten: false,
@@ -936,7 +982,9 @@ const baseResult = (
       options.readinessCalled,
       options.hostCalled,
       readinessReady,
-      hostAccepted
+      hostAccepted,
+      options.readinessResult,
+      options.hostResult
     )
   })
 }

@@ -77,6 +77,8 @@ const lifecycleEffects = (
   postCommitVerificationReadAcknowledgementSourceCalled: true,
   commandDispatched: true,
   atomicCommitExecutorAcknowledged: true,
+  injectedCommitHostCalled: false,
+  realAtomicCommitExecutorCalled: false,
   postCommitVerificationAcknowledged: true,
   persistentReadProofAcknowledged: true,
   appBootstrapContinuationAllowed: true,

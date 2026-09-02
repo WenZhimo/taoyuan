@@ -5,7 +5,7 @@ import {
   parseOfficialRegistryCacheText
 } from './officialRegistryCache'
 import { restoreParsedOfficialPrecompiledRegistryArtifact } from './officialPrecompiled'
-import { OFFICIAL_REGISTRY_DEFINITIONS } from './staticAdapters'
+import { OFFICIAL_REGISTRY_DEFINITIONS } from './officialRegistryDefinitions'
 import type { RegistrySet } from './registry'
 
 interface OfficialRegistryCacheElectronBridge {

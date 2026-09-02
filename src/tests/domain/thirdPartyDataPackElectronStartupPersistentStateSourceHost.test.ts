@@ -4,8 +4,12 @@ import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Sha256Hash } from '@/domain/mods/hash'
-import type { PackageId } from '@/domain/mods/ids'
+import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
+import {
+  requireContentId,
+  requireRegistryTypeId,
+  type PackageId
+} from '@/domain/mods/ids'
 import {
   createThirdPartyDataPackElectronStartupPersistentStateSourceHost,
   readThirdPartyDataPackElectronStartupPersistentStateSnapshot,
@@ -20,6 +24,9 @@ import {
 import type {
   ThirdPartyDataPackStartupGatePersistentStateSourceRequest
 } from '@/domain/mods/thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
+import type {
+  ThirdPartyDataPackLockfileDraft
+} from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 
 const roots: string[] = []
 
@@ -34,7 +41,6 @@ const createRoot = async(): Promise<string> => {
 }
 
 const packageId = 'sample_pack' as PackageId
-const lockfileHash = `sha256:${'d'.repeat(64)}` as Sha256Hash
 
 const candidateIdentity = {
   formatVersion: 1,
@@ -42,6 +48,67 @@ const candidateIdentity = {
   snapshotHash: `sha256:${'b'.repeat(64)}` as Sha256Hash,
   candidateHash: `sha256:${'c'.repeat(64)}` as Sha256Hash
 } as const
+
+const createModLockDraft = (): ThirdPartyDataPackLockfileDraft => {
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: `sha256:${'1'.repeat(64)}` as Sha256Hash,
+      contentHash: `sha256:${'2'.repeat(64)}` as Sha256Hash,
+      schemaSetHash: `sha256:${'3'.repeat(64)}` as Sha256Hash,
+      environmentHash: `sha256:${'4'.repeat(64)}` as Sha256Hash,
+      snapshotHash: `sha256:${'5'.repeat(64)}` as Sha256Hash,
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity,
+    registryCount: 55,
+    entryCount: 4243,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId],
+    packages: [
+      {
+        packageId,
+        version: '1.0.0',
+        loadIndex: 0,
+        source: {
+          candidatePath: 'installed-pack',
+          manifestPath: 'installed-pack/manifest.json',
+          contentFiles: [
+            'installed-pack/data/items.json'
+          ]
+        },
+        manifestHash: `sha256:${'6'.repeat(64)}` as Sha256Hash,
+        contentHash: `sha256:${'7'.repeat(64)}` as Sha256Hash,
+        configurationHash: `sha256:${'8'.repeat(64)}` as Sha256Hash,
+        resolvedDependencies: [],
+        contentFiles: [
+          {
+            registryId: requireRegistryTypeId('taoyuan:item'),
+            path: 'data/items.json',
+            entryCount: 1,
+            entries: [
+              {
+                registryId: requireRegistryTypeId('taoyuan:item'),
+                contentId: requireContentId(`${packageId}:linen_ribbon`),
+                index: 0,
+                canonicalHash: `sha256:${'9'.repeat(64)}` as Sha256Hash
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
+const modLockDraft = createModLockDraft()
+const lockfileHash = modLockDraft.lockfileHash
 
 const request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest = {
   formatVersion: 1,
@@ -105,6 +172,37 @@ const writeSnapshot = async(
   return paths.snapshotFilePath
 }
 
+const createSettingsFile = (
+  overrides: Record<string, unknown> = {}
+) => ({
+  closeToTray: false,
+  thirdPartyDataPacks: {
+    candidateHash: candidateIdentity.candidateHash,
+    lockfileHash,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId],
+    ...overrides
+  }
+})
+
+const writeSettingsAndModLock = async(
+  root: string,
+  options: {
+    readonly settingsOverrides?: Record<string, unknown>
+    readonly modLock?: unknown
+  } = {}
+) => {
+  const paths = resolveThirdPartyDataPackElectronStartupPersistentStateSourceHostPaths(root)
+  await mkdir(paths.userDataPath, { recursive: true })
+  await writeFile(paths.settingsFilePath, `${JSON.stringify(
+    createSettingsFile(options.settingsOverrides),
+    null,
+    2
+  )}\n`, 'utf8')
+  await writeFile(paths.modLockFilePath, `${JSON.stringify(options.modLock ?? modLockDraft, null, 2)}\n`, 'utf8')
+  return paths
+}
+
 const expectNoPersistentWrites = (
   effects: ThirdPartyDataPackElectronStartupPersistentStateSourceHostEffects
 ): void => {
@@ -164,7 +262,9 @@ describe('third-party Electron startup persistent state source host', () => {
       programDirectoryPath: root,
       userDataPath: path.join(root, 'userdata'),
       startupStateDirectoryPath: path.join(root, 'userdata', 'mod-startup-state'),
-      snapshotFilePath: path.join(root, 'userdata', 'mod-startup-state', THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_FILE_NAME)
+      snapshotFilePath: path.join(root, 'userdata', 'mod-startup-state', THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_FILE_NAME),
+      settingsFilePath: path.join(root, 'userdata', 'settings.json'),
+      modLockFilePath: path.join(root, 'userdata', 'mod-lock.json')
     })
     expect(host.kind).toBe(THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_KIND)
     expect(host.mode).toBe(THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_MODE)
@@ -185,22 +285,21 @@ describe('third-party Electron startup persistent state source host', () => {
 
   it('loads a path-free startup snapshot from isolated program-directory userdata while preserving adjacent data', async() => {
     const root = await createRoot()
-    const userData = path.join(root, 'userdata')
-    const settingsPath = path.join(userData, 'settings.json')
+    const paths = await writeSettingsAndModLock(root)
+    const settingsPath = paths.settingsFilePath
+    const userData = paths.userDataPath
     const savePath = path.join(userData, 'Local Storage', 'leveldb', 'save.ldb')
     const officialCachePath = path.join(userData, 'mod-cache', 'sha256-official', 'official-registry-cache-v2.json')
     const packagePath = path.join(root, 'mods', 'sample-pack', 'manifest.json')
-    const modLockPath = path.join(userData, 'mod-lock.json')
+    const modLockPath = paths.modLockFilePath
     const transactionLogPath = path.join(userData, 'mod-transactions', 'committed.json')
     await mkdir(path.dirname(savePath), { recursive: true })
     await mkdir(path.dirname(officialCachePath), { recursive: true })
     await mkdir(path.dirname(packagePath), { recursive: true })
     await mkdir(path.dirname(transactionLogPath), { recursive: true })
-    await writeFile(settingsPath, '{"closeToTray":false}\n', 'utf8')
     await writeFile(savePath, 'player-save-data', 'utf8')
     await writeFile(officialCachePath, 'official-cache-data', 'utf8')
     await writeFile(packagePath, '{"id":"sample_pack"}\n', 'utf8')
-    await writeFile(modLockPath, '{"kind":"previous-lockfile"}\n', 'utf8')
     await writeFile(transactionLogPath, '{"status":"committed"}\n', 'utf8')
     const settingsBefore = await readFile(settingsPath, 'utf8')
     const saveBefore = await readFile(savePath, 'utf8')
@@ -223,6 +322,10 @@ describe('third-party Electron startup persistent state source host', () => {
     expect(result.report.snapshotFilePresent).toBe(true)
     expect(result.report.snapshotFileSizeBytes).toBeGreaterThan(0)
     expect(result.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(result.report.settingsFileRead).toBe(true)
+    expect(result.report.modLockFileRead).toBe(true)
+    expect(result.report.effects.settingsStateRead).toBe(true)
+    expect(result.report.effects.modLockStateRead).toBe(true)
     expect(result.snapshot).toEqual({
       kind: 'startup-persistent-state-snapshot',
       settled: true,
@@ -300,6 +403,65 @@ describe('third-party Electron startup persistent state source host', () => {
       expect(serialized).not.toContain(driftRoot)
       expect(serialized).not.toContain('C:/Users')
       expect(serialized).not.toContain('LENOVO')
+      expectJsonGraphFrozen(current)
+    }
+  })
+
+  it('blocks settings and mod-lock state drift after the startup snapshot is present', async() => {
+    const settingsDriftRoot = await createRoot()
+    await writeSnapshot(settingsDriftRoot)
+    await writeSettingsAndModLock(settingsDriftRoot, {
+      settingsOverrides: {
+        lockfileHash: `sha256:${'f'.repeat(64)}`
+      }
+    })
+
+    const { lockfileHash: _lockfileHash, ...modLockBody } = modLockDraft
+    const driftedModLockBody = {
+      ...modLockBody,
+      candidateIdentity: {
+        ...candidateIdentity,
+        candidateHash: `sha256:${'e'.repeat(64)}` as Sha256Hash
+      }
+    }
+    const modLockDriftRoot = await createRoot()
+    await writeSnapshot(modLockDriftRoot)
+    await writeSettingsAndModLock(modLockDriftRoot, {
+      modLock: {
+        ...driftedModLockBody,
+        lockfileHash: hashCanonicalJson(driftedModLockBody) as Sha256Hash
+      }
+    })
+
+    const settingsDrift = await readThirdPartyDataPackElectronStartupPersistentStateSnapshot({
+      programDirectoryPath: settingsDriftRoot,
+      request
+    })
+    const modLockDrift = await readThirdPartyDataPackElectronStartupPersistentStateSnapshot({
+      programDirectoryPath: modLockDriftRoot,
+      request
+    })
+
+    expect(settingsDrift.report.status).toBe('blocked')
+    expect(settingsDrift.report.reason)
+      .toBe('electron startup settings state does not match the startup request identity')
+    expect(settingsDrift.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(settingsDrift.report.effects.settingsStateRead).toBe(true)
+    expect(settingsDrift.report.effects.modLockStateRead).toBe(false)
+    expect(settingsDrift.snapshot).toBeNull()
+    expect(modLockDrift.report.status).toBe('blocked')
+    expect(modLockDrift.report.reason)
+      .toBe('electron startup mod-lock state does not match the startup request identity')
+    expect(modLockDrift.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(modLockDrift.report.effects.settingsStateRead).toBe(true)
+    expect(modLockDrift.report.effects.modLockStateRead).toBe(true)
+    expect(modLockDrift.snapshot).toBeNull()
+    for (const current of [settingsDrift, modLockDrift]) {
+      expectNoPersistentWrites(current.report.effects)
+      const serialized = JSON.stringify(current)
+      expect(serialized).not.toContain(settingsDriftRoot)
+      expect(serialized).not.toContain(modLockDriftRoot)
+      expect(serialized).not.toContain('C:/Users')
       expectJsonGraphFrozen(current)
     }
   })

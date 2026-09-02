@@ -192,10 +192,13 @@ const createVerificationPreflight = (
 })
 
 const createHost = (
-  execute: ThirdPartyDataPackPostCommitVerificationExecutorHost['execute']
+  execute: ThirdPartyDataPackPostCommitVerificationExecutorHost['execute'],
+  mode: ThirdPartyDataPackPostCommitVerificationExecutorHost['mode'] = 'injected-test-only'
 ): ThirdPartyDataPackPostCommitVerificationExecutorHost => ({
-  kind: 'injected-post-commit-verification-executor',
-  mode: 'injected-test-only',
+  kind: mode === 'electron-main-visible-import'
+    ? 'electron-main-visible-import-post-commit-verification-executor'
+    : 'injected-post-commit-verification-executor',
+  mode,
   execute
 })
 
@@ -276,6 +279,8 @@ describe('third-party post-commit verification executor adapter', () => {
     expect(result.status).toBe('executed')
     expect(result.postCommitVerificationExecutorAdapter).toBe('executed')
     expect(result.sourcePreflightStatus).toBe('deferred')
+    expect(result.postCommitVerificationExecutorHostMode).toBe('injected-test-only')
+    expect(result.injectedExecutorHostMode).toBe('injected-test-only')
     expect(result.verificationHostCalled).toBe(true)
     expect(result.verificationOutcomeReceived).toBe(true)
     expect(result.verificationOutcomeNormalized).toBe(true)
@@ -342,6 +347,36 @@ describe('third-party post-commit verification executor adapter', () => {
     expect('candidateRegistrySet' in result).toBe(false)
     expect('candidateSnapshot' in result).toBe(false)
     expect('lockfileDraft' in result).toBe(false)
+    expectNoRealVerificationReadsOrWrites(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('executes an Electron visible-import host mode without binding persistent reads or writes', async () => {
+    const result = await executeThirdPartyDataPackPostCommitVerificationExecutorAdapter({
+      preflight: createVerificationPreflight(),
+      host: createHost(request => ({
+        kind: 'verified',
+        settled: true,
+        packageId: request.packageId,
+        candidateIdentity: request.candidateIdentity,
+        lockfileHash: request.lockfileHash,
+        transactionLogMatched: true,
+        packageStateMatched: true,
+        settingsLockfileMatched: true,
+        liveRegistryMatched: true,
+        saveCacheIsolated: true
+      }), 'electron-main-visible-import')
+    })
+
+    expect(result.status).toBe('executed')
+    expect(result.postCommitVerificationExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.injectedExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.checks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'verification-host-boundary',
+        status: 'satisfied'
+      })
+    ]))
     expectNoRealVerificationReadsOrWrites(result)
     expectJsonGraphFrozen(result)
   })
@@ -431,13 +466,13 @@ describe('third-party post-commit verification executor adapter', () => {
         blockedCheckId: 'injected-verification-host-ready'
       },
       {
-        label: 'non-test host',
+        label: 'unsupported host',
         preflight: createVerificationPreflight(),
         host: {
           ...baseHost,
           mode: 'real-platform' as never
         },
-        blockedCheckId: 'injected-test-boundary'
+        blockedCheckId: 'verification-host-boundary'
       },
       {
         label: 'missing target',

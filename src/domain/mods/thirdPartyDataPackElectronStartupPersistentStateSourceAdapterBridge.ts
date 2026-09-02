@@ -1,7 +1,5 @@
-import {
-  THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_KIND,
-  THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_MODE,
-  type ThirdPartyDataPackElectronStartupPersistentStateSourceHost
+import type {
+  ThirdPartyDataPackElectronStartupPersistentStateSourceHost
 } from './thirdPartyDataPackElectronStartupPersistentStateSourceHost'
 import type {
   ThirdPartyDataPackStartupGatePersistentStateSnapshotSource,
@@ -12,7 +10,12 @@ import type {
 export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND =
   'electron-startup-persistent-state-source-adapter-bridge'
 export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE =
-  'electron-program-directory-source-host-to-injected-test-only-adapter'
+  'electron-program-directory-source-host-to-startup-persistent-state-adapter'
+
+const thirdPartyDataPackElectronStartupPersistentStateSourceHostKind =
+  'electron-program-directory-startup-persistent-state-source-host'
+const thirdPartyDataPackElectronStartupPersistentStateSourceHostMode =
+  'electron-program-directory-readonly-isolated-test'
 
 export interface ThirdPartyDataPackElectronStartupPersistentStateSourceAdapterBridge {
   readonly kind: typeof THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND
@@ -46,8 +49,8 @@ const electronHostRead = (
 ): ThirdPartyDataPackElectronStartupPersistentStateSourceHost['read'] | undefined => {
   if (host === null || typeof host !== 'object') return undefined
   if (
-    readOwnStringField(host, 'kind') !== THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_KIND
-    || readOwnStringField(host, 'mode') !== THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_MODE
+    readOwnStringField(host, 'kind') !== thirdPartyDataPackElectronStartupPersistentStateSourceHostKind
+    || readOwnStringField(host, 'mode') !== thirdPartyDataPackElectronStartupPersistentStateSourceHostMode
   ) {
     return undefined
   }
@@ -62,8 +65,8 @@ export const createThirdPartyDataPackElectronStartupPersistentStateSourceAdapter
   electronHost: ThirdPartyDataPackElectronStartupPersistentStateSourceHost
 ): ThirdPartyDataPackElectronStartupPersistentStateSourceAdapterBridge => {
   const host: ThirdPartyDataPackStartupGatePersistentStateSourceHost = Object.freeze({
-    kind: 'injected-startup-persistent-state-source-adapter',
-    mode: 'injected-test-only',
+    kind: 'electron-program-directory-startup-persistent-state-source-adapter',
+    mode: 'electron-program-directory-startup-persistent-state',
     read: async(
       request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest
     ): Promise<ThirdPartyDataPackStartupGatePersistentStateSnapshotSource> => {

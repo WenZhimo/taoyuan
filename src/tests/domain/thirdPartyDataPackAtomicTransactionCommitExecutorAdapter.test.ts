@@ -164,10 +164,13 @@ const createAtomicPreflight = (
 })
 
 const createHost = (
-  execute: ThirdPartyDataPackAtomicTransactionCommitExecutorHost['execute']
+  execute: ThirdPartyDataPackAtomicTransactionCommitExecutorHost['execute'],
+  mode: ThirdPartyDataPackAtomicTransactionCommitExecutorHost['mode'] = 'injected-test-only'
 ): ThirdPartyDataPackAtomicTransactionCommitExecutorHost => ({
-  kind: 'injected-atomic-transaction-commit-executor',
-  mode: 'injected-test-only',
+  kind: mode === 'electron-main-visible-import'
+    ? 'electron-main-visible-import-atomic-transaction-commit-executor'
+    : 'injected-atomic-transaction-commit-executor',
+  mode,
   execute
 })
 
@@ -237,6 +240,8 @@ describe('third-party atomic transaction commit executor adapter', () => {
     expect(result.commitHostCalled).toBe(true)
     expect(result.commitOutcomeReceived).toBe(true)
     expect(result.commitOutcomeNormalized).toBe(true)
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('injected-test-only')
+    expect(result.injectedExecutorHostMode).toBe('injected-test-only')
     expect(result.atomicCommitExecutionAllowed).toBe(true)
     expect(result.requestedCommandId).toBe('install')
     expect(result.targetPackageId).toBe(packageId)
@@ -283,6 +288,41 @@ describe('third-party atomic transaction commit executor adapter', () => {
     expect('candidateRegistrySet' in result).toBe(false)
     expect('candidateSnapshot' in result).toBe(false)
     expect('lockfileDraft' in result).toBe(false)
+    expectNoPersistentWrites(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('executes an Electron main visible-import host without falling back to injected-test-only mode', async () => {
+    const preflight = createAtomicPreflight()
+
+    const result = await executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter({
+      preflight,
+      host: createHost(request => ({
+        kind: 'committed',
+        settled: true,
+        packageId: request.packageId,
+        candidateIdentity: request.candidateIdentity,
+        lockfileHash: request.lockfileHash,
+        messageKey: 'mods.atomic.commit.install.committed',
+        recovery: 'none'
+      }), 'electron-main-visible-import')
+    })
+
+    expect(result.status).toBe('executed')
+    expect(result.injectedExecutorHostRequired).toBe(false)
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.injectedExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.effects.atomicCommitExecutorCalled).toBe(true)
+    expect(result.effects.injectedCommitHostCalled).toBe(false)
+    expect(result.checks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'commit-host-boundary',
+        status: 'satisfied'
+      })
+    ]))
+    expect(result.reason).toBe(
+      'atomic transaction commit executor adapter executed a path-free commit outcome host and normalized its outcome'
+    )
     expectNoPersistentWrites(result)
     expectJsonGraphFrozen(result)
   })
@@ -373,7 +413,7 @@ describe('third-party atomic transaction commit executor adapter', () => {
           ...baseHost,
           mode: 'real-platform' as never
         },
-        blockedCheckId: 'injected-test-boundary'
+        blockedCheckId: 'commit-host-boundary'
       },
       {
         label: 'missing target',
@@ -459,7 +499,7 @@ describe('third-party atomic transaction commit executor adapter', () => {
     })
 
     expect(hostFailure.status).toBe('blocked')
-    expect(hostFailure.reason).toBe('injected atomic transaction commit host failed before outcome')
+    expect(hostFailure.reason).toBe('atomic transaction commit outcome host failed before outcome')
     expect(hostFailure.commitHostCalled).toBe(true)
     expect(hostFailure.commitOutcomeReceived).toBe(false)
     expect(hostFailure.checks).toEqual(expect.arrayContaining([
@@ -469,11 +509,11 @@ describe('third-party atomic transaction commit executor adapter', () => {
       })
     ]))
     expect(invalidOutcome.status).toBe('blocked')
-    expect(invalidOutcome.reason).toBe('injected atomic transaction commit host returned an invalid outcome')
+    expect(invalidOutcome.reason).toBe('atomic transaction commit outcome host returned an invalid outcome')
     expect(invalidOutcome.commitHostCalled).toBe(true)
     expect(invalidOutcome.commitOutcomeReceived).toBe(false)
     expect(driftOutcome.status).toBe('blocked')
-    expect(driftOutcome.reason).toBe('injected atomic transaction commit outcome contract rejected host outcome')
+    expect(driftOutcome.reason).toBe('atomic transaction commit outcome contract rejected host outcome')
     expect(driftOutcome.commitHostCalled).toBe(true)
     expect(driftOutcome.commitOutcomeReceived).toBe(true)
     expect(driftOutcome.outcomeContractStatus).toBe('blocked')

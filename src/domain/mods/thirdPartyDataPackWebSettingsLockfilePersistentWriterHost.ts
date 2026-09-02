@@ -1,6 +1,7 @@
 import { createDiagnostic, type ModDiagnostic, type ModDiagnosticRecovery, type ModDiagnosticSeverity } from './diagnostics'
 import { hashCanonicalJson, type Sha256Hash } from './hash'
 import type { PackageId } from './ids'
+import type { ThirdPartyDataPackRuntimeCommandId } from './thirdPartyDataPackRuntimeCommandState'
 import type { ThirdPartyDataPackLockfileDraft } from './thirdPartyDataPackLockfileDraft'
 import type {
   ThirdPartyDataPackSettingsLockfilePersistentWriterHostEffectSummary,
@@ -31,7 +32,7 @@ export type ThirdPartyDataPackWebSettingsLockfilePersistentWriterStoreOperation 
 
 export interface ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord {
   readonly recordId: typeof THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
-  readonly requestedCommandId: 'install'
+  readonly requestedCommandId: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -473,16 +474,23 @@ const validateRecord = (
   const selectedPackageIds = clonePackageIds(readOwnDataField(value, 'selectedPackageIds'))
   const blockedPackageIds = clonePackageIds(readOwnDataField(value, 'blockedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(value, 'loadOrder'))
+  const installRecord = requestedCommandId === 'install'
+    && selectedPackageIds.length > 0
+    && selectedPackageIds.includes(targetPackageId as PackageId)
+    && loadOrder.includes(targetPackageId as PackageId)
+  const disableRecord = requestedCommandId === 'disable'
+    && selectedPackageIds.length === 0
+    && loadOrder.length === 0
+    && blockedPackageIds.length === 1
+    && blockedPackageIds[0] === targetPackageId
   if (
     recordId !== THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
-    || requestedCommandId !== 'install'
+    || (requestedCommandId !== 'install' && requestedCommandId !== 'disable')
     || targetPackageId === undefined
     || !candidateHash?.startsWith('sha256:')
     || !lockfileHash?.startsWith('sha256:')
     || lockfileDraft === undefined
-    || selectedPackageIds.length === 0
-    || !selectedPackageIds.includes(targetPackageId as PackageId)
-    || !loadOrder.includes(targetPackageId as PackageId)
+    || (!installRecord && !disableRecord)
     || lockfileDraft.lockfileHash !== lockfileHash
     || lockfileDraft.candidateIdentity?.candidateHash !== candidateHash
     || !arraysEqual(lockfileDraft.selectedPackageIds, selectedPackageIds)
@@ -492,7 +500,7 @@ const validateRecord = (
   }
   return deepFreezeObjectGraph({
     recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
-    requestedCommandId: 'install',
+    requestedCommandId: requestedCommandId as ThirdPartyDataPackRuntimeCommandId,
     targetPackageId: targetPackageId as PackageId,
     selectedPackageIds,
     blockedPackageIds,

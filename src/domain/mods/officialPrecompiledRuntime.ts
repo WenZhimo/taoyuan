@@ -5,7 +5,7 @@ import {
   createExpectedOfficialEnvironmentHash,
   restoreOfficialPrecompiledRegistryArtifactText
 } from './officialPrecompiled'
-import { OFFICIAL_REGISTRY_DEFINITIONS } from './staticAdapters'
+import { OFFICIAL_REGISTRY_DEFINITIONS } from './officialRegistryDefinitions'
 
 export type OfficialPrecompiledProbeFault = 'missing' | 'corrupt' | 'environment-mismatch'
 

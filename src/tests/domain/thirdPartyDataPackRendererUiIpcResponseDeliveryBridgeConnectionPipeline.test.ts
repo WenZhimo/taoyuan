@@ -372,6 +372,36 @@ describe('third-party renderer UI/IPC response delivery bridge connection pipeli
     expectJsonGraphFrozen(result)
   })
 
+  it('selects a Window-like Web event target across renderer realms', async() => {
+    const events: ThirdPartyDataPackWebDomResponseDeliveryEvent[] = []
+    const listener = (event: Event) => {
+      events.push(event as ThirdPartyDataPackWebDomResponseDeliveryEvent)
+    }
+    window.addEventListener(thirdPartyDataPackWebResponseDeliveryEventName, listener)
+    const readers = createReaders()
+    const pipeline = createThirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline({
+      enabled: true,
+      runtimeHost: window,
+      ...readers
+    })
+
+    try {
+      const result = await pipeline()
+
+      expect(result.status).toBe('ready')
+      expect(result.selectedPlatform).toBe('web')
+      expect(result.platformResponseDeliveryStatus).toBe('delivered')
+      expect(events).toHaveLength(1)
+      expect(events[0]?.detail.channel).toBe('web-ui-response-event-sink')
+      expect(events[0]?.detail.envelope.packageId).toBe(packageId)
+      expect(result.effects.webUiResponsePublished).toBe(true)
+      expectNoPersistentWrites(result)
+      expectJsonGraphFrozen(result)
+    } finally {
+      window.removeEventListener(thirdPartyDataPackWebResponseDeliveryEventName, listener)
+    }
+  })
+
   it('prefers Electron when the renderer host exposes both Electron and Web surfaces', async() => {
     const runtimeHost = new EventTarget() as EventTarget & {
       electronAPI?: { deliverThirdPartyDataPackResponse: (envelope: ThirdPartyDataPackUiIpcResultEnvelope) => unknown }
@@ -399,7 +429,9 @@ describe('third-party renderer UI/IPC response delivery bridge connection pipeli
     expect(result.status).toBe('ready')
     expect(result.selectedPlatform).toBe('electron')
     expect(runtimeHost.electronAPI?.deliverThirdPartyDataPackResponse).toHaveBeenCalledOnce()
-    expect(webEvents).toEqual([])
+    expect(webEvents).toHaveLength(1)
+    expect((webEvents[0] as ThirdPartyDataPackWebDomResponseDeliveryEvent | undefined)
+      ?.detail.envelope.packageId).toBe(packageId)
     expect(result.effects.electronIpcResponseSent).toBe(true)
     expect(result.effects.webUiResponsePublished).toBe(false)
     expectNoPersistentWrites(result)

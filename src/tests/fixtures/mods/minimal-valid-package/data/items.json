@@ -13,5 +13,75 @@
     "sellPrice": 1,
     "edible": false,
     "tags": ["example_mod:test_tag"]
+  },
+  {
+    "id": "example_mod:test_fish",
+    "name": {
+      "key": "example_mod.item.test_fish.name",
+      "fallback": "测试鱼"
+    },
+    "category": "fish",
+    "description": {
+      "key": "example_mod.item.test_fish.description",
+      "fallback": "用于模组契约测试的鱼类物品"
+    },
+    "sellPrice": 1,
+    "edible": false
+  },
+  {
+    "id": "example_mod:test_ring",
+    "name": {
+      "key": "example_mod.item.test_ring.name",
+      "fallback": "测试戒指"
+    },
+    "category": "ring",
+    "description": {
+      "key": "example_mod.item.test_ring.description",
+      "fallback": "用于模组契约测试的戒指物品"
+    },
+    "sellPrice": 5,
+    "edible": false
+  },
+  {
+    "id": "example_mod:test_hat",
+    "name": {
+      "key": "example_mod.item.test_hat.name",
+      "fallback": "测试帽子"
+    },
+    "category": "hat",
+    "description": {
+      "key": "example_mod.item.test_hat.description",
+      "fallback": "用于模组契约测试的帽子物品"
+    },
+    "sellPrice": 20,
+    "edible": false
+  },
+  {
+    "id": "example_mod:test_shoe",
+    "name": {
+      "key": "example_mod.item.test_shoe.name",
+      "fallback": "测试鞋子"
+    },
+    "category": "shoe",
+    "description": {
+      "key": "example_mod.item.test_shoe.description",
+      "fallback": "用于模组契约测试的鞋子物品"
+    },
+    "sellPrice": 10,
+    "edible": false
+  },
+  {
+    "id": "example_mod:test_weapon",
+    "name": {
+      "key": "example_mod.item.test_weapon.name",
+      "fallback": "测试武器"
+    },
+    "category": "weapon",
+    "description": {
+      "key": "example_mod.item.test_weapon.description",
+      "fallback": "用于模组契约测试的武器物品"
+    },
+    "sellPrice": 50,
+    "edible": false
   }
 ]

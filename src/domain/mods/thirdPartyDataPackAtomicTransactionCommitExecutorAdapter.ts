@@ -21,6 +21,14 @@ export type ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterStatus =
   | 'skipped'
   | 'blocked'
 
+export type ThirdPartyDataPackAtomicTransactionCommitExecutorHostKind =
+  | 'injected-atomic-transaction-commit-executor'
+  | 'electron-main-visible-import-atomic-transaction-commit-executor'
+
+export type ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode =
+  | 'injected-test-only'
+  | 'electron-main-visible-import'
+
 export type ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterCheckId =
   | 'atomic-preflight-deferred'
   | 'install-command-source'
@@ -28,7 +36,7 @@ export type ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterCheckId =
   | 'candidate-identity-present'
   | 'lockfile-hash-present'
   | 'injected-commit-host-ready'
-  | 'injected-test-boundary'
+  | 'commit-host-boundary'
   | 'no-upstream-commit-effects'
   | 'commit-outcome-returned'
   | 'outcome-contract-ready'
@@ -56,8 +64,8 @@ export interface ThirdPartyDataPackAtomicTransactionCommitExecutorRequest {
 }
 
 export interface ThirdPartyDataPackAtomicTransactionCommitExecutorHost {
-  readonly kind: 'injected-atomic-transaction-commit-executor'
-  readonly mode: 'injected-test-only'
+  readonly kind: ThirdPartyDataPackAtomicTransactionCommitExecutorHostKind
+  readonly mode: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
   readonly execute: (
     request: ThirdPartyDataPackAtomicTransactionCommitExecutorRequest
   ) => ThirdPartyDataPackAtomicTransactionCommitOutcomeSource
@@ -114,8 +122,9 @@ export interface ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult 
   readonly reason: string
   readonly atomicTransactionCommitExecutorAdapter: ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterStatus
   readonly readOnly: true
-  readonly injectedExecutorHostRequired: true
-  readonly injectedExecutorHostMode: 'injected-test-only'
+  readonly injectedExecutorHostRequired: boolean
+  readonly atomicTransactionCommitExecutorHostMode: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
+  readonly injectedExecutorHostMode: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
   readonly commitHostCalled: boolean
   readonly commitOutcomeReceived: boolean
   readonly commitOutcomeNormalized: boolean
@@ -395,7 +404,8 @@ const summary = (
 const createEffectSummary = (
   hostCalled: boolean,
   outcomeKind: ThirdPartyDataPackAtomicTransactionCommitOutcomeKind | undefined,
-  outcomeReceived: boolean
+  outcomeReceived: boolean,
+  hostMode: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
 ): ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterEffectSummary => ({
   officialRegistryPublished: false,
   thirdPartyRegistryPublished: false,
@@ -412,7 +422,7 @@ const createEffectSummary = (
   commandDispatcherCalled: false,
   commandDispatched: false,
   atomicCommitExecutorCalled: hostCalled,
-  injectedCommitHostCalled: hostCalled,
+  injectedCommitHostCalled: hostCalled && hostMode === defaultHostMode,
   commitOutcomeReceived: outcomeReceived,
   committedOutcomeReceived: outcomeKind === 'committed',
   failedOutcomeReceived: outcomeKind === 'failed',
@@ -445,6 +455,18 @@ const check = (
   reason: string
 ): ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterCheck => Object.freeze({ id, status, reason })
 
+const defaultHostMode: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode = 'injected-test-only'
+
+const hostBoundaryAccepted = (
+  host: ThirdPartyDataPackAtomicTransactionCommitExecutorHost | undefined
+): boolean => (
+  host?.kind === 'injected-atomic-transaction-commit-executor'
+    && host.mode === 'injected-test-only'
+) || (
+  host?.kind === 'electron-main-visible-import-atomic-transaction-commit-executor'
+    && host.mode === 'electron-main-visible-import'
+)
+
 const skippedChecks = (
   reason: string
 ): readonly ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterCheck[] => Object.freeze([
@@ -454,7 +476,7 @@ const skippedChecks = (
   'candidate-identity-present',
   'lockfile-hash-present',
   'injected-commit-host-ready',
-  'injected-test-boundary',
+  'commit-host-boundary',
   'no-upstream-commit-effects',
   'commit-outcome-returned',
   'outcome-contract-ready'
@@ -473,42 +495,41 @@ const preExecutionChecks = (
     check(
       'atomic-preflight-deferred',
       preflight.status === 'deferred' ? 'satisfied' : 'blocked',
-      'Injected atomic commit execution requires the source atomic preflight to remain deferred.'
+      'Atomic commit outcome host execution requires the source atomic preflight to remain deferred.'
     ),
     check(
       'install-command-source',
       preflight.requestedCommandId === 'install' ? 'satisfied' : 'blocked',
-      'This injected atomic commit executor adapter only covers install commands.'
+      'This atomic commit executor adapter only covers install commands.'
     ),
     check(
       'target-package-selected',
       preflight.targetPackageId !== undefined && selectedPackageIds.includes(preflight.targetPackageId)
         ? 'satisfied'
         : 'blocked',
-      'The selected install target must be present before constructing an injected commit request.'
+      'The selected install target must be present before constructing a commit outcome request.'
     ),
     check(
       'candidate-identity-present',
       preflight.candidateIdentity?.candidateHash !== undefined ? 'satisfied' : 'blocked',
-      'Injected commit execution requires the candidate identity produced by the preflight chain.'
+      'Atomic commit outcome host execution requires the candidate identity produced by the preflight chain.'
     ),
     check(
       'lockfile-hash-present',
       preflight.lockfileHash !== undefined ? 'satisfied' : 'blocked',
-      'Injected commit execution requires the lockfile hash produced by the preflight chain.'
+      'Atomic commit outcome host execution requires the lockfile hash produced by the preflight chain.'
     ),
     check(
       'injected-commit-host-ready',
       host !== undefined && typeof host.execute === 'function' ? 'satisfied' : 'blocked',
-      'A fixed injected commit host must be present before the adapter can execute.'
+      'A fixed path-free commit outcome host must be present before the adapter can execute.'
     ),
     check(
-      'injected-test-boundary',
-      host?.kind === 'injected-atomic-transaction-commit-executor'
-        && host.mode === 'injected-test-only'
+      'commit-host-boundary',
+      hostBoundaryAccepted(host)
         ? 'satisfied'
         : 'blocked',
-      'This first executor adapter slice only accepts an injected-test-only host and must not bind real platform writes.'
+      'The adapter only accepts explicit path-free host modes and must not bind real platform writers.'
     ),
     check(
       'no-upstream-commit-effects',
@@ -530,7 +551,7 @@ const preExecutionChecks = (
     check(
       'commit-outcome-returned',
       'skipped',
-      'Commit outcome presence is checked only after the injected host returns.'
+      'Commit outcome presence is checked only after the path-free host returns.'
     ),
     check(
       'outcome-contract-ready',
@@ -606,6 +627,7 @@ const baseResult = (
   checks: readonly ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterCheck[],
   diagnostics: readonly ThirdPartyDataPackAtomicTransactionCommitOutcomeSafeDiagnostic[],
   hostCalled: boolean,
+  hostMode: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode = defaultHostMode,
   commitRequest?: ThirdPartyDataPackAtomicTransactionCommitExecutorRequest,
   outcomeContract?: ThirdPartyDataPackAtomicTransactionCommitOutcomeContractResult
 ): ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult => {
@@ -623,8 +645,9 @@ const baseResult = (
     reason,
     atomicTransactionCommitExecutorAdapter: status,
     readOnly: true,
-    injectedExecutorHostRequired: true,
-    injectedExecutorHostMode: 'injected-test-only',
+    injectedExecutorHostRequired: hostMode === defaultHostMode,
+    atomicTransactionCommitExecutorHostMode: hostMode,
+    injectedExecutorHostMode: hostMode,
     commitHostCalled: hostCalled,
     commitOutcomeReceived: outcomeReceived,
     commitOutcomeNormalized: normalized,
@@ -653,7 +676,7 @@ const baseResult = (
     checks,
     diagnostics,
     summary: outcomeContract?.summary ?? summary(preflight, diagnostics.length),
-    effects: createEffectSummary(hostCalled, outcomeKind, outcomeReceived)
+    effects: createEffectSummary(hostCalled, outcomeKind, outcomeReceived, hostMode)
   })
 }
 
@@ -699,7 +722,8 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
         ...sourceDiagnostics,
         ...blockedDiagnostics
       ],
-      false
+      false,
+      options.host?.mode ?? defaultHostMode
     )
   }
 
@@ -710,13 +734,13 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
     const outcomeChecks = checksWithOutcome(
       checks,
       'blocked',
-      'The injected atomic commit host threw before returning a settled outcome.',
+      'The path-free atomic commit outcome host threw before returning a settled outcome.',
       'skipped',
       'Outcome contract readiness is skipped because no safe outcome was returned.'
     )
     return baseResult(
       'blocked',
-      'injected atomic transaction commit host failed before outcome',
+      'atomic transaction commit outcome host failed before outcome',
       preflight,
       outcomeChecks,
       [
@@ -727,6 +751,7 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
         )
       ],
       true,
+      options.host.mode,
       commitRequest
     )
   }
@@ -736,13 +761,13 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
     const outcomeChecks = checksWithOutcome(
       checks,
       'blocked',
-      'The injected atomic commit host did not return a safe settled outcome source.',
+      'The path-free atomic commit outcome host did not return a safe settled outcome source.',
       'skipped',
       'Outcome contract readiness is skipped because no safe outcome was returned.'
     )
     return baseResult(
       'blocked',
-      'injected atomic transaction commit host returned an invalid outcome',
+      'atomic transaction commit outcome host returned an invalid outcome',
       preflight,
       outcomeChecks,
       [
@@ -753,6 +778,7 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
         )
       ],
       true,
+      options.host.mode,
       commitRequest
     )
   }
@@ -765,17 +791,17 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
   const outcomeChecks = checksWithOutcome(
     checks,
     'satisfied',
-    'The injected atomic commit host returned a safe settled outcome source.',
+    'The path-free atomic commit outcome host returned a safe settled outcome source.',
     outcomeReady ? 'satisfied' : 'blocked',
     outcomeReady
-      ? 'The atomic commit outcome contract normalized the injected host outcome.'
-      : 'The atomic commit outcome contract rejected the injected host outcome.'
+      ? 'The atomic commit outcome contract normalized the path-free host outcome.'
+      : 'The atomic commit outcome contract rejected the path-free host outcome.'
   )
 
   if (!outcomeReady) {
     return baseResult(
       'blocked',
-      'injected atomic transaction commit outcome contract rejected host outcome',
+      'atomic transaction commit outcome contract rejected host outcome',
       preflight,
       outcomeChecks,
       [
@@ -784,6 +810,7 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
         ...diagnosticsForBlockedChecks(outcomeChecks, preflight.targetPackageId)
       ],
       true,
+      options.host.mode,
       commitRequest,
       outcomeContract
     )
@@ -791,11 +818,12 @@ export const executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter = a
 
   return baseResult(
     'executed',
-    'atomic transaction commit executor adapter executed the injected-test-only host and normalized its path-free outcome',
+    'atomic transaction commit executor adapter executed a path-free commit outcome host and normalized its outcome',
     preflight,
     outcomeChecks,
     outcomeContract.diagnostics,
     true,
+    options.host.mode,
     commitRequest,
     outcomeContract
   )

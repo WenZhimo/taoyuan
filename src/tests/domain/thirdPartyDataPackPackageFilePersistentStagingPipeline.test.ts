@@ -36,6 +36,7 @@ const createRoot = async(): Promise<string> => {
 }
 
 const packageId = 'sample_pack' as PackageId
+const candidatePackagePath = 'sample-pack'
 const itemId = `${packageId}:linen_ribbon` as ContentId
 const registryId = 'taoyuan:item' as RegistryTypeId
 
@@ -143,9 +144,9 @@ const createDraft = (
         version: '1.0.0',
         loadIndex: 0,
         source: {
-          candidatePath: 'sample-pack',
-          manifestPath: 'sample-pack/manifest.json',
-          contentFiles: ['sample-pack/data/items.json']
+          candidatePath: candidatePackagePath,
+          manifestPath: `${candidatePackagePath}/manifest.json`,
+          contentFiles: [`${candidatePackagePath}/data/items.json`]
         },
         manifestHash,
         contentHash: hashCanonicalJson({
@@ -332,7 +333,7 @@ describe('third-party package file persistent staging pipeline', () => {
     const transactionLogPath = path.join(userData, 'mod-transactions', 'pending.json')
     const unrelatedPackagePath = path.join(root, 'mods', 'other_pack', 'manifest.json')
     const draft = createDraft()
-    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, packageId)
+    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, candidatePackagePath)
     const manifestPath = path.join(paths.packageDirectoryPath, 'manifest.json')
     const itemPath = path.join(paths.packageDirectoryPath, 'data', 'items.json')
     await mkdir(path.dirname(savePath), { recursive: true })
@@ -384,6 +385,10 @@ describe('third-party package file persistent staging pipeline', () => {
     expect(result.writtenFiles.map(file => file.path)).toEqual([
       'manifest.json',
       'data/items.json'
+    ])
+    expect(result.writtenFiles.map(file => file.packagePath)).toEqual([
+      candidatePackagePath,
+      candidatePackagePath
     ])
     expect(result.writtenFileCount).toBe(2)
     expect(result.backedUpFileCount).toBe(1)

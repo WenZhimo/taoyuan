@@ -230,6 +230,7 @@ const createExecutedAdapterResult = (
   postCommitVerificationExecutorAdapter: 'executed',
   readOnly: true,
   injectedExecutorHostRequired: true,
+  postCommitVerificationExecutorHostMode: 'injected-test-only',
   injectedExecutorHostMode: 'injected-test-only',
   verificationHostCalled: true,
   verificationOutcomeReceived: true,
@@ -442,6 +443,7 @@ describe('third-party post-commit verification read acknowledgement pipeline', (
 
     expect(result.status).toBe('ready')
     expect(result.postCommitVerificationExecutorSourceStatus).toBe('executed')
+    expect(result.postCommitVerificationExecutorHostMode).toBe('injected-test-only')
     expect(result.postCommitPersistentVerificationReadSourceStatus).toBe('ready')
     expect(result.verificationOutcomeKind).toBe('verified')
     expect(result.targetPackageId).toBe(packageId)

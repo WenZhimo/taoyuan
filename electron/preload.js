@@ -9,6 +9,21 @@ const electronReadonlyDirectorySource = Object.freeze({
 const deliverThirdPartyDataPackResponse = envelope =>
   ipcRenderer.invoke('third-party-data-pack-response-delivery', envelope)
 
+const dispatchThirdPartyDataPackInstallCommand = envelope =>
+  ipcRenderer.invoke('third-party-data-pack-install-command-dispatch', envelope)
+
+const disableThirdPartyDataPack = envelope =>
+  ipcRenderer.invoke('third-party-data-pack-disable-command', envelope)
+
+const readThirdPartyDataPackInstalledState = () =>
+  ipcRenderer.invoke('third-party-data-pack-installed-state-read')
+
+const continueThirdPartyDataPackOrdinaryInstallTerminal = envelope =>
+  ipcRenderer.invoke('third-party-data-pack-ordinary-install-terminal-continuation', envelope)
+
+const readThirdPartyDataPackStartupPersistentState = request =>
+  ipcRenderer.invoke('third-party-data-pack-startup-persistent-state-read', request)
+
 contextBridge.exposeInMainWorld('electronAPI', {
   // 获取设置
   getSettings: () => ipcRenderer.invoke('get-settings'),
@@ -36,5 +51,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
   electronReadonlyDirectorySource,
 
   // Response delivery is restricted to one fixed acknowledgement channel.
-  deliverThirdPartyDataPackResponse
+  deliverThirdPartyDataPackResponse,
+
+  // Install command dispatch is restricted to one fixed acknowledgement channel.
+  dispatchThirdPartyDataPackInstallCommand,
+
+  // Disable command persistence is restricted to one fixed userdata channel.
+  disableThirdPartyDataPack,
+
+  // Installed package management reads a validated state summary from program userdata.
+  readThirdPartyDataPackInstalledState,
+
+  // Ordinary install terminal continuation is restricted to one fixed acknowledgement channel.
+  continueThirdPartyDataPackOrdinaryInstallTerminal,
+
+  // Startup persistent state reads are restricted to the program-local userdata snapshot.
+  readThirdPartyDataPackStartupPersistentState
 })

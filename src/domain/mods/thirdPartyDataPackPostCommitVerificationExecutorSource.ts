@@ -6,6 +6,7 @@ import type {
 } from './thirdPartyCandidateRegistrySnapshot'
 import type {
   ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult,
+  ThirdPartyDataPackPostCommitVerificationExecutorHostMode,
   ThirdPartyDataPackPostCommitVerificationOutcomeKind,
   ThirdPartyDataPackPostCommitVerificationSafeDiagnostic,
   ThirdPartyDataPackPostCommitVerificationSummary
@@ -154,7 +155,8 @@ export interface ThirdPartyDataPackPostCommitVerificationExecutorSourceResult {
   readonly postCommitVerificationExecutorAdapterStatus?: ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult['status']
   readonly postCommitVerificationExecutorHostStatus?: ThirdPartyDataPackPostCommitVerificationExecutorHostStatus
   readonly sourcePreflightStatus?: ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult['sourcePreflightStatus']
-  readonly injectedExecutorHostMode?: 'injected-test-only'
+  readonly postCommitVerificationExecutorHostMode?: ThirdPartyDataPackPostCommitVerificationExecutorHostMode
+  readonly injectedExecutorHostMode?: ThirdPartyDataPackPostCommitVerificationExecutorHostMode
   readonly verificationOutcomeKind?: ThirdPartyDataPackPostCommitVerificationOutcomeKind
   readonly transactionLogMatched: boolean
   readonly packageStateMatched: boolean
@@ -213,6 +215,11 @@ const injectedEffectFields = new Set<string>([
   'failedOutcomeReceived',
   'retryOutcomeReceived',
   'rollbackOutcomeReceived'
+])
+
+const safeExecutorHostModes = new Set<string>([
+  'injected-test-only',
+  'electron-main-visible-import'
 ])
 
 const forbiddenVerificationSourceFields = [
@@ -370,6 +377,16 @@ const hasOwnEnumerableField = (
   return descriptor?.enumerable === true
 }
 
+const readSafeExecutorHostMode = (
+  source: object | undefined
+): ThirdPartyDataPackPostCommitVerificationExecutorHostMode | undefined => {
+  const mode = readOwnStringField(source, 'postCommitVerificationExecutorHostMode')
+    ?? readOwnStringField(source, 'injectedExecutorHostMode')
+  return safeExecutorHostModes.has(mode ?? '')
+    ? mode as ThirdPartyDataPackPostCommitVerificationExecutorHostMode
+    : undefined
+}
+
 const safeDiagnostic = (
   diagnostic: object
 ): ThirdPartyDataPackPostCommitVerificationSafeDiagnostic => {
@@ -515,7 +532,7 @@ const effectGraphContainsNoPersistentReadWrite = (
 
 const noPersistentReadWriteDrift = (
   source: ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult
-): boolean => readOwnStringField(source, 'injectedExecutorHostMode') === 'injected-test-only'
+): boolean => readSafeExecutorHostMode(source) !== undefined
   && readOwnBooleanField(source, 'postCommitVerificationAllowed') === false
   && readOwnBooleanField(source, 'transactionLogReadAllowed') === false
   && readOwnBooleanField(source, 'packageStateReadAllowed') === false
@@ -749,6 +766,7 @@ const baseResult = (
   const blockedPackageIds = clonePackageIds(readOwnDataField(options.source, 'blockedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(options.source, 'loadOrder'))
   const outcome = outcomeObject(options.source)
+  const executorHostMode = readSafeExecutorHostMode(options.source)
 
   return deepFreezeObjectGraph({
     kind: THIRD_PARTY_DATA_PACK_POST_COMMIT_VERIFICATION_EXECUTOR_SOURCE_KIND,
@@ -768,9 +786,8 @@ const baseResult = (
     sourcePreflightStatus: readOwnStringField(options.source, 'sourcePreflightStatus') as
       | ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult['sourcePreflightStatus']
       | undefined,
-    injectedExecutorHostMode: readOwnStringField(options.source, 'injectedExecutorHostMode') === 'injected-test-only'
-      ? 'injected-test-only' as const
-      : undefined,
+    postCommitVerificationExecutorHostMode: executorHostMode,
+    injectedExecutorHostMode: executorHostMode,
     verificationOutcomeKind: readOutcomeKind(options.source),
     transactionLogMatched: readOwnBooleanField(outcome, 'transactionLogMatched') ?? false,
     packageStateMatched: readOwnBooleanField(outcome, 'packageStateMatched') ?? false,
@@ -873,7 +890,7 @@ const evaluatePostCommitVerificationExecutorSource = async(
       if (safeAcceptedHostResult(source, hostResult)) {
         return baseResult({
           status: 'executed',
-          reason: 'third-party post-commit verification executor source accepted an injected path-free verification host result',
+          reason: 'third-party post-commit verification executor source accepted a path-free verification host result',
           enabled: true,
           sourceCalled: true,
           source,
@@ -917,7 +934,7 @@ const evaluatePostCommitVerificationExecutorSource = async(
 
     return baseResult({
       status: 'executed',
-      reason: 'third-party post-commit verification executor source accepted an injected-test-only path-free adapter outcome',
+      reason: 'third-party post-commit verification executor source accepted a path-free adapter outcome',
       enabled: true,
       sourceCalled: true,
       source,

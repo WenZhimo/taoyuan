@@ -128,6 +128,7 @@ const createAdapterResult = (
   postCommitVerificationExecutorAdapter: 'skipped',
   readOnly: true,
   injectedExecutorHostRequired: true,
+  postCommitVerificationExecutorHostMode: 'injected-test-only',
   injectedExecutorHostMode: 'injected-test-only',
   verificationHostCalled: false,
   verificationOutcomeReceived: false,
@@ -178,7 +179,7 @@ const createExecutedAdapterResult = (
 ): ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult => createAdapterResult({
   status: 'executed',
   sourcePreflightStatus: 'deferred',
-  reason: 'post-commit verification executor adapter executed the injected-test-only host',
+  reason: 'post-commit verification executor adapter executed a path-free verification host',
   postCommitVerificationExecutorAdapter: 'executed',
   verificationHostCalled: true,
   verificationOutcomeReceived: true,
@@ -335,6 +336,7 @@ describe('third-party post-commit verification executor source', () => {
     expect(result.commandContinuationAllowed).toBe(true)
     expect(result.postCommitVerificationExecutorAdapterStatus).toBe('executed')
     expect(result.sourcePreflightStatus).toBe('deferred')
+    expect(result.postCommitVerificationExecutorHostMode).toBe('injected-test-only')
     expect(result.injectedExecutorHostMode).toBe('injected-test-only')
     expect(result.verificationOutcomeKind).toBe('verified')
     expect(result.transactionLogMatched).toBe(true)
@@ -355,6 +357,30 @@ describe('third-party post-commit verification executor source', () => {
     })
     expect('verificationRequest' in result).toBe(false)
     expect('outcome' in result).toBe(false)
+    expect('verificationHost' in result).toBe(false)
+    expectNoPersistentReadsOrWrites(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('accepts an Electron visible-import adapter outcome without exposing verifier internals', async() => {
+    const source = createThirdPartyDataPackPostCommitVerificationExecutorSource({
+      enabled: true,
+      readPostCommitVerificationExecutorAdapter: async() => createExecutedAdapterResult({
+        postCommitVerificationExecutorHostMode: 'electron-main-visible-import',
+        injectedExecutorHostMode: 'electron-main-visible-import'
+      })
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('executed')
+    expect(result.commandContinuationAllowed).toBe(true)
+    expect(result.postCommitVerificationExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.injectedExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.verificationOutcomeKind).toBe('verified')
+    expect(result.effects.realPostCommitVerificationExecutorCalled).toBe(false)
+    expect(result.effects.transactionLogRead).toBe(false)
+    expect(result.effects.postCommitVerificationExecuted).toBe(false)
     expect('verificationHost' in result).toBe(false)
     expectNoPersistentReadsOrWrites(result)
     expectJsonGraphFrozen(result)

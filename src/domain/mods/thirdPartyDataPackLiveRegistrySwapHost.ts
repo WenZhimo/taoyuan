@@ -16,13 +16,17 @@ import type {
 import type {
   ThirdPartyDataPackLiveRegistrySwapProtectionRequirementId
 } from './thirdPartyDataPackLiveRegistrySwapProtection'
+import {
+  runtimeCommandTargetMatchesPackageState,
+  type ThirdPartyDataPackRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 export interface ThirdPartyDataPackInMemoryLiveRegistryReference {
   current: RegistrySet
 }
 
 export interface ThirdPartyDataPackLiveRegistrySwapHostRecord {
-  readonly requestedCommandId: 'install'
+  readonly requestedCommandId: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -118,11 +122,12 @@ const deepFreezeObjectGraph = <T>(value: T): T => {
 }
 
 const hostEffects = (
-  accepted: boolean
+  accepted: boolean,
+  commandId: ThirdPartyDataPackRuntimeCommandId
 ): ThirdPartyDataPackLiveRegistrySwapHostEffectSummary => Object.freeze({
   liveRegistrySwapHostCalled: true,
   liveRegistrySwapHostAccepted: accepted,
-  thirdPartyRegistryPublished: accepted,
+  thirdPartyRegistryPublished: accepted && commandId === 'install',
   liveRegistryMutated: accepted,
   liveRegistrySwapped: accepted,
   runtimeEnablementAllowed: accepted,
@@ -176,7 +181,7 @@ const buildHostResult = (
   }
 ): ThirdPartyDataPackLiveRegistrySwapHostResult => deepFreezeObjectGraph({
   status: options.status,
-  requestedCommandId: 'install',
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: clonePackageIds(envelope.selectedPackageIds),
   blockedPackageIds: clonePackageIds(envelope.blockedPackageIds),
@@ -243,16 +248,22 @@ export const createThirdPartyDataPackLiveRegistrySwapHost = (
     const previousSummary = summarizeRegistrySet(previousRegistrySet)
     const candidateSummary = summarizeRegistrySet(options.candidateRegistrySet)
 
-    const targetMatchesSelection = envelope.selectedPackageIds[0] === envelope.targetPackageId
-    const validEnvelope = envelope.requestedCommandId === 'install'
-      && envelope.liveRegistrySwap === 'deferred'
-      && targetMatchesSelection
+    const validEnvelope = envelope.liveRegistrySwap === 'deferred'
+      && runtimeCommandTargetMatchesPackageState(
+        envelope.requestedCommandId,
+        envelope.targetPackageId,
+        envelope.selectedPackageIds,
+        envelope.blockedPackageIds,
+        envelope.loadOrder
+      )
       && arraysEqual(envelope.loadOrder, envelope.selectedPackageIds)
       && hasAllRequiredProtectionIds(envelope.requiredProtectionIds)
+    const previousRegistryMatchesCommand = envelope.requestedCommandId === 'disable'
+      || currentRegistryMatchesOfficialEnvelope(previousSummary, envelope)
 
     if (
       !validEnvelope
-      || !currentRegistryMatchesOfficialEnvelope(previousSummary, envelope)
+      || !previousRegistryMatchesCommand
       || !candidateIdentityMatches(options.candidateIdentity, envelope.candidateIdentity)
       || !candidateRegistryMatchesIdentity(candidateSummary, options.candidateIdentity)
       || !candidateRegistryMatchesEnvelope(candidateSummary, envelope)
@@ -261,7 +272,7 @@ export const createThirdPartyDataPackLiveRegistrySwapHost = (
       return buildHostResult(envelope, {
         status: 'blocked',
         stage: 'third-party.live-registry-swap-host.blocked',
-        effects: hostEffects(false)
+        effects: hostEffects(false, envelope.requestedCommandId)
       })
     }
 
@@ -269,7 +280,7 @@ export const createThirdPartyDataPackLiveRegistrySwapHost = (
     retainedPreviousRegistrySet = previousRegistrySet
     sequenceNumber += 1
     lastSwapRecord = deepFreezeObjectGraph({
-      requestedCommandId: 'install',
+      requestedCommandId: envelope.requestedCommandId,
       targetPackageId: envelope.targetPackageId,
       selectedPackageIds: clonePackageIds(envelope.selectedPackageIds),
       blockedPackageIds: clonePackageIds(envelope.blockedPackageIds),
@@ -291,7 +302,7 @@ export const createThirdPartyDataPackLiveRegistrySwapHost = (
     return buildHostResult(envelope, {
       status: 'swapped',
       stage: 'third-party.live-registry-swap-host.swapped',
-      effects: hostEffects(true)
+      effects: hostEffects(true, envelope.requestedCommandId)
     })
   }
 

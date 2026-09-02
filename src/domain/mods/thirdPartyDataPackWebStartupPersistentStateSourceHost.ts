@@ -13,6 +13,11 @@ import {
   type WebIndexedDbImportPersistenceStore,
   type WebIndexedDbImportFileRecord
 } from './webIndexedDbImportPersistence'
+import {
+  THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+  type ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord,
+  type ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
+} from './thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 
 export const THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_SOURCE_HOST_KIND =
   'web-indexeddb-startup-persistent-state-source-host'
@@ -61,6 +66,8 @@ export interface ThirdPartyDataPackWebStartupPersistentStateSourceHostEffects {
   readonly transactionCommitted: false
   readonly runtimePublicationCommitted: false
   readonly startupPersistentStateSnapshotRead: boolean
+  readonly settingsStateRead: boolean
+  readonly modLockStateRead: boolean
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
   readonly packageFilesRestored: false
@@ -87,6 +94,9 @@ export interface ThirdPartyDataPackWebStartupPersistentStateSourceHostReport {
   readonly writeAllowed: false
   readonly indexedDbRecordScoped: boolean
   readonly snapshotFilePresent: boolean
+  readonly settingsLockfileRecordPresent: boolean
+  readonly settingsLockfileRecordRead: boolean
+  readonly modLockDraftRead: boolean
   readonly snapshotFileSizeBytes?: number
   readonly diagnostics: readonly ModDiagnostic[]
   readonly effects: ThirdPartyDataPackWebStartupPersistentStateSourceHostEffects
@@ -99,6 +109,7 @@ export interface ThirdPartyDataPackWebStartupPersistentStateSourceHostReadResult
 
 export interface ThirdPartyDataPackWebStartupPersistentStateSourceHostOptions {
   readonly store: WebIndexedDbImportPersistenceStore
+  readonly settingsLockfileStore?: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
   readonly importId?: string
 }
 
@@ -129,7 +140,9 @@ const sha256Pattern = /^sha256:[0-9a-f]{64}$/
 const identifierPattern = /^[A-Za-z0-9._/-]+$/
 
 const createEffects = (
-  snapshotRead: boolean
+  snapshotRead: boolean,
+  settingsRead: boolean,
+  modLockRead: boolean
 ): ThirdPartyDataPackWebStartupPersistentStateSourceHostEffects => ({
   officialRegistryPublished: false,
   thirdPartyRegistryPublished: false,
@@ -150,6 +163,8 @@ const createEffects = (
   transactionCommitted: false,
   runtimePublicationCommitted: false,
   startupPersistentStateSnapshotRead: snapshotRead,
+  settingsStateRead: settingsRead,
+  modLockStateRead: modLockRead,
   packageFilesWritten: false,
   packageBackupsWritten: false,
   packageFilesRestored: false,
@@ -223,8 +238,13 @@ const createReport = (
     readonly indexedDbRecordScoped?: boolean
     readonly snapshotFilePresent?: boolean
     readonly snapshotFileSizeBytes?: number
+    readonly settingsLockfileRecordPresent?: boolean
+    readonly settingsLockfileRecordRead?: boolean
+    readonly modLockDraftRead?: boolean
     readonly diagnostics?: readonly ModDiagnostic[]
     readonly snapshotRead?: boolean
+    readonly settingsRead?: boolean
+    readonly modLockRead?: boolean
   }
 ): ThirdPartyDataPackWebStartupPersistentStateSourceHostReport => deepFreezeObjectGraph({
   status: options.status,
@@ -236,9 +256,16 @@ const createReport = (
   writeAllowed: false,
   indexedDbRecordScoped: options.indexedDbRecordScoped ?? false,
   snapshotFilePresent: options.snapshotFilePresent ?? false,
+  settingsLockfileRecordPresent: options.settingsLockfileRecordPresent ?? false,
+  settingsLockfileRecordRead: options.settingsLockfileRecordRead ?? false,
+  modLockDraftRead: options.modLockDraftRead ?? false,
   ...(options.snapshotFileSizeBytes === undefined ? {} : { snapshotFileSizeBytes: options.snapshotFileSizeBytes }),
   diagnostics: Object.freeze([...(options.diagnostics ?? [])]),
-  effects: createEffects(options.snapshotRead === true)
+  effects: createEffects(
+    options.snapshotRead === true,
+    options.settingsRead === true,
+    options.modLockRead === true
+  )
 })
 
 const readOwnDataField = (
@@ -385,6 +412,28 @@ const snapshotMatchesRequest = (
   && snapshot.liveRegistry.matched === true
   && snapshot.saveCache.isolated === true
 
+const arraysEqual = <T>(left: readonly T[], right: readonly T[]): boolean =>
+  left.length === right.length && left.every((value, index) => value === right[index])
+
+const settingsLockfileRecordMatchesRequest = (
+  request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest,
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+): boolean => record.recordId === THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+  && record.requestedCommandId === request.commandId
+  && record.targetPackageId === request.packageId
+  && record.candidateHash === request.candidateIdentity.candidateHash
+  && record.lockfileHash === request.lockfileHash
+  && arraysEqual(record.selectedPackageIds, request.selectedPackageIds)
+  && arraysEqual(record.blockedPackageIds, request.blockedPackageIds)
+  && arraysEqual(record.loadOrder, request.loadOrder)
+  && record.lockfileDraft.lockfileHash === request.lockfileHash
+  && record.lockfileDraft.candidateIdentity.candidateHash === request.candidateIdentity.candidateHash
+  && record.lockfileDraft.registryCount === request.registryCount
+  && record.lockfileDraft.entryCount === request.entryCount
+  && record.lockfileDraft.packages.length === request.packageCount
+  && arraysEqual(record.lockfileDraft.selectedPackageIds, request.selectedPackageIds)
+  && arraysEqual(record.lockfileDraft.loadOrder, request.loadOrder)
+
 const toSnapshotSource = (
   snapshot: WebStartupPersistentStateSnapshotFile
 ): ThirdPartyDataPackStartupGatePersistentStateSnapshotSource => Object.freeze({
@@ -414,6 +463,7 @@ const findSnapshotFile = (
 export const readThirdPartyDataPackWebStartupPersistentStateSnapshot = async(
   options: {
     readonly store: WebIndexedDbImportPersistenceStore
+    readonly settingsLockfileStore?: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
     readonly importId?: string
     readonly request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest
   }
@@ -541,15 +591,108 @@ export const readThirdPartyDataPackWebStartupPersistentStateSnapshot = async(
     })
   }
 
+  if (options.settingsLockfileStore !== undefined) {
+    let settingsLockfileRead
+    try {
+      settingsLockfileRead = await options.settingsLockfileStore.read()
+    } catch (error) {
+      return deepFreezeObjectGraph({
+        report: createReport({
+          status: 'failed',
+          operation: 'read',
+          reason: 'web startup settings-lockfile state record could not be read',
+          indexedDbRecordScoped: true,
+          snapshotFilePresent: true,
+          snapshotFileSizeBytes: snapshotFile.sizeBytes,
+          snapshotRead: true,
+          diagnostics: [
+            diagnostic('third-party.startup-persistent-state.web.settings-lockfile-read', {
+              errorName: errorName(error)
+            })
+          ]
+        }),
+        snapshot: null
+      })
+    }
+
+    if (settingsLockfileRead.record === null) {
+      return deepFreezeObjectGraph({
+        report: createReport({
+          status: 'blocked',
+          operation: 'read',
+          reason: 'web startup settings-lockfile state record is absent',
+          indexedDbRecordScoped: true,
+          snapshotFilePresent: true,
+          snapshotFileSizeBytes: snapshotFile.sizeBytes,
+          snapshotRead: true,
+          diagnostics: [
+            diagnostic('third-party.startup-persistent-state.web.settings-lockfile-missing')
+          ]
+        }),
+        snapshot: null
+      })
+    }
+
+    if (settingsLockfileRead.report.status !== 'ready') {
+      return deepFreezeObjectGraph({
+        report: createReport({
+          status: 'failed',
+          operation: 'read',
+          reason: 'web startup settings-lockfile state record could not be validated',
+          indexedDbRecordScoped: true,
+          snapshotFilePresent: true,
+          snapshotFileSizeBytes: snapshotFile.sizeBytes,
+          snapshotRead: true,
+          diagnostics: [
+            diagnostic('third-party.startup-persistent-state.web.settings-lockfile-invalid', {
+              storeStatus: settingsLockfileRead.report.status
+            })
+          ]
+        }),
+        snapshot: null
+      })
+    }
+
+    if (!settingsLockfileRecordMatchesRequest(options.request, settingsLockfileRead.record)) {
+      return deepFreezeObjectGraph({
+        report: createReport({
+          status: 'blocked',
+          operation: 'read',
+          reason: 'web startup settings-lockfile state does not match the startup request identity',
+          indexedDbRecordScoped: true,
+          snapshotFilePresent: true,
+          snapshotFileSizeBytes: snapshotFile.sizeBytes,
+          snapshotRead: true,
+          settingsLockfileRecordPresent: true,
+          settingsLockfileRecordRead: true,
+          modLockDraftRead: true,
+          settingsRead: true,
+          modLockRead: true,
+          diagnostics: [
+            diagnostic('third-party.startup-persistent-state.web.settings-lockfile-identity')
+          ]
+        }),
+        snapshot: null
+      })
+    }
+  }
+
   return deepFreezeObjectGraph({
     report: createReport({
       status: 'loaded',
       operation: 'read',
-      reason: 'web startup persistent state snapshot was loaded from IndexedDB',
+      reason: options.settingsLockfileStore === undefined
+        ? 'web startup persistent state snapshot was loaded from IndexedDB'
+        : 'web startup persistent state snapshot and settings-lockfile were loaded from IndexedDB',
       indexedDbRecordScoped: true,
       snapshotFilePresent: true,
       snapshotFileSizeBytes: snapshotFile.sizeBytes,
-      snapshotRead: true
+      snapshotRead: true,
+      settingsLockfileRecordPresent: options.settingsLockfileStore !== undefined,
+      settingsLockfileRecordRead: options.settingsLockfileStore !== undefined,
+      modLockDraftRead: options.settingsLockfileStore !== undefined,
+      settingsRead: options.settingsLockfileStore !== undefined,
+      modLockRead: options.settingsLockfileStore !== undefined
     }),
     snapshot: toSnapshotSource(parsed)
   })
@@ -585,6 +728,7 @@ export const createThirdPartyDataPackWebStartupPersistentStateSourceHost = (
   async read(request) {
     const result = await readThirdPartyDataPackWebStartupPersistentStateSnapshot({
       store: options.store,
+      settingsLockfileStore: options.settingsLockfileStore,
       importId: options.importId,
       request
     })

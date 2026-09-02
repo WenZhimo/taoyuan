@@ -420,9 +420,11 @@ const expectJsonGraphFrozen = (value: unknown): void => {
 }
 
 const expectNoPersistentWrites = (
-  result: ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult
+  result: ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult,
+  options: { readonly realAtomicCommitExecutorCalled?: boolean } = {}
 ): void => {
-  expect(result.effects.realAtomicCommitExecutorCalled).toBe(false)
+  expect(result.effects.realAtomicCommitExecutorCalled)
+    .toBe(options.realAtomicCommitExecutorCalled ?? false)
   expect(result.effects.commandDispatched).toBe(false)
   expect(result.effects.transactionCommitted).toBe(false)
   expect(result.effects.transactionLogPrepared).toBe(false)
@@ -476,10 +478,10 @@ describe('third-party atomic transaction commit executor pipeline', () => {
     expectJsonGraphFrozen(result)
   })
 
-  it('threads handoff, dispatch plan and runtime commit adapter through injected host acknowledgements', async() => {
-    const executeInjectedAtomicTransactionCommit = {
-      kind: 'injected-atomic-transaction-commit-executor' as const,
-      mode: 'injected-test-only' as const,
+  it('threads handoff, dispatch plan and runtime commit adapter through Electron visible-import host acknowledgements', async() => {
+    const executeAtomicTransactionCommitOutcomeHost = {
+      kind: 'electron-main-visible-import-atomic-transaction-commit-executor' as const,
+      mode: 'electron-main-visible-import' as const,
       execute: vi.fn(request => {
         expect(Object.isFrozen(request)).toBe(true)
         expect(request.commandId).toBe('install')
@@ -524,7 +526,7 @@ describe('third-party atomic transaction commit executor pipeline', () => {
       readTransactionCommandDispatcherHandoff: async() => createDispatcherHandoff(),
       readInstallTransactionDispatchPlan: async() => createInstallDispatchPlan(),
       readRuntimePublicationCommitAdapter: async() => createRuntimeCommitAdapter(),
-      executeInjectedAtomicTransactionCommit,
+      executeAtomicTransactionCommitOutcomeHost,
       executeAtomicTransactionCommit
     })
 
@@ -536,19 +538,21 @@ describe('third-party atomic transaction commit executor pipeline', () => {
     expect(result.atomicTransactionCommitExecutorHostStatus).toBe('accepted')
     expect(result.sourcePreflightStatus).toBe('deferred')
     expect(result.outcomeContractStatus).toBe('ready')
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.injectedExecutorHostMode).toBe('electron-main-visible-import')
     expect(result.commitOutcomeKind).toBe('committed')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.candidateIdentity?.candidateHash).toBe(candidateIdentity.candidateHash)
     expect(result.lockfileHash).toBe(lockfileHash)
-    expect(executeInjectedAtomicTransactionCommit.execute).toHaveBeenCalledOnce()
+    expect(executeAtomicTransactionCommitOutcomeHost.execute).toHaveBeenCalledOnce()
     expect(executeAtomicTransactionCommit).toHaveBeenCalledOnce()
     expect(result.effects.injectedAtomicCommitAdapterExecuted).toBe(true)
-    expect(result.effects.injectedCommitHostCalled).toBe(true)
+    expect(result.effects.injectedCommitHostCalled).toBe(false)
     expect(result.effects.atomicCommitExecutorHostCalled).toBe(true)
     expect(result.effects.atomicCommitExecutorHostAccepted).toBe(true)
     expect('commitRequest' in result).toBe(false)
     expect('outcomeContract' in result).toBe(false)
-    expectNoPersistentWrites(result)
+    expectNoPersistentWrites(result, { realAtomicCommitExecutorCalled: true })
     expectJsonGraphFrozen(result)
   })
 

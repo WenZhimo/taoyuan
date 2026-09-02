@@ -21,6 +21,14 @@ export type ThirdPartyDataPackPostCommitVerificationOutcomeKind =
   | 'retry'
   | 'rollback'
 
+export type ThirdPartyDataPackPostCommitVerificationExecutorHostKind =
+  | 'injected-post-commit-verification-executor'
+  | 'electron-main-visible-import-post-commit-verification-executor'
+
+export type ThirdPartyDataPackPostCommitVerificationExecutorHostMode =
+  | 'injected-test-only'
+  | 'electron-main-visible-import'
+
 export type ThirdPartyDataPackPostCommitVerificationExecutorAdapterCheckId =
   | 'verification-preflight-deferred'
   | 'install-command-source'
@@ -28,7 +36,7 @@ export type ThirdPartyDataPackPostCommitVerificationExecutorAdapterCheckId =
   | 'candidate-identity-present'
   | 'lockfile-hash-present'
   | 'injected-verification-host-ready'
-  | 'injected-test-boundary'
+  | 'verification-host-boundary'
   | 'no-upstream-verification-effects'
   | 'verification-outcome-returned'
   | 'verification-outcome-ready'
@@ -57,8 +65,8 @@ export interface ThirdPartyDataPackPostCommitVerificationExecutorRequest {
 }
 
 export interface ThirdPartyDataPackPostCommitVerificationExecutorHost {
-  readonly kind: 'injected-post-commit-verification-executor'
-  readonly mode: 'injected-test-only'
+  readonly kind: ThirdPartyDataPackPostCommitVerificationExecutorHostKind
+  readonly mode: ThirdPartyDataPackPostCommitVerificationExecutorHostMode
   readonly execute: (
     request: ThirdPartyDataPackPostCommitVerificationExecutorRequest
   ) => ThirdPartyDataPackPostCommitVerificationOutcomeSource
@@ -178,7 +186,8 @@ export interface ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult {
   readonly postCommitVerificationExecutorAdapter: ThirdPartyDataPackPostCommitVerificationExecutorAdapterStatus
   readonly readOnly: true
   readonly injectedExecutorHostRequired: true
-  readonly injectedExecutorHostMode: 'injected-test-only'
+  readonly postCommitVerificationExecutorHostMode: ThirdPartyDataPackPostCommitVerificationExecutorHostMode
+  readonly injectedExecutorHostMode: ThirdPartyDataPackPostCommitVerificationExecutorHostMode
   readonly verificationHostCalled: boolean
   readonly verificationOutcomeReceived: boolean
   readonly verificationOutcomeNormalized: boolean
@@ -573,6 +582,18 @@ const check = (
   reason: string
 ): ThirdPartyDataPackPostCommitVerificationExecutorAdapterCheck => Object.freeze({ id, status, reason })
 
+const defaultHostMode: ThirdPartyDataPackPostCommitVerificationExecutorHostMode = 'injected-test-only'
+
+const hostBoundaryAccepted = (
+  host: ThirdPartyDataPackPostCommitVerificationExecutorHost | undefined
+): boolean => (
+  host?.kind === 'injected-post-commit-verification-executor'
+    && host.mode === 'injected-test-only'
+) || (
+  host?.kind === 'electron-main-visible-import-post-commit-verification-executor'
+    && host.mode === 'electron-main-visible-import'
+)
+
 const skippedChecks = (
   reason: string
 ): readonly ThirdPartyDataPackPostCommitVerificationExecutorAdapterCheck[] => Object.freeze([
@@ -582,7 +603,7 @@ const skippedChecks = (
   'candidate-identity-present',
   'lockfile-hash-present',
   'injected-verification-host-ready',
-  'injected-test-boundary',
+  'verification-host-boundary',
   'no-upstream-verification-effects',
   'verification-outcome-returned',
   'verification-outcome-ready'
@@ -601,7 +622,7 @@ const preExecutionChecks = (
     check(
       'verification-preflight-deferred',
       preflight.status === 'deferred' ? 'satisfied' : 'blocked',
-      'Injected post-commit verification execution requires the source executor preflight to remain deferred.'
+      'Post-commit verification host execution requires the source executor preflight to remain deferred.'
     ),
     check(
       'install-command-source',
@@ -613,30 +634,29 @@ const preExecutionChecks = (
       preflight.targetPackageId !== undefined && selectedPackageIds.includes(preflight.targetPackageId)
         ? 'satisfied'
         : 'blocked',
-      'The selected install target must be present before constructing an injected verification request.'
+      'The selected install target must be present before constructing a verification request.'
     ),
     check(
       'candidate-identity-present',
       preflight.candidateIdentity?.candidateHash !== undefined ? 'satisfied' : 'blocked',
-      'Injected verification execution requires the candidate identity that committed state must prove.'
+      'Post-commit verification host execution requires the candidate identity that committed state must prove.'
     ),
     check(
       'lockfile-hash-present',
       preflight.lockfileHash !== undefined ? 'satisfied' : 'blocked',
-      'Injected verification execution requires the lockfile hash that committed persistent state must prove.'
+      'Post-commit verification host execution requires the lockfile hash that committed persistent state must prove.'
     ),
     check(
       'injected-verification-host-ready',
       host !== undefined && typeof host.execute === 'function' ? 'satisfied' : 'blocked',
-      'A fixed injected verification host must be present before the adapter can execute.'
+      'A fixed path-free verification host must be present before the adapter can execute.'
     ),
     check(
-      'injected-test-boundary',
-      host?.kind === 'injected-post-commit-verification-executor'
-        && host.mode === 'injected-test-only'
+      'verification-host-boundary',
+      hostBoundaryAccepted(host)
         ? 'satisfied'
         : 'blocked',
-      'This first verification executor adapter slice only accepts an injected-test-only host and must not bind real platform reads or writes.'
+      'The adapter only accepts explicit path-free verification host modes and must not bind real platform reads or writes.'
     ),
     check(
       'no-upstream-verification-effects',
@@ -819,6 +839,7 @@ const baseResult = (
   checks: readonly ThirdPartyDataPackPostCommitVerificationExecutorAdapterCheck[],
   diagnostics: readonly ThirdPartyDataPackPostCommitVerificationSafeDiagnostic[],
   hostCalled: boolean,
+  hostMode: ThirdPartyDataPackPostCommitVerificationExecutorHostMode = defaultHostMode,
   verificationRequest?: ThirdPartyDataPackPostCommitVerificationExecutorRequest,
   outcome?: ThirdPartyDataPackPostCommitVerificationOutcome
 ): ThirdPartyDataPackPostCommitVerificationExecutorAdapterResult => {
@@ -834,7 +855,8 @@ const baseResult = (
     postCommitVerificationExecutorAdapter: status,
     readOnly: true,
     injectedExecutorHostRequired: true,
-    injectedExecutorHostMode: 'injected-test-only',
+    postCommitVerificationExecutorHostMode: hostMode,
+    injectedExecutorHostMode: hostMode,
     verificationHostCalled: hostCalled,
     verificationOutcomeReceived: outcome !== undefined,
     verificationOutcomeNormalized: outcome !== undefined,
@@ -914,7 +936,8 @@ export const executeThirdPartyDataPackPostCommitVerificationExecutorAdapter = as
         ...sourceDiagnostics,
         ...blockedDiagnostics
       ],
-      false
+      false,
+      options.host?.mode ?? defaultHostMode
     )
   }
 
@@ -942,6 +965,7 @@ export const executeThirdPartyDataPackPostCommitVerificationExecutorAdapter = as
         )
       ],
       true,
+      options.host.mode,
       verificationRequest
     )
   }
@@ -968,6 +992,7 @@ export const executeThirdPartyDataPackPostCommitVerificationExecutorAdapter = as
         )
       ],
       true,
+      options.host.mode,
       verificationRequest
     )
   }
@@ -977,11 +1002,11 @@ export const executeThirdPartyDataPackPostCommitVerificationExecutorAdapter = as
   const outcomeChecks = checksWithOutcome(
     checks,
     'satisfied',
-    'The injected post-commit verification host returned a safe settled outcome source.',
+    'The path-free post-commit verification host returned a safe settled outcome source.',
     ready ? 'satisfied' : 'blocked',
     ready
-      ? 'The post-commit verification outcome was normalized as a path-free injected-host result.'
-      : 'The injected post-commit verification outcome did not match the source preflight identity or verifier requirements.'
+      ? 'The post-commit verification outcome was normalized as a path-free host result.'
+      : 'The post-commit verification outcome did not match the source preflight identity or verifier requirements.'
   )
 
   if (!ready) {
@@ -996,6 +1021,7 @@ export const executeThirdPartyDataPackPostCommitVerificationExecutorAdapter = as
         ...diagnosticsForBlockedChecks(outcomeChecks, preflight.targetPackageId)
       ],
       true,
+      options.host.mode,
       verificationRequest
     )
   }
@@ -1009,11 +1035,12 @@ export const executeThirdPartyDataPackPostCommitVerificationExecutorAdapter = as
 
   return baseResult(
     'executed',
-    'post-commit verification executor adapter executed the injected-test-only host and normalized its path-free outcome',
+    'post-commit verification executor adapter executed a path-free verification host and normalized its outcome',
     preflight,
     outcomeChecks,
     diagnostics,
     true,
+    options.host.mode,
     verificationRequest,
     outcome
   )

@@ -32,6 +32,7 @@ const startupSources = {
   contentAccess: readSource('src/domain/mods/contentAccess.ts'),
   electronMain: readSource('electron/main.js'),
   electronPreload: readSource('electron/preload.js'),
+  liveContentRegistry: readSource('src/domain/mods/liveContentRegistry.ts'),
   main: readSource('src/main.ts'),
   officialContentBootstrap: readSource('src/domain/mods/officialContentBootstrap.ts'),
   officialPrecompiledRuntime: readSource('src/domain/mods/officialPrecompiledRuntime.ts'),
@@ -125,9 +126,10 @@ const officialStartupChecks = [
   },
   {
     id: 'content-access-published-only',
-    pass: startupSources.contentAccess.includes("from './officialContentBootstrap'")
+    pass: startupSources.contentAccess.includes("from './liveContentRegistry'")
+      && startupSources.liveContentRegistry.includes("from './officialContentBootstrap'")
       && !startupSources.contentAccess.includes('buildOfficialRegistrySetFromStaticData'),
-    evidence: 'src/domain/mods/contentAccess.ts'
+    evidence: 'src/domain/mods/contentAccess.ts, src/domain/mods/liveContentRegistry.ts'
   },
   {
     id: 'shared-renderer-entry',

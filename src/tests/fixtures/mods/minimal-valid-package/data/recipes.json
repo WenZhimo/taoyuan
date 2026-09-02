@@ -24,6 +24,10 @@
     ],
     "outputItemId": "example_mod:test_item",
     "outputQuantity": 1,
+    "effect": {
+      "staminaRestore": 1
+    },
+    "unlockSource": "Example mod",
     "description": {
       "key": "example_mod.recipe.test.description",
       "fallback": "用于模组契约测试的配方"

@@ -9,6 +9,12 @@ import type {
   ThirdPartyDataPackLiveRegistrySwapProtectionRequirementId,
   ThirdPartyDataPackLiveRegistrySwapProtectionResult
 } from './thirdPartyDataPackLiveRegistrySwapProtection'
+import {
+  isThirdPartyDataPackRuntimeCommandId,
+  runtimeCommandTargetMatchesPackageState,
+  runtimeCommandTargetPackageId,
+  type ThirdPartyDataPackRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -27,7 +33,7 @@ export type ThirdPartyDataPackLiveRegistrySwapHostStatus =
   | 'blocked'
 
 export interface ThirdPartyDataPackLiveRegistrySwapExecutionHostEnvelope {
-  readonly requestedCommandId: 'install'
+  readonly requestedCommandId: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -76,7 +82,7 @@ export interface ThirdPartyDataPackLiveRegistrySwapHostEffectSummary {
 
 export interface ThirdPartyDataPackLiveRegistrySwapHostResult {
   readonly status: ThirdPartyDataPackLiveRegistrySwapHostStatus
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
   readonly blockedPackageIds?: readonly PackageId[]
@@ -158,7 +164,7 @@ export interface ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult {
   readonly commandContinuationAllowed: boolean
   readonly liveRegistrySwapProtectionStatus?: ThirdPartyDataPackLiveRegistrySwapProtectionResult['status']
   readonly liveRegistrySwapHostStatus?: ThirdPartyDataPackLiveRegistrySwapHostStatus
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -335,6 +341,17 @@ const cloneStringList = (value: unknown): readonly string[] => {
 
 const clonePackageIds = (value: unknown): readonly PackageId[] =>
   cloneStringList(value) as readonly PackageId[]
+
+const readRuntimeCommandId = (
+  value: unknown,
+  selectedPackageIds: readonly PackageId[],
+  blockedPackageIds: readonly PackageId[]
+): ThirdPartyDataPackRuntimeCommandId | undefined => {
+  const commandId = readOwnStringField(value, 'requestedCommandId')
+  if (isThirdPartyDataPackRuntimeCommandId(commandId)) return commandId
+  if (selectedPackageIds.length > 0 && blockedPackageIds.length === 0) return 'install'
+  return undefined
+}
 
 const cloneRequiredProtectionIds = (
   value: unknown
@@ -541,7 +558,8 @@ const safeDeferredProtection = (
 
 const hostEffectsContained = (
   effects: object | undefined,
-  swapped: boolean
+  swapped: boolean,
+  commandId: ThirdPartyDataPackRuntimeCommandId
 ): boolean => {
   if (effects === undefined) return false
   let keys: readonly (string | symbol)[]
@@ -561,7 +579,7 @@ const hostEffectsContained = (
     if (!('value' in descriptor)) return false
     if (key === 'liveRegistrySwapHostCalled') return descriptor.value === true
     if (key === 'liveRegistrySwapHostAccepted') return descriptor.value === swapped
-    if (key === 'thirdPartyRegistryPublished') return descriptor.value === swapped
+    if (key === 'thirdPartyRegistryPublished') return descriptor.value === (swapped && commandId === 'install')
     if (key === 'liveRegistryMutated') return descriptor.value === swapped
     if (key === 'liveRegistrySwapped') return descriptor.value === swapped
     if (key === 'runtimeEnablementAllowed') return descriptor.value === swapped
@@ -573,19 +591,36 @@ const safeSwappedHostResult = (
   source: ThirdPartyDataPackLiveRegistrySwapProtectionResult,
   hostResult: ThirdPartyDataPackLiveRegistrySwapHostResult
 ): boolean => {
+  const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+  const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+  const loadOrder = clonePackageIds(readOwnDataField(source, 'loadOrder'))
+  const requestedCommandId = readRuntimeCommandId(source, selectedPackageIds, blockedPackageIds)
+  const targetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds
+  )
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
   const requiredIds = cloneRequiredProtectionIds(readOwnDataField(source, 'requiredProtections'))
   return candidateIdentity !== undefined
     && readOwnStringField(hostResult, 'status') === 'swapped'
-    && readOwnStringField(hostResult, 'requestedCommandId') === 'install'
-    && readOwnStringField(hostResult, 'targetPackageId') === clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))[0]
+    && requestedCommandId !== undefined
+    && readOwnStringField(hostResult, 'requestedCommandId') === requestedCommandId
+    && readOwnStringField(hostResult, 'targetPackageId') === targetPackageId
+    && runtimeCommandTargetMatchesPackageState(
+      requestedCommandId,
+      targetPackageId,
+      selectedPackageIds,
+      blockedPackageIds,
+      loadOrder
+    )
     && arraysEqual(
       clonePackageIds(readOwnDataField(hostResult, 'selectedPackageIds')),
-      clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+      selectedPackageIds
     )
     && arraysEqual(
       clonePackageIds(readOwnDataField(hostResult, 'blockedPackageIds')),
-      clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+      blockedPackageIds
     )
     && arraysEqual(
       cloneStringList(readOwnDataField(hostResult, 'blockedCandidatePaths')),
@@ -593,7 +628,7 @@ const safeSwappedHostResult = (
     )
     && arraysEqual(
       clonePackageIds(readOwnDataField(hostResult, 'loadOrder')),
-      clonePackageIds(readOwnDataField(source, 'loadOrder'))
+      loadOrder
     )
     && readOwnNumberField(hostResult, 'registryCount') === readOwnNumberField(source, 'registryCount')
     && readOwnNumberField(hostResult, 'entryCount') === readOwnNumberField(source, 'entryCount')
@@ -602,7 +637,11 @@ const safeSwappedHostResult = (
     && readOwnStringField(hostResult, 'lockfileHash') === readOwnStringField(source, 'lockfileHash')
     && readOwnStringField(hostResult, 'protectionStatus') === 'deferred'
     && arraysEqual(cloneRequiredProtectionIds(readOwnDataField(hostResult, 'requiredProtectionIds')), requiredIds)
-    && hostEffectsContained(readOwnDataField(hostResult, 'effects') as object | undefined, true)
+    && hostEffectsContained(
+      readOwnDataField(hostResult, 'effects') as object | undefined,
+      true,
+      requestedCommandId
+    )
     && pathFreeHostResult(hostResult)
 }
 
@@ -633,6 +672,7 @@ const deepFreezeObjectGraph = <T>(value: T): T => {
 const effectSummary = (
   sourceCalled: boolean,
   continuationAllowed: boolean,
+  commandId: ThirdPartyDataPackRuntimeCommandId | undefined,
   hostCalled = false,
   hostAccepted = false
 ): ThirdPartyDataPackLiveRegistrySwapExecutionEffectSummary => Object.freeze({
@@ -643,7 +683,7 @@ const effectSummary = (
   liveRegistrySwapHostAccepted: hostAccepted,
   appBootstrapContinuationAllowed: continuationAllowed,
   commandContinuationAllowed: continuationAllowed,
-  thirdPartyRegistryPublished: hostAccepted,
+  thirdPartyRegistryPublished: hostAccepted && commandId === 'install',
   liveRegistryMutated: hostAccepted,
   liveRegistrySwapped: hostAccepted,
   runtimeEnablementAllowed: hostAccepted,
@@ -691,7 +731,13 @@ const baseResult = (
 ): ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult => {
   const continuationAllowed = options.status !== 'blocked'
   const selectedPackageIds = clonePackageIds(readOwnDataField(options.source, 'selectedPackageIds'))
-  const targetPackageId = selectedPackageIds[0]
+  const blockedPackageIds = clonePackageIds(readOwnDataField(options.source, 'blockedPackageIds'))
+  const requestedCommandId = readRuntimeCommandId(options.source, selectedPackageIds, blockedPackageIds)
+  const targetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds
+  )
   const hostStatus = readOwnStringField(options.hostResult, 'status') as
     | ThirdPartyDataPackLiveRegistrySwapHostStatus
     | undefined
@@ -711,10 +757,10 @@ const baseResult = (
       | ThirdPartyDataPackLiveRegistrySwapProtectionResult['status']
       | undefined,
     liveRegistrySwapHostStatus: hostStatus,
-    requestedCommandId: targetPackageId === undefined ? undefined : 'install',
+    requestedCommandId,
     targetPackageId,
     selectedPackageIds,
-    blockedPackageIds: clonePackageIds(readOwnDataField(options.source, 'blockedPackageIds')),
+    blockedPackageIds,
     blockedCandidatePaths: cloneStringList(readOwnDataField(options.source, 'blockedCandidatePaths')),
     loadOrder: clonePackageIds(readOwnDataField(options.source, 'loadOrder')),
     registryCount: readOwnNumberField(options.source, 'registryCount') ?? 54,
@@ -728,6 +774,7 @@ const baseResult = (
     effects: effectSummary(
       options.sourceCalled,
       continuationAllowed,
+      requestedCommandId,
       options.hostCalled === true,
       hostStatus === 'swapped'
     )
@@ -738,12 +785,19 @@ const buildHostEnvelope = (
   source: ThirdPartyDataPackLiveRegistrySwapProtectionResult
 ): ThirdPartyDataPackLiveRegistrySwapExecutionHostEnvelope | undefined => {
   const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
-  const targetPackageId = selectedPackageIds[0]
+  const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+  const requestedCommandId = readRuntimeCommandId(source, selectedPackageIds, blockedPackageIds)
+  const targetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds
+  )
   const officialIdentity = cloneOfficialIdentity(readOwnDataField(source, 'officialIdentity'))
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
   const lockfileHash = readOwnStringField(source, 'lockfileHash') as Sha256Hash | undefined
   if (
     targetPackageId === undefined
+    || requestedCommandId === undefined
     || officialIdentity === undefined
     || candidateIdentity === undefined
     || lockfileHash === undefined
@@ -752,10 +806,10 @@ const buildHostEnvelope = (
   }
 
   return deepFreezeObjectGraph({
-    requestedCommandId: 'install',
+    requestedCommandId,
     targetPackageId,
     selectedPackageIds,
-    blockedPackageIds: clonePackageIds(readOwnDataField(source, 'blockedPackageIds')),
+    blockedPackageIds,
     blockedCandidatePaths: cloneStringList(readOwnDataField(source, 'blockedCandidatePaths')),
     loadOrder: clonePackageIds(readOwnDataField(source, 'loadOrder')),
     registryCount: readOwnNumberField(source, 'registryCount') ?? 54,

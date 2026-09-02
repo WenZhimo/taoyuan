@@ -2,6 +2,7 @@ import type { JsonValue } from './canonicalJson'
 import { createDiagnostic, type ModDiagnostic, type ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
+import type { ThirdPartyDataPackRuntimeCommandId } from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyCandidateIdentitySummary,
   ThirdPartyCandidateOfficialIdentitySummary
@@ -99,6 +100,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAdapterEffectSummary 
 
 export interface ThirdPartyDataPackRuntimePublicationCommitAdapterResult {
   readonly status: ThirdPartyDataPackRuntimePublicationCommitAdapterStatus
+  readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly runtimePublicationPreflightStatus: ThirdPartyDataPackRuntimePublicationPreflightResult['status']
   readonly transactionPreCommitPlanStatus: ThirdPartyDataPackTransactionPreCommitPlanResult['status']
   readonly liveRegistrySwapProtectionStatus: ThirdPartyDataPackLiveRegistrySwapProtectionResult['status']
@@ -710,6 +712,11 @@ const baseResult = (
   includeRequiredAdapters: boolean
 ): ThirdPartyDataPackRuntimePublicationCommitAdapterResult => freezeResult({
   status,
+  requestedCommandId: recovery.selectedPackageIds.length > 0
+    ? 'install'
+    : recovery.blockedPackageIds.length > 0
+      ? 'disable'
+      : undefined,
   runtimePublicationPreflightStatus: runtimePublicationPreflight.status,
   transactionPreCommitPlanStatus: preCommitPlan.status,
   liveRegistrySwapProtectionStatus: liveRegistrySwapProtection.status,

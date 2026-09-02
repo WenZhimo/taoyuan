@@ -6,19 +6,101 @@ import {
   reportApplicationStartupFailure
 } from '@/bootstrap'
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
+import { publishOfficialContentRegistrySet } from '@/domain/mods/liveContentRegistry'
 import { refreshOfficialRegistryDiskCache } from '@/domain/mods/officialRegistryCacheRefresh'
-import { bootstrapThirdPartyDataPackStartupGate } from '@/domain/mods/thirdPartyDataPackStartupGateBootstrapSource'
+import {
+  bootstrapInstalledStateThirdPartyDataPackStartupGate,
+  createThirdPartyDataPackInstalledStateStartupGateBootstrapSource
+} from '@/domain/mods/thirdPartyDataPackInstalledStateStartupGateBootstrapSource'
+import {
+  acknowledgeThirdPartyDataPackMountedAppStartupHostConnection,
+  publishThirdPartyDataPackMountedAppStartupHostEvidence
+} from '@/domain/mods/thirdPartyDataPackMountedAppStartupHostConnection'
 import {
   thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline
 } from '@/domain/mods/thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline'
+import type {
+  ThirdPartyRendererUiIpcProductProbeResult
+} from '@/runtime/thirdPartyRendererUiIpcProductProbe'
+import type {
+  ThirdPartyDataPackTransactionCommandDispatcherHostResult
+} from '@/domain/mods/thirdPartyDataPackTransactionCommandDispatcherSource'
+import {
+  createThirdPartyStartupGateProductProbeBootstrapSource,
+  createThirdPartyStartupPersistentStateProductProbeBootstrapSource
+} from '@/runtime/thirdPartyStartupGateProductProbe'
+import type {
+  ThirdPartyVisibleImportProductProbeResult
+} from '@/runtime/thirdPartyVisibleImportProductProbe'
 import './app.css'
 
 const runtimeProbeRequested = typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).get('taoyuanContentProbe') === '1'
+const thirdPartyStartupGateProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search).get('taoyuanThirdPartyStartupGateProbe') === '1'
+const thirdPartyStartupPersistentStateProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search).get('taoyuanThirdPartyStartupPersistentStateProbe') === '1'
+const thirdPartyStartupPersistentStateSourceKind = runtimeProbeRequested
+  ? new URLSearchParams(window.location.search).get('taoyuanThirdPartyStartupPersistentStateSource')
+  : null
+const thirdPartyStartupGateProductProbeProfile = runtimeProbeRequested
+  ? new URLSearchParams(window.location.search).get('taoyuanThirdPartyStartupGateProductProfile')
+  : null
+const thirdPartyStartupPersistentStateUsesElectronUserdata =
+  thirdPartyStartupPersistentStateSourceKind === 'electron-program-directory-userdata'
+const thirdPartyStartupPersistentStateUsesInstalledState = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyStartupPersistentStateInstalledState') === '1'
+const thirdPartyRendererUiIpcInstallResultProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search).get('taoyuanThirdPartyRendererUiIpcInstallResultProbe') === '1'
+const thirdPartyElectronInstallCommandDispatchProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyElectronInstallCommandDispatchProbe') === '1'
+const thirdPartyVisibleImportProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleImportProbe') === '1'
+const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
+const thirdPartyVisibleImportPersistSourceProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleImportPersistSource') === '1'
+let thirdPartyRendererUiIpcProductProbeResult: ThirdPartyRendererUiIpcProductProbeResult | undefined
+let thirdPartyElectronInstallCommandDispatchProductProbeResult:
+  ThirdPartyDataPackTransactionCommandDispatcherHostResult | undefined
+let thirdPartyVisibleImportProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
+let thirdPartyVisibleDisableProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
+const bootstrapThirdPartyStartupGate = thirdPartyStartupPersistentStateProbeRequested
+  ? thirdPartyStartupPersistentStateUsesInstalledState
+    ? createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+        ...(typeof window === 'undefined' ? {} : { runtimeHost: window })
+      })
+    : createThirdPartyStartupPersistentStateProductProbeBootstrapSource({
+        ...(typeof window === 'undefined' ? {} : { runtimeHost: window }),
+        profile: thirdPartyStartupGateProductProbeProfile === 'electron-ordinary-terminal'
+          ? 'electron-ordinary-terminal'
+          : 'sample',
+        sourceKind: thirdPartyStartupPersistentStateUsesElectronUserdata
+          ? 'electron-program-directory-userdata'
+          : 'web-indexeddb',
+        seedWebStartupPersistentState: true
+      })
+  : thirdPartyStartupGateProbeRequested
+    ? createThirdPartyStartupGateProductProbeBootstrapSource({
+        profile: thirdPartyStartupGateProductProbeProfile === 'electron-ordinary-terminal'
+          ? 'electron-ordinary-terminal'
+          : 'sample'
+      })
+    : bootstrapInstalledStateThirdPartyDataPackStartupGate
 
 void bootstrapApplication({
   bootstrapOfficialContent,
-  bootstrapThirdPartyStartupGate: bootstrapThirdPartyDataPackStartupGate,
+  publishRuntimeContentRegistry: publishOfficialContentRegistrySet,
+  bootstrapThirdPartyStartupGate,
+  acknowledgeThirdPartyAppStartupHost: options => {
+    publishThirdPartyDataPackMountedAppStartupHostEvidence(options.evidence)
+    return acknowledgeThirdPartyDataPackMountedAppStartupHostConnection(options)
+  },
   createApp: async () => createApp((await import('./App.vue')).default),
   createPinia,
   configurePinia: pinia => {
@@ -37,9 +119,49 @@ void bootstrapApplication({
   installRouter: (app, router) => app.use(router),
   mount: (app, router) => mountAfterRouterReady(app, router),
   afterMount: async () => {
+    if (runtimeProbeRequested) {
+      if (thirdPartyVisibleImportProbeRequested) {
+        const { runThirdPartyVisibleImportProductProbe } = await import(
+          '@/runtime/thirdPartyVisibleImportProductProbe'
+        )
+        thirdPartyVisibleImportProductProbeResult =
+          await runThirdPartyVisibleImportProductProbe({
+            entrypoint: 'main-menu-panel',
+            persistSource: thirdPartyVisibleImportPersistSourceProbeRequested
+          })
+      }
+      if (thirdPartyVisibleDisableProbeRequested) {
+        const { runThirdPartyVisibleDisableProductProbe } = await import(
+          '@/runtime/thirdPartyVisibleImportProductProbe'
+        )
+        thirdPartyVisibleDisableProductProbeResult =
+          await runThirdPartyVisibleDisableProductProbe({
+            targetPackageId: 'product_probe_pack' as import('@/domain/mods/ids').PackageId
+          })
+      }
+      const { runThirdPartyRendererUiIpcProductProbe } = await import(
+        '@/runtime/thirdPartyRendererUiIpcProductProbe'
+      )
+      thirdPartyRendererUiIpcProductProbeResult = await runThirdPartyRendererUiIpcProductProbe(
+        window,
+        {
+          deliveryInputSource: thirdPartyRendererUiIpcInstallResultProbeRequested
+            ? 'install-transaction-commit-finalization'
+            : 'synthetic-success-handoff'
+        }
+      )
+      if (thirdPartyElectronInstallCommandDispatchProbeRequested) {
+        const { runThirdPartyElectronInstallCommandDispatchProductProbe } = await import(
+          '@/runtime/thirdPartyElectronInstallCommandDispatchProductProbe'
+        )
+        thirdPartyElectronInstallCommandDispatchProductProbeResult =
+          await runThirdPartyElectronInstallCommandDispatchProductProbe(window)
+      }
+      return
+    }
     await thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline()
   }
-}).then(async () => {
+}).then(async bootstrapResult => {
   const cacheRefresh = refreshOfficialRegistryDiskCache()
   if (!runtimeProbeRequested) {
     void cacheRefresh
@@ -47,7 +169,24 @@ void bootstrapApplication({
   }
   await cacheRefresh
   const { publishContentRuntimeProbe } = await import('@/runtime/contentRuntimeProbe')
-  publishContentRuntimeProbe()
+  publishContentRuntimeProbe({
+    thirdPartyStartupGateResult: bootstrapResult.thirdPartyStartupGateResult,
+    thirdPartyAppStartupHostResult: bootstrapResult.thirdPartyAppStartupHostResult,
+    thirdPartyStartupPersistentStateReadFromIndexedDb:
+      thirdPartyStartupPersistentStateProbeRequested
+      && !thirdPartyStartupPersistentStateUsesElectronUserdata,
+    thirdPartyRendererUiIpcResult:
+      thirdPartyRendererUiIpcProductProbeResult?.responseDeliveryResult,
+    thirdPartyRendererUiIpcDeliveryInputSource:
+      thirdPartyRendererUiIpcProductProbeResult?.deliveryInputSource,
+    thirdPartyRendererUiIpcWebEventObserved:
+      thirdPartyRendererUiIpcProductProbeResult?.webDomResponseEventObserved,
+    thirdPartyElectronInstallCommandDispatchResult:
+      thirdPartyElectronInstallCommandDispatchProductProbeResult,
+    thirdPartyVisibleImportResult:
+      thirdPartyVisibleDisableProductProbeResult
+        ?? thirdPartyVisibleImportProductProbeResult
+  })
 }).catch(error => {
   reportApplicationStartupFailure(error)
 })

@@ -652,6 +652,7 @@ const createPostCommitVerificationExecutorAdapter = (
   postCommitVerificationExecutorAdapter: 'executed',
   readOnly: true,
   injectedExecutorHostRequired: true,
+  postCommitVerificationExecutorHostMode: 'injected-test-only',
   injectedExecutorHostMode: 'injected-test-only',
   verificationHostCalled: true,
   verificationOutcomeReceived: true,
@@ -841,11 +842,11 @@ describe('third-party install command lifecycle pipeline', () => {
         effects: dispatcherHostEffects()
       }
     })
-    const executeInjectedAtomicTransactionCommit = {
-      kind: 'injected-atomic-transaction-commit-executor' as const,
-      mode: 'injected-test-only' as const,
+    const executeAtomicTransactionCommitOutcomeHost = {
+      kind: 'electron-main-visible-import-atomic-transaction-commit-executor' as const,
+      mode: 'electron-main-visible-import' as const,
       execute: vi.fn(request => {
-        calls.push('injected-atomic-commit')
+        calls.push('atomic-outcome-host')
         expect(Object.isFrozen(request)).toBe(true)
         expect(request.commandId).toBe('install')
         expect(request.packageId).toBe(packageId)
@@ -943,7 +944,7 @@ describe('third-party install command lifecycle pipeline', () => {
       readInstallTransactionDispatchPlan,
       readRuntimePublicationCommitAdapter,
       dispatchTransactionCommand,
-      executeInjectedAtomicTransactionCommit,
+      executeAtomicTransactionCommitOutcomeHost,
       executeAtomicTransactionCommit,
       readSettingsLockfileCommitSource,
       readPostCommitVerificationExecutorAdapter,
@@ -956,6 +957,8 @@ describe('third-party install command lifecycle pipeline', () => {
     expect(result.status).toBe('ready')
     expect(result.transactionCommandDispatcherSourceStatus).toBe('dispatched')
     expect(result.atomicTransactionCommitExecutorSourceStatus).toBe('executed')
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.postCommitVerificationExecutorHostMode).toBe('injected-test-only')
     expect(result.postCommitVerificationReadAcknowledgementSourceStatus).toBe('ready')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
@@ -965,13 +968,15 @@ describe('third-party install command lifecycle pipeline', () => {
     expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
     expect(result.effects.commandDispatched).toBe(true)
     expect(result.effects.atomicCommitExecutorAcknowledged).toBe(true)
+    expect(result.effects.injectedCommitHostCalled).toBe(false)
+    expect(result.effects.realAtomicCommitExecutorCalled).toBe(true)
     expect(result.effects.postCommitVerificationAcknowledged).toBe(true)
     expect(result.effects.persistentReadProofAcknowledged).toBe(true)
     expect(readTransactionCommandDispatcherHandoff).toHaveBeenCalledOnce()
     expect(readInstallTransactionDispatchPlan).toHaveBeenCalledOnce()
     expect(readRuntimePublicationCommitAdapter).toHaveBeenCalledOnce()
     expect(dispatchTransactionCommand).toHaveBeenCalledOnce()
-    expect(executeInjectedAtomicTransactionCommit.execute).toHaveBeenCalledOnce()
+    expect(executeAtomicTransactionCommitOutcomeHost.execute).toHaveBeenCalledOnce()
     expect(executeAtomicTransactionCommit).toHaveBeenCalledOnce()
     expect(readSettingsLockfileCommitSource).toHaveBeenCalledOnce()
     expect(readPostCommitVerificationExecutorAdapter).toHaveBeenCalledOnce()
@@ -979,7 +984,7 @@ describe('third-party install command lifecycle pipeline', () => {
     expect(executePostCommitVerification).toHaveBeenCalledOnce()
     expect(calls.slice(0, 3)).toEqual([
       'command-dispatch',
-      'injected-atomic-commit',
+      'atomic-outcome-host',
       'atomic-commit-host'
     ])
     expect(calls).toEqual(expect.arrayContaining([

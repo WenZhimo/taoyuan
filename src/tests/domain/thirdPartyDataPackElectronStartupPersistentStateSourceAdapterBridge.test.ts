@@ -4,8 +4,12 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Sha256Hash } from '@/domain/mods/hash'
-import type { PackageId } from '@/domain/mods/ids'
+import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
+import {
+  requireContentId,
+  requireRegistryTypeId,
+  type PackageId
+} from '@/domain/mods/ids'
 import {
   createThirdPartyDataPackElectronStartupPersistentStateSourceAdapterBridge,
   THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND,
@@ -24,6 +28,9 @@ import type {
   ThirdPartyDataPackStartupGatePersistentStateEffectSummary,
   ThirdPartyDataPackStartupGatePersistentStatePreflightResult
 } from '@/domain/mods/thirdPartyDataPackStartupGatePersistentStatePreflight'
+import type {
+  ThirdPartyDataPackLockfileDraft
+} from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 
 const roots: string[] = []
 
@@ -48,7 +55,64 @@ const candidateIdentity = {
   candidateHash: testHash('c')
 } as const
 
-const lockfileHash = testHash('d')
+const createModLockDraft = (): ThirdPartyDataPackLockfileDraft => {
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: testHash('1'),
+      contentHash: testHash('2'),
+      schemaSetHash: testHash('3'),
+      environmentHash: testHash('4'),
+      snapshotHash: testHash('5'),
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity,
+    registryCount: 55,
+    entryCount: 4243,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId],
+    packages: [
+      {
+        packageId,
+        version: '1.0.0',
+        loadIndex: 0,
+        source: {
+          candidatePath: 'installed-pack',
+          manifestPath: 'installed-pack/manifest.json',
+          contentFiles: ['installed-pack/data/items.json']
+        },
+        manifestHash: testHash('6'),
+        contentHash: testHash('7'),
+        configurationHash: testHash('8'),
+        resolvedDependencies: [],
+        contentFiles: [
+          {
+            registryId: requireRegistryTypeId('taoyuan:item'),
+            path: 'data/items.json',
+            entryCount: 1,
+            entries: [
+              {
+                registryId: requireRegistryTypeId('taoyuan:item'),
+                contentId: requireContentId(`${packageId}:linen_ribbon`),
+                index: 0,
+                canonicalHash: testHash('9')
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
+const modLockDraft = createModLockDraft()
+const lockfileHash = modLockDraft.lockfileHash
 
 const sourceEffects: ThirdPartyDataPackStartupGatePersistentStateEffectSummary = {
   officialRegistryPublished: false,
@@ -299,10 +363,23 @@ const createSnapshotFile = () => ({
   saveCache: { isolated: true }
 })
 
+const createSettingsFile = () => ({
+  closeToTray: false,
+  thirdPartyDataPacks: {
+    candidateHash: candidateIdentity.candidateHash,
+    lockfileHash,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId]
+  }
+})
+
 const writeSnapshot = async(root: string): Promise<void> => {
   const paths = resolveThirdPartyDataPackElectronStartupPersistentStateSourceHostPaths(root)
   await mkdir(paths.startupStateDirectoryPath, { recursive: true })
   await writeFile(paths.snapshotFilePath, `${JSON.stringify(createSnapshotFile(), null, 2)}\n`, 'utf8')
+  await mkdir(paths.userDataPath, { recursive: true })
+  await writeFile(paths.settingsFilePath, `${JSON.stringify(createSettingsFile(), null, 2)}\n`, 'utf8')
+  await writeFile(paths.modLockFilePath, `${JSON.stringify(modLockDraft, null, 2)}\n`, 'utf8')
 }
 
 const expectNoRealStartupWrites = (
@@ -334,7 +411,7 @@ const expectNoRealStartupWrites = (
 }
 
 describe('third-party Electron startup persistent state source adapter bridge', () => {
-  it('wraps the Electron program-directory source host as the existing injected-test-only adapter host', async() => {
+  it('wraps the Electron program-directory source host as a platform startup source adapter host', async() => {
     const root = await createRoot()
     await writeSnapshot(root)
     const electronHost = createThirdPartyDataPackElectronStartupPersistentStateSourceHost({
@@ -352,13 +429,16 @@ describe('third-party Electron startup persistent state source adapter bridge', 
     expect(bridge.kind).toBe(THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_KIND)
     expect(bridge.mode).toBe(THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_ADAPTER_BRIDGE_MODE)
     expect(bridge.host).toMatchObject({
-      kind: 'injected-startup-persistent-state-source-adapter',
-      mode: 'injected-test-only'
+      kind: 'electron-program-directory-startup-persistent-state-source-adapter',
+      mode: 'electron-program-directory-startup-persistent-state'
     })
     expect(result.status).toBe('executed')
     expect(result.reason).toBe(
-      'startup gate persistent state source adapter executed the injected-test-only host and normalized its path-free startup snapshot'
+      'startup gate persistent state source adapter executed a platform startup state source host and normalized its path-free startup snapshot'
     )
+    expect(result.startupPersistentStateSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
+    expect(result.injectedSourceHostMode).toBe('electron-program-directory-startup-persistent-state')
     expect(result.sourceHostCalled).toBe(true)
     expect(result.startupStateSnapshotReceived).toBe(true)
     expect(result.startupStateSnapshotNormalized).toBe(true)
@@ -412,7 +492,9 @@ describe('third-party Electron startup persistent state source adapter bridge', 
 
     expect(readCalled).toBe(false)
     expect(result.status).toBe('blocked')
-    expect(result.reason).toBe('injected startup persistent state source host failed before snapshot')
+    expect(result.reason).toBe('startup persistent state source host failed before snapshot')
+    expect(result.startupPersistentStateSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
     expect(result.sourceHostCalled).toBe(true)
     expect(result.startupStateSnapshotReceived).toBe(false)
     expect(result.checks).toEqual(expect.arrayContaining([
@@ -441,7 +523,9 @@ describe('third-party Electron startup persistent state source adapter bridge', 
     })
 
     expect(result.status).toBe('blocked')
-    expect(result.reason).toBe('injected startup persistent state source host failed before snapshot')
+    expect(result.reason).toBe('startup persistent state source host failed before snapshot')
+    expect(result.startupPersistentStateSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
     expect(result.sourceHostCalled).toBe(true)
     expect(result.startupStateSnapshotReceived).toBe(false)
     expect(result.diagnostics).toEqual(expect.arrayContaining([

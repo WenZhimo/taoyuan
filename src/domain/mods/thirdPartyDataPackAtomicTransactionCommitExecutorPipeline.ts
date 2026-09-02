@@ -27,6 +27,7 @@ export interface CreateThirdPartyDataPackAtomicTransactionCommitExecutorPipeline
   readonly readTransactionCommandDispatcherHandoff?: () => Awaitable<ThirdPartyDataPackTransactionCommandDispatcherHandoffResult>
   readonly readInstallTransactionDispatchPlan?: () => Awaitable<ThirdPartyDataPackInstallTransactionDispatchPlanResult>
   readonly readRuntimePublicationCommitAdapter?: () => Awaitable<ThirdPartyDataPackRuntimePublicationCommitAdapterResult>
+  readonly executeAtomicTransactionCommitOutcomeHost?: ExecuteThirdPartyDataPackAtomicTransactionCommitExecutorAdapterOptions['host']
   readonly executeInjectedAtomicTransactionCommit?: ExecuteThirdPartyDataPackAtomicTransactionCommitExecutorAdapterOptions['host']
   readonly executeAtomicTransactionCommit?: CreateThirdPartyDataPackAtomicTransactionCommitExecutorSourceOptions['executeAtomicTransactionCommit']
 }
@@ -54,7 +55,8 @@ export const createThirdPartyDataPackAtomicTransactionCommitExecutorPipeline = (
 
     return executeThirdPartyDataPackAtomicTransactionCommitExecutorAdapter({
       preflight,
-      host: options.executeInjectedAtomicTransactionCommit
+      host: options.executeAtomicTransactionCommitOutcomeHost
+        ?? options.executeInjectedAtomicTransactionCommit
     })
   }
 

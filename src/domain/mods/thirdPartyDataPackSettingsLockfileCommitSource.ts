@@ -11,6 +11,10 @@ import type {
   ThirdPartyDataPackPackageFileStagingHostStatus,
   ThirdPartyDataPackPackageFileStagingSourceResult
 } from './thirdPartyDataPackPackageFileStagingSource'
+import {
+  isThirdPartyDataPackRuntimeCommandId,
+  type ThirdPartyDataPackRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -29,7 +33,7 @@ export type ThirdPartyDataPackSettingsLockfileCommitHostStatus =
   | 'blocked'
 
 export interface ThirdPartyDataPackSettingsLockfileCommitHostEnvelope {
-  readonly requestedCommandId: 'install'
+  readonly requestedCommandId: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -68,7 +72,7 @@ export interface ThirdPartyDataPackSettingsLockfileCommitHostEffectSummary {
 
 export interface ThirdPartyDataPackSettingsLockfileCommitHostResult {
   readonly status: ThirdPartyDataPackSettingsLockfileCommitHostStatus
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
   readonly blockedPackageIds?: readonly PackageId[]
@@ -155,7 +159,7 @@ export interface ThirdPartyDataPackSettingsLockfileCommitSourceResult {
   readonly packageFileStagingSourceStatus?: ThirdPartyDataPackPackageFileStagingSourceResult['status']
   readonly packageFileStagingHostStatus?: ThirdPartyDataPackPackageFileStagingHostStatus
   readonly settingsLockfileCommitHostStatus?: ThirdPartyDataPackSettingsLockfileCommitHostStatus
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -314,6 +318,17 @@ const cloneStringList = (value: unknown): string[] => {
 
 const clonePackageIds = (value: unknown): PackageId[] =>
   cloneStringList(value) as PackageId[]
+
+const readRuntimeCommandId = (
+  value: unknown,
+  selectedPackageIds: readonly PackageId[],
+  blockedPackageIds: readonly PackageId[]
+): ThirdPartyDataPackRuntimeCommandId | undefined => {
+  const commandId = readOwnStringField(value as object | undefined, 'requestedCommandId')
+  if (isThirdPartyDataPackRuntimeCommandId(commandId)) return commandId
+  if (selectedPackageIds.length > 0 && blockedPackageIds.length === 0) return 'install'
+  return undefined
+}
 
 const readOwnDataField = (
   value: object | undefined,
@@ -531,10 +546,12 @@ const safeSkippedSource = (
 const safeAcceptedSource = (
   source: ThirdPartyDataPackPackageFileStagingSourceResult
 ): boolean => {
+  const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+  const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
   const writeEvidence = cloneWriteProbeEvidence(readOwnDataField(source, 'writeProbeEvidence'))
   return readOwnStringField(source, 'status') === 'accepted'
     && readOwnStringField(source, 'packageFileStagingHostStatus') === 'accepted'
-    && readOwnStringField(source, 'requestedCommandId') === 'install'
+    && readRuntimeCommandId(source, selectedPackageIds, blockedPackageIds) !== undefined
     && readOwnStringField(source, 'targetPackageId') !== undefined
     && cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity')) !== undefined
     && readOwnStringField(source, 'lockfileHash') !== undefined
@@ -583,18 +600,22 @@ const safeAcceptedHostResult = (
   source: ThirdPartyDataPackPackageFileStagingSourceResult,
   hostResult: ThirdPartyDataPackSettingsLockfileCommitHostResult
 ): boolean => {
+  const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+  const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+  const requestedCommandId = readRuntimeCommandId(source, selectedPackageIds, blockedPackageIds)
   const identity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
   const writeEvidence = cloneWriteProbeEvidence(readOwnDataField(source, 'writeProbeEvidence'))
   return readOwnStringField(hostResult, 'status') === 'accepted'
-    && readOwnStringField(hostResult, 'requestedCommandId') === 'install'
+    && requestedCommandId !== undefined
+    && readOwnStringField(hostResult, 'requestedCommandId') === requestedCommandId
     && readOwnStringField(hostResult, 'targetPackageId') === readOwnStringField(source, 'targetPackageId')
     && arraysEqual(
       clonePackageIds(readOwnDataField(hostResult, 'selectedPackageIds')),
-      clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+      selectedPackageIds
     )
     && arraysEqual(
       clonePackageIds(readOwnDataField(hostResult, 'blockedPackageIds')),
-      clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+      blockedPackageIds
     )
     && arraysEqual(
       clonePackageIds(readOwnDataField(hostResult, 'loadOrder')),
@@ -729,9 +750,7 @@ const baseResult = (
     settingsLockfileCommitHostStatus: readOwnStringField(options.hostResult, 'status') as
       | ThirdPartyDataPackSettingsLockfileCommitHostStatus
       | undefined,
-    requestedCommandId: readOwnStringField(options.source, 'requestedCommandId') === 'install'
-      ? 'install' as const
-      : undefined,
+    requestedCommandId: readRuntimeCommandId(options.source, selectedPackageIds, blockedPackageIds),
     targetPackageId: readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,
@@ -751,7 +770,11 @@ const baseResult = (
 const buildSettingsLockfileCommitHostEnvelope = (
   source: ThirdPartyDataPackPackageFileStagingSourceResult
 ): ThirdPartyDataPackSettingsLockfileCommitHostEnvelope => deepFreezeObjectGraph({
-  requestedCommandId: 'install' as const,
+  requestedCommandId: readRuntimeCommandId(
+    source,
+    clonePackageIds(readOwnDataField(source, 'selectedPackageIds')),
+    clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+  ) as ThirdPartyDataPackRuntimeCommandId,
   targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId,
   selectedPackageIds: clonePackageIds(readOwnDataField(source, 'selectedPackageIds')),
   blockedPackageIds: clonePackageIds(readOwnDataField(source, 'blockedPackageIds')),

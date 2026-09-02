@@ -116,6 +116,8 @@ export interface ThirdPartyDataPackPostCommitVerificationReadAcknowledgementSour
   readonly commandContinuationAllowed: boolean
   readonly uiIpcResultContinuationAllowed: boolean
   readonly postCommitVerificationExecutorSourceStatus?: ThirdPartyDataPackPostCommitVerificationExecutorSourceResult['status']
+  readonly postCommitVerificationExecutorHostMode?:
+    ThirdPartyDataPackPostCommitVerificationExecutorSourceResult['postCommitVerificationExecutorHostMode']
   readonly postCommitPersistentVerificationReadSourceStatus?: ThirdPartyDataPackPostCommitPersistentVerificationReadSourceResult['status']
   readonly requestedCommandId?: 'install'
   readonly targetPackageId?: PackageId
@@ -791,6 +793,9 @@ const baseResult = (
     uiIpcResultContinuationAllowed: continuationAllowed,
     postCommitVerificationExecutorSourceStatus: readOwnStringField(executorSource, 'status') as
       | ThirdPartyDataPackPostCommitVerificationExecutorSourceResult['status']
+      | undefined,
+    postCommitVerificationExecutorHostMode: readOwnStringField(executorSource, 'postCommitVerificationExecutorHostMode') as
+      | ThirdPartyDataPackPostCommitVerificationExecutorSourceResult['postCommitVerificationExecutorHostMode']
       | undefined,
     postCommitPersistentVerificationReadSourceStatus: readOwnStringField(readSource, 'status') as
       | ThirdPartyDataPackPostCommitPersistentVerificationReadSourceResult['status']

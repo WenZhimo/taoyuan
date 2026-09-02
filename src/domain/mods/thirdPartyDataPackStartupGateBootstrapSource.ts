@@ -10,6 +10,9 @@ import type {
   ThirdPartyDataPackStartupGatePersistentStateSourceResult
 } from './thirdPartyDataPackStartupGatePersistentStateSource'
 import type {
+  ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+} from './thirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline'
+import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
@@ -33,7 +36,10 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceEffectSummary {
   readonly startupStateSnapshotAccepted: boolean
   readonly appFactoryBindingSourceCalled: boolean
   readonly appFactoryBindingContinuationAllowed: boolean
+  readonly appStartupHostConnectionSourceCalled: boolean
+  readonly appStartupHostConnectionAccepted: boolean
   readonly appBootstrapContinuationAllowed: boolean
+  readonly realRuntimePublicationCommitCalled: boolean
   readonly launcherAppCreated: false
   readonly gameAppCreated: false
   readonly piniaCreated: false
@@ -41,8 +47,11 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceEffectSummary {
   readonly saveRead: false
   readonly uiIpcResponseDelivered: false
   readonly commandDispatched: false
+  readonly thirdPartyRegistryPublished: boolean
+  readonly liveRegistrySwapped: boolean
+  readonly runtimeEnablementAllowed: boolean
   readonly transactionCommitted: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly packageFilesWritten: false
   readonly lockfileWritten: false
   readonly settingsWritten: false
@@ -64,7 +73,13 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceResult {
   readonly appBootstrapContinuationAllowed: boolean
   readonly appBootstrapWiringSourceStatus?: ThirdPartyDataPackAppBootstrapWiringPreflightResult['status']
   readonly startupPersistentStateSourceStatus?: ThirdPartyDataPackStartupGatePersistentStateSourceResult['status']
+  readonly startupPersistentStateSourceHostMode?:
+    ThirdPartyDataPackStartupGatePersistentStateSourceResult['startupPersistentStateSourceHostMode']
+  readonly startupPersistentStateInjectedSourceHostMode?:
+    ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode']
   readonly appFactoryBindingSourceStatus?: ThirdPartyDataPackAppFactoryBindingSourceResult['status']
+  readonly appStartupHostConnectionSourceStatus?:
+    ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult['status']
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -85,6 +100,8 @@ export interface CreateThirdPartyDataPackStartupGateBootstrapSourceOptions {
   readonly readAppBootstrapWiringPreflight?: () => Awaitable<ThirdPartyDataPackAppBootstrapWiringPreflightResult>
   readonly readStartupGatePersistentStateSource?: () => Awaitable<ThirdPartyDataPackStartupGatePersistentStateSourceResult>
   readonly readAppFactoryBindingSource?: () => Awaitable<ThirdPartyDataPackAppFactoryBindingSourceResult>
+  readonly readRuntimePublicationCommitAppStartupHostConnection?: () =>
+    Awaitable<ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult>
 }
 
 export class ThirdPartyDataPackStartupGateBootstrapBlockedError extends Error {
@@ -107,10 +124,21 @@ const diagnosticRecoveries = new Set<ModDiagnosticRecovery>([
   'restore-backup'
 ])
 
+const startupPersistentStateSourceHostModes = new Set([
+  'injected-test-only',
+  'web-indexeddb-startup-persistent-state',
+  'electron-program-directory-startup-persistent-state'
+])
+
 const forbiddenBootstrapChainSourceFields = [
   'appBootstrapWiringPreflight',
   'normalStartupGatePreflight',
   'launcherBoundaryPreflight',
+  'runtimePublicationCommitAppStartupReadiness',
+  'runtimePublicationCommitAppStartupHostConnection',
+  'appStartupHost',
+  'appStartupHostConnection',
+  'rawEnvelope',
   'startupDecisionEnvelope',
   'sourceAdapterExecution',
   'adapterResult',
@@ -220,6 +248,16 @@ const readOwnNumberField = (
 ): number | undefined => {
   const field = readOwnDataField(value, fieldName)
   return typeof field === 'number' && Number.isFinite(field) ? field : undefined
+}
+
+const readStartupPersistentStateSourceHostMode = (
+  value: object | undefined,
+  fieldName: string
+): ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode'] | undefined => {
+  const mode = readOwnStringField(value, fieldName)
+  return startupPersistentStateSourceHostModes.has(mode ?? '')
+    ? mode as ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode']
+    : undefined
 }
 
 const hasOwnEnumerableField = (
@@ -337,7 +375,13 @@ const effectSummary = (
   startupStateSnapshotAccepted: boolean,
   appFactoryBindingSourceCalled: boolean,
   appFactoryBindingContinuationAllowed: boolean,
-  appBootstrapContinuationAllowed: boolean
+  appStartupHostConnectionSourceCalled: boolean,
+  appStartupHostConnectionAccepted: boolean,
+  appBootstrapContinuationAllowed: boolean,
+  thirdPartyRegistryPublished: boolean,
+  liveRegistrySwapped: boolean,
+  runtimeEnablementAllowed: boolean,
+  realRuntimePublicationCommit: boolean
 ): ThirdPartyDataPackStartupGateBootstrapSourceEffectSummary => Object.freeze({
   startupGateBootstrapSourceCalled: true,
   appBootstrapWiringSourceCalled: sourceCalled,
@@ -345,7 +389,10 @@ const effectSummary = (
   startupStateSnapshotAccepted,
   appFactoryBindingSourceCalled,
   appFactoryBindingContinuationAllowed,
+  appStartupHostConnectionSourceCalled,
+  appStartupHostConnectionAccepted,
   appBootstrapContinuationAllowed,
+  realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
   launcherAppCreated: false,
   gameAppCreated: false,
   piniaCreated: false,
@@ -353,8 +400,11 @@ const effectSummary = (
   saveRead: false,
   uiIpcResponseDelivered: false,
   commandDispatched: false,
+  thirdPartyRegistryPublished,
+  liveRegistrySwapped,
+  runtimeEnablementAllowed,
   transactionCommitted: false,
-  runtimePublicationCommitted: false,
+  runtimePublicationCommitted: realRuntimePublicationCommit,
   packageFilesWritten: false,
   lockfileWritten: false,
   settingsWritten: false,
@@ -455,6 +505,49 @@ const safeAppFactoryBindingSource = (
   && noAppFactorySourceRuntimeOrWriteDrift(source)
   && pathFreeBootstrapChainSource(source)
 
+const safeAppStartupHostConnectionSource = (
+  source: ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+): boolean => {
+  const targetPackageId = readOwnStringField(source, 'targetPackageId')
+  return readOwnStringField(source, 'status') === 'accepted'
+    && readOwnBooleanField(source, 'appStartupHostWiringAllowed') === true
+    && readOwnBooleanField(source, 'appBootstrapContinuationAllowed') === true
+    && readOwnBooleanField(source, 'normalStartupContinuationAllowed') === true
+    && readOwnBooleanField(source, 'commandContinuationAllowed') === true
+    && readOwnBooleanField(source, 'uiIpcResultContinuationAllowed') === true
+    && targetPackageId !== undefined
+    && clonePackageIds(readOwnDataField(source, 'selectedPackageIds')).includes(targetPackageId as PackageId)
+    && readOwnStringField(source, 'lockfileHash') !== undefined
+    && allOwnBooleanFlagsFalse(
+      readOwnDataField(source, 'effects') as object | undefined,
+      [
+        'runtimePublicationCommitAppStartupHostConnectionPipelineCalled',
+        'runtimePublicationCommitAppStartupReadinessPipelineCalled',
+        'injectedAppStartupHostCalled',
+        'appStartupHostCalled',
+        'appStartupHostAccepted',
+        'runtimePublicationCommitAcknowledged',
+        'postCommitVerificationAcknowledged',
+        'liveRegistrySwapAcknowledged',
+        'appFactoryBindingAcknowledged',
+        'normalStartupHandoffAcknowledged',
+        'appStartupReadinessAcknowledged',
+        'appStartupHostWiringAllowed',
+        'appBootstrapContinuationAllowed',
+        'normalStartupContinuationAllowed',
+        'commandContinuationAllowed',
+        'uiIpcResultContinuationAllowed',
+        'realRuntimePublicationCommitCalled',
+        'thirdPartyRegistryPublished',
+        'liveRegistryMutated',
+        'liveRegistrySwapped',
+        'runtimePublicationCommitted',
+        'runtimeEnablementAllowed'
+      ]
+    )
+    && pathFreeBootstrapChainSource(source)
+}
+
 const deepFreezeObjectGraph = <T>(value: T): T => {
   if (value && typeof value === 'object' && !Object.isFrozen(value)) {
     Object.freeze(value)
@@ -488,14 +581,27 @@ const baseResult = (
     readonly source?: ThirdPartyDataPackAppBootstrapWiringPreflightResult
     readonly persistentStateSource?: ThirdPartyDataPackStartupGatePersistentStateSourceResult
     readonly appFactoryBindingSource?: ThirdPartyDataPackAppFactoryBindingSourceResult
+    readonly appStartupHostConnectionSource?:
+      ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
     readonly diagnostics?: readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[]
   }
 ): ThirdPartyDataPackStartupGateBootstrapSourceResult => {
   const diagnostics = Object.freeze([...(options.diagnostics ?? [])])
-  const summarySource = options.appFactoryBindingSource ?? options.persistentStateSource ?? options.source
+  const summarySource = options.appStartupHostConnectionSource
+    ?? options.appFactoryBindingSource
+    ?? options.persistentStateSource
+    ?? options.source
   const selectedPackageIds = clonePackageIds(readOwnDataField(summarySource, 'selectedPackageIds'))
   const blockedPackageIds = clonePackageIds(readOwnDataField(summarySource, 'blockedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(summarySource, 'loadOrder'))
+  const startupPersistentStateSourceHostMode = readStartupPersistentStateSourceHostMode(
+    options.persistentStateSource,
+    'startupPersistentStateSourceHostMode'
+  )
+  const startupPersistentStateInjectedSourceHostMode = readStartupPersistentStateSourceHostMode(
+    options.persistentStateSource,
+    'injectedSourceHostMode'
+  )
   const continuationAllowed = options.status === 'ready' || options.status === 'skipped'
   const startupStateSnapshotAccepted = readOwnBooleanField(
     readOwnDataField(options.persistentStateSource, 'effects') as object | undefined,
@@ -505,6 +611,22 @@ const baseResult = (
     options.appFactoryBindingSource,
     'appBootstrapContinuationAllowed'
   ) === true
+  const appStartupHostConnectionAccepted = readOwnStringField(
+    options.appStartupHostConnectionSource,
+    'status'
+  ) === 'accepted'
+  const appStartupHostConnectionEffects = readOwnDataField(
+    options.appStartupHostConnectionSource,
+    'effects'
+  ) as object | undefined
+  const acceptedAppStartupRuntimeEffects = options.status === 'ready'
+    && appStartupHostConnectionAccepted
+  const realRuntimePublicationCommit = acceptedAppStartupRuntimeEffects
+    && readOwnBooleanField(
+      appStartupHostConnectionEffects,
+      'realRuntimePublicationCommitCalled'
+    ) === true
+    && readOwnBooleanField(appStartupHostConnectionEffects, 'runtimePublicationCommitted') === true
 
   return deepFreezeObjectGraph({
     kind: THIRD_PARTY_DATA_PACK_STARTUP_GATE_BOOTSTRAP_SOURCE_KIND,
@@ -521,8 +643,17 @@ const baseResult = (
     startupPersistentStateSourceStatus: readOwnStringField(options.persistentStateSource, 'status') as
       | ThirdPartyDataPackStartupGatePersistentStateSourceResult['status']
       | undefined,
+    ...(startupPersistentStateSourceHostMode === undefined
+      ? {}
+      : { startupPersistentStateSourceHostMode }),
+    ...(startupPersistentStateInjectedSourceHostMode === undefined
+      ? {}
+      : { startupPersistentStateInjectedSourceHostMode }),
     appFactoryBindingSourceStatus: readOwnStringField(options.appFactoryBindingSource, 'status') as
       | ThirdPartyDataPackAppFactoryBindingSourceResult['status']
+      | undefined,
+    appStartupHostConnectionSourceStatus: readOwnStringField(options.appStartupHostConnectionSource, 'status') as
+      | ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult['status']
       | undefined,
     targetPackageId: readOwnStringField(summarySource, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
@@ -549,14 +680,79 @@ const baseResult = (
       startupStateSnapshotAccepted,
       options.appFactoryBindingSource !== undefined,
       appFactoryBindingContinuationAllowed,
-      continuationAllowed
+      options.appStartupHostConnectionSource !== undefined,
+      appStartupHostConnectionAccepted,
+      continuationAllowed,
+      acceptedAppStartupRuntimeEffects && readOwnBooleanField(
+        appStartupHostConnectionEffects,
+        'thirdPartyRegistryPublished'
+      ) === true,
+      acceptedAppStartupRuntimeEffects
+        && readOwnBooleanField(appStartupHostConnectionEffects, 'liveRegistrySwapped') === true,
+      acceptedAppStartupRuntimeEffects
+        && readOwnBooleanField(appStartupHostConnectionEffects, 'runtimeEnablementAllowed') === true,
+      realRuntimePublicationCommit
     )
+  })
+}
+
+const evaluateAppStartupHostConnectionBootstrap = async(
+  options: CreateThirdPartyDataPackStartupGateBootstrapSourceOptions
+): Promise<ThirdPartyDataPackStartupGateBootstrapSourceResult> => {
+  let appStartupHostConnectionSource:
+    ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+  try {
+    appStartupHostConnectionSource = await options.readRuntimePublicationCommitAppStartupHostConnection?.() as
+      ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+  } catch {
+    return baseResult({
+      status: 'blocked',
+      reason: 'third-party startup gate bootstrap source failed before returning a safe app-startup host connection result',
+      enabled: true,
+      sourceCalled: true,
+      diagnostics: [
+        commandDiagnostic('third-party.startup-gate-bootstrap-source.app-startup-host-connection-source-failed')
+      ]
+    })
+  }
+
+  const diagnostics = safeDiagnostics(
+    readOwnDataField(appStartupHostConnectionSource, 'diagnostics') as readonly unknown[] | undefined
+  )
+  if (safeAppStartupHostConnectionSource(appStartupHostConnectionSource)) {
+    return baseResult({
+      status: 'ready',
+      reason: 'third-party startup gate bootstrap accepted a Web/Electron app-startup host connection source',
+      enabled: true,
+      sourceCalled: true,
+      appStartupHostConnectionSource,
+      diagnostics
+    })
+  }
+
+  return baseResult({
+    status: 'blocked',
+    reason: 'third-party startup gate bootstrap rejected the app-startup host connection source before application bootstrap',
+    enabled: true,
+    sourceCalled: true,
+    appStartupHostConnectionSource,
+    diagnostics: [
+      ...diagnostics,
+      commandDiagnostic(
+        'third-party.startup-gate-bootstrap-source.unsafe-app-startup-host-connection-source',
+        readOwnStringField(appStartupHostConnectionSource, 'targetPackageId') as PackageId | undefined
+      )
+    ]
   })
 }
 
 const evaluateBootstrapChain = async(
   options: CreateThirdPartyDataPackStartupGateBootstrapSourceOptions
 ): Promise<ThirdPartyDataPackStartupGateBootstrapSourceResult> => {
+  if (options.readRuntimePublicationCommitAppStartupHostConnection !== undefined) {
+    return evaluateAppStartupHostConnectionBootstrap(options)
+  }
+
   if (options.readStartupGatePersistentStateSource === undefined) {
     return baseResult({
       status: 'blocked',
@@ -684,6 +880,7 @@ const evaluateStartupGate = async(
   if (
     options.readStartupGatePersistentStateSource !== undefined
     || options.readAppFactoryBindingSource !== undefined
+    || options.readRuntimePublicationCommitAppStartupHostConnection !== undefined
   ) {
     return evaluateBootstrapChain(options)
   }

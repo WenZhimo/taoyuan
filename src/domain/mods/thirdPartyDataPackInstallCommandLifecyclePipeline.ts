@@ -36,6 +36,8 @@ export interface CreateThirdPartyDataPackInstallCommandLifecyclePipelineOptions 
     Awaitable<ThirdPartyDataPackInstallTransactionDispatchPlanResult>
   readonly readRuntimePublicationCommitAdapter?: () =>
     Awaitable<ThirdPartyDataPackRuntimePublicationCommitAdapterResult>
+  readonly executeAtomicTransactionCommitOutcomeHost?:
+    CreateThirdPartyDataPackAtomicTransactionCommitExecutorPipelineOptions['executeAtomicTransactionCommitOutcomeHost']
   readonly executeInjectedAtomicTransactionCommit?:
     CreateThirdPartyDataPackAtomicTransactionCommitExecutorPipelineOptions['executeInjectedAtomicTransactionCommit']
   readonly executeAtomicTransactionCommit?:
@@ -104,6 +106,7 @@ export const createThirdPartyDataPackInstallCommandLifecyclePipeline = (
     readTransactionCommandDispatcherHandoff: readTransactionCommandDispatcherHandoffOnce,
     readInstallTransactionDispatchPlan: readInstallTransactionDispatchPlanOnce,
     readRuntimePublicationCommitAdapter: readRuntimePublicationCommitAdapterOnce,
+    executeAtomicTransactionCommitOutcomeHost: options.executeAtomicTransactionCommitOutcomeHost,
     executeInjectedAtomicTransactionCommit: options.executeInjectedAtomicTransactionCommit,
     executeAtomicTransactionCommit: options.executeAtomicTransactionCommit
   })

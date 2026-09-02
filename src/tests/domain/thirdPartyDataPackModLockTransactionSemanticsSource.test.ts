@@ -343,7 +343,8 @@ const expectJsonGraphFrozen = (value: unknown): void => {
 
 const expectNoPublicOrRuntimeEffects = (
   result: ThirdPartyDataPackModLockTransactionSemanticsSourceResult,
-  stable: boolean
+  stable: boolean,
+  options: { readonly rollbackRestoreAllowed?: boolean } = {}
 ): void => {
   expect(result.publicModLockSchemaFrozen).toBe(false)
   expect(result.publicTransactionApiFrozen).toBe(false)
@@ -368,7 +369,8 @@ const expectNoPublicOrRuntimeEffects = (
   expect(result.effects.savesWritten).toBe(false)
   expect(result.effects.cacheWritten).toBe(false)
   expect(result.effects.transactionLogWritten).toBe(false)
-  expect(result.effects.rollbackExecuted).toBe(false)
+  expect(result.effects.packageFilesRestored).toBe(options.rollbackRestoreAllowed === true)
+  expect(result.effects.rollbackExecuted).toBe(options.rollbackRestoreAllowed === true)
   expect('publicJsonSchema' in result).toBe(false)
   expect('lockfileDraft' in result).toBe(false)
   expect('candidateRegistrySet' in result).toBe(false)
@@ -441,7 +443,12 @@ describe('third-party mod-lock transaction semantics source', () => {
 
   it('falls through a skipped post-commit path and accepts rollback recovery semantics', async() => {
     const readPostCommitUiIpcDeliveryContinuationSource = vi.fn(async() => createSkippedPostCommit())
-    const readRollbackRecoveryExecutionSource = vi.fn(async() => createRollback())
+    const readRollbackRecoveryExecutionSource = vi.fn(async() => createRollback({
+      effects: rollbackEffects({
+        packageFilesRestored: true,
+        rollbackExecuted: true
+      })
+    }))
     const source = createThirdPartyDataPackModLockTransactionSemanticsSource({
       enabled: true,
       readPostCommitUiIpcDeliveryContinuationSource,
@@ -462,11 +469,13 @@ describe('third-party mod-lock transaction semantics source', () => {
     expect(result.uiIpcResultContinuationAllowed).toBe(true)
     expect(result.effects.rollbackStateDelivered).toBe(true)
     expect(result.effects.rollbackRecoveryExecutionAcknowledged).toBe(true)
+    expect(result.effects.packageFilesRestored).toBe(true)
+    expect(result.effects.rollbackExecuted).toBe(true)
     expect(result.effects.packageFilesWritten).toBe(false)
     expect(result.effects.lockfileWritten).toBe(false)
     expect(readPostCommitUiIpcDeliveryContinuationSource).toHaveBeenCalledOnce()
     expect(readRollbackRecoveryExecutionSource).toHaveBeenCalledOnce()
-    expectNoPublicOrRuntimeEffects(result, true)
+    expectNoPublicOrRuntimeEffects(result, true, { rollbackRestoreAllowed: true })
     expectJsonGraphFrozen(result)
   })
 

@@ -336,6 +336,33 @@ describe('third-party runtime publication commit after post-commit verification 
     expectJsonGraphFrozen(result)
   })
 
+  it('propagates real runtime publication commit effects after ready post-commit verification', async() => {
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline({
+      enabled: true,
+      readPostCommitVerificationAfterInstallTransactionCommit: async() => createReadyPostCommit(),
+      readRuntimePublicationCommit: async() => createAcceptedRuntimeCommit({
+        effects: runtimeCommitEffects({
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true
+        })
+      })
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('accepted')
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.runtimePublicationCommitted).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(false)
+    expect(result.effects.uiIpcResponseDelivered).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(true)
+    expect(result.effects.lockfileWritten).toBe(true)
+    expect(result.effects.settingsWritten).toBe(true)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expectJsonGraphFrozen(result)
+  })
+
   it('blocks runtime publication commit summary drift after post-commit verification', async() => {
     const pipeline = createThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline({
       enabled: true,

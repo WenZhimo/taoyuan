@@ -14,6 +14,7 @@ import type {
 import {
   createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter,
   resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths,
+  runThirdPartyDataPackPackageFilePersistentRestoreProbe,
   runThirdPartyDataPackPackageFilePersistentWriteProbe,
   type ThirdPartyDataPackPackageFilePersistentWriteProbeResult,
   type ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter
@@ -36,6 +37,7 @@ const createRoot = async(): Promise<string> => {
 }
 
 const packageId = 'sample_pack' as PackageId
+const candidatePackagePath = 'sample-pack'
 const itemId = `${packageId}:linen_ribbon` as ContentId
 const registryId = 'taoyuan:item' as RegistryTypeId
 
@@ -146,9 +148,9 @@ const createDraft = (
         version: '1.0.0',
         loadIndex: 0,
         source: {
-          candidatePath: 'sample-pack',
-          manifestPath: 'sample-pack/manifest.json',
-          contentFiles: ['sample-pack/data/items.json']
+          candidatePath: candidatePackagePath,
+          manifestPath: `${candidatePackagePath}/manifest.json`,
+          contentFiles: [`${candidatePackagePath}/data/items.json`]
         },
         manifestHash,
         contentHash: hashCanonicalJson({
@@ -303,7 +305,7 @@ describe('third-party package file persistent write probe', () => {
     const modLockPath = path.join(userData, 'mod-lock.json')
     const transactionLogPath = path.join(userData, 'mod-transactions', 'pending.json')
     const otherPackagePath = path.join(root, 'mods', 'other_pack', 'manifest.json')
-    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, packageId)
+    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, candidatePackagePath)
     const manifestPath = path.join(paths.packageDirectoryPath, 'manifest.json')
     const itemPath = path.join(paths.packageDirectoryPath, 'data', 'items.json')
     const backupManifestPath = path.join(
@@ -352,6 +354,10 @@ describe('third-party package file persistent write probe', () => {
       'manifest.json',
       'data/items.json'
     ])
+    expect(result.writtenFiles.map(file => file.packagePath)).toEqual([
+      candidatePackagePath,
+      candidatePackagePath
+    ])
     expect(result.writtenFileCount).toBe(2)
     expect(result.backedUpFileCount).toBe(1)
     expect(await readFile(manifestPath, 'utf8')).toBe(manifestText)
@@ -372,6 +378,150 @@ describe('third-party package file persistent write probe', () => {
     })
     expectOfficialBaseline()
     expectJsonGraphFrozen(result)
+  }, 30_000)
+
+  it('restores backed up package files and removes newly created files when explicitly authorized', async() => {
+    const root = await createRoot()
+    const userData = path.join(root, 'userdata')
+    const settingsPath = path.join(userData, 'settings.json')
+    const savePath = path.join(userData, 'Local Storage', 'leveldb', 'save.ldb')
+    const officialCachePath = path.join(userData, 'mod-cache', 'sha256-official', 'official-registry-cache-v2.json')
+    const modLockPath = path.join(userData, 'mod-lock.json')
+    const transactionLogPath = path.join(userData, 'mod-transactions', 'pending.json')
+    const otherPackagePath = path.join(root, 'mods', 'other_pack', 'manifest.json')
+    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, candidatePackagePath)
+    const manifestPath = path.join(paths.packageDirectoryPath, 'manifest.json')
+    const itemPath = path.join(paths.packageDirectoryPath, 'data', 'items.json')
+    await mkdir(path.dirname(savePath), { recursive: true })
+    await mkdir(path.dirname(officialCachePath), { recursive: true })
+    await mkdir(path.dirname(transactionLogPath), { recursive: true })
+    await mkdir(path.dirname(otherPackagePath), { recursive: true })
+    await mkdir(path.dirname(manifestPath), { recursive: true })
+    await writeFile(settingsPath, '{"closeToTray":false}\n', 'utf8')
+    await writeFile(savePath, 'player-save-data', 'utf8')
+    await writeFile(officialCachePath, 'official-cache-data', 'utf8')
+    await writeFile(modLockPath, '{"kind":"previous-lockfile"}\n', 'utf8')
+    await writeFile(transactionLogPath, '{"status":"pending"}\n', 'utf8')
+    await writeFile(otherPackagePath, '{"id":"other_pack"}\n', 'utf8')
+    await writeFile(manifestPath, '{"id":"previous_sample_pack"}\n', 'utf8')
+    const settingsBefore = await readFile(settingsPath, 'utf8')
+    const saveBefore = await readFile(savePath, 'utf8')
+    const officialCacheBefore = await readFile(officialCachePath, 'utf8')
+    const modLockBefore = await readFile(modLockPath, 'utf8')
+    const transactionLogBefore = await readFile(transactionLogPath, 'utf8')
+    const otherPackageBefore = await readFile(otherPackagePath, 'utf8')
+    const previousManifest = await readFile(manifestPath, 'utf8')
+    const draft = createDraft()
+    const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
+      programDirectoryPath: root
+    })
+
+    const writeResult = await runThirdPartyDataPackPackageFilePersistentWriteProbe({
+      envelope: createEnvelope(draft),
+      draft,
+      files: createFiles(),
+      storage,
+      allowPersistentWriteProbe: true
+    })
+    const deferredRestore = await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+      packageId,
+      writtenFiles: writeResult.writtenFiles,
+      storage
+    })
+    const restoreResult = await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+      packageId,
+      writtenFiles: writeResult.writtenFiles,
+      storage,
+      allowPersistentRestoreProbe: true
+    })
+
+    expect(writeResult.status).toBe('written')
+    expect(writeResult.writtenFiles.map(file => file.packagePath)).toEqual([
+      candidatePackagePath,
+      candidatePackagePath
+    ])
+    expect(await readFile(manifestPath, 'utf8')).toBe(previousManifest)
+    await expect(readFile(itemPath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+    expect(deferredRestore.status).toBe('deferred')
+    expect(deferredRestore.persistentRestoreExecuted).toBe(false)
+    expect(restoreResult.status).toBe('restored')
+    expect(restoreResult.storageStatus).toBe('restored')
+    expect(restoreResult.storageOperation).toBe('restore')
+    expect(restoreResult.packageFileRestoreProbe).toBe('restored')
+    expect(restoreResult.restoreProbeAllowed).toBe(true)
+    expect(restoreResult.persistentRestoreExecuted).toBe(true)
+    expect(restoreResult.restoredFileCount).toBe(2)
+    expect(restoreResult.backupRestoredFileCount).toBe(1)
+    expect(restoreResult.removedCreatedFileCount).toBe(1)
+    expect(restoreResult.restoredFiles).toEqual([
+      {
+        path: 'manifest.json',
+        restoredFromBackup: true,
+        removedCreatedFile: false
+      },
+      {
+        path: 'data/items.json',
+        restoredFromBackup: false,
+        removedCreatedFile: true
+      }
+    ])
+    expect(restoreResult.effects.packageFilesRestored).toBe(true)
+    expect(restoreResult.effects.rollbackExecuted).toBe(true)
+    expect(restoreResult.effects.packageFilesWritten).toBe(false)
+    expect(restoreResult.effects.packageBackupsWritten).toBe(false)
+    expect(await readFile(settingsPath, 'utf8')).toBe(settingsBefore)
+    expect(await readFile(savePath, 'utf8')).toBe(saveBefore)
+    expect(await readFile(officialCachePath, 'utf8')).toBe(officialCacheBefore)
+    expect(await readFile(modLockPath, 'utf8')).toBe(modLockBefore)
+    expect(await readFile(transactionLogPath, 'utf8')).toBe(transactionLogBefore)
+    expect(await readFile(otherPackagePath, 'utf8')).toBe(otherPackageBefore)
+    expect(JSON.stringify(restoreResult)).not.toContain(root)
+    expect(JSON.stringify(restoreResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(restoreResult)).not.toContain('programDirectoryPath')
+    expectJsonGraphFrozen(restoreResult)
+  }, 30_000)
+
+  it('restores legacy package-id written file evidence when candidate package path is absent', async() => {
+    const root = await createRoot()
+    const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
+      programDirectoryPath: root
+    })
+    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, packageId)
+    const manifestPath = path.join(paths.packageDirectoryPath, 'manifest.json')
+    const itemPath = path.join(paths.packageDirectoryPath, 'data', 'items.json')
+    const backupManifestPath = path.join(paths.backupDirectoryPath, 'manifest.json.backup')
+    const previousManifest = '{"id":"legacy_previous_sample_pack"}\n'
+    await mkdir(path.dirname(itemPath), { recursive: true })
+    await mkdir(path.dirname(backupManifestPath), { recursive: true })
+    await writeFile(manifestPath, manifestText, 'utf8')
+    await writeFile(itemPath, itemsText, 'utf8')
+    await writeFile(backupManifestPath, previousManifest, 'utf8')
+
+    const restoreResult = await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+      packageId,
+      writtenFiles: [
+        {
+          path: 'manifest.json',
+          sha256: sha256Utf8(manifestText),
+          bytes: manifestText.length,
+          backedUp: true
+        },
+        {
+          path: 'data/items.json',
+          sha256: sha256Utf8(itemsText),
+          bytes: itemsText.length,
+          backedUp: false
+        }
+      ],
+      storage,
+      allowPersistentRestoreProbe: true
+    })
+
+    expect(restoreResult.status).toBe('restored')
+    expect(await readFile(manifestPath, 'utf8')).toBe(previousManifest)
+    await expect(readFile(itemPath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+    expect(JSON.stringify(restoreResult)).not.toContain(root)
+    expectJsonGraphFrozen(restoreResult)
   }, 30_000)
 
   it('blocks inconsistent envelope and draft identities before invoking storage', async() => {
@@ -460,7 +610,7 @@ describe('third-party package file persistent write probe', () => {
 
   it('reports failed writes while preserving previous package files and temporary files', async() => {
     const root = await createRoot()
-    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, packageId)
+    const paths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(root, candidatePackagePath)
     const manifestPath = path.join(paths.packageDirectoryPath, 'manifest.json')
     await mkdir(path.dirname(manifestPath), { recursive: true })
     await writeFile(manifestPath, '{"id":"previous_sample_pack"}\n', 'utf8')

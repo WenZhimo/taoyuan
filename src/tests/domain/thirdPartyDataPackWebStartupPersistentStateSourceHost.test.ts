@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { Sha256Hash } from '@/domain/mods/hash'
-import type { PackageId } from '@/domain/mods/ids'
+import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
+import type { ContentId, PackageId, RegistryTypeId } from '@/domain/mods/ids'
 import {
   createThirdPartyDataPackWebStartupPersistentStateSourceHost,
   readThirdPartyDataPackWebStartupPersistentStateSnapshot,
@@ -15,6 +15,13 @@ import {
 import type {
   ThirdPartyDataPackStartupGatePersistentStateSourceRequest
 } from '@/domain/mods/thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
+import type {
+  ThirdPartyDataPackLockfileDraft
+} from '@/domain/mods/thirdPartyDataPackLockfileDraft'
+import {
+  createInMemoryWebSettingsLockfilePersistentWriterStore,
+  THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+} from '@/domain/mods/thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 import {
   createDefaultWebIndexedDbImportRecord,
   createInMemoryWebIndexedDbImportPersistenceStore,
@@ -31,7 +38,71 @@ const candidateIdentity = {
   candidateHash: testHash('c')
 } as const
 
-const lockfileHash = testHash('d')
+const createLockfileDraft = (
+  options: {
+    readonly packageId?: PackageId
+    readonly candidateIdentity?: typeof candidateIdentity
+  } = {}
+): ThirdPartyDataPackLockfileDraft => {
+  const selectedPackageId = options.packageId ?? packageId
+  const itemId = `${selectedPackageId}:linen_ribbon` as ContentId
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: testHash('0'),
+      contentHash: testHash('1'),
+      schemaSetHash: testHash('2'),
+      environmentHash: testHash('3'),
+      snapshotHash: testHash('4'),
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity: options.candidateIdentity ?? candidateIdentity,
+    registryCount: 55,
+    entryCount: 4243,
+    selectedPackageIds: [selectedPackageId],
+    loadOrder: [selectedPackageId],
+    packages: [
+      {
+        packageId: selectedPackageId,
+        version: '1.0.0',
+        loadIndex: 0,
+        source: {
+          candidatePath: 'sample-pack',
+          manifestPath: 'sample-pack/manifest.json',
+          contentFiles: ['sample-pack/data/items.json']
+        },
+        manifestHash: testHash('5'),
+        contentHash: testHash('6'),
+        configurationHash: testHash('7'),
+        resolvedDependencies: [],
+        contentFiles: [
+          {
+            registryId: 'taoyuan:item' as RegistryTypeId,
+            path: 'data/items.json',
+            entryCount: 1,
+            entries: [
+              {
+                registryId: 'taoyuan:item' as RegistryTypeId,
+                contentId: itemId,
+                index: 0,
+                canonicalHash: testHash('8')
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
+const modLockDraft = createLockfileDraft()
+const lockfileHash = modLockDraft.lockfileHash
 
 const createRequest = (
   overrides: Partial<ThirdPartyDataPackStartupGatePersistentStateSourceRequest> = {}
@@ -105,6 +176,25 @@ const createStoreWithSnapshot = async(
   return store
 }
 
+const createSettingsLockfileStore = async(
+  draft: ThirdPartyDataPackLockfileDraft = modLockDraft
+) => {
+  const store = createInMemoryWebSettingsLockfilePersistentWriterStore()
+  const targetPackageId = draft.selectedPackageIds[0]!
+  await store.write({
+    recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+    requestedCommandId: 'install',
+    targetPackageId,
+    selectedPackageIds: draft.selectedPackageIds,
+    blockedPackageIds: [],
+    loadOrder: draft.loadOrder,
+    candidateHash: draft.candidateIdentity.candidateHash,
+    lockfileHash: draft.lockfileHash,
+    lockfileDraft: draft
+  })
+  return store
+}
+
 const createRawStoreWithSnapshot = (
   text: string,
   sizeBytes = text.length
@@ -139,12 +229,17 @@ const expectNoWrites = (value: ThirdPartyDataPackWebStartupPersistentStateSource
 }
 
 describe('third-party Web startup persistent state source host', () => {
-  it('loads a path-free startup snapshot from the scoped IndexedDB record', async() => {
+  it('loads a startup snapshot only after the Web settings-lockfile record matches', async() => {
     const store = await createStoreWithSnapshot()
-    const host = createThirdPartyDataPackWebStartupPersistentStateSourceHost({ store })
+    const settingsLockfileStore = await createSettingsLockfileStore()
+    const host = createThirdPartyDataPackWebStartupPersistentStateSourceHost({
+      store,
+      settingsLockfileStore
+    })
     const inspect = await host.inspect()
     const read = await readThirdPartyDataPackWebStartupPersistentStateSnapshot({
       store,
+      settingsLockfileStore,
       request: createRequest()
     })
     const snapshot = await host.read(createRequest())
@@ -166,9 +261,15 @@ describe('third-party Web startup persistent state source host', () => {
       storageKind: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_STORAGE_KIND,
       indexedDbRecordScoped: true,
       snapshotFilePresent: true,
+      settingsLockfileRecordPresent: true,
+      settingsLockfileRecordRead: true,
+      modLockDraftRead: true,
       persistentStartupReadAllowed: true,
       writeAllowed: false
     })
+    expect(read.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(read.report.effects.settingsStateRead).toBe(true)
+    expect(read.report.effects.modLockStateRead).toBe(true)
     expect(read.snapshot).toEqual(expect.objectContaining({
       kind: 'startup-persistent-state-snapshot',
       settled: true,
@@ -250,6 +351,51 @@ describe('third-party Web startup persistent state source host', () => {
     expect(JSON.stringify(drift)).not.toContain(testHash('e'))
     expectNoWrites(invalid.report)
     expectNoWrites(oversized.report)
+    expectNoWrites(drift.report)
+  })
+
+  it('blocks missing or drifted Web settings-lockfile records after the startup snapshot is present', async() => {
+    const snapshotStore = await createStoreWithSnapshot()
+    const missing = await readThirdPartyDataPackWebStartupPersistentStateSnapshot({
+      store: snapshotStore,
+      settingsLockfileStore: createInMemoryWebSettingsLockfilePersistentWriterStore(),
+      request: createRequest()
+    })
+    const driftCandidateIdentity = {
+      ...candidateIdentity,
+      candidateHash: testHash('e')
+    }
+    const drift = await readThirdPartyDataPackWebStartupPersistentStateSnapshot({
+      store: snapshotStore,
+      settingsLockfileStore: await createSettingsLockfileStore(createLockfileDraft({
+        candidateIdentity: driftCandidateIdentity
+      })),
+      request: createRequest()
+    })
+
+    expect(missing.report).toMatchObject({
+      status: 'blocked',
+      reason: 'web startup settings-lockfile state record is absent',
+      settingsLockfileRecordRead: false,
+      modLockDraftRead: false
+    })
+    expect(missing.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(missing.report.effects.settingsStateRead).toBe(false)
+    expect(missing.report.effects.modLockStateRead).toBe(false)
+    expect(missing.snapshot).toBeNull()
+    expect(drift.report).toMatchObject({
+      status: 'blocked',
+      reason: 'web startup settings-lockfile state does not match the startup request identity',
+      settingsLockfileRecordPresent: true,
+      settingsLockfileRecordRead: true,
+      modLockDraftRead: true
+    })
+    expect(drift.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(drift.report.effects.settingsStateRead).toBe(true)
+    expect(drift.report.effects.modLockStateRead).toBe(true)
+    expect(drift.snapshot).toBeNull()
+    expect(JSON.stringify(drift)).not.toContain(testHash('e'))
+    expectNoWrites(missing.report)
     expectNoWrites(drift.report)
   })
 })

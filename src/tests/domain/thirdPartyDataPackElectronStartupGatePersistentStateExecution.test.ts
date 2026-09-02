@@ -4,8 +4,12 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import type { Sha256Hash } from '@/domain/mods/hash'
-import type { PackageId } from '@/domain/mods/ids'
+import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
+import {
+  requireContentId,
+  requireRegistryTypeId,
+  type PackageId
+} from '@/domain/mods/ids'
 import {
   executeThirdPartyDataPackElectronStartupGatePersistentStateExecution,
   THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_GATE_PERSISTENT_STATE_EXECUTION_KIND,
@@ -24,6 +28,9 @@ import type {
 import type {
   ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
 } from '@/domain/mods/thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
+import type {
+  ThirdPartyDataPackLockfileDraft
+} from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 
 const roots: string[] = []
 
@@ -47,7 +54,64 @@ const candidateIdentity = {
   candidateHash: testHash('c')
 } as const
 
-const lockfileHash = testHash('d')
+const createModLockDraft = (): ThirdPartyDataPackLockfileDraft => {
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: testHash('1'),
+      contentHash: testHash('2'),
+      schemaSetHash: testHash('3'),
+      environmentHash: testHash('4'),
+      snapshotHash: testHash('5'),
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity,
+    registryCount: 55,
+    entryCount: 4243,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId],
+    packages: [
+      {
+        packageId,
+        version: '1.0.0',
+        loadIndex: 0,
+        source: {
+          candidatePath: 'installed-pack',
+          manifestPath: 'installed-pack/manifest.json',
+          contentFiles: ['installed-pack/data/items.json']
+        },
+        manifestHash: testHash('6'),
+        contentHash: testHash('7'),
+        configurationHash: testHash('8'),
+        resolvedDependencies: [],
+        contentFiles: [
+          {
+            registryId: requireRegistryTypeId('taoyuan:item'),
+            path: 'data/items.json',
+            entryCount: 1,
+            entries: [
+              {
+                registryId: requireRegistryTypeId('taoyuan:item'),
+                contentId: requireContentId(`${packageId}:linen_ribbon`),
+                index: 0,
+                canonicalHash: testHash('9')
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
+const modLockDraft = createModLockDraft()
+const lockfileHash = modLockDraft.lockfileHash
 
 const summary = {
   selectedPackageCount: 1,
@@ -254,10 +318,23 @@ const createSnapshotFile = () => ({
   saveCache: { isolated: true }
 })
 
+const createSettingsFile = () => ({
+  closeToTray: false,
+  thirdPartyDataPacks: {
+    candidateHash: candidateIdentity.candidateHash,
+    lockfileHash,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId]
+  }
+})
+
 const writeSnapshot = async(root: string): Promise<void> => {
   const paths = resolveThirdPartyDataPackElectronStartupPersistentStateSourceHostPaths(root)
   await mkdir(paths.startupStateDirectoryPath, { recursive: true })
   await writeFile(paths.snapshotFilePath, `${JSON.stringify(createSnapshotFile(), null, 2)}\n`, 'utf8')
+  await mkdir(paths.userDataPath, { recursive: true })
+  await writeFile(paths.settingsFilePath, `${JSON.stringify(createSettingsFile(), null, 2)}\n`, 'utf8')
+  await writeFile(paths.modLockFilePath, `${JSON.stringify(modLockDraft, null, 2)}\n`, 'utf8')
 }
 
 const expectNoRealStartupWrites = (

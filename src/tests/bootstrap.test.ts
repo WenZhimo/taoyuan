@@ -1,12 +1,21 @@
 import { createApp, h } from 'vue'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   bootstrapApplication,
   mountAfterRouterReady,
   reportApplicationStartupFailure
 } from '@/bootstrap'
+import {
+  getThirdPartyDataPackMountedAppStartupHostEvidence,
+  publishThirdPartyDataPackMountedAppStartupHostEvidence,
+  resetThirdPartyDataPackMountedAppStartupHostEvidenceForTests
+} from '@/domain/mods/thirdPartyDataPackMountedAppStartupHostConnection'
 
 describe('bootstrapApplication', () => {
+  afterEach(() => {
+    resetThirdPartyDataPackMountedAppStartupHostEvidenceForTests()
+  })
+
   it('does not create application state until official content is ready', async () => {
     const events: string[] = []
     let resolveOfficialContent!: () => void
@@ -107,6 +116,66 @@ describe('bootstrapApplication', () => {
     ])
   })
 
+  it('publishes the official registry baseline before the third-party startup gate', async () => {
+    const events: string[] = []
+    const registrySet = { id: 'official-registry-set' }
+    const app = { id: 'app' }
+    const pinia = { id: 'pinia' }
+    const router = { id: 'router' }
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => {
+        events.push('official-content')
+        return registrySet
+      }),
+      publishRuntimeContentRegistry: vi.fn(async registry => {
+        events.push('publish-runtime-registry')
+        expect(registry).toBe(registrySet)
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => {
+        events.push('third-party-startup-gate')
+        expect(events).toEqual([
+          'official-content',
+          'publish-runtime-registry',
+          'third-party-startup-gate'
+        ])
+      }),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return app
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return pinia
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => {
+        events.push('get-router')
+        return router
+      }),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async () => {
+        events.push('read-save')
+        events.push('mount')
+      })
+    })).resolves.toEqual({ app, pinia, router })
+
+    expect(events).toEqual([
+      'official-content',
+      'publish-runtime-registry',
+      'third-party-startup-gate',
+      'create-app',
+      'create-pinia',
+      'configure-pinia',
+      'install-pinia',
+      'get-router',
+      'install-router',
+      'read-save',
+      'mount'
+    ])
+  })
+
   it('runs the after-mount hook only after the application has mounted', async () => {
     const events: string[] = []
     const app = { id: 'app' }
@@ -160,6 +229,172 @@ describe('bootstrapApplication', () => {
     ])
   })
 
+  it('passes the accepted third-party startup gate result to the post-mount hook', async () => {
+    const events: string[] = []
+    const app = { id: 'app' }
+    const pinia = { id: 'pinia' }
+    const router = { id: 'router' }
+    const startupGateResult = {
+      status: 'ready',
+      appBootstrapContinuationAllowed: true,
+      targetPackageId: 'sample_pack',
+      reason: 'path-free startup gate accepted app bootstrap'
+    }
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => {
+        events.push('official-content')
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => {
+        events.push('third-party-startup-gate')
+        return startupGateResult
+      }),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return app
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return pinia
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => {
+        events.push('get-router')
+        return router
+      }),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async () => {
+        events.push('read-save')
+        events.push('mount')
+      }),
+      afterMount: vi.fn(async result => {
+        events.push('after-mount')
+        expect(result.thirdPartyStartupGateResult).toBe(startupGateResult)
+      })
+    })).resolves.toEqual({ app, pinia, router, thirdPartyStartupGateResult: startupGateResult })
+
+    expect(events).toEqual([
+      'official-content',
+      'third-party-startup-gate',
+      'create-app',
+      'create-pinia',
+      'configure-pinia',
+      'install-pinia',
+      'get-router',
+      'install-router',
+      'read-save',
+      'mount',
+      'after-mount'
+    ])
+  })
+
+  it('acknowledges third-party app startup only after the app has mounted', async () => {
+    const events: string[] = []
+    const app = { id: 'app' }
+    const pinia = { id: 'pinia' }
+    const router = { id: 'router' }
+    const startupGateResult = {
+      status: 'ready',
+      appBootstrapContinuationAllowed: true,
+      targetPackageId: 'sample_pack',
+      reason: 'path-free startup gate accepted app bootstrap'
+    }
+    const appStartupHostResult = {
+      status: 'accepted',
+      targetPackageId: 'sample_pack'
+    }
+
+    await expect(bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => {
+        events.push('official-content')
+        return { id: 'registry-set' }
+      }),
+      publishRuntimeContentRegistry: vi.fn(async () => {
+        events.push('publish-runtime-registry')
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => {
+        events.push('third-party-startup-gate')
+        return startupGateResult
+      }),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return app
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return pinia
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => {
+        events.push('get-router')
+        return router
+      }),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async () => {
+        events.push('read-save')
+        events.push('mount')
+      }),
+      acknowledgeThirdPartyAppStartupHost: vi.fn(async options => {
+        events.push('app-startup-host')
+        expect(options.thirdPartyStartupGateResult).toBe(startupGateResult)
+        expect(Object.isFrozen(options.evidence)).toBe(true)
+        expect(options.evidence).toEqual({
+          officialContentBootstrapped: true,
+          runtimeContentRegistryPublished: true,
+          thirdPartyStartupGateCompleted: true,
+          thirdPartyStartupGateAllowed: true,
+          gameAppCreated: true,
+          piniaCreated: true,
+          routerInstalled: true,
+          routerMounted: true
+        })
+        expect(JSON.stringify(options)).not.toContain('"app"')
+        expect(JSON.stringify(options)).not.toContain('"pinia"')
+        expect(JSON.stringify(options)).not.toContain('"router"')
+        publishThirdPartyDataPackMountedAppStartupHostEvidence(options.evidence)
+        return appStartupHostResult
+      }),
+      afterMount: vi.fn(async result => {
+        events.push('after-mount')
+        expect(result.thirdPartyAppStartupHostResult).toBe(appStartupHostResult)
+        expect(getThirdPartyDataPackMountedAppStartupHostEvidence()).toEqual({
+          officialContentBootstrapped: true,
+          runtimeContentRegistryPublished: true,
+          thirdPartyStartupGateCompleted: true,
+          thirdPartyStartupGateAllowed: true,
+          gameAppCreated: true,
+          piniaCreated: true,
+          routerInstalled: true,
+          routerMounted: true
+        })
+      })
+    })).resolves.toEqual({
+      app,
+      pinia,
+      router,
+      thirdPartyStartupGateResult: startupGateResult,
+      thirdPartyAppStartupHostResult: appStartupHostResult
+    })
+
+    expect(events).toEqual([
+      'official-content',
+      'publish-runtime-registry',
+      'third-party-startup-gate',
+      'create-app',
+      'create-pinia',
+      'configure-pinia',
+      'install-pinia',
+      'get-router',
+      'install-router',
+      'read-save',
+      'mount',
+      'app-startup-host',
+      'after-mount'
+    ])
+  })
+
   it('does not run the after-mount hook when the startup gate blocks app bootstrap', async () => {
     const afterMount = vi.fn(async () => undefined)
     const result = {
@@ -188,14 +423,15 @@ describe('bootstrapApplication', () => {
     const app = { id: 'app' }
     const pinia = { id: 'pinia' }
     const router = { id: 'router' }
+    const startupGateResult = {
+      status: 'ready',
+      appBootstrapContinuationAllowed: true,
+      reason: 'path-free startup gate accepted app bootstrap'
+    }
 
     await expect(bootstrapApplication({
       bootstrapOfficialContent: vi.fn(async () => undefined),
-      bootstrapThirdPartyStartupGate: vi.fn(async () => ({
-        status: 'ready',
-        appBootstrapContinuationAllowed: true,
-        reason: 'path-free startup gate accepted app bootstrap'
-      })),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => startupGateResult),
       createApp: vi.fn(() => app),
       createPinia: vi.fn(() => pinia),
       configurePinia: vi.fn(),
@@ -203,7 +439,7 @@ describe('bootstrapApplication', () => {
       getRouter: vi.fn(() => router),
       installRouter: vi.fn(),
       mount: vi.fn(async () => undefined)
-    })).resolves.toEqual({ app, pinia, router })
+    })).resolves.toEqual({ app, pinia, router, thirdPartyStartupGateResult: startupGateResult })
   })
 
   it('does not create app state when a returned startup gate result blocks app bootstrap', async () => {
@@ -388,6 +624,20 @@ describe('reportApplicationStartupFailure', () => {
     expect(document.querySelector('#app')?.textContent).toContain('游戏启动失败')
     expect(document.querySelector('#app')?.textContent).toContain('官方内容校验未通过')
     Reflect.deleteProperty(window, 'electronAPI')
+    consoleError.mockRestore()
+  })
+
+  it('exposes startup failure detail only for runtime probe diagnostics', () => {
+    document.body.innerHTML = '<div id="app"><span>loading</span></div>'
+    window.history.pushState(null, '', '/?taoyuanContentProbe=1')
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined)
+
+    reportApplicationStartupFailure(new Error('registry validation failed'))
+
+    expect(document.querySelector('.startup-failure')
+      ?.getAttribute('data-runtime-probe-startup-error'))
+      .toContain('registry validation failed')
+    window.history.pushState(null, '', '/')
     consoleError.mockRestore()
   })
 })

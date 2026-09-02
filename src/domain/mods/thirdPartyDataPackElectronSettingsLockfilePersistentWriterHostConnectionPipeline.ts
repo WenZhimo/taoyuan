@@ -24,6 +24,14 @@ export interface CreateThirdPartyDataPackElectronSettingsLockfilePersistentWrite
     CreateThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineOptions[
       'readInstallPersistentStagingLifecyclePipeline'
     ]
+  readonly readPackageFilePersistentStagingPipeline?:
+    CreateThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineOptions[
+      'readPackageFilePersistentStagingPipeline'
+    ]
+  readonly readInstallCommandLifecyclePipeline?:
+    CreateThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineOptions[
+      'readInstallCommandLifecyclePipeline'
+    ]
   readonly readSettingsLockfileCommitSource?:
     CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions['readSettingsLockfileCommitSource']
   readonly readLockfileDraft?:
@@ -75,6 +83,8 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
   return createThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline({
     enabled: options.enabled,
     readInstallPersistentStagingLifecyclePipeline: options.readInstallPersistentStagingLifecyclePipeline,
+    readPackageFilePersistentStagingPipeline: options.readPackageFilePersistentStagingPipeline,
+    readInstallCommandLifecyclePipeline: options.readInstallCommandLifecyclePipeline,
     readSettingsLockfilePersistentWriterSource
   })
 }

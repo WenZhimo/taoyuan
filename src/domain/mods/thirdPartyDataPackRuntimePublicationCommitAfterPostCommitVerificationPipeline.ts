@@ -69,7 +69,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerifi
   readonly appBootstrapContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
   readonly uiIpcResultContinuationAllowed: boolean
-  readonly realRuntimePublicationCommitCalled: false
+  readonly realRuntimePublicationCommitCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -85,7 +85,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerifi
   readonly commandDispatcherCalled: false
   readonly commandDispatched: false
   readonly atomicCommitExecutorCalled: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly postCommitVerificationExecuted: false
   readonly uiIpcResponseDelivered: false
   readonly transactionLogPrepared: boolean
@@ -438,22 +438,37 @@ const safeReadyPostCommit = (
 
 const safeAcceptedRuntimeCommit = (
   runtimeCommit: ThirdPartyDataPackRuntimePublicationCommitSourceResult
-): boolean => readOwnStringField(runtimeCommit, 'status') === 'accepted'
-  && readOwnBooleanField(runtimeCommit, 'appBootstrapContinuationAllowed') === true
-  && readOwnBooleanField(runtimeCommit, 'commandContinuationAllowed') === true
-  && readOwnStringField(runtimeCommit, 'runtimePublicationCommitHostStatus') === 'accepted'
-  && cloneCandidateIdentity(readOwnDataField(runtimeCommit, 'candidateIdentity')) !== undefined
-  && readOwnStringField(runtimeCommit, 'lockfileHash') !== undefined
-  && everyOwnDataBooleanFalseExcept(readOwnDataField(runtimeCommit, 'effects') as object | undefined, [
-    'runtimePublicationCommitSourceCalled',
-    'runtimePublicationCommitAdapterSourceCalled',
-    'injectedRuntimePublicationCommitHostCalled',
-    'runtimePublicationCommitHostCalled',
-    'runtimePublicationCommitHostAccepted',
-    'appBootstrapContinuationAllowed',
-    'commandContinuationAllowed'
-  ])
-  && pathFreeRuntimeCommit(runtimeCommit)
+): boolean => {
+  const effects = readOwnDataField(runtimeCommit, 'effects') as object | undefined
+  const realRuntimePublicationCommitCalled =
+    readOwnBooleanField(effects, 'realRuntimePublicationCommitCalled') === true
+  const runtimePublicationCommitted =
+    readOwnBooleanField(effects, 'runtimePublicationCommitted') === true
+  const optionalRealRuntimePublicationCommitKeys = realRuntimePublicationCommitCalled
+    ? [
+        'realRuntimePublicationCommitCalled',
+        'runtimePublicationCommitted'
+      ]
+    : []
+  return readOwnStringField(runtimeCommit, 'status') === 'accepted'
+    && readOwnBooleanField(runtimeCommit, 'appBootstrapContinuationAllowed') === true
+    && readOwnBooleanField(runtimeCommit, 'commandContinuationAllowed') === true
+    && readOwnStringField(runtimeCommit, 'runtimePublicationCommitHostStatus') === 'accepted'
+    && cloneCandidateIdentity(readOwnDataField(runtimeCommit, 'candidateIdentity')) !== undefined
+    && readOwnStringField(runtimeCommit, 'lockfileHash') !== undefined
+    && realRuntimePublicationCommitCalled === runtimePublicationCommitted
+    && everyOwnDataBooleanFalseExcept(effects, [
+      'runtimePublicationCommitSourceCalled',
+      'runtimePublicationCommitAdapterSourceCalled',
+      'injectedRuntimePublicationCommitHostCalled',
+      'runtimePublicationCommitHostCalled',
+      'runtimePublicationCommitHostAccepted',
+      'appBootstrapContinuationAllowed',
+      'commandContinuationAllowed',
+      ...optionalRealRuntimePublicationCommitKeys
+    ])
+    && pathFreeRuntimeCommit(runtimeCommit)
+}
 
 const createCheck = (
   id: ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationCheckId,
@@ -617,11 +632,17 @@ const deepFreezeObjectGraph = <T>(value: T): T => {
 const effectSummary = (
   status: ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineStatus,
   postCommit: ThirdPartyDataPackPostCommitVerificationAfterInstallTransactionCommitPipelineResult | undefined,
+  runtimeCommit: ThirdPartyDataPackRuntimePublicationCommitSourceResult | undefined,
   postCommitCalled: boolean,
   runtimeCommitCalled: boolean
 ): ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationEffectSummary => {
   const accepted = status === 'accepted'
   const postEffects = readOwnDataField(postCommit, 'effects')
+  const runtimeEffects = readOwnDataField(runtimeCommit, 'effects') as object | undefined
+  const realRuntimePublicationCommit =
+    accepted
+    && readOwnBooleanField(runtimeEffects, 'realRuntimePublicationCommitCalled') === true
+    && readOwnBooleanField(runtimeEffects, 'runtimePublicationCommitted') === true
   return Object.freeze({
     runtimePublicationCommitAfterPostCommitVerificationPipelineCalled: true,
     postCommitVerificationAfterInstallTransactionCommitPipelineCalled: postCommitCalled,
@@ -635,7 +656,7 @@ const effectSummary = (
     appBootstrapContinuationAllowed: accepted,
     commandContinuationAllowed: accepted,
     uiIpcResultContinuationAllowed: accepted,
-    realRuntimePublicationCommitCalled: false,
+    realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: false,
     liveRegistryMutated: false,
@@ -651,7 +672,7 @@ const effectSummary = (
     commandDispatcherCalled: false,
     commandDispatched: false,
     atomicCommitExecutorCalled: false,
-    runtimePublicationCommitted: false,
+    runtimePublicationCommitted: realRuntimePublicationCommit,
     postCommitVerificationExecuted: false,
     uiIpcResponseDelivered: false,
     transactionLogPrepared: accepted && readOwnBooleanField(postEffects, 'transactionLogPrepared') === true,
@@ -742,6 +763,7 @@ const baseResult = (
     effects: effectSummary(
       options.status,
       options.postCommit,
+      options.runtimeCommit,
       options.postCommitCalled,
       options.runtimeCommitCalled
     )

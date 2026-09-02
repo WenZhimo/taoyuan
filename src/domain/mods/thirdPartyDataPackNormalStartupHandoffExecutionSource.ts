@@ -43,6 +43,7 @@ export interface ThirdPartyDataPackNormalStartupHandoffHostEnvelope {
 export interface ThirdPartyDataPackNormalStartupHandoffHostEffectSummary {
   readonly normalStartupHandoffHostCalled: boolean
   readonly normalStartupHandoffHostAccepted: boolean
+  readonly realNormalStartupHostCalled: boolean
   readonly launcherAppFactoryCalled: false
   readonly gameAppFactoryCalled: false
   readonly launcherAppCreated: false
@@ -87,7 +88,7 @@ export interface ThirdPartyDataPackNormalStartupHandoffExecutionSourceEffectSumm
   readonly injectedNormalStartupHandoffHostCalled: boolean
   readonly normalStartupHandoffHostCalled: boolean
   readonly normalStartupHandoffHostAccepted: boolean
-  readonly realNormalStartupHostCalled: false
+  readonly realNormalStartupHostCalled: boolean
   readonly normalStartupContinuationAllowed: boolean
   readonly launcherAppFactoryCalled: false
   readonly gameAppFactoryCalled: false
@@ -546,6 +547,9 @@ const hostEffectsContained = (
     if (!('value' in descriptor)) return false
     if (key === 'normalStartupHandoffHostCalled') return descriptor.value === true
     if (key === 'normalStartupHandoffHostAccepted') return descriptor.value === accepted
+    if (key === 'realNormalStartupHostCalled') {
+      return typeof descriptor.value === 'boolean' && (!descriptor.value || accepted)
+    }
     return descriptor.value === false
   })
 }
@@ -603,42 +607,45 @@ const effectSummary = (
   sourceCalled: boolean,
   continuationAllowed: boolean,
   hostResult?: ThirdPartyDataPackNormalStartupHandoffHostResult
-): ThirdPartyDataPackNormalStartupHandoffExecutionSourceEffectSummary => Object.freeze({
-  normalStartupHandoffExecutionSourceCalled: true,
-  startupGateBootstrapSourceCalled: sourceCalled,
-  injectedNormalStartupHandoffHostCalled:
-    readOwnBooleanField(readOwnDataField(hostResult, 'effects') as object | undefined, 'normalStartupHandoffHostCalled')
-      ?? false,
-  normalStartupHandoffHostCalled:
-    readOwnBooleanField(readOwnDataField(hostResult, 'effects') as object | undefined, 'normalStartupHandoffHostCalled')
-      ?? false,
-  normalStartupHandoffHostAccepted:
-    readOwnBooleanField(readOwnDataField(hostResult, 'effects') as object | undefined, 'normalStartupHandoffHostAccepted')
-      ?? false,
-  realNormalStartupHostCalled: false,
-  normalStartupContinuationAllowed: continuationAllowed,
-  launcherAppFactoryCalled: false,
-  gameAppFactoryCalled: false,
-  launcherAppCreated: false,
-  launcherAppMounted: false,
-  gameAppCreated: false,
-  gameAppMounted: false,
-  piniaCreated: false,
-  routerMounted: false,
-  saveRead: false,
-  uiIpcResponseDelivered: false,
-  commandDispatched: false,
-  transactionCommitted: false,
-  runtimePublicationCommitted: false,
-  packageFilesWritten: false,
-  lockfileWritten: false,
-  settingsWritten: false,
-  savesWritten: false,
-  cacheWritten: false,
-  transactionLogWritten: false,
-  rollbackExecuted: false,
-  diagnosticsWritten: false
-})
+): ThirdPartyDataPackNormalStartupHandoffExecutionSourceEffectSummary => {
+  const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
+  const normalStartupHandoffHostCalled =
+    readOwnBooleanField(hostEffects, 'normalStartupHandoffHostCalled') ?? false
+  const realNormalStartupHostCalled =
+    readOwnBooleanField(hostEffects, 'realNormalStartupHostCalled') === true
+  return Object.freeze({
+    normalStartupHandoffExecutionSourceCalled: true,
+    startupGateBootstrapSourceCalled: sourceCalled,
+    injectedNormalStartupHandoffHostCalled:
+      normalStartupHandoffHostCalled && !realNormalStartupHostCalled,
+    normalStartupHandoffHostCalled,
+    normalStartupHandoffHostAccepted:
+      readOwnBooleanField(hostEffects, 'normalStartupHandoffHostAccepted') ?? false,
+    realNormalStartupHostCalled,
+    normalStartupContinuationAllowed: continuationAllowed,
+    launcherAppFactoryCalled: false,
+    gameAppFactoryCalled: false,
+    launcherAppCreated: false,
+    launcherAppMounted: false,
+    gameAppCreated: false,
+    gameAppMounted: false,
+    piniaCreated: false,
+    routerMounted: false,
+    saveRead: false,
+    uiIpcResponseDelivered: false,
+    commandDispatched: false,
+    transactionCommitted: false,
+    runtimePublicationCommitted: false,
+    packageFilesWritten: false,
+    lockfileWritten: false,
+    settingsWritten: false,
+    savesWritten: false,
+    cacheWritten: false,
+    transactionLogWritten: false,
+    rollbackExecuted: false,
+    diagnosticsWritten: false
+  })
+}
 
 const baseResult = (
   options: {

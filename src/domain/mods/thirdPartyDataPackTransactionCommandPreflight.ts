@@ -436,7 +436,6 @@ const packageIsKnown = (
       && value !== null
       && typeof value === 'object'
       && readOwnStringField(value, 'packageId') === packageId
-      && readOwnStringField(value, 'status') !== 'blocked'
     ) {
       return true
     }
@@ -551,7 +550,7 @@ const buildPreflightChecks = (
   check(
     'target-package-known',
     packageIsKnown(readModel, packageId) ? 'satisfied' : 'blocked',
-    'A targeted command must refer to a selected, non-blocked package row in the read model.'
+    'A targeted command must refer to a known package row in the read model.'
   ),
   check(
     'read-model-command-still-disabled',

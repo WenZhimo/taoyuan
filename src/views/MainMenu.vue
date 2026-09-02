@@ -68,11 +68,39 @@
       <!-- 导入存档 -->
       <template v-if="!Capacitor.isNativePlatform()">
         <Button class="text-center justify-center" :icon="Upload" @click="triggerImport">导入存档</Button>
+        <Button class="text-center justify-center" :icon="PackageOpen" @click="showModManager = true">数据包预检</Button>
         <input ref="fileInputRef" type="file" accept=".tyx" class="hidden" @change="handleImportFile" />
       </template>
       <!-- 关于 -->
       <Button class="text-center justify-center text-muted" :icon="Info" @click="showAbout = true">关于游戏</Button>
     </div>
+
+    <!-- Web 数据包预检弹窗 -->
+    <Transition name="panel-fade">
+      <div
+        v-if="showModManager"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4"
+        @click.self="showModManager = false"
+      >
+        <div class="game-panel w-full max-w-lg mx-4 relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showModManager = false">
+            <X :size="14" />
+          </button>
+          <WebDataPackImportPreflightPanel />
+          <div
+            v-if="latestWebResponseDelivery"
+            data-testid="web-mod-response-delivery-summary"
+            class="mt-3 border border-accent/20 rounded-xs p-2 text-xs text-left"
+          >
+            <p class="text-muted mb-1">响应送达</p>
+            <p class="text-text break-all">
+              {{ webResponseKindLabel }} · {{ latestWebResponseDelivery.packageId }} ·
+              {{ latestWebResponseDelivery.messageKey }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
 
     <!-- 关于弹窗 -->
     <Transition name="panel-fade">
@@ -358,10 +386,24 @@
 </template>
 
 <script setup lang="ts">
-  import { Play, FolderOpen, ArrowLeft, Trash2, Download, Upload, Info, Settings, ShieldCheck, X, UserRound } from 'lucide-vue-next'
+  import {
+    Play,
+    FolderOpen,
+    ArrowLeft,
+    Trash2,
+    Download,
+    Upload,
+    Info,
+    Settings,
+    ShieldCheck,
+    X,
+    UserRound,
+    PackageOpen
+  } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
-  import { ref, computed } from 'vue'
+  import WebDataPackImportPreflightPanel from '@/components/game/mods/WebDataPackImportPreflightPanel.vue'
+  import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useGameStore, SEASON_NAMES } from '@/stores/useGameStore'
   import { useSaveStore } from '@/stores/useSaveStore'
@@ -378,6 +420,20 @@
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import type { FarmMapType, Gender } from '@/types'
   import { Capacitor } from '@capacitor/core'
+  import {
+    thirdPartyDataPackWebResponseDeliveryEventName,
+    type ThirdPartyDataPackWebDomResponseDeliveryEvent
+  } from '@/domain/mods/thirdPartyDataPackWebDomResponseDeliveryBridge'
+  import type { PackageId } from '@/domain/mods/ids'
+  import type {
+    ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind
+  } from '@/domain/mods/thirdPartyDataPackUiIpcResultEnvelopeContract'
+
+  interface WebResponseDeliverySummary {
+    readonly kind: ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind
+    readonly packageId: PackageId
+    readonly messageKey: string
+  }
 
   const router = useRouter()
   const { startBgm } = useAudio()
@@ -403,11 +459,40 @@
   const charGender = ref<Gender>('male')
   const showPrivacy = ref(false)
   const showFarmConfirm = ref(false)
+  const showModManager = ref(false)
+  const latestWebResponseDelivery = ref<WebResponseDeliverySummary | null>(null)
 
   const deleteTargetSlot = ref<number | null>(null)
 
   const farmMapDefs = computed(() => getFarmMapDefs())
   const selectedFarmDef = computed(() => farmMapDefs.value.find(f => f.type === selectedMap.value))
+  const webResponseKindLabel = computed(() => {
+    if (latestWebResponseDelivery.value?.kind === 'success') return '成功'
+    if (latestWebResponseDelivery.value?.kind === 'retry') return '可重试'
+    if (latestWebResponseDelivery.value?.kind === 'rollback') return '需回滚'
+    return '失败'
+  })
+
+  const handleWebResponseDelivery = (event: Event) => {
+    const envelope = (event as ThirdPartyDataPackWebDomResponseDeliveryEvent).detail?.envelope
+    if (!envelope || envelope.commandId !== 'install') return
+    latestWebResponseDelivery.value = {
+      kind: envelope.kind,
+      packageId: envelope.packageId,
+      messageKey: envelope.messageKey
+    }
+    showModManager.value = true
+  }
+
+  onMounted(() => {
+    if (typeof window === 'undefined') return
+    window.addEventListener(thirdPartyDataPackWebResponseDeliveryEventName, handleWebResponseDelivery)
+  })
+
+  onBeforeUnmount(() => {
+    if (typeof window === 'undefined') return
+    window.removeEventListener(thirdPartyDataPackWebResponseDeliveryEventName, handleWebResponseDelivery)
+  })
 
   const handleSelectFarm = (type: FarmMapType) => {
     selectedMap.value = type

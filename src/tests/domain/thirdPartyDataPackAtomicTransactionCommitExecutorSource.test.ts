@@ -162,6 +162,7 @@ const createAdapterResult = (
   atomicTransactionCommitExecutorAdapter: 'skipped',
   readOnly: true,
   injectedExecutorHostRequired: true,
+  atomicTransactionCommitExecutorHostMode: 'injected-test-only',
   injectedExecutorHostMode: 'injected-test-only',
   commitHostCalled: false,
   commitOutcomeReceived: false,
@@ -289,9 +290,11 @@ const expectJsonGraphFrozen = (value: unknown): void => {
 }
 
 const expectNoPersistentWrites = (
-  result: ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult
+  result: ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult,
+  options: { readonly realAtomicCommitExecutorCalled?: boolean } = {}
 ): void => {
-  expect(result.effects.realAtomicCommitExecutorCalled).toBe(false)
+  expect(result.effects.realAtomicCommitExecutorCalled)
+    .toBe(options.realAtomicCommitExecutorCalled ?? false)
   expect(result.effects.commandDispatched).toBe(false)
   expect(result.effects.transactionCommitted).toBe(false)
   expect(result.effects.transactionLogPrepared).toBe(false)
@@ -388,6 +391,7 @@ describe('third-party atomic transaction commit executor source', () => {
     expect(result.atomicTransactionCommitExecutorAdapterStatus).toBe('executed')
     expect(result.sourcePreflightStatus).toBe('deferred')
     expect(result.outcomeContractStatus).toBe('ready')
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('injected-test-only')
     expect(result.injectedExecutorHostMode).toBe('injected-test-only')
     expect(result.commitOutcomeKind).toBe('committed')
     expect(result.effects.injectedAtomicCommitAdapterExecuted).toBe(true)
@@ -408,7 +412,30 @@ describe('third-party atomic transaction commit executor source', () => {
     expectJsonGraphFrozen(result)
   })
 
-  it('accepts an injected path-free atomic commit host result without persistent writes', async() => {
+  it('accepts an Electron main visible-import adapter outcome without requiring injected-test-only mode', async() => {
+    const source = createThirdPartyDataPackAtomicTransactionCommitExecutorSource({
+      enabled: true,
+      readAtomicTransactionCommitExecutorAdapter: async() => createExecutedAdapterResult({
+        atomicTransactionCommitExecutorHostMode: 'electron-main-visible-import',
+        injectedExecutorHostMode: 'electron-main-visible-import'
+      })
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('executed')
+    expect(result.commandContinuationAllowed).toBe(true)
+    expect(result.atomicTransactionCommitExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.injectedExecutorHostMode).toBe('electron-main-visible-import')
+    expect(result.effects.injectedAtomicCommitAdapterExecuted).toBe(true)
+    expect(result.effects.realAtomicCommitExecutorCalled).toBe(false)
+    expect('commitRequest' in result).toBe(false)
+    expect('outcomeContract' in result).toBe(false)
+    expectNoPersistentWrites(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('accepts a path-free atomic commit host result without persistent writes', async() => {
     const executeAtomicTransactionCommit = vi.fn(async envelope => {
       expect(Object.isFrozen(envelope)).toBe(true)
       expect(envelope).toMatchObject({
@@ -478,7 +505,7 @@ describe('third-party atomic transaction commit executor source', () => {
     expect(result.effects.injectedCommitHostCalled).toBe(true)
     expect(result.effects.atomicCommitExecutorHostCalled).toBe(true)
     expect(result.effects.atomicCommitExecutorHostAccepted).toBe(true)
-    expect(result.effects.realAtomicCommitExecutorCalled).toBe(false)
+    expect(result.effects.realAtomicCommitExecutorCalled).toBe(true)
     expect(result.effects.transactionCommitted).toBe(false)
     expect(result.effects.transactionLogWritten).toBe(false)
     expect('commitRequest' in result).toBe(false)
@@ -554,7 +581,7 @@ describe('third-party atomic transaction commit executor source', () => {
       expect(serialized).not.toContain('programDirectoryPath')
       expect(result.effects.atomicCommitExecutorHostCalled).toBe(true)
       expect(result.effects.atomicCommitExecutorHostAccepted).toBe(true)
-      expectNoPersistentWrites(result)
+    expectNoPersistentWrites(result, { realAtomicCommitExecutorCalled: true })
       expectJsonGraphFrozen(result)
     }
   })

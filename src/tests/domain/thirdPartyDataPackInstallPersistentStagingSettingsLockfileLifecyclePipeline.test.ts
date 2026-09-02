@@ -7,11 +7,23 @@ import type {
 import type {
   ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult
 } from '@/domain/mods/thirdPartyDataPackInstallPersistentStagingLifecyclePipeline'
+import type {
+  ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult
+} from '@/domain/mods/thirdPartyDataPackInstallCommandPostCommitAcknowledgementSource'
+import type {
+  ThirdPartyDataPackPackageFilePersistentStagingPipelineResult
+} from '@/domain/mods/thirdPartyDataPackPackageFilePersistentStagingPipeline'
+import type {
+  ThirdPartyDataPackSettingsLockfileCommitSourceEffectSummary,
+  ThirdPartyDataPackSettingsLockfileCommitSourceResult
+} from '@/domain/mods/thirdPartyDataPackSettingsLockfileCommitSource'
 import {
   createThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline,
   type ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult
 } from '@/domain/mods/thirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline'
 import type {
+  ThirdPartyDataPackSettingsLockfilePersistentWriterHostEffectSummary,
+  ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult,
   ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult
 } from '@/domain/mods/thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
@@ -27,6 +39,102 @@ const candidateIdentity: ThirdPartyCandidateIdentitySummary = {
 }
 
 const lockfileHash = testHash('d')
+
+const packageStagingEffects = (
+  overrides: Partial<ThirdPartyDataPackPackageFilePersistentStagingPipelineResult['effects']> = {}
+): ThirdPartyDataPackPackageFilePersistentStagingPipelineResult['effects'] => ({
+  packageFilePersistentStagingPipelineCalled: true,
+  packageFileStagingSourceCalled: true,
+  atomicCommitPreflightSourceCalled: true,
+  packageFilePersistentWriteProbeCalled: true,
+  injectedPackageFileStagingHostCalled: true,
+  packageFileStagingHostAccepted: true,
+  commandContinuationAllowed: true,
+  appBootstrapContinuationAllowed: true,
+  officialRegistryPublished: false,
+  thirdPartyRegistryPublished: false,
+  liveRegistryMutated: false,
+  liveRegistrySwapped: false,
+  previousRegistryRestored: false,
+  candidateRegistryExposed: false,
+  runtimeEnablementAllowed: false,
+  electronIpcExposed: false,
+  transactionCommitted: false,
+  runtimePublicationCommitted: false,
+  postCommitVerificationExecuted: false,
+  uiIpcResponseDelivered: false,
+  packageFilesWritten: true,
+  packageBackupsWritten: true,
+  packageFilesRestored: false,
+  lockfileWritten: false,
+  lockfileRestored: false,
+  settingsWritten: false,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  ...overrides
+})
+
+const installCommandEffects = (
+  overrides: Partial<ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult['effects']> = {}
+): ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult['effects'] => ({
+  installCommandPostCommitAcknowledgementSourceCalled: true,
+  transactionCommandDispatcherSourceCalled: true,
+  atomicTransactionCommitExecutorSourceCalled: true,
+  postCommitVerificationReadAcknowledgementSourceCalled: true,
+  commandDispatched: true,
+  atomicCommitExecutorAcknowledged: true,
+  injectedCommitHostCalled: false,
+  realAtomicCommitExecutorCalled: false,
+  postCommitVerificationAcknowledged: true,
+  persistentReadProofAcknowledged: true,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  uiIpcResultContinuationAllowed: true,
+  officialRegistryPublished: false,
+  thirdPartyRegistryPublished: false,
+  liveRegistryMutated: false,
+  liveRegistrySwapped: false,
+  previousRegistryReleased: false,
+  previousRegistryRestored: false,
+  candidateRegistryExposed: false,
+  runtimeEnablementAllowed: false,
+  modManagementUiMounted: false,
+  electronIpcExposed: false,
+  webFilePickerOpened: false,
+  androidFilePickerOpened: false,
+  transactionCommitted: false,
+  transactionLogPrepared: false,
+  runtimePublicationCommitted: false,
+  postCommitVerificationExecuted: false,
+  uiIpcResponseDelivered: false,
+  transactionLogRead: false,
+  packageStateRead: false,
+  settingsRead: false,
+  lockfileRead: false,
+  liveRegistryRead: false,
+  saveCacheIsolationChecked: false,
+  packageFilesWritten: false,
+  packageBackupsWritten: false,
+  packageFilesRestored: false,
+  lockfileWritten: false,
+  lockfileRestored: false,
+  settingsWritten: false,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  ...overrides
+})
 
 const lifecycleEffects = (
   overrides: Partial<ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult['effects']> = {}
@@ -68,6 +176,54 @@ const lifecycleEffects = (
   saveCacheIsolationChecked: false,
   packageFilesWritten: true,
   packageBackupsWritten: true,
+  packageFilesRestored: false,
+  lockfileWritten: false,
+  lockfileRestored: false,
+  settingsWritten: false,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  ...overrides
+})
+
+const settingsCommitEffects = (
+  overrides: Partial<ThirdPartyDataPackSettingsLockfileCommitSourceEffectSummary> = {}
+): ThirdPartyDataPackSettingsLockfileCommitSourceEffectSummary => ({
+  settingsLockfileCommitSourceCalled: true,
+  packageFileStagingSourceCalled: true,
+  injectedSettingsLockfileCommitHostCalled: true,
+  settingsLockfileCommitHostCalled: true,
+  settingsLockfileCommitHostAccepted: true,
+  realSettingsLockfileCommitHostCalled: false,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  officialRegistryPublished: false,
+  thirdPartyRegistryPublished: false,
+  liveRegistryMutated: false,
+  liveRegistrySwapped: false,
+  previousRegistryReleased: false,
+  previousRegistryRestored: false,
+  candidateRegistryExposed: false,
+  runtimeEnablementAllowed: false,
+  modManagementUiMounted: false,
+  electronIpcExposed: false,
+  webFilePickerOpened: false,
+  androidFilePickerOpened: false,
+  commandDispatcherCalled: false,
+  commandDispatched: false,
+  atomicCommitExecutorCalled: false,
+  transactionCommitted: false,
+  transactionLogPrepared: false,
+  runtimePublicationCommitted: false,
+  postCommitVerificationExecuted: false,
+  uiIpcResponseDelivered: false,
+  packageFilesWritten: false,
+  packageBackupsWritten: false,
   packageFilesRestored: false,
   lockfileWritten: false,
   lockfileRestored: false,
@@ -131,6 +287,106 @@ const settingsWriterEffects = (
   ...overrides
 })
 
+const writerHostEffects = (
+  overrides: Partial<ThirdPartyDataPackSettingsLockfilePersistentWriterHostEffectSummary> = {}
+): ThirdPartyDataPackSettingsLockfilePersistentWriterHostEffectSummary => ({
+  settingsLockfilePersistentWriterHostCalled: true,
+  settingsLockfilePersistentWriterHostWritten: true,
+  transactionCommitted: false,
+  runtimePublicationCommitted: false,
+  postCommitVerificationExecuted: false,
+  uiIpcResponseDelivered: false,
+  packageFilesWritten: false,
+  packageBackupsWritten: false,
+  packageFilesRestored: false,
+  lockfileWritten: true,
+  lockfileRestored: false,
+  settingsWritten: true,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: false,
+  diagnosticsWritten: false,
+  ...overrides
+})
+
+const createPackageStagingResult = (
+  overrides: Partial<ThirdPartyDataPackPackageFilePersistentStagingPipelineResult> = {}
+): ThirdPartyDataPackPackageFilePersistentStagingPipelineResult => ({
+  kind: 'third-party-package-file-persistent-staging-pipeline',
+  mode: 'default-disabled-package-file-persistent-staging-pipeline',
+  status: 'written',
+  reason: 'package file staging source accepted a persistent package-file write probe acknowledgement',
+  enabled: true,
+  packageFileStagingSourceStatus: 'accepted',
+  packageFilePersistentWriteProbeStatus: 'written',
+  requestedCommandId: 'install',
+  targetPackageId: packageId,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  candidateHash: candidateIdentity.candidateHash,
+  lockfileHash,
+  packageFileWriteProbe: 'written',
+  writeProbeAllowed: true,
+  persistentWriteExecuted: true,
+  writtenFileCount: 2,
+  backedUpFileCount: 1,
+  writtenFiles: [],
+  diagnostics: [],
+  effects: packageStagingEffects(),
+  ...overrides
+} as ThirdPartyDataPackPackageFilePersistentStagingPipelineResult)
+
+const createInstallCommandResult = (
+  overrides: Partial<ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult> = {}
+): ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult => ({
+  kind: 'third-party-install-command-post-commit-acknowledgement-source',
+  mode: 'default-disabled-install-command-post-commit-acknowledgement-source',
+  status: 'ready',
+  reason: 'third-party install command post-commit acknowledgement accepted matching dispatch, commit and verified persistent-read proof',
+  readOnly: true,
+  enabled: true,
+  transactionCommandDispatcherSourceCalled: true,
+  atomicTransactionCommitExecutorSourceCalled: true,
+  postCommitVerificationReadAcknowledgementSourceCalled: true,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  uiIpcResultContinuationAllowed: true,
+  transactionCommandDispatcherSourceStatus: 'dispatched',
+  atomicTransactionCommitExecutorSourceStatus: 'executed',
+  postCommitVerificationReadAcknowledgementSourceStatus: 'ready',
+  requestedCommandId: 'install',
+  targetPackageId: packageId,
+  verificationOutcomeKind: 'verified',
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  blockedCandidateCount: 0,
+  blockedCandidatePaths: [],
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  candidateIdentity,
+  lockfileHash,
+  checks: [
+    {
+      id: 'transaction-command-dispatched',
+      status: 'satisfied',
+      reason: 'dispatched'
+    }
+  ],
+  diagnostics: [],
+  effects: installCommandEffects(),
+  ...overrides
+} as ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult)
+
 const createLifecycleResult = (
   overrides: Partial<ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult> = {}
 ): ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult => ({
@@ -172,6 +428,68 @@ const createLifecycleResult = (
   effects: lifecycleEffects(),
   ...overrides
 } as ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult)
+
+const createAcceptedCommitResult = (
+  overrides: Partial<ThirdPartyDataPackSettingsLockfileCommitSourceResult> = {}
+): ThirdPartyDataPackSettingsLockfileCommitSourceResult => ({
+  kind: 'third-party-settings-lockfile-commit-source',
+  mode: 'default-disabled-settings-lockfile-commit-source',
+  status: 'accepted',
+  reason: 'settings-lockfile commit source accepted an injected host acknowledgement',
+  readOnly: true,
+  enabled: true,
+  sourceCalled: true,
+  appBootstrapContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  packageFileStagingSourceStatus: 'accepted',
+  packageFileStagingHostStatus: 'accepted',
+  settingsLockfileCommitHostStatus: 'accepted',
+  requestedCommandId: 'install',
+  targetPackageId: packageId,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  blockedCandidatePaths: [],
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  candidateIdentity,
+  lockfileHash,
+  writeProbeEvidence: {
+    modLockWriteProbeStatus: 'written',
+    transactionLogWriteProbeStatus: 'written',
+    modLockPersistentWriteExecuted: true,
+    transactionLogPersistentWriteExecuted: true
+  },
+  diagnostics: [],
+  effects: settingsCommitEffects(),
+  ...overrides
+} as ThirdPartyDataPackSettingsLockfileCommitSourceResult)
+
+const createWriterHostResult = (
+  overrides: Partial<ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult> = {}
+): ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult => ({
+  status: 'written',
+  requestedCommandId: 'install',
+  targetPackageId: packageId,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  candidateHash: candidateIdentity.candidateHash,
+  lockfileHash,
+  packageFileStagingHostStatus: 'accepted',
+  settingsLockfileCommitHostStatus: 'accepted',
+  modLockWriteProbeStatus: 'written',
+  transactionLogWriteProbeStatus: 'written',
+  modLockPersistentWriteExecuted: true,
+  transactionLogPersistentWriteExecuted: true,
+  diagnostics: [],
+  effects: writerHostEffects(),
+  ...overrides
+})
 
 const createSettingsWriterResult = (
   overrides: Partial<ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult> = {}
@@ -317,6 +635,97 @@ describe('third-party install persistent staging settings-lockfile lifecycle pip
     expectJsonGraphFrozen(result)
   })
 
+  it('keeps explicit lifecycle and writer readers ahead of composed lower inputs', async() => {
+    const readInstallPersistentStagingLifecyclePipeline = vi.fn(async() => createLifecycleResult())
+    const readSettingsLockfilePersistentWriterSource = vi.fn(async() => createSettingsWriterResult())
+    const readPackageFilePersistentStagingPipeline = vi.fn(async() => createPackageStagingResult())
+    const readInstallCommandLifecyclePipeline = vi.fn(async() => createInstallCommandResult())
+    const readSettingsLockfileCommitSource = vi.fn(async() => createAcceptedCommitResult())
+    const writeSettingsLockfile = vi.fn(async() => createWriterHostResult())
+    const pipeline = createThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline({
+      enabled: true,
+      readInstallPersistentStagingLifecyclePipeline,
+      readSettingsLockfilePersistentWriterSource,
+      readPackageFilePersistentStagingPipeline,
+      readInstallCommandLifecyclePipeline,
+      readSettingsLockfileCommitSource,
+      writeSettingsLockfile
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('ready')
+    expect(readInstallPersistentStagingLifecyclePipeline).toHaveBeenCalledOnce()
+    expect(readSettingsLockfilePersistentWriterSource).toHaveBeenCalledOnce()
+    expect(readPackageFilePersistentStagingPipeline).not.toHaveBeenCalled()
+    expect(readInstallCommandLifecyclePipeline).not.toHaveBeenCalled()
+    expect(readSettingsLockfileCommitSource).not.toHaveBeenCalled()
+    expect(writeSettingsLockfile).not.toHaveBeenCalled()
+    expectContainedBoundary(result, true)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('composes lower package staging, install command lifecycle and settings-lockfile writer inputs', async() => {
+    const calls: string[] = []
+    const readPackageFilePersistentStagingPipeline = vi.fn(async() => {
+      calls.push('package-file-persistent-staging')
+      return createPackageStagingResult()
+    })
+    const readInstallCommandLifecyclePipeline = vi.fn(async() => {
+      calls.push('install-command-lifecycle')
+      return createInstallCommandResult()
+    })
+    const readSettingsLockfileCommitSource = vi.fn(async() => {
+      calls.push('settings-lockfile-commit-source')
+      return createAcceptedCommitResult()
+    })
+    const writeSettingsLockfile = vi.fn(async envelope => {
+      calls.push('settings-lockfile-persistent-writer')
+      expect(Object.isFrozen(envelope)).toBe(true)
+      expect(envelope.targetPackageId).toBe(packageId)
+      expect(envelope.candidateIdentity.candidateHash).toBe(candidateIdentity.candidateHash)
+      expect(envelope.lockfileHash).toBe(lockfileHash)
+      expect('settingsWriter' in envelope).toBe(false)
+      expect('programDirectoryPath' in envelope).toBe(false)
+      return createWriterHostResult()
+    })
+    const pipeline = createThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline({
+      enabled: true,
+      readPackageFilePersistentStagingPipeline,
+      readInstallCommandLifecyclePipeline,
+      readSettingsLockfileCommitSource,
+      writeSettingsLockfile
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('ready')
+    expect(result.installPersistentStagingLifecyclePipelineStatus).toBe('ready')
+    expect(result.settingsLockfilePersistentWriterSourceStatus).toBe('written')
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.candidateHash).toBe(candidateIdentity.candidateHash)
+    expect(result.candidateIdentity?.candidateHash).toBe(candidateIdentity.candidateHash)
+    expect(result.lockfileHash).toBe(lockfileHash)
+    expect(result.persistentPackageWriteExecuted).toBe(true)
+    expect(result.persistentSettingsLockfileWriteExecuted).toBe(true)
+    expect(result.effects.packageFilePersistentWriteAcknowledged).toBe(true)
+    expect(result.effects.installCommandLifecycleAcknowledged).toBe(true)
+    expect(result.effects.settingsLockfilePersistentWriterAcknowledged).toBe(true)
+    expect(calls).toEqual([
+      'package-file-persistent-staging',
+      'install-command-lifecycle',
+      'settings-lockfile-commit-source',
+      'settings-lockfile-persistent-writer'
+    ])
+    expectContainedBoundary(result, true)
+    const serialized = JSON.stringify(result)
+    expect(serialized).not.toContain('programDirectoryPath')
+    expect(serialized).not.toContain('lockfileDraft')
+    expect(serialized).not.toContain('candidateRegistrySet')
+    expect(serialized).not.toContain('settingsWriter')
+    expectJsonGraphFrozen(result)
+  })
+
   it('blocks before settings-lockfile writer when install persistent staging is not ready', async() => {
     const readSettingsLockfilePersistentWriterSource = vi.fn()
     const pipeline = createThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline({
@@ -378,6 +787,55 @@ describe('third-party install persistent staging settings-lockfile lifecycle pip
     expect(serialized).not.toContain('C:/Users')
     expect(serialized).not.toContain('LENOVO')
     expect(serialized).not.toContain('manifest.json')
+    expectJsonGraphFrozen(result)
+  })
+
+  it('blocks composed lower staging failures before settings-lockfile writer inputs run', async() => {
+    const readInstallCommandLifecyclePipeline = vi.fn()
+    const readSettingsLockfileCommitSource = vi.fn()
+    const writeSettingsLockfile = vi.fn()
+    const pipeline = createThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline({
+      enabled: true,
+      readPackageFilePersistentStagingPipeline: async() => createPackageStagingResult({
+        status: 'deferred',
+        packageFilePersistentWriteProbeStatus: 'deferred',
+        packageFileWriteProbe: 'deferred',
+        writeProbeAllowed: false,
+        persistentWriteExecuted: false,
+        writtenFileCount: 0,
+        backedUpFileCount: 0,
+        effects: packageStagingEffects({
+          packageFilesWritten: false,
+          packageBackupsWritten: false
+        })
+      }),
+      readInstallCommandLifecyclePipeline,
+      readSettingsLockfileCommitSource,
+      writeSettingsLockfile
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('blocked')
+    expect(result.installPersistentStagingLifecyclePipelineStatus).toBe('blocked')
+    expect(result.settingsLockfilePersistentWriterSourceStatus).toBeUndefined()
+    expect(readInstallCommandLifecyclePipeline).not.toHaveBeenCalled()
+    expect(readSettingsLockfileCommitSource).not.toHaveBeenCalled()
+    expect(writeSettingsLockfile).not.toHaveBeenCalled()
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.commandContinuationAllowed).toBe(false)
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        stage: 'third-party.install-persistent-staging-lifecycle-pipeline.staging-blocked',
+        packageId
+      }),
+      expect.objectContaining({
+        stage: 'third-party.install-persistent-staging-settings-lockfile-lifecycle-pipeline.lifecycle-blocked',
+        packageId
+      })
+    ]))
     expectJsonGraphFrozen(result)
   })
 

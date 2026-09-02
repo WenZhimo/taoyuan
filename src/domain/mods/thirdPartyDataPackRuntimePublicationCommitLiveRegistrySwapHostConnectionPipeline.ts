@@ -63,7 +63,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostC
   readonly liveRegistrySwapAcknowledged: boolean
   readonly appBootstrapContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
-  readonly realRuntimePublicationCommitCalled: false
+  readonly realRuntimePublicationCommitCalled: boolean
   readonly thirdPartyRegistryPublished: boolean
   readonly liveRegistryMutated: boolean
   readonly liveRegistrySwapped: boolean
@@ -82,7 +82,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostC
   readonly uiIpcResponseDelivered: false
   readonly commandDispatched: false
   readonly transactionCommitted: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly postCommitVerificationExecuted: false
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
@@ -346,39 +346,49 @@ const allOwnBooleanFlagsFalse = (
 
 const safeAcceptedCommit = (
   result: ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult
-): boolean => readOwnStringField(result, 'status') === 'accepted'
-  && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
-  && readOwnBooleanField(result, 'commandContinuationAllowed') === true
-  && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
-  && readOwnStringField(result, 'requestedCommandId') === 'install'
-  && readOwnStringField(result, 'targetPackageId') !== undefined
-  && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
-    readOwnStringField(result, 'targetPackageId') as PackageId
-  )
-  && cloneCandidateIdentity(readOwnDataField(result, 'candidateIdentity')) !== undefined
-  && readOwnStringField(result, 'lockfileHash') !== undefined
-  && allOwnBooleanFlagsFalse(readOwnDataField(result, 'effects') as object | undefined, [
-    'runtimePublicationCommitAfterPostCommitVerificationPipelineCalled',
-    'postCommitVerificationAfterInstallTransactionCommitPipelineCalled',
-    'runtimePublicationCommitPipelineCalled',
-    'runtimePublicationCommitHostAccepted',
-    'transactionCommitted',
-    'transactionLogCommitted',
-    'postCommitVerificationAcknowledged',
-    'persistentReadProofAcknowledged',
-    'runtimePublicationCommitAcknowledged',
-    'appBootstrapContinuationAllowed',
-    'commandContinuationAllowed',
-    'uiIpcResultContinuationAllowed',
-    'transactionLogPrepared',
-    'transactionLogWritten',
-    'transactionLogRead',
-    'packageFilesWritten',
-    'packageBackupsWritten',
-    'lockfileWritten',
-    'settingsWritten'
-  ])
-  && pathFree(result, forbiddenCommitFields)
+): boolean => {
+  const effects = readOwnDataField(result, 'effects') as object | undefined
+  const realRuntimePublicationCommitCalled =
+    readOwnBooleanField(effects, 'realRuntimePublicationCommitCalled') === true
+  const runtimePublicationCommitted =
+    readOwnBooleanField(effects, 'runtimePublicationCommitted') === true
+  return readOwnStringField(result, 'status') === 'accepted'
+    && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
+    && readOwnBooleanField(result, 'commandContinuationAllowed') === true
+    && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
+    && readOwnStringField(result, 'requestedCommandId') === 'install'
+    && readOwnStringField(result, 'targetPackageId') !== undefined
+    && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
+      readOwnStringField(result, 'targetPackageId') as PackageId
+    )
+    && cloneCandidateIdentity(readOwnDataField(result, 'candidateIdentity')) !== undefined
+    && readOwnStringField(result, 'lockfileHash') !== undefined
+    && realRuntimePublicationCommitCalled === runtimePublicationCommitted
+    && allOwnBooleanFlagsFalse(effects, [
+      'runtimePublicationCommitAfterPostCommitVerificationPipelineCalled',
+      'postCommitVerificationAfterInstallTransactionCommitPipelineCalled',
+      'runtimePublicationCommitPipelineCalled',
+      'runtimePublicationCommitHostAccepted',
+      'transactionCommitted',
+      'transactionLogCommitted',
+      'postCommitVerificationAcknowledged',
+      'persistentReadProofAcknowledged',
+      'runtimePublicationCommitAcknowledged',
+      'appBootstrapContinuationAllowed',
+      'commandContinuationAllowed',
+      'uiIpcResultContinuationAllowed',
+      'realRuntimePublicationCommitCalled',
+      'runtimePublicationCommitted',
+      'transactionLogPrepared',
+      'transactionLogWritten',
+      'transactionLogRead',
+      'packageFilesWritten',
+      'packageBackupsWritten',
+      'lockfileWritten',
+      'settingsWritten'
+    ])
+    && pathFree(result, forbiddenCommitFields)
+}
 
 const safeSwappedLiveRegistry = (
   result: ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult
@@ -630,9 +640,15 @@ const deepFreezeObjectGraph = <T>(value: T): T => {
 const effectSummary = (
   status: ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipelineStatus,
   commitCalled: boolean,
-  liveSwapCalled: boolean
+  liveSwapCalled: boolean,
+  commitResult?: ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult
 ): ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionEffectSummary => {
   const swapped = status === 'swapped'
+  const commitEffects = readOwnDataField(commitResult, 'effects') as object | undefined
+  const realRuntimePublicationCommit =
+    swapped
+    && readOwnBooleanField(commitEffects, 'realRuntimePublicationCommitCalled') === true
+    && readOwnBooleanField(commitEffects, 'runtimePublicationCommitted') === true
   return Object.freeze({
     runtimePublicationCommitLiveRegistrySwapHostConnectionPipelineCalled: true,
     runtimePublicationCommitAfterPostCommitVerificationPipelineCalled: commitCalled,
@@ -642,7 +658,7 @@ const effectSummary = (
     liveRegistrySwapAcknowledged: swapped,
     appBootstrapContinuationAllowed: swapped,
     commandContinuationAllowed: swapped,
-    realRuntimePublicationCommitCalled: false,
+    realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
     thirdPartyRegistryPublished: swapped,
     liveRegistryMutated: swapped,
     liveRegistrySwapped: swapped,
@@ -661,7 +677,7 @@ const effectSummary = (
     uiIpcResponseDelivered: false,
     commandDispatched: false,
     transactionCommitted: false,
-    runtimePublicationCommitted: false,
+    runtimePublicationCommitted: realRuntimePublicationCommit,
     postCommitVerificationExecuted: false,
     packageFilesWritten: false,
     packageBackupsWritten: false,
@@ -742,7 +758,12 @@ const baseResult = (
     ) as Sha256Hash | undefined,
     checks: options.checks ?? skippedChecks(options.status === 'blocked' ? 'blocked' : 'skipped'),
     diagnostics: Object.freeze([...(options.diagnostics ?? [])]),
-    effects: effectSummary(options.status, options.commitCalled, options.liveSwapCalled)
+    effects: effectSummary(
+      options.status,
+      options.commitCalled,
+      options.liveSwapCalled,
+      options.commitResult
+    )
   })
 }
 
@@ -823,7 +844,10 @@ const evaluatePipeline = async(
       readLiveRegistrySwapProtection: options.readLiveRegistrySwapProtection,
       readPublicationRollbackRecovery: options.readPublicationRollbackRecovery,
       acknowledgeRuntimePublicationCommit: options.acknowledgeRuntimePublicationCommit,
-      liveRegistrySwapHost: options.liveRegistrySwapHost
+      liveRegistrySwapHost: options.liveRegistrySwapHost,
+      liveRegistryReference: options.liveRegistryReference,
+      candidateRegistrySet: options.candidateRegistrySet,
+      candidateIdentity: options.candidateIdentity
     })
 
   let liveSwapResult: ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult

@@ -1,4 +1,4 @@
-import metadataJson from '@/generated/mods/official-precompiled-metadata.json'
+import metadataJson from '../../generated/mods/official-precompiled-metadata.json'
 import { Type, type TSchema } from '@sinclair/typebox'
 import type { JsonValue } from './canonicalJson'
 import { hashCanonicalJson, type Sha256Hash } from './hash'
@@ -20,7 +20,7 @@ import {
 import { validateUnknown } from './schemaValidation'
 import { OFFICIAL_REGISTRY_SCHEMAS } from './schemas'
 import { validateRegistrySemantics } from './semanticValidation'
-import { OFFICIAL_REGISTRY_DEFINITIONS } from './staticAdapters'
+import { OFFICIAL_REGISTRY_DEFINITIONS } from './officialRegistryDefinitions'
 import { createDiagnostic, type ModDiagnostic, type ModDiagnosticSeverity } from './diagnostics'
 import { createOfficialContentHash } from './officialPrecompiled'
 import {

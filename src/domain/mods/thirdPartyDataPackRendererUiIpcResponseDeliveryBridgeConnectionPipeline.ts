@@ -3,6 +3,9 @@ import {
   type ThirdPartyDataPackElectronIpcResponseDeliveryBridge
 } from './thirdPartyDataPackElectronIpcResponseDeliveryBridge'
 import {
+  createThirdPartyDataPackWebDomResponseDeliverySinkHost
+} from './thirdPartyDataPackWebDomResponseDeliveryBridge'
+import {
   createThirdPartyDataPackRealPlatformUiIpcResponseDeliveryBridgeConnectionPipeline,
   type ThirdPartyDataPackRealPlatformUiIpcResponseDeliveryBridgePlatform
 } from './thirdPartyDataPackRealPlatformUiIpcResponseDeliveryBridgeConnectionPipeline'
@@ -47,8 +50,21 @@ const readOwnDataField = (
   return descriptor && 'value' in descriptor ? descriptor.value : undefined
 }
 
+const acknowledgementMatchesEnvelope = (
+  acknowledgement: unknown,
+  envelope: ThirdPartyDataPackUiIpcResultEnvelope
+): boolean => {
+  if (acknowledgement === null || typeof acknowledgement !== 'object') return false
+  return readOwnDataField(acknowledgement, 'status') === 'acknowledged'
+    && readOwnDataField(acknowledgement, 'packageId') === envelope.packageId
+    && readOwnDataField(acknowledgement, 'envelopeKind') === envelope.kind
+    && readOwnDataField(acknowledgement, 'messageKey') === envelope.messageKey
+}
+
 const createElectronBridgeFromRuntimeHost = (
-  runtimeHost: unknown
+  runtimeHost: unknown,
+  localRendererTarget?: EventTarget,
+  webEventName?: string
 ): ThirdPartyDataPackElectronIpcResponseDeliveryBridge | undefined => {
   const electronApi = readOwnDataField(runtimeHost, 'electronAPI')
   const deliverThirdPartyDataPackResponse = readOwnDataField(
@@ -58,20 +74,40 @@ const createElectronBridgeFromRuntimeHost = (
   if (typeof deliverThirdPartyDataPackResponse !== 'function') return undefined
 
   return Object.freeze({
-    invoke: (
+    invoke: async(
       channel: typeof thirdPartyDataPackElectronResponseDeliveryIpcChannel,
       envelope: ThirdPartyDataPackUiIpcResultEnvelope
-    ) => channel === thirdPartyDataPackElectronResponseDeliveryIpcChannel
-      ? deliverThirdPartyDataPackResponse(envelope)
-      : undefined
+    ) => {
+      if (channel !== thirdPartyDataPackElectronResponseDeliveryIpcChannel) return undefined
+      const acknowledgement = await deliverThirdPartyDataPackResponse(envelope)
+      if (localRendererTarget !== undefined && acknowledgementMatchesEnvelope(acknowledgement, envelope)) {
+        await createThirdPartyDataPackWebDomResponseDeliverySinkHost({
+          target: localRendererTarget,
+          eventName: webEventName
+        }).deliver(envelope)
+      }
+      return acknowledgement
+    }
   })
 }
 
 const webTargetFromRuntimeHost = (
   runtimeHost: unknown
-): EventTarget | undefined => typeof EventTarget !== 'undefined' && runtimeHost instanceof EventTarget
-  ? runtimeHost
-  : undefined
+): EventTarget | undefined => {
+  if (typeof EventTarget !== 'undefined' && runtimeHost instanceof EventTarget) return runtimeHost
+  if (runtimeHost === null || typeof runtimeHost !== 'object') return undefined
+
+  try {
+    const candidate = runtimeHost as Partial<EventTarget>
+    return typeof candidate.addEventListener === 'function'
+      && typeof candidate.removeEventListener === 'function'
+      && typeof candidate.dispatchEvent === 'function'
+      ? candidate as EventTarget
+      : undefined
+  } catch {
+    return undefined
+  }
+}
 
 const resolveRuntimeHost = (
   options: CreateThirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipelineOptions
@@ -101,8 +137,12 @@ export const createThirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnecti
   }
 
   const runtimeHost = resolveRuntimeHost(options)
-  const electronBridge = createElectronBridgeFromRuntimeHost(runtimeHost)
   const webTarget = webTargetFromRuntimeHost(runtimeHost)
+  const electronBridge = createElectronBridgeFromRuntimeHost(
+    runtimeHost,
+    webTarget,
+    options.webEventName
+  )
   const selectedPlatform = options.platform
     ?? (electronBridge !== undefined ? 'electron' : webTarget !== undefined ? 'web' : undefined)
 

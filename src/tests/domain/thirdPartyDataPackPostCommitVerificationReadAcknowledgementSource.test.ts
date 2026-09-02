@@ -208,6 +208,7 @@ const createExecutedExecutorSourceResult = (
   reason: 'third-party post-commit verification executor source accepted a verified injected-host outcome',
   postCommitVerificationExecutorAdapterStatus: 'executed',
   sourcePreflightStatus: 'deferred',
+  postCommitVerificationExecutorHostMode: 'injected-test-only',
   injectedExecutorHostMode: 'injected-test-only',
   verificationOutcomeKind: 'verified',
   transactionLogMatched: true,
@@ -440,6 +441,7 @@ describe('third-party post-commit verification read acknowledgement source', () 
 
     expect(result.status).toBe('ready')
     expect(result.postCommitVerificationExecutorSourceStatus).toBe('executed')
+    expect(result.postCommitVerificationExecutorHostMode).toBe('injected-test-only')
     expect(result.postCommitPersistentVerificationReadSourceStatus).toBe('ready')
     expect(result.verificationOutcomeKind).toBe('verified')
     expect(result.transactionLogMatched).toBe(true)

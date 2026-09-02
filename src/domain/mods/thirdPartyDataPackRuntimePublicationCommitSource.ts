@@ -9,6 +9,12 @@ import type {
   ThirdPartyDataPackRuntimePublicationCommitAdapterResult,
   ThirdPartyDataPackRuntimePublicationCommitStageId
 } from './thirdPartyDataPackRuntimePublicationCommitAdapter'
+import {
+  isThirdPartyDataPackRuntimeCommandId,
+  runtimeCommandTargetMatchesPackageState,
+  runtimeCommandTargetPackageId,
+  type ThirdPartyDataPackRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -39,7 +45,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitSourceEffectSummary {
   readonly runtimePublicationCommitHostAccepted: boolean
   readonly appBootstrapContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
-  readonly realRuntimePublicationCommitCalled: false
+  readonly realRuntimePublicationCommitCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -55,7 +61,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitSourceEffectSummary {
   readonly commandDispatcherCalled: false
   readonly commandDispatched: false
   readonly transactionCommitted: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly postCommitVerificationExecuted: false
   readonly uiIpcResponseDelivered: false
   readonly packageFilesWritten: false
@@ -85,7 +91,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitSourceSafeDiagnostic 
 }
 
 export interface ThirdPartyDataPackRuntimePublicationCommitHostEnvelope {
-  readonly requestedCommandId: 'install'
+  readonly requestedCommandId: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -103,7 +109,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitHostEnvelope {
 export interface ThirdPartyDataPackRuntimePublicationCommitHostEffectSummary {
   readonly runtimePublicationCommitHostCalled: boolean
   readonly runtimePublicationCommitHostAccepted: boolean
-  readonly realRuntimePublicationCommitCalled: false
+  readonly realRuntimePublicationCommitCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -113,7 +119,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitHostEffectSummary {
   readonly candidateRegistryExposed: false
   readonly runtimeEnablementAllowed: false
   readonly transactionCommitted: false
-  readonly runtimePublicationCommitted: false
+  readonly runtimePublicationCommitted: boolean
   readonly postCommitVerificationExecuted: false
   readonly uiIpcResponseDelivered: false
   readonly packageFilesWritten: false
@@ -134,7 +140,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitHostEffectSummary {
 
 export interface ThirdPartyDataPackRuntimePublicationCommitHostResult {
   readonly status: ThirdPartyDataPackRuntimePublicationCommitHostStatus
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
   readonly blockedPackageIds?: readonly PackageId[]
@@ -162,7 +168,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitSourceResult {
   readonly commandContinuationAllowed: boolean
   readonly runtimePublicationCommitHostStatus?: ThirdPartyDataPackRuntimePublicationCommitHostStatus
   readonly injectedRuntimePublicationHostMode?: 'injected-test-only'
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly runtimePublicationCommitAdapterStatus?: ThirdPartyDataPackRuntimePublicationCommitAdapterResult['status']
   readonly runtimePublicationPreflightStatus?: ThirdPartyDataPackRuntimePublicationCommitAdapterResult['runtimePublicationPreflightStatus']
@@ -339,6 +345,19 @@ const readOwnStringField = (
 ): string | undefined => {
   const field = readOwnDataField(value, fieldName)
   return typeof field === 'string' ? field : undefined
+}
+
+const readRuntimeCommandId = (
+  value: object | undefined
+): ThirdPartyDataPackRuntimeCommandId | undefined => {
+  const explicitCommandId = readOwnStringField(value, 'requestedCommandId')
+  if (isThirdPartyDataPackRuntimeCommandId(explicitCommandId)) return explicitCommandId
+
+  const selectedPackageIds = clonePackageIds(readOwnDataField(value, 'selectedPackageIds'))
+  const blockedPackageIds = clonePackageIds(readOwnDataField(value, 'blockedPackageIds'))
+  if (selectedPackageIds.length > 0) return 'install'
+  if (blockedPackageIds.length > 0) return 'disable'
+  return undefined
 }
 
 const readOwnNumberField = (
@@ -594,6 +613,9 @@ const hostEffectsContained = (
     if (!('value' in descriptor)) return false
     if (key === 'runtimePublicationCommitHostCalled') return descriptor.value === true
     if (key === 'runtimePublicationCommitHostAccepted') return descriptor.value === accepted
+    if (key === 'realRuntimePublicationCommitCalled' || key === 'runtimePublicationCommitted') {
+      return descriptor.value === false || (accepted && descriptor.value === true)
+    }
     return descriptor.value === false
   })
 }
@@ -606,11 +628,33 @@ const safeAcceptedHostResult = (
   const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
   const blockedCandidatePaths = cloneStringList(readOwnDataField(source, 'blockedCandidatePaths'))
   const loadOrder = clonePackageIds(readOwnDataField(source, 'loadOrder'))
+  const requestedCommandId = isThirdPartyDataPackRuntimeCommandId(
+    readOwnStringField(hostResult, 'requestedCommandId')
+  )
+    ? readOwnStringField(hostResult, 'requestedCommandId') as ThirdPartyDataPackRuntimeCommandId
+    : undefined
+  const expectedTargetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds
+  )
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
+  const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
+  const realRuntimePublicationCommitCalled =
+    readOwnBooleanField(hostEffects, 'realRuntimePublicationCommitCalled') === true
+  const runtimePublicationCommitted =
+    readOwnBooleanField(hostEffects, 'runtimePublicationCommitted') === true
   return candidateIdentity !== undefined
     && readOwnStringField(hostResult, 'status') === 'accepted'
-    && readOwnStringField(hostResult, 'requestedCommandId') === 'install'
-    && readOwnStringField(hostResult, 'targetPackageId') === selectedPackageIds[0]
+    && requestedCommandId !== undefined
+    && readOwnStringField(hostResult, 'targetPackageId') === expectedTargetPackageId
+    && runtimeCommandTargetMatchesPackageState(
+      requestedCommandId,
+      expectedTargetPackageId,
+      selectedPackageIds,
+      blockedPackageIds,
+      loadOrder
+    )
     && arraysEqual(clonePackageIds(readOwnDataField(hostResult, 'selectedPackageIds')), selectedPackageIds)
     && arraysEqual(clonePackageIds(readOwnDataField(hostResult, 'blockedPackageIds')), blockedPackageIds)
     && arraysEqual(cloneStringList(readOwnDataField(hostResult, 'blockedCandidatePaths')), blockedCandidatePaths)
@@ -621,7 +665,8 @@ const safeAcceptedHostResult = (
     && readOwnStringField(hostResult, 'candidateHash') === candidateIdentity.candidateHash
     && readOwnStringField(hostResult, 'lockfileHash') === readOwnStringField(source, 'lockfileHash')
     && readOwnStringField(hostResult, 'runtimePublicationCommitAdapterStatus') === 'deferred'
-    && hostEffectsContained(readOwnDataField(hostResult, 'effects') as object | undefined, true)
+    && realRuntimePublicationCommitCalled === runtimePublicationCommitted
+    && hostEffectsContained(hostEffects, true)
     && pathFreeRuntimePublicationCommitHostResult(hostResult)
 }
 
@@ -653,49 +698,57 @@ const effectSummary = (
   sourceCalled: boolean,
   continuationAllowed: boolean,
   hostCalled = false,
-  hostAccepted = false
-): ThirdPartyDataPackRuntimePublicationCommitSourceEffectSummary => Object.freeze({
-  runtimePublicationCommitSourceCalled: true,
-  runtimePublicationCommitAdapterSourceCalled: sourceCalled,
-  injectedRuntimePublicationCommitHostCalled: hostCalled,
-  runtimePublicationCommitHostCalled: hostCalled,
-  runtimePublicationCommitHostAccepted: hostAccepted,
-  appBootstrapContinuationAllowed: continuationAllowed,
-  commandContinuationAllowed: continuationAllowed,
-  realRuntimePublicationCommitCalled: false,
-  officialRegistryPublished: false,
-  thirdPartyRegistryPublished: false,
-  liveRegistryMutated: false,
-  liveRegistrySwapped: false,
-  previousRegistryReleased: false,
-  previousRegistryRestored: false,
-  candidateRegistryExposed: false,
-  runtimeEnablementAllowed: false,
-  modManagementUiMounted: false,
-  electronIpcExposed: false,
-  webFilePickerOpened: false,
-  androidFilePickerOpened: false,
-  commandDispatcherCalled: false,
-  commandDispatched: false,
-  transactionCommitted: false,
-  runtimePublicationCommitted: false,
-  postCommitVerificationExecuted: false,
-  uiIpcResponseDelivered: false,
-  packageFilesWritten: false,
-  packageBackupsWritten: false,
-  packageFilesRestored: false,
-  lockfileWritten: false,
-  lockfileRestored: false,
-  settingsWritten: false,
-  settingsRestored: false,
-  savesWritten: false,
-  cacheWritten: false,
-  transactionLogWritten: false,
-  recoveryLogRead: false,
-  recoveryLogReplayed: false,
-  rollbackExecuted: false,
-  diagnosticsWritten: false
-})
+  hostAccepted = false,
+  hostResult?: ThirdPartyDataPackRuntimePublicationCommitHostResult
+): ThirdPartyDataPackRuntimePublicationCommitSourceEffectSummary => {
+  const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
+  const realRuntimePublicationCommit =
+    hostAccepted
+    && readOwnBooleanField(hostEffects, 'realRuntimePublicationCommitCalled') === true
+    && readOwnBooleanField(hostEffects, 'runtimePublicationCommitted') === true
+  return Object.freeze({
+    runtimePublicationCommitSourceCalled: true,
+    runtimePublicationCommitAdapterSourceCalled: sourceCalled,
+    injectedRuntimePublicationCommitHostCalled: hostCalled,
+    runtimePublicationCommitHostCalled: hostCalled,
+    runtimePublicationCommitHostAccepted: hostAccepted,
+    appBootstrapContinuationAllowed: continuationAllowed,
+    commandContinuationAllowed: continuationAllowed,
+    realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
+    officialRegistryPublished: false,
+    thirdPartyRegistryPublished: false,
+    liveRegistryMutated: false,
+    liveRegistrySwapped: false,
+    previousRegistryReleased: false,
+    previousRegistryRestored: false,
+    candidateRegistryExposed: false,
+    runtimeEnablementAllowed: false,
+    modManagementUiMounted: false,
+    electronIpcExposed: false,
+    webFilePickerOpened: false,
+    androidFilePickerOpened: false,
+    commandDispatcherCalled: false,
+    commandDispatched: false,
+    transactionCommitted: false,
+    runtimePublicationCommitted: realRuntimePublicationCommit,
+    postCommitVerificationExecuted: false,
+    uiIpcResponseDelivered: false,
+    packageFilesWritten: false,
+    packageBackupsWritten: false,
+    packageFilesRestored: false,
+    lockfileWritten: false,
+    lockfileRestored: false,
+    settingsWritten: false,
+    settingsRestored: false,
+    savesWritten: false,
+    cacheWritten: false,
+    transactionLogWritten: false,
+    recoveryLogRead: false,
+    recoveryLogReplayed: false,
+    rollbackExecuted: false,
+    diagnosticsWritten: false
+  })
+}
 
 const baseResult = (
   options: {
@@ -715,7 +768,12 @@ const baseResult = (
   const blockedPackageIds = clonePackageIds(readOwnDataField(options.source, 'blockedPackageIds'))
   const blockedCandidatePaths = cloneStringList(readOwnDataField(options.source, 'blockedCandidatePaths'))
   const loadOrder = clonePackageIds(readOwnDataField(options.source, 'loadOrder'))
-  const targetPackageId = selectedPackageIds[0]
+  const requestedCommandId = readRuntimeCommandId(options.source)
+  const targetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds
+  )
   const hostStatus = readOwnStringField(options.hostResult, 'status') as
     | ThirdPartyDataPackRuntimePublicationCommitHostStatus
     | undefined
@@ -732,7 +790,7 @@ const baseResult = (
     commandContinuationAllowed: continuationAllowed,
     runtimePublicationCommitHostStatus: hostStatus,
     injectedRuntimePublicationHostMode: options.hostResult === undefined ? undefined : 'injected-test-only',
-    requestedCommandId: targetPackageId === undefined ? undefined : 'install',
+    requestedCommandId,
     targetPackageId,
     runtimePublicationCommitAdapterStatus: readOwnStringField(options.source, 'status') as
       | ThirdPartyDataPackRuntimePublicationCommitAdapterResult['status']
@@ -767,7 +825,8 @@ const baseResult = (
       options.sourceCalled,
       continuationAllowed,
       options.hostCalled === true,
-      hostStatus === 'accepted'
+      hostStatus === 'accepted',
+      options.hostResult
     )
   })
 }
@@ -776,16 +835,27 @@ const buildRuntimePublicationCommitHostEnvelope = (
   source: ThirdPartyDataPackRuntimePublicationCommitAdapterResult
 ): ThirdPartyDataPackRuntimePublicationCommitHostEnvelope | undefined => {
   const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
-  const targetPackageId = selectedPackageIds[0]
+  const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+  const requestedCommandId = readRuntimeCommandId(source)
+  const targetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds
+  )
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
   const lockfileHash = readOwnStringField(source, 'lockfileHash') as Sha256Hash | undefined
-  if (targetPackageId === undefined || candidateIdentity === undefined || lockfileHash === undefined) return undefined
+  if (
+    requestedCommandId === undefined
+    || targetPackageId === undefined
+    || candidateIdentity === undefined
+    || lockfileHash === undefined
+  ) return undefined
 
   return deepFreezeObjectGraph({
-    requestedCommandId: 'install',
+    requestedCommandId,
     targetPackageId,
     selectedPackageIds,
-    blockedPackageIds: clonePackageIds(readOwnDataField(source, 'blockedPackageIds')),
+    blockedPackageIds,
     blockedCandidatePaths: cloneStringList(readOwnDataField(source, 'blockedCandidatePaths')),
     loadOrder: clonePackageIds(readOwnDataField(source, 'loadOrder')),
     registryCount: readOwnNumberField(source, 'registryCount') ?? 54,

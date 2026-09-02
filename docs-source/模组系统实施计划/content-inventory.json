@@ -8,7 +8,7 @@
     "scope": "export-symbol-level baseline",
     "nextRequiredScope": "per-domain migration verification before official content package takeover",
     "symbolCount": 629,
-    "reviewedArtifactCount": 657
+    "reviewedArtifactCount": 661
   },
   "entries": [
     {
@@ -15574,7 +15574,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Recomputes the five official content hashes from the published frozen registry set and exposes a bounded, opt-in production report with registry order, counts and public item, recipe and crop query checks."
+      "rationale": "Recomputes the five official content hashes from the published frozen registry set and exposes a bounded, opt-in production report with registry order, counts, public item/recipe/crop query checks and a path-free third-party startup gate summary handed off after app bootstrap."
     },
     {
       "file": "scripts/probe-product-runtime.mjs + scripts/runtime-probe-web-host.cjs",
@@ -15586,7 +15586,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Loads the real docs production output over a local HTTP server in Electron Chromium and proves the bundled precompile plus missing, corrupt and environment-mismatch static fallbacks reach the main menu with identical hashes and queries."
+      "rationale": "Loads the real docs production output over a local HTTP server in Electron Chromium and proves the bundled precompile plus missing, corrupt and environment-mismatch static fallbacks reach the main menu with identical hashes, queries and default-disabled third-party startup gate probe evidence."
     },
     {
       "file": "electron/main.js + electron/preload.js + scripts/probe-product-runtime.mjs",
@@ -15598,7 +15598,7 @@
         6
       ],
       "status": "verified",
-      "rationale": "Launches the packaged unpacked EXE, validates production hashes, disk-cache miss/hit and fallback behavior through bounded IPC, verifies executable-local settings, Chromium storage and cache identity, and isolates fault probes without changing formal userdata or startup.log."
+      "rationale": "Launches the packaged unpacked EXE, validates production hashes, disk-cache miss/hit and fallback behavior through bounded IPC, verifies probe-only renderer UI/IPC delivery selects the Electron preload response bridge with acknowledgement consumed, verifies executable-local settings, Chromium storage and cache identity, and isolates fault probes without changing formal userdata or startup.log."
     },
     {
       "file": "scripts/probe-product-runtime.mjs",
@@ -15959,7 +15959,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Defines a default-disabled Electron settings-lockfile persistent writer host connection pipeline that composes the existing install persistent staging lifecycle, settings-lockfile persistent writer source and real Electron settings/mod-lock writer host. When explicitly enabled with a program-directory mod-lock storage adapter or programDirectoryPath plus injected lockfile draft and settings writer, the chain can verify prior package-file staging and then write only program-directory userdata/settings.json plus userdata/mod-lock.json through the contained host while still avoiding Electron startup/preload wiring, runtime publication, transaction commit, UI/IPC response, rollback, save, cache and transaction-log writes."
+      "rationale": "Defines a default-disabled Electron settings-lockfile persistent writer host connection pipeline that composes the existing install persistent staging lifecycle, settings-lockfile persistent writer source and real Electron settings/mod-lock writer host. When explicitly enabled it can either consume an explicit install persistent staging lifecycle reader or compose that lifecycle from lower package-file persistent staging and install command lifecycle readers, then verify prior package-file staging before writing only program-directory userdata/settings.json plus userdata/mod-lock.json through the contained host. It still avoids Electron startup/preload wiring, runtime publication, transaction commit, UI/IPC response, rollback, save, cache and transaction-log writes."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackPlatformWriterConnectionPreflight.ts",
@@ -16223,7 +16223,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Defines the default-disabled install persistent staging settings-lockfile lifecycle pipeline: default execution reads no install lifecycle or settings-lockfile writer source; explicit enablement first requires the install persistent staging lifecycle to be ready, then requires the settings-lockfile persistent writer source to acknowledge contained settings and lockfile writes for the same install target, package summary, candidate hash and lockfile hash. It returns only path-free counts, hashes, checks and diagnostics, treats package-file/settings/lockfile writes as already-contained upstream acknowledgements, and keeps real transaction commit, runtime publication, UI/IPC delivery, save/cache/transaction-log writes, registry exposure, rollback and platform host wiring disabled."
+      "rationale": "Defines the default-disabled install persistent staging settings-lockfile lifecycle pipeline: default execution reads no install lifecycle or settings-lockfile writer source; explicit enablement can consume explicit high-level readers or compose the install persistent staging lifecycle from lower package-file persistent staging plus install command lifecycle readers, and compose the settings-lockfile writer source from lower commit-source plus contained writer-host inputs. The resulting chain first requires package-file staging and install command lifecycle readiness, then requires contained settings and lockfile writes for the same install target, package summary, candidate hash and lockfile hash. It returns only path-free counts, hashes, checks and diagnostics, treats package-file/settings/lockfile writes as already-contained upstream acknowledgements, and keeps real transaction commit, runtime publication, UI/IPC delivery, save/cache/transaction-log writes, registry exposure, rollback and platform host wiring disabled."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackInstallPersistentStagingSettingsLockfileTransactionCommitConnectionSource.ts",
@@ -16260,6 +16260,18 @@
       ],
       "status": "verified",
       "rationale": "Defines the default-disabled post-commit UI/IPC delivery continuation source: default execution reads no post-commit persistent read/write source or UI/IPC delivery acknowledgement source; explicit enablement requires the post-commit persistent read/write connection and one selected-platform UI/IPC response delivery acknowledgement to agree on the same install target, package summary, candidate hash and lockfile hash before allowing command/UI result continuation. It carries only prior contained package/settings/lockfile write acknowledgements plus delivered response evidence, exposes frozen path-free summaries, and keeps real transaction commit, transaction-log/package/settings/lockfile/live-registry reads, save/cache checks, runtime publication, startup gate handoff, GameApp creation, rollback and save/cache/transaction-log writes disabled."
+    },
+    {
+      "file": "src/domain/mods/thirdPartyDataPackPostCommitUiIpcDeliveryContinuationPipeline.ts",
+      "exportName": "createThirdPartyDataPackPostCommitUiIpcDeliveryContinuationPipeline/thirdPartyDataPackPostCommitUiIpcDeliveryContinuationPipeline",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-post-commit-ui-ipc-delivery-continuation-pipeline",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Defines the default-disabled post-commit UI/IPC delivery continuation pipeline: default execution reads no lifecycle, transaction connection, post-commit persistent read/write or UI/IPC acknowledgement sources; explicit enablement preserves injected transaction connection readers or composes the install persistent staging settings-lockfile transaction connection from a lifecycle reader or lower lifecycle inputs plus a transaction acknowledgement host, then composes the existing post-commit persistent read/write connection source with either the selected Web/Electron in-memory UI/IPC response delivery host connection pipeline or an explicitly requested renderer Web/Electron real-bridge delivery pipeline, and feeds both path-free summaries into the post-commit UI/IPC delivery continuation source. It preserves lower blocked results for continuation diagnostics, rejects unsupported platform delivery before terminal readiness, hides renderer host objects from results, and keeps real transaction commit, transaction-log/package/settings/lockfile/live-registry reads, save/cache checks, runtime publication, startup gate handoff, GameApp creation, rollback and save/cache/transaction-log writes disabled."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackRollbackRecoverySettlementSource.ts",
@@ -16331,7 +16343,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Defines the default-disabled ordinary install transaction terminal connection pipeline: default execution reads no post-commit UI/IPC or rollback terminal sources; explicit enablement wires those terminal sources into the mod-lock transaction semantics source and then into the ordinary install transaction pipeline. It preserves the success path ordering of post-commit terminal acknowledgement before ordinary transaction readiness, falls through skipped post-commit paths to rollback recovery terminal acknowledgement, returns only path-free ordinary transaction summaries, and keeps real transaction commit, runtime publication, persistent reads, save/cache/transaction-log writes, UI/IPC host delivery, rollback execution and public mod-lock/API release deferred."
+      "rationale": "Defines the default-disabled ordinary install transaction terminal connection pipeline: default execution reads no lifecycle, post-commit UI/IPC or rollback terminal sources; explicit enablement wires explicit terminal sources into the mod-lock transaction semantics source, and when lifecycle/transaction connection, post-commit persistent read/write plus Web/Electron UI/IPC inputs are provided it composes the post-commit UI/IPC delivery continuation pipeline as the success terminal source before ordinary install readiness. It now preserves explicit UI/IPC acknowledgement and renderer Web/Electron bridge inputs while composing that success terminal path, so an upper ordinary install terminal caller can still drive renderer real-bridge response delivery instead of falling back to the in-memory host connection. It preserves fallback from skipped post-commit paths to rollback recovery terminal acknowledgement, returns only path-free ordinary transaction summaries, and keeps real transaction commit, runtime publication, persistent reads, save/cache/transaction-log writes, rollback execution and public mod-lock/API release deferred."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackPostCommitVerificationOutcomeContract.ts",
@@ -16799,7 +16811,19 @@
         7
       ],
       "status": "verified",
-      "rationale": "Defines the default-disabled bootstrap source wired to the application startup hook: by default it resolves without calling app-bootstrap wiring, startup persistent-state or app factory binding sources. When explicitly enabled it still accepts the legacy skipped app-bootstrap wiring source, and can now require both a path-free startup persistent-state source plus a skipped or ready app factory binding source before application bootstrap continues. Missing, failing, deferred, blocked, path-bearing or runtime/write-effect drift sources reject before Vue App, Pinia, router or save reads; diagnostics and package summaries are copied from own data fields only and the source performs no LauncherApp/GameApp creation, runtime publication, UI/IPC delivery, command dispatch, transaction commit, rollback, package/settings/save/cache/lockfile or transaction-log writes."
+      "rationale": "Defines the default-disabled bootstrap source wired to the application startup hook: by default it resolves without calling app-bootstrap wiring, startup persistent-state, app factory binding or app-startup host connection sources. When explicitly enabled it still accepts the legacy skipped app-bootstrap wiring source, can require both a path-free startup persistent-state source plus a skipped or ready app factory binding source, and can now consume an accepted Web/Electron runtime publication commit app-startup host connection source before application bootstrap continues. Missing, failing, deferred, blocked, path-bearing or runtime/write-effect drift sources reject before Vue App, Pinia, router or save reads; diagnostics and package summaries are copied from own data fields only and the source performs no LauncherApp/GameApp creation, runtime publication, UI/IPC delivery, command dispatch, transaction commit, rollback, package/settings/save/cache/lockfile or transaction-log writes."
+    },
+    {
+      "file": "src/domain/mods/thirdPartyDataPackSharedRendererStartupGateBootstrapSource.ts",
+      "exportName": "createThirdPartyDataPackSharedRendererStartupGateBootstrapSource/bootstrapSharedRendererThirdPartyDataPackStartupGate",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-shared-renderer-startup-gate-bootstrap-source",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Connects the shared renderer application startup gate export used by src/main.ts to the runtime publication commit app-startup host connection path while preserving the default-disabled startup gate. Default startup still skips without reading app-bootstrap, persistent-state, app-factory, app-startup readiness or host acknowledgement sources; explicit enablement can now either consume an injected app-startup host connection reader or compose the existing app-startup host connection pipeline with an explicit Web/Electron platform or a renderer host-inferred Electron preload/Web EventTarget platform, readiness source and host acknowledgement before Vue App, Pinia, router, save reads, UI/IPC delivery, transactions, runtime publication finalization or persistent writes occur."
     },
     {
       "file": "src/domain/mods/thirdPartyDataPackNormalStartupHandoffExecutionSource.ts",
@@ -18614,6 +18638,18 @@
       "rationale": "Covers default-disabled ordinary install transaction pipeline not reading mod-lock transaction semantics, success and rollback terminal semantics acceptance, skipped semantics preservation without fabricated readiness, unsafe upstream host/path evidence blocking and redaction, frozen result graphs, no upstream semantics object or host exposure, public mod-lock Schema/API freeze deferral, and no real transaction commit, runtime publication, persistent reads, package restore, settings restore, save, cache, transaction-log, recovery-log, rollback execution or diagnostics writes."
     },
     {
+      "file": "src/tests/domain/thirdPartyDataPackPostCommitUiIpcDeliveryContinuationPipeline.test.ts",
+      "exportName": "third-party post-commit UI/IPC delivery continuation pipeline fixture matrix",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-post-commit-ui-ipc-delivery-continuation-pipeline",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers default-disabled continuation pipeline not reading transaction, post-commit or UI/IPC inputs, enabled Web success path composition from transaction commit connection through post-commit persistent read/write acknowledgement and Web UI/IPC host delivery into continuation readiness, composed settings-lockfile lifecycle to transaction connection to post-commit UI/IPC continuation, renderer Web EventTarget real-bridge delivery of the post-commit success envelope without exposing renderer host objects, unsupported Android platform selection blocking without Android response delivery, ordinary install terminal connection auto-composing the success terminal path from lower-level inputs, and ordinary install terminal preservation of renderer Web bridge inputs through that composed success terminal path while keeping public mod-lock/API freeze, real transaction commit, runtime publication, persistent reads, save/cache/transaction-log writes and rollback execution deferred."
+    },
+    {
       "file": "src/tests/domain/thirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline.test.ts",
       "exportName": "third-party ordinary install transaction terminal connection pipeline fixture matrix",
       "classification": "source",
@@ -18623,7 +18659,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers default-disabled terminal connection not reading post-commit or rollback sources, success post-commit terminal acknowledgement flowing through mod-lock semantics into ordinary install readiness, skipped post-commit falling through to rollback terminal acknowledgement, unsafe terminal source blocking and path redaction, frozen result graphs, no upstream terminal source exposure, public mod-lock/API freeze deferral, and no real transaction commit, runtime publication, persistent reads, save/cache/transaction-log writes, UI/IPC host delivery or rollback execution."
+      "rationale": "Covers default-disabled terminal connection not reading post-commit or rollback sources, success post-commit terminal acknowledgement flowing through mod-lock semantics into ordinary install readiness, skipped post-commit falling through to rollback terminal acknowledgement, unsafe terminal source blocking and path redaction, frozen result graphs, no upstream terminal source exposure, public mod-lock/API freeze deferral, and no real transaction commit, runtime publication, persistent reads, save/cache/transaction-log writes or rollback execution."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackModManagementUiIpcPreflight.test.ts",
@@ -18839,7 +18875,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers the default-disabled Electron settings-lockfile persistent writer host connection pipeline not reading install lifecycle, settings-lockfile commit, draft or settings writer sources; enabled sequencing of install persistent staging lifecycle before the real Electron settings/mod-lock writer host; temporary program-directory userdata/settings.json and userdata/mod-lock.json writes while preserving save, cache, package and transaction-log fixtures; lockfile draft drift blocking before settings/mod-lock writes; frozen result graphs, path redaction and no Electron startup, IPC, runtime publication, transaction commit, UI/IPC response, rollback, save, cache or transaction-log writes."
+      "rationale": "Covers the default-disabled Electron settings-lockfile persistent writer host connection pipeline not reading install lifecycle, settings-lockfile commit, draft or settings writer sources; enabled sequencing from either explicit install persistent staging lifecycle reader or lower package-file persistent staging plus install command lifecycle readers before the real Electron settings/mod-lock writer host; temporary program-directory userdata/settings.json and userdata/mod-lock.json writes while preserving save, cache, package and transaction-log fixtures; lockfile draft drift blocking before settings/mod-lock writes; frozen result graphs, path redaction and no Electron startup, IPC, runtime publication, transaction commit, UI/IPC response, rollback, save, cache or transaction-log writes."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackWebPlatformWriterAdapterPreflight.test.ts",
@@ -19031,7 +19067,7 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers the default-disabled install persistent staging settings-lockfile lifecycle pipeline not calling lifecycle or writer readers, enabled sequencing of install persistent staging lifecycle before contained settings-lockfile writer acknowledgement, command continuation only when package-file and settings/lockfile write acknowledgements match on target/candidate/lockfile identity, lifecycle-not-ready short-circuiting before writer reads, writer drift blocking without leaking upstream objects or host paths, frozen result graphs, and continued isolation of transaction commit, runtime publication, UI/IPC, save, cache, transaction-log and rollback effects."
+      "rationale": "Covers the default-disabled install persistent staging settings-lockfile lifecycle pipeline not calling lifecycle, writer or lower readers, explicit high-level reader precedence over lower composition inputs, enabled composition of package-file persistent staging, install command lifecycle, settings-lockfile commit and contained writer host into the lifecycle chain, command continuation only when package-file and settings/lockfile write acknowledgements match on target/candidate/lockfile identity, lifecycle-not-ready short-circuiting before writer reads, writer drift blocking without leaking upstream objects or host paths, frozen result graphs, and continued isolation of transaction commit, runtime publication, UI/IPC, save, cache, transaction-log and rollback effects."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackInstallPersistentStagingSettingsLockfileTransactionCommitConnectionSource.test.ts",
@@ -19475,7 +19511,19 @@
         7
       ],
       "status": "verified",
-      "rationale": "Covers the default-disabled app startup source not calling any app-bootstrap wiring, startup persistent-state or app factory binding reader, enabled skipped-source continuation, enabled path-free persistent-state plus ready app-factory source continuation, deferred source blocking, source failure blocking, unsafe chain-source blocking, hostile package array containment, path-bearing diagnostic/error redaction, frozen result graphs, and no LauncherApp, GameApp, Pinia, router, save read, UI/IPC response delivery, command dispatch, runtime publication, transaction commit, rollback, package, settings, save, cache, lockfile or transaction-log writes."
+      "rationale": "Covers the default-disabled app startup source not calling any app-bootstrap wiring, startup persistent-state, app factory binding or app-startup host connection reader, enabled skipped-source continuation, enabled path-free persistent-state plus ready app-factory source continuation, accepted app-startup host connection continuation, deferred source blocking, source failure blocking, unsafe chain/app-startup source blocking, hostile package array containment, path-bearing diagnostic/error redaction, frozen result graphs, and no LauncherApp, GameApp, Pinia, router, save read, UI/IPC response delivery, command dispatch, runtime publication, transaction commit, rollback, package, settings, save, cache, lockfile or transaction-log writes."
+    },
+    {
+      "file": "src/tests/domain/thirdPartyDataPackSharedRendererStartupGateBootstrapSource.test.ts",
+      "exportName": "third-party shared renderer startup gate bootstrap source fixture matrix",
+      "classification": "adapter",
+      "targetRegistry": "engine/loader/third-party-shared-renderer-startup-gate-bootstrap-source",
+      "persistentIds": false,
+      "migrationPhase": [
+        7
+      ],
+      "status": "verified",
+      "rationale": "Covers the shared renderer startup gate default export remaining skipped and no-read by default, an explicitly enabled shared renderer source routing through an injected app-startup host connection reader, the enabled shared renderer source composing the existing app-startup host connection pipeline from explicit Web platform, readiness and host acknowledgement inputs, renderer-host inference for Electron preload and Web EventTarget platforms, and hostile accessor-backed renderer hosts remaining unread while preserving no GameApp, Pinia, router, save, transaction, package, settings, lockfile, cache or transaction-log writes."
     },
     {
       "file": "src/tests/domain/thirdPartyDataPackNormalStartupHandoffExecutionSource.test.ts",

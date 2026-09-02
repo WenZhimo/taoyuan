@@ -326,6 +326,36 @@ describe('third-party runtime publication commit normal startup app-factory bind
     expectJsonGraphFrozen(result)
   })
 
+  it('propagates real normal-startup host evidence without exposing app or router handles', async() => {
+    const pipeline =
+      createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline({
+        enabled: true,
+        readRuntimePublicationCommitAfterPostCommitVerification: async() => createAcceptedCommit(),
+        readRuntimePublicationNormalStartupAppFactoryBindingHostConnection: async() => createReadyNormalStartup({
+          effects: normalStartupEffects({
+            injectedNormalStartupHandoffHostCalled: false,
+            realNormalStartupHostCalled: true
+          })
+        })
+      })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('ready')
+    expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(false)
+    expect(result.effects.launcherAppCreated).toBe(false)
+    expect(result.effects.gameAppCreated).toBe(false)
+    expect(result.effects.piniaCreated).toBe(false)
+    expect(result.effects.routerMounted).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
   it('does not evaluate normal startup while runtime publication commit is deferred', async() => {
     const readRuntimePublicationNormalStartupAppFactoryBindingHostConnection = vi.fn()
     const pipeline =

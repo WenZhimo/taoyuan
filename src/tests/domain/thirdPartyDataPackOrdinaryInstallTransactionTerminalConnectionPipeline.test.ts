@@ -292,7 +292,10 @@ const createRollback = (): ThirdPartyDataPackRollbackRecoveryExecutionSourceResu
   uiIpcResultContinuationAllowed: true,
   commandContinuationAllowed: true,
   diagnostics: [],
-  effects: rollbackEffects()
+  effects: rollbackEffects({
+    packageFilesRestored: true,
+    rollbackExecuted: true
+  })
 } as unknown as ThirdPartyDataPackRollbackRecoveryExecutionSourceResult)
 
 const captureBlockedResult = async(
@@ -316,7 +319,8 @@ const expectJsonGraphFrozen = (value: unknown): void => {
 
 const expectNoRealTransactionEffects = (
   result: ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult,
-  ready: boolean
+  ready: boolean,
+  options: { readonly rollbackRestoreAllowed?: boolean } = {}
 ): void => {
   expect(result.ordinaryInstallTransactionReady).toBe(ready)
   expect(result.publicModLockSchemaFrozen).toBe(false)
@@ -336,7 +340,8 @@ const expectNoRealTransactionEffects = (
   expect(result.effects.savesWritten).toBe(false)
   expect(result.effects.cacheWritten).toBe(false)
   expect(result.effects.transactionLogWritten).toBe(false)
-  expect(result.effects.rollbackExecuted).toBe(false)
+  expect(result.effects.packageFilesRestored).toBe(options.rollbackRestoreAllowed === true)
+  expect(result.effects.rollbackExecuted).toBe(options.rollbackRestoreAllowed === true)
   expect('postCommitUiIpcDeliveryContinuationSource' in result).toBe(false)
   expect('rollbackRecoveryExecutionSource' in result).toBe(false)
   expect('programDirectoryPath' in result).toBe(false)
@@ -424,10 +429,12 @@ describe('third-party ordinary install transaction terminal connection pipeline'
     expect(result.rollbackRecoverySettled).toBe(true)
     expect(result.rollbackRecoveryExecutionAcknowledged).toBe(true)
     expect(result.effects.rollbackOutcomeAccepted).toBe(true)
+    expect(result.effects.packageFilesRestored).toBe(true)
+    expect(result.effects.rollbackExecuted).toBe(true)
     expect(result.effects.packageFilesWritten).toBe(false)
     expect(result.effects.settingsWritten).toBe(false)
     expect(result.effects.lockfileWritten).toBe(false)
-    expectNoRealTransactionEffects(result, true)
+    expectNoRealTransactionEffects(result, true, { rollbackRestoreAllowed: true })
     expectJsonGraphFrozen(result)
   })
 

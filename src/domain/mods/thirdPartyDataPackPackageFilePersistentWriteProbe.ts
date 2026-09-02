@@ -69,10 +69,17 @@ export interface ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile {
 }
 
 export interface ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile {
+  readonly packagePath?: string
   readonly path: string
   readonly sha256: Sha256Hash
   readonly bytes: number
   readonly backedUp: boolean
+}
+
+export interface ThirdPartyDataPackPackageFilePersistentRestoreProbeRestoredFile {
+  readonly path: string
+  readonly restoredFromBackup: boolean
+  readonly removedCreatedFile: boolean
 }
 
 export interface ThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths {
@@ -117,6 +124,52 @@ export interface ThirdPartyDataPackPackageFilePersistentWriteProbeStorageWriteRe
   readonly report: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageReport
 }
 
+export type ThirdPartyDataPackPackageFilePersistentRestoreProbeStatus =
+  | 'deferred'
+  | 'restored'
+  | 'blocked'
+  | 'failed'
+export type ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageStatus =
+  | 'restored'
+  | 'failed'
+export type ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageOperation =
+  | 'restore'
+
+export interface ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageEffects {
+  readonly officialRegistryPublished: false
+  readonly thirdPartyRegistryPublished: false
+  readonly runtimeEnablementAllowed: false
+  readonly electronIpcExposed: false
+  readonly packageFilesWritten: false
+  readonly packageBackupsWritten: false
+  readonly packageFilesRestored: boolean
+  readonly lockfileWritten: false
+  readonly lockfileRestored: false
+  readonly settingsWritten: false
+  readonly settingsRestored: false
+  readonly savesWritten: false
+  readonly cacheWritten: false
+  readonly transactionLogWritten: false
+  readonly recoveryLogRead: false
+  readonly recoveryLogReplayed: false
+  readonly rollbackExecuted: boolean
+  readonly diagnosticsWritten: false
+}
+
+export interface ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport {
+  readonly status: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageStatus
+  readonly operation: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageOperation
+  readonly storageKind: typeof THIRD_PARTY_DATA_PACK_PACKAGE_FILE_PERSISTENT_WRITE_PROBE_STORAGE_KIND
+  readonly reason: string
+  readonly restoredFiles: readonly ThirdPartyDataPackPackageFilePersistentRestoreProbeRestoredFile[]
+  readonly diagnostics: readonly ModDiagnostic[]
+  readonly effects: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageEffects
+}
+
+export interface ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageResult {
+  readonly report: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport
+}
+
 export interface ThirdPartyDataPackPackageFilePersistentWriteProbeFileSystem {
   mkdir: typeof mkdir
   open: typeof open
@@ -140,9 +193,13 @@ export interface ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter
 
 export interface ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter {
   write(
-    packageId: PackageId,
+    packagePath: string,
     files: readonly ThirdPartyDataPackPackageFilePersistentWriteProbePreparedFile[]
   ): Promise<ThirdPartyDataPackPackageFilePersistentWriteProbeStorageWriteResult>
+  restore?(
+    packageId: PackageId,
+    writtenFiles: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[]
+  ): Promise<ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageResult>
 }
 
 export interface ThirdPartyDataPackPackageFilePersistentWriteProbeEffectSummary {
@@ -197,12 +254,63 @@ export interface ThirdPartyDataPackPackageFilePersistentWriteProbeResult {
   readonly effects: ThirdPartyDataPackPackageFilePersistentWriteProbeEffectSummary
 }
 
+export interface ThirdPartyDataPackPackageFilePersistentRestoreProbeEffectSummary {
+  readonly officialRegistryPublished: false
+  readonly thirdPartyRegistryPublished: false
+  readonly liveRegistryMutated: false
+  readonly liveRegistrySwapped: false
+  readonly previousRegistryRestored: false
+  readonly candidateRegistryExposed: false
+  readonly runtimeEnablementAllowed: false
+  readonly electronIpcExposed: false
+  readonly packageFilesWritten: false
+  readonly packageBackupsWritten: false
+  readonly packageFilesRestored: boolean
+  readonly lockfileWritten: false
+  readonly lockfileRestored: false
+  readonly settingsWritten: false
+  readonly settingsRestored: false
+  readonly savesWritten: false
+  readonly cacheWritten: false
+  readonly transactionLogWritten: false
+  readonly recoveryLogRead: false
+  readonly recoveryLogReplayed: false
+  readonly rollbackExecuted: boolean
+  readonly diagnosticsWritten: false
+}
+
+export interface ThirdPartyDataPackPackageFilePersistentRestoreProbeResult {
+  readonly status: ThirdPartyDataPackPackageFilePersistentRestoreProbeStatus
+  readonly reason: string
+  readonly diagnostics: readonly ModDiagnostic[]
+  readonly targetPackageId: PackageId
+  readonly packageFileRestoreProbe: 'deferred' | 'restored'
+  readonly restoreProbeAllowed: boolean
+  readonly persistentRestoreExecuted: boolean
+  readonly storageKind?: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport['storageKind']
+  readonly storageStatus?: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport['status']
+  readonly storageOperation?: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport['operation']
+  readonly storageReason?: string
+  readonly restoredFileCount: number
+  readonly backupRestoredFileCount: number
+  readonly removedCreatedFileCount: number
+  readonly restoredFiles: readonly ThirdPartyDataPackPackageFilePersistentRestoreProbeRestoredFile[]
+  readonly effects: ThirdPartyDataPackPackageFilePersistentRestoreProbeEffectSummary
+}
+
 export interface RunThirdPartyDataPackPackageFilePersistentWriteProbeOptions {
   readonly envelope: ThirdPartyDataPackPackageFileStagingHostEnvelope
   readonly draft: ThirdPartyDataPackLockfileDraft
   readonly files: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[]
   readonly storage: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter
   readonly allowPersistentWriteProbe?: boolean
+}
+
+export interface RunThirdPartyDataPackPackageFilePersistentRestoreProbeOptions {
+  readonly packageId: PackageId
+  readonly writtenFiles: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[]
+  readonly storage: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter
+  readonly allowPersistentRestoreProbe?: boolean
 }
 
 export interface ThirdPartyDataPackPackageFilePersistentWriteProbePreparedFile {
@@ -287,6 +395,62 @@ const storageEffects = (
   recoveryLogRead: false,
   recoveryLogReplayed: false,
   rollbackExecuted: false,
+  diagnosticsWritten: false
+})
+
+const restoreEffects = (
+  options: {
+    readonly packageFilesRestored?: boolean
+    readonly rollbackExecuted?: boolean
+  } = {}
+): ThirdPartyDataPackPackageFilePersistentRestoreProbeEffectSummary => ({
+  officialRegistryPublished: false,
+  thirdPartyRegistryPublished: false,
+  liveRegistryMutated: false,
+  liveRegistrySwapped: false,
+  previousRegistryRestored: false,
+  candidateRegistryExposed: false,
+  runtimeEnablementAllowed: false,
+  electronIpcExposed: false,
+  packageFilesWritten: false,
+  packageBackupsWritten: false,
+  packageFilesRestored: options.packageFilesRestored ?? false,
+  lockfileWritten: false,
+  lockfileRestored: false,
+  settingsWritten: false,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: options.rollbackExecuted ?? false,
+  diagnosticsWritten: false
+})
+
+const restoreStorageEffects = (
+  options: {
+    readonly packageFilesRestored?: boolean
+    readonly rollbackExecuted?: boolean
+  } = {}
+): ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageEffects => ({
+  officialRegistryPublished: false,
+  thirdPartyRegistryPublished: false,
+  runtimeEnablementAllowed: false,
+  electronIpcExposed: false,
+  packageFilesWritten: false,
+  packageBackupsWritten: false,
+  packageFilesRestored: options.packageFilesRestored ?? false,
+  lockfileWritten: false,
+  lockfileRestored: false,
+  settingsWritten: false,
+  settingsRestored: false,
+  savesWritten: false,
+  cacheWritten: false,
+  transactionLogWritten: false,
+  recoveryLogRead: false,
+  recoveryLogReplayed: false,
+  rollbackExecuted: options.rollbackExecuted ?? false,
   diagnosticsWritten: false
 })
 
@@ -477,6 +641,13 @@ const sourceSummaryConsistent = (
     )
 }
 
+const packageStoragePathForDraft = (
+  packageDraft: ThirdPartyDataPackLockfileDraftPackage | undefined
+): string | undefined => {
+  if (!packageDraft) return undefined
+  return safeNormalizePackagePath(packageDraft.source.candidatePath)
+}
+
 const parsePureJson = (contents: string): JsonValue | undefined => {
   try {
     const value = JSON.parse(contents) as JsonValue
@@ -559,8 +730,10 @@ const validatePayload = (
 }
 
 const storageEffectsContained = (
-  report: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageReport
-): boolean => report.operation === 'write'
+  report: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageReport,
+  packagePath: string | undefined
+): boolean => packagePath !== undefined
+  && report.operation === 'write'
   && report.status === 'written'
   && report.effects.packageFilesWritten === true
   && report.effects.packageFilesRestored === false
@@ -573,6 +746,7 @@ const storageEffectsContained = (
   && report.effects.recoveryLogReplayed === false
   && report.effects.rollbackExecuted === false
   && report.effects.diagnosticsWritten === false
+  && report.writtenFiles.every(file => file.packagePath === packagePath)
 
 const buildWriteChecks = (
   envelope: ThirdPartyDataPackPackageFileStagingHostEnvelope,
@@ -582,6 +756,7 @@ const buildWriteChecks = (
   storageReport?: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageReport
 ): readonly ThirdPartyDataPackPackageFilePersistentWriteProbeCheck[] => {
   const packageDraft = packageForEnvelope(draft, envelope)
+  const packagePath = packageStoragePathForDraft(packageDraft)
   return Object.freeze([
     check(
       'install-staging-envelope-confirmed',
@@ -654,8 +829,8 @@ const buildWriteChecks = (
       'storage-write-contained',
       storageReport === undefined
         ? 'skipped'
-        : storageEffectsContained(storageReport) ? 'satisfied' : 'blocked',
-      'The storage write report must only mark package file and package backup writes.'
+        : storageEffectsContained(storageReport, packagePath) ? 'satisfied' : 'blocked',
+      'The storage write report must only mark package file and package backup writes under the lockfile candidate path.'
     )
   ])
 }
@@ -685,6 +860,17 @@ const diagnosticsForStorageFailure = (): readonly ModDiagnostic[] => [
   })
 ]
 
+const diagnosticsForRestoreFailure = (): readonly ModDiagnostic[] => [
+  createDiagnostic('LIFECYCLE-TRANSACTION-001', {
+    stage: 'third-party.package-file-restore-probe.storage',
+    severity: 'error',
+    details: {
+      reason: 'package file storage adapter did not complete a contained backup restore'
+    },
+    recovery: 'restore-backup'
+  })
+]
+
 const createStorageReport = (
   options: {
     readonly status: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageStatus
@@ -704,6 +890,29 @@ const createStorageReport = (
     effects: storageEffects({
       packageFilesWritten: options.status === 'written' && writtenFiles.length > 0,
       packageBackupsWritten: writtenFiles.some(file => file.backedUp)
+    })
+  })
+}
+
+const createRestoreStorageReport = (
+  options: {
+    readonly status: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageStatus
+    readonly reason: string
+    readonly restoredFiles?: readonly ThirdPartyDataPackPackageFilePersistentRestoreProbeRestoredFile[]
+    readonly diagnostics?: readonly ModDiagnostic[]
+  }
+): ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport => {
+  const restoredFiles = Object.freeze([...(options.restoredFiles ?? [])])
+  return deepFreezeObjectGraph({
+    status: options.status,
+    operation: 'restore',
+    storageKind: THIRD_PARTY_DATA_PACK_PACKAGE_FILE_PERSISTENT_WRITE_PROBE_STORAGE_KIND,
+    reason: options.reason,
+    restoredFiles,
+    diagnostics: cloneDiagnostics(options.diagnostics ?? []),
+    effects: restoreStorageEffects({
+      packageFilesRestored: options.status === 'restored' && restoredFiles.length > 0,
+      rollbackExecuted: options.status === 'restored' && restoredFiles.length > 0
     })
   })
 }
@@ -732,13 +941,13 @@ const isTemporaryName = (name: string): boolean => name.startsWith(TEMP_FILE_PRE
 
 export const resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths = (
   programDirectoryPath: string,
-  packageId: PackageId
+  packagePath: string
 ): ThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths => {
   if (!path.isAbsolute(programDirectoryPath)) {
     throw new Error('programDirectoryPath must be absolute')
   }
 
-  const packageDirectoryName = normalizePackagePath(packageId)
+  const packageDirectoryName = normalizePackagePath(packagePath)
   const resolvedProgramDirectoryPath = path.resolve(programDirectoryPath)
   const modsDirectoryPath = path.join(
     resolvedProgramDirectoryPath,
@@ -855,6 +1064,7 @@ const atomicWriteUtf8File = async(
 
 const writePackageFiles = async(
   paths: ThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths,
+  packagePath: string,
   files: readonly ThirdPartyDataPackPackageFilePersistentWriteProbePreparedFile[],
   options?: ThirdPartyDataPackPackageFilePersistentWriteProbeFileOptions
 ): Promise<readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[]> => {
@@ -873,6 +1083,7 @@ const writePackageFiles = async(
     }
     await atomicWriteUtf8File(targetPath, file.contents, file.sha256, options)
     writtenFiles.push({
+      packagePath,
       path: file.path,
       sha256: file.sha256,
       bytes: file.bytes,
@@ -882,22 +1093,76 @@ const writePackageFiles = async(
   return Object.freeze(writtenFiles)
 }
 
+const restorePackageFiles = async(
+  paths: ThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths,
+  writtenFiles: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[],
+  options?: ThirdPartyDataPackPackageFilePersistentWriteProbeFileOptions
+): Promise<readonly ThirdPartyDataPackPackageFilePersistentRestoreProbeRestoredFile[]> => {
+  const fs = fileSystem(options)
+  const restoredFiles: ThirdPartyDataPackPackageFilePersistentRestoreProbeRestoredFile[] = []
+  for (const file of writtenFiles) {
+    const targetPath = targetPathFor(paths, file.path)
+    if (file.backedUp) {
+      const backupPath = backupPathFor(paths, file.path)
+      const backupContents = await fs.readFile(backupPath, 'utf8')
+      await atomicWriteUtf8File(targetPath, backupContents, sha256Utf8(backupContents), options)
+      restoredFiles.push({
+        path: file.path,
+        restoredFromBackup: true,
+        removedCreatedFile: false
+      })
+      continue
+    }
+
+    try {
+      await fs.unlink(targetPath)
+    } catch (error) {
+      if (!isNotFound(error)) throw error
+    }
+    restoredFiles.push({
+      path: file.path,
+      restoredFromBackup: false,
+      removedCreatedFile: true
+    })
+  }
+  return Object.freeze(restoredFiles)
+}
+
+const restorePackagePathFromWrittenFiles = (
+  packageId: PackageId,
+  writtenFiles: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[]
+): string => {
+  const rawPackagePaths = writtenFiles.map(file => file.packagePath)
+  if (rawPackagePaths.every(packagePath => packagePath === undefined)) return packageId
+  if (rawPackagePaths.some(packagePath => packagePath === undefined)) {
+    throw new Error('package file restore probe written-file evidence mixed legacy and candidate-root package paths')
+  }
+
+  const packagePaths = rawPackagePaths.map(packagePath => normalizePackagePath(packagePath as string))
+  const uniquePackagePaths = new Set(packagePaths)
+  if (uniquePackagePaths.size !== 1) {
+    throw new Error('package file restore probe written-file evidence contains multiple package roots')
+  }
+  return packagePaths[0]!
+}
+
 export const createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter = (
   options: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapterOptions
 ): ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter => {
   const resolvePaths = async(
-    packageId: PackageId
+    packagePath: string
   ): Promise<ThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths> =>
     resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(
       await resolveProgramDirectoryPath(options.programDirectoryPath),
-      packageId
+      packagePath
     )
 
   return {
-    async write(packageId, files) {
+    async write(packagePath, files) {
       try {
-        const paths = await resolvePaths(packageId)
-        const writtenFiles = await writePackageFiles(paths, files, options.fileOptions)
+        const normalizedPackagePath = normalizePackagePath(packagePath)
+        const paths = await resolvePaths(normalizedPackagePath)
+        const writtenFiles = await writePackageFiles(paths, normalizedPackagePath, files, options.fileOptions)
         return deepFreezeObjectGraph({
           report: createStorageReport({
             status: 'written',
@@ -911,6 +1176,28 @@ export const createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapt
             status: 'failed',
             reason: 'program-directory mods package file write probe failed before reporting committed package state',
             diagnostics: diagnosticsForStorageFailure()
+          })
+        })
+      }
+    },
+    async restore(packageId, writtenFiles) {
+      try {
+        const packagePath = restorePackagePathFromWrittenFiles(packageId, writtenFiles)
+        const paths = await resolvePaths(packagePath)
+        const restoredFiles = await restorePackageFiles(paths, writtenFiles, options.fileOptions)
+        return deepFreezeObjectGraph({
+          report: createRestoreStorageReport({
+            status: 'restored',
+            reason: 'program-directory mods package files were restored from isolated package backups',
+            restoredFiles
+          })
+        })
+      } catch {
+        return deepFreezeObjectGraph({
+          report: createRestoreStorageReport({
+            status: 'failed',
+            reason: 'program-directory mods package file backup restore failed before reporting settled package state',
+            diagnostics: diagnosticsForRestoreFailure()
           })
         })
       }
@@ -974,6 +1261,7 @@ export const runThirdPartyDataPackPackageFilePersistentWriteProbe = async(
 ): Promise<ThirdPartyDataPackPackageFilePersistentWriteProbeResult> => {
   const envelope = options.envelope
   const packageDraft = packageForEnvelope(options.draft, envelope)
+  const packagePath = packageStoragePathForDraft(packageDraft)
   const payload = validatePayload(packageDraft, options.files)
   const preWriteChecks = buildWriteChecks(
     envelope,
@@ -1004,7 +1292,7 @@ export const runThirdPartyDataPackPackageFilePersistentWriteProbe = async(
 
   let storageReport: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageReport
   try {
-    storageReport = (await options.storage.write(envelope.targetPackageId, payload.files)).report
+    storageReport = (await options.storage.write(packagePath ?? envelope.targetPackageId, payload.files)).report
   } catch {
     return baseResult(
       'failed',
@@ -1040,6 +1328,113 @@ export const runThirdPartyDataPackPackageFilePersistentWriteProbe = async(
     {
       storageReport,
       packageFilesWritten: true
+    }
+  )
+}
+
+const freezeRestoreResult = (
+  result: ThirdPartyDataPackPackageFilePersistentRestoreProbeResult
+): ThirdPartyDataPackPackageFilePersistentRestoreProbeResult => deepFreezeObjectGraph(result)
+
+const restoreResult = (
+  status: ThirdPartyDataPackPackageFilePersistentRestoreProbeStatus,
+  reason: string,
+  options: {
+    readonly packageId: PackageId
+    readonly restoreProbeAllowed: boolean
+    readonly storageReport?: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport
+    readonly diagnostics?: readonly ModDiagnostic[]
+  }
+): ThirdPartyDataPackPackageFilePersistentRestoreProbeResult => {
+  const restoredFiles = Object.freeze([...(options.storageReport?.restoredFiles ?? [])])
+  const persistentRestoreExecuted = status === 'restored'
+  return freezeRestoreResult({
+    status,
+    reason,
+    diagnostics: cloneDiagnostics(options.diagnostics ?? options.storageReport?.diagnostics ?? []),
+    targetPackageId: options.packageId,
+    packageFileRestoreProbe: persistentRestoreExecuted ? 'restored' : 'deferred',
+    restoreProbeAllowed: options.restoreProbeAllowed,
+    persistentRestoreExecuted,
+    storageKind: options.storageReport?.storageKind,
+    storageStatus: options.storageReport?.status,
+    storageOperation: options.storageReport?.operation,
+    storageReason: options.storageReport?.reason,
+    restoredFileCount: restoredFiles.length,
+    backupRestoredFileCount: restoredFiles.filter(file => file.restoredFromBackup).length,
+    removedCreatedFileCount: restoredFiles.filter(file => file.removedCreatedFile).length,
+    restoredFiles,
+    effects: restoreEffects({
+      packageFilesRestored: persistentRestoreExecuted && restoredFiles.length > 0,
+      rollbackExecuted: persistentRestoreExecuted && restoredFiles.length > 0
+    })
+  })
+}
+
+export const runThirdPartyDataPackPackageFilePersistentRestoreProbe = async(
+  options: RunThirdPartyDataPackPackageFilePersistentRestoreProbeOptions
+): Promise<ThirdPartyDataPackPackageFilePersistentRestoreProbeResult> => {
+  if (options.allowPersistentRestoreProbe !== true) {
+    return restoreResult(
+      'deferred',
+      'package file restore probe is deferred until an isolated persistent restore probe is explicitly authorized',
+      {
+        packageId: options.packageId,
+        restoreProbeAllowed: false
+      }
+    )
+  }
+
+  if (options.storage.restore === undefined || options.writtenFiles.length === 0) {
+    return restoreResult(
+      'blocked',
+      'package file restore probe requires written file evidence and a restore-capable storage adapter',
+      {
+        packageId: options.packageId,
+        restoreProbeAllowed: true,
+        diagnostics: diagnosticsForRestoreFailure()
+      }
+    )
+  }
+
+  let storageReport: ThirdPartyDataPackPackageFilePersistentRestoreProbeStorageReport
+  try {
+    storageReport = (await options.storage.restore(options.packageId, options.writtenFiles)).report
+  } catch {
+    return restoreResult(
+      'failed',
+      'package file storage adapter failed before returning a restore report',
+      {
+        packageId: options.packageId,
+        restoreProbeAllowed: true,
+        diagnostics: diagnosticsForRestoreFailure()
+      }
+    )
+  }
+
+  if (storageReport.status !== 'restored') {
+    return restoreResult(
+      'failed',
+      'package file storage adapter did not complete a contained backup restore',
+      {
+        packageId: options.packageId,
+        restoreProbeAllowed: true,
+        storageReport,
+        diagnostics: [
+          ...cloneDiagnostics(storageReport.diagnostics),
+          ...diagnosticsForRestoreFailure()
+        ]
+      }
+    )
+  }
+
+  return restoreResult(
+    'restored',
+    'package file restore probe completed an isolated backup restore',
+    {
+      packageId: options.packageId,
+      restoreProbeAllowed: true,
+      storageReport
     }
   )
 }

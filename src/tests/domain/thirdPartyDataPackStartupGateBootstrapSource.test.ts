@@ -11,6 +11,9 @@ import {
 import type { ThirdPartyDataPackAppBootstrapWiringPreflightResult } from '@/domain/mods/thirdPartyDataPackAppBootstrapWiringPreflight'
 import type { ThirdPartyDataPackAppFactoryBindingSourceResult } from '@/domain/mods/thirdPartyDataPackAppFactoryBindingSource'
 import type {
+  ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+} from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline'
+import type {
   ThirdPartyDataPackStartupGatePersistentStateSourceResult
 } from '@/domain/mods/thirdPartyDataPackStartupGatePersistentStateSource'
 
@@ -36,6 +39,13 @@ const persistentStateProofs = {
   modLockStateMatched: true,
   liveRegistryMatched: true,
   saveCacheIsolated: true
+} as const
+
+const candidateIdentity = {
+  formatVersion: 1,
+  contentHash: testHash('a'),
+  snapshotHash: testHash('b'),
+  candidateHash: testHash('c')
 } as const
 
 const createAppBootstrapWiringSource = (
@@ -168,6 +178,97 @@ const createAppFactoryBindingSource = (
   ...overrides
 } as unknown as ThirdPartyDataPackAppFactoryBindingSourceResult)
 
+const createAppStartupHostConnectionSource = (
+  overrides: Partial<ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult> = {}
+): ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult => ({
+  kind: 'third-party-runtime-publication-commit-app-startup-host-connection-pipeline',
+  mode: 'default-disabled-runtime-publication-commit-app-startup-host-connection-pipeline',
+  platform: 'electron',
+  status: 'accepted',
+  reason: 'app startup host connection accepted a Web/Electron path-free host acknowledgement after app-startup readiness',
+  readOnly: true,
+  runtimeOnly: true,
+  persistentWrite: false,
+  enabled: true,
+  runtimePublicationCommitAppStartupReadinessSourceCalled: true,
+  appStartupHostConnectionCalled: true,
+  appStartupReadinessStatus: 'ready',
+  appStartupHostStatus: 'accepted',
+  appStartupReadinessAllowed: true,
+  appStartupHostWiringAllowed: true,
+  appBootstrapContinuationAllowed: true,
+  normalStartupContinuationAllowed: true,
+  commandContinuationAllowed: true,
+  uiIpcResultContinuationAllowed: true,
+  requestedCommandId: 'install',
+  targetPackageId: packageId,
+  selectedPackageIds: [packageId],
+  blockedPackageIds: [],
+  loadOrder: [packageId],
+  registryCount: 55,
+  entryCount: 4243,
+  packageCount: 1,
+  candidateIdentity,
+  candidateHash: candidateIdentity.candidateHash,
+  lockfileHash: testHash('d'),
+  checks: [],
+  diagnostics: [],
+  effects: {
+    runtimePublicationCommitAppStartupHostConnectionPipelineCalled: true,
+    runtimePublicationCommitAppStartupReadinessPipelineCalled: true,
+    injectedAppStartupHostCalled: true,
+    appStartupHostCalled: true,
+    appStartupHostAccepted: true,
+    runtimePublicationCommitAcknowledged: true,
+    postCommitVerificationAcknowledged: true,
+    liveRegistrySwapAcknowledged: true,
+    appFactoryBindingAcknowledged: true,
+    normalStartupHandoffAcknowledged: true,
+    appStartupReadinessAcknowledged: true,
+    appStartupHostWiringAllowed: true,
+    appBootstrapContinuationAllowed: true,
+    normalStartupContinuationAllowed: true,
+    commandContinuationAllowed: true,
+    uiIpcResultContinuationAllowed: true,
+    realAppStartupHostCalled: false,
+    realRuntimePublicationCommitCalled: false,
+    realNormalStartupHostCalled: false,
+    officialRegistryPublished: false,
+    thirdPartyRegistryPublished: true,
+    liveRegistryMutated: true,
+    liveRegistrySwapped: true,
+    candidateRegistryExposed: false,
+    runtimeEnablementAllowed: true,
+    launcherAppFactoryCalled: false,
+    gameAppFactoryCalled: false,
+    launcherAppCreated: false,
+    gameAppCreated: false,
+    piniaCreated: false,
+    routerMounted: false,
+    saveRead: false,
+    uiIpcResponseDelivered: false,
+    commandDispatched: false,
+    transactionCommitted: false,
+    runtimePublicationCommitted: false,
+    postCommitVerificationExecuted: false,
+    packageFilesWritten: false,
+    packageBackupsWritten: false,
+    packageFilesRestored: false,
+    lockfileWritten: false,
+    lockfileRestored: false,
+    settingsWritten: false,
+    settingsRestored: false,
+    savesWritten: false,
+    cacheWritten: false,
+    transactionLogWritten: false,
+    recoveryLogRead: false,
+    recoveryLogReplayed: false,
+    rollbackExecuted: false,
+    diagnosticsWritten: false
+  },
+  ...overrides
+} as unknown as ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult)
+
 const expectJsonGraphFrozen = (value: unknown): void => {
   if (value && typeof value === 'object') {
     expect(Object.isFrozen(value)).toBe(true)
@@ -177,7 +278,8 @@ const expectJsonGraphFrozen = (value: unknown): void => {
 
 const expectNoRuntimeOrWriteEffects = (
   result: ThirdPartyDataPackStartupGateBootstrapSourceResult,
-  continuationAllowed: boolean
+  continuationAllowed: boolean,
+  runtimePublicationAllowed = false
 ): void => {
   expect(result.effects.appBootstrapContinuationAllowed).toBe(continuationAllowed)
   const {
@@ -187,9 +289,17 @@ const expectNoRuntimeOrWriteEffects = (
     startupStateSnapshotAccepted: _startupStateSnapshotAccepted,
     appFactoryBindingSourceCalled: _appFactoryBindingSourceCalled,
     appFactoryBindingContinuationAllowed: _appFactoryBindingContinuationAllowed,
+    appStartupHostConnectionSourceCalled: _appStartupHostConnectionSourceCalled,
+    appStartupHostConnectionAccepted: _appStartupHostConnectionAccepted,
     appBootstrapContinuationAllowed: _appBootstrapContinuationAllowed,
+    thirdPartyRegistryPublished,
+    liveRegistrySwapped,
+    runtimeEnablementAllowed,
     ...realEffects
   } = result.effects
+  expect(thirdPartyRegistryPublished).toBe(runtimePublicationAllowed)
+  expect(liveRegistrySwapped).toBe(runtimePublicationAllowed)
+  expect(runtimeEnablementAllowed).toBe(runtimePublicationAllowed)
   expect(Object.values(realEffects).every(value => value === false)).toBe(true)
 }
 
@@ -298,6 +408,122 @@ describe('third-party startup gate bootstrap source', () => {
     expect('gameAppFactory' in result).toBe(false)
     expectNoRuntimeOrWriteEffects(result, true)
     expectJsonGraphFrozen(result)
+  })
+
+  it('accepts a path-free app-startup host connection source before application bootstrap', async() => {
+    const readRuntimePublicationCommitAppStartupHostConnection = vi.fn(async() =>
+      createAppStartupHostConnectionSource())
+    const readStartupGatePersistentStateSource = vi.fn()
+    const readAppFactoryBindingSource = vi.fn()
+    const bootstrapThirdPartyStartupGate = createThirdPartyDataPackStartupGateBootstrapSource({
+      enabled: true,
+      readRuntimePublicationCommitAppStartupHostConnection,
+      readStartupGatePersistentStateSource,
+      readAppFactoryBindingSource
+    })
+
+    const result = await bootstrapThirdPartyStartupGate()
+
+    expect(result.status).toBe('ready')
+    expect(result.enabled).toBe(true)
+    expect(result.sourceCalled).toBe(true)
+    expect(readRuntimePublicationCommitAppStartupHostConnection).toHaveBeenCalledOnce()
+    expect(readStartupGatePersistentStateSource).not.toHaveBeenCalled()
+    expect(readAppFactoryBindingSource).not.toHaveBeenCalled()
+    expect(result.appStartupHostConnectionSourceStatus).toBe('accepted')
+    expect(result.startupPersistentStateSourceStatus).toBeUndefined()
+    expect(result.appFactoryBindingSourceStatus).toBeUndefined()
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([packageId])
+    expect(result.blockedPackageIds).toEqual([])
+    expect(result.loadOrder).toEqual([packageId])
+    expect(result.registryCount).toBe(55)
+    expect(result.entryCount).toBe(4243)
+    expect(result.lockfileHash).toBe(testHash('d'))
+    expect(result.effects.appStartupHostConnectionSourceCalled).toBe(true)
+    expect(result.effects.appStartupHostConnectionAccepted).toBe(true)
+    expect(result.effects.appBootstrapContinuationAllowed).toBe(true)
+    expect('runtimePublicationCommitAppStartupHostConnection' in result).toBe(false)
+    expect('appStartupHost' in result).toBe(false)
+    expect('launcherAppFactory' in result).toBe(false)
+    expect('gameAppFactory' in result).toBe(false)
+    expectNoRuntimeOrWriteEffects(result, true, true)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('carries real runtime publication commit from app-startup host connection without write effects', async() => {
+    const readRuntimePublicationCommitAppStartupHostConnection = vi.fn(async() =>
+      createAppStartupHostConnectionSource({
+        effects: {
+          ...createAppStartupHostConnectionSource().effects,
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true
+        }
+      }))
+    const bootstrapThirdPartyStartupGate = createThirdPartyDataPackStartupGateBootstrapSource({
+      enabled: true,
+      readRuntimePublicationCommitAppStartupHostConnection
+    })
+
+    const result = await bootstrapThirdPartyStartupGate()
+
+    expect(result.status).toBe('ready')
+    expect(result.effects.appStartupHostConnectionAccepted).toBe(true)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.runtimePublicationCommitted).toBe(true)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(true)
+    expect(result.effects.transactionCommitted).toBe(false)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expect('appStartupHost' in result).toBe(false)
+    expect('launcherAppFactory' in result).toBe(false)
+    expect('gameAppFactory' in result).toBe(false)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('blocks unsafe app-startup host connection sources before app state creation', async() => {
+    const bootstrapThirdPartyStartupGate = createThirdPartyDataPackStartupGateBootstrapSource({
+      enabled: true,
+      readRuntimePublicationCommitAppStartupHostConnection: async() => createAppStartupHostConnectionSource({
+        programDirectoryPath: 'C:/Users/LENOVO/taoyuan/userdata',
+        effects: {
+          ...createAppStartupHostConnectionSource().effects,
+          gameAppCreated: true
+        }
+      } as unknown as Partial<ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult>)
+    })
+
+    await expect(bootstrapThirdPartyStartupGate()).rejects.toBeInstanceOf(
+      ThirdPartyDataPackStartupGateBootstrapBlockedError
+    )
+
+    try {
+      await bootstrapThirdPartyStartupGate()
+    } catch (error) {
+      expect(error).toBeInstanceOf(ThirdPartyDataPackStartupGateBootstrapBlockedError)
+      const result = (error as ThirdPartyDataPackStartupGateBootstrapBlockedError).result
+      expect(result.status).toBe('blocked')
+      expect(result.appBootstrapContinuationAllowed).toBe(false)
+      expect(result.appStartupHostConnectionSourceStatus).toBe('accepted')
+      expect(result.diagnostics).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          stage: 'third-party.startup-gate-bootstrap-source.unsafe-app-startup-host-connection-source',
+          packageId
+        })
+      ]))
+      const serialized = JSON.stringify(result)
+      expect(serialized).not.toContain('C:/Users')
+      expect(serialized).not.toContain('LENOVO')
+      expect(serialized).not.toContain('programDirectoryPath')
+      expect('appStartupHost' in result).toBe(false)
+      expect('gameApp' in result).toBe(false)
+      expectNoRuntimeOrWriteEffects(result, false)
+      expectJsonGraphFrozen(result)
+    }
   })
 
   it('blocks deferred or failed startup gate source results without leaking host paths', async() => {

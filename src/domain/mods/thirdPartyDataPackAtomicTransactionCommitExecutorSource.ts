@@ -5,7 +5,8 @@ import type {
   ThirdPartyCandidateIdentitySummary
 } from './thirdPartyCandidateRegistrySnapshot'
 import type {
-  ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult
+  ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult,
+  ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
 } from './thirdPartyDataPackAtomicTransactionCommitExecutorAdapter'
 import type {
   ThirdPartyDataPackAtomicTransactionCommitOutcomeKind,
@@ -91,7 +92,7 @@ export interface ThirdPartyDataPackAtomicTransactionCommitExecutorSourceEffectSu
   readonly failedOutcomeReceived: boolean
   readonly retryOutcomeReceived: boolean
   readonly rollbackOutcomeReceived: boolean
-  readonly realAtomicCommitExecutorCalled: false
+  readonly realAtomicCommitExecutorCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -140,7 +141,8 @@ export interface ThirdPartyDataPackAtomicTransactionCommitExecutorSourceResult {
   readonly atomicTransactionCommitExecutorHostStatus?: ThirdPartyDataPackAtomicTransactionCommitExecutorHostStatus
   readonly sourcePreflightStatus?: ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult['sourcePreflightStatus']
   readonly outcomeContractStatus?: ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult['outcomeContractStatus']
-  readonly injectedExecutorHostMode?: 'injected-test-only'
+  readonly atomicTransactionCommitExecutorHostMode?: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
+  readonly injectedExecutorHostMode?: ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
   readonly commitOutcomeKind?: ThirdPartyDataPackAtomicTransactionCommitOutcomeKind
   readonly requestedCommandId?: 'install'
   readonly targetPackageId?: PackageId
@@ -194,6 +196,11 @@ const injectedEffectFields = new Set<string>([
   'failedOutcomeReceived',
   'retryOutcomeReceived',
   'rollbackOutcomeReceived'
+])
+
+const safeExecutorHostModes = new Set<string>([
+  'injected-test-only',
+  'electron-main-visible-import'
 ])
 
 const forbiddenExecutorSourceFields = [
@@ -337,6 +344,16 @@ const hasOwnEnumerableField = (
     return true
   }
   return descriptor?.enumerable === true
+}
+
+const readSafeExecutorHostMode = (
+  source: object | undefined
+): ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode | undefined => {
+  const mode = readOwnStringField(source, 'atomicTransactionCommitExecutorHostMode')
+    ?? readOwnStringField(source, 'injectedExecutorHostMode')
+  return safeExecutorHostModes.has(mode ?? '')
+    ? mode as ThirdPartyDataPackAtomicTransactionCommitExecutorHostMode
+    : undefined
 }
 
 const safeDiagnostic = (
@@ -484,7 +501,7 @@ const effectGraphContainsNoPersistentWrite = (
 
 const noPersistentWriteDrift = (
   source: ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult
-): boolean => readOwnStringField(source, 'injectedExecutorHostMode') === 'injected-test-only'
+): boolean => readSafeExecutorHostMode(source) !== undefined
   && readOwnBooleanField(source, 'commandDispatchAllowed') === false
   && readOwnBooleanField(source, 'transactionCommitAllowed') === false
   && readOwnBooleanField(source, 'runtimePublicationCommitAllowed') === false
@@ -602,7 +619,8 @@ const effectSummary = (
     failedOutcomeReceived: readOwnBooleanField(effects, 'failedOutcomeReceived') ?? false,
     retryOutcomeReceived: readOwnBooleanField(effects, 'retryOutcomeReceived') ?? false,
     rollbackOutcomeReceived: readOwnBooleanField(effects, 'rollbackOutcomeReceived') ?? false,
-    realAtomicCommitExecutorCalled: false,
+    realAtomicCommitExecutorCalled:
+      readOwnBooleanField(hostEffects, 'atomicCommitExecutorHostCalled') ?? false,
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: false,
     liveRegistryMutated: false,
@@ -682,6 +700,7 @@ const baseResult = (
   const selectedPackageIds = clonePackageIds(readOwnDataField(options.source, 'selectedPackageIds'))
   const blockedPackageIds = clonePackageIds(readOwnDataField(options.source, 'blockedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(options.source, 'loadOrder'))
+  const executorHostMode = readSafeExecutorHostMode(options.source)
 
   return deepFreezeObjectGraph({
     kind: THIRD_PARTY_DATA_PACK_ATOMIC_TRANSACTION_COMMIT_EXECUTOR_SOURCE_KIND,
@@ -704,9 +723,8 @@ const baseResult = (
     outcomeContractStatus: readOwnStringField(options.source, 'outcomeContractStatus') as
       | ThirdPartyDataPackAtomicTransactionCommitExecutorAdapterResult['outcomeContractStatus']
       | undefined,
-    injectedExecutorHostMode: readOwnStringField(options.source, 'injectedExecutorHostMode') === 'injected-test-only'
-      ? 'injected-test-only' as const
-      : undefined,
+    atomicTransactionCommitExecutorHostMode: executorHostMode,
+    injectedExecutorHostMode: executorHostMode,
     commitOutcomeKind: readOutcomeKind(options.source),
     requestedCommandId: readOwnStringField(options.source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
     targetPackageId: readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined,
@@ -804,7 +822,7 @@ const evaluateAtomicTransactionCommitExecutorSource = async(
       if (safeAcceptedHostResult(source, hostResult)) {
         return baseResult({
           status: 'executed',
-          reason: 'third-party atomic transaction commit executor source accepted an injected path-free commit host result',
+          reason: 'third-party atomic transaction commit executor source accepted a path-free commit host result',
           enabled: true,
           sourceCalled: true,
           source,
@@ -848,7 +866,7 @@ const evaluateAtomicTransactionCommitExecutorSource = async(
 
     return baseResult({
       status: 'executed',
-      reason: 'third-party atomic transaction commit executor source accepted an injected-test-only path-free adapter outcome',
+      reason: 'third-party atomic transaction commit executor source accepted a path-free adapter outcome',
       enabled: true,
       sourceCalled: true,
       source,
