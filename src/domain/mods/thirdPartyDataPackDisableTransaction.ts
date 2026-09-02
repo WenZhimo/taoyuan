@@ -162,12 +162,16 @@ export const buildThirdPartyDataPackDisableState = (
       snapshotHash: officialSnapshot.snapshotHash
     }) as Sha256Hash
   }
-  const draftBody = {
-    ...cloneDraft(options.installedDraft),
+  const installedDraft = cloneDraft(options.installedDraft)
+  const draftBody: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: installedDraft.formatVersion,
+    kind: installedDraft.kind,
+    officialIdentity: installedDraft.officialIdentity,
     registryCount: officialSnapshot.registries.length,
     entryCount: officialEntryCount,
     selectedPackageIds: [],
     loadOrder: [],
+    packages: installedDraft.packages,
     candidateIdentity
   }
   const lockfileDraft = {

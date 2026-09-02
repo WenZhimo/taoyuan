@@ -710,40 +710,46 @@ const baseResult = (
   diagnostics: readonly ModDiagnostic[],
   commitStages: readonly ThirdPartyDataPackRuntimePublicationCommitStage[],
   includeRequiredAdapters: boolean
-): ThirdPartyDataPackRuntimePublicationCommitAdapterResult => freezeResult({
-  status,
-  requestedCommandId: recovery.selectedPackageIds.length > 0
-    ? 'install'
-    : recovery.blockedPackageIds.length > 0
-      ? 'disable'
-      : undefined,
-  runtimePublicationPreflightStatus: runtimePublicationPreflight.status,
-  transactionPreCommitPlanStatus: preCommitPlan.status,
-  liveRegistrySwapProtectionStatus: liveRegistrySwapProtection.status,
-  publicationRollbackRecoveryStatus: recovery.status,
-  reason,
-  diagnostics: cloneDiagnostics(diagnostics),
-  selectedPackageIds: clonePackageIds(recovery.selectedPackageIds),
-  blockedPackageIds: clonePackageIds(recovery.blockedPackageIds),
-  blockedCandidatePaths: cloneStringList(recovery.blockedCandidatePaths),
-  loadOrder: clonePackageIds(recovery.loadOrder),
-  registryCount: recovery.registryCount,
-  entryCount: recovery.entryCount,
-  packageCount: recovery.packageCount,
-  officialIdentity: cloneOfficialIdentity(recovery.officialIdentity),
-  candidateIdentity: cloneCandidateIdentity(recovery.candidateIdentity),
-  lockfileHash: recovery.lockfileHash,
-  runtimePublicationCommit: 'deferred',
-  commitAllowed: false,
-  publicationAllowed: false,
-  writeAllowed: false,
-  liveRegistryMutable: false,
-  rollbackExecutionAllowed: false,
-  commitChecks,
-  commitStages,
-  requiredCommitAdapters: includeRequiredAdapters ? requiredCommitAdapters() : Object.freeze([]),
-  effects: createEffectSummary()
-})
+): ThirdPartyDataPackRuntimePublicationCommitAdapterResult => {
+  const selectedPackageIds = clonePackageIds(recovery.selectedPackageIds)
+  const blockedPackageIds = clonePackageIds(recovery.blockedPackageIds)
+  const blockedCandidatePaths = cloneStringList(recovery.blockedCandidatePaths)
+  const loadOrder = clonePackageIds(recovery.loadOrder)
+  return freezeResult({
+    status,
+    requestedCommandId: selectedPackageIds.length > 0
+      ? 'install'
+      : blockedPackageIds.length > 0
+        ? 'disable'
+        : undefined,
+    runtimePublicationPreflightStatus: runtimePublicationPreflight.status,
+    transactionPreCommitPlanStatus: preCommitPlan.status,
+    liveRegistrySwapProtectionStatus: liveRegistrySwapProtection.status,
+    publicationRollbackRecoveryStatus: recovery.status,
+    reason,
+    diagnostics: cloneDiagnostics(diagnostics),
+    selectedPackageIds,
+    blockedPackageIds,
+    blockedCandidatePaths,
+    loadOrder,
+    registryCount: recovery.registryCount,
+    entryCount: recovery.entryCount,
+    packageCount: recovery.packageCount,
+    officialIdentity: cloneOfficialIdentity(recovery.officialIdentity),
+    candidateIdentity: cloneCandidateIdentity(recovery.candidateIdentity),
+    lockfileHash: recovery.lockfileHash,
+    runtimePublicationCommit: 'deferred',
+    commitAllowed: false,
+    publicationAllowed: false,
+    writeAllowed: false,
+    liveRegistryMutable: false,
+    rollbackExecutionAllowed: false,
+    commitChecks,
+    commitStages,
+    requiredCommitAdapters: includeRequiredAdapters ? requiredCommitAdapters() : Object.freeze([]),
+    effects: createEffectSummary()
+  })
+}
 
 export const buildThirdPartyDataPackRuntimePublicationCommitAdapter = (
   options: BuildThirdPartyDataPackRuntimePublicationCommitAdapterOptions

@@ -2904,11 +2904,13 @@ const runPackagedScenario = async (scenario, isolated) => {
   const exercisesInstallTransactionCommitFinalization =
     !!scenario.installTransactionCommitFinalization
   const exercisesVisibleImport = !!scenario.visibleImportRendererLiveRegistry
+  const exercisesVisibleDisable = !!scenario.visibleDisable
   const exercisesSettingsOrLockfileWrite =
     !!scenario.modLockWriteRead
     || !!scenario.settingsLockfileWriteRead
     || exercisesInstallTransactionCommitFinalization
     || exercisesVisibleImport
+    || exercisesVisibleDisable
   const exercisesPackageFileWrite =
     !!scenario.packageFileWriteRead
     || !!scenario.packageFileRestore
@@ -2918,7 +2920,9 @@ const runPackagedScenario = async (scenario, isolated) => {
   seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
   if (exercisesPersistentWrite) {
     assert(isolated, `${scenario.name}: persistent write/read scenario must be isolated`)
-    writeModLockProtectionSentinels(scenarioRoot, userDataPath)
+    if (!exercisesVisibleDisable) {
+      writeModLockProtectionSentinels(scenarioRoot, userDataPath)
+    }
   }
   const protectedBefore = exercisesPersistentWrite
     ? modLockProtectedFingerprints(scenarioRoot, userDataPath)
@@ -3046,6 +3050,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       scenario.settingsLockfileWriteRead
       || scenario.installTransactionCommitFinalization
       || scenario.visibleImportRendererLiveRegistry
+      || scenario.visibleDisable
     ) {
       const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
       assert(settingsJson.closeToTray === false,
@@ -3188,6 +3193,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     const omitted = scenario.settingsLockfileWriteRead
       || scenario.installTransactionCommitFinalization
       || scenario.visibleImportRendererLiveRegistry
+      || scenario.visibleDisable
       ? ['settings']
       : []
     assert(JSON.stringify(omitFingerprints(protectedAfter, omitted))

@@ -436,6 +436,7 @@ const packageIsKnown = (
       && value !== null
       && typeof value === 'object'
       && readOwnStringField(value, 'packageId') === packageId
+      && readOwnStringField(value, 'status') === 'selected'
     ) {
       return true
     }
