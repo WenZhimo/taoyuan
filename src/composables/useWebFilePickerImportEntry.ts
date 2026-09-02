@@ -4,6 +4,7 @@ import {
   ContentPackageSourceError,
   createDiscoveryFileSystemFromContentPackageSource,
   type ContentPackageSource,
+  type ContentPackageSourceDirectoryEntry,
   type ContentPackageSourceSafeReadPolicy
 } from '@/domain/mods/contentPackageSource'
 import type { RegistrySet } from '@/domain/mods/registry'
@@ -20,6 +21,10 @@ import {
   type WebIndexedDbImportPersistenceStore,
   type WebIndexedDbImportRecord
 } from '@/domain/mods/webIndexedDbImportPersistence'
+import {
+  createElectronReadonlyDirectorySource,
+  type ElectronReadonlyDirectoryHost
+} from '@/domain/mods/electronContentPackageSourceProbe'
 import type { PackageId } from '@/domain/mods/ids'
 import {
   buildThirdPartyDataPackModManagementReadModel,
@@ -645,6 +650,54 @@ const createRendererOrdinaryInstallTerminalContinuationHost = (
     }
   })
   return async envelope => await host.continueOrdinaryInstallTerminal(envelope)
+}
+
+const maybeRendererMethod = (
+  value: unknown,
+  fieldName: string
+): ((input: never) => Awaitable<unknown>) | undefined => {
+  const method = readOwnDataField(value, fieldName)
+  return typeof method === 'function'
+    ? method as (input: never) => Awaitable<unknown>
+    : undefined
+}
+
+const unwrapRendererElectronReadonlyDirectorySourceResult = async<T>(
+  valuePromise: Awaitable<unknown>
+): Promise<T> => {
+  const value = await valuePromise
+  if (value !== null && typeof value === 'object' && readOwnDataField(value, 'ok') === true) {
+    return readOwnDataField(value, 'value') as T
+  }
+  throw new Error('Electron read-only directory source operation failed')
+}
+
+const createRendererElectronReadonlyDirectorySource = (
+  runtimeHost: unknown
+): ContentPackageSource | null => {
+  const electronApi = readOwnDataField(runtimeHost, 'electronAPI')
+  const electronReadonlyDirectorySource = readOwnDataField(electronApi, 'electronReadonlyDirectorySource')
+  const getEntry = maybeRendererMethod(electronReadonlyDirectorySource, 'getEntry')
+  const readDirectory = maybeRendererMethod(electronReadonlyDirectorySource, 'readDirectory')
+  const readTextFile = maybeRendererMethod(electronReadonlyDirectorySource, 'readTextFile')
+  if (getEntry === undefined || readDirectory === undefined || readTextFile === undefined) return null
+
+  return createElectronReadonlyDirectorySource({
+    host: {
+      getEntry: sourcePath =>
+        unwrapRendererElectronReadonlyDirectorySourceResult<ContentPackageSourceDirectoryEntry | null>(
+          getEntry.call(electronReadonlyDirectorySource, sourcePath as never)
+        ),
+      readDirectory: sourcePath =>
+        unwrapRendererElectronReadonlyDirectorySourceResult<readonly ContentPackageSourceDirectoryEntry[]>(
+          readDirectory.call(electronReadonlyDirectorySource, sourcePath as never)
+        ),
+      readTextFile: sourcePath =>
+        unwrapRendererElectronReadonlyDirectorySourceResult<string>(
+          readTextFile.call(electronReadonlyDirectorySource, sourcePath as never)
+        )
+    } satisfies ElectronReadonlyDirectoryHost
+  })
 }
 
 const resolveRendererRuntimeHost = (): unknown =>
@@ -2256,6 +2309,43 @@ export const useWebFilePickerImportEntry = (
     }
   }
 
+  const restoreElectronInstalledSource = async(): Promise<WebFilePickerImportEntryResult> => {
+    await disposeLastSource()
+    lastRecord.value = null
+    lastError.value = null
+    lastEffects.value = emptyEffects
+    status.value = 'restoring'
+
+    let source: ContentPackageSource | null = null
+    try {
+      source = createRendererElectronReadonlyDirectorySource(resolveRendererRuntimeHost())
+      if (source === null) {
+        return setResult({
+          status: 'failed',
+          source: null,
+          record: null,
+          fileCount: 0,
+          effects: emptyEffects,
+          error: new ContentPackageSourceError(
+            'SOURCE_ENTRY_NOT_FOUND',
+            'Electron read-only installed data-pack source is not available'
+          )
+        })
+      }
+      const rootEntries = await source.readDirectory('')
+      return setResult({
+        status: 'restored',
+        source,
+        record: null,
+        fileCount: rootEntries.length,
+        effects: createEffects(true, false),
+        error: null
+      })
+    } catch (error) {
+      return await fail(error, 'Electron installed data-pack source restore failed', 0, source)
+    }
+  }
+
   const prepareInstallCommandPreflight = (
     options: WebFilePickerInstallCommandPreflightOptions
   ): WebFilePickerInstallCommandPreflightResult => {
@@ -3231,6 +3321,7 @@ export const useWebFilePickerImportEntry = (
     pickFiles,
     importFiles,
     restorePersistedImport,
+    restoreElectronInstalledSource,
     prepareInstallCommandPreflight,
     prepareInstallCommandPreflightFromSource,
     dispatchInstallCommandFromSource,

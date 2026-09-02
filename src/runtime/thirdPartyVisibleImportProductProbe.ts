@@ -36,6 +36,7 @@ export interface RunThirdPartyVisibleImportProductProbeOptions {
   readonly persistSource?: boolean
   readonly persistenceStore?: WebIndexedDbImportPersistenceStore | null
   readonly entrypoint?: VisibleImportProductProbeEntrypoint
+  readonly operation?: 'install' | 'enable'
 }
 
 export interface RunThirdPartyVisibleDisableProductProbeOptions {
@@ -115,8 +116,9 @@ export interface ThirdPartyVisibleImportProductProbeResult {
     readonly rollbackExecuted: false
     readonly diagnosticsWritten: false
   }
-  readonly operation?: 'install' | 'disable'
+  readonly operation?: 'install' | 'disable' | 'enable'
   readonly disableButtonClicked?: boolean
+  readonly enableButtonClicked?: boolean
   readonly disableTerminalStatus?: 'ready' | 'blocked' | null
   readonly disableTargetPackageId?: string | null
   readonly disableSelectedPackageCount?: number
@@ -163,8 +165,10 @@ interface VisibleImportProbeExecution {
   readonly pickStatus: string
   readonly panelStatusLabels: ThirdPartyVisibleImportPanelStatusLabels
   readonly entrypoint: VisibleImportProductProbeEntrypoint
+  readonly operation?: 'install' | 'enable'
   readonly mainMenuPanelOpened: boolean
   readonly panelImportButtonClicked: boolean
+  readonly enableButtonClicked?: boolean
   readonly defaultFileInputSelectorUsed: boolean
   readonly blockedReason?: string
 }
@@ -328,11 +332,19 @@ const hasReadyVisibleImportDispatch = (
   const dispatchResult = execution.dispatchResult
   const appStartupHostEffects =
     dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects
+  const isEnable = execution.operation === 'enable'
+  const interactionReady = isEnable
+    ? execution.enableButtonClicked === true && !execution.defaultFileInputSelectorUsed
+    : execution.panelImportButtonClicked && execution.defaultFileInputSelectorUsed
+  const panelLabelsReady = dispatchResult !== null && (
+    isEnable
+      ? hasReadyVisibleEnablePanelLabels(dispatchResult, execution.panelStatusLabels)
+      : hasReadyVisibleImportPanelLabels(dispatchResult, execution.panelStatusLabels)
+  )
   return dispatchResult !== null
     && execution.entrypoint === 'main-menu-panel'
     && execution.mainMenuPanelOpened
-    && execution.panelImportButtonClicked
-    && execution.defaultFileInputSelectorUsed
+    && interactionReady
     && (
       dispatchResult.transactionCommandDispatcherHostKind === 'renderer'
       || dispatchResult.transactionCommandDispatcherHostKind === 'web'
@@ -358,7 +370,7 @@ const hasReadyVisibleImportDispatch = (
     && dispatchResult.startupPersistentStateWritten
     && dispatchResult.runtimeEnablementAllowed
     && dispatchResult.uiIpcResponseDelivered
-    && hasReadyVisibleImportPanelLabels(dispatchResult, execution.panelStatusLabels)
+    && panelLabelsReady
     && appStartupHostEffects?.realNormalStartupHostCalled === true
     && appStartupHostEffects?.realAppStartupHostCalled === true
     && appStartupHostEffects?.gameAppCreated === true
@@ -461,6 +473,30 @@ const hasReadyVisibleImportPanelLabels = (
   && labels.targetPackage === dispatchResult.preflight?.targetPackageId
   && labels.dispatchStatus === 'dispatched'
   && labels.persistenceStatus === '已写入 IndexedDB'
+  && labels.hostAckStatus === expectedPanelHostAckStatus(dispatchResult)
+  && labels.installOutcomeStatus === '提交后校验已确认'
+  && labels.uiIpcDeliveryStatus === expectedPanelUiIpcDeliveryStatus(dispatchResult)
+  && labels.runtimePublicationStatus === '已确认'
+  && labels.liveRegistryStatus === '已切换'
+  && labels.appStartupStatus === '已接入已挂载应用'
+  && labels.startupPersistentStateStatus === '已写入'
+
+const expectedEnablePersistenceStatus = (
+  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult
+): string =>
+  dispatchResult.transactionCommandDispatcherHostKind === 'renderer'
+    ? '已从程序目录恢复'
+    : '已从 IndexedDB 恢复'
+
+const hasReadyVisibleEnablePanelLabels = (
+  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
+  labels: ThirdPartyVisibleImportPanelStatusLabels
+): boolean =>
+  labels.importStatus === '已恢复'
+  && labels.targetPackage === dispatchResult.preflight?.targetPackageId
+  && labels.preflightStatus === 'deferred'
+  && labels.dispatchStatus === 'dispatched'
+  && labels.persistenceStatus === expectedEnablePersistenceStatus(dispatchResult)
   && labels.hostAckStatus === expectedPanelHostAckStatus(dispatchResult)
   && labels.installOutcomeStatus === '提交后校验已确认'
   && labels.uiIpcDeliveryStatus === expectedPanelUiIpcDeliveryStatus(dispatchResult)
@@ -636,6 +672,95 @@ const runMainMenuPanelImportProbe = async(): Promise<VisibleImportProbeExecution
   }
 }
 
+const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution> => {
+  const probeWindow = window
+  let mainMenuPanelOpened = false
+  let enableButtonClicked = false
+  try {
+    clearPanelDispatchResult(probeWindow)
+    const mainMenuButton = await waitForCondition(
+      () => findButtonContainingText('数据包预检'),
+      'visible enable probe could not find the MainMenu data-pack preflight button'
+    )
+    mainMenuButton.click()
+    await waitForCondition(
+      () => document.querySelector('[data-testid="web-data-pack-import-preflight-panel"]'),
+      'visible enable probe could not open the data-pack preflight panel'
+    )
+    mainMenuPanelOpened = true
+
+    const enableButton = await waitForCondition(
+      () => document.querySelector(
+        `[data-testid="web-mod-enable-${packageId}"]`
+      ) as HTMLButtonElement | null,
+      'visible enable probe could not find the disabled installed package action'
+    )
+    const dispatchResultPromise = waitForPanelDispatchResult(probeWindow)
+    enableButtonClicked = true
+    enableButton.click()
+    const dispatchResult = await dispatchResultPromise
+    await waitForCondition(
+      () =>
+        getOfficialItemDef(itemId)?.name.fallback === expectedItemName
+        && getOfficialRecipeDef(recipeId)?.name.fallback === expectedRecipeName
+        && readProbeShopOfferNameFallback() === expectedShopOfferName,
+      'visible enable panel did not publish the enabled item, recipe, and shop offer to contentAccess'
+    )
+    await waitForCondition(
+      () => document.querySelector(
+        `[data-testid="web-mod-installed-row-${packageId}"]`
+      )?.textContent?.includes('已启用') === true,
+      'visible enable panel did not show the installed package as enabled'
+    )
+    const stableLabel = await waitForCondition(
+      () => {
+        const label = readPanelText('web-mod-import-status')
+        return label !== null && !['等待选择', '预检中', '选择中', '读取中', '恢复中'].includes(label)
+          ? label
+          : false
+      },
+      'visible enable panel did not settle its import status'
+    )
+    const panelStatusLabels = await waitForCondition(
+      () => {
+        const labels = readVisibleImportPanelStatusLabels()
+        return hasReadyVisibleEnablePanelLabels(dispatchResult, labels)
+          ? labels
+          : false
+      },
+      'visible enable panel did not render the ordinary install runtime handoff labels'
+    )
+
+    return Object.freeze({
+      dispatchResult,
+      fileCount: dispatchResult.fileCount,
+      pickStatus: toPickStatus(stableLabel),
+      panelStatusLabels,
+      entrypoint: 'main-menu-panel' as const,
+      operation: 'enable' as const,
+      mainMenuPanelOpened,
+      panelImportButtonClicked: false,
+      enableButtonClicked,
+      defaultFileInputSelectorUsed: false
+    })
+  } catch (error) {
+    const dispatchResult = readPanelDispatchResult(probeWindow)
+    return Object.freeze({
+      dispatchResult,
+      fileCount: dispatchResult?.fileCount ?? 0,
+      pickStatus: toPickStatus(readPanelText('web-mod-import-status')),
+      panelStatusLabels: readVisibleImportPanelStatusLabels(),
+      entrypoint: 'main-menu-panel' as const,
+      operation: 'enable' as const,
+      mainMenuPanelOpened,
+      panelImportButtonClicked: false,
+      enableButtonClicked,
+      defaultFileInputSelectorUsed: false,
+      blockedReason: toErrorMessage(error)
+    })
+  }
+}
+
 const clearPanelDisableResult = (probeWindow: Window): void => {
   Reflect.deleteProperty(probeWindow, '__TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__')
 }
@@ -731,7 +856,9 @@ export const runThirdPartyVisibleImportProductProbe = async(
   const contentAccessRecipeVisibleBefore = getOfficialRecipeDef(recipeId) !== undefined
   const contentAccessShopOfferVisibleBefore = readProbeShopOfferNameFallback() !== undefined
   const execution = options.entrypoint === 'main-menu-panel'
-    ? await runMainMenuPanelImportProbe()
+    ? options.operation === 'enable'
+      ? await runMainMenuPanelEnableProbe()
+      : await runMainMenuPanelImportProbe()
     : await runComposableImportProbe(options)
   const dispatchResult = execution.dispatchResult
   const visibleItem = getOfficialItemDef(itemId)
@@ -792,8 +919,10 @@ export const runThirdPartyVisibleImportProductProbe = async(
         ?? dispatchResult?.reason
         ?? 'visible import did not reach item, recipe, and shop offer visibility',
     entrypoint: execution.entrypoint,
+    ...(execution.operation === 'enable' ? { operation: 'enable' as const } : {}),
     mainMenuPanelOpened: execution.mainMenuPanelOpened,
     panelImportButtonClicked: execution.panelImportButtonClicked,
+    ...(execution.enableButtonClicked === undefined ? {} : { enableButtonClicked: execution.enableButtonClicked }),
     defaultFileInputSelectorUsed: execution.defaultFileInputSelectorUsed,
     targetPackageId: packageId,
     itemId,

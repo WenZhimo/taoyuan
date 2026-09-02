@@ -32,6 +32,7 @@ import {
 import type {
   ThirdPartyVisibleImportProductProbeResult
 } from '@/runtime/thirdPartyVisibleImportProductProbe'
+import type { PackageId } from '@/domain/mods/ids'
 import './app.css'
 
 const runtimeProbeRequested = typeof window !== 'undefined'
@@ -62,6 +63,9 @@ const thirdPartyVisibleImportProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
+const thirdPartyVisibleEnableProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleEnableProbe') === '1'
 const thirdPartyVisibleImportPersistSourceProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportPersistSource') === '1'
@@ -127,6 +131,7 @@ void bootstrapApplication({
         thirdPartyVisibleImportProductProbeResult =
           await runThirdPartyVisibleImportProductProbe({
             entrypoint: 'main-menu-panel',
+            operation: thirdPartyVisibleEnableProbeRequested ? 'enable' : 'install',
             persistSource: thirdPartyVisibleImportPersistSourceProbeRequested
           })
       }
@@ -136,7 +141,7 @@ void bootstrapApplication({
         )
         thirdPartyVisibleDisableProductProbeResult =
           await runThirdPartyVisibleDisableProductProbe({
-            targetPackageId: 'product_probe_pack' as import('@/domain/mods/ids').PackageId
+            targetPackageId: 'product_probe_pack' as PackageId
           })
       }
       const { runThirdPartyRendererUiIpcProductProbe } = await import(

@@ -269,8 +269,9 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
     rollbackExecuted: boolean
     diagnosticsWritten: boolean
   }
-  operation?: 'install' | 'disable'
+  operation?: 'install' | 'disable' | 'enable'
   disableButtonClicked?: boolean
+  enableButtonClicked?: boolean
   disableTerminalStatus?: 'ready' | 'blocked'
   disableTargetPackageId?: string
   disableSelectedPackageCount?: number
@@ -989,6 +990,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const targetPackageId = readOwnStringField(result, 'targetPackageId')
   const operation = readOwnStringField(result, 'operation')
   const disableButtonClicked = readOwnBooleanField(result, 'disableButtonClicked')
+  const enableButtonClicked = readOwnBooleanField(result, 'enableButtonClicked')
   const disableTerminalStatus = readOwnStringField(result, 'disableTerminalStatus')
   const disableTargetPackageId = readOwnStringField(result, 'disableTargetPackageId')
   const disableSelectedPackageCount = readOwnNumberField(result, 'disableSelectedPackageCount')
@@ -1081,8 +1083,9 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       readOwnBooleanField(result, 'contentAccessShopOfferVisibleBefore') === true,
     contentAccessShopOfferVisibleAfter:
       readOwnBooleanField(result, 'contentAccessShopOfferVisibleAfter') === true,
-    ...(operation === 'install' || operation === 'disable' ? { operation } : {}),
+    ...(operation === 'install' || operation === 'disable' || operation === 'enable' ? { operation } : {}),
     ...(disableButtonClicked === undefined ? {} : { disableButtonClicked }),
+    ...(enableButtonClicked === undefined ? {} : { enableButtonClicked }),
     ...(disableTerminalStatus === 'ready' || disableTerminalStatus === 'blocked'
       ? { disableTerminalStatus }
       : {}),

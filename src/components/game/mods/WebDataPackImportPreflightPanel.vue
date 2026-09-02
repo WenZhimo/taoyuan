@@ -44,6 +44,16 @@
             >
               禁用
             </Button>
+            <Button
+              v-else
+              class="shrink-0 justify-center"
+              :icon="Power"
+              :disabled="isPreparing || installedManagementStatus === 'loading'"
+              :data-testid="`web-mod-enable-${row.packageId}`"
+              @click="enableInstalledPackage(row.packageId)"
+            >
+              启用
+            </Button>
           </div>
         </div>
         <p v-if="lastDisableResult" data-testid="web-mod-disable-result" class="text-muted mt-2">
@@ -132,7 +142,7 @@
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
   import { Capacitor } from '@capacitor/core'
-  import { Download, PowerOff, RotateCcw, Upload } from 'lucide-vue-next'
+  import { Download, Power, PowerOff, RotateCcw, Upload } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import {
     useWebFilePickerImportEntry,
@@ -352,6 +362,7 @@
   const dispatchStatusLabel = computed(() => lastDispatch.value?.transactionCommandDispatcherSourceStatus ?? '未运行')
   const persistenceStatusLabel = computed(() => {
     if (entry.lastEffects.value.indexedDbImportPersisted) return '已写入 IndexedDB'
+    if (entry.lastSource.value?.identity.kind === 'electron-readonly-directory') return '已从程序目录恢复'
     if (entry.status.value === 'restored') return '已从 IndexedDB 恢复'
     if (persistenceStore === null) return '未启用'
     if (entry.status.value === 'failed') return '未写入'
@@ -522,9 +533,10 @@
   }
 
   const dispatchCurrentImportSource =
-    async(): Promise<WebFilePickerSourceInstallCommandDispatchResult> =>
+    async(packageId?: PackageId): Promise<WebFilePickerSourceInstallCommandDispatchResult> =>
       await entry.dispatchInstallCommandFromSource({
         confirmed: true,
+        packageId,
         officialRegistrySet: props.officialRegistrySet ?? getOfficialRegistrySet(),
         dispatchTransactionCommand: props.dispatchTransactionCommand,
         executeInjectedAtomicTransactionCommit: props.executeInjectedAtomicTransactionCommit,
@@ -552,8 +564,13 @@
       await installedManagement.refresh()
     } finally {
       isPreparing.value = false
-    }
+      }
   }
+
+  const restoreInstalledPackageSource = async() =>
+    readElectronInstalledState === undefined
+      ? await entry.restorePersistedImport()
+      : await entry.restoreElectronInstalledSource()
 
   const runRestorePreflight = async(): Promise<void> => {
     if (isNativePlatform.value || isPreparing.value || persistenceStore === null) return
@@ -578,6 +595,19 @@
     try {
       const result = await installedManagement.disable(packageId as PackageId)
       if (result !== null) publishVisibleDisablePanelProbeResult(result)
+    } finally {
+      isPreparing.value = false
+    }
+  }
+
+  const enableInstalledPackage = async(packageId: string): Promise<void> => {
+    if (isNativePlatform.value || isPreparing.value) return
+    isPreparing.value = true
+    try {
+      const result = await restoreInstalledPackageSource()
+      if (!isReadyImportStatus(result.status)) return
+      publishVisibleImportPanelProbeResult(await dispatchCurrentImportSource(packageId as PackageId))
+      await installedManagement.refresh()
     } finally {
       isPreparing.value = false
     }

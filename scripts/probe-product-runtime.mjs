@@ -86,6 +86,16 @@ const webScenarios = [
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack'
   },
+  {
+    name: 'visible-import-web-disable-enable-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableEnableSequence: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
   { name: 'missing', fault: 'missing', source: 'static-fallback', status: 'cache-miss-not-found' },
   { name: 'corrupt', fault: 'corrupt', source: 'static-fallback', status: 'cache-invalid-json' },
   {
@@ -322,6 +332,46 @@ const electronScenarios = [
     startupGateEntryCount: 4242
   },
   {
+    name: 'visible-import-enable-disabled-installed-package',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-renderer-live-registry',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupGateDisabled: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4242,
+    visibleEnable: true
+  },
+  {
+    name: 'visible-import-reenabled-installed-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-renderer-live-registry',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245
+  },
+  {
     name: 'startup-gate-ready',
     fault: null,
     source: 'disk-cache',
@@ -444,6 +494,27 @@ const directoryFingerprint = directory => {
     })
     .sort((left, right) => left[0].localeCompare(right[0]))
 }
+
+const directoryContentFingerprint = directory => {
+  if (!fs.existsSync(directory)) return []
+  return fs.readdirSync(directory, { recursive: true, withFileTypes: true })
+    .filter(entry => entry.isFile())
+    .map(entry => {
+      const relative = path.join(entry.parentPath.slice(directory.length), entry.name)
+        .replace(/^[/\\]+/, '')
+      const contents = fs.readFileSync(path.join(directory, relative))
+      return [
+        relative.replaceAll('\\', '/'),
+        contents.length,
+        crypto.createHash('sha256').update(contents).digest('hex')
+      ]
+    })
+    .sort((left, right) => left[0].localeCompare(right[0]))
+}
+
+const activePackageContentFingerprint = directory =>
+  directoryContentFingerprint(directory)
+    .filter(([relative]) => !relative.startsWith('.taoyuan-package-file-backups/'))
 
 const fileFingerprint = filePath => {
   if (!fs.existsSync(filePath)) return { exists: false }
@@ -900,6 +971,192 @@ const assertVisibleImportPanelLabels = (
     `${scenario.name}: visible import panel did not show mounted app-startup handoff`)
   assert(labels.startupPersistentStateStatus === '已写入',
     `${scenario.name}: visible import panel did not show startup persistent state write`)
+}
+
+const assertVisibleEnablePanelLabels = (
+  visibleImport,
+  scenario,
+  expectedHostAckStatus,
+  expectedUiIpcDeliveryStatus,
+  expectedPersistenceStatus
+) => {
+  const labels = visibleImport.panelStatusLabels
+  assert(labels?.importStatus === '已恢复',
+    `${scenario.name}: visible enable panel did not show restored import status`)
+  assert(labels.targetPackage === 'product_probe_pack',
+    `${scenario.name}: visible enable panel did not show the target package`)
+  assert(labels.preflightStatus === 'deferred',
+    `${scenario.name}: visible enable panel did not show deferred preflight status`)
+  assert(labels.dispatchStatus === 'dispatched',
+    `${scenario.name}: visible enable panel did not show dispatched command status`)
+  assert(labels.persistenceStatus === expectedPersistenceStatus,
+    `${scenario.name}: visible enable panel did not show the expected restored source`)
+  assert(labels.hostAckStatus === expectedHostAckStatus,
+    `${scenario.name}: visible enable panel did not show the expected host acknowledgement`)
+  assert(labels.installOutcomeStatus === '提交后校验已确认',
+    `${scenario.name}: visible enable panel did not show post-commit verification success`)
+  assert(labels.uiIpcDeliveryStatus === expectedUiIpcDeliveryStatus,
+    `${scenario.name}: visible enable panel did not show the expected UI/IPC delivery`)
+  assert(labels.runtimePublicationStatus === '已确认',
+    `${scenario.name}: visible enable panel did not show runtime publication success`)
+  assert(labels.liveRegistryStatus === '已切换',
+    `${scenario.name}: visible enable panel did not show live registry swap success`)
+  assert(labels.appStartupStatus === '已接入已挂载应用',
+    `${scenario.name}: visible enable panel did not show mounted app-startup handoff`)
+  assert(labels.startupPersistentStateStatus === '已写入',
+    `${scenario.name}: visible enable panel did not show startup persistent state write`)
+  assert(labels.installedManagementStatus === '已就绪',
+    `${scenario.name}: visible enable panel did not settle installed management`)
+}
+
+const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
+  const electron = protocol === 'file:'
+  assert(protocol === 'http:' || electron,
+    `${scenario.name}: visible enable probe ran with an unsupported protocol`)
+  assert(visibleImport.observed === true,
+    `${scenario.name}: visible enable probe was not observed`)
+  assert(visibleImport.status === 'ready',
+    `${scenario.name}: visible enable did not reach ready status`)
+  assert(visibleImport.operation === 'enable',
+    `${scenario.name}: visible enable probe reported the wrong operation`)
+  assert(visibleImport.entrypoint === 'main-menu-panel',
+    `${scenario.name}: visible enable did not start from the MainMenu panel`)
+  assert(visibleImport.mainMenuPanelOpened === true,
+    `${scenario.name}: visible enable did not open the MainMenu panel`)
+  assert(visibleImport.panelImportButtonClicked === false,
+    `${scenario.name}: visible enable should not click the file-picker import button`)
+  assert(visibleImport.enableButtonClicked === true,
+    `${scenario.name}: visible enable did not click the package enable action`)
+  assert(visibleImport.defaultFileInputSelectorUsed === false,
+    `${scenario.name}: visible enable should not use the default file input selector`)
+  assertVisibleEnablePanelLabels(
+    visibleImport,
+    scenario,
+    electron ? '已确认（Electron）' : '已确认（Web）',
+    electron ? '已送达（Electron）' : '已送达（Web）',
+    electron ? '已从程序目录恢复' : '已从 IndexedDB 恢复'
+  )
+  assert(visibleImport.targetPackageId === 'product_probe_pack',
+    `${scenario.name}: visible enable reported the wrong package`)
+  assert(visibleImport.itemId === 'product_probe_pack:linen_ribbon',
+    `${scenario.name}: visible enable reported the wrong item`)
+  assert(visibleImport.itemNameFallback === 'Product Probe Linen Ribbon',
+    `${scenario.name}: visible enable item was not readable from contentAccess`)
+  assert(visibleImport.recipeId === 'product_probe_pack:linen_ribbon_snack',
+    `${scenario.name}: visible enable reported the wrong recipe`)
+  assert(visibleImport.recipeNameFallback === 'Product Probe Ribbon Snack',
+    `${scenario.name}: visible enable recipe was not readable from contentAccess`)
+  assert(visibleImport.shopOfferId === 'product_probe_pack:shop/wanwupu/linen_ribbon/0',
+    `${scenario.name}: visible enable reported the wrong shop offer`)
+  assert(visibleImport.shopOfferNameFallback === 'Product Probe Ribbon Stand',
+    `${scenario.name}: visible enable shop offer was not readable from contentAccess`)
+  assert(visibleImport.fileCount === (electron ? 1 : 5),
+    `${scenario.name}: visible enable used the wrong restored source file count`)
+  assert(visibleImport.pickStatus === 'restored',
+    `${scenario.name}: visible enable source was not restored before dispatch`)
+  assert(visibleImport.dispatchPreflightStatus === 'deferred',
+    `${scenario.name}: visible enable dispatch preflight was not deferred`)
+  assert(visibleImport.discoveryStatus === 'completed',
+    `${scenario.name}: visible enable discovery was not completed`)
+  assert(visibleImport.transactionCommandDispatcherHostKind === (electron ? 'renderer' : 'web'),
+    `${scenario.name}: visible enable used the wrong dispatcher host`)
+  assert(visibleImport.transactionCommandDispatcherSourceStatus === 'dispatched',
+    `${scenario.name}: visible enable command was not dispatched`)
+  assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'ready',
+    `${scenario.name}: visible enable post-commit acknowledgement was not ready`)
+  if (electron) {
+    assert(visibleImport.postCommitVerificationExecutorHostMode === 'electron-main-visible-import',
+      `${scenario.name}: visible enable did not use the Electron post-commit verification host mode`)
+  }
+  assert(visibleImport.installTransactionLogPreparedStatus === 'prepared',
+    `${scenario.name}: visible enable transaction log was not prepared`)
+  assert(
+    visibleImport.installTransactionLogPreparedStorageKind === (
+      electron
+        ? 'program-directory-userdata-install-transaction-log-prepared'
+        : 'web-indexeddb-install-transaction-log-prepared'
+    ),
+    `${scenario.name}: visible enable transaction log used the wrong storage host`
+  )
+  assert(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus === 'verified',
+    `${scenario.name}: visible enable transaction log read verification was not verified`)
+  assert(visibleImport.installTransactionCommitFinalizationStatus === 'committed',
+    `${scenario.name}: visible enable transaction finalization was not committed`)
+  assert(visibleImport.postCommitUiIpcDeliveryContinuationStatus === 'ready',
+    `${scenario.name}: visible enable UI/IPC continuation was not ready`)
+  assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === 'ready',
+    `${scenario.name}: visible enable ordinary terminal was not ready`)
+  assert(visibleImport.ordinaryInstallTransactionOutcomeKind === 'success',
+    `${scenario.name}: visible enable ordinary terminal did not report success outcome`)
+  assert(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus === 'accepted',
+    `${scenario.name}: visible enable runtime publication verification was not accepted`)
+  assert(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === 'swapped',
+    `${scenario.name}: visible enable live registry swap was not acknowledged`)
+  assert(visibleImport.runtimePublicationCommitAppStartupReadinessStatus === 'ready',
+    `${scenario.name}: visible enable app-startup readiness was not ready`)
+  assert(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus === 'accepted',
+    `${scenario.name}: visible enable app-startup host handoff was not accepted`)
+  assert((visibleImport.webStartupPersistentStateWriteStatus === 'written') !== electron,
+    `${scenario.name}: visible enable Web startup persistent-state write mismatch`)
+  assert((visibleImport.electronStartupPersistentStateWriteStatus === 'written') === electron,
+    `${scenario.name}: visible enable Electron startup persistent-state write mismatch`)
+  assert(visibleImport.selectedPackageCount === 1,
+    `${scenario.name}: visible enable selected package count mismatch`)
+  assert(visibleImport.blockedPackageCount === 0,
+    `${scenario.name}: visible enable blocked packages unexpectedly`)
+  assert(visibleImport.loadOrderCount === 1,
+    `${scenario.name}: visible enable load order count mismatch`)
+  assert(visibleImport.registryCount === 54,
+    `${scenario.name}: visible enable registry count mismatch`)
+  assert(visibleImport.entryCount === 4245,
+    `${scenario.name}: visible enable entry count mismatch`)
+  assert(visibleImport.packageCount === 1,
+    `${scenario.name}: visible enable package count mismatch`)
+  assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
+    `${scenario.name}: visible enable diagnostics count was invalid`)
+  assert(visibleImport.contentAccessItemVisibleBefore === false,
+    `${scenario.name}: visible enable item was visible before enable`)
+  assert(visibleImport.contentAccessItemVisibleAfter === true,
+    `${scenario.name}: visible enable item was not visible after live registry swap`)
+  assert(visibleImport.contentAccessRecipeVisibleBefore === false,
+    `${scenario.name}: visible enable recipe was visible before enable`)
+  assert(visibleImport.contentAccessRecipeVisibleAfter === true,
+    `${scenario.name}: visible enable recipe was not visible after live registry swap`)
+  assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
+    `${scenario.name}: visible enable shop offer was visible before enable`)
+  assert(visibleImport.contentAccessShopOfferVisibleAfter === true,
+    `${scenario.name}: visible enable shop offer was not visible after live registry swap`)
+  for (const effectName of [
+    'commandDispatched',
+    'packageFilesWritten',
+    'settingsWritten',
+    'lockfileWritten',
+    'rendererLiveRegistrySwapped',
+    'runtimeEnablementAllowed',
+    'uiIpcResponseDelivered',
+    'transactionCommitted',
+    'transactionLogPrepared',
+    'transactionLogRead',
+    'startupPersistentStateWritten',
+    'realNormalStartupHostCalled',
+    'realAppStartupHostCalled',
+    'gameAppCreated',
+    'piniaCreated',
+    'routerMounted',
+    'transactionLogWritten'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === true,
+      `${scenario.name}: visible enable effect ${effectName} was not true`)
+  }
+  for (const effectName of [
+    'savesWritten',
+    'cacheWritten',
+    'rollbackExecuted',
+    'diagnosticsWritten'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === false,
+      `${scenario.name}: visible enable effect ${effectName} was not false`)
+  }
 }
 
 const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => {
@@ -1503,7 +1760,9 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   const visibleImport = envelope.thirdPartyVisibleImport
   assert(visibleImport?.schemaVersion === 1,
     `${scenario.name}: missing third-party visible import probe summary`)
-  if (scenario.visibleDisable) {
+  if (scenario.visibleEnable) {
+    assertVisibleEnableProductProbe(visibleImport, scenario, protocol)
+  } else if (scenario.visibleDisable) {
     assertVisibleDisableProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleImportRendererLiveRegistry) {
     assert(protocol === 'file:',
@@ -2745,6 +3004,10 @@ const runWebProbe = async () => {
       url.searchParams.set('taoyuanThirdPartyVisibleImportProbe', '1')
       url.searchParams.set('taoyuanThirdPartyVisibleImportPersistSource', '1')
     }
+    if (scenario.visibleEnable) {
+      url.searchParams.set('taoyuanThirdPartyVisibleImportProbe', '1')
+      url.searchParams.set('taoyuanThirdPartyVisibleEnableProbe', '1')
+    }
     if (scenario.visibleDisable) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableProbe', '1')
     }
@@ -2757,7 +3020,7 @@ const runWebProbe = async () => {
       const outputPath = path.join(scenarioRoot, 'report.json')
       fs.mkdirSync(scenarioRoot, { recursive: true })
       const userData = path.join(scenarioRoot, 'userdata')
-      if (scenario.visibleImportInstalledDisableSequence) {
+      if (scenario.visibleImportInstalledDisableSequence || scenario.visibleImportInstalledDisableEnableSequence) {
         const installScenario = {
           ...scenario,
           name: `${scenario.name}:install`,
@@ -2765,6 +3028,7 @@ const runWebProbe = async () => {
           startupPersistentStateReady: false,
           startupGateDisabled: false,
           visibleImportWebOrdinary: true,
+          visibleEnable: false,
           visibleDisable: false
         }
         const installOutputPath = path.join(scenarioRoot, 'install-report.json')
@@ -2789,6 +3053,7 @@ const runWebProbe = async () => {
           startupGateEntryCount: 4245,
           startupPersistentStateExpectsResponseDeliveryHandoff: false,
           visibleImportWebOrdinary: false,
+          visibleEnable: false,
           visibleDisable: true
         }
         const disableOutputPath = path.join(scenarioRoot, 'disable-report.json')
@@ -2805,6 +3070,49 @@ const runWebProbe = async () => {
           disableScenario,
           'http:'
         )
+
+        if (scenario.visibleImportInstalledDisableEnableSequence) {
+          const enableScenario = {
+            ...disableScenario,
+            name: `${scenario.name}:enable`,
+            startupGateDisabled: true,
+            visibleDisable: false,
+            visibleEnable: true
+          }
+          const enableOutputPath = path.join(scenarioRoot, 'enable-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: enableOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(enableScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const enableEnvelope = readJson(enableOutputPath)
+          assertRuntimeEnvelope(enableEnvelope, enableScenario, 'http:')
+          assertWebProductSurface(enableEnvelope, enableScenario)
+
+          const restartScenario = {
+            ...enableScenario,
+            name: `${scenario.name}:restart`,
+            startupGateDisabled: false,
+            visibleEnable: false
+          }
+          const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const restartEnvelope = readJson(restartOutputPath)
+          assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+          assertWebProductSurface(restartEnvelope, restartScenario)
+          reports.push({
+            scenario: scenario.name,
+            installRuntime: installEnvelope.runtime,
+            disableRuntime: disableEnvelope.runtime,
+            enableRuntime: enableEnvelope.runtime,
+            restartRuntime: restartEnvelope.runtime
+          })
+          continue
+        }
 
         const restartScenario = {
           ...disableScenario,
@@ -2903,7 +3211,8 @@ const runPackagedScenario = async (scenario, isolated) => {
   const lockfileTempsBefore = modLockTemporaryNames(userDataPath)
   const exercisesInstallTransactionCommitFinalization =
     !!scenario.installTransactionCommitFinalization
-  const exercisesVisibleImport = !!scenario.visibleImportRendererLiveRegistry
+  const exercisesVisibleInitialImport = !!scenario.visibleImportRendererLiveRegistry
+  const exercisesVisibleImport = exercisesVisibleInitialImport || !!scenario.visibleEnable
   const exercisesVisibleDisable = !!scenario.visibleDisable
   const exercisesSettingsOrLockfileWrite =
     !!scenario.modLockWriteRead
@@ -2915,12 +3224,12 @@ const runPackagedScenario = async (scenario, isolated) => {
     !!scenario.packageFileWriteRead
     || !!scenario.packageFileRestore
     || exercisesInstallTransactionCommitFinalization
-    || exercisesVisibleImport
+    || exercisesVisibleInitialImport
   const exercisesPersistentWrite = exercisesSettingsOrLockfileWrite || exercisesPackageFileWrite
   seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
   if (exercisesPersistentWrite) {
     assert(isolated, `${scenario.name}: persistent write/read scenario must be isolated`)
-    if (!exercisesVisibleDisable) {
+    if (!exercisesVisibleDisable && !scenario.visibleEnable && !scenario.startupGateDisabled) {
       writeModLockProtectionSentinels(scenarioRoot, userDataPath)
     }
   }
@@ -2934,6 +3243,9 @@ const runPackagedScenario = async (scenario, isolated) => {
   const preservedPackageRoot = path.join(scenarioRoot, 'mods', 'product-probe-pack')
   const preservedPackageBefore = scenario.visibleDisable || scenario.startupGateDisabled
     ? directoryFingerprint(preservedPackageRoot)
+    : null
+  const preservedPackageContentBefore = scenario.visibleEnable
+    ? activePackageContentFingerprint(preservedPackageRoot)
     : null
   await runProcess(packagedExecutable, [], {
     TAOYUAN_RUNTIME_PROBE_OUTPUT: outputPath,
@@ -2964,8 +3276,11 @@ const runPackagedScenario = async (scenario, isolated) => {
     ...(scenario.ordinaryInstallTerminalRollback
       ? { TAOYUAN_RUNTIME_PROBE_ORDINARY_INSTALL_TERMINAL_ROLLBACK: '1' }
       : {}),
-    ...(scenario.visibleImportRendererLiveRegistry
+    ...(scenario.visibleImportRendererLiveRegistry || scenario.visibleEnable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT: '1' }
+      : {}),
+    ...(scenario.visibleEnable
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE: '1' }
       : {}),
     ...(scenario.visibleDisable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE: '1' }
@@ -3050,6 +3365,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       scenario.settingsLockfileWriteRead
       || scenario.installTransactionCommitFinalization
       || scenario.visibleImportRendererLiveRegistry
+      || scenario.visibleEnable
       || scenario.visibleDisable
     ) {
       const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
@@ -3074,7 +3390,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
       `${scenario.name}: mod-lock file changed during inspect-only probe`)
   }
-  if (scenario.visibleDisable || scenario.startupGateDisabled) {
+  if ((scenario.visibleDisable || scenario.startupGateDisabled) && !scenario.visibleEnable) {
     assert(preservedPackageBefore !== null && preservedPackageBefore.length > 0,
       `${scenario.name}: disabled package files were not present before restart validation`)
     assert(JSON.stringify(directoryFingerprint(preservedPackageRoot))
@@ -3122,6 +3438,36 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ disabledLockfile, settingsJson, startupState })),
       `${scenario.name}: disabled persistent state leaked an absolute path`)
   }
+  if (scenario.visibleEnable) {
+    assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
+      `${scenario.name}: enabled package files were not present before re-enable validation`)
+    assert(JSON.stringify(activePackageContentFingerprint(preservedPackageRoot))
+      === JSON.stringify(preservedPackageContentBefore),
+    `${scenario.name}: re-enable changed preserved package file contents unexpectedly`)
+    const enabledLockfile = readJson(lockfilePath)
+    assert(JSON.stringify(enabledLockfile.selectedPackageIds) === JSON.stringify(['product_probe_pack']),
+      `${scenario.name}: re-enabled package lockfile did not select the package`)
+    assert(JSON.stringify(enabledLockfile.loadOrder) === JSON.stringify(['product_probe_pack']),
+      `${scenario.name}: re-enabled package lockfile did not restore load order`)
+    assert(enabledLockfile.packages?.[0]?.packageId === 'product_probe_pack',
+      `${scenario.name}: re-enabled package lockfile lost the installed package record`)
+    const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
+    assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
+      `${scenario.name}: re-enabled package settings did not persist the install command`)
+    assert(settingsJson.thirdPartyDataPacks?.targetPackageId === 'product_probe_pack',
+      `${scenario.name}: re-enabled package settings reported the wrong target`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
+      === JSON.stringify(['product_probe_pack']),
+    `${scenario.name}: re-enabled package settings did not select the package`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.blockedPackageIds ?? [])
+      === JSON.stringify([]),
+    `${scenario.name}: re-enabled package settings still blocked the package`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
+      === JSON.stringify(['product_probe_pack']),
+    `${scenario.name}: re-enabled package settings did not restore load order`)
+    assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ enabledLockfile, settingsJson })),
+      `${scenario.name}: re-enabled persistent state leaked an absolute path`)
+  }
   if (exercisesPackageFileWrite) {
     const paths = packageFileProbePaths(scenarioRoot)
     assert(packageFileBefore?.beforeManifest.exists === true,
@@ -3154,7 +3500,7 @@ const runPackagedScenario = async (scenario, isolated) => {
         `${scenario.name}: package file payload leaked an absolute path`)
     }
   }
-  if (scenario.installTransactionCommitFinalization || scenario.visibleImportRendererLiveRegistry) {
+  if (scenario.installTransactionCommitFinalization || scenario.visibleImportRendererLiveRegistry || scenario.visibleEnable) {
     const preparedLog = readJson(installTransactionPreparedLogPath(userDataPath))
     const probe = productReport.electron?.installTransactionCommitFinalizationProbe
     assert(preparedLog.kind === 'third-party-data-pack-install-transaction-log-prepared',
@@ -3193,6 +3539,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     const omitted = scenario.settingsLockfileWriteRead
       || scenario.installTransactionCommitFinalization
       || scenario.visibleImportRendererLiveRegistry
+      || scenario.visibleEnable
       || scenario.visibleDisable
       ? ['settings']
       : []

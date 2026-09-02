@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   createDiscoveryFileSystemFromContentPackageSource,
-  readContentPackageSourceJson
+  readContentPackageSourceJson,
+  type ContentPackageSourceDirectoryEntry
 } from '@/domain/mods/contentPackageSource'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId, type PackageId } from '@/domain/mods/ids'
@@ -102,6 +103,63 @@ const createValidFiles = (packageId = 'web_entry'): readonly WebFilePickerImport
   createFile('valid-gift-pack/locales/zh-CN.json', '{}\n'),
   createFile('valid-gift-pack/data/items.json', toJson([createItem(`${packageId}:linen_ribbon`)]))
 ]
+
+const createElectronReadonlyDirectoryHost = async(
+  files: readonly WebFilePickerImportFile[]
+) => {
+  const directories = new Set<string>([''])
+  const fileTexts = new Map<string, string>()
+  for (const file of files) {
+    const sourcePath = file.webkitRelativePath || file.name
+    fileTexts.set(sourcePath, await file.text())
+    const parts = sourcePath.split('/')
+    for (let index = 1; index < parts.length; index += 1) {
+      directories.add(parts.slice(0, index).join('/'))
+    }
+  }
+
+  const entryName = (sourcePath: string): string =>
+    sourcePath.split('/').filter(Boolean).pop() ?? 'mods'
+  const entry = (
+    sourcePath: string,
+    kind: ContentPackageSourceDirectoryEntry['kind']
+  ): ContentPackageSourceDirectoryEntry => ({
+    name: entryName(sourcePath),
+    kind,
+    isSymbolicLink: false
+  })
+
+  return {
+    getEntry: vi.fn(async(sourcePath: string) => {
+      const value = directories.has(sourcePath)
+        ? entry(sourcePath, 'directory')
+        : fileTexts.has(sourcePath)
+          ? entry(sourcePath, 'file')
+          : null
+      return { ok: true, value }
+    }),
+    readDirectory: vi.fn(async(sourcePath: string) => {
+      const prefix = sourcePath === '' ? '' : `${sourcePath}/`
+      const entries = new Map<string, ContentPackageSourceDirectoryEntry>()
+      for (const directoryPath of directories) {
+        if (directoryPath === sourcePath || !directoryPath.startsWith(prefix)) continue
+        const relativePath = directoryPath.slice(prefix.length)
+        if (!relativePath.includes('/')) entries.set(relativePath, entry(directoryPath, 'directory'))
+      }
+      for (const filePath of fileTexts.keys()) {
+        if (!filePath.startsWith(prefix)) continue
+        const relativePath = filePath.slice(prefix.length)
+        if (!relativePath.includes('/')) entries.set(relativePath, entry(filePath, 'file'))
+      }
+      return { ok: true, value: [...entries.values()] }
+    }),
+    readTextFile: vi.fn(async(sourcePath: string) => {
+      const text = fileTexts.get(sourcePath)
+      if (text === undefined) throw new Error(`missing source file: ${sourcePath}`)
+      return { ok: true, value: text }
+    })
+  }
+}
 
 const webEntryPackageId = requirePackageId('web_entry')
 const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
@@ -1793,6 +1851,67 @@ describe('useWebFilePickerImportEntry', () => {
       expect(JSON.stringify(dispatchThirdPartyDataPackInstallCommand.mock.calls[0]?.[0])).not.toContain('C:/Users')
       expect(JSON.stringify(continuationEnvelope)).not.toContain('C:/Users')
       expect(JSON.stringify(continuationEnvelope)).not.toContain('LENOVO')
+      expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
+    } finally {
+      restoreElectronApi()
+    }
+  })
+
+  it('restores Electron installed package files and dispatches re-enable through the renderer host', async() => {
+    const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+    ) => createDispatchedHostResult(envelope))
+    const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+    ) => createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope))
+    const electronReadonlyDirectorySource = await createElectronReadonlyDirectoryHost(
+      createValidFiles(webEntryPackageId)
+    )
+    const restoreElectronApi = withWindowElectronApi({
+      electronReadonlyDirectorySource,
+      dispatchThirdPartyDataPackInstallCommand,
+      continueThirdPartyDataPackOrdinaryInstallTerminal
+    })
+    const entry = useWebFilePickerImportEntry()
+
+    try {
+      const restoreResult = await entry.restoreElectronInstalledSource()
+      const dispatchResult = await entry.dispatchInstallCommandFromSource({
+        packageId: webEntryPackageId,
+        confirmed: true,
+        officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+        mountedAppStartupHostEvidence
+      })
+
+      expect(restoreResult.status).toBe('restored')
+      expect(restoreResult.record).toBeNull()
+      expect(restoreResult.fileCount).toBe(1)
+      expect(entry.lastRecord.value).toBeNull()
+      expect(entry.lastSource.value?.identity.kind).toBe('electron-readonly-directory')
+      expect(entry.lastEffects.value.indexedDbImportPersisted).toBe(false)
+      expect(electronReadonlyDirectorySource.readDirectory).toHaveBeenCalledWith('')
+      expect(dispatchThirdPartyDataPackInstallCommand).toHaveBeenCalledOnce()
+      expect(continueThirdPartyDataPackOrdinaryInstallTerminal).toHaveBeenCalledOnce()
+      expect(dispatchThirdPartyDataPackInstallCommand.mock.calls[0]?.[0]).toMatchObject({
+        requestedCommandId: 'install',
+        targetPackageId: webEntryPackageId,
+        selectedPackageIds: [webEntryPackageId],
+        blockedPackageIds: [],
+        loadOrder: [webEntryPackageId]
+      })
+      expect(continueThirdPartyDataPackOrdinaryInstallTerminal.mock.calls[0]?.[0]
+        .packageFilePayload.map(file => file.path)).toEqual(['manifest.json', 'data/items.json'])
+      expect(dispatchResult.transactionCommandDispatcherHostKind).toBe('renderer')
+      expect(dispatchResult.installCommandPostCommitAcknowledgementStatus).toBe('ready')
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus).toBe('ready')
+      expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
+      expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).toBe('accepted')
+      expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('written')
+      expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(true)
+      expect(dispatchResult.runtimeEnablementAllowed).toBe(true)
+      expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)?.name.fallback)
+        .toBe(`${webEntryPackageId}:linen_ribbon`)
+      expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
       expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
     } finally {
       restoreElectronApi()

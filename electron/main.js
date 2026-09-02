@@ -193,6 +193,8 @@ const runtimeProbeVisibleImport =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT === '1'
 const runtimeProbeVisibleDisable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE === '1'
+const runtimeProbeVisibleEnable =
+  process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE === '1'
 
 const getExecutableDirectoryPath = () =>
   process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
@@ -4133,6 +4135,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleImport
             ? { taoyuanThirdPartyVisibleImportProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleEnable
+            ? { taoyuanThirdPartyVisibleEnableProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleDisable
             ? { taoyuanThirdPartyVisibleDisableProbe: '1' }
