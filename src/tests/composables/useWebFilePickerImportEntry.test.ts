@@ -1982,9 +1982,42 @@ describe('useWebFilePickerImportEntry', () => {
     ) => {
       const ready = createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope)
       const terminal = ready.ordinaryInstallTransactionTerminalConnection!
+      const postCommit = ready.postCommitUiIpcDeliveryContinuation!
       return {
-        ...ready,
+        status: 'ready',
         reason: 'Electron continuation reported rollback terminal outcome',
+        installCommandPostCommitAcknowledgement: ready.installCommandPostCommitAcknowledgement,
+        postCommitUiIpcDeliveryContinuation: {
+          ...postCommit,
+          reason: 'Electron continuation delivered visible import rollback response',
+          envelopeKind: 'rollback',
+          messageKey: 'mods.ui.ipc.result.install.rollback',
+          persistentPackageWriteExecuted: false,
+          persistentSettingsLockfileWriteExecuted: false,
+          writtenFileCount: 0,
+          backedUpFileCount: 0,
+          transactionCommitConnectionAcknowledged: false,
+          startupGateContinuationAllowed: false,
+          acknowledgement: {
+            status: 'acknowledged',
+            platform: 'electron',
+            packageId: postCommit.targetPackageId,
+            envelopeKind: 'rollback',
+            messageKey: 'mods.ui.ipc.result.install.rollback'
+          },
+          effects: {
+            ...postCommit.effects,
+            successEnvelopeDelivered: false,
+            rollbackStateDelivered: true,
+            packageFilesWritten: false,
+            settingsWritten: false,
+            lockfileWritten: false,
+            transactionCommitted: false,
+            runtimePublicationCommitted: false,
+            runtimeEnablementAllowed: false,
+            uiIpcResponseDelivered: true
+          }
+        },
         ordinaryInstallTransactionTerminalConnection: {
           ...terminal,
           reason: 'Electron continuation settled by rollback recovery',
@@ -2002,10 +2035,16 @@ describe('useWebFilePickerImportEntry', () => {
             rollbackRecoverySettled: true,
             rollbackRecoveryExecutionAcknowledged: true,
             packageFilesRestored: true,
+            packageFilesWritten: false,
+            settingsWritten: false,
+            lockfileWritten: false,
+            transactionCommitted: false,
+            runtimePublicationCommitted: false,
             rollbackExecuted: true,
             runtimeEnablementAllowed: false
           }
-        }
+        },
+        diagnostics: []
       } as ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult
     })
     const restoreElectronApi = withWindowElectronApi({
@@ -2028,9 +2067,15 @@ describe('useWebFilePickerImportEntry', () => {
       expect(dispatchResult.ordinaryInstallTransactionTerminalConnection?.outcomeKind).toBe('rollback')
       expect(dispatchResult.ordinaryInstallTransactionTerminalConnection?.effects.rollbackOutcomeAccepted)
         .toBe(true)
-      expect(dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus).toBe('accepted')
-      expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
-      expect(dispatchResult.runtimePublicationCommitAppStartupReadinessStatus).toBe('ready')
+      expect(dispatchResult.installTransactionLogPreparedStatus).toBeNull()
+      expect(dispatchResult.installTransactionCommitFinalizationStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitAppStartupReadinessStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).toBeNull()
+      expect(dispatchResult.transactionCommitted).toBe(false)
+      expect(dispatchResult.writeExecuted).toBe(false)
+      expect(dispatchResult.uiIpcResponseDelivered).toBe(true)
       expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(false)
       expect(dispatchResult.runtimeEnablementAllowed).toBe(false)
       expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('blocked')

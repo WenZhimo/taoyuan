@@ -284,7 +284,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
     rollbackExecuted: boolean
     diagnosticsWritten: boolean
   }
-  operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall'
+  operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall' | 'rollback'
   disableButtonClicked?: boolean
   enableButtonClicked?: boolean
   uninstallButtonClicked?: boolean
@@ -1172,6 +1172,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       || operation === 'enable'
       || operation === 'upgrade'
       || operation === 'uninstall'
+      || operation === 'rollback'
       ? { operation }
       : {}),
     ...(disableButtonClicked === undefined ? {} : { disableButtonClicked }),

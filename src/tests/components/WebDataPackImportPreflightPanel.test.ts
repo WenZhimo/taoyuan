@@ -836,9 +836,27 @@ const createRollbackElectronOrdinaryInstallTerminalContinuationResult = (
 ) => {
   const ready = createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope)
   const terminal = ready.ordinaryInstallTransactionTerminalConnection
+  const postCommit = ready.postCommitUiIpcDeliveryContinuation
   return {
-    ...ready,
+    status: 'ready',
     reason: 'Electron ordinary install terminal continuation reported rollback terminal outcome',
+    installCommandPostCommitAcknowledgement: ready.installCommandPostCommitAcknowledgement,
+    postCommitUiIpcDeliveryContinuation: {
+      ...postCommit,
+      envelopeKind: 'rollback',
+      messageKey: 'mods.ui.ipc.result.install.rollback',
+      persistentPackageWriteExecuted: false,
+      persistentSettingsLockfileWriteExecuted: false,
+      effects: {
+        ...postCommit.effects,
+        uiIpcResponseDelivered: true,
+        successEnvelopeDelivered: false,
+        rollbackStateDelivered: true,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false
+      }
+    },
     ordinaryInstallTransactionTerminalConnection: {
       ...terminal,
       reason: 'Electron continuation settled by rollback recovery',
@@ -856,10 +874,16 @@ const createRollbackElectronOrdinaryInstallTerminalContinuationResult = (
         rollbackRecoverySettled: true,
         rollbackRecoveryExecutionAcknowledged: true,
         packageFilesRestored: true,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false,
+        transactionCommitted: false,
+        runtimePublicationCommitted: false,
         rollbackExecuted: true,
         runtimeEnablementAllowed: false
       }
-    }
+    },
+    diagnostics: []
   }
 }
 

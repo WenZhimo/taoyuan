@@ -60,6 +60,9 @@ const thirdPartyElectronInstallCommandDispatchProbeRequested = runtimeProbeReque
 const thirdPartyVisibleImportProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportProbe') === '1'
+const thirdPartyVisibleImportRollbackProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleImportRollbackProbe') === '1'
 const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
@@ -74,6 +77,7 @@ const thirdPartyVisibleUpgradeProbeRequested = runtimeProbeRequested
     .get('taoyuanThirdPartyVisibleUpgradeProbe') === '1'
 const thirdPartyVisibleOperationProbeRequested =
   thirdPartyVisibleImportProbeRequested
+  || thirdPartyVisibleImportRollbackProbeRequested
   || thirdPartyVisibleDisableProbeRequested
   || thirdPartyVisibleUninstallProbeRequested
   || thirdPartyVisibleEnableProbeRequested
@@ -137,7 +141,7 @@ void bootstrapApplication({
   mount: (app, router) => mountAfterRouterReady(app, router),
   afterMount: async () => {
     if (runtimeProbeRequested) {
-      if (thirdPartyVisibleImportProbeRequested) {
+      if (thirdPartyVisibleImportProbeRequested || thirdPartyVisibleImportRollbackProbeRequested) {
         const { runThirdPartyVisibleImportProductProbe } = await import(
           '@/runtime/thirdPartyVisibleImportProductProbe'
         )
@@ -146,6 +150,8 @@ void bootstrapApplication({
             entrypoint: 'main-menu-panel',
             operation: thirdPartyVisibleEnableProbeRequested
               ? 'enable'
+              : thirdPartyVisibleImportRollbackProbeRequested
+                ? 'rollback'
               : thirdPartyVisibleUpgradeProbeRequested
                 ? 'upgrade'
                 : 'install',

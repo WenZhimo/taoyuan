@@ -195,6 +195,8 @@ const runtimeProbeStartupPersistentStateInstalledState =
   process.env.TAOYUAN_RUNTIME_PROBE_STARTUP_PERSISTENT_STATE_INSTALLED_STATE === '1'
 const runtimeProbeVisibleImport =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT === '1'
+const runtimeProbeVisibleImportRollback =
+  process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_ROLLBACK === '1'
 const runtimeProbeVisibleDisable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE === '1'
 const runtimeProbeVisibleEnable =
@@ -205,6 +207,7 @@ const runtimeProbeVisibleUninstall =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UNINSTALL === '1'
 const runtimeProbeVisibleDataPackOperation =
   runtimeProbeVisibleImport
+  || runtimeProbeVisibleImportRollback
   || runtimeProbeVisibleDisable
   || runtimeProbeVisibleEnable
   || runtimeProbeVisibleUpgrade
@@ -2552,6 +2555,84 @@ const createOrdinaryInstallTerminalUiIpcConvergenceResult = source => {
   }
 }
 
+const createOrdinaryInstallTerminalRollbackUiIpcContinuationResult = source => {
+  const summary = createOrdinaryInstallTerminalUiIpcSummary(source)
+  const targetPackageId = source.targetPackageId
+  return {
+    kind: 'third-party-post-commit-ui-ipc-delivery-continuation-source',
+    mode: 'default-disabled-post-commit-ui-ipc-delivery-continuation-source',
+    selectedPlatform: 'electron',
+    status: 'ready',
+    reason: 'Electron visible import acknowledged rollback delivery without runtime publication',
+    readOnly: true,
+    enabled: true,
+    sourceCalled: true,
+    postCommitPersistentReadWriteConnectionStatus: 'accepted',
+    uiIpcResponseDeliveryAcknowledgementConvergenceStatus: 'ready',
+    requestedCommandId: 'install',
+    targetPackageId,
+    envelopeKind: 'rollback',
+    messageKey: 'mods.ui.ipc.result.install.rollback',
+    selectedPackageIds: source.selectedPackageIds,
+    blockedPackageIds: source.blockedPackageIds,
+    blockedCandidateCount: source.blockedCandidateCount ?? 0,
+    loadOrder: source.loadOrder,
+    registryCount: source.registryCount,
+    entryCount: source.entryCount,
+    packageCount: source.packageCount,
+    candidateIdentity: source.candidateIdentity,
+    candidateHash: source.candidateHash,
+    lockfileHash: source.lockfileHash,
+    deliverySummary: {
+      formatVersion: 1,
+      kind: 'rollback',
+      commandId: 'install',
+      packageId: targetPackageId,
+      candidateHash: source.candidateHash,
+      lockfileHash: source.lockfileHash,
+      messageKey: 'mods.ui.ipc.result.install.rollback',
+      recovery: 'restore-backup',
+      retryable: false,
+      rollbackRequired: true,
+      summary,
+      diagnosticCount: 0
+    },
+    acknowledgement: {
+      status: 'acknowledged',
+      platform: 'electron',
+      packageId: targetPackageId,
+      envelopeKind: 'rollback',
+      messageKey: 'mods.ui.ipc.result.install.rollback'
+    },
+    persistentPackageWriteExecuted: false,
+    persistentSettingsLockfileWriteExecuted: false,
+    writtenFileCount: 0,
+    backedUpFileCount: 0,
+    transactionCommitConnectionAcknowledged: false,
+    postCommitPersistentReadWriteConnectionAcknowledged: true,
+    uiIpcDeliveryAcknowledged: true,
+    commandContinuationAllowed: true,
+    uiIpcResultContinuationAllowed: true,
+    startupGateContinuationAllowed: false,
+    checks: [],
+    diagnostics: [],
+    summary,
+    effects: {
+      ...createOrdinaryInstallTerminalUiIpcConvergenceEffects(),
+      startupGateContinuationAllowed: false,
+      successEnvelopeDelivered: false,
+      rollbackStateDelivered: true,
+      runtimeEnablementAllowed: false,
+      packageFilesWritten: false,
+      packageBackupsWritten: false,
+      settingsWritten: false,
+      lockfileWritten: false,
+      transactionLogWritten: false,
+      rollbackExecuted: false
+    }
+  }
+}
+
 const electronVisibleImportContinuationRootPath = 'electron-visible-import'
 const electronVisibleImportContinuationSourceId = 'electron-visible-import-continuation'
 
@@ -3014,15 +3095,17 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     return installCommandPostCommitAcknowledgement
   }
 
+  const packageFilePersistentStagingStorage =
+    createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
+      programDirectoryPath
+    })
   const packageFilePersistentStagingPipeline = createThirdPartyDataPackPackageFilePersistentStagingPipeline({
     enabled: true,
     allowPersistentWriteProbe: true,
     readAtomicCommitPreflight: async() => createOrdinaryInstallTerminalAtomicPreflightResult(lockfileDraft),
     readLockfileDraft: async() => lockfileDraft,
     readPackageFilePayload: async() => packageFilePayload,
-    storage: createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
-      programDirectoryPath
-    })
+    storage: packageFilePersistentStagingStorage
   })
 
   const readPackageFilePersistentStagingPipeline = async() => {
@@ -3139,6 +3222,106 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
 
   const installCommandPostCommitAcknowledgementResult =
     await readInstallCommandLifecyclePipeline()
+
+  if (runtimeProbeVisibleImportRollback) {
+    const packageFilePersistentStagingResult =
+      await readPackageFilePersistentStagingPipeline()
+    const packageFileRestoreResult =
+      await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+        packageId: targetPackageId,
+        writtenFiles: packageFilePersistentStagingResult.writtenFiles,
+        storage: packageFilePersistentStagingStorage,
+        allowPersistentRestoreProbe: true
+      })
+    const rollbackRecoveryExecutionPipeline =
+      createThirdPartyDataPackRollbackRecoveryExecutionPipeline({
+        enabled: true,
+        readAtomicTransactionCommitOutcomeContract: async() =>
+          createSyntheticRollbackOutcomeContract(lockfileDraft),
+        readRecoveryLogReplayRestoreSource: async() =>
+          createSyntheticRecoveryLogReplayRestoreSourceResult(lockfileDraft),
+        executeRollbackRecovery: async currentEnvelope =>
+          createSyntheticRollbackRecoveryExecutionHostResult(
+            currentEnvelope,
+            packageFileRestoreResult
+          )
+      })
+    const rollbackRecoveryExecution = await rollbackRecoveryExecutionPipeline()
+    const rollbackOrdinaryInstallTerminalPipeline =
+      createThirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline({
+        enabled: true,
+        readRollbackRecoveryExecutionSource: async() => rollbackRecoveryExecution
+      })
+
+    let rollbackOrdinaryInstallTransactionTerminalConnection
+    try {
+      rollbackOrdinaryInstallTransactionTerminalConnection =
+        await rollbackOrdinaryInstallTerminalPipeline()
+    } catch (error) {
+      if (error instanceof ThirdPartyDataPackOrdinaryInstallTransactionBlockedError) {
+        rollbackOrdinaryInstallTransactionTerminalConnection = error.result
+      } else {
+        throw error
+      }
+    }
+
+    const postCommitRollbackUiIpcDeliveryContinuation =
+      createOrdinaryInstallTerminalRollbackUiIpcContinuationResult(
+        rollbackOrdinaryInstallTransactionTerminalConnection
+      )
+
+    if (
+      installCommandPostCommitAcknowledgementResult.status !== 'ready'
+      || packageFilePersistentStagingResult.status !== 'written'
+      || packageFileRestoreResult.status !== 'restored'
+      || rollbackRecoveryExecution.status !== 'executed'
+      || rollbackOrdinaryInstallTransactionTerminalConnection.status !== 'ready'
+      || rollbackOrdinaryInstallTransactionTerminalConnection.outcomeKind !== 'rollback'
+      || rollbackOrdinaryInstallTransactionTerminalConnection.effects.rollbackExecuted !== true
+      || postCommitRollbackUiIpcDeliveryContinuation.status !== 'ready'
+    ) {
+      return createBlockedOrdinaryInstallTerminalContinuationResult(
+        [
+          'Electron visible import rollback did not reach restored terminal state',
+          `ack=${installCommandPostCommitAcknowledgementResult.status}`,
+          `package=${packageFilePersistentStagingResult.status}`,
+          `restore=${packageFileRestoreResult.status}`,
+          `rollback=${rollbackRecoveryExecution.status}`,
+          `ordinary=${safePipelineStatus(rollbackOrdinaryInstallTransactionTerminalConnection)}`,
+          `ordinaryReason=${safePipelineReason(rollbackOrdinaryInstallTransactionTerminalConnection)}`,
+          `restoreDiag=${safeFirstDiagnosticStage(packageFileRestoreResult)}`,
+          `rollbackDiag=${safeFirstDiagnosticStage(rollbackRecoveryExecution)}`,
+          `ordinaryDiag=${safeFirstDiagnosticStage(rollbackOrdinaryInstallTransactionTerminalConnection)}`
+        ].join('; '),
+        [
+          ...installCommandPostCommitAcknowledgementResult.diagnostics,
+          ...packageFilePersistentStagingResult.diagnostics,
+          ...packageFileRestoreResult.diagnostics,
+          ...rollbackRecoveryExecution.diagnostics,
+          ...rollbackOrdinaryInstallTransactionTerminalConnection.diagnostics,
+          ...postCommitRollbackUiIpcDeliveryContinuation.diagnostics
+        ]
+      )
+    }
+
+    return {
+      status: 'ready',
+      reason: 'Electron visible renderer import reached rollback terminal without runtime publication handoff',
+      installCommandPostCommitAcknowledgement: installCommandPostCommitAcknowledgementResult,
+      postCommitUiIpcDeliveryContinuation: postCommitRollbackUiIpcDeliveryContinuation,
+      ordinaryInstallTransactionTerminalConnection:
+        rollbackOrdinaryInstallTransactionTerminalConnection,
+      diagnostics: [
+        ...installCommandPostCommitAcknowledgementResult.diagnostics,
+        ...packageFilePersistentStagingResult.diagnostics,
+        ...packageFileRestoreResult.diagnostics,
+        ...rollbackRecoveryExecution.diagnostics,
+        ...rollbackOrdinaryInstallTransactionTerminalConnection.diagnostics,
+        ...postCommitRollbackUiIpcDeliveryContinuation.diagnostics
+      ]
+    }
+  }
+
   const installTransactionLogPreparedResult =
     await readInstallTransactionLogPrepared()
   const installTransactionLogPreparedPersistentReadVerificationResult =
@@ -4352,6 +4535,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleImport
             ? { taoyuanThirdPartyVisibleImportProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleImportRollback
+            ? { taoyuanThirdPartyVisibleImportRollbackProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleEnable
             ? { taoyuanThirdPartyVisibleEnableProbe: '1' }

@@ -951,6 +951,163 @@ describe('official content runtime report', () => {
     expect(JSON.stringify(summary)).not.toContain('document')
   })
 
+  it('summarizes visible import rollback without runtime publication leakage', () => {
+    let hostileGetterRead = false
+    const probeResult = {
+      status: 'ready',
+      operation: 'rollback',
+      entrypoint: 'main-menu-panel',
+      mainMenuPanelOpened: true,
+      panelImportButtonClicked: true,
+      defaultFileInputSelectorUsed: true,
+      targetPackageId: 'product_probe_pack',
+      itemId: 'product_probe_pack:linen_ribbon',
+      recipeId: 'product_probe_pack:linen_ribbon_snack',
+      shopOfferId: 'product_probe_pack:shop/wanwupu/linen_ribbon/0',
+      fileCount: 5,
+      pickStatus: 'persisted',
+      panelStatusLabels: {
+        importStatus: '已暂存',
+        targetPackage: 'product_probe_pack',
+        preflightStatus: 'deferred',
+        dispatchStatus: 'dispatched',
+        persistenceStatus: '已写入 IndexedDB',
+        hostAckStatus: '已确认（Electron）',
+        installOutcomeStatus: '已回滚',
+        uiIpcDeliveryStatus: '已送达（Electron）',
+        runtimePublicationStatus: '已阻断',
+        liveRegistryStatus: '已阻断',
+        appStartupStatus: '已阻断',
+        startupPersistentStateStatus: '已阻断'
+      },
+      dispatchPreflightStatus: 'deferred',
+      discoveryStatus: 'completed',
+      transactionCommandDispatcherHostKind: 'renderer',
+      transactionCommandDispatcherSourceStatus: 'dispatched',
+      installCommandPostCommitAcknowledgementStatus: 'ready',
+      installTransactionLogPreparedStatus: null,
+      installTransactionLogPreparedPersistentReadVerificationStatus: null,
+      installTransactionCommitFinalizationStatus: null,
+      postCommitUiIpcDeliveryContinuationStatus: 'ready',
+      ordinaryInstallTransactionTerminalConnectionStatus: 'ready',
+      ordinaryInstallTransactionOutcomeKind: 'rollback',
+      runtimePublicationCommitAfterPostCommitVerificationStatus: null,
+      runtimePublicationCommitLiveRegistrySwapHostConnectionStatus: null,
+      runtimePublicationCommitAppStartupReadinessStatus: null,
+      runtimePublicationCommitAppStartupHostConnectionStatus: null,
+      webStartupPersistentStateWriteStatus: null,
+      electronStartupPersistentStateWriteStatus: 'blocked',
+      selectedPackageCount: 1,
+      blockedPackageCount: 0,
+      loadOrderCount: 1,
+      registryCount: 54,
+      entryCount: 4245,
+      packageCount: 1,
+      diagnosticsCount: 0,
+      contentAccessItemVisibleBefore: false,
+      contentAccessItemVisibleAfter: false,
+      contentAccessRecipeVisibleBefore: false,
+      contentAccessRecipeVisibleAfter: false,
+      contentAccessShopOfferVisibleBefore: false,
+      contentAccessShopOfferVisibleAfter: false,
+      effects: {
+        commandDispatched: true,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false,
+        rendererLiveRegistrySwapped: false,
+        runtimeEnablementAllowed: false,
+        uiIpcResponseDelivered: true,
+        transactionCommitted: false,
+        transactionLogPrepared: false,
+        transactionLogRead: false,
+        startupPersistentStateWritten: false,
+        realNormalStartupHostCalled: false,
+        realAppStartupHostCalled: false,
+        gameAppCreated: false,
+        piniaCreated: false,
+        routerMounted: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false,
+        rollbackExecuted: true,
+        diagnosticsWritten: false
+      }
+    }
+    Object.defineProperty(probeResult, 'reason', {
+      enumerable: true,
+      get() {
+        hostileGetterRead = true
+        throw new Error('C:\\secret\\visible-import-rollback')
+      }
+    })
+    Object.defineProperty(probeResult, 'electronAPI', {
+      enumerable: true,
+      get() {
+        hostileGetterRead = true
+        throw new Error('C:\\secret\\host')
+      }
+    })
+
+    const summary = createThirdPartyVisibleImportRuntimeProbeSummary(probeResult)
+
+    expect(summary).toMatchObject({
+      schemaVersion: 1,
+      observed: true,
+      status: 'ready',
+      operation: 'rollback',
+      entrypoint: 'main-menu-panel',
+      mainMenuPanelOpened: true,
+      panelImportButtonClicked: true,
+      defaultFileInputSelectorUsed: true,
+      targetPackageId: 'product_probe_pack',
+      itemId: 'product_probe_pack:linen_ribbon',
+      recipeId: 'product_probe_pack:linen_ribbon_snack',
+      shopOfferId: 'product_probe_pack:shop/wanwupu/linen_ribbon/0',
+      fileCount: 5,
+      pickStatus: 'persisted',
+      panelStatusLabels: {
+        installOutcomeStatus: '已回滚',
+        runtimePublicationStatus: '已阻断',
+        liveRegistryStatus: '已阻断',
+        appStartupStatus: '已阻断',
+        startupPersistentStateStatus: '已阻断'
+      },
+      installCommandPostCommitAcknowledgementStatus: 'ready',
+      installTransactionLogPreparedStatus: undefined,
+      installTransactionCommitFinalizationStatus: undefined,
+      postCommitUiIpcDeliveryContinuationStatus: 'ready',
+      ordinaryInstallTransactionTerminalConnectionStatus: 'ready',
+      ordinaryInstallTransactionOutcomeKind: 'rollback',
+      runtimePublicationCommitAfterPostCommitVerificationStatus: undefined,
+      runtimePublicationCommitLiveRegistrySwapHostConnectionStatus: undefined,
+      runtimePublicationCommitAppStartupReadinessStatus: undefined,
+      runtimePublicationCommitAppStartupHostConnectionStatus: undefined,
+      electronStartupPersistentStateWriteStatus: 'blocked',
+      contentAccessItemVisibleAfter: false,
+      contentAccessRecipeVisibleAfter: false,
+      contentAccessShopOfferVisibleAfter: false,
+      effects: {
+        commandDispatched: true,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false,
+        rendererLiveRegistrySwapped: false,
+        runtimeEnablementAllowed: false,
+        uiIpcResponseDelivered: true,
+        transactionCommitted: false,
+        startupPersistentStateWritten: false,
+        realAppStartupHostCalled: false,
+        rollbackExecuted: true
+      }
+    })
+    expect(hostileGetterRead).toBe(false)
+    expect(JSON.stringify(summary)).not.toContain('C:\\secret')
+    expect(JSON.stringify(summary)).not.toContain('electronAPI')
+    expect(JSON.stringify(summary)).not.toContain('window')
+    expect(JSON.stringify(summary)).not.toContain('document')
+  })
+
   it('summarizes the probe-only Electron install command dispatch bridge from preload', async () => {
     const dispatchThirdPartyDataPackInstallCommand = vi.fn(envelope =>
       acknowledgeThirdPartyDataPackElectronInstallCommandDispatchIpcEnvelope(envelope))

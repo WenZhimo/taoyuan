@@ -3093,7 +3093,9 @@ export const useWebFilePickerImportEntry = (
         electronStartupPersistentStateWriteStatus =
           electronStartupPersistentStateSnapshotWritten
             ? (rendererLiveRegistrySwapApplied ? 'written' : 'blocked')
-            : null
+            : electronOrdinaryTerminalSucceeded
+              ? null
+              : 'blocked'
       }
     }
 

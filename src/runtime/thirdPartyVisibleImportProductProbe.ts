@@ -32,7 +32,7 @@ export const visibleImportPanelProbeResultEventName =
 
 type VisibleImportProductProbeEntrypoint = 'composable' | 'main-menu-panel'
 type VisibleImportProductProbePackageVariant = 'v1' | 'v2'
-type VisibleImportProductProbeOperation = 'install' | 'enable' | 'upgrade'
+type VisibleImportProductProbeOperation = 'install' | 'enable' | 'upgrade' | 'rollback'
 
 const visibleImportProductProbeFixtures = {
   v1: {
@@ -149,10 +149,10 @@ export interface ThirdPartyVisibleImportProductProbeResult {
     readonly savesWritten: false
     readonly cacheWritten: false
     readonly transactionLogWritten: boolean
-    readonly rollbackExecuted: false
+    readonly rollbackExecuted: boolean
     readonly diagnosticsWritten: false
   }
-  readonly operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall'
+  readonly operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall' | 'rollback'
   readonly disableButtonClicked?: boolean
   readonly enableButtonClicked?: boolean
   readonly uninstallButtonClicked?: boolean
@@ -405,14 +405,45 @@ const hasReadyVisibleImportDispatch = (
   const appStartupHostEffects =
     dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects
   const isEnable = execution.operation === 'enable'
+  const isRollback = execution.operation === 'rollback'
   const interactionReady = isEnable
     ? execution.enableButtonClicked === true && !execution.defaultFileInputSelectorUsed
     : execution.panelImportButtonClicked && execution.defaultFileInputSelectorUsed
   const panelLabelsReady = dispatchResult !== null && (
     isEnable
       ? hasReadyVisibleEnablePanelLabels(dispatchResult, execution.panelStatusLabels)
+      : isRollback
+        ? hasReadyVisibleImportRollbackPanelLabels(dispatchResult, execution.panelStatusLabels)
       : hasReadyVisibleImportPanelLabels(dispatchResult, execution.panelStatusLabels)
   )
+  if (isRollback) {
+    return dispatchResult !== null
+      && execution.entrypoint === 'main-menu-panel'
+      && execution.mainMenuPanelOpened
+      && interactionReady
+      && dispatchResult.transactionCommandDispatcherHostKind === 'renderer'
+      && dispatchResult.transactionCommandDispatcherSourceStatus === 'dispatched'
+      && dispatchResult.installCommandPostCommitAcknowledgementStatus === 'ready'
+      && dispatchResult.postCommitVerificationExecutorHostMode === 'electron-main-visible-import'
+      && dispatchResult.postCommitUiIpcDeliveryContinuationStatus === 'ready'
+      && dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus === 'ready'
+      && dispatchResult.ordinaryInstallTransactionTerminalConnection?.outcomeKind === 'rollback'
+      && dispatchResult.ordinaryInstallTransactionTerminalConnection.effects?.rollbackExecuted === true
+      && dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus === null
+      && dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === null
+      && dispatchResult.runtimePublicationCommitAppStartupReadinessStatus === null
+      && dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus === null
+      && !dispatchResult.rendererLiveRegistrySwapApplied
+      && !dispatchResult.transactionCommitted
+      && !dispatchResult.startupPersistentStateWritten
+      && !dispatchResult.runtimeEnablementAllowed
+      && dispatchResult.uiIpcResponseDelivered
+      && dispatchResult.electronStartupPersistentStateWriteStatus === 'blocked'
+      && panelLabelsReady
+      && !contentAccessItemVisibleAfter
+      && !contentAccessRecipeVisibleAfter
+      && !contentAccessShopOfferVisibleAfter
+  }
   return dispatchResult !== null
     && execution.entrypoint === 'main-menu-panel'
     && execution.mainMenuPanelOpened
@@ -554,6 +585,22 @@ const hasReadyVisibleImportPanelLabels = (
   && labels.appStartupStatus === '已接入已挂载应用'
   && labels.startupPersistentStateStatus === '已写入'
 
+const hasReadyVisibleImportRollbackPanelLabels = (
+  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
+  labels: ThirdPartyVisibleImportPanelStatusLabels
+): boolean =>
+  labels.importStatus === '已暂存'
+  && labels.targetPackage === dispatchResult.preflight?.targetPackageId
+  && labels.dispatchStatus === 'dispatched'
+  && labels.persistenceStatus === '已写入 IndexedDB'
+  && labels.hostAckStatus === expectedPanelHostAckStatus(dispatchResult)
+  && labels.installOutcomeStatus === '已回滚'
+  && labels.uiIpcDeliveryStatus === expectedPanelUiIpcDeliveryStatus(dispatchResult)
+  && labels.runtimePublicationStatus === '已阻断'
+  && labels.liveRegistryStatus === '已阻断'
+  && labels.appStartupStatus === '已阻断'
+  && labels.startupPersistentStateStatus === '已阻断'
+
 const expectedEnablePersistenceStatus = (
   dispatchResult: WebFilePickerSourceInstallCommandDispatchResult
 ): string =>
@@ -675,6 +722,7 @@ const runMainMenuPanelImportProbe = async(
   const operation = options.operation ?? 'install'
   const variant = packageVariantForOperation(operation)
   const fixture = visibleImportProductProbeFixtures[variant]
+  const rollback = operation === 'rollback'
   const probeWindow = window
   const fileInputProbe = installDefaultFileInputProbeSelector(createVisibleImportFiles(variant))
   let mainMenuPanelOpened = false
@@ -700,13 +748,15 @@ const runMainMenuPanelImportProbe = async(
     panelImportButtonClicked = true
     panelImportButton.click()
     const dispatchResult = await dispatchResultPromise
-    await waitForCondition(
-      () =>
-        getOfficialItemDef(itemId)?.name.fallback === fixture.itemNameFallback
-        && getOfficialRecipeDef(recipeId)?.name.fallback === fixture.recipeNameFallback
-        && readProbeShopOfferNameFallback() === fixture.shopOfferNameFallback,
-      'visible import panel did not publish the imported item, recipe, and shop offer to contentAccess'
-    )
+    if (!rollback) {
+      await waitForCondition(
+        () =>
+          getOfficialItemDef(itemId)?.name.fallback === fixture.itemNameFallback
+          && getOfficialRecipeDef(recipeId)?.name.fallback === fixture.recipeNameFallback
+          && readProbeShopOfferNameFallback() === fixture.shopOfferNameFallback,
+        'visible import panel did not publish the imported item, recipe, and shop offer to contentAccess'
+      )
+    }
     const stableLabel = await waitForCondition(
       () => {
         const label = readPanelText('web-mod-import-status')
@@ -719,11 +769,17 @@ const runMainMenuPanelImportProbe = async(
     const panelStatusLabels = await waitForCondition(
       () => {
         const labels = readVisibleImportPanelStatusLabels()
-        return hasReadyVisibleImportPanelLabels(dispatchResult, labels)
+        return (
+          rollback
+            ? hasReadyVisibleImportRollbackPanelLabels(dispatchResult, labels)
+            : hasReadyVisibleImportPanelLabels(dispatchResult, labels)
+        )
           ? labels
           : false
       },
-      'visible import panel did not render the ordinary install runtime handoff labels'
+      rollback
+        ? 'visible import panel did not render the rollback terminal labels'
+        : 'visible import panel did not render the ordinary install runtime handoff labels'
     )
 
     return Object.freeze({
@@ -1080,7 +1136,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
     cacheWritten: false,
     transactionLogWritten:
       dispatchResult?.installTransactionCommitFinalization?.effects.transactionLogWritten === true,
-    rollbackExecuted: false,
+    rollbackExecuted:
+      dispatchResult?.ordinaryInstallTransactionTerminalConnection?.effects.rollbackExecuted === true,
     diagnosticsWritten: false
   }
 
@@ -1088,12 +1145,16 @@ export const runThirdPartyVisibleImportProductProbe = async(
     schemaVersion: 1,
     status,
     reason: status === 'ready'
-      ? 'visible MainMenu panel reached ordinary terminal runtime publication and item, recipe, and shop offer visibility'
+      ? operation === 'rollback'
+        ? 'visible MainMenu panel reached rollback terminal without runtime publication or startup persistence'
+        : 'visible MainMenu panel reached ordinary terminal runtime publication and item, recipe, and shop offer visibility'
       : execution.blockedReason
         ?? dispatchResult?.reason
         ?? 'visible import did not reach item, recipe, and shop offer visibility',
     entrypoint: execution.entrypoint,
-    ...(execution.operation === 'enable' || execution.operation === 'upgrade'
+    ...(execution.operation === 'enable'
+      || execution.operation === 'upgrade'
+      || execution.operation === 'rollback'
       ? { operation: execution.operation }
       : {}),
     mainMenuPanelOpened: execution.mainMenuPanelOpened,
