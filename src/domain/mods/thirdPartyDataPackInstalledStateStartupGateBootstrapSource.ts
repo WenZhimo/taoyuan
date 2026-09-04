@@ -34,6 +34,10 @@ import {
   createThirdPartyDataPackElectronStartupPersistentStateReadHost
 } from './thirdPartyDataPackElectronStartupPersistentStateIpcBridge'
 import {
+  createThirdPartyDataPackElectronInstalledStateRendererHost,
+  type ThirdPartyDataPackElectronInstalledStateReadResult
+} from './thirdPartyDataPackElectronInstalledStateBridge'
+import {
   buildThirdPartyDataPackLauncherBoundaryPreflight,
   type ThirdPartyDataPackLauncherBoundaryPreflightResult
 } from './thirdPartyDataPackLauncherBoundaryPreflight'
@@ -126,6 +130,7 @@ import {
 } from './thirdPartyDataPackWebStartupPersistentStateSourceHost'
 import {
   createWebIndexedDbSettingsLockfilePersistentWriterStore,
+  type ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord,
   type ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
 } from './thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 import {
@@ -178,7 +183,29 @@ interface DisabledInstalledState {
   }
 }
 
-type InstalledStateContextResult = InstalledStateContext | DisabledInstalledState
+interface UninstalledInstalledState {
+  readonly kind: 'uninstalled'
+  readonly sourceKind: InstalledStateSourceKind
+  readonly targetPackageId: PackageId
+  readonly registryCount: number
+  readonly entryCount: number
+  readonly packageCount: number
+  readonly startupPersistentStateSourceStatus: 'ready'
+  readonly startupPersistentStateSourceHostMode:
+    NonNullable<ThirdPartyDataPackStartupGatePersistentStateSourceResult['startupPersistentStateSourceHostMode']>
+  readonly startupPersistentStateInjectedSourceHostMode:
+    NonNullable<ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode']>
+  readonly persistentStateProofs: {
+    readonly transactionLogCommitted: true
+    readonly packageStateMatched: true
+    readonly settingsStateMatched: true
+    readonly modLockStateMatched: true
+    readonly liveRegistryMatched: true
+    readonly saveCacheIsolated: true
+  }
+}
+
+type InstalledStateContextResult = InstalledStateContext | DisabledInstalledState | UninstalledInstalledState
 
 interface ResolvedInstalledStateSource {
   readonly sourceKind: InstalledStateSourceKind
@@ -190,6 +217,9 @@ interface ResolvedInstalledStateSource {
   >
   readonly electronStartupPersistentStateHost?: ReturnType<
     typeof createThirdPartyDataPackElectronStartupPersistentStateReadHost
+  >
+  readonly electronInstalledStateHost?: ReturnType<
+    typeof createThirdPartyDataPackElectronInstalledStateRendererHost
   >
 }
 
@@ -369,6 +399,21 @@ const createElectronStartupPersistentStateHostFromRuntimeHost = (
   })
 }
 
+const createElectronInstalledStateHostFromRuntimeHost = (
+  runtimeHost: unknown
+): ReturnType<typeof createThirdPartyDataPackElectronInstalledStateRendererHost> | null => {
+  const electronApi = readOwnDataField(runtimeHost, 'electronAPI')
+  const readThirdPartyDataPackInstalledState = readOwnDataField(
+    electronApi,
+    'readThirdPartyDataPackInstalledState'
+  )
+  if (typeof readThirdPartyDataPackInstalledState !== 'function') return null
+
+  return createThirdPartyDataPackElectronInstalledStateRendererHost({
+    invoke: () => readThirdPartyDataPackInstalledState.call(electronApi)
+  })
+}
+
 const electronInstalledStateSourceRootExists = async(
   source: ContentPackageSource
 ): Promise<boolean> => (await source.getEntry('')) !== null
@@ -396,14 +441,16 @@ const createWebSettingsLockfileStore = (
 }
 
 const resolveInstalledStateSource = async(
-  options: CreateThirdPartyDataPackInstalledStateStartupGateBootstrapSourceOptions
+  options: CreateThirdPartyDataPackInstalledStateStartupGateBootstrapSourceOptions,
+  runtimeHost: unknown = resolveRuntimeHost(options)
 ): Promise<ResolvedInstalledStateSource | null> => {
-  const runtimeHost = resolveRuntimeHost(options)
   const electronApi = readOwnDataField(runtimeHost, 'electronAPI')
   if (electronApi !== undefined) {
     const source = createElectronSourceFromRuntimeHost(runtimeHost)
     const electronStartupPersistentStateHost =
       createElectronStartupPersistentStateHostFromRuntimeHost(runtimeHost)
+    const electronInstalledStateHost =
+      createElectronInstalledStateHostFromRuntimeHost(runtimeHost)
     if (source === null || electronStartupPersistentStateHost === null) {
       return null
     }
@@ -413,7 +460,8 @@ const resolveInstalledStateSource = async(
     return Object.freeze({
       sourceKind: 'electron-program-directory-userdata' as const,
       source,
-      electronStartupPersistentStateHost
+      electronStartupPersistentStateHost,
+      ...(electronInstalledStateHost === null ? {} : { electronInstalledStateHost })
     })
   }
 
@@ -568,6 +616,58 @@ const startupSnapshotMatchesDisableState = (
   && snapshot.liveRegistryMatched === true
   && snapshot.saveCacheIsolated === true
 
+const packageIdsEqual = (
+  left: readonly PackageId[],
+  right: readonly PackageId[]
+): boolean => left.length === right.length && left.every((value, index) => value === right[index])
+
+const buildUninstallStartupStateRequest = (
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+): ThirdPartyDataPackStartupGatePersistentStateSourceRequest => Object.freeze({
+  formatVersion: 1,
+  commandId: 'uninstall',
+  packageId: record.targetPackageId,
+  candidateIdentity: record.lockfileDraft.candidateIdentity,
+  lockfileHash: record.lockfileHash,
+  selectedPackageIds: [],
+  blockedPackageIds: [],
+  blockedCandidateCount: 0,
+  loadOrder: [],
+  registryCount: record.lockfileDraft.registryCount,
+  entryCount: record.lockfileDraft.entryCount,
+  packageCount: record.lockfileDraft.packages.length,
+  requiredSourceIds: [],
+  deferredStageIds: []
+})
+
+const webUninstallRecordMatchesRemovedState = (
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+): boolean => record.candidateHash === record.lockfileDraft.candidateIdentity.candidateHash
+  && record.lockfileHash === record.lockfileDraft.lockfileHash
+  && packageIdsEqual(record.selectedPackageIds, [])
+  && packageIdsEqual(record.blockedPackageIds, [])
+  && packageIdsEqual(record.loadOrder, [])
+  && packageIdsEqual(record.lockfileDraft.selectedPackageIds, [])
+  && packageIdsEqual(record.lockfileDraft.loadOrder, [])
+  && !record.lockfileDraft.packages.some(
+    currentPackage => currentPackage.packageId === record.targetPackageId
+  )
+
+const startupSnapshotMatchesUninstallRecord = (
+  snapshot: ThirdPartyDataPackStartupGatePersistentStateSnapshotSource,
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+): boolean => snapshot.settled === true
+  && snapshot.packageId === record.targetPackageId
+  && snapshot.candidateIdentity?.candidateHash === record.candidateHash
+  && snapshot.lockfileHash === record.lockfileHash
+  && snapshot.transactionLogCommitted === true
+  && snapshot.packageStateMatched === true
+  && snapshot.packageStateRemoved === true
+  && snapshot.settingsStateMatched === true
+  && snapshot.modLockStateMatched === true
+  && snapshot.liveRegistryMatched === true
+  && snapshot.saveCacheIsolated === true
+
 const buildDisableStateForPackage = (
   runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
   targetPackageId: PackageId
@@ -660,6 +760,107 @@ const readWebDisabledState = async(
       saveCacheIsolated: true
     }
   }
+}
+
+const readWebUninstalledState = async(
+  store: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore,
+  host: ReturnType<typeof createThirdPartyDataPackWebStartupPersistentStateSourceHost>
+): Promise<UninstalledInstalledState | null> => {
+  const readResult = await store.read()
+  if (readResult.report.status === 'failed') {
+    throw new Error('Web installed state settings-lockfile could not be read during startup')
+  }
+  const record = readResult.record
+  if (record?.requestedCommandId !== 'uninstall') return null
+  if (!webUninstallRecordMatchesRemovedState(record)) {
+    throw new Error('Web installed state uninstall record does not match removed package state')
+  }
+  const snapshot = await host.read(buildUninstallStartupStateRequest(record))
+  if (!startupSnapshotMatchesUninstallRecord(snapshot, record)) return null
+  return {
+    kind: 'uninstalled',
+    sourceKind: 'web-indexeddb',
+    targetPackageId: record.targetPackageId,
+    registryCount: record.lockfileDraft.registryCount,
+    entryCount: record.lockfileDraft.entryCount,
+    packageCount: record.lockfileDraft.packages.length,
+    startupPersistentStateSourceStatus: 'ready',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupPersistentStateInjectedSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    persistentStateProofs: {
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    }
+  }
+}
+
+const readElectronUninstalledState = async(
+  installedState: ThirdPartyDataPackElectronInstalledStateReadResult,
+  host: ReturnType<typeof createThirdPartyDataPackElectronStartupPersistentStateReadHost>
+): Promise<UninstalledInstalledState | null> => {
+  if (installedState.status === 'missing') return null
+  if (installedState.status === 'blocked') {
+    throw new Error(installedState.reason ?? 'Electron installed state could not be read during startup')
+  }
+  const record = installedState.record
+  if (record?.requestedCommandId !== 'uninstall') return null
+  if (installedState.packageFilesPreserved) {
+    throw new Error('Electron installed state uninstall record still preserves package files')
+  }
+  if (!webUninstallRecordMatchesRemovedState(record)) {
+    throw new Error('Electron installed state uninstall record does not match removed package state')
+  }
+  const snapshot = await host.read(buildUninstallStartupStateRequest(record))
+  if (!startupSnapshotMatchesUninstallRecord(snapshot, record)) return null
+  return {
+    kind: 'uninstalled',
+    sourceKind: 'electron-program-directory-userdata',
+    targetPackageId: record.targetPackageId,
+    registryCount: record.lockfileDraft.registryCount,
+    entryCount: record.lockfileDraft.entryCount,
+    packageCount: record.lockfileDraft.packages.length,
+    startupPersistentStateSourceStatus: 'ready',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateInjectedSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    persistentStateProofs: {
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    }
+  }
+}
+
+const resolveUninstalledState = async(
+  options: CreateThirdPartyDataPackInstalledStateStartupGateBootstrapSourceOptions,
+  runtimeHost: unknown
+): Promise<UninstalledInstalledState | null> => {
+  if (readOwnDataField(runtimeHost, 'electronAPI') !== undefined) {
+    const installedStateHost = createElectronInstalledStateHostFromRuntimeHost(runtimeHost)
+    const startupPersistentStateHost = createElectronStartupPersistentStateHostFromRuntimeHost(runtimeHost)
+    if (installedStateHost === null || startupPersistentStateHost === null) return null
+    return await readElectronUninstalledState(
+      await installedStateHost.read(),
+      startupPersistentStateHost
+    )
+  }
+
+  const webStore = createWebStore(options)
+  const webSettingsLockfileStore = createWebSettingsLockfileStore(options)
+  if (webStore === null || webSettingsLockfileStore === null) return null
+  return await readWebUninstalledState(
+    webSettingsLockfileStore,
+    createThirdPartyDataPackWebStartupPersistentStateSourceHost({
+      store: webStore,
+      settingsLockfileStore: webSettingsLockfileStore
+    })
+  )
 }
 
 const startupGateHandoffEffects: ThirdPartyDataPackStartupGateHandoffEffectSummary = Object.freeze({
@@ -965,7 +1166,19 @@ const createInstalledStateContext = async(
     }
     throw error
   })
-  if (runtimeContext === null) return null
+  if (runtimeContext === null) {
+    return resolvedSource.sourceKind === 'web-indexeddb'
+      ? await readWebUninstalledState(
+          resolvedSource.webSettingsLockfileStore!,
+          resolvedSource.webStartupPersistentStateHost!
+        )
+      : resolvedSource.electronInstalledStateHost === undefined
+        ? null
+        : await readElectronUninstalledState(
+            await resolvedSource.electronInstalledStateHost.read(),
+            resolvedSource.electronStartupPersistentStateHost!
+          )
+  }
 
   const disabledState = resolvedSource.sourceKind === 'web-indexeddb'
     ? await readWebDisabledState(
@@ -1035,6 +1248,48 @@ const disabledInstalledStateResult = (
     loadOrderCount: 0,
     registryCount: 54,
     entryCount: 4242,
+    packageCount: state.packageCount,
+    diagnosticCount: 0
+  }),
+  effects: Object.freeze({
+    ...noStartupGateEffects(true),
+    startupPersistentStateSourceCalled: true,
+    startupStateSnapshotAccepted: true
+  })
+})
+
+const uninstalledInstalledStateResult = (
+  state: UninstalledInstalledState
+): ThirdPartyDataPackStartupGateBootstrapSourceResult => Object.freeze({
+  kind: THIRD_PARTY_DATA_PACK_STARTUP_GATE_BOOTSTRAP_SOURCE_KIND,
+  mode: THIRD_PARTY_DATA_PACK_STARTUP_GATE_BOOTSTRAP_SOURCE_MODE,
+  status: 'skipped',
+  reason: `third-party installed-state startup gate accepted removed package ${state.targetPackageId} and selected official-only runtime`,
+  readOnly: true,
+  enabled: false,
+  sourceCalled: true,
+  appBootstrapContinuationAllowed: true,
+  targetPackageId: state.targetPackageId,
+  startupPersistentStateSourceKind: state.sourceKind,
+  selectedPackageIds: Object.freeze([]),
+  blockedPackageIds: Object.freeze([]),
+  blockedCandidateCount: 0,
+  loadOrder: Object.freeze([]),
+  registryCount: state.registryCount,
+  entryCount: state.entryCount,
+  packageCount: state.packageCount,
+  startupPersistentStateSourceStatus: state.startupPersistentStateSourceStatus,
+  startupPersistentStateSourceHostMode: state.startupPersistentStateSourceHostMode,
+  startupPersistentStateInjectedSourceHostMode: state.startupPersistentStateInjectedSourceHostMode,
+  persistentStateProofs: state.persistentStateProofs,
+  diagnostics: Object.freeze([]),
+  summary: Object.freeze({
+    selectedPackageCount: 0,
+    blockedPackageCount: 0,
+    blockedCandidateCount: 0,
+    loadOrderCount: 0,
+    registryCount: state.registryCount,
+    entryCount: state.entryCount,
     packageCount: state.packageCount,
     diagnosticCount: 0
   }),
@@ -1340,8 +1595,11 @@ export const createThirdPartyDataPackInstalledStateStartupGateBootstrapSource = 
     })
   }
 
-  const resolvedSource = await resolveInstalledStateSource(options)
+  const runtimeHost = resolveRuntimeHost(options)
+  const resolvedSource = await resolveInstalledStateSource(options, runtimeHost)
   if (resolvedSource === null) {
+    const uninstalledState = await resolveUninstalledState(options, runtimeHost)
+    if (uninstalledState !== null) return uninstalledInstalledStateResult(uninstalledState)
     return skippedInstalledStateResult({
       enabled: false,
       sourceCalled: true,
@@ -1360,6 +1618,7 @@ export const createThirdPartyDataPackInstalledStateStartupGateBootstrapSource = 
   }
 
   if (contextResult.kind === 'disabled') return disabledInstalledStateResult(contextResult)
+  if (contextResult.kind === 'uninstalled') return uninstalledInstalledStateResult(contextResult)
 
   const context = contextResult
 

@@ -73,7 +73,7 @@ afterEach(() => {
 })
 
 describe('useWebInstalledDataPackManagement', () => {
-  it('disables an installed package and keeps its files while exposing a disabled row', async() => {
+  it('disables an installed package, then uninstalls it with official-only persisted state', async() => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     officialRegistrySet.freezeEntries()
     publishOfficialContentRegistrySet(officialRegistrySet)
@@ -137,6 +137,98 @@ describe('useWebInstalledDataPackManagement', () => {
     expect((await installedPackageStore.get(THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))?.files)
       .toHaveLength(1)
     expect((await startupPersistentStateStore.get(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))?.files)
+      .toHaveLength(1)
+
+    const uninstallResult = await management.uninstall(packageId)
+    await nextTick()
+
+    expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.terminal.settingsWritten).toBe(true)
+    expect(uninstallResult?.terminal.lockfileWritten).toBe(true)
+    expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
+    expect(uninstallResult?.terminal.packageFilesRemoved).toBe(true)
+    expect(uninstallResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(uninstallResult?.terminal.liveRegistrySwapped).toBe(true)
+    expect(uninstallResult?.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(management.status.value).toBe('ready')
+    expect(management.rows.value).toEqual([])
+    const uninstalledRecord = (await settingsLockfileStore.read()).record
+    expect(uninstalledRecord?.requestedCommandId).toBe('uninstall')
+    expect(uninstalledRecord?.targetPackageId).toBe(packageId)
+    expect(uninstalledRecord?.selectedPackageIds).toEqual([])
+    expect(uninstalledRecord?.blockedPackageIds).toEqual([])
+    expect(uninstalledRecord?.loadOrder).toEqual([])
+    expect(uninstalledRecord?.lockfileDraft.packages).toEqual([])
+    expect(await installedPackageStore.get(THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))
+      .toBeNull()
+    const startupRecord = await startupPersistentStateStore.get(
+      THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID
+    )
+    expect(startupRecord?.files).toHaveLength(1)
+    const startupSnapshot = JSON.parse(startupRecord!.files[0]!.text) as {
+      packageState?: { matched?: boolean, removed?: boolean }
+      settingsState?: { matched?: boolean }
+      modLockState?: { matched?: boolean }
+      liveRegistry?: { matched?: boolean }
+      saveCache?: { isolated?: boolean }
+    }
+    expect(startupSnapshot.packageState).toEqual({ matched: true, removed: true })
+    expect(startupSnapshot.settingsState?.matched).toBe(true)
+    expect(startupSnapshot.modLockState?.matched).toBe(true)
+    expect(startupSnapshot.liveRegistry?.matched).toBe(true)
+    expect(startupSnapshot.saveCache?.isolated).toBe(true)
+  })
+
+  it('does not uninstall an enabled package before the disabled state is persisted', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const installedDraft = createInstalledDraft()
+    await settingsLockfileStore.write({
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      loadOrder: [packageId],
+      candidateHash: installedDraft.candidateIdentity.candidateHash,
+      lockfileHash: installedDraft.lockfileHash,
+      lockfileDraft: installedDraft
+    })
+    const manifestText = '{"id":"web_disable_management_test_pack"}\n'
+    await installedPackageStore.put(createDefaultWebIndexedDbImportRecord([
+      {
+        path: 'web-disable-management-test-pack/manifest.json',
+        text: manifestText,
+        sizeBytes: manifestText.length
+      }
+    ], THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore,
+      installedPackageStore,
+      startupPersistentStateStore,
+      mountedAppStartupEvidence: () => true
+    })
+    await management.refresh()
+
+    const uninstallResult = await management.uninstall(packageId)
+    await nextTick()
+
+    expect(uninstallResult).toBeNull()
+    expect(management.status.value).toBe('failed')
+    expect(management.reason.value).toBe('Only a disabled installed package can be uninstalled')
+    expect(management.rows.value).toEqual([{
+      packageId,
+      version: '1.0.0',
+      status: 'enabled'
+    }])
+    expect((await settingsLockfileStore.read()).record?.requestedCommandId).toBe('install')
+    expect((await installedPackageStore.get(THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))?.files)
       .toHaveLength(1)
   })
 })

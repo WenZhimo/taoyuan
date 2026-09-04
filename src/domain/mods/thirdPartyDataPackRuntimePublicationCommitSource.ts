@@ -636,7 +636,8 @@ const safeAcceptedHostResult = (
   const expectedTargetPackageId = runtimeCommandTargetPackageId(
     requestedCommandId,
     selectedPackageIds,
-    blockedPackageIds
+    blockedPackageIds,
+    readOwnStringField(hostResult, 'targetPackageId') as PackageId | undefined
   )
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
   const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
@@ -772,7 +773,8 @@ const baseResult = (
   const targetPackageId = runtimeCommandTargetPackageId(
     requestedCommandId,
     selectedPackageIds,
-    blockedPackageIds
+    blockedPackageIds,
+    readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined
   )
   const hostStatus = readOwnStringField(options.hostResult, 'status') as
     | ThirdPartyDataPackRuntimePublicationCommitHostStatus
@@ -840,7 +842,8 @@ const buildRuntimePublicationCommitHostEnvelope = (
   const targetPackageId = runtimeCommandTargetPackageId(
     requestedCommandId,
     selectedPackageIds,
-    blockedPackageIds
+    blockedPackageIds,
+    readOwnStringField(source, 'targetPackageId') as PackageId | undefined
   )
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
   const lockfileHash = readOwnStringField(source, 'lockfileHash') as Sha256Hash | undefined

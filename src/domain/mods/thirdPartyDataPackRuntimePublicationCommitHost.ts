@@ -188,7 +188,8 @@ const validEnvelope = (
 ): boolean => envelope.targetPackageId === runtimeCommandTargetPackageId(
     envelope.requestedCommandId,
     options.selectedPackageIds,
-    options.blockedPackageIds
+    options.blockedPackageIds,
+    envelope.targetPackageId
   )
   && runtimeCommandTargetMatchesPackageState(
     envelope.requestedCommandId,

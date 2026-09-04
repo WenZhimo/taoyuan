@@ -483,14 +483,24 @@ const validateRecord = (
     && loadOrder.length === 0
     && blockedPackageIds.length === 1
     && blockedPackageIds[0] === targetPackageId
+  const uninstallRecord = requestedCommandId === 'uninstall'
+    && selectedPackageIds.length === 0
+    && loadOrder.length === 0
+    && blockedPackageIds.length === 0
+    && Array.isArray(lockfileDraft?.packages)
+    && !lockfileDraft.packages.some(currentPackage => currentPackage.packageId === targetPackageId)
   if (
     recordId !== THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
-    || (requestedCommandId !== 'install' && requestedCommandId !== 'disable')
+    || (
+      requestedCommandId !== 'install'
+      && requestedCommandId !== 'disable'
+      && requestedCommandId !== 'uninstall'
+    )
     || targetPackageId === undefined
     || !candidateHash?.startsWith('sha256:')
     || !lockfileHash?.startsWith('sha256:')
     || lockfileDraft === undefined
-    || (!installRecord && !disableRecord)
+    || (!installRecord && !disableRecord && !uninstallRecord)
     || lockfileDraft.lockfileHash !== lockfileHash
     || lockfileDraft.candidateIdentity?.candidateHash !== candidateHash
     || !arraysEqual(lockfileDraft.selectedPackageIds, selectedPackageIds)

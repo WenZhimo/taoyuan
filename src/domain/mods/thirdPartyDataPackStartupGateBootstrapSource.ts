@@ -73,6 +73,7 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceResult {
   readonly appBootstrapContinuationAllowed: boolean
   readonly appBootstrapWiringSourceStatus?: ThirdPartyDataPackAppBootstrapWiringPreflightResult['status']
   readonly startupPersistentStateSourceStatus?: ThirdPartyDataPackStartupGatePersistentStateSourceResult['status']
+  readonly startupPersistentStateSourceKind?: 'web-indexeddb' | 'electron-program-directory-userdata'
   readonly startupPersistentStateSourceHostMode?:
     ThirdPartyDataPackStartupGatePersistentStateSourceResult['startupPersistentStateSourceHostMode']
   readonly startupPersistentStateInjectedSourceHostMode?:

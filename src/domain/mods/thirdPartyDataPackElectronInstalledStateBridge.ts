@@ -102,7 +102,11 @@ const normalizeRecord = (
   const lockfileHash = readOwnStringField(record, 'lockfileHash')
   if (
     readOwnStringField(record, 'recordId') !== 'active'
-    || (requestedCommandId !== 'install' && requestedCommandId !== 'disable')
+    || (
+      requestedCommandId !== 'install'
+      && requestedCommandId !== 'disable'
+      && requestedCommandId !== 'uninstall'
+    )
     || !isPackageId(targetPackageId)
     || selectedPackageIds === undefined
     || blockedPackageIds === undefined
@@ -138,11 +142,15 @@ const normalizeResult = (value: unknown): ThirdPartyDataPackElectronInstalledSta
       ...(reason === undefined ? {} : { reason })
     })
   }
-  if (status === 'ready' && record !== null && packageFilesPreserved) {
+  if (
+    status === 'ready'
+    && record !== null
+    && (packageFilesPreserved || record.requestedCommandId === 'uninstall')
+  ) {
     return Object.freeze({
       status: 'ready',
       record,
-      packageFilesPreserved: true
+      packageFilesPreserved
     })
   }
   return Object.freeze({

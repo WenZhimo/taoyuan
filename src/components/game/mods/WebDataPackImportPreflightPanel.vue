@@ -44,16 +44,26 @@
             >
               禁用
             </Button>
-            <Button
-              v-else
-              class="shrink-0 justify-center"
-              :icon="Power"
-              :disabled="isPreparing || installedManagementStatus === 'loading'"
-              :data-testid="`web-mod-enable-${row.packageId}`"
-              @click="enableInstalledPackage(row.packageId)"
-            >
-              启用
-            </Button>
+            <div v-else class="flex shrink-0 gap-2">
+              <Button
+                class="justify-center"
+                :icon="Power"
+                :disabled="isPreparing || installedManagementStatus === 'loading'"
+                :data-testid="`web-mod-enable-${row.packageId}`"
+                @click="enableInstalledPackage(row.packageId)"
+              >
+                启用
+              </Button>
+              <Button
+                class="justify-center"
+                :icon="Trash2"
+                :disabled="isPreparing || installedManagementStatus === 'loading'"
+                :data-testid="`web-mod-uninstall-${row.packageId}`"
+                @click="uninstallInstalledPackage(row.packageId)"
+              >
+                卸载
+              </Button>
+            </div>
           </div>
         </div>
         <p v-if="lastDisableResult" data-testid="web-mod-disable-result" class="text-muted mt-2">
@@ -64,6 +74,16 @@
           runtime {{ lastDisableResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
           live registry {{ lastDisableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastDisableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
+        </p>
+        <p v-if="lastUninstallResult" data-testid="web-mod-uninstall-result" class="text-muted mt-2">
+          卸载事务：{{ lastUninstallResult.terminal.status === 'ready' ? '已完成' : '已阻断' }} ·
+          settings {{ lastUninstallResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
+          mod-lock {{ lastUninstallResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
+          startup {{ lastUninstallResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
+          package {{ lastUninstallResult.terminal.packageFilesRemoved ? '已删除' : '未删除' }} ·
+          runtime {{ lastUninstallResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
+          live registry {{ lastUninstallResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
+          handoff {{ lastUninstallResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
         </p>
       </div>
 
@@ -142,7 +162,7 @@
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
   import { Capacitor } from '@capacitor/core'
-  import { Download, Power, PowerOff, RotateCcw, Upload } from 'lucide-vue-next'
+  import { Download, Power, PowerOff, RotateCcw, Trash2, Upload } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import {
     useWebFilePickerImportEntry,
@@ -181,11 +201,19 @@
     type ThirdPartyDataPackElectronDisableCommandResult
   } from '@/domain/mods/thirdPartyDataPackElectronDisableCommandBridge'
   import {
+    createThirdPartyDataPackElectronUninstallCommandRendererHost,
+    type ThirdPartyDataPackElectronUninstallCommandEnvelope,
+    type ThirdPartyDataPackElectronUninstallCommandResult
+  } from '@/domain/mods/thirdPartyDataPackElectronUninstallCommandBridge'
+  import {
     createThirdPartyDataPackElectronInstalledStateRendererHost
   } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
   import type {
     ThirdPartyDataPackDisableTransactionResult
   } from '@/domain/mods/thirdPartyDataPackDisableTransaction'
+  import type {
+    ThirdPartyDataPackUninstallTransactionResult
+  } from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
   import type { PackageId } from '@/domain/mods/ids'
   import {
     useWebInstalledDataPackManagement,
@@ -209,6 +237,9 @@
     electronDisableCommand?: (
       envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
     ) => Promise<ThirdPartyDataPackElectronDisableCommandResult>
+    electronUninstallCommand?: (
+      envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
+    ) => Promise<ThirdPartyDataPackElectronUninstallCommandResult>
   }>()
 
   const createDefaultPersistenceStore = (): WebIndexedDbImportPersistenceStore | null => {
@@ -278,6 +309,21 @@
     return host.disable
   }
   const electronDisableCommand = props.electronDisableCommand ?? createDefaultElectronDisableCommand()
+  const createDefaultElectronUninstallCommand = () => {
+    if (typeof window === 'undefined') return undefined
+    const electronApi = (window as Window & {
+      electronAPI?: {
+        uninstallThirdPartyDataPack?: (envelope: unknown) => Promise<unknown>
+      }
+    }).electronAPI
+    if (typeof electronApi?.uninstallThirdPartyDataPack !== 'function') return undefined
+    const host = createThirdPartyDataPackElectronUninstallCommandRendererHost({
+      invoke: async(_channel, envelope) => await electronApi.uninstallThirdPartyDataPack!(envelope)
+    })
+    return host.uninstall
+  }
+  const electronUninstallCommand =
+    props.electronUninstallCommand ?? createDefaultElectronUninstallCommand()
   const readMountedAppStartupHostEvidence =
     (): WebFilePickerMountedAppStartupHostEvidence | undefined => {
       const evidence = getThirdPartyDataPackMountedAppStartupHostEvidence()
@@ -323,6 +369,7 @@
     startupPersistentStateStore: persistenceStore,
     mountedAppStartupEvidence: () => readMountedAppStartupHostEvidence() !== undefined,
     electronDisableCommand,
+    electronUninstallCommand,
     readElectronInstalledState
   })
   const installedRows = computed<readonly WebInstalledDataPackManagementRow[]>(
@@ -330,6 +377,7 @@
   )
   const installedManagementStatus = computed(() => installedManagement.status.value)
   const lastDisableResult = computed(() => installedManagement.lastResult.value)
+  const lastUninstallResult = computed(() => installedManagement.lastUninstallResult.value)
   const installedManagementStatusLabel = computed(() => {
     if (installedManagement.status.value === 'loading') return '读取中'
     if (installedManagement.status.value === 'failed') return '读取失败'
@@ -488,10 +536,12 @@
 
   const visibleImportPanelProbeResultEventName = 'taoyuan:third-party-visible-import-panel-result'
   const visibleDisablePanelProbeResultEventName = 'taoyuan:third-party-visible-disable-panel-result'
+  const visibleUninstallPanelProbeResultEventName = 'taoyuan:third-party-visible-uninstall-panel-result'
 
   type VisibleImportPanelProbeWindow = Window & {
     __TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__?: WebFilePickerSourceInstallCommandDispatchResult
     __TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__?: ThirdPartyDataPackDisableTransactionResult
+    __TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__?: ThirdPartyDataPackUninstallTransactionResult
   }
 
   const shouldPublishVisibleImportPanelProbeResult = (): boolean => {
@@ -530,6 +580,25 @@
       configurable: true
     })
     window.dispatchEvent(new CustomEvent(visibleDisablePanelProbeResultEventName))
+  }
+
+  const shouldPublishVisibleUninstallPanelProbeResult = (): boolean => {
+    if (typeof window === 'undefined') return false
+    const search = new URLSearchParams(window.location.search)
+    return search.get('taoyuanContentProbe') === '1'
+      && search.get('taoyuanThirdPartyVisibleUninstallProbe') === '1'
+  }
+
+  const publishVisibleUninstallPanelProbeResult = (
+    result: ThirdPartyDataPackUninstallTransactionResult
+  ): void => {
+    if (!shouldPublishVisibleUninstallPanelProbeResult()) return
+    const probeWindow = window as VisibleImportPanelProbeWindow
+    Object.defineProperty(probeWindow, '__TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__', {
+      value: result,
+      configurable: true
+    })
+    window.dispatchEvent(new CustomEvent(visibleUninstallPanelProbeResultEventName))
   }
 
   const dispatchCurrentImportSource =
@@ -595,6 +664,17 @@
     try {
       const result = await installedManagement.disable(packageId as PackageId)
       if (result !== null) publishVisibleDisablePanelProbeResult(result)
+    } finally {
+      isPreparing.value = false
+    }
+  }
+
+  const uninstallInstalledPackage = async(packageId: string): Promise<void> => {
+    if (isNativePlatform.value || isPreparing.value) return
+    isPreparing.value = true
+    try {
+      const result = await installedManagement.uninstall(packageId as PackageId)
+      if (result !== null) publishVisibleUninstallPanelProbeResult(result)
     } finally {
       isPreparing.value = false
     }

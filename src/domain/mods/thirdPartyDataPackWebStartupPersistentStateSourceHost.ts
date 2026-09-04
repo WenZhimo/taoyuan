@@ -129,7 +129,7 @@ interface WebStartupPersistentStateSnapshotFile {
   readonly candidateIdentity: ThirdPartyCandidateIdentitySummary
   readonly lockfileHash: Sha256Hash
   readonly transactionLog: { readonly committed: boolean }
-  readonly packageState: { readonly matched: boolean }
+  readonly packageState: { readonly matched: boolean, readonly removed?: boolean }
   readonly settingsState: { readonly matched: boolean }
   readonly modLockState: { readonly matched: boolean }
   readonly liveRegistry: { readonly matched: boolean }
@@ -362,6 +362,7 @@ const parseSnapshotFile = (
   const lockfileHash = readOwnStringField(value, 'lockfileHash')
   const transactionLogCommitted = readNestedBoolean(value, 'transactionLog', 'committed')
   const packageStateMatched = readNestedBoolean(value, 'packageState', 'matched')
+  const packageStateRemoved = readNestedBoolean(value, 'packageState', 'removed')
   const settingsStateMatched = readNestedBoolean(value, 'settingsState', 'matched')
   const modLockStateMatched = readNestedBoolean(value, 'modLockState', 'matched')
   const liveRegistryMatched = readNestedBoolean(value, 'liveRegistry', 'matched')
@@ -391,7 +392,10 @@ const parseSnapshotFile = (
     candidateIdentity,
     lockfileHash: lockfileHash as Sha256Hash,
     transactionLog: { committed: transactionLogCommitted },
-    packageState: { matched: packageStateMatched },
+    packageState: {
+      matched: packageStateMatched,
+      ...(packageStateRemoved === undefined ? {} : { removed: packageStateRemoved })
+    },
     settingsState: { matched: settingsStateMatched },
     modLockState: { matched: modLockStateMatched },
     liveRegistry: { matched: liveRegistryMatched },
@@ -407,6 +411,7 @@ const snapshotMatchesRequest = (
   && snapshot.lockfileHash === request.lockfileHash
   && snapshot.transactionLog.committed === true
   && snapshot.packageState.matched === true
+  && (request.commandId !== 'uninstall' || snapshot.packageState.removed === true)
   && snapshot.settingsState.matched === true
   && snapshot.modLockState.matched === true
   && snapshot.liveRegistry.matched === true
@@ -444,6 +449,9 @@ const toSnapshotSource = (
   lockfileHash: snapshot.lockfileHash,
   transactionLogCommitted: snapshot.transactionLog.committed,
   packageStateMatched: snapshot.packageState.matched,
+  ...(snapshot.packageState.removed === undefined
+    ? {}
+    : { packageStateRemoved: snapshot.packageState.removed }),
   settingsStateMatched: snapshot.settingsState.matched,
   modLockStateMatched: snapshot.modLockState.matched,
   liveRegistryMatched: snapshot.liveRegistry.matched,

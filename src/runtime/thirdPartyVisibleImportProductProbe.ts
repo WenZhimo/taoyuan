@@ -5,6 +5,9 @@ import {
 } from '@/domain/mods/contentAccess'
 import type { PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackDisableTransactionResult } from '@/domain/mods/thirdPartyDataPackDisableTransaction'
+import type {
+  ThirdPartyDataPackUninstallTransactionResult
+} from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
 import { CURRENT_GAME_VERSION } from '@/domain/mods/officialContentVersions'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import type { WebFilePickerImportFile } from '@/domain/mods/webFilePickerImportSource'
@@ -40,6 +43,10 @@ export interface RunThirdPartyVisibleImportProductProbeOptions {
 }
 
 export interface RunThirdPartyVisibleDisableProductProbeOptions {
+  readonly targetPackageId?: PackageId
+}
+
+export interface RunThirdPartyVisibleUninstallProductProbeOptions {
   readonly targetPackageId?: PackageId
 }
 
@@ -116,9 +123,10 @@ export interface ThirdPartyVisibleImportProductProbeResult {
     readonly rollbackExecuted: false
     readonly diagnosticsWritten: false
   }
-  readonly operation?: 'install' | 'disable' | 'enable'
+  readonly operation?: 'install' | 'disable' | 'enable' | 'uninstall'
   readonly disableButtonClicked?: boolean
   readonly enableButtonClicked?: boolean
+  readonly uninstallButtonClicked?: boolean
   readonly disableTerminalStatus?: 'ready' | 'blocked' | null
   readonly disableTargetPackageId?: string | null
   readonly disableSelectedPackageCount?: number
@@ -134,6 +142,21 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly disableRuntimePublicationExcluded?: boolean
   readonly disableLiveRegistrySwapped?: boolean
   readonly disableAppStartupHandoffAccepted?: boolean
+  readonly uninstallTerminalStatus?: 'ready' | 'blocked' | null
+  readonly uninstallTargetPackageId?: string | null
+  readonly uninstallSelectedPackageCount?: number
+  readonly uninstallBlockedPackageCount?: number
+  readonly uninstallLoadOrderCount?: number
+  readonly uninstallRegistryCount?: number
+  readonly uninstallEntryCount?: number
+  readonly uninstallPackageCount?: number
+  readonly uninstallSettingsWritten?: boolean
+  readonly uninstallLockfileWritten?: boolean
+  readonly uninstallStartupStateWritten?: boolean
+  readonly uninstallPackageFilesRemoved?: boolean
+  readonly uninstallRuntimePublicationExcluded?: boolean
+  readonly uninstallLiveRegistrySwapped?: boolean
+  readonly uninstallAppStartupHandoffAccepted?: boolean
   readonly blockedReason?: string
 }
 
@@ -152,6 +175,7 @@ export interface ThirdPartyVisibleImportPanelStatusLabels {
   readonly startupPersistentStateStatus?: string
   readonly installedManagementStatus?: string
   readonly disableResult?: string
+  readonly uninstallResult?: string
 }
 
 type MutableThirdPartyVisibleImportPanelStatusLabels = {
@@ -189,9 +213,26 @@ interface VisibleDisableProbeExecution {
   readonly blockedReason?: string
 }
 
+interface VisibleUninstallProbeExecution {
+  readonly transactionResult: ThirdPartyDataPackUninstallTransactionResult | null
+  readonly targetPackageId: PackageId
+  readonly panelStatusLabels: ThirdPartyVisibleImportPanelStatusLabels
+  readonly entrypoint: 'main-menu-panel'
+  readonly mainMenuPanelOpened: boolean
+  readonly uninstallButtonClicked: boolean
+  readonly contentAccessItemVisibleBefore: boolean
+  readonly contentAccessItemVisibleAfter: boolean
+  readonly contentAccessRecipeVisibleBefore: boolean
+  readonly contentAccessRecipeVisibleAfter: boolean
+  readonly contentAccessShopOfferVisibleBefore: boolean
+  readonly contentAccessShopOfferVisibleAfter: boolean
+  readonly blockedReason?: string
+}
+
 type VisibleImportPanelProbeWindow = Window & {
   __TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__?: WebFilePickerSourceInstallCommandDispatchResult
   __TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__?: ThirdPartyDataPackDisableTransactionResult
+  __TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__?: ThirdPartyDataPackUninstallTransactionResult
 }
 
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
@@ -448,6 +489,7 @@ const readVisibleImportPanelStatusLabels = (): ThirdPartyVisibleImportPanelStatu
   setPanelStatusLabel(labels, 'startupPersistentStateStatus', 'web-mod-startup-persistent-state-status')
   setPanelStatusLabel(labels, 'installedManagementStatus', 'web-mod-installed-management-status')
   setPanelStatusLabel(labels, 'disableResult', 'web-mod-disable-result')
+  setPanelStatusLabel(labels, 'uninstallResult', 'web-mod-uninstall-result')
   return Object.freeze(labels)
 }
 
@@ -770,6 +812,15 @@ const readPanelDisableResult = (
 ): ThirdPartyDataPackDisableTransactionResult | null =>
   (probeWindow as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__ ?? null
 
+const clearPanelUninstallResult = (probeWindow: Window): void => {
+  Reflect.deleteProperty(probeWindow, '__TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__')
+}
+
+const readPanelUninstallResult = (
+  probeWindow: Window
+): ThirdPartyDataPackUninstallTransactionResult | null =>
+  (probeWindow as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__ ?? null
+
 const runMainMenuPanelDisableProbe = async(
   options: RunThirdPartyVisibleDisableProductProbeOptions = {}
 ): Promise<VisibleDisableProbeExecution> => {
@@ -838,6 +889,84 @@ const runMainMenuPanelDisableProbe = async(
       entrypoint: 'main-menu-panel' as const,
       mainMenuPanelOpened,
       disableButtonClicked,
+      contentAccessItemVisibleBefore,
+      contentAccessItemVisibleAfter: getOfficialItemDef(itemId) !== undefined,
+      contentAccessRecipeVisibleBefore,
+      contentAccessRecipeVisibleAfter: getOfficialRecipeDef(recipeId) !== undefined,
+      contentAccessShopOfferVisibleBefore,
+      contentAccessShopOfferVisibleAfter: readProbeShopOfferNameFallback() !== undefined,
+      blockedReason: toErrorMessage(error)
+    })
+  }
+}
+
+const runMainMenuPanelUninstallProbe = async(
+  options: RunThirdPartyVisibleUninstallProductProbeOptions = {}
+): Promise<VisibleUninstallProbeExecution> => {
+  const probeWindow = window
+  const targetPackageId = options.targetPackageId ?? packageId
+  const contentAccessItemVisibleBefore = getOfficialItemDef(itemId) !== undefined
+  const contentAccessRecipeVisibleBefore = getOfficialRecipeDef(recipeId) !== undefined
+  const contentAccessShopOfferVisibleBefore = readProbeShopOfferNameFallback() !== undefined
+  let mainMenuPanelOpened = false
+  let uninstallButtonClicked = false
+  try {
+    clearPanelUninstallResult(probeWindow)
+    const mainMenuButton = await waitForCondition(
+      () => findButtonContainingText('数据包预检'),
+      'visible uninstall probe could not find the MainMenu data-pack preflight button'
+    )
+    mainMenuButton.click()
+    await waitForCondition(
+      () => document.querySelector('[data-testid="web-data-pack-import-preflight-panel"]'),
+      'visible uninstall probe could not open the data-pack preflight panel'
+    )
+    mainMenuPanelOpened = true
+
+    const uninstallButton = await waitForCondition(
+      () => document.querySelector(
+        `[data-testid="web-mod-uninstall-${targetPackageId}"]`
+      ) as HTMLButtonElement | null,
+      'visible uninstall probe could not find the disabled installed package action'
+    )
+    uninstallButtonClicked = true
+    uninstallButton.click()
+    const transactionResult = await waitForCondition(
+      () => readPanelUninstallResult(probeWindow),
+      'visible uninstall panel did not publish the uninstall transaction result'
+    )
+    await waitForCondition(
+      () => document.querySelector(`[data-testid="web-mod-installed-row-${targetPackageId}"]`) === null
+        || document.querySelector('[data-testid="web-mod-installed-empty"]') !== null,
+      'visible uninstall panel did not remove the installed package row'
+    )
+    const panelStatusLabels = readVisibleImportPanelStatusLabels()
+    const contentAccessItemVisibleAfter = getOfficialItemDef(itemId) !== undefined
+    const contentAccessRecipeVisibleAfter = getOfficialRecipeDef(recipeId) !== undefined
+    const contentAccessShopOfferVisibleAfter = readProbeShopOfferNameFallback() !== undefined
+
+    return Object.freeze({
+      transactionResult,
+      targetPackageId,
+      panelStatusLabels,
+      entrypoint: 'main-menu-panel' as const,
+      mainMenuPanelOpened,
+      uninstallButtonClicked,
+      contentAccessItemVisibleBefore,
+      contentAccessItemVisibleAfter,
+      contentAccessRecipeVisibleBefore,
+      contentAccessRecipeVisibleAfter,
+      contentAccessShopOfferVisibleBefore,
+      contentAccessShopOfferVisibleAfter
+    })
+  } catch (error) {
+    return Object.freeze({
+      transactionResult: readPanelUninstallResult(probeWindow),
+      targetPackageId,
+      panelStatusLabels: readVisibleImportPanelStatusLabels(),
+      entrypoint: 'main-menu-panel' as const,
+      mainMenuPanelOpened,
+      uninstallButtonClicked,
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter: getOfficialItemDef(itemId) !== undefined,
       contentAccessRecipeVisibleBefore,
@@ -1081,6 +1210,125 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     disableRuntimePublicationExcluded: terminal?.runtimePublicationExcluded === true,
     disableLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
     disableAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,
+    blockedReason: execution.blockedReason,
+    effects: {
+      commandDispatched: false,
+      packageFilesWritten: false,
+      settingsWritten: terminal?.settingsWritten === true,
+      lockfileWritten: terminal?.lockfileWritten === true,
+      rendererLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
+      runtimeEnablementAllowed: false,
+      uiIpcResponseDelivered: false,
+      transactionCommitted: terminal?.status === 'ready',
+      transactionLogPrepared: false,
+      transactionLogRead: false,
+      startupPersistentStateWritten: terminal?.startupStateWritten === true,
+      realNormalStartupHostCalled: false,
+      realAppStartupHostCalled: terminal?.appStartupHandoffAccepted === true,
+      gameAppCreated: terminal?.appStartupHandoffAccepted === true,
+      piniaCreated: terminal?.appStartupHandoffAccepted === true,
+      routerMounted: terminal?.appStartupHandoffAccepted === true,
+      savesWritten: false as const,
+      cacheWritten: false as const,
+      transactionLogWritten: false,
+      rollbackExecuted: false as const,
+      diagnosticsWritten: false as const
+    }
+  })
+}
+
+export const runThirdPartyVisibleUninstallProductProbe = async(
+  options: RunThirdPartyVisibleUninstallProductProbeOptions = {}
+): Promise<ThirdPartyVisibleImportProductProbeResult> => {
+  const execution = await runMainMenuPanelUninstallProbe(options)
+  const terminal = execution.transactionResult?.terminal ?? null
+  const ready = terminal?.status === 'ready'
+    && terminal.targetPackageId === execution.targetPackageId
+    && terminal.selectedPackageIds.length === 0
+    && terminal.blockedPackageIds.length === 0
+    && terminal.loadOrder.length === 0
+    && terminal.settingsWritten
+    && terminal.lockfileWritten
+    && terminal.startupStateWritten
+    && terminal.packageFilesRemoved
+    && terminal.runtimePublicationExcluded
+    && terminal.liveRegistrySwapped
+    && terminal.appStartupHandoffAccepted
+    && !execution.contentAccessItemVisibleAfter
+    && !execution.contentAccessRecipeVisibleAfter
+    && !execution.contentAccessShopOfferVisibleAfter
+  const status = ready ? 'ready' : 'blocked'
+
+  return Object.freeze({
+    schemaVersion: 1,
+    status,
+    reason: ready
+      ? 'visible MainMenu panel uninstalled the disabled package and preserved official-only runtime'
+      : execution.blockedReason
+        ?? terminal?.reason
+        ?? 'visible uninstall panel did not reach a ready uninstall transaction terminal',
+    operation: 'uninstall' as const,
+    entrypoint: execution.entrypoint,
+    mainMenuPanelOpened: execution.mainMenuPanelOpened,
+    panelImportButtonClicked: false,
+    uninstallButtonClicked: execution.uninstallButtonClicked,
+    defaultFileInputSelectorUsed: false,
+    targetPackageId: execution.targetPackageId,
+    itemId,
+    recipeId,
+    shopOfferId,
+    fileCount: 0,
+    pickStatus: 'not-run',
+    panelStatusLabels: execution.panelStatusLabels,
+    dispatchPreflightStatus: null,
+    discoveryStatus: null,
+    transactionCommandDispatcherHostKind: null,
+    transactionCommandDispatcherSourceStatus: null,
+    installCommandPostCommitAcknowledgementStatus: null,
+    postCommitVerificationExecutorHostMode: null,
+    postCommitUiIpcDeliveryContinuationStatus: null,
+    ordinaryInstallTransactionTerminalConnectionStatus: null,
+    ordinaryInstallTransactionOutcomeKind: null,
+    installTransactionLogPreparedStatus: null,
+    installTransactionLogPreparedStorageKind: null,
+    installTransactionLogPreparedPersistentReadVerificationStatus: null,
+    installTransactionCommitFinalizationStatus: null,
+    runtimePublicationCommitAfterPostCommitVerificationStatus: null,
+    runtimePublicationCommitLiveRegistrySwapHostConnectionStatus: null,
+    runtimePublicationCommitAppStartupReadinessStatus: null,
+    runtimePublicationCommitAppStartupHostConnectionStatus: null,
+    webStartupPersistentStateWriteStatus: null,
+    electronStartupPersistentStateWriteStatus: null,
+    selectedPackageCount: terminal?.selectedPackageIds.length ?? 0,
+    blockedPackageCount: terminal?.blockedPackageIds.length ?? 0,
+    loadOrderCount: terminal?.loadOrder.length ?? 0,
+    registryCount: terminal?.registryCount,
+    entryCount: terminal?.entryCount,
+    packageCount: terminal?.packageCount,
+    diagnosticsCount: execution.transactionResult
+      ? execution.transactionResult.terminal.status === 'blocked' ? 1 : 0
+      : 0,
+    contentAccessItemVisibleBefore: execution.contentAccessItemVisibleBefore,
+    contentAccessItemVisibleAfter: execution.contentAccessItemVisibleAfter,
+    contentAccessRecipeVisibleBefore: execution.contentAccessRecipeVisibleBefore,
+    contentAccessRecipeVisibleAfter: execution.contentAccessRecipeVisibleAfter,
+    contentAccessShopOfferVisibleBefore: execution.contentAccessShopOfferVisibleBefore,
+    contentAccessShopOfferVisibleAfter: execution.contentAccessShopOfferVisibleAfter,
+    uninstallTerminalStatus: terminal?.status ?? null,
+    uninstallTargetPackageId: terminal?.targetPackageId ?? null,
+    uninstallSelectedPackageCount: terminal?.selectedPackageIds.length ?? 0,
+    uninstallBlockedPackageCount: terminal?.blockedPackageIds.length ?? 0,
+    uninstallLoadOrderCount: terminal?.loadOrder.length ?? 0,
+    uninstallRegistryCount: terminal?.registryCount,
+    uninstallEntryCount: terminal?.entryCount,
+    uninstallPackageCount: terminal?.packageCount,
+    uninstallSettingsWritten: terminal?.settingsWritten === true,
+    uninstallLockfileWritten: terminal?.lockfileWritten === true,
+    uninstallStartupStateWritten: terminal?.startupStateWritten === true,
+    uninstallPackageFilesRemoved: terminal?.packageFilesRemoved === true,
+    uninstallRuntimePublicationExcluded: terminal?.runtimePublicationExcluded === true,
+    uninstallLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
+    uninstallAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,
     blockedReason: execution.blockedReason,
     effects: {
       commandDispatched: false,

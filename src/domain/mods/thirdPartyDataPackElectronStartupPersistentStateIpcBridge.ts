@@ -163,7 +163,7 @@ const cloneStartupStateRequest = (
 
   if (
     formatVersion !== 1
-    || (commandId !== 'install' && commandId !== 'disable')
+    || (commandId !== 'install' && commandId !== 'disable' && commandId !== 'uninstall')
     || !isPackageId(packageId)
     || candidateIdentity === undefined
     || !isSha256Hash(lockfileHash)
@@ -235,6 +235,7 @@ const safeSnapshotFromRawMainProcessValue = (
 
   const transactionLogCommitted = readOwnBooleanField(snapshot, 'transactionLogCommitted')
   const packageStateMatched = readOwnBooleanField(snapshot, 'packageStateMatched')
+  const packageStateRemoved = readOwnBooleanField(snapshot, 'packageStateRemoved')
   const settingsStateMatched = readOwnBooleanField(snapshot, 'settingsStateMatched')
   const modLockStateMatched = readOwnBooleanField(snapshot, 'modLockStateMatched')
   const liveRegistryMatched = readOwnBooleanField(snapshot, 'liveRegistryMatched')
@@ -262,6 +263,7 @@ const safeSnapshotFromRawMainProcessValue = (
     lockfileHash,
     transactionLogCommitted: true,
     packageStateMatched: true,
+    ...(packageStateRemoved === undefined ? {} : { packageStateRemoved }),
     settingsStateMatched: true,
     modLockStateMatched: true,
     liveRegistryMatched: true,

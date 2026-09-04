@@ -82,6 +82,7 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSnapshotSource {
   readonly lockfileHash?: Sha256Hash
   readonly transactionLogCommitted?: boolean
   readonly packageStateMatched?: boolean
+  readonly packageStateRemoved?: boolean
   readonly settingsStateMatched?: boolean
   readonly modLockStateMatched?: boolean
   readonly liveRegistryMatched?: boolean

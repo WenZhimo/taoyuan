@@ -87,6 +87,16 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-disable-uninstall-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableUninstallSequence: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
+  {
     name: 'visible-import-web-disable-enable-restart',
     fault: null,
     source: 'precompiled',
@@ -330,6 +340,73 @@ const electronScenarios = [
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
     startupGateTargetPackageId: 'product_probe_pack',
     startupGateEntryCount: 4242
+  },
+  {
+    name: 'visible-import-disable-uninstall-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-uninstall',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true
+  },
+  {
+    name: 'visible-import-disable-uninstall-disable',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-uninstall',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleDisable: true
+  },
+  {
+    name: 'visible-import-uninstall-disabled-package',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-uninstall',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupGateDisabled: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4242,
+    visibleUninstall: true
+  },
+  {
+    name: 'visible-import-uninstalled-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-uninstall',
+    cacheSeed: 'valid',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupGateUninstalled: true
   },
   {
     name: 'visible-import-enable-disabled-installed-package',
@@ -1263,6 +1340,111 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
   }
 }
 
+const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) => {
+  assert(protocol === 'http:' || protocol === 'file:',
+    `${scenario.name}: visible uninstall probe ran with an unsupported protocol`)
+  assert(visibleImport.observed === true,
+    `${scenario.name}: visible uninstall probe was not observed`)
+  assert(visibleImport.status === 'ready',
+    `${scenario.name}: visible uninstall probe did not reach ready status`)
+  assert(visibleImport.operation === 'uninstall',
+    `${scenario.name}: visible uninstall probe reported the wrong operation`)
+  assert(visibleImport.entrypoint === 'main-menu-panel',
+    `${scenario.name}: visible uninstall probe did not start from the MainMenu panel`)
+  assert(visibleImport.mainMenuPanelOpened === true,
+    `${scenario.name}: visible uninstall probe did not open the MainMenu panel`)
+  assert(visibleImport.uninstallButtonClicked === true,
+    `${scenario.name}: visible uninstall probe did not click the package uninstall action`)
+  assert(visibleImport.targetPackageId === 'product_probe_pack',
+    `${scenario.name}: visible uninstall probe reported the wrong package`)
+  assert(visibleImport.uninstallTerminalStatus === 'ready',
+    `${scenario.name}: visible uninstall probe terminal was not ready`)
+  assert(visibleImport.uninstallTargetPackageId === 'product_probe_pack',
+    `${scenario.name}: visible uninstall probe terminal target mismatch`)
+  assert(visibleImport.uninstallSelectedPackageCount === 0,
+    `${scenario.name}: visible uninstall probe left a selected package`)
+  assert(visibleImport.uninstallBlockedPackageCount === 0,
+    `${scenario.name}: visible uninstall probe left a blocked package`)
+  assert(visibleImport.uninstallLoadOrderCount === 0,
+    `${scenario.name}: visible uninstall probe left a load order`)
+  assert(visibleImport.uninstallRegistryCount === 54,
+    `${scenario.name}: visible uninstall probe changed the official registry count`)
+  assert(visibleImport.uninstallEntryCount === 4242,
+    `${scenario.name}: visible uninstall probe changed the official entry count`)
+  assert(visibleImport.uninstallPackageCount === 0,
+    `${scenario.name}: visible uninstall probe did not remove the package record`)
+  for (const fieldName of [
+    'uninstallSettingsWritten',
+    'uninstallLockfileWritten',
+    'uninstallStartupStateWritten',
+    'uninstallPackageFilesRemoved',
+    'uninstallRuntimePublicationExcluded',
+    'uninstallLiveRegistrySwapped',
+    'uninstallAppStartupHandoffAccepted'
+  ]) {
+    assert(visibleImport[fieldName] === true,
+      `${scenario.name}: visible uninstall probe field ${fieldName} was not true`)
+  }
+  assert(visibleImport.contentAccessItemVisibleBefore === false,
+    `${scenario.name}: uninstalled package item was visible before uninstall`)
+  assert(visibleImport.contentAccessItemVisibleAfter === false,
+    `${scenario.name}: uninstalled package item became visible after uninstall`)
+  assert(visibleImport.contentAccessRecipeVisibleBefore === false,
+    `${scenario.name}: uninstalled package recipe was visible before uninstall`)
+  assert(visibleImport.contentAccessRecipeVisibleAfter === false,
+    `${scenario.name}: uninstalled package recipe became visible after uninstall`)
+  assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
+    `${scenario.name}: uninstalled package shop offer was visible before uninstall`)
+  assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
+    `${scenario.name}: uninstalled package shop offer became visible after uninstall`)
+  assert(visibleImport.panelStatusLabels?.installedManagementStatus === '已就绪',
+    `${scenario.name}: visible uninstall panel did not settle installed management`)
+  const uninstallResult = visibleImport.panelStatusLabels?.uninstallResult ?? ''
+  for (const label of [
+    '卸载事务：已完成',
+    'settings 已写入',
+    'mod-lock 已写入',
+    'startup 已写入',
+    'package 已删除',
+    'runtime 已排除',
+    'live registry 已切换',
+    'handoff 已接受'
+  ]) {
+    assert(uninstallResult.includes(label),
+      `${scenario.name}: visible uninstall panel omitted ${label}`)
+  }
+  for (const effectName of [
+    'settingsWritten',
+    'lockfileWritten',
+    'rendererLiveRegistrySwapped',
+    'transactionCommitted',
+    'startupPersistentStateWritten',
+    'realAppStartupHostCalled',
+    'gameAppCreated',
+    'piniaCreated',
+    'routerMounted'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === true,
+      `${scenario.name}: visible uninstall effect ${effectName} was not true`)
+  }
+  for (const effectName of [
+    'commandDispatched',
+    'packageFilesWritten',
+    'runtimeEnablementAllowed',
+    'uiIpcResponseDelivered',
+    'transactionLogPrepared',
+    'transactionLogRead',
+    'transactionLogWritten',
+    'savesWritten',
+    'cacheWritten',
+    'rollbackExecuted',
+    'diagnosticsWritten'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === false,
+      `${scenario.name}: visible uninstall effect ${effectName} was not false`)
+  }
+}
+
 const assertDisabledInstalledStartupState = (startupGate, scenario) => {
   const expectedSourceKind = scenario.startupPersistentStateSourceKind ?? 'web-indexeddb'
   const expectedHostMode = scenario.startupPersistentStateSourceHostMode
@@ -1327,6 +1509,74 @@ const assertDisabledInstalledStartupState = (startupGate, scenario) => {
   }
 }
 
+const assertUninstalledStartupState = (startupGate, scenario) => {
+  const expectedSourceKind = scenario.startupPersistentStateSourceKind ?? 'web-indexeddb'
+  const expectedHostMode = scenario.startupPersistentStateSourceHostMode
+    ?? (expectedSourceKind === 'electron-program-directory-userdata'
+      ? 'electron-program-directory-startup-persistent-state'
+      : 'web-indexeddb-startup-persistent-state')
+  assert(startupGate.status === 'skipped',
+    `${scenario.name}: uninstalled startup gate should skip third-party publication`)
+  assert(startupGate.enabled === false,
+    `${scenario.name}: uninstalled startup gate should remain disabled`)
+  assert(startupGate.sourceCalled === true,
+    `${scenario.name}: uninstalled startup gate did not inspect installed state`)
+  assert(startupGate.appBootstrapContinuationAllowed === true,
+    `${scenario.name}: uninstalled startup gate did not allow official bootstrap`)
+  assert(startupGate.targetPackageId === 'product_probe_pack',
+    `${scenario.name}: uninstalled startup gate reported the wrong target package`)
+  assert(startupGate.selectedPackageCount === 0,
+    `${scenario.name}: uninstalled startup gate selected a package`)
+  assert(startupGate.blockedPackageCount === 0,
+    `${scenario.name}: uninstalled startup gate blocked a package`)
+  assert(startupGate.loadOrderCount === 0,
+    `${scenario.name}: uninstalled startup gate reported a load order`)
+  assert(startupGate.registryCount === 54,
+    `${scenario.name}: uninstalled startup gate changed the official registry count`)
+  assert(startupGate.entryCount === 4242,
+    `${scenario.name}: uninstalled startup gate changed the official entry count`)
+  assert(startupGate.packageCount === 0,
+    `${scenario.name}: uninstalled startup gate reported an installed package`)
+  assert(startupGate.lockfileHashPresent === false,
+    `${scenario.name}: uninstalled startup gate exposed a runtime lockfile hash`)
+  assert(startupGate.startupPersistentStateSourceStatus === 'ready',
+    `${scenario.name}: uninstalled startup state was not read as ready`)
+  assert(startupGate.startupPersistentStateSourceKind === expectedSourceKind,
+    `${scenario.name}: uninstalled startup source kind mismatch`)
+  assert(startupGate.startupPersistentStateSourceHostMode === expectedHostMode,
+    `${scenario.name}: uninstalled startup source host mode mismatch`)
+  assert(startupGate.startupPersistentStateInjectedSourceHostMode === expectedHostMode,
+    `${scenario.name}: uninstalled startup legacy source host mode mismatch`)
+  assert(startupGate.startupStateSnapshotAccepted === true,
+    `${scenario.name}: uninstalled startup snapshot was not accepted`)
+  assert(startupGate.persistentStateProofsAccepted === true,
+    `${scenario.name}: uninstalled persistent proofs were not accepted`)
+  assert(startupGate.startupPersistentStateReadFromIndexedDb === (expectedSourceKind === 'web-indexeddb'),
+    `${scenario.name}: uninstalled IndexedDB read flag mismatch`)
+  assert(startupGate.startupPersistentStateReadFromElectronUserdata === (
+    expectedSourceKind === 'electron-program-directory-userdata'
+  ), `${scenario.name}: uninstalled Electron userdata read flag mismatch`)
+  for (const effectName of [
+    'startupPersistentStateSourceCalled',
+    'startupStateSnapshotAccepted'
+  ]) {
+    assert(startupGate.effects?.[effectName] === true,
+      `${scenario.name}: uninstalled startup effect ${effectName} was not true`)
+  }
+  for (const effectName of [
+    'appStartupHostConnectionSourceCalled',
+    'appStartupHostConnectionAccepted',
+    'thirdPartyRegistryPublished',
+    'liveRegistrySwapped',
+    'runtimeEnablementAllowed',
+    'realRuntimePublicationCommitCalled',
+    'runtimePublicationCommitted'
+  ]) {
+    assert(startupGate.effects?.[effectName] === false,
+      `${scenario.name}: uninstalled startup effect ${effectName} was not false`)
+  }
+}
+
 const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   assert(envelope?.schemaVersion === 1, `${scenario.name}: invalid envelope version`)
   assert(envelope.ui?.locationProtocol === protocol, `${scenario.name}: wrong protocol`)
@@ -1339,6 +1589,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     `${scenario.name}: third-party startup gate result was not handed to the runtime probe`)
   if (scenario.startupGateDisabled) {
     assertDisabledInstalledStartupState(thirdPartyStartupGate, scenario)
+  } else if (scenario.startupGateUninstalled) {
+    assertUninstalledStartupState(thirdPartyStartupGate, scenario)
   } else if (scenario.startupGateReady) {
     const expectedStartupGateRegistryCount =
       scenario.startupGateRegistryCount ?? defaultStartupGateRegistryCount
@@ -1544,6 +1796,25 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       assert(thirdPartyAppStartupHost.effects?.[effectName] === false,
         `${scenario.name}: disabled installed-state app-startup effect ${effectName} was not false`)
     }
+  } else if (scenario.startupGateUninstalled) {
+    assert(thirdPartyAppStartupHost.status === 'skipped',
+      `${scenario.name}: uninstalled mounted app-startup host should skip publication`)
+    assert(thirdPartyAppStartupHost.enabled === false,
+      `${scenario.name}: uninstalled mounted app-startup host should remain disabled`)
+    assert(thirdPartyAppStartupHost.sourceCalled === true,
+      `${scenario.name}: uninstalled mounted app-startup host did not observe startup state`)
+    assert(thirdPartyAppStartupHost.selectedPackageCount === 0,
+      `${scenario.name}: uninstalled mounted app-startup host selected a package`)
+    assert(thirdPartyAppStartupHost.blockedPackageCount === 0,
+      `${scenario.name}: uninstalled mounted app-startup host blocked a package`)
+    assert(thirdPartyAppStartupHost.loadOrderCount === 0,
+      `${scenario.name}: uninstalled mounted app-startup host reported a load order`)
+    assert(thirdPartyAppStartupHost.packageCount === 0,
+      `${scenario.name}: uninstalled mounted app-startup host reported an installed package`)
+    assert(thirdPartyAppStartupHost.effects?.realAppStartupHostCalled === false,
+      `${scenario.name}: uninstalled mounted app-startup host claimed a runtime handoff`)
+    assert(thirdPartyAppStartupHost.effects?.appStartupHostConnectionAccepted === false,
+      `${scenario.name}: uninstalled mounted app-startup host claimed acceptance`)
   } else if (scenario.startupGateReady) {
     const expectsRealRuntimePublicationCommit =
       scenario.startupGateRealRuntimePublicationCommit !== false
@@ -1764,6 +2035,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     assertVisibleEnableProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleDisable) {
     assertVisibleDisableProductProbe(visibleImport, scenario, protocol)
+  } else if (scenario.visibleUninstall) {
+    assertVisibleUninstallProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleImportRendererLiveRegistry) {
     assert(protocol === 'file:',
       `${scenario.name}: visible import probe must run in Electron`)
@@ -3011,6 +3284,9 @@ const runWebProbe = async () => {
     if (scenario.visibleDisable) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableProbe', '1')
     }
+    if (scenario.visibleUninstall) {
+      url.searchParams.set('taoyuanThirdPartyVisibleUninstallProbe', '1')
+    }
     if (scenario.fault) url.searchParams.set('taoyuanPrecompiledFault', scenario.fault)
     return url
   }
@@ -3020,7 +3296,11 @@ const runWebProbe = async () => {
       const outputPath = path.join(scenarioRoot, 'report.json')
       fs.mkdirSync(scenarioRoot, { recursive: true })
       const userData = path.join(scenarioRoot, 'userdata')
-      if (scenario.visibleImportInstalledDisableSequence || scenario.visibleImportInstalledDisableEnableSequence) {
+      if (
+        scenario.visibleImportInstalledDisableSequence
+        || scenario.visibleImportInstalledDisableEnableSequence
+        || scenario.visibleImportInstalledDisableUninstallSequence
+      ) {
         const installScenario = {
           ...scenario,
           name: `${scenario.name}:install`,
@@ -3109,6 +3389,54 @@ const runWebProbe = async () => {
             installRuntime: installEnvelope.runtime,
             disableRuntime: disableEnvelope.runtime,
             enableRuntime: enableEnvelope.runtime,
+            restartRuntime: restartEnvelope.runtime
+          })
+          continue
+        }
+
+        if (scenario.visibleImportInstalledDisableUninstallSequence) {
+          const uninstallScenario = {
+            ...disableScenario,
+            name: `${scenario.name}:uninstall`,
+            startupGateDisabled: true,
+            startupGateEntryCount: 4242,
+            visibleDisable: false,
+            visibleUninstall: true
+          }
+          const uninstallOutputPath = path.join(scenarioRoot, 'uninstall-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: uninstallOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(uninstallScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const uninstallEnvelope = readJson(uninstallOutputPath)
+          assertRuntimeEnvelope(uninstallEnvelope, uninstallScenario, 'http:')
+          assertWebProductSurface(uninstallEnvelope, uninstallScenario)
+
+          const restartScenario = {
+            ...uninstallScenario,
+            name: `${scenario.name}:restart`,
+            startupGateReady: false,
+            startupGateDisabled: false,
+            startupPersistentStateReady: false,
+            startupPersistentStateUseInstalledState: false,
+            visibleUninstall: false,
+            startupGateUninstalled: true
+          }
+          const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const restartEnvelope = readJson(restartOutputPath)
+          assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+          assertWebProductSurface(restartEnvelope, restartScenario)
+          reports.push({
+            scenario: scenario.name,
+            installRuntime: installEnvelope.runtime,
+            disableRuntime: disableEnvelope.runtime,
+            uninstallRuntime: uninstallEnvelope.runtime,
             restartRuntime: restartEnvelope.runtime
           })
           continue
@@ -3214,12 +3542,14 @@ const runPackagedScenario = async (scenario, isolated) => {
   const exercisesVisibleInitialImport = !!scenario.visibleImportRendererLiveRegistry
   const exercisesVisibleImport = exercisesVisibleInitialImport || !!scenario.visibleEnable
   const exercisesVisibleDisable = !!scenario.visibleDisable
+  const exercisesVisibleUninstall = !!scenario.visibleUninstall
   const exercisesSettingsOrLockfileWrite =
     !!scenario.modLockWriteRead
     || !!scenario.settingsLockfileWriteRead
     || exercisesInstallTransactionCommitFinalization
     || exercisesVisibleImport
     || exercisesVisibleDisable
+    || exercisesVisibleUninstall
   const exercisesPackageFileWrite =
     !!scenario.packageFileWriteRead
     || !!scenario.packageFileRestore
@@ -3229,7 +3559,7 @@ const runPackagedScenario = async (scenario, isolated) => {
   seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
   if (exercisesPersistentWrite) {
     assert(isolated, `${scenario.name}: persistent write/read scenario must be isolated`)
-    if (!exercisesVisibleDisable && !scenario.visibleEnable && !scenario.startupGateDisabled) {
+    if (!exercisesVisibleDisable && !exercisesVisibleUninstall && !scenario.visibleEnable && !scenario.startupGateDisabled) {
       writeModLockProtectionSentinels(scenarioRoot, userDataPath)
     }
   }
@@ -3241,7 +3571,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     : null
   const packageFileTempsBefore = packageFileTemporaryNames(scenarioRoot)
   const preservedPackageRoot = path.join(scenarioRoot, 'mods', 'product-probe-pack')
-  const preservedPackageBefore = scenario.visibleDisable || scenario.startupGateDisabled
+  const preservedPackageBefore = scenario.visibleDisable || scenario.visibleUninstall || scenario.startupGateDisabled
     ? directoryFingerprint(preservedPackageRoot)
     : null
   const preservedPackageContentBefore = scenario.visibleEnable
@@ -3284,6 +3614,9 @@ const runPackagedScenario = async (scenario, isolated) => {
       : {}),
     ...(scenario.visibleDisable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE: '1' }
+      : {}),
+    ...(scenario.visibleUninstall
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_UNINSTALL: '1' }
       : {}),
     ...(scenario.startupGateReady ? { TAOYUAN_RUNTIME_PROBE_STARTUP_GATE_READY: '1' } : {}),
     ...(scenario.startupPersistentStateReady
@@ -3357,8 +3690,19 @@ const runPackagedScenario = async (scenario, isolated) => {
     const lockfileJson = readJson(lockfilePath)
     assert(lockfileJson.kind === 'third-party-data-pack-lockfile-draft',
       `${scenario.name}: mod-lock file has the wrong kind`)
-    assert(lockfileJson.packages?.[0]?.source?.candidatePath === 'product-probe-pack',
-      `${scenario.name}: mod-lock draft did not use the synthetic product probe package`)
+    if (scenario.visibleUninstall) {
+      assert(lockfileJson.packages?.length === 0,
+        `${scenario.name}: uninstall mod-lock draft retained package records`)
+      assert(lockfileJson.selectedPackageIds?.length === 0,
+        `${scenario.name}: uninstall mod-lock draft selected a package`)
+      assert((lockfileJson.blockedPackageIds ?? []).length === 0,
+        `${scenario.name}: uninstall mod-lock draft blocked a package`)
+      assert(lockfileJson.loadOrder?.length === 0,
+        `${scenario.name}: uninstall mod-lock draft exposed a load order`)
+    } else {
+      assert(lockfileJson.packages?.[0]?.source?.candidatePath === 'product-probe-pack',
+        `${scenario.name}: mod-lock draft did not use the synthetic product probe package`)
+    }
     assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(lockfileJson)),
       `${scenario.name}: mod-lock file leaked an absolute path`)
     if (
@@ -3367,6 +3711,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       || scenario.visibleImportRendererLiveRegistry
       || scenario.visibleEnable
       || scenario.visibleDisable
+      || scenario.visibleUninstall
     ) {
       const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
       assert(settingsJson.closeToTray === false,
@@ -3390,7 +3735,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
       `${scenario.name}: mod-lock file changed during inspect-only probe`)
   }
-  if ((scenario.visibleDisable || scenario.startupGateDisabled) && !scenario.visibleEnable) {
+  if ((scenario.visibleDisable || scenario.startupGateDisabled) && !scenario.visibleEnable && !scenario.visibleUninstall) {
     assert(preservedPackageBefore !== null && preservedPackageBefore.length > 0,
       `${scenario.name}: disabled package files were not present before restart validation`)
     assert(JSON.stringify(directoryFingerprint(preservedPackageRoot))
@@ -3437,6 +3782,56 @@ const runPackagedScenario = async (scenario, isolated) => {
       `${scenario.name}: disabled startup state did not preserve save/cache isolation evidence`)
     assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ disabledLockfile, settingsJson, startupState })),
       `${scenario.name}: disabled persistent state leaked an absolute path`)
+  }
+  if (scenario.visibleUninstall) {
+    assert(preservedPackageBefore !== null && preservedPackageBefore.length > 0,
+      `${scenario.name}: uninstall did not start with package files present`)
+    assert(fs.existsSync(preservedPackageRoot) === false,
+      `${scenario.name}: uninstall left the package root on disk`)
+    const uninstalledLockfile = readJson(lockfilePath)
+    assert(uninstalledLockfile.selectedPackageIds?.length === 0,
+      `${scenario.name}: uninstall lockfile still selected a package`)
+    assert((uninstalledLockfile.blockedPackageIds ?? []).length === 0,
+      `${scenario.name}: uninstall lockfile still blocked a package`)
+    assert(uninstalledLockfile.loadOrder?.length === 0,
+      `${scenario.name}: uninstall lockfile still exposed a load order`)
+    assert(uninstalledLockfile.packages?.length === 0,
+      `${scenario.name}: uninstall lockfile retained package records`)
+    const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
+    assert(settingsJson.thirdPartyDataPacks?.commandId === 'uninstall',
+      `${scenario.name}: uninstall settings did not persist the uninstall command`)
+    assert(settingsJson.thirdPartyDataPacks?.targetPackageId === 'product_probe_pack',
+      `${scenario.name}: uninstall settings reported the wrong target`)
+    assert(settingsJson.thirdPartyDataPacks?.selectedPackageIds?.length === 0,
+      `${scenario.name}: uninstall settings still selected a package`)
+    assert(settingsJson.thirdPartyDataPacks?.blockedPackageIds?.length === 0,
+      `${scenario.name}: uninstall settings still blocked a package`)
+    assert(settingsJson.thirdPartyDataPacks?.loadOrder?.length === 0,
+      `${scenario.name}: uninstall settings still exposed a load order`)
+    const startupStatePath = path.join(
+      userDataPath,
+      'mod-startup-state',
+      'startup-persistent-state-snapshot.json'
+    )
+    const startupState = readJson(startupStatePath)
+    assert(startupState.packageId === 'product_probe_pack',
+      `${scenario.name}: uninstall startup state reported the wrong package`)
+    assert(startupState.transactionLog?.committed === true,
+      `${scenario.name}: uninstall startup state did not preserve transaction evidence`)
+    assert(startupState.packageState?.matched === true,
+      `${scenario.name}: uninstall startup state did not preserve package evidence`)
+    assert(startupState.packageState?.removed === true,
+      `${scenario.name}: uninstall startup state did not record package removal`)
+    assert(startupState.settingsState?.matched === true,
+      `${scenario.name}: uninstall startup state did not preserve settings evidence`)
+    assert(startupState.modLockState?.matched === true,
+      `${scenario.name}: uninstall startup state did not preserve mod-lock evidence`)
+    assert(startupState.liveRegistry?.matched === true,
+      `${scenario.name}: uninstall startup state did not preserve live registry evidence`)
+    assert(startupState.saveCache?.isolated === true,
+      `${scenario.name}: uninstall startup state did not preserve save/cache isolation evidence`)
+    assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ uninstalledLockfile, settingsJson, startupState })),
+      `${scenario.name}: uninstall persistent state leaked an absolute path`)
   }
   if (scenario.visibleEnable) {
     assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
@@ -3541,6 +3936,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       || scenario.visibleImportRendererLiveRegistry
       || scenario.visibleEnable
       || scenario.visibleDisable
+      || scenario.visibleUninstall
       ? ['settings']
       : []
     assert(JSON.stringify(omitFingerprints(protectedAfter, omitted))

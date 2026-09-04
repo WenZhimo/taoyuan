@@ -63,6 +63,9 @@ const thirdPartyVisibleImportProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
+const thirdPartyVisibleUninstallProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleUninstallProbe') === '1'
 const thirdPartyVisibleEnableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleEnableProbe') === '1'
@@ -74,6 +77,7 @@ let thirdPartyElectronInstallCommandDispatchProductProbeResult:
   ThirdPartyDataPackTransactionCommandDispatcherHostResult | undefined
 let thirdPartyVisibleImportProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 let thirdPartyVisibleDisableProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
+let thirdPartyVisibleUninstallProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 const bootstrapThirdPartyStartupGate = thirdPartyStartupPersistentStateProbeRequested
   ? thirdPartyStartupPersistentStateUsesInstalledState
     ? createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
@@ -144,6 +148,15 @@ void bootstrapApplication({
             targetPackageId: 'product_probe_pack' as PackageId
           })
       }
+      if (thirdPartyVisibleUninstallProbeRequested) {
+        const { runThirdPartyVisibleUninstallProductProbe } = await import(
+          '@/runtime/thirdPartyVisibleImportProductProbe'
+        )
+        thirdPartyVisibleUninstallProductProbeResult =
+          await runThirdPartyVisibleUninstallProductProbe({
+            targetPackageId: 'product_probe_pack' as PackageId
+          })
+      }
       const { runThirdPartyRendererUiIpcProductProbe } = await import(
         '@/runtime/thirdPartyRendererUiIpcProductProbe'
       )
@@ -189,7 +202,8 @@ void bootstrapApplication({
     thirdPartyElectronInstallCommandDispatchResult:
       thirdPartyElectronInstallCommandDispatchProductProbeResult,
     thirdPartyVisibleImportResult:
-      thirdPartyVisibleDisableProductProbeResult
+      thirdPartyVisibleUninstallProductProbeResult
+        ?? thirdPartyVisibleDisableProductProbeResult
         ?? thirdPartyVisibleImportProductProbeResult
   })
 }).catch(error => {

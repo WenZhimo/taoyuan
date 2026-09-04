@@ -37,6 +37,14 @@ import {
   createThirdPartyDataPackInstalledStateStartupGateBootstrapSource
 } from '@/domain/mods/thirdPartyDataPackInstalledStateStartupGateBootstrapSource'
 import {
+  buildThirdPartyDataPackDisableState
+} from '@/domain/mods/thirdPartyDataPackDisableTransaction'
+import {
+  buildThirdPartyDataPackUninstallState,
+  createThirdPartyDataPackUninstallPersistentRecord,
+  createThirdPartyDataPackUninstallStartupPersistentStateSnapshot
+} from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
+import {
   buildThirdPartyDataPackMountInput,
   type ThirdPartyDataPackMountInputResult
 } from '@/domain/mods/thirdPartyDataPackMountInput'
@@ -310,8 +318,52 @@ const seedWebInstalledState = async(
   return mountInput
 }
 
+const seedWebUninstalledState = async(
+  store: WebIndexedDbImportPersistenceStore,
+  settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore,
+  packageId: PackageId,
+  officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+) => {
+  const mountInput = await seedWebInstalledState(store, packageId, officialRegistrySet)
+  expect(mountInput.lockfileDraft).toBeDefined()
+  const disableState = buildThirdPartyDataPackDisableState({
+    officialRegistrySet,
+    installedDraft: mountInput.lockfileDraft!,
+    targetPackageId: packageId
+  })
+  const uninstallState = buildThirdPartyDataPackUninstallState({
+    officialRegistrySet,
+    installedDraft: disableState.lockfileDraft,
+    targetPackageId: packageId
+  })
+  await settingsLockfileStore.write({
+    ...createThirdPartyDataPackUninstallPersistentRecord(
+      THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      uninstallState
+    ),
+    recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+  })
+  const startupSnapshotText = `${JSON.stringify(
+    createThirdPartyDataPackUninstallStartupPersistentStateSnapshot(
+      uninstallState,
+      'web-startup-persistent-state-snapshot'
+    ),
+    null,
+    2
+  )}\n`
+  await store.put(createDefaultWebIndexedDbImportRecord([
+    {
+      path: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
+      text: startupSnapshotText,
+      sizeBytes: startupSnapshotText.length
+    }
+  ], THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))
+  await store.delete(THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID)
+  return uninstallState
+}
+
 interface ElectronStartupPersistentStateRequest {
-  readonly commandId: 'install' | 'disable'
+  readonly commandId: 'install' | 'disable' | 'uninstall'
   readonly packageId: PackageId
   readonly candidateIdentity: {
     readonly formatVersion: 1
@@ -328,6 +380,7 @@ const createElectronRuntimeHost = (
     readonly rootExists?: boolean
     readonly manifestText?: string
     readonly includeContentFiles?: boolean
+    readonly readInstalledState?: () => unknown | Promise<unknown>
     readonly readStartupPersistentState?: (
       request: ElectronStartupPersistentStateRequest
     ) => unknown | Promise<unknown>
@@ -404,28 +457,42 @@ const createElectronRuntimeHost = (
           value: fileTexts.get(sourcePath) ?? ''
         }))
       },
-      readThirdPartyDataPackStartupPersistentState: vi.fn(async(request: ElectronStartupPersistentStateRequest) =>
-        options.readStartupPersistentState === undefined
-          ? request.commandId === 'install'
-            ? {
-                kind: 'startup-persistent-state-snapshot',
-                settled: true,
-                packageId: request.packageId,
-                candidateIdentity: request.candidateIdentity,
-                lockfileHash: request.lockfileHash,
-                transactionLogCommitted: true,
-                packageStateMatched: true,
-                settingsStateMatched: true,
-                modLockStateMatched: true,
-                liveRegistryMatched: true,
-                saveCacheIsolated: true
-              }
-            : {
-                kind: 'startup-persistent-state-snapshot',
-                settled: false,
-                packageId: request.packageId
-              }
-          : await options.readStartupPersistentState(request))
+      readThirdPartyDataPackStartupPersistentState: vi.fn(
+        async(request: ElectronStartupPersistentStateRequest) => {
+          if (options.readStartupPersistentState !== undefined) {
+            return await options.readStartupPersistentState(request)
+          }
+          if (request.commandId === 'install') {
+            return {
+              kind: 'startup-persistent-state-snapshot',
+              settled: true,
+              packageId: request.packageId,
+              candidateIdentity: request.candidateIdentity,
+              lockfileHash: request.lockfileHash,
+              transactionLogCommitted: true,
+              packageStateMatched: true,
+              settingsStateMatched: true,
+              modLockStateMatched: true,
+              liveRegistryMatched: true,
+              saveCacheIsolated: true
+            }
+          }
+          return {
+            kind: 'startup-persistent-state-snapshot',
+            settled: false,
+            packageId: request.packageId
+          }
+        }
+      ),
+      readThirdPartyDataPackInstalledState: vi.fn(async() =>
+        options.readInstalledState === undefined
+          ? {
+              status: 'missing',
+              record: null,
+              packageFilesPreserved: false
+            }
+          : await options.readInstalledState()
+      )
     }
   })
   return runtimeHost
@@ -450,6 +517,162 @@ describe('third-party installed-state startup gate bootstrap source', () => {
     expect(result.appBootstrapContinuationAllowed).toBe(true)
     expect(result.effects.appStartupHostConnectionAccepted).toBe(false)
     expect(result.effects.liveRegistrySwapped).toBe(false)
+  })
+
+  it('preserves Web uninstalled state through an official-only startup snapshot', async() => {
+    const packageId = 'web_uninstalled_startup_pack' as PackageId
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const uninstallState = await seedWebUninstalledState(
+      store,
+      settingsLockfileStore,
+      packageId,
+      officialRegistrySet
+    )
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('skipped')
+    expect(result.enabled).toBe(false)
+    expect(result.sourceCalled).toBe(true)
+    expect(result.appBootstrapContinuationAllowed).toBe(true)
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([])
+    expect(result.blockedPackageIds).toEqual([])
+    expect(result.loadOrder).toEqual([])
+    expect(result.registryCount).toBe(54)
+    expect(result.entryCount).toBe(4242)
+    expect(result.packageCount).toBe(0)
+    expect(result.startupPersistentStateSourceKind).toBe('web-indexeddb')
+    expect(result.startupPersistentStateSourceStatus).toBe('ready')
+    expect(result.startupPersistentStateSourceHostMode)
+      .toBe('web-indexeddb-startup-persistent-state')
+    expect(result.startupPersistentStateInjectedSourceHostMode)
+      .toBe('web-indexeddb-startup-persistent-state')
+    expect(result.persistentStateProofs).toEqual({
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    })
+    expect(result.summary).toMatchObject({
+      selectedPackageCount: 0,
+      blockedPackageCount: 0,
+      loadOrderCount: 0,
+      registryCount: uninstallState.registryCount,
+      entryCount: uninstallState.entryCount,
+      packageCount: uninstallState.packageCount
+    })
+    expect(result.effects.startupPersistentStateSourceCalled).toBe(true)
+    expect(result.effects.startupStateSnapshotAccepted).toBe(true)
+    expect(result.effects.appStartupHostConnectionAccepted).toBe(false)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(false)
+    expect(result.effects.liveRegistrySwapped).toBe(false)
+    expect(result.effects.runtimeEnablementAllowed).toBe(false)
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+    expect(getOfficialRecipeDef(`${packageId}:linen_ribbon_snack`)).toBeUndefined()
+    expect(getStartupShopOfferNameFallback(packageId)).toBeUndefined()
+  })
+
+  it('preserves Electron uninstalled state through an official-only startup snapshot', async() => {
+    const packageId = 'electron_uninstalled_startup_pack' as PackageId
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const uninstallState = await seedWebUninstalledState(
+      store,
+      settingsLockfileStore,
+      packageId,
+      officialRegistrySet
+    )
+    const uninstallRecord = createThirdPartyDataPackUninstallPersistentRecord(
+      'active',
+      uninstallState
+    )
+    const runtimeHost = createElectronRuntimeHost(packageId, {
+      rootExists: false,
+      readInstalledState: async() => ({
+        status: 'ready',
+        record: uninstallRecord,
+        packageFilesPreserved: false
+      }),
+      readStartupPersistentState: async request => {
+        expect(request.commandId).toBe('uninstall')
+        return {
+          kind: 'startup-persistent-state-snapshot',
+          settled: true,
+          packageId: request.packageId,
+          candidateIdentity: request.candidateIdentity,
+          lockfileHash: request.lockfileHash,
+          transactionLogCommitted: true,
+          packageStateMatched: true,
+          packageStateRemoved: true,
+          settingsStateMatched: true,
+          modLockStateMatched: true,
+          liveRegistryMatched: true,
+          saveCacheIsolated: true
+        }
+      }
+    })
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('skipped')
+    expect(result.enabled).toBe(false)
+    expect(result.sourceCalled).toBe(true)
+    expect(result.appBootstrapContinuationAllowed).toBe(true)
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([])
+    expect(result.blockedPackageIds).toEqual([])
+    expect(result.loadOrder).toEqual([])
+    expect(result.registryCount).toBe(54)
+    expect(result.entryCount).toBe(4242)
+    expect(result.packageCount).toBe(0)
+    expect(result.startupPersistentStateSourceKind)
+      .toBe('electron-program-directory-userdata')
+    expect(result.startupPersistentStateSourceStatus).toBe('ready')
+    expect(result.startupPersistentStateSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
+    expect(result.startupPersistentStateInjectedSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
+    expect(result.persistentStateProofs).toEqual({
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    })
+    expect(result.summary).toMatchObject({
+      selectedPackageCount: 0,
+      blockedPackageCount: 0,
+      loadOrderCount: 0,
+      registryCount: uninstallState.registryCount,
+      entryCount: uninstallState.entryCount,
+      packageCount: uninstallState.packageCount
+    })
+    expect(result.effects.startupPersistentStateSourceCalled).toBe(true)
+    expect(result.effects.startupStateSnapshotAccepted).toBe(true)
+    expect(result.effects.appStartupHostConnectionAccepted).toBe(false)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(false)
+    expect(result.effects.liveRegistrySwapped).toBe(false)
+    expect(result.effects.runtimeEnablementAllowed).toBe(false)
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+    expect(getOfficialRecipeDef(`${packageId}:linen_ribbon_snack`)).toBeUndefined()
+    expect(getStartupShopOfferNameFallback(packageId)).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('electronAPI')
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
   })
 
   it('skips app-startup handoff when Electron mods root does not exist', async() => {

@@ -15,6 +15,9 @@ const dispatchThirdPartyDataPackInstallCommand = envelope =>
 const disableThirdPartyDataPack = envelope =>
   ipcRenderer.invoke('third-party-data-pack-disable-command', envelope)
 
+const uninstallThirdPartyDataPack = envelope =>
+  ipcRenderer.invoke('third-party-data-pack-uninstall-command', envelope)
+
 const readThirdPartyDataPackInstalledState = () =>
   ipcRenderer.invoke('third-party-data-pack-installed-state-read')
 
@@ -58,6 +61,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Disable command persistence is restricted to one fixed userdata channel.
   disableThirdPartyDataPack,
+
+  // Uninstall command persistence is restricted to one fixed userdata channel.
+  uninstallThirdPartyDataPack,
 
   // Installed package management reads a validated state summary from program userdata.
   readThirdPartyDataPackInstalledState,

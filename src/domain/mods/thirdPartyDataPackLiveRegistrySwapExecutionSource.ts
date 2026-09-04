@@ -598,7 +598,8 @@ const safeSwappedHostResult = (
   const targetPackageId = runtimeCommandTargetPackageId(
     requestedCommandId,
     selectedPackageIds,
-    blockedPackageIds
+    blockedPackageIds,
+    readOwnStringField(hostResult, 'targetPackageId') as PackageId | undefined
   )
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
   const requiredIds = cloneRequiredProtectionIds(readOwnDataField(source, 'requiredProtections'))
@@ -736,7 +737,8 @@ const baseResult = (
   const targetPackageId = runtimeCommandTargetPackageId(
     requestedCommandId,
     selectedPackageIds,
-    blockedPackageIds
+    blockedPackageIds,
+    readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined
   )
   const hostStatus = readOwnStringField(options.hostResult, 'status') as
     | ThirdPartyDataPackLiveRegistrySwapHostStatus
@@ -790,7 +792,8 @@ const buildHostEnvelope = (
   const targetPackageId = runtimeCommandTargetPackageId(
     requestedCommandId,
     selectedPackageIds,
-    blockedPackageIds
+    blockedPackageIds,
+    readOwnStringField(source, 'targetPackageId') as PackageId | undefined
   )
   const officialIdentity = cloneOfficialIdentity(readOwnDataField(source, 'officialIdentity'))
   const candidateIdentity = cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity'))
