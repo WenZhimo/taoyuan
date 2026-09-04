@@ -32,7 +32,7 @@ export const visibleImportPanelProbeResultEventName =
 
 type VisibleImportProductProbeEntrypoint = 'composable' | 'main-menu-panel'
 type VisibleImportProductProbePackageVariant = 'v1' | 'v2'
-type VisibleImportProductProbeOperation = 'install' | 'enable' | 'upgrade' | 'rollback'
+type VisibleImportProductProbeOperation = 'install' | 'enable' | 'upgrade' | 'rollback' | 'failure'
 
 const visibleImportProductProbeFixtures = {
   v1: {
@@ -152,7 +152,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
     readonly rollbackExecuted: boolean
     readonly diagnosticsWritten: false
   }
-  readonly operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall' | 'rollback'
+  readonly operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall' | 'rollback' | 'failure'
   readonly disableButtonClicked?: boolean
   readonly enableButtonClicked?: boolean
   readonly uninstallButtonClicked?: boolean
@@ -406,6 +406,7 @@ const hasReadyVisibleImportDispatch = (
     dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects
   const isEnable = execution.operation === 'enable'
   const isRollback = execution.operation === 'rollback'
+  const isFailure = execution.operation === 'failure'
   const interactionReady = isEnable
     ? execution.enableButtonClicked === true && !execution.defaultFileInputSelectorUsed
     : execution.panelImportButtonClicked && execution.defaultFileInputSelectorUsed
@@ -414,8 +415,40 @@ const hasReadyVisibleImportDispatch = (
       ? hasReadyVisibleEnablePanelLabels(dispatchResult, execution.panelStatusLabels)
       : isRollback
         ? hasReadyVisibleImportRollbackPanelLabels(dispatchResult, execution.panelStatusLabels)
+      : isFailure
+        ? hasReadyVisibleImportFailurePanelLabels(dispatchResult, execution.panelStatusLabels)
       : hasReadyVisibleImportPanelLabels(dispatchResult, execution.panelStatusLabels)
   )
+  if (isFailure) {
+    return dispatchResult !== null
+      && execution.entrypoint === 'main-menu-panel'
+      && execution.mainMenuPanelOpened
+      && interactionReady
+      && dispatchResult.transactionCommandDispatcherHostKind === 'renderer'
+      && dispatchResult.transactionCommandDispatcherSourceStatus === 'dispatched'
+      && dispatchResult.installCommandPostCommitAcknowledgementStatus === 'blocked'
+      && dispatchResult.postCommitVerificationExecutorHostMode !== 'electron-main-visible-import'
+      && dispatchResult.postCommitUiIpcDeliveryContinuationStatus === 'ready'
+      && dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus === 'ready'
+      && dispatchResult.ordinaryInstallTransactionTerminalConnection?.outcomeKind === 'failure'
+      && dispatchResult.ordinaryInstallTransactionTerminalConnection.retryable === true
+      && dispatchResult.ordinaryInstallTransactionTerminalConnection.rollbackRequired === false
+      && dispatchResult.ordinaryInstallTransactionTerminalConnection.effects?.failureOutcomeAccepted === true
+      && dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus === null
+      && dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === null
+      && dispatchResult.runtimePublicationCommitAppStartupReadinessStatus === null
+      && dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus === null
+      && !dispatchResult.rendererLiveRegistrySwapApplied
+      && !dispatchResult.transactionCommitted
+      && !dispatchResult.startupPersistentStateWritten
+      && !dispatchResult.runtimeEnablementAllowed
+      && dispatchResult.uiIpcResponseDelivered
+      && dispatchResult.electronStartupPersistentStateWriteStatus === 'blocked'
+      && panelLabelsReady
+      && !contentAccessItemVisibleAfter
+      && !contentAccessRecipeVisibleAfter
+      && !contentAccessShopOfferVisibleAfter
+  }
   if (isRollback) {
     return dispatchResult !== null
       && execution.entrypoint === 'main-menu-panel'
@@ -601,6 +634,22 @@ const hasReadyVisibleImportRollbackPanelLabels = (
   && labels.appStartupStatus === '已阻断'
   && labels.startupPersistentStateStatus === '已阻断'
 
+const hasReadyVisibleImportFailurePanelLabels = (
+  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
+  labels: ThirdPartyVisibleImportPanelStatusLabels
+): boolean =>
+  labels.importStatus === '已暂存'
+  && labels.targetPackage === dispatchResult.preflight?.targetPackageId
+  && labels.dispatchStatus === 'dispatched'
+  && labels.persistenceStatus === '已写入 IndexedDB'
+  && labels.hostAckStatus === expectedPanelHostAckStatus(dispatchResult)
+  && labels.installOutcomeStatus === '安装失败，可重试'
+  && labels.uiIpcDeliveryStatus === expectedPanelUiIpcDeliveryStatus(dispatchResult)
+  && labels.runtimePublicationStatus === '已阻断'
+  && labels.liveRegistryStatus === '已阻断'
+  && labels.appStartupStatus === '已阻断'
+  && labels.startupPersistentStateStatus === '已阻断'
+
 const expectedEnablePersistenceStatus = (
   dispatchResult: WebFilePickerSourceInstallCommandDispatchResult
 ): string =>
@@ -722,11 +771,12 @@ const runMainMenuPanelImportProbe = async(
   const operation = options.operation ?? 'install'
   const variant = packageVariantForOperation(operation)
   const fixture = visibleImportProductProbeFixtures[variant]
-  const rollback = operation === 'rollback'
+  const blocksRuntime = operation === 'rollback' || operation === 'failure'
   const probeWindow = window
   const fileInputProbe = installDefaultFileInputProbeSelector(createVisibleImportFiles(variant))
   let mainMenuPanelOpened = false
   let panelImportButtonClicked = false
+  let dispatchResult: WebFilePickerSourceInstallCommandDispatchResult | null = null
   try {
     clearPanelDispatchResult(probeWindow)
     const mainMenuButton = await waitForCondition(
@@ -747,8 +797,9 @@ const runMainMenuPanelImportProbe = async(
     const dispatchResultPromise = waitForPanelDispatchResult(probeWindow)
     panelImportButtonClicked = true
     panelImportButton.click()
-    const dispatchResult = await dispatchResultPromise
-    if (!rollback) {
+    const readyDispatchResult = await dispatchResultPromise
+    dispatchResult = readyDispatchResult
+    if (!blocksRuntime) {
       await waitForCondition(
         () =>
           getOfficialItemDef(itemId)?.name.fallback === fixture.itemNameFallback
@@ -770,21 +821,23 @@ const runMainMenuPanelImportProbe = async(
       () => {
         const labels = readVisibleImportPanelStatusLabels()
         return (
-          rollback
-            ? hasReadyVisibleImportRollbackPanelLabels(dispatchResult, labels)
-            : hasReadyVisibleImportPanelLabels(dispatchResult, labels)
+          operation === 'rollback'
+            ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
+          : operation === 'failure'
+            ? hasReadyVisibleImportFailurePanelLabels(readyDispatchResult, labels)
+            : hasReadyVisibleImportPanelLabels(readyDispatchResult, labels)
         )
           ? labels
           : false
       },
-      rollback
-        ? 'visible import panel did not render the rollback terminal labels'
+      blocksRuntime
+        ? 'visible import panel did not render the non-success terminal labels'
         : 'visible import panel did not render the ordinary install runtime handoff labels'
     )
 
     return Object.freeze({
-      dispatchResult,
-      fileCount: dispatchResult.fileCount,
+      dispatchResult: readyDispatchResult,
+      fileCount: readyDispatchResult.fileCount,
       pickStatus: toPickStatus(stableLabel),
       panelStatusLabels,
       entrypoint: 'main-menu-panel',
@@ -794,9 +847,10 @@ const runMainMenuPanelImportProbe = async(
       defaultFileInputSelectorUsed: fileInputProbe.clickCount() > 0
     })
   } catch (error) {
+    dispatchResult ??= readPanelDispatchResult(probeWindow)
     return Object.freeze({
-      dispatchResult: null,
-      fileCount: 0,
+      dispatchResult,
+      fileCount: dispatchResult?.fileCount ?? 0,
       pickStatus: toPickStatus(readPanelText('web-mod-import-status')),
       panelStatusLabels: readVisibleImportPanelStatusLabels(),
       entrypoint: 'main-menu-panel',
@@ -1147,6 +1201,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
     reason: status === 'ready'
       ? operation === 'rollback'
         ? 'visible MainMenu panel reached rollback terminal without runtime publication or startup persistence'
+        : operation === 'failure'
+          ? 'visible MainMenu panel reached retryable failure terminal without runtime publication or startup persistence'
         : 'visible MainMenu panel reached ordinary terminal runtime publication and item, recipe, and shop offer visibility'
       : execution.blockedReason
         ?? dispatchResult?.reason
@@ -1155,6 +1211,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
     ...(execution.operation === 'enable'
       || execution.operation === 'upgrade'
       || execution.operation === 'rollback'
+      || execution.operation === 'failure'
       ? { operation: execution.operation }
       : {}),
     mainMenuPanelOpened: execution.mainMenuPanelOpened,

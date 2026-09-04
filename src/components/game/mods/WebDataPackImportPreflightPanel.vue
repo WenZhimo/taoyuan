@@ -551,6 +551,7 @@
       && (
         search.get('taoyuanThirdPartyVisibleImportProbe') === '1'
         || search.get('taoyuanThirdPartyVisibleImportRollbackProbe') === '1'
+        || search.get('taoyuanThirdPartyVisibleImportFailureProbe') === '1'
       )
   }
 

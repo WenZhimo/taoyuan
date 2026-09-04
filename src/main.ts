@@ -63,6 +63,9 @@ const thirdPartyVisibleImportProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleImportRollbackProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportRollbackProbe') === '1'
+const thirdPartyVisibleImportFailureProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleImportFailureProbe') === '1'
 const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
@@ -78,6 +81,7 @@ const thirdPartyVisibleUpgradeProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleOperationProbeRequested =
   thirdPartyVisibleImportProbeRequested
   || thirdPartyVisibleImportRollbackProbeRequested
+  || thirdPartyVisibleImportFailureProbeRequested
   || thirdPartyVisibleDisableProbeRequested
   || thirdPartyVisibleUninstallProbeRequested
   || thirdPartyVisibleEnableProbeRequested
@@ -141,7 +145,11 @@ void bootstrapApplication({
   mount: (app, router) => mountAfterRouterReady(app, router),
   afterMount: async () => {
     if (runtimeProbeRequested) {
-      if (thirdPartyVisibleImportProbeRequested || thirdPartyVisibleImportRollbackProbeRequested) {
+      if (
+        thirdPartyVisibleImportProbeRequested
+        || thirdPartyVisibleImportRollbackProbeRequested
+        || thirdPartyVisibleImportFailureProbeRequested
+      ) {
         const { runThirdPartyVisibleImportProductProbe } = await import(
           '@/runtime/thirdPartyVisibleImportProductProbe'
         )
@@ -150,6 +158,8 @@ void bootstrapApplication({
             entrypoint: 'main-menu-panel',
             operation: thirdPartyVisibleEnableProbeRequested
               ? 'enable'
+              : thirdPartyVisibleImportFailureProbeRequested
+                ? 'failure'
               : thirdPartyVisibleImportRollbackProbeRequested
                 ? 'rollback'
               : thirdPartyVisibleUpgradeProbeRequested

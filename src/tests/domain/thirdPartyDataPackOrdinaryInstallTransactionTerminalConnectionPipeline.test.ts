@@ -259,6 +259,37 @@ const createSkippedPostCommit = (): ThirdPartyDataPackPostCommitUiIpcDeliveryCon
     })
   })
 
+const createFailurePostCommit = (): ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult =>
+  createPostCommit({
+    reason: 'post-commit UI/IPC continuation delivered retryable failure',
+    readOnly: true,
+    envelopeKind: 'failure',
+    messageKey: 'mods.ui.ipc.result.install.failure',
+    acknowledgement: {
+      status: 'acknowledged',
+      platform: 'electron',
+      packageId,
+      envelopeKind: 'failure',
+      messageKey: 'mods.ui.ipc.result.install.failure'
+    },
+    persistentPackageWriteExecuted: false,
+    persistentSettingsLockfileWriteExecuted: false,
+    writtenFileCount: 0,
+    backedUpFileCount: 0,
+    transactionCommitConnectionAcknowledged: false,
+    recovery: 'retry',
+    retryable: true,
+    rollbackRequired: false,
+    effects: postCommitEffects({
+      successEnvelopeDelivered: false,
+      failureEnvelopeDelivered: true,
+      packageFilesWritten: false,
+      packageBackupsWritten: false,
+      lockfileWritten: false,
+      settingsWritten: false
+    })
+  } as unknown as Partial<ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult>)
+
 const createRollback = (): ThirdPartyDataPackRollbackRecoveryExecutionSourceResult => ({
   kind: 'third-party-rollback-recovery-execution-source',
   mode: 'default-disabled-rollback-recovery-execution-source',
@@ -400,6 +431,41 @@ describe('third-party ordinary install transaction terminal connection pipeline'
     expect(result.effects.packageFilesWritten).toBe(true)
     expect(result.effects.settingsWritten).toBe(true)
     expect(result.effects.lockfileWritten).toBe(true)
+    expectNoRealTransactionEffects(result, true)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('accepts a retryable failure post-commit UI/IPC terminal without persistent writes', async() => {
+    const readPostCommitUiIpcDeliveryContinuationSource = vi.fn(async() =>
+      createFailurePostCommit()
+    )
+    const readRollbackRecoveryExecutionSource = vi.fn()
+    const pipeline = createThirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline({
+      enabled: true,
+      readPostCommitUiIpcDeliveryContinuationSource,
+      readRollbackRecoveryExecutionSource
+    })
+
+    const result = await pipeline()
+
+    expect(readPostCommitUiIpcDeliveryContinuationSource).toHaveBeenCalledOnce()
+    expect(readRollbackRecoveryExecutionSource).not.toHaveBeenCalled()
+    expect(result.status).toBe('ready')
+    expect(result.modLockTransactionSemanticsStatus).toBe('candidate-stable')
+    expect(result.outcomeKind).toBe('failure')
+    expect(result.recovery).toBe('retry')
+    expect(result.retryable).toBe(true)
+    expect(result.rollbackRequired).toBe(false)
+    expect(result.persistentPackageWriteAcknowledged).toBe(false)
+    expect(result.persistentSettingsLockfileWriteAcknowledged).toBe(false)
+    expect(result.uiIpcDeliveryAcknowledged).toBe(true)
+    expect(result.effects.failureOutcomeAccepted).toBe(true)
+    expect(result.effects.successOutcomeAccepted).toBe(false)
+    expect(result.effects.rollbackOutcomeAccepted).toBe(false)
+    expect(result.effects.uiIpcResponseDelivered).toBe(true)
+    expect(result.effects.packageFilesWritten).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
     expectNoRealTransactionEffects(result, true)
     expectJsonGraphFrozen(result)
   })

@@ -59,6 +59,7 @@ import {
   createThirdPartyDataPackInstallCommandLifecyclePipeline
 } from '../src/domain/mods/thirdPartyDataPackInstallCommandLifecyclePipeline'
 import {
+  createThirdPartyDataPackInstallCommandPostCommitAcknowledgementSource,
   ThirdPartyDataPackInstallCommandPostCommitAcknowledgementBlockedError
 } from '../src/domain/mods/thirdPartyDataPackInstallCommandPostCommitAcknowledgementSource'
 import {
@@ -99,6 +100,10 @@ import {
 import {
   buildThirdPartyDataPackTransactionPreCommitPlan
 } from '../src/domain/mods/thirdPartyDataPackTransactionPreCommitPlan'
+import {
+  createThirdPartyDataPackTransactionCommandDispatcherSource,
+  ThirdPartyDataPackTransactionCommandDispatcherBlockedError
+} from '../src/domain/mods/thirdPartyDataPackTransactionCommandDispatcherSource'
 import {
   createThirdPartyDataPackRuntimePublicationCommitSource
 } from '../src/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
@@ -197,6 +202,8 @@ const runtimeProbeVisibleImport =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT === '1'
 const runtimeProbeVisibleImportRollback =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_ROLLBACK === '1'
+const runtimeProbeVisibleImportFailure =
+  process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_FAILURE === '1'
 const runtimeProbeVisibleDisable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE === '1'
 const runtimeProbeVisibleEnable =
@@ -208,6 +215,7 @@ const runtimeProbeVisibleUninstall =
 const runtimeProbeVisibleDataPackOperation =
   runtimeProbeVisibleImport
   || runtimeProbeVisibleImportRollback
+  || runtimeProbeVisibleImportFailure
   || runtimeProbeVisibleDisable
   || runtimeProbeVisibleEnable
   || runtimeProbeVisibleUpgrade
@@ -2633,6 +2641,88 @@ const createOrdinaryInstallTerminalRollbackUiIpcContinuationResult = source => {
   }
 }
 
+const createOrdinaryInstallTerminalFailureUiIpcContinuationResult = source => {
+  const candidateHash = source.candidateHash ?? source.candidateIdentity?.candidateHash
+  const summary = createOrdinaryInstallTerminalUiIpcSummary(source)
+  const targetPackageId = source.targetPackageId
+  return {
+    kind: 'third-party-post-commit-ui-ipc-delivery-continuation-source',
+    mode: 'default-disabled-post-commit-ui-ipc-delivery-continuation-source',
+    selectedPlatform: 'electron',
+    status: 'ready',
+    reason: 'Electron visible import delivered retryable failure without runtime publication',
+    readOnly: true,
+    enabled: true,
+    sourceCalled: true,
+    postCommitPersistentReadWriteConnectionStatus: 'accepted',
+    uiIpcResponseDeliveryAcknowledgementConvergenceStatus: 'ready',
+    requestedCommandId: 'install',
+    targetPackageId,
+    envelopeKind: 'failure',
+    messageKey: 'mods.ui.ipc.result.install.failure',
+    recovery: 'retry',
+    retryable: true,
+    rollbackRequired: false,
+    selectedPackageIds: source.selectedPackageIds,
+    blockedPackageIds: source.blockedPackageIds,
+    blockedCandidateCount: source.blockedCandidateCount ?? 0,
+    loadOrder: source.loadOrder,
+    registryCount: source.registryCount,
+    entryCount: source.entryCount,
+    packageCount: source.packageCount,
+    candidateIdentity: source.candidateIdentity,
+    candidateHash,
+    lockfileHash: source.lockfileHash,
+    deliverySummary: {
+      formatVersion: 1,
+      kind: 'failure',
+      commandId: 'install',
+      packageId: targetPackageId,
+      candidateHash,
+      lockfileHash: source.lockfileHash,
+      messageKey: 'mods.ui.ipc.result.install.failure',
+      recovery: 'retry',
+      retryable: true,
+      rollbackRequired: false,
+      summary,
+      diagnosticCount: 0
+    },
+    acknowledgement: {
+      status: 'acknowledged',
+      platform: 'electron',
+      packageId: targetPackageId,
+      envelopeKind: 'failure',
+      messageKey: 'mods.ui.ipc.result.install.failure'
+    },
+    persistentPackageWriteExecuted: false,
+    persistentSettingsLockfileWriteExecuted: false,
+    writtenFileCount: 0,
+    backedUpFileCount: 0,
+    transactionCommitConnectionAcknowledged: false,
+    postCommitPersistentReadWriteConnectionAcknowledged: true,
+    uiIpcDeliveryAcknowledged: true,
+    commandContinuationAllowed: true,
+    uiIpcResultContinuationAllowed: true,
+    startupGateContinuationAllowed: true,
+    checks: [],
+    diagnostics: [],
+    summary,
+    effects: {
+      ...createOrdinaryInstallTerminalUiIpcConvergenceEffects(),
+      successEnvelopeDelivered: false,
+      failureEnvelopeDelivered: true,
+      rollbackStateDelivered: false,
+      runtimeEnablementAllowed: false,
+      packageFilesWritten: false,
+      packageBackupsWritten: false,
+      settingsWritten: false,
+      lockfileWritten: false,
+      transactionLogWritten: false,
+      rollbackExecuted: false
+    }
+  }
+}
+
 const electronVisibleImportContinuationRootPath = 'electron-visible-import'
 const electronVisibleImportContinuationSourceId = 'electron-visible-import-continuation'
 
@@ -3219,6 +3309,107 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
       enabled: true,
       readPostCommitUiIpcDeliveryContinuationSource: readPostCommitUiIpcDeliveryContinuation
     })
+
+  if (runtimeProbeVisibleImportFailure) {
+    const readFailureTransactionCommandDispatcherSource =
+      createThirdPartyDataPackTransactionCommandDispatcherSource({
+        enabled: true,
+        readTransactionCommandDispatcherHandoff: async() => transactionCommandDispatcherHandoff,
+        dispatchTransactionCommand: async currentEnvelope => (
+          installCommandDispatchIpcProofMatchesEnvelopeSafely(
+            thirdPartyDataPackInstallCommandDispatchIpcProof,
+            currentEnvelope
+          )
+            ? createOrdinaryInstallTerminalDispatchHostResult(currentEnvelope)
+            : createBlockedInstallCommandDispatchIpcProofResult(currentEnvelope)
+        )
+      })
+    const readFailureInstallCommandPostCommitAcknowledgement =
+      createThirdPartyDataPackInstallCommandPostCommitAcknowledgementSource({
+        enabled: true,
+        readTransactionCommandDispatcherSource: async() => {
+          try {
+            return await readFailureTransactionCommandDispatcherSource()
+          } catch (error) {
+            if (error instanceof ThirdPartyDataPackTransactionCommandDispatcherBlockedError) {
+              return error.result
+            }
+            throw error
+          }
+        }
+      })
+    let failureInstallCommandPostCommitAcknowledgementResult
+    try {
+      failureInstallCommandPostCommitAcknowledgementResult =
+        await readFailureInstallCommandPostCommitAcknowledgement()
+    } catch (error) {
+      if (error instanceof ThirdPartyDataPackInstallCommandPostCommitAcknowledgementBlockedError) {
+        failureInstallCommandPostCommitAcknowledgementResult = error.result
+      } else {
+        throw error
+      }
+    }
+    const postCommitFailureUiIpcDeliveryContinuation =
+      createOrdinaryInstallTerminalFailureUiIpcContinuationResult(
+        failureInstallCommandPostCommitAcknowledgementResult
+      )
+    const failureOrdinaryInstallTerminalPipeline =
+      createThirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline({
+        enabled: true,
+        readPostCommitUiIpcDeliveryContinuationSource: async() =>
+          postCommitFailureUiIpcDeliveryContinuation
+      })
+    let failureOrdinaryInstallTransactionTerminalConnection
+    try {
+      failureOrdinaryInstallTransactionTerminalConnection =
+        await failureOrdinaryInstallTerminalPipeline()
+    } catch (error) {
+      if (error instanceof ThirdPartyDataPackOrdinaryInstallTransactionBlockedError) {
+        failureOrdinaryInstallTransactionTerminalConnection = error.result
+      } else {
+        throw error
+      }
+    }
+
+    if (
+      postCommitFailureUiIpcDeliveryContinuation.status !== 'ready'
+      || failureOrdinaryInstallTransactionTerminalConnection.status !== 'ready'
+      || failureOrdinaryInstallTransactionTerminalConnection.outcomeKind !== 'failure'
+      || failureOrdinaryInstallTransactionTerminalConnection.retryable !== true
+      || failureOrdinaryInstallTransactionTerminalConnection.rollbackRequired !== false
+      || failureOrdinaryInstallTransactionTerminalConnection.effects.failureOutcomeAccepted !== true
+    ) {
+      return createBlockedOrdinaryInstallTerminalContinuationResult(
+        [
+          'Electron visible import failure did not reach retryable terminal state',
+          `ack=${failureInstallCommandPostCommitAcknowledgementResult.status}`,
+          `postCommit=${safePipelineStatus(postCommitFailureUiIpcDeliveryContinuation)}`,
+          `ordinary=${safePipelineStatus(failureOrdinaryInstallTransactionTerminalConnection)}`,
+          `ordinaryReason=${safePipelineReason(failureOrdinaryInstallTransactionTerminalConnection)}`,
+          `ordinaryDiag=${safeFirstDiagnosticStage(failureOrdinaryInstallTransactionTerminalConnection)}`
+        ].join('; '),
+        [
+          ...failureInstallCommandPostCommitAcknowledgementResult.diagnostics,
+          ...postCommitFailureUiIpcDeliveryContinuation.diagnostics,
+          ...failureOrdinaryInstallTransactionTerminalConnection.diagnostics
+        ]
+      )
+    }
+
+    return {
+      status: 'ready',
+      reason: 'Electron visible renderer import reached retryable failure terminal without runtime publication handoff',
+      installCommandPostCommitAcknowledgement: failureInstallCommandPostCommitAcknowledgementResult,
+      postCommitUiIpcDeliveryContinuation: postCommitFailureUiIpcDeliveryContinuation,
+      ordinaryInstallTransactionTerminalConnection:
+        failureOrdinaryInstallTransactionTerminalConnection,
+      diagnostics: [
+        ...failureInstallCommandPostCommitAcknowledgementResult.diagnostics,
+        ...postCommitFailureUiIpcDeliveryContinuation.diagnostics,
+        ...failureOrdinaryInstallTransactionTerminalConnection.diagnostics
+      ]
+    }
+  }
 
   const installCommandPostCommitAcknowledgementResult =
     await readInstallCommandLifecyclePipeline()
@@ -4533,11 +4724,14 @@ const createWindow = () => {
           ...(runtimeProbeInstallCommandDispatchIpc
             ? { taoyuanThirdPartyElectronInstallCommandDispatchProbe: '1' }
             : {}),
-          ...(runtimeProbeVisibleImport
+          ...(runtimeProbeVisibleImport || runtimeProbeVisibleImportFailure
             ? { taoyuanThirdPartyVisibleImportProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleImportRollback
             ? { taoyuanThirdPartyVisibleImportRollbackProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleImportFailure
+            ? { taoyuanThirdPartyVisibleImportFailureProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleEnable
             ? { taoyuanThirdPartyVisibleEnableProbe: '1' }

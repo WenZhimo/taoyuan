@@ -227,6 +227,14 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitHost')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline')
+    const failureContinuationSource = mainSource.slice(
+      mainSource.indexOf('const createOrdinaryInstallTerminalFailureUiIpcContinuationResult'),
+      mainSource.indexOf('const electronVisibleImportContinuationRootPath')
+    )
+    expect(failureContinuationSource).toContain("envelopeKind: 'failure'")
+    expect(failureContinuationSource).toContain("recovery: 'retry'")
+    expect(failureContinuationSource).toContain('retryable: true')
+    expect(failureContinuationSource).toContain('rollbackRequired: false')
     expect(mainSource).not.toContain("from '../src/domain/mods/staticAdapters'")
     expect(mainSource).not.toContain('buildOfficialRegistrySetFromStaticData')
     expect(mainSource).not.toContain('third-party-data-pack-install-command-dispatch-log')
@@ -269,6 +277,48 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(result.startupPersistentStateSnapshotWrite?.targetPackageId).toBe(packageId)
     expect(JSON.stringify(result)).not.toContain('candidateRegistrySet')
     expect(JSON.stringify(result)).not.toContain('liveRegistryReference')
+  })
+
+  it('preserves retryable failure terminal results without a successful lifecycle acknowledgement', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'safe retryable failure continuation',
+          installCommandPostCommitAcknowledgement: {
+            status: 'blocked',
+            reason: 'success lifecycle did not reach post-commit verification'
+          },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'failure'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'failure',
+            retryable: true,
+            rollbackRequired: false,
+            effects: {
+              failureOutcomeAccepted: true
+            }
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('ready')
+    expect(result.installCommandPostCommitAcknowledgement?.status).toBe('blocked')
+    expect(result.postCommitUiIpcDeliveryContinuation?.status).toBe('ready')
+    expect(result.ordinaryInstallTransactionTerminalConnection?.status).toBe('ready')
+    expect(result.ordinaryInstallTransactionTerminalConnection?.outcomeKind).toBe('failure')
+    expect(result.ordinaryInstallTransactionTerminalConnection?.retryable).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
   })
 
   it('blocks unsafe ordinary terminal continuation results before they reach renderer state', async() => {

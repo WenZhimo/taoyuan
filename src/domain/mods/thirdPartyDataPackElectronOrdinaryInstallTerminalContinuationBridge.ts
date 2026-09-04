@@ -232,13 +232,34 @@ const safeResultFromRawMainProcessValue = (
     ) === 'electron-program-directory-userdata-startup-persistent-state'
     && isPackageId(readOwnDataField(startupPersistentStateSnapshotWrite, 'targetPackageId'))
     && readOwnDataField(startupPersistentStateSnapshotWrite, 'snapshotWritten') === true
+  const installCommandPostCommitAcknowledgementReady =
+    installCommandPostCommitAcknowledgement !== null
+    && typeof installCommandPostCommitAcknowledgement === 'object'
+    && readOwnDataField(installCommandPostCommitAcknowledgement, 'status') === 'ready'
+  const retryableFailureTerminalReady =
+    installCommandPostCommitAcknowledgement !== null
+    && typeof installCommandPostCommitAcknowledgement === 'object'
+    && postCommitUiIpcDeliveryContinuation !== null
+    && typeof postCommitUiIpcDeliveryContinuation === 'object'
+    && readOwnDataField(postCommitUiIpcDeliveryContinuation, 'status') === 'ready'
+    && readOwnDataField(postCommitUiIpcDeliveryContinuation, 'envelopeKind') === 'failure'
+    && ordinaryInstallTransactionTerminalConnection !== null
+    && typeof ordinaryInstallTransactionTerminalConnection === 'object'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'status') === 'ready'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'outcomeKind') === 'failure'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'retryable') === true
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'rollbackRequired') === false
+    && readOwnDataField(
+      readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'effects') as object | undefined,
+      'failureOutcomeAccepted'
+    ) === true
 
   if (
     status !== 'ready'
     || typeof reason !== 'string'
     || installCommandPostCommitAcknowledgement === null
     || typeof installCommandPostCommitAcknowledgement !== 'object'
-    || readOwnDataField(installCommandPostCommitAcknowledgement, 'status') !== 'ready'
+    || (!installCommandPostCommitAcknowledgementReady && !retryableFailureTerminalReady)
     || postCommitUiIpcDeliveryContinuation === null
     || typeof postCommitUiIpcDeliveryContinuation !== 'object'
     || readOwnDataField(postCommitUiIpcDeliveryContinuation, 'status') !== 'ready'

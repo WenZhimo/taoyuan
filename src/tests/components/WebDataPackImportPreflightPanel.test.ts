@@ -887,6 +887,67 @@ const createRollbackElectronOrdinaryInstallTerminalContinuationResult = (
   }
 }
 
+const createFailureElectronOrdinaryInstallTerminalContinuationResult = (
+  envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+) => {
+  const ready = createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope)
+  const terminal = ready.ordinaryInstallTransactionTerminalConnection
+  const postCommit = ready.postCommitUiIpcDeliveryContinuation
+  return {
+    status: 'ready',
+    reason: 'Electron ordinary install terminal continuation reported retryable failure terminal outcome',
+    installCommandPostCommitAcknowledgement: ready.installCommandPostCommitAcknowledgement,
+    postCommitUiIpcDeliveryContinuation: {
+      ...postCommit,
+      envelopeKind: 'failure',
+      messageKey: 'mods.ui.ipc.result.install.failure',
+      persistentPackageWriteExecuted: false,
+      persistentSettingsLockfileWriteExecuted: false,
+      writtenFileCount: 0,
+      backedUpFileCount: 0,
+      transactionCommitConnectionAcknowledged: false,
+      effects: {
+        ...postCommit.effects,
+        uiIpcResponseDelivered: true,
+        successEnvelopeDelivered: false,
+        failureEnvelopeDelivered: true,
+        rollbackStateDelivered: false,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false,
+        transactionCommitted: false,
+        runtimePublicationCommitted: false,
+        runtimeEnablementAllowed: false
+      }
+    },
+    ordinaryInstallTransactionTerminalConnection: {
+      ...terminal,
+      reason: 'Electron continuation settled by retryable failure',
+      outcomeKind: 'failure',
+      messageKey: 'mods.atomic.commit.install.failure',
+      recovery: 'retry',
+      retryable: true,
+      rollbackRequired: false,
+      effects: {
+        ...terminal.effects,
+        successOutcomeAccepted: false,
+        failureOutcomeAccepted: true,
+        rollbackOutcomeAccepted: false,
+        rollbackRecoverySettled: false,
+        rollbackRecoveryExecutionAcknowledged: false,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false,
+        transactionCommitted: false,
+        runtimePublicationCommitted: false,
+        rollbackExecuted: false,
+        runtimeEnablementAllowed: false
+      }
+    },
+    diagnostics: []
+  }
+}
+
 describe('WebDataPackImportPreflightPanel', () => {
   it('connects the visible Web import action to source-derived install command dispatch', async() => {
     const selectFiles = vi.fn(async() => createValidFiles())
@@ -1273,6 +1334,56 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.text()).toContain('安装结果：已回滚')
       expect(wrapper.text()).toContain('运行时启用：关闭')
       expect(wrapper.text()).not.toContain('运行时启用：允许')
+      expect(wrapper.text()).not.toContain('C:/Users')
+      expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+      restoreElectronApi()
+    }
+  })
+
+  it('surfaces retryable terminal failure without showing runtime enablement as accepted', async() => {
+    const selectFiles = vi.fn(async() => createValidFiles('web_panel_terminal_failure'))
+    const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+    ) => createDispatchedHostResult(envelope))
+    const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+    ) => createFailureElectronOrdinaryInstallTerminalContinuationResult(envelope))
+    const restoreElectronApi = withWindowElectronApi({
+      dispatchThirdPartyDataPackInstallCommand,
+      continueThirdPartyDataPackOrdinaryInstallTerminal
+    })
+    publishMountedAppStartupHostEvidence()
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles,
+        officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+        persistenceStore: createInMemoryWebIndexedDbImportPersistenceStore()
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      expect(dispatchThirdPartyDataPackInstallCommand).toHaveBeenCalledOnce()
+      expect(continueThirdPartyDataPackOrdinaryInstallTerminal).toHaveBeenCalledOnce()
+      expect(wrapper.get('[data-testid="web-mod-target-package"]').text()).toBe('web_panel_terminal_failure')
+      expect(wrapper.get('[data-testid="web-mod-dispatch-status"]').text()).toBe('dispatched')
+      expect(wrapper.get('[data-testid="web-mod-host-ack-status"]').text()).toBe('已确认（Electron）')
+      expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('安装失败，可重试')
+      expect(wrapper.get('[data-testid="web-mod-ui-ipc-delivery-status"]').text()).toBe('已送达（Electron）')
+      expectRuntimeHandoffStatusLabels(wrapper, {
+        runtimePublication: '已阻断',
+        liveRegistry: '已阻断',
+        appStartup: '已阻断'
+      })
+      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('已阻断')
+      expect(wrapper.text()).toContain('安装结果：安装失败，可重试')
+      expect(wrapper.text()).toContain('运行时启用：关闭')
+      expect(wrapper.text()).not.toContain('运行时启用：允许')
+      expect(getOfficialItemDef('web_panel_terminal_failure:linen_ribbon')).toBeUndefined()
       expect(wrapper.text()).not.toContain('C:/Users')
       expect(wrapper.text()).not.toContain('LENOVO')
     } finally {

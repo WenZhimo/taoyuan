@@ -408,6 +408,29 @@ const electronScenarios = [
     cacheSeed: 'valid'
   },
   {
+    name: 'visible-import-renderer-failure',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-renderer-failure',
+    cacheSeed: 'valid',
+    visibleImportFailure: true
+  },
+  {
+    name: 'visible-import-renderer-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-renderer-failure',
+    cacheSeed: 'valid'
+  },
+  {
     name: 'visible-import-disable-installed-package',
     fault: null,
     source: 'disk-cache',
@@ -605,6 +628,7 @@ const scenarioRunsVisibleDataPackOperation = scenario =>
     || scenario.visibleEnable
     || scenario.visibleUpgrade
     || scenario.visibleImportRollback
+    || scenario.visibleImportFailure
     || scenario.visibleDisable
     || scenario.visibleUninstall
   )
@@ -1352,6 +1376,161 @@ const assertVisibleImportRollbackProductProbe = (visibleImport, scenario, protoc
   ]) {
     assert(visibleImport.effects?.[effectName] === false,
       `${scenario.name}: visible rollback effect ${effectName} was not false`)
+  }
+}
+
+const assertVisibleImportFailurePanelLabels = (visibleImport, scenario) => {
+  const labels = visibleImport.panelStatusLabels
+  assert(labels?.importStatus === '已暂存',
+    `${scenario.name}: visible failure panel did not show persisted import status`)
+  assert(labels.targetPackage === 'product_probe_pack',
+    `${scenario.name}: visible failure panel did not show the target package`)
+  assert(labels.preflightStatus === 'deferred',
+    `${scenario.name}: visible failure panel did not show deferred preflight status`)
+  assert(labels.dispatchStatus === 'dispatched',
+    `${scenario.name}: visible failure panel did not show dispatched command status`)
+  assert(labels.persistenceStatus === '已写入 IndexedDB',
+    `${scenario.name}: visible failure panel did not show IndexedDB persistence`)
+  assert(labels.hostAckStatus === '已确认（Electron）',
+    `${scenario.name}: visible failure panel did not show the Electron host acknowledgement`)
+  assert(labels.installOutcomeStatus === '安装失败，可重试',
+    `${scenario.name}: visible failure panel did not show retryable failure outcome`)
+  assert(labels.uiIpcDeliveryStatus === '已送达（Electron）',
+    `${scenario.name}: visible failure panel did not show Electron UI/IPC delivery`)
+  assert(labels.runtimePublicationStatus === '已阻断',
+    `${scenario.name}: visible failure panel did not show blocked runtime publication`)
+  assert(labels.liveRegistryStatus === '已阻断',
+    `${scenario.name}: visible failure panel did not show blocked live registry`)
+  assert(labels.appStartupStatus === '已阻断',
+    `${scenario.name}: visible failure panel did not show blocked app-startup handoff`)
+  assert(labels.startupPersistentStateStatus === '已阻断',
+    `${scenario.name}: visible failure panel did not show blocked startup persistence`)
+}
+
+const assertVisibleImportFailureProductProbe = (visibleImport, scenario, protocol) => {
+  assert(protocol === 'file:',
+    `${scenario.name}: visible failure probe must run in Electron`)
+  assert(visibleImport.observed === true,
+    `${scenario.name}: visible failure probe was not observed`)
+  assert(visibleImport.status === 'ready',
+    `${scenario.name}: visible failure probe did not reach ready status`)
+  assert(visibleImport.operation === 'failure',
+    `${scenario.name}: visible failure probe reported the wrong operation`)
+  assert(visibleImport.entrypoint === 'main-menu-panel',
+    `${scenario.name}: visible failure probe did not start from the MainMenu panel`)
+  assert(visibleImport.mainMenuPanelOpened === true,
+    `${scenario.name}: visible failure probe did not open the MainMenu panel`)
+  assert(visibleImport.panelImportButtonClicked === true,
+    `${scenario.name}: visible failure probe did not click the panel import button`)
+  assert(visibleImport.defaultFileInputSelectorUsed === true,
+    `${scenario.name}: visible failure probe did not use the default file input selector`)
+  assertVisibleImportFailurePanelLabels(visibleImport, scenario)
+  assert(visibleImport.targetPackageId === visibleProbePackageId,
+    `${scenario.name}: visible failure reported the wrong package`)
+  assert(visibleImport.itemId === visibleProbeItemId,
+    `${scenario.name}: visible failure reported the wrong item`)
+  assert(visibleImport.recipeId === visibleProbeRecipeId,
+    `${scenario.name}: visible failure reported the wrong recipe`)
+  assert(visibleImport.shopOfferId === visibleProbeShopOfferId,
+    `${scenario.name}: visible failure reported the wrong shop offer`)
+  assert(visibleImport.expectedPackageVersion === visibleProbePackageFixtures.v1.version,
+    `${scenario.name}: visible failure expected package version did not match`)
+  assert(visibleImport.fileCount === 5,
+    `${scenario.name}: visible failure used the wrong file count`)
+  assert(visibleImport.pickStatus === 'persisted',
+    `${scenario.name}: visible failure source was not persisted after panel selection`)
+  assert(visibleImport.dispatchPreflightStatus === 'deferred',
+    `${scenario.name}: visible failure dispatch preflight was not deferred`)
+  assert(visibleImport.discoveryStatus === 'completed',
+    `${scenario.name}: visible failure discovery was not completed`)
+  assert(visibleImport.transactionCommandDispatcherHostKind === 'renderer',
+    `${scenario.name}: visible failure did not use the renderer dispatcher host`)
+  assert(visibleImport.transactionCommandDispatcherSourceStatus === 'dispatched',
+    `${scenario.name}: visible failure command was not dispatched`)
+  assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'blocked',
+    `${scenario.name}: visible failure success lifecycle acknowledgement was not blocked`)
+  assert(visibleImport.postCommitVerificationExecutorHostMode === undefined,
+    `${scenario.name}: visible failure unexpectedly ran the Electron visible-import success post-commit host mode`)
+  assert(visibleImport.postCommitUiIpcDeliveryContinuationStatus === 'ready',
+    `${scenario.name}: visible failure UI/IPC continuation was not ready`)
+  assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === 'ready',
+    `${scenario.name}: visible failure ordinary terminal was not ready`)
+  assert(visibleImport.ordinaryInstallTransactionOutcomeKind === 'failure',
+    `${scenario.name}: visible failure ordinary terminal did not report failure outcome`)
+  assert(visibleImport.installTransactionLogPreparedStatus === undefined,
+    `${scenario.name}: visible failure prepared transaction log should be omitted`)
+  assert(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus === undefined,
+    `${scenario.name}: visible failure transaction log read verification should be omitted`)
+  assert(visibleImport.installTransactionCommitFinalizationStatus === undefined,
+    `${scenario.name}: visible failure finalization should be omitted`)
+  assert(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus === undefined,
+    `${scenario.name}: visible failure runtime publication should be omitted`)
+  assert(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === undefined,
+    `${scenario.name}: visible failure live registry swap should be omitted`)
+  assert(visibleImport.runtimePublicationCommitAppStartupReadinessStatus === undefined,
+    `${scenario.name}: visible failure app-startup readiness should be omitted`)
+  assert(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus === undefined,
+    `${scenario.name}: visible failure app-startup host handoff should be omitted`)
+  assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
+    `${scenario.name}: Electron visible failure should not write Web startup persistent state`)
+  assert(visibleImport.electronStartupPersistentStateWriteStatus === 'blocked',
+    `${scenario.name}: Electron visible failure did not report blocked startup persistence`)
+  assert(visibleImport.selectedPackageCount === 1,
+    `${scenario.name}: visible failure selected package count mismatch`)
+  assert(visibleImport.blockedPackageCount === 0,
+    `${scenario.name}: visible failure blocked packages unexpectedly`)
+  assert(visibleImport.loadOrderCount === 1,
+    `${scenario.name}: visible failure load order count mismatch`)
+  assert(visibleImport.registryCount === 54,
+    `${scenario.name}: visible failure registry count mismatch`)
+  assert(visibleImport.entryCount === 4245,
+    `${scenario.name}: visible failure entry count mismatch`)
+  assert(visibleImport.packageCount === 1,
+    `${scenario.name}: visible failure package count mismatch`)
+  assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
+    `${scenario.name}: visible failure diagnostics count was invalid`)
+  assert(visibleImport.contentAccessItemVisibleBefore === false,
+    `${scenario.name}: visible failure item was visible before import`)
+  assert(visibleImport.contentAccessItemVisibleAfter === false,
+    `${scenario.name}: visible failure item became visible after failure`)
+  assert(visibleImport.contentAccessRecipeVisibleBefore === false,
+    `${scenario.name}: visible failure recipe was visible before import`)
+  assert(visibleImport.contentAccessRecipeVisibleAfter === false,
+    `${scenario.name}: visible failure recipe became visible after failure`)
+  assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
+    `${scenario.name}: visible failure shop offer was visible before import`)
+  assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
+    `${scenario.name}: visible failure shop offer became visible after failure`)
+  for (const effectName of [
+    'commandDispatched',
+    'uiIpcResponseDelivered'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === true,
+      `${scenario.name}: visible failure effect ${effectName} was not true`)
+  }
+  for (const effectName of [
+    'packageFilesWritten',
+    'settingsWritten',
+    'lockfileWritten',
+    'rendererLiveRegistrySwapped',
+    'runtimeEnablementAllowed',
+    'transactionCommitted',
+    'transactionLogPrepared',
+    'transactionLogRead',
+    'startupPersistentStateWritten',
+    'realNormalStartupHostCalled',
+    'realAppStartupHostCalled',
+    'gameAppCreated',
+    'piniaCreated',
+    'routerMounted',
+    'savesWritten',
+    'cacheWritten',
+    'transactionLogWritten',
+    'rollbackExecuted',
+    'diagnosticsWritten'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === false,
+      `${scenario.name}: visible failure effect ${effectName} was not false`)
   }
 }
 
@@ -2396,6 +2575,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     assertVisibleDisableProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleUninstall) {
     assertVisibleUninstallProductProbe(visibleImport, scenario, protocol)
+  } else if (scenario.visibleImportFailure) {
+    assertVisibleImportFailureProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleImportRollback) {
     assertVisibleImportRollbackProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleImportRendererLiveRegistry) {
@@ -3961,6 +4142,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     !!scenario.installTransactionCommitFinalization
   const exercisesVisibleUpgrade = !!scenario.visibleUpgrade
   const exercisesVisibleRollback = !!scenario.visibleImportRollback
+  const exercisesVisibleFailure = !!scenario.visibleImportFailure
   const exercisesVisibleInitialImport =
     !!scenario.visibleImportRendererLiveRegistry && !exercisesVisibleUpgrade
   const exercisesVisibleImport =
@@ -4043,11 +4225,17 @@ const runPackagedScenario = async (scenario, isolated) => {
     ...(scenario.ordinaryInstallTerminalRollback
       ? { TAOYUAN_RUNTIME_PROBE_ORDINARY_INSTALL_TERMINAL_ROLLBACK: '1' }
       : {}),
-    ...(scenario.visibleImportRendererLiveRegistry || scenario.visibleEnable || exercisesVisibleUpgrade
+    ...(scenario.visibleImportRendererLiveRegistry
+      || scenario.visibleEnable
+      || exercisesVisibleUpgrade
+      || exercisesVisibleFailure
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT: '1' }
       : {}),
     ...(exercisesVisibleRollback
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_ROLLBACK: '1' }
+      : {}),
+    ...(exercisesVisibleFailure
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_FAILURE: '1' }
       : {}),
     ...(scenario.visibleEnable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE: '1' }
@@ -4357,15 +4545,6 @@ const runPackagedScenario = async (scenario, isolated) => {
         assert(fs.readFileSync(paths.backupManifest, 'utf8') === packageFileBefore.previousManifest,
           `${scenario.name}: package file restore backup did not preserve the previous manifest`)
       }
-      if (exercisesVisibleRollback) {
-        const startupStatePath = path.join(
-          userDataPath,
-          'mod-startup-state',
-          'startup-persistent-state-snapshot.json'
-        )
-        assert(fs.existsSync(startupStatePath) === false,
-          `${scenario.name}: visible rollback wrote a startup persistent state snapshot`)
-      }
     } else {
       const manifestJson = readJson(paths.manifest)
       const itemsJson = readJson(paths.itemFile)
@@ -4380,6 +4559,15 @@ const runPackagedScenario = async (scenario, isolated) => {
       assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify({ manifestJson, itemsJson })),
         `${scenario.name}: package file payload leaked an absolute path`)
     }
+  }
+  if (exercisesVisibleRollback || exercisesVisibleFailure) {
+    const startupStatePath = path.join(
+      userDataPath,
+      'mod-startup-state',
+      'startup-persistent-state-snapshot.json'
+    )
+    assert(fs.existsSync(startupStatePath) === false,
+      `${scenario.name}: visible non-success import wrote a startup persistent state snapshot`)
   }
   if (
     scenario.installTransactionCommitFinalization

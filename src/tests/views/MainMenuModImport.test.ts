@@ -488,6 +488,79 @@ const createRollbackElectronOrdinaryInstallTerminalContinuationResult = (
   }
 }
 
+const createFailureElectronOrdinaryInstallTerminalContinuationResult = (
+  envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+) => {
+  const ready = createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope)
+  const postCommit = ready.postCommitUiIpcDeliveryContinuation
+  const terminal = ready.ordinaryInstallTransactionTerminalConnection
+  const targetPackageId = envelope.transactionCommandDispatcherHandoff.targetPackageId
+
+  return {
+    status: 'ready',
+    reason: 'Electron continuation reported visible main menu retryable failure terminal outcome',
+    installCommandPostCommitAcknowledgement: ready.installCommandPostCommitAcknowledgement,
+    postCommitUiIpcDeliveryContinuation: {
+      ...postCommit,
+      reason: 'Electron continuation delivered visible main menu retryable failure response',
+      envelopeKind: 'failure',
+      messageKey: 'mods.ui.ipc.result.install.failure',
+      persistentPackageWriteExecuted: false,
+      persistentSettingsLockfileWriteExecuted: false,
+      writtenFileCount: 0,
+      backedUpFileCount: 0,
+      transactionCommitConnectionAcknowledged: false,
+      acknowledgement: {
+        status: 'acknowledged',
+        platform: 'electron',
+        packageId: targetPackageId,
+        envelopeKind: 'failure',
+        messageKey: 'mods.ui.ipc.result.install.failure'
+      },
+      effects: {
+        ...postCommit.effects,
+        successEnvelopeDelivered: false,
+        failureEnvelopeDelivered: true,
+        rollbackStateDelivered: false,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false,
+        transactionCommitted: false,
+        runtimePublicationCommitted: false,
+        runtimeEnablementAllowed: false,
+        uiIpcResponseDelivered: true
+      }
+    },
+    ordinaryInstallTransactionTerminalConnection: {
+      ...terminal,
+      reason: 'Electron continuation settled visible main menu retryable failure',
+      outcomeKind: 'failure',
+      messageKey: 'mods.atomic.commit.install.failure',
+      recovery: 'retry',
+      retryable: true,
+      rollbackRequired: false,
+      rollbackRecoverySettled: false,
+      rollbackRecoveryExecutionAcknowledged: false,
+      effects: {
+        ...terminal.effects,
+        successOutcomeAccepted: false,
+        failureOutcomeAccepted: true,
+        rollbackOutcomeAccepted: false,
+        rollbackRecoverySettled: false,
+        rollbackRecoveryExecutionAcknowledged: false,
+        packageFilesWritten: false,
+        settingsWritten: false,
+        lockfileWritten: false,
+        transactionCommitted: false,
+        runtimePublicationCommitted: false,
+        rollbackExecuted: false,
+        runtimeEnablementAllowed: false
+      }
+    },
+    diagnostics: []
+  }
+}
+
 const withBrowserFilePickerFiles = (
   files: readonly WebFilePickerImportFile[]
 ): {
@@ -851,6 +924,89 @@ describe('MainMenu Web data pack import entry', () => {
           outcomeKind: 'rollback',
           effects: {
             rollbackExecuted: true
+          }
+        },
+        installTransactionLogPreparedStatus: null,
+        installTransactionCommitFinalizationStatus: null,
+        runtimePublicationCommitAfterPostCommitVerificationStatus: null,
+        runtimePublicationCommitLiveRegistrySwapHostConnectionStatus: null,
+        runtimePublicationCommitAppStartupReadinessStatus: null,
+        runtimePublicationCommitAppStartupHostConnectionStatus: null,
+        electronStartupPersistentStateWriteStatus: 'blocked',
+        rendererLiveRegistrySwapApplied: false,
+        runtimeEnablementAllowed: false,
+        startupPersistentStateWritten: false,
+        uiIpcResponseDelivered: true
+      })
+      expect(JSON.stringify((window as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__))
+        .not.toContain('C:/Users')
+      expect(JSON.stringify((window as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__))
+        .not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+      filePicker.restore()
+      restoreVisibleImportPanelProbe()
+      restoreElectronApi()
+      restoreIndexedDb()
+    }
+  })
+
+  it('publishes the visible import panel result for Electron retryable failure probe queries', async() => {
+    const packageId = 'main_menu_visible_electron_failure'
+    const itemId = `${packageId}:silk_thread`
+    const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+    ) => createDispatchedHostResult(envelope))
+    const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+    ) => createFailureElectronOrdinaryInstallTerminalContinuationResult(envelope))
+    const restoreIndexedDb = withGlobalIndexedDb(createFakeIndexedDb())
+    const restoreElectronApi = withWindowElectronApi({
+      dispatchThirdPartyDataPackInstallCommand,
+      continueThirdPartyDataPackOrdinaryInstallTerminal
+    })
+    const restoreVisibleImportPanelProbe = withVisibleImportPanelProbeQuery(
+      'taoyuanThirdPartyVisibleImportFailureProbe'
+    )
+    const filePicker = withBrowserFilePickerFiles(createValidFiles(packageId))
+    publishMountedAppStartupHostEvidence()
+    const wrapper = await mountMainMenu({ stubWebDataPackImportPreflightPanel: false })
+
+    try {
+      expect(getOfficialItemDef(itemId)).toBeUndefined()
+      await wrapper.findAll('button').find(button => button.text().includes('数据包预检'))!.trigger('click')
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      expect(filePicker.clickCount()).toBe(1)
+      await waitForImportToSettle(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      expect(dispatchThirdPartyDataPackInstallCommand).toHaveBeenCalledOnce()
+      expect(continueThirdPartyDataPackOrdinaryInstallTerminal).toHaveBeenCalledOnce()
+      expect(wrapper.get('[data-testid="web-mod-import-status"]').text()).toBe('已暂存')
+      expect(wrapper.get('[data-testid="web-mod-target-package"]').text()).toBe(packageId)
+      expect(wrapper.get('[data-testid="web-mod-host-ack-status"]').text()).toBe('已确认（Electron）')
+      expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('安装失败，可重试')
+      expect(wrapper.get('[data-testid="web-mod-ui-ipc-delivery-status"]').text()).toBe('已送达（Electron）')
+      expect(wrapper.get('[data-testid="web-mod-runtime-publication-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-live-registry-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-app-startup-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('已阻断')
+      expect(getOfficialItemDef(itemId)).toBeUndefined()
+      expect((window as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__).toMatchObject({
+        preflight: { targetPackageId: packageId },
+        selectedPackageIds: [packageId],
+        loadOrder: [packageId],
+        transactionCommandDispatcherHostKind: 'renderer',
+        transactionCommandDispatcherSourceStatus: 'dispatched',
+        installCommandPostCommitAcknowledgementStatus: 'ready',
+        postCommitUiIpcDeliveryContinuationStatus: 'ready',
+        ordinaryInstallTransactionTerminalConnectionStatus: 'ready',
+        ordinaryInstallTransactionTerminalConnection: {
+          outcomeKind: 'failure',
+          retryable: true,
+          rollbackRequired: false,
+          effects: {
+            failureOutcomeAccepted: true,
+            rollbackExecuted: false
           }
         },
         installTransactionLogPreparedStatus: null,

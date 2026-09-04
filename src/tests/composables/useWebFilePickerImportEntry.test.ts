@@ -2088,6 +2088,126 @@ describe('useWebFilePickerImportEntry', () => {
     }
   })
 
+  it('does not publish renderer live content when Electron continuation reports retryable failure terminal outcome', async() => {
+    const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+    ) => createDispatchedHostResult(envelope))
+    const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+    ) => {
+      const ready = createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope)
+      const terminal = ready.ordinaryInstallTransactionTerminalConnection!
+      const postCommit = ready.postCommitUiIpcDeliveryContinuation!
+      return {
+        status: 'ready',
+        reason: 'Electron continuation reported retryable failure terminal outcome',
+        installCommandPostCommitAcknowledgement: ready.installCommandPostCommitAcknowledgement,
+        postCommitUiIpcDeliveryContinuation: {
+          ...postCommit,
+          reason: 'Electron continuation delivered visible import retryable failure response',
+          envelopeKind: 'failure',
+          messageKey: 'mods.ui.ipc.result.install.failure',
+          persistentPackageWriteExecuted: false,
+          persistentSettingsLockfileWriteExecuted: false,
+          writtenFileCount: 0,
+          backedUpFileCount: 0,
+          transactionCommitConnectionAcknowledged: false,
+          acknowledgement: {
+            status: 'acknowledged',
+            platform: 'electron',
+            packageId: postCommit.targetPackageId,
+            envelopeKind: 'failure',
+            messageKey: 'mods.ui.ipc.result.install.failure'
+          },
+          effects: {
+            ...postCommit.effects,
+            successEnvelopeDelivered: false,
+            failureEnvelopeDelivered: true,
+            rollbackStateDelivered: false,
+            packageFilesWritten: false,
+            settingsWritten: false,
+            lockfileWritten: false,
+            transactionCommitted: false,
+            runtimePublicationCommitted: false,
+            runtimeEnablementAllowed: false,
+            uiIpcResponseDelivered: true
+          }
+        },
+        ordinaryInstallTransactionTerminalConnection: {
+          ...terminal,
+          reason: 'Electron continuation settled by retryable failure',
+          outcomeKind: 'failure',
+          messageKey: 'mods.atomic.commit.install.failure',
+          recovery: 'retry',
+          retryable: true,
+          rollbackRequired: false,
+          rollbackRecoverySettled: false,
+          rollbackRecoveryExecutionAcknowledged: false,
+          effects: {
+            ...terminal.effects,
+            successOutcomeAccepted: false,
+            failureOutcomeAccepted: true,
+            rollbackOutcomeAccepted: false,
+            rollbackRecoverySettled: false,
+            rollbackRecoveryExecutionAcknowledged: false,
+            packageFilesRestored: false,
+            packageFilesWritten: false,
+            settingsWritten: false,
+            lockfileWritten: false,
+            transactionCommitted: false,
+            runtimePublicationCommitted: false,
+            rollbackExecuted: false,
+            runtimeEnablementAllowed: false
+          }
+        },
+        diagnostics: []
+      } as ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult
+    })
+    const restoreElectronApi = withWindowElectronApi({
+      dispatchThirdPartyDataPackInstallCommand,
+      continueThirdPartyDataPackOrdinaryInstallTerminal
+    })
+    const entry = useWebFilePickerImportEntry({
+      selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId))
+    })
+
+    try {
+      await entry.pickFiles()
+      const dispatchResult = await entry.dispatchInstallCommandFromSource({
+        confirmed: true,
+        officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+        mountedAppStartupHostEvidence
+      })
+
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus).toBe('ready')
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnection?.outcomeKind).toBe('failure')
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnection?.retryable).toBe(true)
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnection?.rollbackRequired).toBe(false)
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnection?.effects.failureOutcomeAccepted)
+        .toBe(true)
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnection?.effects.rollbackExecuted)
+        .toBe(false)
+      expect(dispatchResult.installTransactionLogPreparedStatus).toBeNull()
+      expect(dispatchResult.installTransactionCommitFinalizationStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitAppStartupReadinessStatus).toBeNull()
+      expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).toBeNull()
+      expect(dispatchResult.transactionCommitted).toBe(false)
+      expect(dispatchResult.writeExecuted).toBe(false)
+      expect(dispatchResult.uiIpcResponseDelivered).toBe(true)
+      expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(false)
+      expect(dispatchResult.runtimeEnablementAllowed).toBe(false)
+      expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('blocked')
+      expect(dispatchResult.startupPersistentStateWritten).toBe(false)
+      expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)).toBeUndefined()
+      expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
+      expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
+    } finally {
+      restoreElectronApi()
+    }
+  })
+
   it('skips install command preflight until a Web import source is ready', () => {
     const entry = useWebFilePickerImportEntry({
       selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId))
