@@ -69,11 +69,15 @@ const thirdPartyVisibleUninstallProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleEnableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleEnableProbe') === '1'
+const thirdPartyVisibleUpgradeProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleUpgradeProbe') === '1'
 const thirdPartyVisibleOperationProbeRequested =
   thirdPartyVisibleImportProbeRequested
   || thirdPartyVisibleDisableProbeRequested
   || thirdPartyVisibleUninstallProbeRequested
   || thirdPartyVisibleEnableProbeRequested
+  || thirdPartyVisibleUpgradeProbeRequested
 const thirdPartyVisibleImportPersistSourceProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportPersistSource') === '1'
@@ -140,7 +144,11 @@ void bootstrapApplication({
         thirdPartyVisibleImportProductProbeResult =
           await runThirdPartyVisibleImportProductProbe({
             entrypoint: 'main-menu-panel',
-            operation: thirdPartyVisibleEnableProbeRequested ? 'enable' : 'install',
+            operation: thirdPartyVisibleEnableProbeRequested
+              ? 'enable'
+              : thirdPartyVisibleUpgradeProbeRequested
+                ? 'upgrade'
+                : 'install',
             persistSource: thirdPartyVisibleImportPersistSourceProbeRequested
           })
       }

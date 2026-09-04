@@ -16,7 +16,7 @@ import {
   type ThirdPartyDataPackDisableState
 } from './thirdPartyDataPackDisableTransaction'
 import type { RegistrySet } from './registry'
-import type { PackageId } from './ids'
+import type { ContentId, PackageId, RegistryTypeId } from './ids'
 import {
   buildOfficialRegistrySetFromStaticData
 } from './staticAdapters'
@@ -143,6 +143,13 @@ type Awaitable<T> = T | Promise<T>
 
 export const THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID =
   'latest-web-file-picker-import'
+const productProbePackageId = 'product_probe_pack' as PackageId
+const productProbeItemRegistryId = 'taoyuan:item' as RegistryTypeId
+const productProbeRecipeRegistryId = 'taoyuan:recipe' as RegistryTypeId
+const productProbeShopOfferRegistryId = 'taoyuan:shop_offer' as RegistryTypeId
+const productProbeItemLocalId = 'linen_ribbon'
+const productProbeRecipeLocalId = 'linen_ribbon_snack'
+const productProbeShopOfferLocalId = 'shop/wanwupu/linen_ribbon/0'
 
 type InstalledStateSourceKind = 'web-indexeddb' | 'electron-program-directory-userdata'
 
@@ -206,6 +213,12 @@ interface UninstalledInstalledState {
 }
 
 type InstalledStateContextResult = InstalledStateContext | DisabledInstalledState | UninstalledInstalledState
+
+interface ProductProbeContentFallbackSummary {
+  readonly productProbeItemNameFallback?: string
+  readonly productProbeRecipeNameFallback?: string
+  readonly productProbeShopOfferNameFallback?: string
+}
 
 interface ResolvedInstalledStateSource {
   readonly sourceKind: InstalledStateSourceKind
@@ -317,6 +330,58 @@ const readOwnDataField = (
     return undefined
   }
   return descriptor?.enumerable === true && 'value' in descriptor ? descriptor.value : undefined
+}
+
+const productProbeContentId = (
+  packageId: PackageId,
+  localId: string
+): ContentId => `${packageId}:${localId}` as ContentId
+
+const readRegistryNameFallback = (
+  registrySet: RegistrySet,
+  registryId: RegistryTypeId,
+  contentId: ContentId
+): string | undefined => {
+  let entry: Readonly<{ id: string }> | undefined
+  try {
+    entry = registrySet.get<{ id: string }>(registryId).get(contentId)
+  } catch {
+    return undefined
+  }
+  const name = (entry as { readonly name?: unknown } | undefined)?.name
+  if (name === null || typeof name !== 'object') return undefined
+  const fallback = (name as { readonly fallback?: unknown }).fallback
+  return typeof fallback === 'string' ? fallback : undefined
+}
+
+const createProductProbeContentFallbackSummary = (
+  context: InstalledStateContext
+): ProductProbeContentFallbackSummary => {
+  if (context.mountInput.selectedPackageIds[0] !== productProbePackageId) {
+    return Object.freeze({})
+  }
+  const registrySet = context.mountInput.candidateRegistrySet
+  if (registrySet === undefined) return Object.freeze({})
+  const itemNameFallback = readRegistryNameFallback(
+    registrySet,
+    productProbeItemRegistryId,
+    productProbeContentId(productProbePackageId, productProbeItemLocalId)
+  )
+  const recipeNameFallback = readRegistryNameFallback(
+    registrySet,
+    productProbeRecipeRegistryId,
+    productProbeContentId(productProbePackageId, productProbeRecipeLocalId)
+  )
+  const shopOfferNameFallback = readRegistryNameFallback(
+    registrySet,
+    productProbeShopOfferRegistryId,
+    productProbeContentId(productProbePackageId, productProbeShopOfferLocalId)
+  )
+  return Object.freeze({
+    ...(itemNameFallback === undefined ? {} : { productProbeItemNameFallback: itemNameFallback }),
+    ...(recipeNameFallback === undefined ? {} : { productProbeRecipeNameFallback: recipeNameFallback }),
+    ...(shopOfferNameFallback === undefined ? {} : { productProbeShopOfferNameFallback: shopOfferNameFallback })
+  })
 }
 
 const resolveRuntimeHost = (
@@ -1641,6 +1706,7 @@ export const createThirdPartyDataPackInstalledStateStartupGateBootstrapSource = 
           startupPersistentStateInjectedSourceHostMode:
             context.startupPersistentStateSource.injectedSourceHostMode
         }),
+    ...createProductProbeContentFallbackSummary(context),
     ...(context.startupPersistentStateSource.persistentStateProofs === undefined
       ? {}
       : { persistentStateProofs: context.startupPersistentStateSource.persistentStateProofs }),

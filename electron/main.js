@@ -199,12 +199,15 @@ const runtimeProbeVisibleDisable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE === '1'
 const runtimeProbeVisibleEnable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE === '1'
+const runtimeProbeVisibleUpgrade =
+  process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE === '1'
 const runtimeProbeVisibleUninstall =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UNINSTALL === '1'
 const runtimeProbeVisibleDataPackOperation =
   runtimeProbeVisibleImport
   || runtimeProbeVisibleDisable
   || runtimeProbeVisibleEnable
+  || runtimeProbeVisibleUpgrade
   || runtimeProbeVisibleUninstall
 const runtimeProbeRendererUiIpcProductSurfaceExpected =
   !runtimeProbeVisibleDataPackOperation
@@ -4352,6 +4355,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleEnable
             ? { taoyuanThirdPartyVisibleEnableProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleUpgrade
+            ? { taoyuanThirdPartyVisibleUpgradeProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleDisable
             ? { taoyuanThirdPartyVisibleDisableProbe: '1' }

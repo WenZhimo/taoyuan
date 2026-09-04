@@ -40,6 +40,26 @@ const expectedHashes = {
 }
 const defaultStartupGateRegistryCount = 54
 const defaultStartupGateEntryCount = 4243
+const visibleProbePackageId = 'product_probe_pack'
+const visibleProbeItemId = `${visibleProbePackageId}:linen_ribbon`
+const visibleProbeRecipeId = `${visibleProbePackageId}:linen_ribbon_snack`
+const visibleProbeShopOfferId = `${visibleProbePackageId}:shop/wanwupu/linen_ribbon/0`
+const visibleProbePackageFixtures = {
+  v1: {
+    version: '1.0.0',
+    itemNameFallback: 'Product Probe Linen Ribbon',
+    recipeNameFallback: 'Product Probe Ribbon Snack',
+    shopOfferNameFallback: 'Product Probe Ribbon Stand'
+  },
+  v2: {
+    version: '1.1.0',
+    itemNameFallback: 'Product Probe Linen Ribbon v2',
+    recipeNameFallback: 'Product Probe Ribbon Snack v2',
+    shopOfferNameFallback: 'Product Probe Ribbon Stand v2'
+  }
+}
+const expectedVisibleProbeFixture = scenario =>
+  visibleProbePackageFixtures[scenario.visibleProbeVariant ?? (scenario.visibleUpgrade ? 'v2' : 'v1')]
 const webScenarios = [
   { name: 'precompiled', fault: null, source: 'precompiled', status: 'official-precompiled-hit' },
   {
@@ -73,6 +93,16 @@ const webScenarios = [
     source: 'precompiled',
     status: 'official-precompiled-hit',
     visibleImportInstalledStartupPersistentState: true,
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
+  {
+    name: 'visible-import-web-replace-then-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledReplacementSequence: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack'
   },
@@ -281,6 +311,59 @@ const electronScenarios = [
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
     startupGateTargetPackageId: 'product_probe_pack',
     startupGateEntryCount: 4245
+  },
+  {
+    name: 'visible-import-replacement-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-replacement',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true
+  },
+  {
+    name: 'visible-import-replace-installed-package',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-replacement',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleImportRendererLiveRegistry: true,
+    visibleUpgrade: true
+  },
+  {
+    name: 'visible-import-replaced-installed-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-replacement',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    startupGateExpectedProductProbeVariant: 'v2'
   },
   {
     name: 'visible-import-installed-startup-persistent-state-cache-corrupt-fallback',
@@ -497,6 +580,7 @@ const scenarioRunsVisibleDataPackOperation = scenario =>
     scenario.visibleImportWebOrdinary
     || scenario.visibleImportRendererLiveRegistry
     || scenario.visibleEnable
+    || scenario.visibleUpgrade
     || scenario.visibleDisable
     || scenario.visibleUninstall
   )
@@ -1035,6 +1119,30 @@ const runAndroidProbe = async () => {
   }
 }
 
+const assertVisibleImportProductContent = (visibleImport, scenario) => {
+  const fixture = expectedVisibleProbeFixture(scenario)
+  assert(visibleImport.targetPackageId === visibleProbePackageId,
+    `${scenario.name}: visible import reported the wrong package`)
+  assert(visibleImport.itemId === visibleProbeItemId,
+    `${scenario.name}: visible import reported the wrong item`)
+  assert(visibleImport.itemNameFallback === fixture.itemNameFallback,
+    `${scenario.name}: visible import item fallback did not match ${fixture.version}`)
+  assert(visibleImport.recipeId === visibleProbeRecipeId,
+    `${scenario.name}: visible import reported the wrong recipe`)
+  assert(visibleImport.recipeNameFallback === fixture.recipeNameFallback,
+    `${scenario.name}: visible import recipe fallback did not match ${fixture.version}`)
+  assert(visibleImport.shopOfferId === visibleProbeShopOfferId,
+    `${scenario.name}: visible import reported the wrong shop offer`)
+  assert(visibleImport.shopOfferNameFallback === fixture.shopOfferNameFallback,
+    `${scenario.name}: visible import shop offer fallback did not match ${fixture.version}`)
+  assert(visibleImport.expectedPackageVersion === fixture.version,
+    `${scenario.name}: visible import expected package version did not match`)
+  if (scenario.visibleUpgrade) {
+    assert(visibleImport.operation === 'upgrade',
+      `${scenario.name}: visible replacement probe did not report upgrade scenario label`)
+  }
+}
+
 const assertVisibleImportPanelLabels = (
   visibleImport,
   scenario,
@@ -1463,6 +1571,18 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
   }
 }
 
+const assertStartupProductProbeContent = (startupGate, scenario) => {
+  const fixture = visibleProbePackageFixtures[scenario.startupGateExpectedProductProbeVariant]
+  assert(fixture !== undefined,
+    `${scenario.name}: startup product probe variant was not recognized`)
+  assert(startupGate.productProbeItemNameFallback === fixture.itemNameFallback,
+    `${scenario.name}: startup item fallback did not match ${fixture.version}`)
+  assert(startupGate.productProbeRecipeNameFallback === fixture.recipeNameFallback,
+    `${scenario.name}: startup recipe fallback did not match ${fixture.version}`)
+  assert(startupGate.productProbeShopOfferNameFallback === fixture.shopOfferNameFallback,
+    `${scenario.name}: startup shop offer fallback did not match ${fixture.version}`)
+}
+
 const assertDisabledInstalledStartupState = (startupGate, scenario) => {
   const expectedSourceKind = scenario.startupPersistentStateSourceKind ?? 'web-indexeddb'
   const expectedHostMode = scenario.startupPersistentStateSourceHostMode
@@ -1658,6 +1778,9 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       thirdPartyStartupGate.effects?.runtimePublicationCommitted === expectsRealRuntimePublicationCommit,
       `${scenario.name}: startup gate runtime publication commit effect mismatch`
     )
+    if (scenario.startupGateExpectedProductProbeVariant !== undefined) {
+      assertStartupProductProbeContent(thirdPartyStartupGate, scenario)
+    }
     if (scenario.startupPersistentStateReady) {
       assert(thirdPartyStartupGate.startupPersistentStateSourceStatus === 'ready',
         `${scenario.name}: startup persistent-state source was not ready`)
@@ -2115,20 +2238,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       '已确认（Electron）',
       '已送达（Electron）'
     )
-    assert(visibleImport.targetPackageId === 'product_probe_pack',
-      `${scenario.name}: visible import reported the wrong package`)
-    assert(visibleImport.itemId === 'product_probe_pack:linen_ribbon',
-      `${scenario.name}: visible import reported the wrong item`)
-    assert(visibleImport.itemNameFallback === 'Product Probe Linen Ribbon',
-      `${scenario.name}: visible import item was not readable from contentAccess`)
-    assert(visibleImport.recipeId === 'product_probe_pack:linen_ribbon_snack',
-      `${scenario.name}: visible import reported the wrong recipe`)
-    assert(visibleImport.recipeNameFallback === 'Product Probe Ribbon Snack',
-      `${scenario.name}: visible import recipe was not readable from contentAccess`)
-    assert(visibleImport.shopOfferId === 'product_probe_pack:shop/wanwupu/linen_ribbon/0',
-      `${scenario.name}: visible import reported the wrong shop offer`)
-    assert(visibleImport.shopOfferNameFallback === 'Product Probe Ribbon Stand',
-      `${scenario.name}: visible import shop offer was not readable from contentAccess`)
+    assertVisibleImportProductContent(visibleImport, scenario)
     assert(visibleImport.fileCount === 5,
       `${scenario.name}: visible import used the wrong file count`)
     assert(visibleImport.pickStatus === 'persisted',
@@ -2188,16 +2298,16 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: visible import package count mismatch`)
     assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
       `${scenario.name}: visible import diagnostics count was invalid`)
-    assert(visibleImport.contentAccessItemVisibleBefore === false,
-      `${scenario.name}: visible import item was visible before import`)
+    assert(visibleImport.contentAccessItemVisibleBefore === !!scenario.visibleUpgrade,
+      `${scenario.name}: visible import item visibility before import was unexpected`)
     assert(visibleImport.contentAccessItemVisibleAfter === true,
       `${scenario.name}: visible import item was not visible after renderer live registry swap`)
-    assert(visibleImport.contentAccessRecipeVisibleBefore === false,
-      `${scenario.name}: visible import recipe was visible before import`)
+    assert(visibleImport.contentAccessRecipeVisibleBefore === !!scenario.visibleUpgrade,
+      `${scenario.name}: visible import recipe visibility before import was unexpected`)
     assert(visibleImport.contentAccessRecipeVisibleAfter === true,
       `${scenario.name}: visible import recipe was not visible after renderer live registry swap`)
-    assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
-      `${scenario.name}: visible import shop offer was visible before import`)
+    assert(visibleImport.contentAccessShopOfferVisibleBefore === !!scenario.visibleUpgrade,
+      `${scenario.name}: visible import shop offer visibility before import was unexpected`)
     assert(visibleImport.contentAccessShopOfferVisibleAfter === true,
       `${scenario.name}: visible import shop offer was not visible after renderer live registry swap`)
     for (const effectName of [
@@ -2252,20 +2362,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       '已确认（Web）',
       '已送达（Web）'
     )
-    assert(visibleImport.targetPackageId === 'product_probe_pack',
-      `${scenario.name}: Web visible import reported the wrong package`)
-    assert(visibleImport.itemId === 'product_probe_pack:linen_ribbon',
-      `${scenario.name}: Web visible import reported the wrong item`)
-    assert(visibleImport.itemNameFallback === 'Product Probe Linen Ribbon',
-      `${scenario.name}: Web visible import item was not readable from contentAccess`)
-    assert(visibleImport.recipeId === 'product_probe_pack:linen_ribbon_snack',
-      `${scenario.name}: Web visible import reported the wrong recipe`)
-    assert(visibleImport.recipeNameFallback === 'Product Probe Ribbon Snack',
-      `${scenario.name}: Web visible import recipe was not readable from contentAccess`)
-    assert(visibleImport.shopOfferId === 'product_probe_pack:shop/wanwupu/linen_ribbon/0',
-      `${scenario.name}: Web visible import reported the wrong shop offer`)
-    assert(visibleImport.shopOfferNameFallback === 'Product Probe Ribbon Stand',
-      `${scenario.name}: Web visible import shop offer was not readable from contentAccess`)
+    assertVisibleImportProductContent(visibleImport, scenario)
     assert(visibleImport.fileCount === 5,
       `${scenario.name}: Web visible import used the wrong file count`)
     assert(visibleImport.pickStatus === 'persisted',
@@ -2320,8 +2417,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: Web visible import package count mismatch`)
     assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
       `${scenario.name}: Web visible import diagnostics count was invalid`)
-    assert(visibleImport.contentAccessItemVisibleBefore === false,
-      `${scenario.name}: Web visible import item was visible before import`)
+    assert(visibleImport.contentAccessItemVisibleBefore === !!scenario.visibleUpgrade,
+      `${scenario.name}: Web visible import item visibility before import was unexpected`)
     for (const effectName of [
       'commandDispatched',
       'packageFilesWritten',
@@ -2346,12 +2443,12 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     }
     assert(visibleImport.contentAccessItemVisibleAfter === true,
       `${scenario.name}: Web visible import item was not visible after Web live registry swap`)
-    assert(visibleImport.contentAccessRecipeVisibleBefore === false,
-      `${scenario.name}: Web visible import recipe was visible before import`)
+    assert(visibleImport.contentAccessRecipeVisibleBefore === !!scenario.visibleUpgrade,
+      `${scenario.name}: Web visible import recipe visibility before import was unexpected`)
     assert(visibleImport.contentAccessRecipeVisibleAfter === true,
       `${scenario.name}: Web visible import recipe was not visible after Web live registry swap`)
-    assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
-      `${scenario.name}: Web visible import shop offer was visible before import`)
+    assert(visibleImport.contentAccessShopOfferVisibleBefore === !!scenario.visibleUpgrade,
+      `${scenario.name}: Web visible import shop offer visibility before import was unexpected`)
     assert(visibleImport.contentAccessShopOfferVisibleAfter === true,
       `${scenario.name}: Web visible import shop offer was not visible after Web live registry swap`)
     for (const effectName of [
@@ -3343,9 +3440,12 @@ const runWebProbe = async () => {
     if (scenario.startupPersistentStateUseInstalledState) {
       url.searchParams.set('taoyuanThirdPartyStartupPersistentStateInstalledState', '1')
     }
-    if (scenario.visibleImportWebOrdinary) {
+    if (scenario.visibleImportWebOrdinary || scenario.visibleUpgrade) {
       url.searchParams.set('taoyuanThirdPartyVisibleImportProbe', '1')
       url.searchParams.set('taoyuanThirdPartyVisibleImportPersistSource', '1')
+    }
+    if (scenario.visibleUpgrade) {
+      url.searchParams.set('taoyuanThirdPartyVisibleUpgradeProbe', '1')
     }
     if (scenario.visibleEnable) {
       url.searchParams.set('taoyuanThirdPartyVisibleImportProbe', '1')
@@ -3366,6 +3466,75 @@ const runWebProbe = async () => {
       const outputPath = path.join(scenarioRoot, 'report.json')
       fs.mkdirSync(scenarioRoot, { recursive: true })
       const userData = path.join(scenarioRoot, 'userdata')
+      if (scenario.visibleImportInstalledReplacementSequence) {
+        const installScenario = {
+          ...scenario,
+          name: `${scenario.name}:install-v1`,
+          startupGateReady: false,
+          startupPersistentStateReady: false,
+          startupGateDisabled: false,
+          visibleImportWebOrdinary: true,
+          visibleUpgrade: false,
+          visibleProbeVariant: 'v1'
+        }
+        const installOutputPath = path.join(scenarioRoot, 'install-v1-report.json')
+        await runProcess(electronPath, [hostPath], {
+          TAOYUAN_RUNTIME_PROBE_OUTPUT: installOutputPath,
+          TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(installScenario).href,
+          TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+        })
+        const installEnvelope = readJson(installOutputPath)
+        assertRuntimeEnvelope(installEnvelope, installScenario, 'http:')
+        assertWebProductSurface(installEnvelope, installScenario)
+
+        const upgradeScenario = {
+          ...scenario,
+          name: `${scenario.name}:replace-v1_1`,
+          startupGateReady: true,
+          startupPersistentStateReady: true,
+          startupPersistentStateUseInstalledState: true,
+          startupGateRealRuntimePublicationCommit: true,
+          startupGateRegistryCount: 54,
+          startupGateEntryCount: 4245,
+          startupGateExpectedProductProbeVariant: 'v1',
+          startupPersistentStateExpectsResponseDeliveryHandoff: false,
+          visibleImportWebOrdinary: true,
+          visibleUpgrade: true
+        }
+        const upgradeOutputPath = path.join(scenarioRoot, 'replace-v1_1-report.json')
+        await runProcess(electronPath, [hostPath], {
+          TAOYUAN_RUNTIME_PROBE_OUTPUT: upgradeOutputPath,
+          TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(upgradeScenario).href,
+          TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+        })
+        const upgradeEnvelope = readJson(upgradeOutputPath)
+        assertRuntimeEnvelope(upgradeEnvelope, upgradeScenario, 'http:')
+        assertWebProductSurface(upgradeEnvelope, upgradeScenario)
+
+        const restartScenario = {
+          ...upgradeScenario,
+          name: `${scenario.name}:restart-v1_1`,
+          visibleImportWebOrdinary: false,
+          visibleUpgrade: false,
+          startupGateExpectedProductProbeVariant: 'v2'
+        }
+        const restartOutputPath = path.join(scenarioRoot, 'restart-v1_1-report.json')
+        await runProcess(electronPath, [hostPath], {
+          TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+          TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+          TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+        })
+        const restartEnvelope = readJson(restartOutputPath)
+        assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+        assertWebProductSurface(restartEnvelope, restartScenario)
+        reports.push({
+          scenario: scenario.name,
+          installRuntime: installEnvelope.runtime,
+          upgradeRuntime: upgradeEnvelope.runtime,
+          restartRuntime: restartEnvelope.runtime
+        })
+        continue
+      }
       if (
         scenario.visibleImportInstalledDisableSequence
         || scenario.visibleImportInstalledDisableEnableSequence
@@ -3609,8 +3778,11 @@ const runPackagedScenario = async (scenario, isolated) => {
   const lockfileTempsBefore = modLockTemporaryNames(userDataPath)
   const exercisesInstallTransactionCommitFinalization =
     !!scenario.installTransactionCommitFinalization
-  const exercisesVisibleInitialImport = !!scenario.visibleImportRendererLiveRegistry
-  const exercisesVisibleImport = exercisesVisibleInitialImport || !!scenario.visibleEnable
+  const exercisesVisibleUpgrade = !!scenario.visibleUpgrade
+  const exercisesVisibleInitialImport =
+    !!scenario.visibleImportRendererLiveRegistry && !exercisesVisibleUpgrade
+  const exercisesVisibleImport =
+    !!scenario.visibleImportRendererLiveRegistry || !!scenario.visibleEnable || exercisesVisibleUpgrade
   const exercisesVisibleDisable = !!scenario.visibleDisable
   const exercisesVisibleUninstall = !!scenario.visibleUninstall
   const exercisesSettingsOrLockfileWrite =
@@ -3624,19 +3796,26 @@ const runPackagedScenario = async (scenario, isolated) => {
     !!scenario.packageFileWriteRead
     || !!scenario.packageFileRestore
     || exercisesInstallTransactionCommitFinalization
+    || exercisesVisibleUpgrade
     || exercisesVisibleInitialImport
   const exercisesPersistentWrite = exercisesSettingsOrLockfileWrite || exercisesPackageFileWrite
   seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
   if (exercisesPersistentWrite) {
     assert(isolated, `${scenario.name}: persistent write/read scenario must be isolated`)
-    if (!exercisesVisibleDisable && !exercisesVisibleUninstall && !scenario.visibleEnable && !scenario.startupGateDisabled) {
+    if (
+      !exercisesVisibleDisable
+      && !exercisesVisibleUninstall
+      && !scenario.visibleEnable
+      && !exercisesVisibleUpgrade
+      && !scenario.startupGateDisabled
+    ) {
       writeModLockProtectionSentinels(scenarioRoot, userDataPath)
     }
   }
   const protectedBefore = exercisesPersistentWrite
     ? modLockProtectedFingerprints(scenarioRoot, userDataPath)
     : null
-  const packageFileBefore = exercisesPackageFileWrite
+  const packageFileBefore = exercisesPackageFileWrite && !exercisesVisibleUpgrade
     ? writePackageFileProtectionSentinels(scenarioRoot)
     : null
   const packageFileTempsBefore = packageFileTemporaryNames(scenarioRoot)
@@ -3644,8 +3823,12 @@ const runPackagedScenario = async (scenario, isolated) => {
   const preservedPackageBefore = scenario.visibleDisable || scenario.visibleUninstall || scenario.startupGateDisabled
     ? directoryFingerprint(preservedPackageRoot)
     : null
-  const preservedPackageContentBefore = scenario.visibleEnable
+  const preservedPackageContentBefore = scenario.visibleEnable || exercisesVisibleUpgrade
     ? activePackageContentFingerprint(preservedPackageRoot)
+    : null
+  const preservedPackageManifestBefore = exercisesVisibleUpgrade
+    && fs.existsSync(path.join(preservedPackageRoot, 'manifest.json'))
+    ? readJson(path.join(preservedPackageRoot, 'manifest.json'))
     : null
   await runProcess(packagedExecutable, [], {
     TAOYUAN_RUNTIME_PROBE_OUTPUT: outputPath,
@@ -3676,11 +3859,14 @@ const runPackagedScenario = async (scenario, isolated) => {
     ...(scenario.ordinaryInstallTerminalRollback
       ? { TAOYUAN_RUNTIME_PROBE_ORDINARY_INSTALL_TERMINAL_ROLLBACK: '1' }
       : {}),
-    ...(scenario.visibleImportRendererLiveRegistry || scenario.visibleEnable
+    ...(scenario.visibleImportRendererLiveRegistry || scenario.visibleEnable || exercisesVisibleUpgrade
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT: '1' }
       : {}),
     ...(scenario.visibleEnable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE: '1' }
+      : {}),
+    ...(exercisesVisibleUpgrade
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE: '1' }
       : {}),
     ...(scenario.visibleDisable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE: '1' }
@@ -3782,6 +3968,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       || scenario.visibleEnable
       || scenario.visibleDisable
       || scenario.visibleUninstall
+      || exercisesVisibleUpgrade
     ) {
       const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
       assert(settingsJson.closeToTray === false,
@@ -3798,6 +3985,12 @@ const runPackagedScenario = async (scenario, isolated) => {
       assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
         === JSON.stringify(lockfileJson.loadOrder),
       `${scenario.name}: settings load order did not match mod-lock`)
+      if (exercisesVisibleUpgrade) {
+        assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
+          `${scenario.name}: replacement settings did not preserve install command semantics`)
+        assert(lockfileJson.packages?.[0]?.version === visibleProbePackageFixtures.v2.version,
+          `${scenario.name}: replacement mod-lock did not persist v1.1.0`)
+      }
       assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(settingsJson)),
         `${scenario.name}: settings file leaked an absolute path`)
     }
@@ -3933,7 +4126,34 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ enabledLockfile, settingsJson })),
       `${scenario.name}: re-enabled persistent state leaked an absolute path`)
   }
-  if (exercisesPackageFileWrite) {
+  if (exercisesVisibleUpgrade) {
+    const paths = packageFileProbePaths(scenarioRoot)
+    const manifestJson = readJson(paths.manifest)
+    const itemsJson = readJson(paths.itemFile)
+    const recipesJson = readJson(path.join(paths.packageRoot, 'data', 'recipes.json'))
+    const shopOffersJson = readJson(path.join(paths.packageRoot, 'data', 'shop-offers.json'))
+    assert(preservedPackageManifestBefore?.version === visibleProbePackageFixtures.v1.version,
+      `${scenario.name}: replacement did not start from v1 package files`)
+    assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
+      `${scenario.name}: replacement package files were not present before import`)
+    assert(JSON.stringify(activePackageContentFingerprint(preservedPackageRoot))
+      !== JSON.stringify(preservedPackageContentBefore),
+    `${scenario.name}: replacement did not update active package file contents`)
+    assert(manifestJson.id === visibleProbePackageId,
+      `${scenario.name}: replacement package manifest reported the wrong package`)
+    assert(manifestJson.version === visibleProbePackageFixtures.v2.version,
+      `${scenario.name}: replacement package manifest did not persist v1.1.0`)
+    assert(Array.isArray(itemsJson) && itemsJson[0]?.name?.fallback === visibleProbePackageFixtures.v2.itemNameFallback,
+      `${scenario.name}: replacement item payload did not persist v1.1.0 content`)
+    assert(Array.isArray(recipesJson) && recipesJson[0]?.name?.fallback === visibleProbePackageFixtures.v2.recipeNameFallback,
+      `${scenario.name}: replacement recipe payload did not persist v1.1.0 content`)
+    assert(Array.isArray(shopOffersJson)
+      && shopOffersJson[0]?.name?.fallback === visibleProbePackageFixtures.v2.shopOfferNameFallback,
+    `${scenario.name}: replacement shop offer payload did not persist v1.1.0 content`)
+    assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify({ manifestJson, itemsJson, recipesJson, shopOffersJson })),
+      `${scenario.name}: replacement package file payload leaked an absolute path`)
+  }
+  if (exercisesPackageFileWrite && !exercisesVisibleUpgrade) {
     const paths = packageFileProbePaths(scenarioRoot)
     assert(packageFileBefore?.beforeManifest.exists === true,
       `${scenario.name}: package file probe did not start with a previous manifest`)
@@ -3965,7 +4185,12 @@ const runPackagedScenario = async (scenario, isolated) => {
         `${scenario.name}: package file payload leaked an absolute path`)
     }
   }
-  if (scenario.installTransactionCommitFinalization || scenario.visibleImportRendererLiveRegistry || scenario.visibleEnable) {
+  if (
+    scenario.installTransactionCommitFinalization
+    || scenario.visibleImportRendererLiveRegistry
+    || scenario.visibleEnable
+    || exercisesVisibleUpgrade
+  ) {
     const preparedLog = readJson(installTransactionPreparedLogPath(userDataPath))
     const probe = productReport.electron?.installTransactionCommitFinalizationProbe
     assert(preparedLog.kind === 'third-party-data-pack-install-transaction-log-prepared',
@@ -4007,6 +4232,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       || scenario.visibleEnable
       || scenario.visibleDisable
       || scenario.visibleUninstall
+      || exercisesVisibleUpgrade
       ? ['settings']
       : []
     assert(JSON.stringify(omitFingerprints(protectedAfter, omitted))

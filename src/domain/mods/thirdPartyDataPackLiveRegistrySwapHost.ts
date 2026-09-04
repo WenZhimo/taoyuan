@@ -1,7 +1,9 @@
 import { createOfficialContentHash } from './officialPrecompiled'
 import {
   createSerializableRegistrySnapshot,
-  type RegistrySet
+  RegistrySet,
+  type RegistryEntry,
+  type RegistryEntrySource,
 } from './registry'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
@@ -222,6 +224,55 @@ const currentRegistryMatchesOfficialEnvelope = (
   && current.contentHash === envelope.officialIdentity.contentHash
   && current.snapshotHash === envelope.officialIdentity.snapshotHash
 
+const cloneRegistryEntrySource = (
+  source: RegistryEntrySource | undefined
+): Omit<RegistryEntrySource, 'packageId'> | undefined => {
+  if (!source) return undefined
+  return {
+    file: source.file,
+    localId: source.localId
+  }
+}
+
+const cloneRegistrySetExcludingOwners = (
+  registrySet: RegistrySet,
+  excludedOwners: ReadonlySet<PackageId>
+): RegistrySet => {
+  const result = new RegistrySet()
+  for (const registryId of registrySet.registryIds()) {
+    const registry = registrySet.get<RegistryEntry>(registryId)
+    result.defineRegistry(registry.definition)
+  }
+  result.freezeDefinitions()
+
+  for (const registryId of registrySet.registryIds()) {
+    const sourceRegistry = registrySet.get<RegistryEntry>(registryId)
+    const targetRegistry = result.get<RegistryEntry>(registryId)
+    for (const record of sourceRegistry.entries()) {
+      if (excludedOwners.has(record.owner)) continue
+      targetRegistry.register(record.owner, record.entry, cloneRegistryEntrySource(record.source))
+    }
+  }
+
+  result.freezeEntries()
+  return result
+}
+
+const installPreviousRegistryMatchesEnvelope = (
+  previousRegistrySet: RegistrySet,
+  previousSummary: RegistrySetSummary,
+  envelope: ThirdPartyDataPackLiveRegistrySwapExecutionHostEnvelope
+): boolean => {
+  if (currentRegistryMatchesOfficialEnvelope(previousSummary, envelope)) return true
+  if (envelope.requestedCommandId !== 'install' || envelope.selectedPackageIds.length === 0) return false
+
+  const selectedPackageOwners = new Set<PackageId>(envelope.selectedPackageIds)
+  const baselineWithoutSelectedPackages = summarizeRegistrySet(
+    cloneRegistrySetExcludingOwners(previousRegistrySet, selectedPackageOwners)
+  )
+  return currentRegistryMatchesOfficialEnvelope(baselineWithoutSelectedPackages, envelope)
+}
+
 const candidateRegistryMatchesEnvelope = (
   candidate: RegistrySetSummary,
   envelope: ThirdPartyDataPackLiveRegistrySwapExecutionHostEnvelope
@@ -259,7 +310,7 @@ export const createThirdPartyDataPackLiveRegistrySwapHost = (
       && arraysEqual(envelope.loadOrder, envelope.selectedPackageIds)
       && hasAllRequiredProtectionIds(envelope.requiredProtectionIds)
     const previousRegistryMatchesCommand = envelope.requestedCommandId === 'disable'
-      || currentRegistryMatchesOfficialEnvelope(previousSummary, envelope)
+      || installPreviousRegistryMatchesEnvelope(previousRegistrySet, previousSummary, envelope)
 
     if (
       !validEnvelope

@@ -67,10 +67,10 @@ type JsonObject = Record<string, unknown>
 
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
 
-const createManifest = (packageId = 'web_entry'): JsonObject => ({
+const createManifest = (packageId = 'web_entry', version = '1.0.0'): JsonObject => ({
   id: packageId,
   name: { key: `${packageId}.package.name`, fallback: packageId },
-  version: '1.0.0',
+  version,
   gameVersion: '2.4.0',
   engineApiVersion: '1',
   contentSchemaVersion: '1',
@@ -82,9 +82,12 @@ const createManifest = (packageId = 'web_entry'): JsonObject => ({
   entrypoints: { 'taoyuan:item': ['data/items.json'] }
 })
 
-const createItem = (id = 'web_entry:linen_ribbon'): JsonObject => ({
+const createItem = (
+  id = 'web_entry:linen_ribbon',
+  nameFallback = id
+): JsonObject => ({
   id,
-  name: { key: `${id}.name`, fallback: id },
+  name: { key: `${id}.name`, fallback: nameFallback },
   category: 'gift',
   description: { key: `${id}.description`, fallback: `${id} description` },
   sellPrice: 8,
@@ -98,10 +101,18 @@ const createFile = (path: string, text: string): WebFilePickerImportFile => ({
   text: vi.fn(async() => text)
 })
 
-const createValidFiles = (packageId = 'web_entry'): readonly WebFilePickerImportFile[] => [
-  createFile('valid-gift-pack/manifest.json', toJson(createManifest(packageId))),
+const createValidFiles = (
+  packageId = 'web_entry',
+  options: {
+    readonly version?: string
+    readonly itemNameFallback?: string
+  } = {}
+): readonly WebFilePickerImportFile[] => [
+  createFile('valid-gift-pack/manifest.json', toJson(createManifest(packageId, options.version ?? '1.0.0'))),
   createFile('valid-gift-pack/locales/zh-CN.json', '{}\n'),
-  createFile('valid-gift-pack/data/items.json', toJson([createItem(`${packageId}:linen_ribbon`)]))
+  createFile('valid-gift-pack/data/items.json', toJson([
+    createItem(`${packageId}:linen_ribbon`, options.itemNameFallback)
+  ]))
 ]
 
 const createElectronReadonlyDirectoryHost = async(
@@ -2288,6 +2299,139 @@ describe('useWebFilePickerImportEntry', () => {
     expect(entry.runtimeBoundaryClosed.value).toBe(true)
     expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
     expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
+  })
+
+  it('replaces a same-package Web install through ordinary persisted install state', async() => {
+    const packageId = requirePackageId('web_entry_replace')
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const selectFiles = vi.fn()
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.0.0',
+        itemNameFallback: 'web entry replace v1'
+      }))
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.1.0',
+        itemNameFallback: 'web entry replace v2'
+      }))
+    const entry = useWebFilePickerImportEntry({
+      selectFiles,
+      persistenceStore: store,
+      webSettingsLockfileStore,
+      webInstallTransactionLogStore
+    })
+
+    await entry.pickFiles()
+    const firstDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      mountedAppStartupHostEvidence
+    })
+    const firstSettingsLockfile = await webSettingsLockfileStore.read()
+
+    expect(firstSettingsLockfile.record).toMatchObject({
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      loadOrder: [packageId]
+    })
+    expect(firstSettingsLockfile.record?.lockfileDraft.packages[0]?.version).toBe('1.0.0')
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+      .toBe('web entry replace v1')
+
+    await entry.pickFiles()
+    const replacementDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      mountedAppStartupHostEvidence
+    })
+    const replacementSettingsLockfile = await webSettingsLockfileStore.read()
+    const replacementStartupSnapshot = await readThirdPartyDataPackWebStartupPersistentStateSnapshot({
+      store,
+      settingsLockfileStore: webSettingsLockfileStore,
+      request: {
+        formatVersion: 1,
+        commandId: 'install',
+        packageId,
+        candidateIdentity:
+          replacementDispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnection!.candidateIdentity!,
+        lockfileHash:
+          replacementDispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnection!.lockfileHash!,
+        selectedPackageIds: replacementDispatchResult.selectedPackageIds,
+        blockedPackageIds: replacementDispatchResult.preflight!.blockedPackageIds,
+        blockedCandidateCount: 0,
+        loadOrder: replacementDispatchResult.loadOrder,
+        registryCount: replacementDispatchResult.preflight!.registryCount,
+        entryCount: replacementDispatchResult.preflight!.entryCount,
+        packageCount: replacementDispatchResult.preflight!.packageCount,
+        requiredSourceIds: [
+          'committed-transaction-log-source',
+          'package-state-source',
+          'settings-state-source',
+          'mod-lock-state-source',
+          'live-registry-identity-source',
+          'save-cache-isolation-source',
+          'startup-failure-reporting-source',
+          'no-startup-read-write-side-effect-guard'
+        ],
+        deferredStageIds: [
+          'transaction-log-state-read',
+          'package-state-read',
+          'settings-state-read',
+          'mod-lock-state-read',
+          'live-registry-identity-read',
+          'save-cache-isolation-read',
+          'startup-failure-reporting',
+          'launcher-gameapp-gate'
+        ]
+      }
+    })
+
+    expect(selectFiles).toHaveBeenCalledTimes(2)
+    expect(firstDispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnection?.candidateHash)
+      .not.toBe(replacementDispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnection?.candidateHash)
+    expect(replacementSettingsLockfile.record).toMatchObject({
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      loadOrder: [packageId]
+    })
+    expect(replacementSettingsLockfile.record?.lockfileDraft.packages).toHaveLength(1)
+    expect(replacementSettingsLockfile.record?.lockfileDraft.packages[0]).toMatchObject({
+      packageId,
+      version: '1.1.0'
+    })
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+      .toBe('web entry replace v2')
+    expect(replacementDispatchResult).toMatchObject({
+      transactionCommandDispatcherHostKind: 'web',
+      transactionCommandDispatcherSourceStatus: 'dispatched',
+      ordinaryInstallTransactionTerminalConnectionStatus: 'ready',
+      runtimePublicationCommitLiveRegistrySwapHostConnectionStatus: 'swapped',
+      runtimePublicationCommitAppStartupHostConnectionStatus: 'accepted',
+      webStartupPersistentStateWriteStatus: 'written',
+      commandDispatched: true,
+      transactionCommitted: true,
+      startupPersistentStateWritten: true,
+      rendererLiveRegistrySwapApplied: true,
+      runtimeEnablementAllowed: true
+    })
+    expect(replacementStartupSnapshot.report.status).toBe('loaded')
+    expect(replacementStartupSnapshot.snapshot).toMatchObject({
+      kind: 'startup-persistent-state-snapshot',
+      packageId,
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    })
+    expect(JSON.stringify(replacementDispatchResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(replacementStartupSnapshot)).not.toContain('C:/Users')
+    expect(JSON.stringify(replacementSettingsLockfile)).not.toContain('LENOVO')
   })
 
   it('treats an empty selection as cancelled without creating a source', async() => {

@@ -750,6 +750,33 @@ describe('third-party installed-state startup gate bootstrap source', () => {
     expect(JSON.stringify(result)).not.toContain('startup-persistent-state-snapshot.json')
   })
 
+  it('reports product probe fallbacks from the installed startup candidate', async() => {
+    const packageId = 'product_probe_pack' as PackageId
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    await seedWebInstalledState(
+      store,
+      packageId,
+      buildOfficialRegistrySetFromStaticData(),
+      settingsLockfileStore
+    )
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore
+    })
+
+    const result = await source()
+
+    expect(result).toMatchObject({
+      status: 'ready',
+      targetPackageId: packageId,
+      productProbeItemNameFallback: 'product_probe_pack Startup Linen Ribbon',
+      productProbeRecipeNameFallback: 'product_probe_pack Startup Linen Ribbon Snack',
+      productProbeShopOfferNameFallback: 'product_probe_pack Startup Linen Ribbon Stand'
+    })
+  })
+
   it('builds installed-state startup candidates from the published official baseline', async() => {
     const officialRegistrySet = createOfficialBaselineWithStartupProbeItem()
     publishOfficialContentRegistrySet(officialRegistrySet)

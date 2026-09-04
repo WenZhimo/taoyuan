@@ -27,19 +27,47 @@ const shopOfferId = `${packageId}:shop/wanwupu/linen_ribbon/0`
 const itemRegistryId = 'taoyuan:item'
 const recipeRegistryId = 'taoyuan:recipe'
 const shopOfferRegistryId = 'taoyuan:shop_offer'
-const expectedItemName = 'Product Probe Linen Ribbon'
-const expectedRecipeName = 'Product Probe Ribbon Snack'
-const expectedShopOfferName = 'Product Probe Ribbon Stand'
 export const visibleImportPanelProbeResultEventName =
   'taoyuan:third-party-visible-import-panel-result'
 
 type VisibleImportProductProbeEntrypoint = 'composable' | 'main-menu-panel'
+type VisibleImportProductProbePackageVariant = 'v1' | 'v2'
+type VisibleImportProductProbeOperation = 'install' | 'enable' | 'upgrade'
+
+const visibleImportProductProbeFixtures = {
+  v1: {
+    version: '1.0.0',
+    itemNameFallback: 'Product Probe Linen Ribbon',
+    recipeNameFallback: 'Product Probe Ribbon Snack',
+    shopOfferNameFallback: 'Product Probe Ribbon Stand'
+  },
+  v2: {
+    version: '1.1.0',
+    itemNameFallback: 'Product Probe Linen Ribbon v2',
+    recipeNameFallback: 'Product Probe Ribbon Snack v2',
+    shopOfferNameFallback: 'Product Probe Ribbon Stand v2'
+  }
+} as const satisfies Record<VisibleImportProductProbePackageVariant, {
+  readonly version: string
+  readonly itemNameFallback: string
+  readonly recipeNameFallback: string
+  readonly shopOfferNameFallback: string
+}>
+
+const expectedItemName = visibleImportProductProbeFixtures.v1.itemNameFallback
+const expectedRecipeName = visibleImportProductProbeFixtures.v1.recipeNameFallback
+const expectedShopOfferName = visibleImportProductProbeFixtures.v1.shopOfferNameFallback
+
+const packageVariantForOperation = (
+  operation: VisibleImportProductProbeOperation | undefined
+): VisibleImportProductProbePackageVariant =>
+  operation === 'upgrade' ? 'v2' : 'v1'
 
 export interface RunThirdPartyVisibleImportProductProbeOptions {
   readonly persistSource?: boolean
   readonly persistenceStore?: WebIndexedDbImportPersistenceStore | null
   readonly entrypoint?: VisibleImportProductProbeEntrypoint
-  readonly operation?: 'install' | 'enable'
+  readonly operation?: VisibleImportProductProbeOperation
 }
 
 export interface RunThirdPartyVisibleDisableProductProbeOptions {
@@ -90,6 +118,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly selectedPackageCount: number
   readonly blockedPackageCount: number
   readonly loadOrderCount: number
+  readonly expectedPackageVersion?: string
   readonly registryCount?: number
   readonly entryCount?: number
   readonly packageCount?: number
@@ -123,7 +152,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
     readonly rollbackExecuted: false
     readonly diagnosticsWritten: false
   }
-  readonly operation?: 'install' | 'disable' | 'enable' | 'uninstall'
+  readonly operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall'
   readonly disableButtonClicked?: boolean
   readonly enableButtonClicked?: boolean
   readonly uninstallButtonClicked?: boolean
@@ -189,7 +218,7 @@ interface VisibleImportProbeExecution {
   readonly pickStatus: string
   readonly panelStatusLabels: ThirdPartyVisibleImportPanelStatusLabels
   readonly entrypoint: VisibleImportProductProbeEntrypoint
-  readonly operation?: 'install' | 'enable'
+  readonly operation?: VisibleImportProductProbeOperation
   readonly mainMenuPanelOpened: boolean
   readonly panelImportButtonClicked: boolean
   readonly enableButtonClicked?: boolean
@@ -237,13 +266,13 @@ type VisibleImportPanelProbeWindow = Window & {
 
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
 
-const createManifest = () => ({
+const createManifest = (variant: VisibleImportProductProbePackageVariant = 'v1') => ({
   id: packageId,
   name: {
     key: `${packageId}.package.name`,
     fallback: 'Product Probe Pack'
   },
-  version: '1.0.0',
+  version: visibleImportProductProbeFixtures[variant].version,
   gameVersion: CURRENT_GAME_VERSION,
   engineApiVersion: '1',
   contentSchemaVersion: '1',
@@ -266,11 +295,11 @@ const createManifest = () => ({
   }
 })
 
-const createItem = () => ({
+const createItem = (variant: VisibleImportProductProbePackageVariant = 'v1') => ({
   id: itemId,
   name: {
     key: `${packageId}.item.linen_ribbon.name`,
-    fallback: expectedItemName
+    fallback: visibleImportProductProbeFixtures[variant].itemNameFallback
   },
   category: 'gift',
   description: {
@@ -282,11 +311,11 @@ const createItem = () => ({
   tags: [`${packageId}:soft_gift`]
 })
 
-const createRecipe = () => ({
+const createRecipe = (variant: VisibleImportProductProbePackageVariant = 'v1') => ({
   id: recipeId,
   name: {
     key: `${packageId}.recipe.linen_ribbon_snack.name`,
-    fallback: expectedRecipeName
+    fallback: visibleImportProductProbeFixtures[variant].recipeNameFallback
   },
   ingredients: [
     {
@@ -307,13 +336,13 @@ const createRecipe = () => ({
   }
 })
 
-const createShopOffer = () => ({
+const createShopOffer = (variant: VisibleImportProductProbePackageVariant = 'v1') => ({
   id: shopOfferId,
   shopId: 'taoyuan:wanwupu',
   itemId,
   name: {
     key: `${packageId}.shop_offer.linen_ribbon.name`,
-    fallback: expectedShopOfferName
+    fallback: visibleImportProductProbeFixtures[variant].shopOfferNameFallback
   },
   description: {
     key: `${packageId}.shop_offer.linen_ribbon.description`,
@@ -337,12 +366,14 @@ const createFile = (path: string, text: string): WebFilePickerImportFile => Obje
   text: async() => text
 })
 
-const createVisibleImportFiles = (): readonly WebFilePickerImportFile[] => Object.freeze([
-  createFile('product-probe-pack/manifest.json', toJson(createManifest())),
+const createVisibleImportFiles = (
+  variant: VisibleImportProductProbePackageVariant = 'v1'
+): readonly WebFilePickerImportFile[] => Object.freeze([
+  createFile('product-probe-pack/manifest.json', toJson(createManifest(variant))),
   createFile('product-probe-pack/locales/zh-CN.json', '{}\n'),
-  createFile('product-probe-pack/data/items.json', toJson([createItem()])),
-  createFile('product-probe-pack/data/recipes.json', toJson([createRecipe()])),
-  createFile('product-probe-pack/data/shop-offers.json', toJson([createShopOffer()]))
+  createFile('product-probe-pack/data/items.json', toJson([createItem(variant)])),
+  createFile('product-probe-pack/data/recipes.json', toJson([createRecipe(variant)])),
+  createFile('product-probe-pack/data/shop-offers.json', toJson([createShopOffer(variant)]))
 ])
 
 const diagnosticsCountFor = (
@@ -609,8 +640,10 @@ const clearPanelDispatchResult = (probeWindow: Window): void => {
 const runComposableImportProbe = async(
   options: RunThirdPartyVisibleImportProductProbeOptions
 ): Promise<VisibleImportProbeExecution> => {
+  const operation = options.operation ?? 'install'
+  const variant = packageVariantForOperation(operation)
   const entry = useWebFilePickerImportEntry({
-    selectFiles: async() => createVisibleImportFiles(),
+    selectFiles: async() => createVisibleImportFiles(variant),
     persistenceStore: createProbePersistenceStore(options)
   })
 
@@ -629,15 +662,21 @@ const runComposableImportProbe = async(
     pickStatus: pickResult.status,
     panelStatusLabels: Object.freeze({}),
     entrypoint: 'composable',
+    operation,
     mainMenuPanelOpened: false,
     panelImportButtonClicked: false,
     defaultFileInputSelectorUsed: false
   })
 }
 
-const runMainMenuPanelImportProbe = async(): Promise<VisibleImportProbeExecution> => {
+const runMainMenuPanelImportProbe = async(
+  options: RunThirdPartyVisibleImportProductProbeOptions
+): Promise<VisibleImportProbeExecution> => {
+  const operation = options.operation ?? 'install'
+  const variant = packageVariantForOperation(operation)
+  const fixture = visibleImportProductProbeFixtures[variant]
   const probeWindow = window
-  const fileInputProbe = installDefaultFileInputProbeSelector(createVisibleImportFiles())
+  const fileInputProbe = installDefaultFileInputProbeSelector(createVisibleImportFiles(variant))
   let mainMenuPanelOpened = false
   let panelImportButtonClicked = false
   try {
@@ -663,9 +702,9 @@ const runMainMenuPanelImportProbe = async(): Promise<VisibleImportProbeExecution
     const dispatchResult = await dispatchResultPromise
     await waitForCondition(
       () =>
-        getOfficialItemDef(itemId)?.name.fallback === expectedItemName
-        && getOfficialRecipeDef(recipeId)?.name.fallback === expectedRecipeName
-        && readProbeShopOfferNameFallback() === expectedShopOfferName,
+        getOfficialItemDef(itemId)?.name.fallback === fixture.itemNameFallback
+        && getOfficialRecipeDef(recipeId)?.name.fallback === fixture.recipeNameFallback
+        && readProbeShopOfferNameFallback() === fixture.shopOfferNameFallback,
       'visible import panel did not publish the imported item, recipe, and shop offer to contentAccess'
     )
     const stableLabel = await waitForCondition(
@@ -693,6 +732,7 @@ const runMainMenuPanelImportProbe = async(): Promise<VisibleImportProbeExecution
       pickStatus: toPickStatus(stableLabel),
       panelStatusLabels,
       entrypoint: 'main-menu-panel',
+      operation,
       mainMenuPanelOpened,
       panelImportButtonClicked,
       defaultFileInputSelectorUsed: fileInputProbe.clickCount() > 0
@@ -704,6 +744,7 @@ const runMainMenuPanelImportProbe = async(): Promise<VisibleImportProbeExecution
       pickStatus: toPickStatus(readPanelText('web-mod-import-status')),
       panelStatusLabels: readVisibleImportPanelStatusLabels(),
       entrypoint: 'main-menu-panel',
+      operation,
       mainMenuPanelOpened,
       panelImportButtonClicked,
       defaultFileInputSelectorUsed: fileInputProbe.clickCount() > 0,
@@ -981,21 +1022,25 @@ const runMainMenuPanelUninstallProbe = async(
 export const runThirdPartyVisibleImportProductProbe = async(
   options: RunThirdPartyVisibleImportProductProbeOptions = {}
 ): Promise<ThirdPartyVisibleImportProductProbeResult> => {
+  const operation = options.operation ?? 'install'
+  const fixture = visibleImportProductProbeFixtures[packageVariantForOperation(operation)]
   const contentAccessItemVisibleBefore = getOfficialItemDef(itemId) !== undefined
   const contentAccessRecipeVisibleBefore = getOfficialRecipeDef(recipeId) !== undefined
   const contentAccessShopOfferVisibleBefore = readProbeShopOfferNameFallback() !== undefined
   const execution = options.entrypoint === 'main-menu-panel'
-    ? options.operation === 'enable'
+    ? operation === 'enable'
       ? await runMainMenuPanelEnableProbe()
-      : await runMainMenuPanelImportProbe()
+      : await runMainMenuPanelImportProbe({ ...options, operation })
     : await runComposableImportProbe(options)
   const dispatchResult = execution.dispatchResult
   const visibleItem = getOfficialItemDef(itemId)
   const visibleRecipe = getOfficialRecipeDef(recipeId)
   const visibleShopOfferNameFallback = readProbeShopOfferNameFallback()
-  const contentAccessItemVisibleAfter = visibleItem?.name.fallback === expectedItemName
-  const contentAccessRecipeVisibleAfter = visibleRecipe?.name.fallback === expectedRecipeName
-  const contentAccessShopOfferVisibleAfter = visibleShopOfferNameFallback === expectedShopOfferName
+  const contentAccessItemVisibleAfter = visibleItem?.name.fallback === fixture.itemNameFallback
+  const contentAccessRecipeVisibleAfter =
+    visibleRecipe?.name.fallback === fixture.recipeNameFallback
+  const contentAccessShopOfferVisibleAfter =
+    visibleShopOfferNameFallback === fixture.shopOfferNameFallback
   const status = hasReadyVisibleImportDispatch(
     execution,
     contentAccessItemVisibleAfter,
@@ -1048,7 +1093,9 @@ export const runThirdPartyVisibleImportProductProbe = async(
         ?? dispatchResult?.reason
         ?? 'visible import did not reach item, recipe, and shop offer visibility',
     entrypoint: execution.entrypoint,
-    ...(execution.operation === 'enable' ? { operation: 'enable' as const } : {}),
+    ...(execution.operation === 'enable' || execution.operation === 'upgrade'
+      ? { operation: execution.operation }
+      : {}),
     mainMenuPanelOpened: execution.mainMenuPanelOpened,
     panelImportButtonClicked: execution.panelImportButtonClicked,
     ...(execution.enableButtonClicked === undefined ? {} : { enableButtonClicked: execution.enableButtonClicked }),
@@ -1103,6 +1150,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
     selectedPackageCount: dispatchResult?.selectedPackageIds.length ?? 0,
     blockedPackageCount: dispatchResult?.preflight?.blockedPackageIds.length ?? 0,
     loadOrderCount: dispatchResult?.loadOrder.length ?? 0,
+    expectedPackageVersion: fixture.version,
     registryCount: dispatchResult?.preflight?.registryCount,
     entryCount: dispatchResult?.preflight?.entryCount,
     packageCount: dispatchResult?.preflight?.packageCount,

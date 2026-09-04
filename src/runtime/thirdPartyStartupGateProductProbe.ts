@@ -161,7 +161,11 @@ const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sh
 const samplePackageId = 'sample_pack' as PackageId
 const electronOrdinaryTerminalPackageId = 'product_probe_pack' as PackageId
 const productProbeItemRegistryId = 'taoyuan:item' as RegistryTypeId
+const productProbeRecipeRegistryId = 'taoyuan:recipe' as RegistryTypeId
+const productProbeShopOfferRegistryId = 'taoyuan:shop_offer' as RegistryTypeId
 const productProbeItemLocalId = 'linen_ribbon'
+const productProbeRecipeLocalId = 'linen_ribbon_snack'
+const productProbeShopOfferLocalId = 'shop/wanwupu/linen_ribbon/0'
 const defaultLockfileHash = testHash('d')
 const defaultCandidateIdentity = Object.freeze({
   formatVersion: 1,
@@ -264,6 +268,12 @@ interface ThirdPartyStartupGateBuiltProductProbeContext
   readonly runtimePublicationCommitAdapter: ThirdPartyDataPackRuntimePublicationCommitAdapterResult
 }
 
+interface ProductProbeContentFallbackSummary {
+  readonly productProbeItemNameFallback?: string
+  readonly productProbeRecipeNameFallback?: string
+  readonly productProbeShopOfferNameFallback?: string
+}
+
 interface ThirdPartyStartupGateProductProbeReportBundle {
   readonly runtimePublicationPreflight: ThirdPartyDataPackRuntimePublicationPreflightResult
   readonly transactionPreCommitPlan: ThirdPartyDataPackTransactionPreCommitPlanResult
@@ -281,6 +291,58 @@ const isBuiltProductProbeContext = (
   && 'runtimePublicationCommitAdapter' in context
 
 const productProbeRuntimeContexts = new Map<PackageId, ThirdPartyStartupGateRealProductProbeContext>()
+
+const productProbeContentId = (
+  packageId: PackageId,
+  localId: string
+): ContentId => `${packageId}:${localId}` as ContentId
+
+const readRegistryNameFallback = (
+  registrySet: RegistrySet,
+  registryId: RegistryTypeId,
+  contentId: ContentId
+): string | undefined => {
+  let entry: Readonly<RegistryEntry> | undefined
+  try {
+    entry = registrySet.get<RegistryEntry>(registryId).get(contentId)
+  } catch {
+    return undefined
+  }
+  const name = (entry as { readonly name?: unknown } | undefined)?.name
+  if (name === null || typeof name !== 'object') return undefined
+  const fallback = (name as { readonly fallback?: unknown }).fallback
+  return typeof fallback === 'string' ? fallback : undefined
+}
+
+const createProductProbeContentFallbackSummary = (
+  source: ThirdPartyStartupGateRealProductProbeContext
+): ProductProbeContentFallbackSummary => {
+  const packageId = source.selectedPackageIds[0]
+  if (packageId !== electronOrdinaryTerminalPackageId) return Object.freeze({})
+  const productProbeItemId = productProbeContentId(packageId, productProbeItemLocalId)
+  const productProbeRecipeId = productProbeContentId(packageId, productProbeRecipeLocalId)
+  const productProbeShopOfferId = productProbeContentId(packageId, productProbeShopOfferLocalId)
+  const itemNameFallback = readRegistryNameFallback(
+    source.candidateRegistrySet,
+    productProbeItemRegistryId,
+    productProbeItemId
+  )
+  const recipeNameFallback = readRegistryNameFallback(
+    source.candidateRegistrySet,
+    productProbeRecipeRegistryId,
+    productProbeRecipeId
+  )
+  const shopOfferNameFallback = readRegistryNameFallback(
+    source.candidateRegistrySet,
+    productProbeShopOfferRegistryId,
+    productProbeShopOfferId
+  )
+  return Object.freeze({
+    ...(itemNameFallback === undefined ? {} : { productProbeItemNameFallback: itemNameFallback }),
+    ...(recipeNameFallback === undefined ? {} : { productProbeRecipeNameFallback: recipeNameFallback }),
+    ...(shopOfferNameFallback === undefined ? {} : { productProbeShopOfferNameFallback: shopOfferNameFallback })
+  })
+}
 
 const createProductProbePackageManifest = (
   profile: ThirdPartyStartupGateProductProbeProfile
@@ -1929,6 +1991,7 @@ export const createThirdPartyStartupPersistentStateProductProbeBootstrapSource =
     const result = await sharedRendererStartupGateBootstrap()
     const {
       sourceKind,
+      sourceContext,
       startupPersistentStateSource,
       webResponseDeliveryStartupGateHandoff
     } = await readContext()
@@ -1960,6 +2023,7 @@ export const createThirdPartyStartupPersistentStateProductProbeBootstrapSource =
       webResponseDeliveryAcknowledgementConsumed:
         webResponseDeliveryStartupGateHandoff.deliveryAcknowledgementConsumed,
       ...(appFactoryBindingSourceStatus === undefined ? {} : { appFactoryBindingSourceStatus }),
+      ...createProductProbeContentFallbackSummary(sourceContext),
       ...(startupPersistentStateSource.persistentStateProofs === undefined
         ? {}
         : { persistentStateProofs: startupPersistentStateSource.persistentStateProofs }),

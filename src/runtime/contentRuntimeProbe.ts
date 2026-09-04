@@ -2,7 +2,17 @@ import {
   createOfficialContentRuntimeReport,
   type OfficialContentRuntimeReport
 } from '@/domain/mods/officialContentRuntimeReport'
+import {
+  getOfficialItemDef,
+  getOfficialRecipeDef,
+  getOfficialShopOfferDefs
+} from '@/domain/mods/contentAccess'
 import { isPackageId } from '@/domain/mods/ids'
+
+const productProbePackageId = 'product_probe_pack'
+const productProbeItemId = `${productProbePackageId}:linen_ribbon`
+const productProbeRecipeId = `${productProbePackageId}:linen_ribbon_snack`
+const productProbeShopOfferId = `${productProbePackageId}:shop/wanwupu/linen_ribbon/0`
 
 export interface ThirdPartyStartupGateRuntimeProbeSummary {
   schemaVersion: 1
@@ -31,6 +41,9 @@ export interface ThirdPartyStartupGateRuntimeProbeSummary {
   registryCount?: number
   entryCount?: number
   packageCount?: number
+  productProbeItemNameFallback?: string
+  productProbeRecipeNameFallback?: string
+  productProbeShopOfferNameFallback?: string
   lockfileHashPresent: boolean
   effects: {
     appStartupHostConnectionSourceCalled: boolean
@@ -271,7 +284,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
     rollbackExecuted: boolean
     diagnosticsWritten: boolean
   }
-  operation?: 'install' | 'disable' | 'enable' | 'uninstall'
+  operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall'
   disableButtonClicked?: boolean
   enableButtonClicked?: boolean
   uninstallButtonClicked?: boolean
@@ -280,6 +293,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   disableSelectedPackageCount?: number
   disableBlockedPackageCount?: number
   disableLoadOrderCount?: number
+  expectedPackageVersion?: string
   disableRegistryCount?: number
   disableEntryCount?: number
   disablePackageCount?: number
@@ -595,6 +609,35 @@ const defaultAppStartupHostEffects =
     diagnosticsWritten: false
   })
 
+const createProductProbeContentFallbackSummary = (
+  result: unknown,
+  targetPackageId: string | undefined
+): Partial<Pick<
+  ThirdPartyStartupGateRuntimeProbeSummary,
+  'productProbeItemNameFallback'
+  | 'productProbeRecipeNameFallback'
+  | 'productProbeShopOfferNameFallback'
+>> => {
+  if (targetPackageId !== productProbePackageId) return {}
+  const resultItemNameFallback = readOwnStringField(result, 'productProbeItemNameFallback')
+  const resultRecipeNameFallback = readOwnStringField(result, 'productProbeRecipeNameFallback')
+  const resultShopOfferNameFallback = readOwnStringField(result, 'productProbeShopOfferNameFallback')
+  const shopOffer = getOfficialShopOfferDefs().find(
+    currentOffer => currentOffer.id === productProbeShopOfferId
+  )
+  const itemNameFallback = resultItemNameFallback
+    ?? getOfficialItemDef(productProbeItemId)?.name.fallback
+  const recipeNameFallback = resultRecipeNameFallback
+    ?? getOfficialRecipeDef(productProbeRecipeId)?.name.fallback
+  const shopOfferNameFallback = resultShopOfferNameFallback
+    ?? shopOffer?.name?.fallback
+  return {
+    ...(itemNameFallback === undefined ? {} : { productProbeItemNameFallback: itemNameFallback }),
+    ...(recipeNameFallback === undefined ? {} : { productProbeRecipeNameFallback: recipeNameFallback }),
+    ...(shopOfferNameFallback === undefined ? {} : { productProbeShopOfferNameFallback: shopOfferNameFallback })
+  }
+}
+
 const defaultElectronInstallCommandDispatchEffects =
   (): ThirdPartyElectronInstallCommandDispatchRuntimeProbeSummary['effects'] => ({
     commandDispatcherCalled: false,
@@ -737,6 +780,7 @@ export const createThirdPartyStartupGateRuntimeProbeSummary = (
     ...(targetPackageId !== undefined && isPackageId(targetPackageId)
       ? { targetPackageId }
       : {}),
+    ...createProductProbeContentFallbackSummary(result, targetPackageId),
     selectedPackageCount: readOwnArrayLength(readOwnDataField(result, 'selectedPackageIds')),
     blockedPackageCount: readOwnArrayLength(readOwnDataField(result, 'blockedPackageIds')),
     loadOrderCount: readOwnArrayLength(readOwnDataField(result, 'loadOrder')),
@@ -1106,6 +1150,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     selectedPackageCount: readOwnNumberField(result, 'selectedPackageCount') ?? 0,
     blockedPackageCount: readOwnNumberField(result, 'blockedPackageCount') ?? 0,
     loadOrderCount: readOwnNumberField(result, 'loadOrderCount') ?? 0,
+    expectedPackageVersion: readOwnStringField(result, 'expectedPackageVersion'),
     registryCount: readOwnNumberField(result, 'registryCount'),
     entryCount: readOwnNumberField(result, 'entryCount'),
     packageCount: readOwnNumberField(result, 'packageCount'),
@@ -1125,6 +1170,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(operation === 'install'
       || operation === 'disable'
       || operation === 'enable'
+      || operation === 'upgrade'
       || operation === 'uninstall'
       ? { operation }
       : {}),

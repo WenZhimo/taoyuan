@@ -316,6 +316,150 @@ describe('third-party live registry swap host', () => {
     expectJsonGraphFrozen(result)
   })
 
+  it('allows an install command to replace entries from the same selected package', async() => {
+    const officialRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      }
+    ])
+    const previousRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      },
+      {
+        owner: packageId,
+        localId: 'third_party_seed',
+        label: 'Third-party seed v1'
+      }
+    ])
+    const candidateRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      },
+      {
+        owner: packageId,
+        localId: 'third_party_seed',
+        label: 'Third-party seed v2'
+      }
+    ])
+    const officialIdentity = createOfficialIdentity(officialRegistrySet)
+    const candidateIdentity = createCandidateIdentity(candidateRegistrySet, officialIdentity)
+    const candidateSummary = summarizeRegistrySet(candidateRegistrySet)
+    const reference = createThirdPartyDataPackInMemoryLiveRegistryReference(previousRegistrySet)
+    const host = createThirdPartyDataPackLiveRegistrySwapHost({
+      liveRegistryReference: reference,
+      candidateRegistrySet,
+      candidateIdentity
+    })
+
+    const result = await host.executeLiveRegistrySwap({
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: candidateSummary.registryCount,
+      entryCount: candidateSummary.entryCount,
+      packageCount: 1,
+      officialIdentity,
+      candidateIdentity,
+      lockfileHash,
+      liveRegistrySwap: 'deferred',
+      requiredProtectionIds
+    })
+
+    expect(result.status).toBe('swapped')
+    expect(reference.current).toBe(candidateRegistrySet)
+    expect(host.getRetainedPreviousRegistrySet()).toBe(previousRegistrySet)
+    expect(host.getLastSwapRecord()).toMatchObject({
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      previousEntryCount: 2,
+      candidateEntryCount: 2,
+      candidateHash: candidateIdentity.candidateHash,
+      lockfileHash,
+      sequenceNumber: 1
+    })
+    expect(candidateRegistrySet.get<RegistryEntry>(registryId).get(toOfficialContentId('live-registry/third_party_seed')))
+      .toMatchObject({ label: 'Third-party seed v2' })
+    expectPathFree(result)
+    expectPathFree(host.getLastSwapRecord())
+  })
+
+  it('blocks install replacement when the current registry contains an unselected third-party package', async() => {
+    const otherPackageId = requirePackageId('other_pack')
+    const officialRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      }
+    ])
+    const previousRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      },
+      {
+        owner: otherPackageId,
+        localId: 'other_third_party_seed',
+        label: 'Other third-party seed'
+      }
+    ])
+    const candidateRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      },
+      {
+        owner: packageId,
+        localId: 'third_party_seed',
+        label: 'Third-party seed'
+      }
+    ])
+    const officialIdentity = createOfficialIdentity(officialRegistrySet)
+    const candidateIdentity = createCandidateIdentity(candidateRegistrySet, officialIdentity)
+    const candidateSummary = summarizeRegistrySet(candidateRegistrySet)
+    const reference = createThirdPartyDataPackInMemoryLiveRegistryReference(previousRegistrySet)
+    const host = createThirdPartyDataPackLiveRegistrySwapHost({
+      liveRegistryReference: reference,
+      candidateRegistrySet,
+      candidateIdentity
+    })
+
+    const result = await host.executeLiveRegistrySwap({
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [packageId],
+      registryCount: candidateSummary.registryCount,
+      entryCount: candidateSummary.entryCount,
+      packageCount: 1,
+      officialIdentity,
+      candidateIdentity,
+      lockfileHash,
+      liveRegistrySwap: 'deferred',
+      requiredProtectionIds
+    })
+
+    expect(result.status).toBe('blocked')
+    expect(reference.current).toBe(previousRegistrySet)
+    expect(host.getRetainedPreviousRegistrySet()).toBeUndefined()
+    expect(host.getLastSwapRecord()).toBeUndefined()
+    expectPathFree(result)
+  })
+
   it('blocks stale current registry, candidate identity drift and unfrozen candidates without swapping', async() => {
     const staleHarness = createHarness()
     const staleReference = createThirdPartyDataPackInMemoryLiveRegistryReference(buildRegistrySet([

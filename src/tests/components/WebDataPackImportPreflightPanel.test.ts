@@ -53,10 +53,10 @@ type JsonObject = Record<string, unknown>
 
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
 
-const createManifest = (packageId = 'web_panel_entry'): JsonObject => ({
+const createManifest = (packageId = 'web_panel_entry', version = '1.0.0'): JsonObject => ({
   id: packageId,
   name: { key: `${packageId}.package.name`, fallback: packageId },
-  version: '1.0.0',
+  version,
   gameVersion: '2.4.0',
   engineApiVersion: '1',
   contentSchemaVersion: '1',
@@ -68,9 +68,12 @@ const createManifest = (packageId = 'web_panel_entry'): JsonObject => ({
   entrypoints: { 'taoyuan:item': ['data/items.json'] }
 })
 
-const createItem = (id = 'web_panel_entry:linen_ribbon'): JsonObject => ({
+const createItem = (
+  id = 'web_panel_entry:linen_ribbon',
+  nameFallback = id
+): JsonObject => ({
   id,
-  name: { key: `${id}.name`, fallback: id },
+  name: { key: `${id}.name`, fallback: nameFallback },
   category: 'gift',
   description: { key: `${id}.description`, fallback: `${id} description` },
   sellPrice: 8,
@@ -84,10 +87,18 @@ const createFile = (path: string, text: string): WebFilePickerImportFile => ({
   text: vi.fn(async() => text)
 })
 
-const createValidFiles = (packageId = 'web_panel_entry'): readonly WebFilePickerImportFile[] => [
-  createFile('valid-panel-pack/manifest.json', toJson(createManifest(packageId))),
+const createValidFiles = (
+  packageId = 'web_panel_entry',
+  options: {
+    readonly version?: string
+    readonly itemNameFallback?: string
+  } = {}
+): readonly WebFilePickerImportFile[] => [
+  createFile('valid-panel-pack/manifest.json', toJson(createManifest(packageId, options.version ?? '1.0.0'))),
   createFile('valid-panel-pack/locales/zh-CN.json', '{}\n'),
-  createFile('valid-panel-pack/data/items.json', toJson([createItem(`${packageId}:linen_ribbon`)]))
+  createFile('valid-panel-pack/data/items.json', toJson([
+    createItem(`${packageId}:linen_ribbon`, options.itemNameFallback)
+  ]))
 ]
 
 const publishMountedAppStartupHostEvidence = () =>
@@ -1353,6 +1364,86 @@ describe('WebDataPackImportPreflightPanel', () => {
     expect(wrapper.text()).not.toContain('LENOVO')
 
     wrapper.unmount()
+  })
+
+  it('replaces an installed package through the visible ordinary import panel', async() => {
+    const packageId = 'web_panel_replace_visible'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const selectFiles = vi.fn()
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.0.0',
+        itemNameFallback: 'web panel replace v1'
+      }))
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.1.0',
+        itemNameFallback: 'web panel replace v2'
+      }))
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles,
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text())
+        .toContain('v1.0.0 · 已启用')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe('web panel replace v1')
+
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      const rowText = wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()
+      const readSettingsLockfile = await webSettingsLockfileStore.read()
+      const readTransactionLog = await webInstallTransactionLogStore.read()
+      expect(selectFiles).toHaveBeenCalledTimes(2)
+      expect(rowText).toContain('v1.1.0 · 已启用')
+      expect(wrapper.get('[data-testid="web-mod-import-status"]').text()).toBe('已暂存')
+      expect(wrapper.get('[data-testid="web-mod-dispatch-status"]').text()).toBe('dispatched')
+      expect(wrapper.get('[data-testid="web-mod-host-ack-status"]').text()).toBe('已确认（Web）')
+      expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('提交后校验已确认')
+      expect(wrapper.get('[data-testid="web-mod-ui-ipc-delivery-status"]').text()).toBe('已送达（Web）')
+      expectRuntimeHandoffStatusLabels(wrapper, {
+        runtimePublication: '已确认',
+        liveRegistry: '已切换',
+        appStartup: '已接入已挂载应用'
+      })
+      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('已写入')
+      expect(readSettingsLockfile.record).toMatchObject({
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install',
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId]
+      })
+      expect(readSettingsLockfile.record?.lockfileDraft.packages).toHaveLength(1)
+      expect(readSettingsLockfile.record?.lockfileDraft.packages[0]).toMatchObject({
+        packageId,
+        version: '1.1.0'
+      })
+      expect(readTransactionLog.report.status).toBe('loaded')
+      expect(readTransactionLog.record?.targetPackageId).toBe(packageId)
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe('web panel replace v2')
+      expect(wrapper.text()).not.toContain('C:/Users')
+      expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+    }
   })
 
   it('labels no-persistence path-free fallback acknowledgement as local preflight', async() => {

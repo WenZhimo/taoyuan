@@ -561,6 +561,47 @@ describe('official content runtime report', () => {
     expect(JSON.stringify(summary)).not.toContain('C:\\')
   })
 
+  it('preserves startup candidate product probe fallbacks from the startup gate result', () => {
+    const summary = createThirdPartyStartupGateRuntimeProbeSummary({
+      status: 'ready',
+      enabled: true,
+      appBootstrapContinuationAllowed: true,
+      appStartupHostConnectionSourceStatus: 'accepted',
+      startupPersistentStateSourceStatus: 'ready',
+      startupPersistentStateSourceKind: 'web-indexeddb',
+      targetPackageId: 'product_probe_pack',
+      productProbeItemNameFallback: 'Product Probe Linen Ribbon',
+      productProbeRecipeNameFallback: 'Product Probe Ribbon Snack',
+      productProbeShopOfferNameFallback: 'Product Probe Ribbon Stand',
+      selectedPackageIds: ['product_probe_pack'],
+      blockedPackageIds: [],
+      loadOrder: ['product_probe_pack'],
+      registryCount: 54,
+      entryCount: 4245,
+      packageCount: 1,
+      lockfileHash: `sha256:${'d'.repeat(64)}`,
+      effects: {
+        appStartupHostConnectionSourceCalled: true,
+        appStartupHostConnectionAccepted: true,
+        appBootstrapContinuationAllowed: true,
+        startupPersistentStateSourceCalled: true,
+        startupStateSnapshotAccepted: true,
+        thirdPartyRegistryPublished: true,
+        liveRegistrySwapped: true,
+        runtimeEnablementAllowed: true,
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true
+      }
+    }, true)
+
+    expect(summary).toMatchObject({
+      targetPackageId: 'product_probe_pack',
+      productProbeItemNameFallback: 'Product Probe Linen Ribbon',
+      productProbeRecipeNameFallback: 'Product Probe Ribbon Snack',
+      productProbeShopOfferNameFallback: 'Product Probe Ribbon Stand'
+    })
+  })
+
   it('summarizes the probe-only Web renderer UI/IPC delivery bridge without exposing hosts', async () => {
     const runtimeHost = new EventTarget()
 
