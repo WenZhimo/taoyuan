@@ -2132,6 +2132,12 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       thirdPartyStartupGate.effects?.realRuntimePublicationCommitCalled === expectsRealRuntimePublicationCommit,
       `${scenario.name}: startup gate real runtime publication commit host call mismatch`
     )
+    const expectsRealNormalStartupHost =
+      scenario.startupGateRealNormalStartupHost !== false
+    assert(
+      thirdPartyStartupGate.effects?.realNormalStartupHostCalled === expectsRealNormalStartupHost,
+      `${scenario.name}: startup gate real normal startup host call mismatch`
+    )
     assert(
       thirdPartyStartupGate.effects?.runtimePublicationCommitted === expectsRealRuntimePublicationCommit,
       `${scenario.name}: startup gate runtime publication commit effect mismatch`
@@ -2218,6 +2224,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       'liveRegistrySwapped',
       'runtimeEnablementAllowed',
       'realRuntimePublicationCommitCalled',
+      'realNormalStartupHostCalled',
       'runtimePublicationCommitted'
     ]) {
       assert(thirdPartyStartupGate.effects?.[effectName] === false,

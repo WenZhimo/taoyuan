@@ -57,6 +57,7 @@ export interface ThirdPartyStartupGateRuntimeProbeSummary {
     liveRegistrySwapped: boolean
     runtimeEnablementAllowed: boolean
     realRuntimePublicationCommitCalled: boolean
+    realNormalStartupHostCalled: boolean
     transactionCommitted: boolean
     runtimePublicationCommitted: boolean
     packageFilesWritten: boolean
@@ -565,6 +566,7 @@ const defaultStartupGateEffects = (): ThirdPartyStartupGateRuntimeProbeSummary['
   liveRegistrySwapped: false,
   runtimeEnablementAllowed: false,
   realRuntimePublicationCommitCalled: false,
+  realNormalStartupHostCalled: false,
   transactionCommitted: false,
   runtimePublicationCommitted: false,
   packageFilesWritten: false,
@@ -806,6 +808,8 @@ export const createThirdPartyStartupGateRuntimeProbeSummary = (
         readOwnBooleanField(effects, 'runtimeEnablementAllowed') === true,
       realRuntimePublicationCommitCalled:
         readOwnBooleanField(effects, 'realRuntimePublicationCommitCalled') === true,
+      realNormalStartupHostCalled:
+        readOwnBooleanField(effects, 'realNormalStartupHostCalled') === true,
       transactionCommitted: readOwnBooleanField(effects, 'transactionCommitted') === true,
       runtimePublicationCommitted: readOwnBooleanField(effects, 'runtimePublicationCommitted') === true,
       packageFilesWritten: readOwnBooleanField(effects, 'packageFilesWritten') === true,

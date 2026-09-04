@@ -53,6 +53,7 @@ const createStartupGateBootstrapEffects = (
   appStartupHostConnectionAccepted: false,
   appBootstrapContinuationAllowed: true,
   realRuntimePublicationCommitCalled: false,
+  realNormalStartupHostCalled: false,
   launcherAppCreated: false,
   gameAppCreated: false,
   piniaCreated: false,

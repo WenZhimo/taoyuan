@@ -303,6 +303,7 @@ describe('official content runtime report', () => {
         liveRegistrySwapped: true,
         runtimeEnablementAllowed: true,
         realRuntimePublicationCommitCalled: true,
+        realNormalStartupHostCalled: true,
         transactionCommitted: false,
         runtimePublicationCommitted: true,
         packageFilesWritten: false,
@@ -359,6 +360,7 @@ describe('official content runtime report', () => {
         liveRegistrySwapped: true,
         runtimeEnablementAllowed: true,
         realRuntimePublicationCommitCalled: true,
+        realNormalStartupHostCalled: true,
         transactionCommitted: false,
         runtimePublicationCommitted: true,
         packageFilesWritten: false,
@@ -590,6 +592,7 @@ describe('official content runtime report', () => {
         liveRegistrySwapped: true,
         runtimeEnablementAllowed: true,
         realRuntimePublicationCommitCalled: true,
+        realNormalStartupHostCalled: true,
         runtimePublicationCommitted: true
       }
     }, true)

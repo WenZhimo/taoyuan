@@ -101,13 +101,23 @@ import type {
   ThirdPartyDataPackUiIpcResultNormalizationPreflightResult
 } from '@/domain/mods/thirdPartyDataPackUiIpcResultNormalizationPreflight'
 import {
-  createThirdPartyDataPackStartupGatePersistentStateSource
+  createThirdPartyDataPackStartupGatePersistentStateSource,
+  THIRD_PARTY_DATA_PACK_STARTUP_GATE_PERSISTENT_STATE_SOURCE_KIND,
+  THIRD_PARTY_DATA_PACK_STARTUP_GATE_PERSISTENT_STATE_SOURCE_MODE,
+  type ThirdPartyDataPackStartupGatePersistentStateSourceResult
 } from '@/domain/mods/thirdPartyDataPackStartupGatePersistentStateSource'
+import type {
+  ThirdPartyDataPackStartupGatePersistentStateSnapshot,
+  ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
+} from '@/domain/mods/thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
 import {
   buildThirdPartyDataPackWebStartupGateDecisionEnvelope
 } from '@/domain/mods/thirdPartyDataPackWebStartupGateDecisionEnvelope'
 import {
-  executeThirdPartyDataPackWebStartupGatePersistentStateExecution
+  executeThirdPartyDataPackWebStartupGatePersistentStateExecution,
+  THIRD_PARTY_DATA_PACK_WEB_STARTUP_GATE_PERSISTENT_STATE_EXECUTION_KIND,
+  THIRD_PARTY_DATA_PACK_WEB_STARTUP_GATE_PERSISTENT_STATE_EXECUTION_MODE,
+  type ThirdPartyDataPackWebStartupGatePersistentStateExecutionResult
 } from '@/domain/mods/thirdPartyDataPackWebStartupGatePersistentStateExecution'
 import {
   buildThirdPartyDataPackElectronStartupGateDecisionEnvelope
@@ -131,12 +141,14 @@ import {
 import {
   createThirdPartyDataPackRuntimePublicationNormalStartupContinuationPipeline
 } from '@/domain/mods/thirdPartyDataPackRuntimePublicationNormalStartupContinuationPipeline'
+import {
+  createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline
+} from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline'
 import type {
   ThirdPartyDataPackAppFactoryBindingHostEnvelope,
   ThirdPartyDataPackAppFactoryBindingHostResult
 } from '@/domain/mods/thirdPartyDataPackAppFactoryBindingSource'
 import type {
-  ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult,
   ThirdPartyDataPackNormalStartupHandoffHostEnvelope,
   ThirdPartyDataPackNormalStartupHandoffHostResult
 } from '@/domain/mods/thirdPartyDataPackNormalStartupHandoffExecutionSource'
@@ -1465,63 +1477,6 @@ const createSyntheticSwappedLiveRegistrySource = (
     }
   } as unknown as ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult)
 
-const createReadyNormalStartupSource = (
-  source: ThirdPartyStartupGateProductProbeSummarySource = sampleProductProbeProfile
-): ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult => ({
-    kind: 'third-party-normal-startup-handoff-execution-source',
-    mode: 'default-disabled-normal-startup-handoff-execution-source',
-    status: 'ready',
-    reason: 'normal startup handoff accepted',
-    readOnly: true,
-    enabled: true,
-    sourceCalled: true,
-    normalStartupContinuationAllowed: true,
-    startupGateBootstrapSourceStatus: 'ready',
-    normalStartupHandoffHostStatus: 'accepted',
-    targetPackageId: source.selectedPackageIds[0]!,
-    selectedPackageIds: source.selectedPackageIds,
-    blockedPackageIds: blockedPackageIdsFromSource(source),
-    blockedCandidateCount: blockedCandidateCountFromSource(source),
-    loadOrder: source.loadOrder,
-    registryCount: source.registryCount,
-    entryCount: source.entryCount,
-    packageCount: source.packageCount,
-    lockfileHash: source.lockfileHash,
-    persistentStateProofs,
-    diagnostics: [],
-    summary: source.summary,
-    effects: {
-      normalStartupHandoffExecutionSourceCalled: true,
-      startupGateBootstrapSourceCalled: true,
-      injectedNormalStartupHandoffHostCalled: true,
-      normalStartupHandoffHostCalled: true,
-      normalStartupHandoffHostAccepted: true,
-      realNormalStartupHostCalled: false,
-      normalStartupContinuationAllowed: true,
-      launcherAppFactoryCalled: false,
-      gameAppFactoryCalled: false,
-      launcherAppCreated: false,
-      launcherAppMounted: false,
-      gameAppCreated: false,
-      gameAppMounted: false,
-      piniaCreated: false,
-      routerMounted: false,
-      saveRead: false,
-      uiIpcResponseDelivered: false,
-      commandDispatched: false,
-      transactionCommitted: false,
-      runtimePublicationCommitted: false,
-      packageFilesWritten: false,
-      lockfileWritten: false,
-      settingsWritten: false,
-      savesWritten: false,
-      cacheWritten: false,
-      transactionLogWritten: false,
-      rollbackExecuted: false,
-      diagnosticsWritten: false
-    }
-  } as unknown as ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult)
-
 const createStartupGateHandoffPreflight = (
   source: ThirdPartyStartupGateProductProbeSummarySource = sampleProductProbeProfile
 ): ThirdPartyDataPackStartupGateHandoffPreflightResult => ({
@@ -1732,7 +1687,8 @@ const createAcceptedAppFactoryBindingHostResult = (
 })
 
 const createAcceptedNormalStartupHandoffHostResult = (
-  envelope: ThirdPartyDataPackNormalStartupHandoffHostEnvelope
+  envelope: ThirdPartyDataPackNormalStartupHandoffHostEnvelope,
+  options: { readonly realNormalStartupHostCalled?: boolean } = {}
 ): ThirdPartyDataPackNormalStartupHandoffHostResult => ({
   status: 'accepted',
   targetPackageId: envelope.targetPackageId,
@@ -1748,7 +1704,7 @@ const createAcceptedNormalStartupHandoffHostResult = (
   effects: {
     normalStartupHandoffHostCalled: true,
     normalStartupHandoffHostAccepted: true,
-    realNormalStartupHostCalled: false,
+    realNormalStartupHostCalled: options.realNormalStartupHostCalled === true,
     launcherAppFactoryCalled: false,
     gameAppFactoryCalled: false,
     launcherAppCreated: false,
@@ -1916,6 +1872,239 @@ const createThirdPartyStartupPersistentStateProductProbeContext = async(
     ? createElectronStartupPersistentStateProductProbeContext(options)
     : createWebStartupPersistentStateProductProbeContext(options)
 
+const createReadyStartupStateSnapshot = (
+  source: ThirdPartyStartupGateRealProductProbeContext
+): ThirdPartyDataPackStartupGatePersistentStateSnapshot => Object.freeze({
+  formatVersion: 1,
+  kind: 'startup-persistent-state-snapshot',
+  commandId: 'install',
+  packageId: source.selectedPackageIds[0]!,
+  candidateHash: source.candidateIdentity.candidateHash,
+  lockfileHash: source.lockfileHash,
+  transactionLogCommitted: true,
+  packageStateMatched: true,
+  settingsStateMatched: true,
+  modLockStateMatched: true,
+  liveRegistryMatched: true,
+  saveCacheIsolated: true,
+  messageKey: 'mods.ui.ipc.result.install.success',
+  recovery: 'none',
+  retryable: false,
+  rollbackRequired: false,
+  summary: source.summary,
+  diagnostics: []
+})
+
+const startupPersistentStateSourceEffects =
+  (): ThirdPartyDataPackStartupGatePersistentStateSourceResult['effects'] => ({
+    startupGatePersistentStateSourceCalled: true,
+    persistentStateSourceAdapterCalled: true,
+    startupStateSnapshotAccepted: true,
+    normalStartupContinuationAllowed: true,
+    launcherAppCreated: false,
+    gameAppCreated: false,
+    piniaCreated: false,
+    routerMounted: false,
+    saveRead: false,
+    uiIpcResponseDelivered: false,
+    commandDispatched: false,
+    transactionCommitted: false,
+    runtimePublicationCommitted: false,
+    packageFilesWritten: false,
+    lockfileWritten: false,
+    settingsWritten: false,
+    savesWritten: false,
+    cacheWritten: false,
+    transactionLogWritten: false,
+    rollbackExecuted: false,
+    diagnosticsWritten: false
+  })
+
+const startupPersistentStateAdapterEffects =
+  (): ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['effects'] => ({
+    officialRegistryPublished: false,
+    thirdPartyRegistryPublished: false,
+    liveRegistryMutated: false,
+    liveRegistrySwapped: false,
+    previousRegistryReleased: false,
+    previousRegistryRestored: false,
+    candidateRegistryExposed: false,
+    runtimeEnablementAllowed: false,
+    modManagementUiMounted: false,
+    launcherAppMounted: false,
+    gameAppCreated: false,
+    piniaCreated: false,
+    routerMounted: false,
+    electronIpcExposed: false,
+    electronIpcResponseSent: false,
+    webFilePickerOpened: false,
+    webUiBridgeOpened: false,
+    webUiResponsePublished: false,
+    androidFilePickerOpened: false,
+    androidUiBridgeOpened: false,
+    androidUiResponsePublished: false,
+    commandDispatcherCalled: false,
+    commandDispatched: false,
+    atomicCommitExecutorCalled: false,
+    transactionCommitted: false,
+    transactionLogPrepared: false,
+    runtimePublicationCommitted: false,
+    postCommitVerificationExecutorCalled: false,
+    postCommitVerificationExecuted: false,
+    startupPersistentStateSourceAdapterCalled: true,
+    injectedSourceHostCalled: false,
+    startupStateSnapshotReceived: true,
+    startupStateSnapshotNormalized: true,
+    transactionLogRead: false,
+    packageStateRead: false,
+    settingsRead: false,
+    lockfileRead: false,
+    liveRegistryRead: false,
+    saveRead: false,
+    saveCacheIsolationChecked: false,
+    successEnvelopeDelivered: false,
+    failureEnvelopeDelivered: false,
+    retryStateDelivered: false,
+    rollbackStateDelivered: false,
+    uiIpcResponseDelivered: false,
+    packageFilesWritten: false,
+    packageBackupsWritten: false,
+    packageFilesRestored: false,
+    lockfileWritten: false,
+    lockfileRestored: false,
+    settingsWritten: false,
+    settingsRestored: false,
+    savesWritten: false,
+    cacheWritten: false,
+    transactionLogWritten: false,
+    recoveryLogRead: false,
+    recoveryLogReplayed: false,
+    rollbackExecuted: false,
+    diagnosticsWritten: false
+  })
+
+const createReadyStartupPersistentStateSource = (
+  source: ThirdPartyStartupGateRealProductProbeContext
+): ThirdPartyDataPackStartupGatePersistentStateSourceResult => Object.freeze({
+  kind: THIRD_PARTY_DATA_PACK_STARTUP_GATE_PERSISTENT_STATE_SOURCE_KIND,
+  mode: THIRD_PARTY_DATA_PACK_STARTUP_GATE_PERSISTENT_STATE_SOURCE_MODE,
+  status: 'ready',
+  reason: 'path-free startup persistent state proof is ready for normal startup handoff',
+  readOnly: true,
+  enabled: true,
+  sourceCalled: true,
+  normalStartupContinuationAllowed: true,
+  sourceAdapterStatus: 'executed',
+  requestedCommandId: 'install',
+  targetPackageId: source.selectedPackageIds[0]!,
+  selectedPackageIds: source.selectedPackageIds,
+  blockedPackageIds: source.blockedPackageIds,
+  blockedCandidateCount: source.blockedCandidatePaths.length,
+  loadOrder: source.loadOrder,
+  registryCount: source.registryCount,
+  entryCount: source.entryCount,
+  packageCount: source.packageCount,
+  candidateHash: source.candidateIdentity.candidateHash,
+  lockfileHash: source.lockfileHash,
+  persistentStateProofs,
+  diagnostics: [],
+  summary: source.summary,
+  effects: startupPersistentStateSourceEffects()
+})
+
+const createReadyStartupPersistentStateAdapterResult = (
+  source: ThirdPartyStartupGateRealProductProbeContext
+): ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult => Object.freeze({
+  status: 'executed',
+  sourcePreflightStatus: 'deferred',
+  reason: 'startup persistent state proof normalized for product startup handoff',
+  startupGatePersistentStateSourceAdapter: 'executed',
+  readOnly: true,
+  injectedSourceHostRequired: true,
+  startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+  injectedSourceHostMode: 'web-indexeddb-startup-persistent-state',
+  sourceHostCalled: true,
+  startupStateSnapshotReceived: true,
+  startupStateSnapshotNormalized: true,
+  startupPersistentStateSourceAdapterAllowed: true,
+  persistentStartupReadAllowed: false,
+  transactionLogReadAllowed: false,
+  packageStateReadAllowed: false,
+  settingsReadAllowed: false,
+  lockfileReadAllowed: false,
+  liveRegistryReadAllowed: false,
+  saveReadAllowed: false,
+  saveCacheIsolationCheckAllowed: false,
+  startupFailureReportingAllowed: false,
+  launcherAppAllowed: false,
+  gameAppCreationAllowed: false,
+  piniaCreationAllowed: false,
+  routerMountAllowed: false,
+  uiIpcResponseDeliveryAllowed: false,
+  commandDispatchAllowed: false,
+  transactionCommitAllowed: false,
+  runtimeEnablementAllowed: false,
+  writeAllowed: false,
+  rollbackRecoveryAllowed: false,
+  requestedCommandId: 'install',
+  targetPackageId: source.selectedPackageIds[0]!,
+  selectedPackageIds: source.selectedPackageIds,
+  blockedPackageIds: source.blockedPackageIds,
+  blockedCandidateCount: source.blockedCandidatePaths.length,
+  loadOrder: source.loadOrder,
+  registryCount: source.registryCount,
+  entryCount: source.entryCount,
+  packageCount: source.packageCount,
+  candidateIdentity: source.candidateIdentity,
+  lockfileHash: source.lockfileHash,
+  startupStateSnapshot: createReadyStartupStateSnapshot(source),
+  checks: [],
+  diagnostics: [],
+  summary: source.summary,
+  effects: startupPersistentStateAdapterEffects()
+})
+
+const createReadyStartupGatePersistentStateExecution = (
+  source: ThirdPartyStartupGateRealProductProbeContext
+): ThirdPartyDataPackWebStartupGatePersistentStateExecutionResult => Object.freeze({
+  kind: THIRD_PARTY_DATA_PACK_WEB_STARTUP_GATE_PERSISTENT_STATE_EXECUTION_KIND,
+  mode: THIRD_PARTY_DATA_PACK_WEB_STARTUP_GATE_PERSISTENT_STATE_EXECUTION_MODE,
+  platform: 'web',
+  startupGateHandoffStatus: 'deferred',
+  persistentStatePreflight: {
+    status: 'deferred'
+  },
+  sourceAdapterExecution: {
+    adapterResult: createReadyStartupPersistentStateAdapterResult(source)
+  }
+} as unknown as ThirdPartyDataPackWebStartupGatePersistentStateExecutionResult)
+
+const createReadyLauncherBoundaryPreflight = (
+  source: ThirdPartyStartupGateRealProductProbeContext
+) => buildThirdPartyDataPackLauncherBoundaryPreflight({
+    startupDecisionEnvelope: buildThirdPartyDataPackWebStartupGateDecisionEnvelope({
+      execution: createReadyStartupGatePersistentStateExecution(source)
+    })
+  })
+
+const createRealNormalStartupCommitSource = (
+  source: ThirdPartyStartupGateRealProductProbeContext
+) => createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline({
+    enabled: true,
+    readRuntimePublicationCommitAfterPostCommitVerification: async() =>
+      createAcceptedRealCommitAfterPostCommit(source),
+    readRuntimePublicationLiveRegistrySwap: async() =>
+      createSwappedLiveRegistrySource(source),
+    readLauncherBoundaryPreflight: async() =>
+      createReadyLauncherBoundaryPreflight(source),
+    readStartupGatePersistentStateSource: async() =>
+      createReadyStartupPersistentStateSource(source),
+    acknowledgeNormalStartupHandoff: async envelope =>
+      createAcceptedNormalStartupHandoffHostResult(envelope, {
+        realNormalStartupHostCalled: true
+      })
+  })
+
 export const createThirdPartyStartupGateProductProbeBootstrapSource = (
   optionsOrRuntimeHost?: CreateThirdPartyStartupGateProductProbeBootstrapSourceOptions | unknown
 ) => {
@@ -1924,6 +2113,8 @@ export const createThirdPartyStartupGateProductProbeBootstrapSource = (
     : { runtimeHost: optionsOrRuntimeHost }
   const profile = resolveProductProbeProfile(options.profile)
   const productProbeContext = requireRealProductProbeContext(profile)
+  const readRuntimePublicationCommitNormalStartup =
+    createRealNormalStartupCommitSource(productProbeContext)
 
   return createThirdPartyDataPackSharedRendererStartupGateBootstrapSource({
     enabled: true,
@@ -1932,8 +2123,8 @@ export const createThirdPartyStartupGateProductProbeBootstrapSource = (
       createAcceptedRealCommitAfterPostCommit(productProbeContext),
     readRuntimePublicationLiveRegistrySwapHostConnection: async() =>
       createSwappedLiveRegistrySource(productProbeContext),
-    readRuntimePublicationNormalStartupAppFactoryBindingHostConnection: async() =>
-      createReadyNormalStartupSource(productProbeContext)
+    readRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnection:
+      readRuntimePublicationCommitNormalStartup
   })
 }
 
@@ -1968,7 +2159,9 @@ export const createThirdPartyStartupPersistentStateProductProbeBootstrapSource =
       acknowledgeAppFactoryBinding: async envelope =>
         createAcceptedAppFactoryBindingHostResult(envelope),
       acknowledgeNormalStartupHandoff: async envelope =>
-        createAcceptedNormalStartupHandoffHostResult(envelope)
+        createAcceptedNormalStartupHandoffHostResult(envelope, {
+          realNormalStartupHostCalled: true
+        })
     })
 
   const sharedRendererStartupGateBootstrap =

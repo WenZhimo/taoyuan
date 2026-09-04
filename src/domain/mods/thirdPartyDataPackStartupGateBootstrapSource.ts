@@ -40,6 +40,7 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceEffectSummary {
   readonly appStartupHostConnectionAccepted: boolean
   readonly appBootstrapContinuationAllowed: boolean
   readonly realRuntimePublicationCommitCalled: boolean
+  readonly realNormalStartupHostCalled: boolean
   readonly launcherAppCreated: false
   readonly gameAppCreated: false
   readonly piniaCreated: false
@@ -382,7 +383,8 @@ const effectSummary = (
   thirdPartyRegistryPublished: boolean,
   liveRegistrySwapped: boolean,
   runtimeEnablementAllowed: boolean,
-  realRuntimePublicationCommit: boolean
+  realRuntimePublicationCommit: boolean,
+  realNormalStartupHostCalled: boolean
 ): ThirdPartyDataPackStartupGateBootstrapSourceEffectSummary => Object.freeze({
   startupGateBootstrapSourceCalled: true,
   appBootstrapWiringSourceCalled: sourceCalled,
@@ -394,6 +396,7 @@ const effectSummary = (
   appStartupHostConnectionAccepted,
   appBootstrapContinuationAllowed,
   realRuntimePublicationCommitCalled: realRuntimePublicationCommit,
+  realNormalStartupHostCalled,
   launcherAppCreated: false,
   gameAppCreated: false,
   piniaCreated: false,
@@ -539,6 +542,7 @@ const safeAppStartupHostConnectionSource = (
         'commandContinuationAllowed',
         'uiIpcResultContinuationAllowed',
         'realRuntimePublicationCommitCalled',
+        'realNormalStartupHostCalled',
         'thirdPartyRegistryPublished',
         'liveRegistryMutated',
         'liveRegistrySwapped',
@@ -628,6 +632,8 @@ const baseResult = (
       'realRuntimePublicationCommitCalled'
     ) === true
     && readOwnBooleanField(appStartupHostConnectionEffects, 'runtimePublicationCommitted') === true
+  const realNormalStartupHostCalled = acceptedAppStartupRuntimeEffects
+    && readOwnBooleanField(appStartupHostConnectionEffects, 'realNormalStartupHostCalled') === true
 
   return deepFreezeObjectGraph({
     kind: THIRD_PARTY_DATA_PACK_STARTUP_GATE_BOOTSTRAP_SOURCE_KIND,
@@ -692,7 +698,8 @@ const baseResult = (
         && readOwnBooleanField(appStartupHostConnectionEffects, 'liveRegistrySwapped') === true,
       acceptedAppStartupRuntimeEffects
         && readOwnBooleanField(appStartupHostConnectionEffects, 'runtimeEnablementAllowed') === true,
-      realRuntimePublicationCommit
+      realRuntimePublicationCommit,
+      realNormalStartupHostCalled
     )
   })
 }

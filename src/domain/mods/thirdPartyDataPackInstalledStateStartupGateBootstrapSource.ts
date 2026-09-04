@@ -269,6 +269,7 @@ const noStartupGateEffects = (
   appStartupHostConnectionAccepted: false,
   appBootstrapContinuationAllowed: true,
   realRuntimePublicationCommitCalled: false,
+  realNormalStartupHostCalled: false,
   launcherAppCreated: false,
   gameAppCreated: false,
   piniaCreated: false,
@@ -1575,7 +1576,7 @@ const createAcceptedNormalStartupHandoffHostResult = (
   effects: Object.freeze({
     normalStartupHandoffHostCalled: true,
     normalStartupHandoffHostAccepted: true,
-    realNormalStartupHostCalled: false,
+    realNormalStartupHostCalled: true,
     launcherAppFactoryCalled: false,
     gameAppFactoryCalled: false,
     launcherAppCreated: false,

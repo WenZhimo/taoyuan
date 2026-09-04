@@ -443,6 +443,7 @@ describe('third-party startup gate bootstrap source', () => {
     expect(result.effects.appStartupHostConnectionSourceCalled).toBe(true)
     expect(result.effects.appStartupHostConnectionAccepted).toBe(true)
     expect(result.effects.appBootstrapContinuationAllowed).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(false)
     expect('runtimePublicationCommitAppStartupHostConnection' in result).toBe(false)
     expect('appStartupHost' in result).toBe(false)
     expect('launcherAppFactory' in result).toBe(false)
@@ -457,6 +458,7 @@ describe('third-party startup gate bootstrap source', () => {
         effects: {
           ...createAppStartupHostConnectionSource().effects,
           realRuntimePublicationCommitCalled: true,
+          realNormalStartupHostCalled: true,
           runtimePublicationCommitted: true
         }
       }))
@@ -470,6 +472,7 @@ describe('third-party startup gate bootstrap source', () => {
     expect(result.status).toBe('ready')
     expect(result.effects.appStartupHostConnectionAccepted).toBe(true)
     expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
     expect(result.effects.runtimePublicationCommitted).toBe(true)
     expect(result.effects.thirdPartyRegistryPublished).toBe(true)
     expect(result.effects.liveRegistrySwapped).toBe(true)
