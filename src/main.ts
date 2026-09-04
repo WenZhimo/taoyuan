@@ -69,6 +69,11 @@ const thirdPartyVisibleUninstallProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleEnableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleEnableProbe') === '1'
+const thirdPartyVisibleOperationProbeRequested =
+  thirdPartyVisibleImportProbeRequested
+  || thirdPartyVisibleDisableProbeRequested
+  || thirdPartyVisibleUninstallProbeRequested
+  || thirdPartyVisibleEnableProbeRequested
 const thirdPartyVisibleImportPersistSourceProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportPersistSource') === '1'
@@ -157,17 +162,19 @@ void bootstrapApplication({
             targetPackageId: 'product_probe_pack' as PackageId
           })
       }
-      const { runThirdPartyRendererUiIpcProductProbe } = await import(
-        '@/runtime/thirdPartyRendererUiIpcProductProbe'
-      )
-      thirdPartyRendererUiIpcProductProbeResult = await runThirdPartyRendererUiIpcProductProbe(
-        window,
-        {
-          deliveryInputSource: thirdPartyRendererUiIpcInstallResultProbeRequested
-            ? 'install-transaction-commit-finalization'
-            : 'synthetic-success-handoff'
-        }
-      )
+      if (!thirdPartyVisibleOperationProbeRequested || thirdPartyRendererUiIpcInstallResultProbeRequested) {
+        const { runThirdPartyRendererUiIpcProductProbe } = await import(
+          '@/runtime/thirdPartyRendererUiIpcProductProbe'
+        )
+        thirdPartyRendererUiIpcProductProbeResult = await runThirdPartyRendererUiIpcProductProbe(
+          window,
+          {
+            deliveryInputSource: thirdPartyRendererUiIpcInstallResultProbeRequested
+              ? 'install-transaction-commit-finalization'
+              : 'synthetic-success-handoff'
+          }
+        )
+      }
       if (thirdPartyElectronInstallCommandDispatchProbeRequested) {
         const { runThirdPartyElectronInstallCommandDispatchProductProbe } = await import(
           '@/runtime/thirdPartyElectronInstallCommandDispatchProductProbe'

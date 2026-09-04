@@ -492,6 +492,24 @@ const assert = (condition, message) => {
   if (!condition) throw new Error(message)
 }
 
+const scenarioRunsVisibleDataPackOperation = scenario =>
+  !!(
+    scenario.visibleImportWebOrdinary
+    || scenario.visibleImportRendererLiveRegistry
+    || scenario.visibleEnable
+    || scenario.visibleDisable
+    || scenario.visibleUninstall
+  )
+
+const scenarioExpectsRendererUiIpcProbe = scenario =>
+  !scenarioRunsVisibleDataPackOperation(scenario) || !!scenario.rendererUiIpcInstallResult
+
+const scenarioExpectsResponseDeliverySurface = scenario =>
+  scenarioExpectsRendererUiIpcProbe(scenario)
+
+const scenarioExpectsVisibleImportPanelSurface = scenario =>
+  scenarioRunsVisibleDataPackOperation(scenario)
+
 const assertInside = (parent, candidate, description) => {
   const relative = path.relative(path.resolve(parent), path.resolve(candidate))
   assert(
@@ -1918,59 +1936,98 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   const expectsElectronRendererDelivery = expectedRendererPlatform === 'electron'
   assert(thirdPartyRendererUiIpc?.schemaVersion === 1,
     `${scenario.name}: missing third-party renderer UI/IPC probe summary`)
-  assert(thirdPartyRendererUiIpc.observed === true,
-    `${scenario.name}: renderer UI/IPC delivery result was not handed to the runtime probe`)
-  assert(thirdPartyRendererUiIpc.status === 'ready',
-    `${scenario.name}: renderer UI/IPC delivery was not ready`)
-  assert(thirdPartyRendererUiIpc.deliveryInputSource === (
-    scenario.rendererUiIpcInstallResult
-      ? 'install-transaction-commit-finalization'
-      : 'synthetic-success-handoff'
-  ), `${scenario.name}: renderer UI/IPC delivery used the wrong input source`)
-  assert(thirdPartyRendererUiIpc.selectedPlatform === expectedRendererPlatform,
-    `${scenario.name}: renderer UI/IPC delivery did not use the ${expectedRendererPlatform} bridge`)
-  assert(thirdPartyRendererUiIpc.targetPackageId === 'product_probe_pack',
-    `${scenario.name}: renderer UI/IPC delivery reported the wrong probe package`)
-  assert(thirdPartyRendererUiIpc.envelopeKind === 'success',
-    `${scenario.name}: renderer UI/IPC delivery reported the wrong envelope kind`)
-  assert(thirdPartyRendererUiIpc.messageKey === 'mods.ui.ipc.result.install.success',
-    `${scenario.name}: renderer UI/IPC delivery reported the wrong message key`)
-  assert(thirdPartyRendererUiIpc.selectedPackageCount === 1,
-    `${scenario.name}: renderer UI/IPC delivery selected package count mismatch`)
-  assert(thirdPartyRendererUiIpc.blockedPackageCount === 0,
-    `${scenario.name}: renderer UI/IPC delivery blocked packages unexpectedly`)
-  assert(thirdPartyRendererUiIpc.loadOrderCount === 1,
-    `${scenario.name}: renderer UI/IPC delivery load order count mismatch`)
-  assert(thirdPartyRendererUiIpc.lockfileHashPresent === true,
-    `${scenario.name}: renderer UI/IPC delivery did not report lockfile hash presence`)
-  assert(thirdPartyRendererUiIpc.platformResponseDelivered === true,
-    `${scenario.name}: renderer UI/IPC platform response was not delivered`)
-  assert(thirdPartyRendererUiIpc.deliveryAcknowledgementConsumed === true,
-    `${scenario.name}: renderer UI/IPC acknowledgement was not consumed`)
-  assert(thirdPartyRendererUiIpc.webDomResponseEventObserved === true,
-    `${scenario.name}: renderer UI/IPC DOM surface event was not observed`)
-  assert(thirdPartyRendererUiIpc.effects?.uiIpcResponseDelivered === true,
-    `${scenario.name}: renderer UI/IPC delivery effect was not true`)
-  assert(thirdPartyRendererUiIpc.effects?.electronIpcResponseSent === expectsElectronRendererDelivery,
-    `${scenario.name}: renderer UI/IPC Electron response effect mismatch`)
-  assert(thirdPartyRendererUiIpc.effects?.webUiResponsePublished === !expectsElectronRendererDelivery,
-    `${scenario.name}: renderer UI/IPC Web publish effect mismatch`)
-  for (const effectName of [
-    'androidUiResponsePublished',
-    'commandDispatched',
-    'transactionCommitted',
-    'runtimePublicationCommitted',
-    'packageFilesWritten',
-    'lockfileWritten',
-    'settingsWritten',
-    'savesWritten',
-    'cacheWritten',
-    'transactionLogWritten',
-    'rollbackExecuted',
-    'diagnosticsWritten'
-  ]) {
-    assert(thirdPartyRendererUiIpc.effects?.[effectName] === false,
-      `${scenario.name}: renderer UI/IPC effect ${effectName} was not false`)
+  if (scenarioExpectsRendererUiIpcProbe(scenario)) {
+    assert(thirdPartyRendererUiIpc.observed === true,
+      `${scenario.name}: renderer UI/IPC delivery result was not handed to the runtime probe`)
+    assert(thirdPartyRendererUiIpc.status === 'ready',
+      `${scenario.name}: renderer UI/IPC delivery was not ready`)
+    assert(thirdPartyRendererUiIpc.deliveryInputSource === (
+      scenario.rendererUiIpcInstallResult
+        ? 'install-transaction-commit-finalization'
+        : 'synthetic-success-handoff'
+    ), `${scenario.name}: renderer UI/IPC delivery used the wrong input source`)
+    assert(thirdPartyRendererUiIpc.selectedPlatform === expectedRendererPlatform,
+      `${scenario.name}: renderer UI/IPC delivery did not use the ${expectedRendererPlatform} bridge`)
+    assert(thirdPartyRendererUiIpc.targetPackageId === 'product_probe_pack',
+      `${scenario.name}: renderer UI/IPC delivery reported the wrong probe package`)
+    assert(thirdPartyRendererUiIpc.envelopeKind === 'success',
+      `${scenario.name}: renderer UI/IPC delivery reported the wrong envelope kind`)
+    assert(thirdPartyRendererUiIpc.messageKey === 'mods.ui.ipc.result.install.success',
+      `${scenario.name}: renderer UI/IPC delivery reported the wrong message key`)
+    assert(thirdPartyRendererUiIpc.selectedPackageCount === 1,
+      `${scenario.name}: renderer UI/IPC delivery selected package count mismatch`)
+    assert(thirdPartyRendererUiIpc.blockedPackageCount === 0,
+      `${scenario.name}: renderer UI/IPC delivery blocked packages unexpectedly`)
+    assert(thirdPartyRendererUiIpc.loadOrderCount === 1,
+      `${scenario.name}: renderer UI/IPC delivery load order count mismatch`)
+    assert(thirdPartyRendererUiIpc.lockfileHashPresent === true,
+      `${scenario.name}: renderer UI/IPC delivery did not report lockfile hash presence`)
+    assert(thirdPartyRendererUiIpc.platformResponseDelivered === true,
+      `${scenario.name}: renderer UI/IPC platform response was not delivered`)
+    assert(thirdPartyRendererUiIpc.deliveryAcknowledgementConsumed === true,
+      `${scenario.name}: renderer UI/IPC acknowledgement was not consumed`)
+    assert(thirdPartyRendererUiIpc.webDomResponseEventObserved === true,
+      `${scenario.name}: renderer UI/IPC DOM surface event was not observed`)
+    assert(thirdPartyRendererUiIpc.effects?.uiIpcResponseDelivered === true,
+      `${scenario.name}: renderer UI/IPC delivery effect was not true`)
+    assert(thirdPartyRendererUiIpc.effects?.electronIpcResponseSent === expectsElectronRendererDelivery,
+      `${scenario.name}: renderer UI/IPC Electron response effect mismatch`)
+    assert(thirdPartyRendererUiIpc.effects?.webUiResponsePublished === !expectsElectronRendererDelivery,
+      `${scenario.name}: renderer UI/IPC Web publish effect mismatch`)
+    for (const effectName of [
+      'androidUiResponsePublished',
+      'commandDispatched',
+      'transactionCommitted',
+      'runtimePublicationCommitted',
+      'packageFilesWritten',
+      'lockfileWritten',
+      'settingsWritten',
+      'savesWritten',
+      'cacheWritten',
+      'transactionLogWritten',
+      'rollbackExecuted',
+      'diagnosticsWritten'
+    ]) {
+      assert(thirdPartyRendererUiIpc.effects?.[effectName] === false,
+        `${scenario.name}: renderer UI/IPC effect ${effectName} was not false`)
+    }
+  } else {
+    assert(thirdPartyRendererUiIpc.observed === false,
+      `${scenario.name}: visible data pack operation should not run the generic renderer UI/IPC probe`)
+    assert(thirdPartyRendererUiIpc.selectedPackageCount === 0,
+      `${scenario.name}: inactive renderer UI/IPC summary selected packages`)
+    assert(thirdPartyRendererUiIpc.blockedPackageCount === 0,
+      `${scenario.name}: inactive renderer UI/IPC summary blocked packages`)
+    assert(thirdPartyRendererUiIpc.loadOrderCount === 0,
+      `${scenario.name}: inactive renderer UI/IPC summary reported load order`)
+    assert(thirdPartyRendererUiIpc.lockfileHashPresent === false,
+      `${scenario.name}: inactive renderer UI/IPC summary exposed a lockfile hash`)
+    assert(thirdPartyRendererUiIpc.platformResponseDelivered === false,
+      `${scenario.name}: inactive renderer UI/IPC summary delivered a platform response`)
+    assert(thirdPartyRendererUiIpc.deliveryAcknowledgementConsumed === false,
+      `${scenario.name}: inactive renderer UI/IPC summary consumed an acknowledgement`)
+    assert(thirdPartyRendererUiIpc.webDomResponseEventObserved === false,
+      `${scenario.name}: inactive renderer UI/IPC summary observed a DOM response event`)
+    for (const effectName of [
+      'uiIpcResponseDelivered',
+      'electronIpcResponseSent',
+      'webUiResponsePublished',
+      'androidUiResponsePublished',
+      'commandDispatched',
+      'transactionCommitted',
+      'runtimePublicationCommitted',
+      'packageFilesWritten',
+      'lockfileWritten',
+      'settingsWritten',
+      'savesWritten',
+      'cacheWritten',
+      'transactionLogWritten',
+      'rollbackExecuted',
+      'diagnosticsWritten'
+    ]) {
+      assert(thirdPartyRendererUiIpc.effects?.[effectName] === false,
+        `${scenario.name}: inactive renderer UI/IPC effect ${effectName} was not false`)
+    }
   }
 
   const electronInstallCommandDispatch = envelope.thirdPartyElectronInstallCommandDispatch
@@ -2418,8 +2475,21 @@ const assertWebProductSurface = (envelope, scenario) => {
   const surface = envelope.webProductSurface ?? envelope.electronProductSurface
   assert(surface?.schemaVersion === 1,
     `${scenario.name}: missing product surface summary`)
-  assert(surface.webDataPackImportPanelVisible === true,
-    `${scenario.name}: Web data pack import panel was not opened by response delivery`)
+  const expectsResponseDelivery = scenarioExpectsResponseDeliverySurface(scenario)
+  const expectsVisiblePanel =
+    expectsResponseDelivery || scenarioExpectsVisibleImportPanelSurface(scenario)
+  if (expectsVisiblePanel) {
+    assert(surface.webDataPackImportPanelVisible === true,
+      `${scenario.name}: Web data pack import panel was not opened`)
+  }
+  if (!expectsResponseDelivery) {
+    const optionalSummaryText = surface.responseDeliverySummaryText ?? ''
+    assert(!/[A-Za-z]:[\\/]/.test(optionalSummaryText),
+      `${scenario.name}: optional Web response delivery summary leaked an absolute path`)
+    assert(!optionalSummaryText.includes('C:/Users') && !optionalSummaryText.includes('LENOVO'),
+      `${scenario.name}: optional Web response delivery summary leaked local user details`)
+    return
+  }
   assert(surface.responseDeliverySummaryVisible === true,
     `${scenario.name}: Web response delivery summary was not visible`)
   const summaryText = surface.responseDeliverySummaryText ?? ''

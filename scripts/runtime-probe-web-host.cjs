@@ -98,12 +98,27 @@ const readWebProductSurface = async window => window.webContents.executeJavaScri
   true
 )
 
+const urlParams = new URL(targetUrl).searchParams
+const visibleDataPackOperationRequested =
+  urlParams.get('taoyuanThirdPartyVisibleImportProbe') === '1'
+  || urlParams.get('taoyuanThirdPartyVisibleDisableProbe') === '1'
+  || urlParams.get('taoyuanThirdPartyVisibleUninstallProbe') === '1'
+  || urlParams.get('taoyuanThirdPartyVisibleEnableProbe') === '1'
+const rendererUiIpcInstallResultProbeRequested =
+  urlParams.get('taoyuanThirdPartyRendererUiIpcInstallResultProbe') === '1'
+const rendererUiIpcProductSurfaceExpected =
+  !visibleDataPackOperationRequested || rendererUiIpcInstallResultProbeRequested
+
 const waitForWebProductSurface = async (window, timeoutMs = 10_000) => {
   const deadline = Date.now() + timeoutMs
   let latest = null
   while (Date.now() < deadline) {
     latest = await readWebProductSurface(window)
-    if (latest?.responseDeliverySummaryVisible === true) return latest
+    if (
+      rendererUiIpcProductSurfaceExpected
+        ? latest?.responseDeliverySummaryVisible === true
+        : latest?.webDataPackImportPanelVisible === true
+    ) return latest
     await new Promise(resolve => setTimeout(resolve, 50))
   }
   return latest

@@ -201,6 +201,15 @@ const runtimeProbeVisibleEnable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE === '1'
 const runtimeProbeVisibleUninstall =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UNINSTALL === '1'
+const runtimeProbeVisibleDataPackOperation =
+  runtimeProbeVisibleImport
+  || runtimeProbeVisibleDisable
+  || runtimeProbeVisibleEnable
+  || runtimeProbeVisibleUninstall
+const runtimeProbeRendererUiIpcProductSurfaceExpected =
+  !runtimeProbeVisibleDataPackOperation
+  || runtimeProbeInstallTransactionCommitFinalization
+  || runtimeProbeOrdinaryInstallTerminalSuccess
 
 const getExecutableDirectoryPath = () =>
   process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
@@ -4140,7 +4149,11 @@ const waitForElectronProductSurface = async (timeoutMs = 10_000) => {
   let latest = null
   while (Date.now() < deadline) {
     latest = await readElectronProductSurface()
-    if (latest?.responseDeliverySummaryVisible === true) return latest
+    if (
+      runtimeProbeRendererUiIpcProductSurfaceExpected
+        ? latest?.responseDeliverySummaryVisible === true
+        : latest?.webDataPackImportPanelVisible === true
+    ) return latest
     await new Promise(resolve => setTimeout(resolve, 50))
   }
   return latest
