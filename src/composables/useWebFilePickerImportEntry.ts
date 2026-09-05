@@ -1545,6 +1545,7 @@ const createWebOrdinaryInstallTransactionTerminalConnection = (
     uiIpcResponseDelivered: true,
     rollbackRecoverySettled: true,
     rollbackRecoveryExecutionAcknowledged: false,
+    realRecoveryLogReplayRestoreCalled: false,
     packageFilesWritten: true,
     packageBackupsWritten: false,
     packageFilesRestored: false,

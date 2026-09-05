@@ -139,6 +139,9 @@ import {
   createThirdPartyDataPackRollbackRecoveryExecutionPipeline
 } from '../src/domain/mods/thirdPartyDataPackRollbackRecoveryExecutionPipeline'
 import {
+  createThirdPartyDataPackRecoveryLogReplayRestorePipeline
+} from '../src/domain/mods/thirdPartyDataPackRecoveryLogReplayRestorePipeline'
+import {
   buildThirdPartyDataPackAtomicTransactionCommitOutcomeContract
 } from '../src/domain/mods/thirdPartyDataPackAtomicTransactionCommitOutcomeContract'
 import {
@@ -781,53 +784,30 @@ const createSyntheticRollbackOutcomeContract = draft =>
     }
   })
 
-const createSyntheticRecoveryLogReplayRestoreSourceResult = draft => ({
-  kind: 'third-party-recovery-log-replay-restore-source',
-  mode: 'default-disabled-recovery-log-replay-restore-source',
-  status: 'executed',
-  reason: 'product runtime probe observed a path-free recovery log replay/restore acknowledgement',
-  readOnly: true,
-  enabled: true,
-  sourceCalled: true,
-  appBootstrapContinuationAllowed: false,
-  commandContinuationAllowed: true,
-  recoveryLogReplayRestoreAdapterStatus: 'deferred',
-  recoveryLogReplayRestoreHostStatus: 'accepted',
-  publicationRollbackRecoveryStatus: 'deferred',
-  runtimePublicationCommitAdapterStatus: 'deferred',
-  selectedPackageIds: draft.selectedPackageIds,
-  blockedPackageIds: [],
-  blockedCandidatePaths: [],
-  loadOrder: draft.loadOrder,
-  registryCount: draft.registryCount,
-  entryCount: draft.entryCount,
-  packageCount: draft.packages.length,
-  candidateIdentity: draft.candidateIdentity,
-  lockfileHash: draft.lockfileHash,
-  replayRestoreStageSummaries: [
-    {
-      id: 'recovery-log-replay',
-      status: 'deferred'
-    }
-  ],
-  requiredReplayRestoreAdapterIds: [
-    'verified-recovery-log-reader',
-    'idempotent-recovery-log-replay'
-  ],
+const createRealRecoveryLogReplayRestoreHostResult = (envelope, restoreResult) => ({
+  status: 'accepted',
+  candidateHash: envelope.candidateIdentity.candidateHash,
+  lockfileHash: envelope.lockfileHash,
+  replayRestoreStageIds: envelope.replayRestoreStageIds,
+  requiredReplayRestoreAdapterIds: envelope.requiredReplayRestoreAdapterIds,
   diagnostics: [],
   effects: {
     ...createSyntheticNoRealLifecycleEffects(),
-    recoveryLogReplayRestoreSourceCalled: true,
-    recoveryLogReplayRestoreAdapterSourceCalled: true,
     recoveryLogReplayRestoreHostCalled: true,
     recoveryLogReplayRestoreHostAccepted: true,
-    appBootstrapContinuationAllowed: false,
-    commandContinuationAllowed: true,
-    realRecoveryLogReplayRestoreCalled: false
+    realRecoveryLogReplayRestoreCalled: true,
+    recoveryLogRead: true,
+    recoveryLogReplayed: true,
+    packageFilesRestored: restoreResult.effects.packageFilesRestored === true,
+    rollbackExecuted: restoreResult.effects.rollbackExecuted === true
   }
 })
 
-const createSyntheticRollbackRecoveryExecutionHostResult = (envelope, restoreResult) => ({
+const createSyntheticRollbackRecoveryExecutionHostResult = (
+  envelope,
+  restoreResult,
+  recoveryLogReplayRestoreSource
+) => ({
   status: 'accepted',
   requestedCommandId: 'install',
   targetPackageId: envelope.targetPackageId,
@@ -855,7 +835,10 @@ const createSyntheticRollbackRecoveryExecutionHostResult = (envelope, restoreRes
     rollbackRecoveryExecutionAcknowledged: true,
     commandContinuationAllowed: true,
     uiIpcResultContinuationAllowed: true,
-    realRecoveryLogReplayRestoreCalled: false,
+    realRecoveryLogReplayRestoreCalled:
+      recoveryLogReplayRestoreSource?.effects?.realRecoveryLogReplayRestoreCalled === true,
+    recoveryLogRead: recoveryLogReplayRestoreSource?.effects?.recoveryLogRead === true,
+    recoveryLogReplayed: recoveryLogReplayRestoreSource?.effects?.recoveryLogReplayed === true,
     packageFilesRestored: restoreResult.effects.packageFilesRestored === true,
     rollbackExecuted: restoreResult.effects.rollbackExecuted === true
   }
@@ -2905,7 +2888,7 @@ const createVisibleImportContinuationMemorySource = (packageFilePayload, lockfil
   const packageDraft = lockfileDraft?.packages?.[0]
   const candidatePath = typeof packageDraft?.source?.candidatePath === 'string'
     ? packageDraft.source.candidatePath
-    : 'visible-import-package'
+    : syntheticPackageRoot
   return createMemoryContentPackageSource({
     sourceId: electronVisibleImportContinuationSourceId,
     rootPath: electronVisibleImportContinuationRootPath,
@@ -2974,10 +2957,16 @@ const createRuntimePublicationContinuationContext = async(
     || mountInput.candidateIdentity === undefined
     || mountInput.lockfileDraft === undefined
     || mountInput.lockfileHash === undefined
-    || lockfileDraft.lockfileHash !== mountInput.lockfileHash
-    || !runtimePublicationSummariesMatch(
-      runtimePublicationCommitAdapter,
-      rendererRuntimePublicationCommitAdapter
+    || (
+      lockfileDraft !== undefined
+      && lockfileDraft.lockfileHash !== mountInput.lockfileHash
+    )
+    || (
+      rendererRuntimePublicationCommitAdapter !== undefined
+      && !runtimePublicationSummariesMatch(
+        runtimePublicationCommitAdapter,
+        rendererRuntimePublicationCommitAdapter
+      )
     )
   ) {
     return undefined
@@ -2993,6 +2982,32 @@ const createRuntimePublicationContinuationContext = async(
     publicationRollbackRecovery,
     runtimePublicationCommitAdapter
   }
+}
+
+const createRealRecoveryLogReplayRestoreSourceResult = async(
+  packageFilePayload,
+  lockfileDraft,
+  runtimePublicationCommitAdapter,
+  restoreResult
+) => {
+  const context = await createRuntimePublicationContinuationContext(
+    packageFilePayload,
+    lockfileDraft,
+    runtimePublicationCommitAdapter
+  )
+  if (context === undefined) {
+    throw new Error('Electron recovery log replay/restore requires a matching runtime publication context')
+  }
+
+  const pipeline = createThirdPartyDataPackRecoveryLogReplayRestorePipeline({
+    enabled: true,
+    readPublicationRollbackRecovery: async() => context.publicationRollbackRecovery,
+    readRuntimePublicationCommitAdapter: async() => context.runtimePublicationCommitAdapter,
+    executeRecoveryLogReplayRestore: async envelope =>
+      createRealRecoveryLogReplayRestoreHostResult(envelope, restoreResult)
+  })
+
+  return pipeline()
 }
 
 const createOrdinaryInstallTerminalPostCommitAfterInstallTransactionCommitResult = (
@@ -3575,17 +3590,27 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
         storage: packageFilePersistentStagingStorage,
         allowPersistentRestoreProbe: true
       })
+    let recoveryLogReplayRestoreSource
     const rollbackRecoveryExecutionPipeline =
       createThirdPartyDataPackRollbackRecoveryExecutionPipeline({
         enabled: true,
         readAtomicTransactionCommitOutcomeContract: async() =>
           createSyntheticRollbackOutcomeContract(lockfileDraft),
-        readRecoveryLogReplayRestoreSource: async() =>
-          createSyntheticRecoveryLogReplayRestoreSourceResult(lockfileDraft),
+        readRecoveryLogReplayRestoreSource: async() => {
+          recoveryLogReplayRestoreSource ??=
+            await createRealRecoveryLogReplayRestoreSourceResult(
+              packageFilePayload,
+              lockfileDraft,
+              runtimePublicationCommitAdapter,
+              packageFileRestoreResult
+            )
+          return recoveryLogReplayRestoreSource
+        },
         executeRollbackRecovery: async currentEnvelope =>
           createSyntheticRollbackRecoveryExecutionHostResult(
             currentEnvelope,
-            packageFileRestoreResult
+            packageFileRestoreResult,
+            recoveryLogReplayRestoreSource
           )
       })
     const rollbackRecoveryExecution = await rollbackRecoveryExecutionPipeline()
@@ -3617,8 +3642,14 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
       || packageFilePersistentStagingResult.status !== 'written'
       || packageFileRestoreResult.status !== 'restored'
       || rollbackRecoveryExecution.status !== 'executed'
+      || rollbackRecoveryExecution.effects.realRecoveryLogReplayRestoreCalled !== true
+      || rollbackRecoveryExecution.effects.recoveryLogRead !== true
+      || rollbackRecoveryExecution.effects.recoveryLogReplayed !== true
       || rollbackOrdinaryInstallTransactionTerminalConnection.status !== 'ready'
       || rollbackOrdinaryInstallTransactionTerminalConnection.outcomeKind !== 'rollback'
+      || rollbackOrdinaryInstallTransactionTerminalConnection.effects.realRecoveryLogReplayRestoreCalled !== true
+      || rollbackOrdinaryInstallTransactionTerminalConnection.effects.recoveryLogRead !== true
+      || rollbackOrdinaryInstallTransactionTerminalConnection.effects.recoveryLogReplayed !== true
       || rollbackOrdinaryInstallTransactionTerminalConnection.effects.rollbackExecuted !== true
       || postCommitRollbackUiIpcDeliveryContinuation.status !== 'ready'
     ) {
@@ -3648,7 +3679,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
 
     return {
       status: 'ready',
-      reason: 'Electron visible renderer import reached rollback terminal without runtime publication handoff',
+      reason: 'Electron visible renderer import reached rollback terminal with real recovery log replay/restore evidence',
       installCommandPostCommitAcknowledgement: installCommandPostCommitAcknowledgementResult,
       postCommitUiIpcDeliveryContinuation: postCommitRollbackUiIpcDeliveryContinuation,
       ordinaryInstallTransactionTerminalConnection:
@@ -4393,6 +4424,7 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
         ordinaryInstallTransactionReady: false,
         successOutcomeAccepted: false,
         rollbackOutcomeAccepted: false,
+        realRecoveryLogReplayRestoreCalled: false,
         packageFilesWritten: false,
         packageFilesRestored: false,
         settingsWritten: false,
@@ -4403,6 +4435,8 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
         transactionCommitted: false,
         transactionLogCommitted: false,
         runtimePublicationCommitted: false,
+        recoveryLogRead: false,
+        recoveryLogReplayed: false,
         savesWritten: false,
         cacheWritten: false,
         transactionLogWritten: false,
@@ -4414,25 +4448,45 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
 
   const draft = createSyntheticModLockDraft()
   if (runtimeProbeOrdinaryInstallTerminalRollback) {
+    const packageFilePayload = createSyntheticPackageFilePayload()
+    const recoveryRuntimeContinuationContext =
+      await createRuntimePublicationContinuationContext(packageFilePayload, undefined, undefined)
+    if (recoveryRuntimeContinuationContext?.mountInput?.lockfileDraft === undefined) {
+      throw new Error('Electron ordinary install rollback probe could not rebuild a runtime publication draft')
+    }
+    const rollbackDraft = recoveryRuntimeContinuationContext.mountInput.lockfileDraft
     const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
       programDirectoryPath: process.env.PORTABLE_EXECUTABLE_DIR
     })
-    const packagePipeline = createPackageFilePersistentStagingProbePipeline(draft, storage)
+    const packagePipeline = createPackageFilePersistentStagingProbePipeline(rollbackDraft, storage)
     const packageResult = await packagePipeline()
     const restoreResult = await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
-      packageId: draft.selectedPackageIds[0],
+      packageId: rollbackDraft.selectedPackageIds[0],
       writtenFiles: packageResult.writtenFiles,
       storage,
       allowPersistentRestoreProbe: true
     })
+    let recoveryLogReplayRestoreSource
     const rollbackPipeline = createThirdPartyDataPackRollbackRecoveryExecutionPipeline({
       enabled: true,
       readAtomicTransactionCommitOutcomeContract: async() =>
-        createSyntheticRollbackOutcomeContract(draft),
-      readRecoveryLogReplayRestoreSource: async() =>
-        createSyntheticRecoveryLogReplayRestoreSourceResult(draft),
+        createSyntheticRollbackOutcomeContract(rollbackDraft),
+      readRecoveryLogReplayRestoreSource: async() => {
+        recoveryLogReplayRestoreSource ??=
+          await createRealRecoveryLogReplayRestoreSourceResult(
+            packageFilePayload,
+            rollbackDraft,
+            undefined,
+            restoreResult
+          )
+        return recoveryLogReplayRestoreSource
+      },
       executeRollbackRecovery: async envelope =>
-        createSyntheticRollbackRecoveryExecutionHostResult(envelope, restoreResult)
+        createSyntheticRollbackRecoveryExecutionHostResult(
+          envelope,
+          restoreResult,
+          recoveryLogReplayRestoreSource
+        )
     })
     const rollbackSource = await rollbackPipeline()
     const pipeline = createThirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline({
@@ -4456,6 +4510,8 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
       operation: 'terminal-from-product-package-restore-rollback',
       packageFilePersistentStagingStatus: packageResult.status,
       packageFileRestoreStatus: restoreResult.status,
+      recoveryLogReplayRestoreSourceStatus: recoveryLogReplayRestoreSource?.status ?? null,
+      recoveryLogReplayRestoreHostStatus: recoveryLogReplayRestoreSource?.recoveryLogReplayRestoreHostStatus ?? null,
       rollbackRecoveryExecutionStatus: rollbackSource.status,
       modLockTransactionSemanticsStatus: result.modLockTransactionSemanticsStatus ?? null,
       outcomeKind: result.outcomeKind ?? null,
@@ -4492,6 +4548,7 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
         ordinaryInstallTransactionReady: result.effects.ordinaryInstallTransactionReady,
         successOutcomeAccepted: result.effects.successOutcomeAccepted,
         rollbackOutcomeAccepted: result.effects.rollbackOutcomeAccepted,
+        realRecoveryLogReplayRestoreCalled: result.effects.realRecoveryLogReplayRestoreCalled,
         packageFilesWritten: result.effects.packageFilesWritten,
         packageFilesRestored: result.effects.packageFilesRestored,
         settingsWritten: result.effects.settingsWritten,
@@ -4502,6 +4559,8 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
         transactionCommitted: false,
         transactionLogCommitted: false,
         runtimePublicationCommitted: result.effects.runtimePublicationCommitted,
+        recoveryLogRead: result.effects.recoveryLogRead,
+        recoveryLogReplayed: result.effects.recoveryLogReplayed,
         savesWritten: result.effects.savesWritten,
         cacheWritten: result.effects.cacheWritten,
         transactionLogWritten: result.effects.transactionLogWritten,
@@ -4565,6 +4624,7 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
       ordinaryInstallTransactionReady: result.effects.ordinaryInstallTransactionReady,
       successOutcomeAccepted: result.effects.successOutcomeAccepted,
       rollbackOutcomeAccepted: result.effects.rollbackOutcomeAccepted,
+      realRecoveryLogReplayRestoreCalled: result.effects.realRecoveryLogReplayRestoreCalled,
       packageFilesWritten: result.effects.packageFilesWritten,
       packageFilesRestored: result.effects.packageFilesRestored,
       settingsWritten: result.effects.settingsWritten,
@@ -4579,6 +4639,8 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
       transactionLogCommitted:
         installTransactionCommitFinalizationProbe?.effects?.transactionLogCommitted === true,
       runtimePublicationCommitted: result.effects.runtimePublicationCommitted,
+      recoveryLogRead: result.effects.recoveryLogRead,
+      recoveryLogReplayed: result.effects.recoveryLogReplayed,
       savesWritten: result.effects.savesWritten,
       cacheWritten: result.effects.cacheWritten,
       transactionLogWritten:

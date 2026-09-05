@@ -446,9 +446,21 @@ describe('third-party rollback recovery execution pipeline', () => {
 
   it('accepts rollback-only package restore evidence from the execution host', async() => {
     const readAtomicTransactionCommitOutcomeContract = vi.fn(async() => createCommitOutcome())
-    const readRecoveryLogReplayRestoreSource = vi.fn(async() => createRecoverySource())
+    const readRecoveryLogReplayRestoreSource = vi.fn(async() => createRecoverySource({
+      reason: 'third-party recovery log replay restore source accepted contained recovery host evidence',
+      effects: recoveryEffects({
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
+        packageFilesRestored: true,
+        rollbackExecuted: true
+      })
+    }))
     const executeRollbackRecovery = vi.fn(async() => createAcceptedHostResult({
       effects: hostEffects({
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
         packageFilesRestored: true,
         rollbackExecuted: true
       })
@@ -467,6 +479,9 @@ describe('third-party rollback recovery execution pipeline', () => {
     expect(result.recovery).toBe('restore-backup')
     expect(result.rollbackRequired).toBe(true)
     expect(result.rollbackRecoveryExecutionAcknowledged).toBe(true)
+    expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(true)
+    expect(result.effects.recoveryLogRead).toBe(true)
+    expect(result.effects.recoveryLogReplayed).toBe(true)
     expect(result.effects.packageFilesRestored).toBe(true)
     expect(result.effects.rollbackExecuted).toBe(true)
     expect(result.effects.transactionCommitted).toBe(false)

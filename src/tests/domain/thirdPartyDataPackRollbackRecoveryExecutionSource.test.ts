@@ -400,6 +400,49 @@ describe('third-party rollback recovery execution source', () => {
     expectJsonGraphFrozen(result)
   })
 
+  it('threads real recovery replay and restore evidence through execution acknowledgement', async() => {
+    const executeRollbackRecovery = vi.fn(async() => createAcceptedHostResult({
+      effects: hostEffects({
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
+        packageFilesRestored: true,
+        rollbackExecuted: true
+      })
+    }))
+    const source = createThirdPartyDataPackRollbackRecoveryExecutionSource({
+      enabled: true,
+      readRollbackRecoverySettlementSource: async() => createSettlement({
+        effects: settlementEffects({
+          realRecoveryLogReplayRestoreCalled: true,
+          recoveryLogRead: true,
+          recoveryLogReplayed: true,
+          packageFilesRestored: true,
+          rollbackExecuted: true
+        })
+      }),
+      executeRollbackRecovery
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('executed')
+    expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(true)
+    expect(result.effects.recoveryLogRead).toBe(true)
+    expect(result.effects.recoveryLogReplayed).toBe(true)
+    expect(result.effects.packageFilesRestored).toBe(true)
+    expect(result.effects.rollbackExecuted).toBe(true)
+    expect(result.effects.transactionCommitted).toBe(false)
+    expect(result.effects.transactionLogPrepared).toBe(false)
+    expect(result.effects.runtimePublicationCommitted).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expect(executeRollbackRecovery).toHaveBeenCalledOnce()
+    expectJsonGraphFrozen(result)
+  })
+
   it('blocks divergent host acknowledgement before continuation', async() => {
     const executeRollbackRecovery = vi.fn(async() => createAcceptedHostResult({
       candidateHash: otherCandidateHash,

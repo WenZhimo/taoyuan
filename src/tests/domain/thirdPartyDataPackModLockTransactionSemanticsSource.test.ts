@@ -369,6 +369,9 @@ const expectNoPublicOrRuntimeEffects = (
   expect(result.effects.savesWritten).toBe(false)
   expect(result.effects.cacheWritten).toBe(false)
   expect(result.effects.transactionLogWritten).toBe(false)
+  expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(options.rollbackRestoreAllowed === true)
+  expect(result.effects.recoveryLogRead).toBe(options.rollbackRestoreAllowed === true)
+  expect(result.effects.recoveryLogReplayed).toBe(options.rollbackRestoreAllowed === true)
   expect(result.effects.packageFilesRestored).toBe(options.rollbackRestoreAllowed === true)
   expect(result.effects.rollbackExecuted).toBe(options.rollbackRestoreAllowed === true)
   expect('publicJsonSchema' in result).toBe(false)
@@ -445,6 +448,9 @@ describe('third-party mod-lock transaction semantics source', () => {
     const readPostCommitUiIpcDeliveryContinuationSource = vi.fn(async() => createSkippedPostCommit())
     const readRollbackRecoveryExecutionSource = vi.fn(async() => createRollback({
       effects: rollbackEffects({
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
         packageFilesRestored: true,
         rollbackExecuted: true
       })
@@ -469,6 +475,9 @@ describe('third-party mod-lock transaction semantics source', () => {
     expect(result.uiIpcResultContinuationAllowed).toBe(true)
     expect(result.effects.rollbackStateDelivered).toBe(true)
     expect(result.effects.rollbackRecoveryExecutionAcknowledged).toBe(true)
+    expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(true)
+    expect(result.effects.recoveryLogRead).toBe(true)
+    expect(result.effects.recoveryLogReplayed).toBe(true)
     expect(result.effects.packageFilesRestored).toBe(true)
     expect(result.effects.rollbackExecuted).toBe(true)
     expect(result.effects.packageFilesWritten).toBe(false)

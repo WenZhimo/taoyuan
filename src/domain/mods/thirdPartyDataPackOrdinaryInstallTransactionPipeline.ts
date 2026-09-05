@@ -93,6 +93,7 @@ export interface ThirdPartyDataPackOrdinaryInstallTransactionEffectSummary {
   readonly uiIpcResponseDelivered: boolean
   readonly rollbackRecoverySettled: boolean
   readonly rollbackRecoveryExecutionAcknowledged: boolean
+  readonly realRecoveryLogReplayRestoreCalled: boolean
   readonly packageFilesWritten: boolean
   readonly packageBackupsWritten: boolean
   readonly packageFilesRestored: boolean
@@ -103,8 +104,8 @@ export interface ThirdPartyDataPackOrdinaryInstallTransactionEffectSummary {
   readonly savesWritten: false
   readonly cacheWritten: false
   readonly transactionLogWritten: false
-  readonly recoveryLogRead: false
-  readonly recoveryLogReplayed: false
+  readonly recoveryLogRead: boolean
+  readonly recoveryLogReplayed: boolean
   readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
@@ -415,6 +416,9 @@ const effectsFromSource = (
   uiIpcResponseDelivered: source?.effects.uiIpcResponseDelivered === true,
   rollbackRecoverySettled: source?.effects.rollbackRecoverySettled === true,
   rollbackRecoveryExecutionAcknowledged: source?.effects.rollbackRecoveryExecutionAcknowledged === true,
+  realRecoveryLogReplayRestoreCalled: ready
+    && source?.outcomeKind === 'rollback'
+    && source.effects.realRecoveryLogReplayRestoreCalled === true,
   packageFilesWritten: source?.effects.packageFilesWritten === true,
   packageBackupsWritten: source?.effects.packageBackupsWritten === true,
   packageFilesRestored: rollbackRestoreAcknowledged,
@@ -425,8 +429,12 @@ const effectsFromSource = (
   savesWritten: false,
   cacheWritten: false,
   transactionLogWritten: false,
-  recoveryLogRead: false,
-  recoveryLogReplayed: false,
+  recoveryLogRead: ready
+    && source?.outcomeKind === 'rollback'
+    && source.effects.recoveryLogRead === true,
+  recoveryLogReplayed: ready
+    && source?.outcomeKind === 'rollback'
+    && source.effects.recoveryLogReplayed === true,
   rollbackExecuted: rollbackRestoreAcknowledged,
   diagnosticsWritten: false
   })
@@ -444,8 +452,19 @@ const publicApiDeferred = (source: ThirdPartyDataPackModLockTransactionSemantics
 
 const containedEffectsIntact = (source: ThirdPartyDataPackModLockTransactionSemanticsSourceResult): boolean =>
 {
+  const realRecovery = source.effects.realRecoveryLogReplayRestoreCalled === true
   const packageFilesRestored = source.effects.packageFilesRestored === true
+  const recoveryLogRead = source.effects.recoveryLogRead === true
+  const recoveryLogReplayed = source.effects.recoveryLogReplayed === true
   const rollbackExecuted = source.effects.rollbackExecuted === true
+  const recoveryEffectsContained = realRecovery
+    ? recoveryLogRead
+      && recoveryLogReplayed
+      && packageFilesRestored === rollbackExecuted
+    : !packageFilesRestored
+      && !recoveryLogRead
+      && !recoveryLogReplayed
+      && !rollbackExecuted
   const rollbackRestoreContained =
     (!packageFilesRestored && !rollbackExecuted)
     || (
@@ -474,8 +493,7 @@ const containedEffectsIntact = (source: ThirdPartyDataPackModLockTransactionSema
     && source.effects.savesWritten === false
     && source.effects.cacheWritten === false
     && source.effects.transactionLogWritten === false
-    && source.effects.recoveryLogRead === false
-    && source.effects.recoveryLogReplayed === false
+    && recoveryEffectsContained
     && source.effects.diagnosticsWritten === false
 }
 

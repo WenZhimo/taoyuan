@@ -324,6 +324,9 @@ const createRollback = (): ThirdPartyDataPackRollbackRecoveryExecutionSourceResu
   commandContinuationAllowed: true,
   diagnostics: [],
   effects: rollbackEffects({
+    realRecoveryLogReplayRestoreCalled: true,
+    recoveryLogRead: true,
+    recoveryLogReplayed: true,
     packageFilesRestored: true,
     rollbackExecuted: true
   })
@@ -371,6 +374,9 @@ const expectNoRealTransactionEffects = (
   expect(result.effects.savesWritten).toBe(false)
   expect(result.effects.cacheWritten).toBe(false)
   expect(result.effects.transactionLogWritten).toBe(false)
+  expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(options.rollbackRestoreAllowed === true)
+  expect(result.effects.recoveryLogRead).toBe(options.rollbackRestoreAllowed === true)
+  expect(result.effects.recoveryLogReplayed).toBe(options.rollbackRestoreAllowed === true)
   expect(result.effects.packageFilesRestored).toBe(options.rollbackRestoreAllowed === true)
   expect(result.effects.rollbackExecuted).toBe(options.rollbackRestoreAllowed === true)
   expect('postCommitUiIpcDeliveryContinuationSource' in result).toBe(false)
@@ -495,6 +501,9 @@ describe('third-party ordinary install transaction terminal connection pipeline'
     expect(result.rollbackRecoverySettled).toBe(true)
     expect(result.rollbackRecoveryExecutionAcknowledged).toBe(true)
     expect(result.effects.rollbackOutcomeAccepted).toBe(true)
+    expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(true)
+    expect(result.effects.recoveryLogRead).toBe(true)
+    expect(result.effects.recoveryLogReplayed).toBe(true)
     expect(result.effects.packageFilesRestored).toBe(true)
     expect(result.effects.rollbackExecuted).toBe(true)
     expect(result.effects.packageFilesWritten).toBe(false)

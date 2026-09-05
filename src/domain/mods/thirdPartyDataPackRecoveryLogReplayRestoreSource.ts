@@ -43,6 +43,7 @@ export interface ThirdPartyDataPackRecoveryLogReplayRestoreHostEnvelope {
 export interface ThirdPartyDataPackRecoveryLogReplayRestoreHostEffectSummary {
   readonly recoveryLogReplayRestoreHostCalled: boolean
   readonly recoveryLogReplayRestoreHostAccepted: boolean
+  readonly realRecoveryLogReplayRestoreCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -52,7 +53,7 @@ export interface ThirdPartyDataPackRecoveryLogReplayRestoreHostEffectSummary {
   readonly candidateRegistryExposed: false
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
-  readonly packageFilesRestored: false
+  readonly packageFilesRestored: boolean
   readonly lockfileWritten: false
   readonly lockfileRestored: false
   readonly settingsWritten: false
@@ -60,9 +61,9 @@ export interface ThirdPartyDataPackRecoveryLogReplayRestoreHostEffectSummary {
   readonly savesWritten: false
   readonly cacheWritten: false
   readonly transactionLogWritten: false
-  readonly recoveryLogRead: false
-  readonly recoveryLogReplayed: false
-  readonly rollbackExecuted: false
+  readonly recoveryLogRead: boolean
+  readonly recoveryLogReplayed: boolean
+  readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
 
@@ -98,7 +99,7 @@ export interface ThirdPartyDataPackRecoveryLogReplayRestoreSourceEffectSummary {
   readonly recoveryLogReplayRestoreHostAccepted: boolean
   readonly appBootstrapContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
-  readonly realRecoveryLogReplayRestoreCalled: false
+  readonly realRecoveryLogReplayRestoreCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -119,7 +120,7 @@ export interface ThirdPartyDataPackRecoveryLogReplayRestoreSourceEffectSummary {
   readonly uiIpcResponseDelivered: false
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
-  readonly packageFilesRestored: false
+  readonly packageFilesRestored: boolean
   readonly lockfileWritten: false
   readonly lockfileRestored: false
   readonly settingsWritten: false
@@ -127,9 +128,9 @@ export interface ThirdPartyDataPackRecoveryLogReplayRestoreSourceEffectSummary {
   readonly savesWritten: false
   readonly cacheWritten: false
   readonly transactionLogWritten: false
-  readonly recoveryLogRead: false
-  readonly recoveryLogReplayed: false
-  readonly rollbackExecuted: false
+  readonly recoveryLogRead: boolean
+  readonly recoveryLogReplayed: boolean
+  readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
 
@@ -583,6 +584,17 @@ const hostEffectsContained = (
     if (!('value' in descriptor)) return false
     if (key === 'recoveryLogReplayRestoreHostCalled') return descriptor.value === true
     if (key === 'recoveryLogReplayRestoreHostAccepted') return descriptor.value === accepted
+    if (
+      key === 'realRecoveryLogReplayRestoreCalled'
+      || key === 'packageFilesRestored'
+      || key === 'recoveryLogRead'
+      || key === 'recoveryLogReplayed'
+      || key === 'rollbackExecuted'
+    ) {
+      return accepted
+        ? typeof descriptor.value === 'boolean'
+        : descriptor.value === false
+    }
     return descriptor.value === false
   })
 }
@@ -656,6 +668,7 @@ const effectSummary = (
   hostResult?: ThirdPartyDataPackRecoveryLogReplayRestoreHostResult
 ): ThirdPartyDataPackRecoveryLogReplayRestoreSourceEffectSummary => {
   const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
+  const recoveryEffectsAllowed = commandContinuationAllowed === true
   return Object.freeze({
     recoveryLogReplayRestoreSourceCalled: true,
     recoveryLogReplayRestoreAdapterSourceCalled: sourceCalled,
@@ -665,7 +678,8 @@ const effectSummary = (
       readOwnBooleanField(hostEffects, 'recoveryLogReplayRestoreHostAccepted') ?? false,
     appBootstrapContinuationAllowed,
     commandContinuationAllowed,
-    realRecoveryLogReplayRestoreCalled: false,
+    realRecoveryLogReplayRestoreCalled: recoveryEffectsAllowed
+      && readOwnBooleanField(hostEffects, 'realRecoveryLogReplayRestoreCalled') === true,
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: false,
     liveRegistryMutated: false,
@@ -686,7 +700,8 @@ const effectSummary = (
     uiIpcResponseDelivered: false,
     packageFilesWritten: false,
     packageBackupsWritten: false,
-    packageFilesRestored: false,
+    packageFilesRestored: recoveryEffectsAllowed
+      && readOwnBooleanField(hostEffects, 'packageFilesRestored') === true,
     lockfileWritten: false,
     lockfileRestored: false,
     settingsWritten: false,
@@ -694,9 +709,12 @@ const effectSummary = (
     savesWritten: false,
     cacheWritten: false,
     transactionLogWritten: false,
-    recoveryLogRead: false,
-    recoveryLogReplayed: false,
-    rollbackExecuted: false,
+    recoveryLogRead: recoveryEffectsAllowed
+      && readOwnBooleanField(hostEffects, 'recoveryLogRead') === true,
+    recoveryLogReplayed: recoveryEffectsAllowed
+      && readOwnBooleanField(hostEffects, 'recoveryLogReplayed') === true,
+    rollbackExecuted: recoveryEffectsAllowed
+      && readOwnBooleanField(hostEffects, 'rollbackExecuted') === true,
     diagnosticsWritten: false
   })
 }
@@ -861,7 +879,7 @@ const evaluateRecoveryLogReplayRestoreSource = async(
     if (safeAcceptedHostResult(source, hostResult)) {
       return baseResult({
         status: 'executed',
-        reason: 'third-party recovery log replay restore source accepted an injected path-free recovery host result',
+        reason: 'third-party recovery log replay restore source accepted contained recovery host evidence',
         enabled: true,
         sourceCalled: true,
         source,

@@ -56,7 +56,7 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionHostEffectSummary {
   readonly rollbackRecoveryExecutionAcknowledged: boolean
   readonly commandContinuationAllowed: boolean
   readonly uiIpcResultContinuationAllowed: boolean
-  readonly realRecoveryLogReplayRestoreCalled: false
+  readonly realRecoveryLogReplayRestoreCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -87,8 +87,8 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionHostEffectSummary {
   readonly savesWritten: false
   readonly cacheWritten: false
   readonly transactionLogWritten: false
-  readonly recoveryLogRead: false
-  readonly recoveryLogReplayed: false
+  readonly recoveryLogRead: boolean
+  readonly recoveryLogReplayed: boolean
   readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
@@ -143,7 +143,7 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionEffectSummary {
   readonly rollbackOutcomeAccepted: boolean
   readonly recoveryLogReplayRestoreHostCalled: boolean
   readonly recoveryLogReplayRestoreHostAccepted: boolean
-  readonly realRecoveryLogReplayRestoreCalled: false
+  readonly realRecoveryLogReplayRestoreCalled: boolean
   readonly officialRegistryPublished: false
   readonly thirdPartyRegistryPublished: false
   readonly liveRegistryMutated: false
@@ -174,8 +174,8 @@ export interface ThirdPartyDataPackRollbackRecoveryExecutionEffectSummary {
   readonly savesWritten: false
   readonly cacheWritten: false
   readonly transactionLogWritten: false
-  readonly recoveryLogRead: false
-  readonly recoveryLogReplayed: false
+  readonly recoveryLogRead: boolean
+  readonly recoveryLogReplayed: boolean
   readonly rollbackExecuted: boolean
   readonly diagnosticsWritten: false
 }
@@ -522,6 +522,41 @@ const noRealRecoveryOrWriteDrift = (
   && readOwnBooleanField(effects, 'rollbackExecuted') === false
   && readOwnBooleanField(effects, 'diagnosticsWritten') === false
 
+const recoverySettlementEffectsContained = (
+  source: ThirdPartyDataPackRollbackRecoverySettlementSourceResult
+): boolean => {
+  const effects = source.effects
+  const realRecovery = readOwnBooleanField(effects, 'realRecoveryLogReplayRestoreCalled') ?? false
+  const packageFilesRestored = readOwnBooleanField(effects, 'packageFilesRestored') ?? false
+  const recoveryLogRead = readOwnBooleanField(effects, 'recoveryLogRead') ?? false
+  const recoveryLogReplayed = readOwnBooleanField(effects, 'recoveryLogReplayed') ?? false
+  const rollbackExecuted = readOwnBooleanField(effects, 'rollbackExecuted') ?? false
+  const recoveryEffectsContained = realRecovery
+    ? recoveryLogRead === true
+      && recoveryLogReplayed === true
+      && packageFilesRestored === rollbackExecuted
+    : packageFilesRestored === false
+      && recoveryLogRead === false
+      && recoveryLogReplayed === false
+      && rollbackExecuted === false
+
+  return recoveryEffectsContained
+    && readOwnBooleanField(effects, 'transactionCommitted') === false
+    && readOwnBooleanField(effects, 'transactionLogPrepared') === false
+    && readOwnBooleanField(effects, 'runtimePublicationCommitted') === false
+    && readOwnBooleanField(effects, 'postCommitVerificationExecuted') === false
+    && readOwnBooleanField(effects, 'uiIpcResponseDelivered') === false
+    && readOwnBooleanField(effects, 'packageFilesWritten') === false
+    && readOwnBooleanField(effects, 'lockfileWritten') === false
+    && readOwnBooleanField(effects, 'lockfileRestored') === false
+    && readOwnBooleanField(effects, 'settingsWritten') === false
+    && readOwnBooleanField(effects, 'settingsRestored') === false
+    && readOwnBooleanField(effects, 'savesWritten') === false
+    && readOwnBooleanField(effects, 'cacheWritten') === false
+    && readOwnBooleanField(effects, 'transactionLogWritten') === false
+    && readOwnBooleanField(effects, 'diagnosticsWritten') === false
+}
+
 const safeCommittedSettlement = (
   source: ThirdPartyDataPackRollbackRecoverySettlementSourceResult
 ): boolean => source.status === 'skipped'
@@ -547,7 +582,7 @@ const safeReadySettlement = (
   && source.candidateHash !== undefined
   && source.candidateIdentity.candidateHash === source.candidateHash
   && source.lockfileHash !== undefined
-  && noRealRecoveryOrWriteDrift(source.effects)
+  && recoverySettlementEffectsContained(source)
   && !hasForbiddenField(source, forbiddenSettlementFields)
 
 const hostEffectsContained = (
@@ -575,6 +610,15 @@ const hostEffectsContained = (
     if (key === 'rollbackRecoveryExecutionAcknowledged') return descriptor.value === accepted
     if (key === 'commandContinuationAllowed') return descriptor.value === accepted
     if (key === 'uiIpcResultContinuationAllowed') return descriptor.value === accepted
+    if (
+      key === 'realRecoveryLogReplayRestoreCalled'
+      || key === 'recoveryLogRead'
+      || key === 'recoveryLogReplayed'
+    ) {
+      return accepted
+        ? typeof descriptor.value === 'boolean'
+        : descriptor.value === false
+    }
     if (key === 'packageFilesRestored') return accepted
       ? typeof descriptor.value === 'boolean'
       : descriptor.value === false
@@ -686,7 +730,11 @@ const effectSummary = (
       readOwnBooleanField(settlementEffects, 'recoveryLogReplayRestoreHostCalled') ?? false,
     recoveryLogReplayRestoreHostAccepted:
       readOwnBooleanField(settlementEffects, 'recoveryLogReplayRestoreHostAccepted') ?? false,
-    realRecoveryLogReplayRestoreCalled: false,
+    realRecoveryLogReplayRestoreCalled: executed
+      && (
+        readOwnBooleanField(settlementEffects, 'realRecoveryLogReplayRestoreCalled') === true
+        || readOwnBooleanField(hostEffects, 'realRecoveryLogReplayRestoreCalled') === true
+      ),
     officialRegistryPublished: false,
     thirdPartyRegistryPublished: false,
     liveRegistryMutated: false,
@@ -719,8 +767,16 @@ const effectSummary = (
     savesWritten: false,
     cacheWritten: false,
     transactionLogWritten: false,
-    recoveryLogRead: false,
-    recoveryLogReplayed: false,
+    recoveryLogRead: executed
+      && (
+        readOwnBooleanField(settlementEffects, 'recoveryLogRead') === true
+        || readOwnBooleanField(hostEffects, 'recoveryLogRead') === true
+      ),
+    recoveryLogReplayed: executed
+      && (
+        readOwnBooleanField(settlementEffects, 'recoveryLogReplayed') === true
+        || readOwnBooleanField(hostEffects, 'recoveryLogReplayed') === true
+      ),
     rollbackExecuted: executed
       ? readOwnBooleanField(hostEffects, 'rollbackExecuted') ?? false
       : false,
@@ -885,7 +941,7 @@ const evaluateRollbackRecoveryExecutionSource = async(
       source,
       diagnostics: [
         ...sourceDiagnostics,
-        ...(!noRealRecoveryOrWriteDrift(source.effects) || hasForbiddenField(source, forbiddenSettlementFields)
+        ...(!recoverySettlementEffectsContained(source) || hasForbiddenField(source, forbiddenSettlementFields)
           ? [
               commandDiagnostic(
                 'third-party.rollback-recovery-execution-source.unsafe-settlement-source',

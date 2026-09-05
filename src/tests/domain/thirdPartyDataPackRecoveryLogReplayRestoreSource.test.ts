@@ -117,6 +117,7 @@ const hostEffects = (
 ): ThirdPartyDataPackRecoveryLogReplayRestoreHostEffectSummary => ({
   recoveryLogReplayRestoreHostCalled: true,
   recoveryLogReplayRestoreHostAccepted: true,
+  realRecoveryLogReplayRestoreCalled: false,
   officialRegistryPublished: false,
   thirdPartyRegistryPublished: false,
   liveRegistryMutated: false,
@@ -392,6 +393,49 @@ describe('third-party recovery log replay restore source', () => {
     expect(serialized).not.toContain('candidateRegistrySet')
     expect(serialized).not.toContain('programDirectoryPath')
     expectNoRecoveryReadsRestoresOrWrites(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('accepts contained real-host replay and package restore evidence', async() => {
+    const executeRecoveryLogReplayRestore = vi.fn(async envelope => ({
+      status: 'accepted' as const,
+      candidateHash: envelope.candidateIdentity.candidateHash,
+      lockfileHash,
+      replayRestoreStageIds: envelope.replayRestoreStageIds,
+      requiredReplayRestoreAdapterIds: envelope.requiredReplayRestoreAdapterIds,
+      diagnostics: [],
+      effects: hostEffects({
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
+        packageFilesRestored: true,
+        rollbackExecuted: true
+      })
+    }))
+    const source = createThirdPartyDataPackRecoveryLogReplayRestoreSource({
+      enabled: true,
+      readRecoveryLogReplayRestoreAdapter: async() => createDeferredAdapterResult(),
+      executeRecoveryLogReplayRestore
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('executed')
+    expect(result.reason).toContain('contained recovery host evidence')
+    expect(result.commandContinuationAllowed).toBe(true)
+    expect(result.effects.recoveryLogReplayRestoreHostCalled).toBe(true)
+    expect(result.effects.recoveryLogReplayRestoreHostAccepted).toBe(true)
+    expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(true)
+    expect(result.effects.recoveryLogRead).toBe(true)
+    expect(result.effects.recoveryLogReplayed).toBe(true)
+    expect(result.effects.packageFilesRestored).toBe(true)
+    expect(result.effects.rollbackExecuted).toBe(true)
+    expect(result.effects.transactionCommitted).toBe(false)
+    expect(result.effects.runtimePublicationCommitted).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
     expectJsonGraphFrozen(result)
   })
 

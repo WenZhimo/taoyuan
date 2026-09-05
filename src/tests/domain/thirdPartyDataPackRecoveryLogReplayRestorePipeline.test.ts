@@ -96,6 +96,7 @@ const hostEffects = (
 ): ThirdPartyDataPackRecoveryLogReplayRestoreHostEffectSummary => ({
   recoveryLogReplayRestoreHostCalled: true,
   recoveryLogReplayRestoreHostAccepted: true,
+  realRecoveryLogReplayRestoreCalled: false,
   officialRegistryPublished: false,
   thirdPartyRegistryPublished: false,
   liveRegistryMutated: false,

@@ -279,7 +279,8 @@ const electronScenarios = [
     cacheSeed: 'valid',
     packageFileRestore: true,
     ordinaryInstallTerminalConnection: true,
-    ordinaryInstallTerminalRollback: true
+    ordinaryInstallTerminalRollback: true,
+    ordinaryInstallTerminalRegistryCount: defaultStartupGateRegistryCount
   },
   {
     name: 'visible-import-renderer-live-registry',
@@ -3523,6 +3524,7 @@ const assertElectronOrdinaryInstallTerminalConnectionProbe = (
       'ordinaryInstallTransactionReady',
       'successOutcomeAccepted',
       'rollbackOutcomeAccepted',
+      'realRecoveryLogReplayRestoreCalled',
       'packageFilesWritten',
       'packageFilesRestored',
       'settingsWritten',
@@ -3533,6 +3535,8 @@ const assertElectronOrdinaryInstallTerminalConnectionProbe = (
       'transactionCommitted',
       'transactionLogCommitted',
       'runtimePublicationCommitted',
+      'recoveryLogRead',
+      'recoveryLogReplayed',
       'savesWritten',
       'cacheWritten',
       'transactionLogWritten',
@@ -3575,7 +3579,9 @@ const assertElectronOrdinaryInstallTerminalConnectionProbe = (
       `${scenario.name}: ordinary install terminal rollback blocked packages unexpectedly`)
     assert(probe.loadOrderCount === 1,
       `${scenario.name}: ordinary install terminal rollback load order count mismatch`)
-    assert(probe.registryCount === 55,
+    assert(probe.registryCount === (
+      scenario.ordinaryInstallTerminalRegistryCount ?? 55
+    ),
       `${scenario.name}: ordinary install terminal rollback registry count mismatch`)
     assert(probe.entryCount === 4243,
       `${scenario.name}: ordinary install terminal rollback entry count mismatch`)
@@ -3616,6 +3622,9 @@ const assertElectronOrdinaryInstallTerminalConnectionProbe = (
     for (const effectName of [
       'ordinaryInstallTransactionReady',
       'rollbackOutcomeAccepted',
+      'realRecoveryLogReplayRestoreCalled',
+      'recoveryLogRead',
+      'recoveryLogReplayed',
       'packageFilesRestored',
       'rollbackExecuted'
     ]) {
@@ -3728,6 +3737,9 @@ const assertElectronOrdinaryInstallTerminalConnectionProbe = (
   }
   for (const effectName of [
     'rollbackOutcomeAccepted',
+    'realRecoveryLogReplayRestoreCalled',
+    'recoveryLogRead',
+    'recoveryLogReplayed',
     'packageFilesRestored',
     'runtimePublicationCommitted',
     'savesWritten',

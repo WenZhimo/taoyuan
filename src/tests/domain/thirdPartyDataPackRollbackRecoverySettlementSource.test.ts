@@ -390,6 +390,41 @@ describe('third-party rollback recovery settlement source', () => {
     expectJsonGraphFrozen(result)
   })
 
+  it('propagates contained real recovery replay and restore evidence', async() => {
+    const readAtomicTransactionCommitOutcomeContract = vi.fn(async() => createCommitOutcome())
+    const readRecoveryLogReplayRestoreSource = vi.fn(async() => createRecoverySource({
+      reason: 'third-party recovery log replay restore source accepted contained recovery host evidence',
+      effects: recoveryEffects({
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
+        packageFilesRestored: true,
+        rollbackExecuted: true
+      })
+    }))
+    const source = createThirdPartyDataPackRollbackRecoverySettlementSource({
+      enabled: true,
+      readAtomicTransactionCommitOutcomeContract,
+      readRecoveryLogReplayRestoreSource
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('ready')
+    expect(result.effects.realRecoveryLogReplayRestoreCalled).toBe(true)
+    expect(result.effects.recoveryLogRead).toBe(true)
+    expect(result.effects.recoveryLogReplayed).toBe(true)
+    expect(result.effects.packageFilesRestored).toBe(true)
+    expect(result.effects.rollbackExecuted).toBe(true)
+    expect(result.effects.transactionCommitted).toBe(false)
+    expect(result.effects.runtimePublicationCommitted).toBe(false)
+    expect(result.effects.settingsWritten).toBe(false)
+    expect(result.effects.lockfileWritten).toBe(false)
+    expect(result.effects.savesWritten).toBe(false)
+    expect(result.effects.cacheWritten).toBe(false)
+    expectJsonGraphFrozen(result)
+  })
+
   it('blocks candidate drift before allowing rollback continuation', async() => {
     const readAtomicTransactionCommitOutcomeContract = vi.fn(async() => createCommitOutcome())
     const readRecoveryLogReplayRestoreSource = vi.fn(async() => createRecoverySource({
