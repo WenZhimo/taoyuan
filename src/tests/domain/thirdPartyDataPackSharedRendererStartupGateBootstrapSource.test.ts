@@ -684,7 +684,7 @@ describe('third-party shared renderer startup gate bootstrap source', () => {
     expect(result.effects.runtimeEnablementAllowed).toBe(true)
     expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
     expect(result.effects.realNormalStartupHostCalled).toBe(true)
-    expect(result.effects.uiIpcResponseDelivered).toBe(false)
+    expect(result.effects.uiIpcResponseDelivered).toBe(true)
     expect(result.effects.transactionCommitted).toBe(false)
     expect(result.effects.runtimePublicationCommitted).toBe(true)
     expect(result.effects.packageFilesWritten).toBe(false)

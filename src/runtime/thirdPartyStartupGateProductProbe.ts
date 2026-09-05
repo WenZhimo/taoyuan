@@ -2058,6 +2058,9 @@ export const createThirdPartyStartupPersistentStateProductProbeBootstrapSource =
         : { persistentStateProofs: startupPersistentStateSource.persistentStateProofs }),
       effects: Object.freeze({
         ...result.effects,
+        uiIpcResponseDelivered:
+          result.effects.uiIpcResponseDelivered
+          || webResponseDeliveryStartupGateHandoff.effects.uiIpcResponseDelivered,
         startupPersistentStateSourceCalled:
           result.effects.startupPersistentStateSourceCalled
           || startupPersistentStateSource.sourceCalled,

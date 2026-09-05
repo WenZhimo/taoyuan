@@ -515,6 +515,7 @@ describe('official content runtime report', () => {
         appBootstrapContinuationAllowed: true,
         startupPersistentStateSourceCalled: true,
         startupStateSnapshotAccepted: true,
+        uiIpcResponseDelivered: true,
         thirdPartyRegistryPublished: true,
         liveRegistrySwapped: true,
         runtimeEnablementAllowed: true
@@ -544,6 +545,7 @@ describe('official content runtime report', () => {
         appStartupHostConnectionAccepted: true,
         startupPersistentStateSourceCalled: true,
         startupStateSnapshotAccepted: true,
+        uiIpcResponseDelivered: true,
         thirdPartyRegistryPublished: true,
         liveRegistrySwapped: true,
         runtimeEnablementAllowed: true,

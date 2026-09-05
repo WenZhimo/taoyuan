@@ -2898,8 +2898,16 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
         `${scenario.name}: startup gate effect ${effectName} was not false`)
     }
   }
+  const expectsStartupGateUiIpcResponseDelivery =
+    !!scenario.startupGateReady
+    && !!scenario.startupPersistentStateReady
+    && scenario.startupPersistentStateExpectsResponseDeliveryHandoff !== false
+  assert(
+    thirdPartyStartupGate.effects?.uiIpcResponseDelivered === expectsStartupGateUiIpcResponseDelivery,
+    `${scenario.name}: startup gate UI/IPC response delivery effect mismatch`
+  )
+
   for (const effectName of [
-    'uiIpcResponseDelivered',
     'commandDispatched',
     'transactionCommitted',
     'packageFilesWritten',
