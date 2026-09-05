@@ -579,7 +579,9 @@ const hostEffectsContained = (
     if (!('value' in descriptor)) return false
     if (key === 'liveRegistrySwapHostCalled') return descriptor.value === true
     if (key === 'liveRegistrySwapHostAccepted') return descriptor.value === swapped
-    if (key === 'thirdPartyRegistryPublished') return descriptor.value === (swapped && commandId === 'install')
+    if (key === 'thirdPartyRegistryPublished') {
+      return descriptor.value === (swapped && (commandId === 'install' || commandId === 'enable'))
+    }
     if (key === 'liveRegistryMutated') return descriptor.value === swapped
     if (key === 'liveRegistrySwapped') return descriptor.value === swapped
     if (key === 'runtimeEnablementAllowed') return descriptor.value === swapped
@@ -684,7 +686,7 @@ const effectSummary = (
   liveRegistrySwapHostAccepted: hostAccepted,
   appBootstrapContinuationAllowed: continuationAllowed,
   commandContinuationAllowed: continuationAllowed,
-  thirdPartyRegistryPublished: hostAccepted && commandId === 'install',
+  thirdPartyRegistryPublished: hostAccepted && (commandId === 'install' || commandId === 'enable'),
   liveRegistryMutated: hostAccepted,
   liveRegistrySwapped: hostAccepted,
   runtimeEnablementAllowed: hostAccepted,

@@ -366,6 +366,7 @@ const createSnapshotFile = () => ({
 const createSettingsFile = () => ({
   closeToTray: false,
   thirdPartyDataPacks: {
+    commandId: 'install',
     candidateHash: candidateIdentity.candidateHash,
     lockfileHash,
     selectedPackageIds: [packageId],

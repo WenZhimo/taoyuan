@@ -7,6 +7,10 @@ import type {
 import type {
   ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
 } from './thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
@@ -70,7 +74,7 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSourceResult {
   readonly startupPersistentStateSourceHostMode?:
     ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['startupPersistentStateSourceHostMode']
   readonly injectedSourceHostMode?: ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['injectedSourceHostMode']
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -565,7 +569,9 @@ const baseResult = (
       ? {}
       : { startupPersistentStateSourceHostMode }),
     ...(injectedSourceHostMode === undefined ? {} : { injectedSourceHostMode }),
-    requestedCommandId: readOwnStringField(options.source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.source, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,

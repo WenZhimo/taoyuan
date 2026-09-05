@@ -7,6 +7,10 @@ import type {
 import type {
   ThirdPartyDataPackStartupGateHandoffPreflightResult
 } from './thirdPartyDataPackStartupGateHandoffPreflight'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind,
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
@@ -165,7 +169,7 @@ export interface ThirdPartyDataPackStartupGatePersistentStatePreflightResult {
   readonly runtimeEnablementAllowed: false
   readonly writeAllowed: false
   readonly rollbackRecoveryAllowed: false
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly envelopeKind?: ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind
   readonly messageKey?: string
@@ -454,9 +458,9 @@ const noStartupReadWriteEffects = (
     'startupGateHandoffPrepared'
   ])
 
-const installTargetPresent = (
+const enabledCommandTargetPresent = (
   source: ThirdPartyDataPackStartupGateHandoffPreflightResult
-): boolean => source.requestedCommandId === 'install'
+): boolean => readThirdPartyDataPackEnabledRuntimeCommandId(source.requestedCommandId) !== undefined
   && source.targetPackageId !== undefined
   && clonePackageIds(source.selectedPackageIds).includes(source.targetPackageId)
 
@@ -500,8 +504,8 @@ const buildChecks = (
   ),
   check(
     'install-target-present',
-    installTargetPresent(source) ? 'satisfied' : 'blocked',
-    'Persistent startup state sources need the selected install target that startup must reconcile.'
+    enabledCommandTargetPresent(source) ? 'satisfied' : 'blocked',
+    'Persistent startup state sources need the selected enabled package target that startup must reconcile.'
   ),
   check(
     'candidate-identity-present',
@@ -819,7 +823,7 @@ const baseResult = (
     runtimeEnablementAllowed: false,
     writeAllowed: false,
     rollbackRecoveryAllowed: false,
-    requestedCommandId: source.requestedCommandId === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(source.requestedCommandId),
     targetPackageId: source.targetPackageId,
     envelopeKind: source.envelopeKind,
     messageKey: source.messageKey,

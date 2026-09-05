@@ -11,7 +11,10 @@ import type {
   ThirdPartyDataPackStartupGatePersistentStateSnapshotSource,
   ThirdPartyDataPackStartupGatePersistentStateSourceRequest
 } from './thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
-import type { ThirdPartyDataPackRuntimeCommandId } from './thirdPartyDataPackRuntimeCommandState'
+import {
+  isThirdPartyDataPackRuntimeCommandId,
+  type ThirdPartyDataPackRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -163,7 +166,7 @@ const cloneStartupStateRequest = (
 
   if (
     formatVersion !== 1
-    || (commandId !== 'install' && commandId !== 'disable' && commandId !== 'uninstall')
+    || !isThirdPartyDataPackRuntimeCommandId(commandId)
     || !isPackageId(packageId)
     || candidateIdentity === undefined
     || !isSha256Hash(lockfileHash)

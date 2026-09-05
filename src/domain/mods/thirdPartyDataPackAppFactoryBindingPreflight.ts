@@ -16,6 +16,10 @@ import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 export const THIRD_PARTY_DATA_PACK_APP_FACTORY_BINDING_PREFLIGHT_KIND =
   'app-factory-binding-preflight'
@@ -172,7 +176,7 @@ export interface ThirdPartyDataPackAppFactoryBindingPreflightResult {
   readonly runtimeEnablementAllowed: false
   readonly writeAllowed: false
   readonly rollbackRecoveryAllowed: false
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -924,7 +928,9 @@ const baseResult = (
     runtimeEnablementAllowed: false,
     writeAllowed: false,
     rollbackRecoveryAllowed: false,
-    requestedCommandId: readOwnStringField(source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(source, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,

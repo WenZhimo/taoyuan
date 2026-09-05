@@ -15,6 +15,9 @@ const dispatchThirdPartyDataPackInstallCommand = envelope =>
 const disableThirdPartyDataPack = envelope =>
   ipcRenderer.invoke('third-party-data-pack-disable-command', envelope)
 
+const enableThirdPartyDataPack = envelope =>
+  ipcRenderer.invoke('third-party-data-pack-enable-command', envelope)
+
 const uninstallThirdPartyDataPack = envelope =>
   ipcRenderer.invoke('third-party-data-pack-uninstall-command', envelope)
 
@@ -61,6 +64,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Disable command persistence is restricted to one fixed userdata channel.
   disableThirdPartyDataPack,
+
+  // Enable command persistence is restricted to one fixed userdata channel.
+  enableThirdPartyDataPack,
 
   // Uninstall command persistence is restricted to one fixed userdata channel.
   uninstallThirdPartyDataPack,

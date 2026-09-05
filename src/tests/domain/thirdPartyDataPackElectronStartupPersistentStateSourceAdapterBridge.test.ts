@@ -363,22 +363,35 @@ const createSnapshotFile = () => ({
   saveCache: { isolated: true }
 })
 
-const createSettingsFile = () => ({
+const createSettingsFile = (
+  overrides: Record<string, unknown> = {}
+) => ({
   closeToTray: false,
   thirdPartyDataPacks: {
+    commandId: 'install',
     candidateHash: candidateIdentity.candidateHash,
     lockfileHash,
     selectedPackageIds: [packageId],
-    loadOrder: [packageId]
+    loadOrder: [packageId],
+    ...overrides
   }
 })
 
-const writeSnapshot = async(root: string): Promise<void> => {
+const writeSnapshot = async(
+  root: string,
+  options: {
+    readonly settingsOverrides?: Record<string, unknown>
+  } = {}
+): Promise<void> => {
   const paths = resolveThirdPartyDataPackElectronStartupPersistentStateSourceHostPaths(root)
   await mkdir(paths.startupStateDirectoryPath, { recursive: true })
   await writeFile(paths.snapshotFilePath, `${JSON.stringify(createSnapshotFile(), null, 2)}\n`, 'utf8')
   await mkdir(paths.userDataPath, { recursive: true })
-  await writeFile(paths.settingsFilePath, `${JSON.stringify(createSettingsFile(), null, 2)}\n`, 'utf8')
+  await writeFile(paths.settingsFilePath, `${JSON.stringify(
+    createSettingsFile(options.settingsOverrides),
+    null,
+    2
+  )}\n`, 'utf8')
   await writeFile(paths.modLockFilePath, `${JSON.stringify(modLockDraft, null, 2)}\n`, 'utf8')
 }
 
@@ -466,6 +479,43 @@ describe('third-party Electron startup persistent state source adapter bridge', 
     expect(result.effects.startupStateSnapshotNormalized).toBe(true)
     expect('electronHost' in result).toBe(false)
     expect('programDirectoryPath' in result).toBe(false)
+    expect(JSON.stringify(result)).not.toContain(root)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expectNoRealStartupWrites(result)
+  })
+
+  it('passes an enable startup request through the Electron source bridge', async() => {
+    const root = await createRoot()
+    await writeSnapshot(root, {
+      settingsOverrides: {
+        commandId: 'enable'
+      }
+    })
+    const electronHost = createThirdPartyDataPackElectronStartupPersistentStateSourceHost({
+      programDirectoryPath: root
+    })
+    const bridge = createThirdPartyDataPackElectronStartupPersistentStateSourceAdapterBridge(electronHost)
+
+    const result = await executeThirdPartyDataPackStartupGatePersistentStateSourceAdapter({
+      preflight: createPreflight({
+        requestedCommandId: 'enable'
+      }),
+      host: bridge.host
+    })
+
+    expect(result.status).toBe('executed')
+    expect(result.startupStateSnapshot).toEqual(expect.objectContaining({
+      kind: 'startup-persistent-state-snapshot',
+      commandId: 'enable',
+      packageId,
+      candidateHash: candidateIdentity.candidateHash,
+      lockfileHash,
+      messageKey: 'mods.startup.persistent.state.electron.ready'
+    }))
+    expect(result.startupStateRequest?.commandId).toBe('enable')
+    expect(result.sourceHostCalled).toBe(true)
+    expect(result.startupStateSnapshotReceived).toBe(true)
+    expect(result.startupStateSnapshotNormalized).toBe(true)
     expect(JSON.stringify(result)).not.toContain(root)
     expect(JSON.stringify(result)).not.toContain('C:/Users')
     expectNoRealStartupWrites(result)

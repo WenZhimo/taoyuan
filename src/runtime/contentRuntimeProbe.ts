@@ -208,6 +208,7 @@ export interface ThirdPartyVisibleImportPanelStatusLabels {
   startupPersistentStateStatus?: string
   installedManagementStatus?: string
   disableResult?: string
+  enableResult?: string
   uninstallResult?: string
 }
 
@@ -305,6 +306,21 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   disableRuntimePublicationExcluded?: boolean
   disableLiveRegistrySwapped?: boolean
   disableAppStartupHandoffAccepted?: boolean
+  enableTerminalStatus?: 'ready' | 'blocked'
+  enableTargetPackageId?: string
+  enableSelectedPackageCount?: number
+  enableBlockedPackageCount?: number
+  enableLoadOrderCount?: number
+  enableRegistryCount?: number
+  enableEntryCount?: number
+  enablePackageCount?: number
+  enableSettingsWritten?: boolean
+  enableLockfileWritten?: boolean
+  enableStartupStateWritten?: boolean
+  enablePackageFilesPreserved?: boolean
+  enableRuntimePublicationIncluded?: boolean
+  enableLiveRegistrySwapped?: boolean
+  enableAppStartupHandoffAccepted?: boolean
   uninstallTerminalStatus?: 'ready' | 'blocked'
   uninstallTargetPackageId?: string
   uninstallSelectedPackageCount?: number
@@ -529,6 +545,7 @@ const readVisibleImportPanelStatusLabels = (
   const startupPersistentStateStatus = readOwnStringField(labels, 'startupPersistentStateStatus')
   const installedManagementStatus = readOwnStringField(labels, 'installedManagementStatus')
   const disableResult = readOwnStringField(labels, 'disableResult')
+  const enableResult = readOwnStringField(labels, 'enableResult')
   const uninstallResult = readOwnStringField(labels, 'uninstallResult')
   return {
     ...(importStatus !== undefined ? { importStatus } : {}),
@@ -545,6 +562,7 @@ const readVisibleImportPanelStatusLabels = (
     ...(startupPersistentStateStatus !== undefined ? { startupPersistentStateStatus } : {}),
     ...(installedManagementStatus !== undefined ? { installedManagementStatus } : {}),
     ...(disableResult !== undefined ? { disableResult } : {}),
+    ...(enableResult !== undefined ? { enableResult } : {}),
     ...(uninstallResult !== undefined ? { uninstallResult } : {})
   }
 }
@@ -1078,6 +1096,21 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const disableRuntimePublicationExcluded = readOwnBooleanField(result, 'disableRuntimePublicationExcluded')
   const disableLiveRegistrySwapped = readOwnBooleanField(result, 'disableLiveRegistrySwapped')
   const disableAppStartupHandoffAccepted = readOwnBooleanField(result, 'disableAppStartupHandoffAccepted')
+  const enableTerminalStatus = readOwnStringField(result, 'enableTerminalStatus')
+  const enableTargetPackageId = readOwnStringField(result, 'enableTargetPackageId')
+  const enableSelectedPackageCount = readOwnNumberField(result, 'enableSelectedPackageCount')
+  const enableBlockedPackageCount = readOwnNumberField(result, 'enableBlockedPackageCount')
+  const enableLoadOrderCount = readOwnNumberField(result, 'enableLoadOrderCount')
+  const enableRegistryCount = readOwnNumberField(result, 'enableRegistryCount')
+  const enableEntryCount = readOwnNumberField(result, 'enableEntryCount')
+  const enablePackageCount = readOwnNumberField(result, 'enablePackageCount')
+  const enableSettingsWritten = readOwnBooleanField(result, 'enableSettingsWritten')
+  const enableLockfileWritten = readOwnBooleanField(result, 'enableLockfileWritten')
+  const enableStartupStateWritten = readOwnBooleanField(result, 'enableStartupStateWritten')
+  const enablePackageFilesPreserved = readOwnBooleanField(result, 'enablePackageFilesPreserved')
+  const enableRuntimePublicationIncluded = readOwnBooleanField(result, 'enableRuntimePublicationIncluded')
+  const enableLiveRegistrySwapped = readOwnBooleanField(result, 'enableLiveRegistrySwapped')
+  const enableAppStartupHandoffAccepted = readOwnBooleanField(result, 'enableAppStartupHandoffAccepted')
   const uninstallTerminalStatus = readOwnStringField(result, 'uninstallTerminalStatus')
   const uninstallTargetPackageId = readOwnStringField(result, 'uninstallTargetPackageId')
   const uninstallSelectedPackageCount = readOwnNumberField(result, 'uninstallSelectedPackageCount')
@@ -1200,6 +1233,23 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(disableRuntimePublicationExcluded === undefined ? {} : { disableRuntimePublicationExcluded }),
     ...(disableLiveRegistrySwapped === undefined ? {} : { disableLiveRegistrySwapped }),
     ...(disableAppStartupHandoffAccepted === undefined ? {} : { disableAppStartupHandoffAccepted }),
+    ...(enableTerminalStatus === 'ready' || enableTerminalStatus === 'blocked'
+      ? { enableTerminalStatus }
+      : {}),
+    ...(enableTargetPackageId === undefined ? {} : { enableTargetPackageId }),
+    ...(enableSelectedPackageCount === undefined ? {} : { enableSelectedPackageCount }),
+    ...(enableBlockedPackageCount === undefined ? {} : { enableBlockedPackageCount }),
+    ...(enableLoadOrderCount === undefined ? {} : { enableLoadOrderCount }),
+    ...(enableRegistryCount === undefined ? {} : { enableRegistryCount }),
+    ...(enableEntryCount === undefined ? {} : { enableEntryCount }),
+    ...(enablePackageCount === undefined ? {} : { enablePackageCount }),
+    ...(enableSettingsWritten === undefined ? {} : { enableSettingsWritten }),
+    ...(enableLockfileWritten === undefined ? {} : { enableLockfileWritten }),
+    ...(enableStartupStateWritten === undefined ? {} : { enableStartupStateWritten }),
+    ...(enablePackageFilesPreserved === undefined ? {} : { enablePackageFilesPreserved }),
+    ...(enableRuntimePublicationIncluded === undefined ? {} : { enableRuntimePublicationIncluded }),
+    ...(enableLiveRegistrySwapped === undefined ? {} : { enableLiveRegistrySwapped }),
+    ...(enableAppStartupHandoffAccepted === undefined ? {} : { enableAppStartupHandoffAccepted }),
     ...(uninstallTerminalStatus === 'ready' || uninstallTerminalStatus === 'blocked'
       ? { uninstallTerminalStatus }
       : {}),

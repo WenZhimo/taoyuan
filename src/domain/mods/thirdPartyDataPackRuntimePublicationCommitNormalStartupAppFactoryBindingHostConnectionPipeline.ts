@@ -15,6 +15,10 @@ import {
   ThirdPartyDataPackNormalStartupHandoffExecutionBlockedError,
   type ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult
 } from './thirdPartyDataPackNormalStartupHandoffExecutionSource'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -113,7 +117,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFacto
     ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult['status']
   readonly normalStartupHandoffHostStatus?:
     ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult['normalStartupHandoffHostStatus']
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -355,7 +359,7 @@ const safeAcceptedCommit = (
     && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
     && readOwnBooleanField(result, 'commandContinuationAllowed') === true
     && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
-    && readOwnStringField(result, 'requestedCommandId') === 'install'
+    && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(result, 'requestedCommandId')) !== undefined
     && readOwnStringField(result, 'targetPackageId') !== undefined
     && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
       readOwnStringField(result, 'targetPackageId') as PackageId
@@ -714,7 +718,9 @@ const baseResult = (
     normalStartupHandoffHostStatus: readOwnStringField(options.startupResult, 'normalStartupHandoffHostStatus') as
       | ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult['normalStartupHandoffHostStatus']
       | undefined,
-    requestedCommandId: readOwnStringField(options.commitResult, 'requestedCommandId') === 'install' ? 'install' : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.commitResult, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.commitResult, 'targetPackageId') as PackageId | undefined
       ?? readOwnStringField(options.startupResult, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,

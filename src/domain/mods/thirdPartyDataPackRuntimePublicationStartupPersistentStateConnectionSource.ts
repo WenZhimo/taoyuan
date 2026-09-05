@@ -13,6 +13,7 @@ import {
   type ThirdPartyDataPackStartupGatePersistentStateSourceResult,
   type ThirdPartyDataPackStartupGatePersistentStateSourceStatus
 } from './thirdPartyDataPackStartupGatePersistentStateSource'
+import { readThirdPartyDataPackEnabledRuntimeCommandId } from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
@@ -415,7 +416,7 @@ const safeSwappedRuntimePublicationSource = (
   return readOwnStringField(source, 'status') === 'swapped'
     && readOwnBooleanField(source, 'appBootstrapContinuationAllowed') === true
     && readOwnBooleanField(source, 'commandContinuationAllowed') === true
-    && readOwnStringField(source, 'requestedCommandId') === 'install'
+    && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(source, 'requestedCommandId')) !== undefined
     && targetPackageId !== undefined
     && selectedPackageIds.includes(targetPackageId as PackageId)
     && loadOrder.length === selectedPackageIds.length
@@ -559,7 +560,7 @@ const baseResult = (
     sourceAdapterStatus: readOwnStringField(options.startupSource, 'sourceAdapterStatus') as
       | ThirdPartyDataPackStartupGatePersistentStateSourceResult['sourceAdapterStatus']
       | undefined,
-    requestedCommandId: readOwnStringField(source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(source, 'requestedCommandId')),
     targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,

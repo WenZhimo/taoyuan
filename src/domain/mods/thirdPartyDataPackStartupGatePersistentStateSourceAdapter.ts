@@ -1,7 +1,11 @@
 import type { ModDiagnosticRecovery, ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
-import type { ThirdPartyDataPackRuntimeCommandId } from './thirdPartyDataPackRuntimeCommandState'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyCandidateIdentitySummary
 } from './thirdPartyCandidateRegistrySnapshot'
@@ -97,7 +101,7 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSnapshotSource {
 export interface ThirdPartyDataPackStartupGatePersistentStateSnapshot {
   readonly formatVersion: 1
   readonly kind: 'startup-persistent-state-snapshot'
-  readonly commandId: 'install'
+  readonly commandId: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly packageId: PackageId
   readonly candidateHash: Sha256Hash
   readonly lockfileHash: Sha256Hash
@@ -209,7 +213,7 @@ export interface ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
   readonly runtimeEnablementAllowed: false
   readonly writeAllowed: false
   readonly rollbackRecoveryAllowed: false
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -668,8 +672,10 @@ const preExecutionChecks = (
     ),
     check(
       'install-command-source',
-      preflight.requestedCommandId === 'install' ? 'satisfied' : 'blocked',
-      'This startup state source adapter only covers install commands.'
+      readThirdPartyDataPackEnabledRuntimeCommandId(preflight.requestedCommandId) !== undefined
+        ? 'satisfied'
+        : 'blocked',
+      'This startup state source adapter only covers commands that leave a package enabled.'
     ),
     check(
       'target-package-selected',
@@ -758,12 +764,13 @@ const checksWithSnapshot = (
 const buildStartupStateRequest = (
   preflight: ThirdPartyDataPackStartupGatePersistentStatePreflightResult
 ): ThirdPartyDataPackStartupGatePersistentStateSourceRequest | undefined => {
-  if (preflight.requestedCommandId !== 'install' || preflight.targetPackageId === undefined) return undefined
+  const commandId = readThirdPartyDataPackEnabledRuntimeCommandId(preflight.requestedCommandId)
+  if (commandId === undefined || preflight.targetPackageId === undefined) return undefined
   const candidateIdentity = cloneCandidateIdentity(preflight.candidateIdentity)
   if (candidateIdentity === undefined || preflight.lockfileHash === undefined) return undefined
   return deepFreezeObjectGraph({
     formatVersion: 1,
-    commandId: 'install',
+    commandId,
     packageId: preflight.targetPackageId,
     candidateIdentity,
     lockfileHash: preflight.lockfileHash,
@@ -789,7 +796,7 @@ const snapshotReady = (
   preflight: ThirdPartyDataPackStartupGatePersistentStatePreflightResult,
   snapshot: ThirdPartyDataPackStartupGatePersistentStateSnapshotSource
 ): boolean => preflight.status === 'deferred'
-  && preflight.requestedCommandId === 'install'
+  && readThirdPartyDataPackEnabledRuntimeCommandId(preflight.requestedCommandId) !== undefined
   && preflight.targetPackageId !== undefined
   && snapshot.kind === 'startup-persistent-state-snapshot'
   && snapshot.settled === true
@@ -809,10 +816,11 @@ const safeRecovery = (
   diagnosticRecoveries.has(value as ModDiagnosticRecovery) ? value as ModDiagnosticRecovery : 'none'
 
 const safeMessageKey = (
+  commandId: ThirdPartyDataPackEnabledRuntimeCommandId,
   value: string | undefined
 ): string => {
   if (value !== undefined && /^[A-Za-z0-9_.-]+$/.test(value)) return value
-  return 'mods.startup.persistent.state.install.ready'
+  return `mods.startup.persistent.state.${commandId}.ready`
 }
 
 const normalizeSnapshot = (
@@ -823,7 +831,7 @@ const normalizeSnapshot = (
 ): ThirdPartyDataPackStartupGatePersistentStateSnapshot => Object.freeze({
   formatVersion: 1,
   kind: 'startup-persistent-state-snapshot',
-  commandId: 'install',
+  commandId: readThirdPartyDataPackEnabledRuntimeCommandId(preflight.requestedCommandId)!,
   packageId: snapshot.packageId as PackageId,
   candidateHash: snapshot.candidateIdentity?.candidateHash ?? preflight.candidateIdentity?.candidateHash as Sha256Hash,
   lockfileHash: snapshot.lockfileHash ?? preflight.lockfileHash as Sha256Hash,
@@ -833,7 +841,10 @@ const normalizeSnapshot = (
   modLockStateMatched: snapshot.modLockStateMatched === true,
   liveRegistryMatched: snapshot.liveRegistryMatched === true,
   saveCacheIsolated: snapshot.saveCacheIsolated === true,
-  messageKey: safeMessageKey(snapshot.messageKey),
+  messageKey: safeMessageKey(
+    readThirdPartyDataPackEnabledRuntimeCommandId(preflight.requestedCommandId)!,
+    snapshot.messageKey
+  ),
   recovery: safeRecovery(snapshot.recovery),
   retryable: snapshot.retryable === true,
   rollbackRequired: snapshot.rollbackRequired === true,
@@ -914,7 +925,7 @@ const baseResult = (
     runtimeEnablementAllowed: false,
     writeAllowed: false,
     rollbackRecoveryAllowed: false,
-    requestedCommandId: preflight.requestedCommandId === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(preflight.requestedCommandId),
     targetPackageId: preflight.targetPackageId,
     selectedPackageIds,
     blockedPackageIds,

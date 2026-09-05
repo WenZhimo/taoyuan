@@ -16,6 +16,10 @@ import {
   type CreateThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineOptions,
   type ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult
 } from './thirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -125,7 +129,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPi
     ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipelineResult['status']
   readonly runtimePublicationCommitNormalStartupAppFactoryBindingHostConnectionStatus?:
     ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult['status']
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -738,7 +742,9 @@ const baseResult = (
     ) as
       | ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipelineResult['status']
       | undefined,
-    requestedCommandId: readOwnStringField(options.liveSwapResult, 'requestedCommandId') === 'install' ? 'install' : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.liveSwapResult, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.liveSwapResult, 'targetPackageId') as PackageId | undefined
       ?? readOwnStringField(options.normalStartupResult, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,

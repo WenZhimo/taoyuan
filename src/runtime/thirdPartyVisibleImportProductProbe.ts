@@ -5,6 +5,7 @@ import {
 } from '@/domain/mods/contentAccess'
 import type { PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackDisableTransactionResult } from '@/domain/mods/thirdPartyDataPackDisableTransaction'
+import type { ThirdPartyDataPackEnableTransactionResult } from '@/domain/mods/thirdPartyDataPackEnableTransaction'
 import type {
   ThirdPartyDataPackUninstallTransactionResult
 } from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
@@ -29,6 +30,8 @@ const recipeRegistryId = 'taoyuan:recipe'
 const shopOfferRegistryId = 'taoyuan:shop_offer'
 export const visibleImportPanelProbeResultEventName =
   'taoyuan:third-party-visible-import-panel-result'
+export const visibleEnablePanelProbeResultEventName =
+  'taoyuan:third-party-visible-enable-panel-result'
 
 type VisibleImportProductProbeEntrypoint = 'composable' | 'main-menu-panel'
 type VisibleImportProductProbePackageVariant = 'v1' | 'v2'
@@ -171,6 +174,21 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly disableRuntimePublicationExcluded?: boolean
   readonly disableLiveRegistrySwapped?: boolean
   readonly disableAppStartupHandoffAccepted?: boolean
+  readonly enableTerminalStatus?: 'ready' | 'blocked' | null
+  readonly enableTargetPackageId?: string | null
+  readonly enableSelectedPackageCount?: number
+  readonly enableBlockedPackageCount?: number
+  readonly enableLoadOrderCount?: number
+  readonly enableRegistryCount?: number
+  readonly enableEntryCount?: number
+  readonly enablePackageCount?: number
+  readonly enableSettingsWritten?: boolean
+  readonly enableLockfileWritten?: boolean
+  readonly enableStartupStateWritten?: boolean
+  readonly enablePackageFilesPreserved?: boolean
+  readonly enableRuntimePublicationIncluded?: boolean
+  readonly enableLiveRegistrySwapped?: boolean
+  readonly enableAppStartupHandoffAccepted?: boolean
   readonly uninstallTerminalStatus?: 'ready' | 'blocked' | null
   readonly uninstallTargetPackageId?: string | null
   readonly uninstallSelectedPackageCount?: number
@@ -204,6 +222,7 @@ export interface ThirdPartyVisibleImportPanelStatusLabels {
   readonly startupPersistentStateStatus?: string
   readonly installedManagementStatus?: string
   readonly disableResult?: string
+  readonly enableResult?: string
   readonly uninstallResult?: string
 }
 
@@ -214,6 +233,7 @@ type MutableThirdPartyVisibleImportPanelStatusLabels = {
 
 interface VisibleImportProbeExecution {
   readonly dispatchResult: WebFilePickerSourceInstallCommandDispatchResult | null
+  readonly enableTransactionResult?: ThirdPartyDataPackEnableTransactionResult | null
   readonly fileCount: number
   readonly pickStatus: string
   readonly panelStatusLabels: ThirdPartyVisibleImportPanelStatusLabels
@@ -261,6 +281,7 @@ interface VisibleUninstallProbeExecution {
 type VisibleImportPanelProbeWindow = Window & {
   __TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__?: WebFilePickerSourceInstallCommandDispatchResult
   __TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__?: ThirdPartyDataPackDisableTransactionResult
+  __TAOYUAN_VISIBLE_ENABLE_PANEL_RESULT__?: ThirdPartyDataPackEnableTransactionResult
   __TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__?: ThirdPartyDataPackUninstallTransactionResult
 }
 
@@ -402,6 +423,7 @@ const hasReadyVisibleImportDispatch = (
   contentAccessShopOfferVisibleAfter: boolean
 ): boolean => {
   const dispatchResult = execution.dispatchResult
+  const enableTerminal = execution.enableTransactionResult?.terminal ?? null
   const appStartupHostEffects =
     dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects
   const isEnable = execution.operation === 'enable'
@@ -410,15 +432,38 @@ const hasReadyVisibleImportDispatch = (
   const interactionReady = isEnable
     ? execution.enableButtonClicked === true && !execution.defaultFileInputSelectorUsed
     : execution.panelImportButtonClicked && execution.defaultFileInputSelectorUsed
-  const panelLabelsReady = dispatchResult !== null && (
-    isEnable
-      ? hasReadyVisibleEnablePanelLabels(dispatchResult, execution.panelStatusLabels)
-      : isRollback
+  const panelLabelsReady = isEnable
+    ? enableTerminal !== null && hasReadyVisibleEnablePanelLabels(enableTerminal, execution.panelStatusLabels)
+    : dispatchResult !== null && (
+      isRollback
         ? hasReadyVisibleImportRollbackPanelLabels(dispatchResult, execution.panelStatusLabels)
       : isFailure
         ? hasReadyVisibleImportFailurePanelLabels(dispatchResult, execution.panelStatusLabels)
       : hasReadyVisibleImportPanelLabels(dispatchResult, execution.panelStatusLabels)
-  )
+    )
+  if (isEnable) {
+    return enableTerminal?.status === 'ready'
+      && execution.entrypoint === 'main-menu-panel'
+      && execution.mainMenuPanelOpened
+      && interactionReady
+      && enableTerminal.targetPackageId === packageId
+      && enableTerminal.selectedPackageIds.length === 1
+      && enableTerminal.selectedPackageIds[0] === packageId
+      && enableTerminal.blockedPackageIds.length === 0
+      && enableTerminal.loadOrder.length === 1
+      && enableTerminal.loadOrder[0] === packageId
+      && enableTerminal.settingsWritten
+      && enableTerminal.lockfileWritten
+      && enableTerminal.startupStateWritten
+      && enableTerminal.packageFilesPreserved
+      && enableTerminal.runtimePublicationIncluded
+      && enableTerminal.liveRegistrySwapped
+      && enableTerminal.appStartupHandoffAccepted
+      && panelLabelsReady
+      && contentAccessItemVisibleAfter
+      && contentAccessRecipeVisibleAfter
+      && contentAccessShopOfferVisibleAfter
+  }
   if (isFailure) {
     return dispatchResult !== null
       && execution.entrypoint === 'main-menu-panel'
@@ -584,6 +629,7 @@ const readVisibleImportPanelStatusLabels = (): ThirdPartyVisibleImportPanelStatu
   setPanelStatusLabel(labels, 'startupPersistentStateStatus', 'web-mod-startup-persistent-state-status')
   setPanelStatusLabel(labels, 'installedManagementStatus', 'web-mod-installed-management-status')
   setPanelStatusLabel(labels, 'disableResult', 'web-mod-disable-result')
+  setPanelStatusLabel(labels, 'enableResult', 'web-mod-enable-result')
   setPanelStatusLabel(labels, 'uninstallResult', 'web-mod-uninstall-result')
   return Object.freeze(labels)
 }
@@ -650,29 +696,22 @@ const hasReadyVisibleImportFailurePanelLabels = (
   && labels.appStartupStatus === '已阻断'
   && labels.startupPersistentStateStatus === '已阻断'
 
-const expectedEnablePersistenceStatus = (
-  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult
-): string =>
-  dispatchResult.transactionCommandDispatcherHostKind === 'renderer'
-    ? '已从程序目录恢复'
-    : '已从 IndexedDB 恢复'
-
 const hasReadyVisibleEnablePanelLabels = (
-  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
+  terminal: ThirdPartyDataPackEnableTransactionResult['terminal'],
   labels: ThirdPartyVisibleImportPanelStatusLabels
 ): boolean =>
   labels.importStatus === '已恢复'
-  && labels.targetPackage === dispatchResult.preflight?.targetPackageId
-  && labels.preflightStatus === 'deferred'
-  && labels.dispatchStatus === 'dispatched'
-  && labels.persistenceStatus === expectedEnablePersistenceStatus(dispatchResult)
-  && labels.hostAckStatus === expectedPanelHostAckStatus(dispatchResult)
-  && labels.installOutcomeStatus === '提交后校验已确认'
-  && labels.uiIpcDeliveryStatus === expectedPanelUiIpcDeliveryStatus(dispatchResult)
-  && labels.runtimePublicationStatus === '已确认'
-  && labels.liveRegistryStatus === '已切换'
-  && labels.appStartupStatus === '已接入已挂载应用'
-  && labels.startupPersistentStateStatus === '已写入'
+  && labels.targetPackage === terminal.targetPackageId
+  && (labels.persistenceStatus === '已从程序目录恢复' || labels.persistenceStatus === '已从 IndexedDB 恢复')
+  && labels.installedManagementStatus === '已就绪'
+  && labels.enableResult?.includes('启用事务：已完成') === true
+  && labels.enableResult.includes('settings 已写入')
+  && labels.enableResult.includes('mod-lock 已写入')
+  && labels.enableResult.includes('startup 已写入')
+  && labels.enableResult.includes('package 已保留')
+  && labels.enableResult.includes('runtime 已包含')
+  && labels.enableResult.includes('live registry 已切换')
+  && labels.enableResult.includes('handoff 已接受')
 
 const toPickStatus = (label: string | null): string => {
   if (label === '已暂存') return 'persisted'
@@ -718,6 +757,11 @@ const installDefaultFileInputProbeSelector = (
 const readPanelDispatchResult = (probeWindow: Window): WebFilePickerSourceInstallCommandDispatchResult | null =>
   (probeWindow as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__ ?? null
 
+const readPanelEnableResult = (
+  probeWindow: Window
+): ThirdPartyDataPackEnableTransactionResult | null =>
+  (probeWindow as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_ENABLE_PANEL_RESULT__ ?? null
+
 const readProbeShopOfferNameFallback = (): string | undefined =>
   getOfficialShopOfferDefs().find(offer => offer.id === shopOfferId)?.name?.fallback
 
@@ -731,6 +775,18 @@ const waitForPanelDispatchResult = async(
 
 const clearPanelDispatchResult = (probeWindow: Window): void => {
   Reflect.deleteProperty(probeWindow, '__TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__')
+}
+
+const waitForPanelEnableResult = async(
+  probeWindow: Window
+): Promise<ThirdPartyDataPackEnableTransactionResult> =>
+  await waitForCondition(
+    () => readPanelEnableResult(probeWindow),
+    'visible enable panel did not publish the enable transaction result'
+  )
+
+const clearPanelEnableResult = (probeWindow: Window): void => {
+  Reflect.deleteProperty(probeWindow, '__TAOYUAN_VISIBLE_ENABLE_PANEL_RESULT__')
 }
 
 const runComposableImportProbe = async(
@@ -870,7 +926,7 @@ const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution
   let mainMenuPanelOpened = false
   let enableButtonClicked = false
   try {
-    clearPanelDispatchResult(probeWindow)
+    clearPanelEnableResult(probeWindow)
     const mainMenuButton = await waitForCondition(
       () => findButtonContainingText('数据包预检'),
       'visible enable probe could not find the MainMenu data-pack preflight button'
@@ -888,10 +944,10 @@ const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution
       ) as HTMLButtonElement | null,
       'visible enable probe could not find the disabled installed package action'
     )
-    const dispatchResultPromise = waitForPanelDispatchResult(probeWindow)
+    const transactionResultPromise = waitForPanelEnableResult(probeWindow)
     enableButtonClicked = true
     enableButton.click()
-    const dispatchResult = await dispatchResultPromise
+    const transactionResult = await transactionResultPromise
     await waitForCondition(
       () =>
         getOfficialItemDef(itemId)?.name.fallback === expectedItemName
@@ -917,16 +973,17 @@ const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution
     const panelStatusLabels = await waitForCondition(
       () => {
         const labels = readVisibleImportPanelStatusLabels()
-        return hasReadyVisibleEnablePanelLabels(dispatchResult, labels)
+        return hasReadyVisibleEnablePanelLabels(transactionResult.terminal, labels)
           ? labels
           : false
       },
-      'visible enable panel did not render the ordinary install runtime handoff labels'
+      'visible enable panel did not render the enable transaction terminal labels'
     )
 
     return Object.freeze({
-      dispatchResult,
-      fileCount: dispatchResult.fileCount,
+      dispatchResult: null,
+      enableTransactionResult: transactionResult,
+      fileCount: Number(readPanelText('web-mod-file-count') ?? 0),
       pickStatus: toPickStatus(stableLabel),
       panelStatusLabels,
       entrypoint: 'main-menu-panel' as const,
@@ -937,10 +994,10 @@ const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution
       defaultFileInputSelectorUsed: false
     })
   } catch (error) {
-    const dispatchResult = readPanelDispatchResult(probeWindow)
     return Object.freeze({
-      dispatchResult,
-      fileCount: dispatchResult?.fileCount ?? 0,
+      dispatchResult: null,
+      enableTransactionResult: readPanelEnableResult(probeWindow),
+      fileCount: Number(readPanelText('web-mod-file-count') ?? 0),
       pickStatus: toPickStatus(readPanelText('web-mod-import-status')),
       panelStatusLabels: readVisibleImportPanelStatusLabels(),
       entrypoint: 'main-menu-panel' as const,
@@ -1159,52 +1216,80 @@ export const runThirdPartyVisibleImportProductProbe = async(
   )
     ? 'ready'
     : 'blocked'
-  const effects: ThirdPartyVisibleImportProductProbeResult['effects'] = {
-    commandDispatched: dispatchResult?.commandDispatched === true,
-    packageFilesWritten:
-      dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentPackageWriteExecuted === true,
-    settingsWritten:
-      dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentSettingsLockfileWriteExecuted === true,
-    lockfileWritten:
-      dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentSettingsLockfileWriteExecuted === true,
-    rendererLiveRegistrySwapped: dispatchResult?.rendererLiveRegistrySwapApplied === true,
-    runtimeEnablementAllowed: dispatchResult?.runtimeEnablementAllowed === true,
-    uiIpcResponseDelivered: dispatchResult?.uiIpcResponseDelivered === true,
-    transactionCommitted: dispatchResult?.transactionCommitted === true,
-    transactionLogPrepared:
-      dispatchResult?.installTransactionLogPrepared?.effects.transactionLogPrepared === true,
-    transactionLogRead:
-      dispatchResult?.installTransactionLogPreparedPersistentReadVerification?.effects.transactionLogRead === true,
-    startupPersistentStateWritten: dispatchResult?.startupPersistentStateWritten === true,
-    realNormalStartupHostCalled:
-      dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.realNormalStartupHostCalled === true,
-    realAppStartupHostCalled:
-      dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.realAppStartupHostCalled === true,
-    gameAppCreated:
-      dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.gameAppCreated === true,
-    piniaCreated:
-      dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.piniaCreated === true,
-    routerMounted:
-      dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.routerMounted === true,
-    savesWritten: false,
-    cacheWritten: false,
-    transactionLogWritten:
-      dispatchResult?.installTransactionCommitFinalization?.effects.transactionLogWritten === true,
-    rollbackExecuted:
-      dispatchResult?.ordinaryInstallTransactionTerminalConnection?.effects.rollbackExecuted === true,
-    diagnosticsWritten: false
-  }
+  const enableTerminal = execution.enableTransactionResult?.terminal ?? null
+  const effects: ThirdPartyVisibleImportProductProbeResult['effects'] = operation === 'enable'
+    ? {
+        commandDispatched: false,
+        packageFilesWritten: false,
+        settingsWritten: enableTerminal?.settingsWritten === true,
+        lockfileWritten: enableTerminal?.lockfileWritten === true,
+        rendererLiveRegistrySwapped: enableTerminal?.liveRegistrySwapped === true,
+        runtimeEnablementAllowed: enableTerminal?.runtimePublicationIncluded === true,
+        uiIpcResponseDelivered: false,
+        transactionCommitted: enableTerminal?.status === 'ready',
+        transactionLogPrepared: false,
+        transactionLogRead: false,
+        startupPersistentStateWritten: enableTerminal?.startupStateWritten === true,
+        realNormalStartupHostCalled: false,
+        realAppStartupHostCalled: enableTerminal?.appStartupHandoffAccepted === true,
+        gameAppCreated: enableTerminal?.appStartupHandoffAccepted === true,
+        piniaCreated: enableTerminal?.appStartupHandoffAccepted === true,
+        routerMounted: enableTerminal?.appStartupHandoffAccepted === true,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false,
+        rollbackExecuted: false,
+        diagnosticsWritten: false
+      }
+    : {
+        commandDispatched: dispatchResult?.commandDispatched === true,
+        packageFilesWritten:
+          dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentPackageWriteExecuted === true,
+        settingsWritten:
+          dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentSettingsLockfileWriteExecuted === true,
+        lockfileWritten:
+          dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentSettingsLockfileWriteExecuted === true,
+        rendererLiveRegistrySwapped: dispatchResult?.rendererLiveRegistrySwapApplied === true,
+        runtimeEnablementAllowed: dispatchResult?.runtimeEnablementAllowed === true,
+        uiIpcResponseDelivered: dispatchResult?.uiIpcResponseDelivered === true,
+        transactionCommitted: dispatchResult?.transactionCommitted === true,
+        transactionLogPrepared:
+          dispatchResult?.installTransactionLogPrepared?.effects.transactionLogPrepared === true,
+        transactionLogRead:
+          dispatchResult?.installTransactionLogPreparedPersistentReadVerification?.effects.transactionLogRead === true,
+        startupPersistentStateWritten: dispatchResult?.startupPersistentStateWritten === true,
+        realNormalStartupHostCalled:
+          dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.realNormalStartupHostCalled === true,
+        realAppStartupHostCalled:
+          dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.realAppStartupHostCalled === true,
+        gameAppCreated:
+          dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.gameAppCreated === true,
+        piniaCreated:
+          dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.piniaCreated === true,
+        routerMounted:
+          dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects.routerMounted === true,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten:
+          dispatchResult?.installTransactionCommitFinalization?.effects.transactionLogWritten === true,
+        rollbackExecuted:
+          dispatchResult?.ordinaryInstallTransactionTerminalConnection?.effects.rollbackExecuted === true,
+        diagnosticsWritten: false
+      }
 
   return Object.freeze({
     schemaVersion: 1,
     status,
     reason: status === 'ready'
-      ? operation === 'rollback'
+      ? operation === 'enable'
+        ? 'visible MainMenu panel enabled the disabled package through the enable transaction terminal'
+        : operation === 'rollback'
         ? 'visible MainMenu panel reached rollback terminal without runtime publication or startup persistence'
         : operation === 'failure'
           ? 'visible MainMenu panel reached retryable failure terminal without runtime publication or startup persistence'
         : 'visible MainMenu panel reached ordinary terminal runtime publication and item, recipe, and shop offer visibility'
       : execution.blockedReason
+        ?? enableTerminal?.reason
         ?? dispatchResult?.reason
         ?? 'visible import did not reach item, recipe, and shop offer visibility',
     entrypoint: execution.entrypoint,
@@ -1265,20 +1350,41 @@ export const runThirdPartyVisibleImportProductProbe = async(
       dispatchResult?.webStartupPersistentStateWriteStatus ?? null,
     electronStartupPersistentStateWriteStatus:
       dispatchResult?.electronStartupPersistentStateWriteStatus ?? null,
-    selectedPackageCount: dispatchResult?.selectedPackageIds.length ?? 0,
-    blockedPackageCount: dispatchResult?.preflight?.blockedPackageIds.length ?? 0,
-    loadOrderCount: dispatchResult?.loadOrder.length ?? 0,
+    selectedPackageCount: enableTerminal?.selectedPackageIds.length ?? dispatchResult?.selectedPackageIds.length ?? 0,
+    blockedPackageCount: enableTerminal?.blockedPackageIds.length ?? dispatchResult?.preflight?.blockedPackageIds.length ?? 0,
+    loadOrderCount: enableTerminal?.loadOrder.length ?? dispatchResult?.loadOrder.length ?? 0,
     expectedPackageVersion: fixture.version,
-    registryCount: dispatchResult?.preflight?.registryCount,
-    entryCount: dispatchResult?.preflight?.entryCount,
-    packageCount: dispatchResult?.preflight?.packageCount,
-    diagnosticsCount: diagnosticsCountFor(dispatchResult),
+    registryCount: enableTerminal?.registryCount ?? dispatchResult?.preflight?.registryCount,
+    entryCount: enableTerminal?.entryCount ?? dispatchResult?.preflight?.entryCount,
+    packageCount: enableTerminal?.packageCount ?? dispatchResult?.preflight?.packageCount,
+    diagnosticsCount: operation === 'enable'
+      ? execution.enableTransactionResult === undefined || enableTerminal?.status === 'blocked' ? 1 : 0
+      : diagnosticsCountFor(dispatchResult),
     contentAccessItemVisibleBefore,
     contentAccessItemVisibleAfter,
     contentAccessRecipeVisibleBefore,
     contentAccessRecipeVisibleAfter,
     contentAccessShopOfferVisibleBefore,
     contentAccessShopOfferVisibleAfter,
+    ...(operation === 'enable'
+      ? {
+          enableTerminalStatus: enableTerminal?.status ?? null,
+          enableTargetPackageId: enableTerminal?.targetPackageId ?? null,
+          enableSelectedPackageCount: enableTerminal?.selectedPackageIds.length ?? 0,
+          enableBlockedPackageCount: enableTerminal?.blockedPackageIds.length ?? 0,
+          enableLoadOrderCount: enableTerminal?.loadOrder.length ?? 0,
+          enableRegistryCount: enableTerminal?.registryCount,
+          enableEntryCount: enableTerminal?.entryCount,
+          enablePackageCount: enableTerminal?.packageCount,
+          enableSettingsWritten: enableTerminal?.settingsWritten === true,
+          enableLockfileWritten: enableTerminal?.lockfileWritten === true,
+          enableStartupStateWritten: enableTerminal?.startupStateWritten === true,
+          enablePackageFilesPreserved: enableTerminal?.packageFilesPreserved === true,
+          enableRuntimePublicationIncluded: enableTerminal?.runtimePublicationIncluded === true,
+          enableLiveRegistrySwapped: enableTerminal?.liveRegistrySwapped === true,
+          enableAppStartupHandoffAccepted: enableTerminal?.appStartupHandoffAccepted === true
+        }
+      : {}),
     effects
   })
 }

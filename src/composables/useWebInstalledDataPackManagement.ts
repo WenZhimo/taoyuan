@@ -20,6 +20,15 @@ import {
   type ThirdPartyDataPackUninstallTransactionResult
 } from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
 import {
+  buildThirdPartyDataPackEnableState,
+  createThirdPartyDataPackEnablePersistentRecord,
+  createThirdPartyDataPackEnableStartupPersistentStateSnapshot,
+  executeThirdPartyDataPackEnableTransaction,
+  type ThirdPartyDataPackEnablePersistentRecord,
+  type ThirdPartyDataPackEnableState,
+  type ThirdPartyDataPackEnableTransactionResult
+} from '@/domain/mods/thirdPartyDataPackEnableTransaction'
+import {
   THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
 } from '@/domain/mods/thirdPartyDataPackInstalledStateStartupGateBootstrapSource'
 import {
@@ -33,9 +42,16 @@ import {
   type ThirdPartyDataPackElectronUninstallCommandEnvelope,
   type ThirdPartyDataPackElectronUninstallCommandResult
 } from '@/domain/mods/thirdPartyDataPackElectronUninstallCommandBridge'
+import {
+  type ThirdPartyDataPackElectronEnableCommandEnvelope,
+  type ThirdPartyDataPackElectronEnableCommandResult
+} from '@/domain/mods/thirdPartyDataPackElectronEnableCommandBridge'
 import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
+import type {
+  ThirdPartyDataPackMountInputResult
+} from '@/domain/mods/thirdPartyDataPackMountInput'
 import type {
   ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord,
   ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
@@ -76,6 +92,12 @@ export interface UseWebInstalledDataPackManagementOptions {
   readonly electronUninstallCommand?: (
     envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
   ) => Promise<ThirdPartyDataPackElectronUninstallCommandResult>
+  readonly electronEnableCommand?: (
+    envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
+  ) => Promise<ThirdPartyDataPackElectronEnableCommandResult>
+  readonly readEnableMountInput?: (
+    packageId: PackageId
+  ) => Promise<ThirdPartyDataPackMountInputResult | null>
   readonly readElectronInstalledState?: () => Promise<ThirdPartyDataPackElectronInstalledStateReadResult>
   readonly installedImportId?: string
   readonly startupImportId?: string
@@ -90,6 +112,10 @@ type ActiveDisablePersistentRecord =
 
 type ActiveUninstallPersistentRecord =
   Omit<ThirdPartyDataPackUninstallPersistentRecord, 'recordId'>
+  & Pick<ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord, 'recordId'>
+
+type ActiveEnablePersistentRecord =
+  Omit<ThirdPartyDataPackEnablePersistentRecord, 'recordId'>
   & Pick<ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord, 'recordId'>
 
 const createDisableStartupSnapshotRecord = (
@@ -122,6 +148,21 @@ const createUninstallStartupSnapshotRecord = (
   ], importId)
 }
 
+const createEnableStartupSnapshotRecord = (
+  state: ThirdPartyDataPackEnableState,
+  importId: string
+): WebIndexedDbImportRecord => {
+  const snapshot = createThirdPartyDataPackEnableStartupPersistentStateSnapshot(state, 'web-startup-persistent-state-snapshot')
+  const text = `${JSON.stringify(snapshot, null, 2)}\n`
+  return createDefaultWebIndexedDbImportRecord([
+    {
+      path: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
+      text,
+      sizeBytes: utf8ByteLength(text)
+    }
+  ], importId)
+}
+
 const createElectronDisableStartupSnapshot = (
   state: ThirdPartyDataPackDisableState
 ) => createThirdPartyDataPackDisableStartupPersistentStateSnapshot(
@@ -132,6 +173,13 @@ const createElectronDisableStartupSnapshot = (
 const createElectronUninstallStartupSnapshot = (
   state: ThirdPartyDataPackUninstallState
 ) => createThirdPartyDataPackUninstallStartupPersistentStateSnapshot(
+  state,
+  'electron-startup-persistent-state-snapshot'
+)
+
+const createElectronEnableStartupSnapshot = (
+  state: ThirdPartyDataPackEnableState
+) => createThirdPartyDataPackEnableStartupPersistentStateSnapshot(
   state,
   'electron-startup-persistent-state-snapshot'
 )
@@ -151,6 +199,14 @@ const toUninstallRecord = (
     ...createThirdPartyDataPackUninstallPersistentRecord('active', state),
     recordId: 'active'
   }) as ActiveUninstallPersistentRecord
+
+const toEnableRecord = (
+  state: ThirdPartyDataPackEnableState
+): ActiveEnablePersistentRecord =>
+  ({
+    ...createThirdPartyDataPackEnablePersistentRecord('active', state),
+    recordId: 'active'
+  }) as ActiveEnablePersistentRecord
 
 const readPackageRows = (
   record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null
@@ -173,12 +229,13 @@ const readPackageFilesPreserved = async(
   return record !== null && record.files.length > 0
 }
 
-const isCurrentInstallRecord = (
+const isCurrentEnabledRecord = (
   record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null,
   packageId: PackageId
-): boolean => record?.requestedCommandId === 'install'
+): boolean => (record?.requestedCommandId === 'install' || record?.requestedCommandId === 'enable')
   && record.selectedPackageIds.includes(packageId)
   && record.loadOrder.includes(packageId)
+  && !record.blockedPackageIds.includes(packageId)
 
 const isCurrentDisabledRecord = (
   record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null,
@@ -203,6 +260,7 @@ export const useWebInstalledDataPackManagement = (
   const rows = ref<readonly WebInstalledDataPackManagementRow[]>(Object.freeze([]))
   const lastResult = ref<ThirdPartyDataPackDisableTransactionResult | null>(null)
   const lastUninstallResult = ref<ThirdPartyDataPackUninstallTransactionResult | null>(null)
+  const lastEnableResult = ref<ThirdPartyDataPackEnableTransactionResult | null>(null)
   const reason = ref('')
   const currentRecord = ref<ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null>(null)
   const installedImportId = options.installedImportId ?? defaultInstalledImportId
@@ -249,6 +307,7 @@ export const useWebInstalledDataPackManagement = (
     reason.value = ''
     lastResult.value = null
     lastUninstallResult.value = null
+    lastEnableResult.value = null
 
     let installedRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null = null
     let previousStartupRecord: WebIndexedDbImportRecord | null = null
@@ -275,7 +334,7 @@ export const useWebInstalledDataPackManagement = (
           installedImportId
         )
       }
-      if (installedRecord === null || !isCurrentInstallRecord(installedRecord, packageId)) {
+      if (installedRecord === null || !isCurrentEnabledRecord(installedRecord, packageId)) {
         throw new Error('Only an enabled installed package can be disabled')
       }
       const verifiedInstalledRecord = installedRecord
@@ -386,6 +445,7 @@ export const useWebInstalledDataPackManagement = (
     reason.value = ''
     lastResult.value = null
     lastUninstallResult.value = null
+    lastEnableResult.value = null
 
     let installedRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null = null
     let previousStartupRecord: WebIndexedDbImportRecord | null = null
@@ -521,15 +581,175 @@ export const useWebInstalledDataPackManagement = (
     }
   }
 
+  const enable = async(
+    packageId: PackageId
+  ): Promise<ThirdPartyDataPackEnableTransactionResult | null> => {
+    if (status.value === 'loading') return null
+    status.value = 'loading'
+    reason.value = ''
+    lastResult.value = null
+    lastUninstallResult.value = null
+    lastEnableResult.value = null
+
+    let installedRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null = null
+    let previousStartupRecord: WebIndexedDbImportRecord | null = null
+    try {
+      if (
+        options.readElectronInstalledState === undefined
+        && (
+          options.settingsLockfileStore === null
+          || options.installedPackageStore === null
+          || options.startupPersistentStateStore === null
+        )
+      ) {
+        throw new Error('Web installed package enable requires persistent settings, package and startup storage')
+      }
+      if (options.readEnableMountInput === undefined) {
+        throw new Error('Installed package enable requires restored package runtime input')
+      }
+
+      let packageFilesPreserved = false
+      if (options.readElectronInstalledState !== undefined) {
+        const electronResult = await options.readElectronInstalledState()
+        if (electronResult.status === 'blocked') {
+          throw new Error(electronResult.reason ?? 'Electron installed package state was blocked')
+        }
+        installedRecord = electronResult.record
+        packageFilesPreserved = electronResult.packageFilesPreserved
+      } else {
+        const readResult = await options.settingsLockfileStore!.read()
+        installedRecord = readResult.record
+        packageFilesPreserved = await readPackageFilesPreserved(
+          options.installedPackageStore,
+          installedImportId
+        )
+      }
+      if (installedRecord === null || !isCurrentDisabledRecord(installedRecord, packageId)) {
+        throw new Error('Only a disabled installed package can be enabled')
+      }
+      const verifiedDisabledRecord = installedRecord
+
+      if (!packageFilesPreserved) {
+        throw new Error('Installed package files are unavailable for enable preservation')
+      }
+
+      const enabledMountInput = await options.readEnableMountInput(packageId)
+      if (
+        enabledMountInput === null
+        || enabledMountInput.status !== 'ready'
+        || enabledMountInput.candidateRegistrySet === undefined
+      ) {
+        throw new Error('Installed package files are unavailable for enable runtime publication')
+      }
+
+      if (options.startupPersistentStateStore !== null) {
+        previousStartupRecord = await options.startupPersistentStateStore.get(startupImportId)
+      }
+      const startupStore = options.startupPersistentStateStore
+
+      const state = buildThirdPartyDataPackEnableState({
+        disabledDraft: verifiedDisabledRecord.lockfileDraft,
+        enabledMountInput,
+        targetPackageId: packageId
+      })
+      const startupSnapshotRecord = createEnableStartupSnapshotRecord(state, startupImportId)
+      const enableRecord = toEnableRecord(state)
+      const transaction = await executeThirdPartyDataPackEnableTransaction({
+        state,
+        candidateRegistrySet: enabledMountInput.candidateRegistrySet,
+        liveRegistryReference: getLiveContentRegistryReference(),
+        writePersistentState: async() => {
+          if (options.startupPersistentStateStore === null && options.electronEnableCommand === undefined) {
+            throw new Error('Web enable requires startup persistent state storage')
+          }
+          if (options.electronEnableCommand !== undefined) {
+            const electronResult = await options.electronEnableCommand({
+              requestedCommandId: 'enable',
+              targetPackageId: state.targetPackageId,
+              selectedPackageIds: [state.targetPackageId],
+              blockedPackageIds: [],
+              loadOrder: [state.targetPackageId],
+              packageFilesPreserved: true,
+              record: enableRecord,
+              startupSnapshot: createElectronEnableStartupSnapshot(state)
+            })
+            if (electronResult.status !== 'written') {
+              throw new Error('Electron enable persistent state write was blocked')
+            }
+            return {
+              settingsWritten: electronResult.settingsWritten,
+              lockfileWritten: electronResult.lockfileWritten,
+              startupStateWritten: electronResult.startupStateWritten,
+              packageFilesPreserved: electronResult.packageFilesPreserved
+            }
+          }
+          if (startupStore === null) {
+            throw new Error('Web enable requires startup persistent state storage')
+          }
+          try {
+            const writeResult = await options.settingsLockfileStore!.write(enableRecord)
+            if (writeResult.status !== 'written') throw new Error('Web enable settings-lockfile write was blocked')
+            await startupStore.put(startupSnapshotRecord)
+            const writtenSettings = await options.settingsLockfileStore!.read()
+            const writtenStartup = await startupStore.get(startupImportId)
+            const preservedPackageSource = await options.installedPackageStore!.get(installedImportId)
+            if (!matchesRecord(writtenSettings.record, enableRecord)
+              || JSON.stringify(writtenStartup) !== JSON.stringify(startupSnapshotRecord)
+              || preservedPackageSource === null
+              || preservedPackageSource.files.length === 0) {
+              throw new Error('Web enable persistent state verification did not match')
+            }
+            return {
+              settingsWritten: true,
+              lockfileWritten: true,
+              startupStateWritten: true,
+              packageFilesPreserved: true
+            }
+          } catch (error) {
+            try {
+              await options.settingsLockfileStore!.write(verifiedDisabledRecord)
+              if (previousStartupRecord === null) {
+                await startupStore.delete(startupImportId)
+              } else {
+                await startupStore.put(previousStartupRecord)
+              }
+            } catch {
+              // The transaction remains blocked; the next refresh will expose the persisted state.
+            }
+            throw error
+          }
+        },
+        acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() === true
+      })
+      lastEnableResult.value = transaction
+      reason.value = transaction.terminal.reason
+      if (transaction.terminal.status === 'ready') {
+        currentRecord.value = enableRecord
+        rows.value = readPackageRows(enableRecord)
+        status.value = 'ready'
+      } else {
+        await refresh()
+        status.value = 'blocked'
+      }
+      return transaction
+    } catch (error) {
+      status.value = 'failed'
+      reason.value = error instanceof Error ? error.message : 'Web installed package enable failed'
+      return null
+    }
+  }
+
   return {
     status,
     rows: computed(() => rows.value),
     currentRecord: computed(() => currentRecord.value),
     lastResult,
     lastUninstallResult,
+    lastEnableResult,
     reason,
     refresh,
     disable,
-    uninstall
+    uninstall,
+    enable
   }
 }

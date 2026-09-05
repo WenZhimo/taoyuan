@@ -17,6 +17,10 @@ import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 export const THIRD_PARTY_DATA_PACK_LAUNCHER_BOUNDARY_PREFLIGHT_KIND =
   'launcher-boundary-preflight'
@@ -170,7 +174,7 @@ export interface ThirdPartyDataPackLauncherBoundaryPreflightResult {
   readonly runtimeEnablementAllowed: false
   readonly writeAllowed: false
   readonly rollbackRecoveryAllowed: false
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -822,7 +826,9 @@ const baseResult = (
     runtimeEnablementAllowed: false,
     writeAllowed: false,
     rollbackRecoveryAllowed: false,
-    requestedCommandId: readOwnStringField(envelope, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(envelope, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(envelope, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,

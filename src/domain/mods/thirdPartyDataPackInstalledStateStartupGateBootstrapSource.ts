@@ -79,6 +79,11 @@ import {
   type ThirdPartyDataPackRuntimePublicationPreflightResult
 } from './thirdPartyDataPackRuntimePublicationPreflight'
 import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  runtimeCommandSuccessMessageKey,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
+import {
   createThirdPartyDataPackSharedRendererStartupGateBootstrapSource
 } from './thirdPartyDataPackSharedRendererStartupGateBootstrapSource'
 import {
@@ -165,6 +170,7 @@ interface InstalledStateContext {
   readonly liveRegistrySwapProtection: ThirdPartyDataPackLiveRegistrySwapProtectionResult
   readonly publicationRollbackRecovery: ThirdPartyDataPackPublicationRollbackRecoveryResult
   readonly runtimePublicationCommitAdapter: ThirdPartyDataPackRuntimePublicationCommitAdapterResult
+  readonly requestedCommandId: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly launcherBoundaryPreflight: ThirdPartyDataPackLauncherBoundaryPreflightResult
   readonly startupPersistentStateSource: ThirdPartyDataPackStartupGatePersistentStateSourceResult
   readonly summary: ThirdPartyDataPackUiIpcResultEnvelopeSummary
@@ -565,7 +571,12 @@ const buildInstalledStateRuntimeContext = async(
   source: ContentPackageSource
 ): Promise<Omit<
   InstalledStateContext,
-  'kind' | 'sourceKind' | 'source' | 'launcherBoundaryPreflight' | 'startupPersistentStateSource'
+  | 'kind'
+  | 'sourceKind'
+  | 'source'
+  | 'requestedCommandId'
+  | 'launcherBoundaryPreflight'
+  | 'startupPersistentStateSource'
 >> => {
   const officialRegistrySet = resolveOfficialBaselineRegistrySet()
   const discoveryReport = await discoverThirdPartyDataPacks(
@@ -645,7 +656,12 @@ const buildInstalledStateRuntimeContext = async(
     sourceKind
   }) as Omit<
     InstalledStateContext,
-    'kind' | 'sourceKind' | 'source' | 'launcherBoundaryPreflight' | 'startupPersistentStateSource'
+    | 'kind'
+    | 'sourceKind'
+    | 'source'
+    | 'requestedCommandId'
+    | 'launcherBoundaryPreflight'
+    | 'startupPersistentStateSource'
   >
 }
 
@@ -686,6 +702,73 @@ const packageIdsEqual = (
   left: readonly PackageId[],
   right: readonly PackageId[]
 ): boolean => left.length === right.length && left.every((value, index) => value === right[index])
+
+const enabledRecordMatchesRuntimeContext = (
+  runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+): boolean => {
+  const targetPackageId = runtimeContext.mountInput.selectedPackageIds[0]
+  return targetPackageId !== undefined
+    && record.targetPackageId === targetPackageId
+    && record.candidateHash === runtimeContext.mountInput.candidateIdentity?.candidateHash
+    && record.lockfileHash === runtimeContext.mountInput.lockfileHash
+    && record.lockfileDraft.candidateIdentity.candidateHash === runtimeContext.mountInput.candidateIdentity?.candidateHash
+    && record.lockfileDraft.lockfileHash === runtimeContext.mountInput.lockfileHash
+    && packageIdsEqual(record.selectedPackageIds, runtimeContext.mountInput.selectedPackageIds)
+    && packageIdsEqual(record.blockedPackageIds, runtimeContext.mountInput.blockedPackageIds)
+    && packageIdsEqual(record.loadOrder, runtimeContext.mountInput.loadOrder)
+    && packageIdsEqual(record.lockfileDraft.selectedPackageIds, runtimeContext.mountInput.selectedPackageIds)
+    && packageIdsEqual(record.lockfileDraft.loadOrder, runtimeContext.mountInput.loadOrder)
+}
+
+const readEnabledCommandIdFromRecord = (
+  runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null | undefined
+): ThirdPartyDataPackEnabledRuntimeCommandId | undefined => {
+  const commandId = readThirdPartyDataPackEnabledRuntimeCommandId(record?.requestedCommandId)
+  if (commandId === undefined || record === null || record === undefined) return undefined
+  return enabledRecordMatchesRuntimeContext(runtimeContext, record) ? commandId : undefined
+}
+
+const readWebEnabledCommandId = async(
+  runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
+  store: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
+): Promise<ThirdPartyDataPackEnabledRuntimeCommandId> => {
+  const readResult = await store.read()
+  if (readResult.report.status === 'failed') {
+    throw new Error('Web installed state settings-lockfile could not be read during startup')
+  }
+  return readEnabledCommandIdFromRecord(runtimeContext, readResult.record) ?? 'install'
+}
+
+const readElectronEnabledCommandId = async(
+  runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
+  host: ReturnType<typeof createThirdPartyDataPackElectronInstalledStateRendererHost> | undefined
+): Promise<ThirdPartyDataPackEnabledRuntimeCommandId> => {
+  if (host === undefined) return 'install'
+  const installedState = await host.read()
+  if (installedState.status === 'missing') return 'install'
+  if (installedState.status === 'blocked') {
+    throw new Error(installedState.reason ?? 'Electron installed state could not be read during startup')
+  }
+  if (!installedState.packageFilesPreserved) return 'install'
+  return readEnabledCommandIdFromRecord(runtimeContext, installedState.record) ?? 'install'
+}
+
+const withEnabledCommandId = (
+  runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
+  requestedCommandId: ThirdPartyDataPackEnabledRuntimeCommandId
+): Omit<
+  InstalledStateContext,
+  'kind' | 'sourceKind' | 'source' | 'launcherBoundaryPreflight' | 'startupPersistentStateSource'
+> => Object.freeze({
+  ...runtimeContext,
+  requestedCommandId,
+  runtimePublicationCommitAdapter: Object.freeze({
+    ...runtimeContext.runtimePublicationCommitAdapter,
+    requestedCommandId
+  })
+})
 
 const buildUninstallStartupStateRequest = (
   record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
@@ -1092,10 +1175,11 @@ const startupGateStages = (): readonly ThirdPartyDataPackStartupGateHandoffStage
 const createStartupGateHandoffPreflight = (
   context: Pick<
     InstalledStateContext,
-    'mountInput' | 'summary'
+    'mountInput' | 'summary' | 'requestedCommandId'
   >
 ): ThirdPartyDataPackStartupGateHandoffPreflightResult => {
   const targetPackageId = context.mountInput.selectedPackageIds[0]!
+  const messageKey = runtimeCommandSuccessMessageKey(context.requestedCommandId)
   return Object.freeze({
     status: 'deferred',
     responseDeliveryOrchestrationStatus: 'deferred',
@@ -1118,10 +1202,10 @@ const createStartupGateHandoffPreflight = (
     runtimeEnablementAllowed: false,
     writeAllowed: false,
     rollbackRecoveryAllowed: false,
-    requestedCommandId: 'install',
+    requestedCommandId: context.requestedCommandId,
     targetPackageId,
     envelopeKind: 'success',
-    messageKey: 'mods.ui.ipc.result.install.success',
+    messageKey,
     selectedPackageIds: context.mountInput.selectedPackageIds,
     blockedPackageIds: context.mountInput.blockedPackageIds,
     blockedCandidateCount: context.mountInput.blockedCandidatePaths.length,
@@ -1138,7 +1222,7 @@ const createStartupGateHandoffPreflight = (
       packageId: targetPackageId,
       candidateHash: context.mountInput.candidateIdentity!.candidateHash,
       lockfileHash: context.mountInput.lockfileHash!,
-      messageKey: 'mods.ui.ipc.result.install.success',
+      messageKey,
       recovery: 'none',
       retryable: false,
       rollbackRequired: false,
@@ -1262,20 +1346,30 @@ const createInstalledStateContext = async(
     })
   }
 
+  const requestedCommandId = resolvedSource.sourceKind === 'web-indexeddb'
+    ? await readWebEnabledCommandId(
+        runtimeContext,
+        resolvedSource.webSettingsLockfileStore!
+      )
+    : await readElectronEnabledCommandId(
+        runtimeContext,
+        resolvedSource.electronInstalledStateHost
+      )
+  const enabledRuntimeContext = withEnabledCommandId(runtimeContext, requestedCommandId)
   const startupState = resolvedSource.sourceKind === 'web-indexeddb'
     ? await createWebStartupPersistentState(
-        runtimeContext,
+        enabledRuntimeContext,
         resolvedSource.webStore!,
         resolvedSource.webSettingsLockfileStore!
       )
     : await createElectronStartupPersistentState(
-        runtimeContext,
+        enabledRuntimeContext,
         resolvedSource.electronStartupPersistentStateHost!
       )
 
   return Object.freeze({
     kind: 'enabled' as const,
-    ...runtimeContext,
+    ...enabledRuntimeContext,
     ...startupState,
     sourceKind: resolvedSource.sourceKind,
     source: resolvedSource.source
@@ -1449,7 +1543,7 @@ const createPostCommitAfterInstallTransactionCommit = (
   uiIpcResultContinuationAllowed: true,
   installTransactionCommitFinalizationStatus: 'committed',
   postCommitVerificationReadAcknowledgementStatus: 'ready',
-  requestedCommandId: 'install',
+  requestedCommandId: context.requestedCommandId,
   targetPackageId: context.mountInput.selectedPackageIds[0]!,
   verificationOutcomeKind: 'verified',
   transactionLogMatched: true,

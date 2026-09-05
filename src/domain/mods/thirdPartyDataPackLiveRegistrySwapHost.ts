@@ -129,7 +129,7 @@ const hostEffects = (
 ): ThirdPartyDataPackLiveRegistrySwapHostEffectSummary => Object.freeze({
   liveRegistrySwapHostCalled: true,
   liveRegistrySwapHostAccepted: accepted,
-  thirdPartyRegistryPublished: accepted && commandId === 'install',
+  thirdPartyRegistryPublished: accepted && (commandId === 'install' || commandId === 'enable'),
   liveRegistryMutated: accepted,
   liveRegistrySwapped: accepted,
   runtimeEnablementAllowed: accepted,

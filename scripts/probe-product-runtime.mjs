@@ -1537,8 +1537,6 @@ const assertVisibleImportFailureProductProbe = (visibleImport, scenario, protoco
 const assertVisibleEnablePanelLabels = (
   visibleImport,
   scenario,
-  expectedHostAckStatus,
-  expectedUiIpcDeliveryStatus,
   expectedPersistenceStatus
 ) => {
   const labels = visibleImport.panelStatusLabels
@@ -1546,28 +1544,24 @@ const assertVisibleEnablePanelLabels = (
     `${scenario.name}: visible enable panel did not show restored import status`)
   assert(labels.targetPackage === 'product_probe_pack',
     `${scenario.name}: visible enable panel did not show the target package`)
-  assert(labels.preflightStatus === 'deferred',
-    `${scenario.name}: visible enable panel did not show deferred preflight status`)
-  assert(labels.dispatchStatus === 'dispatched',
-    `${scenario.name}: visible enable panel did not show dispatched command status`)
   assert(labels.persistenceStatus === expectedPersistenceStatus,
     `${scenario.name}: visible enable panel did not show the expected restored source`)
-  assert(labels.hostAckStatus === expectedHostAckStatus,
-    `${scenario.name}: visible enable panel did not show the expected host acknowledgement`)
-  assert(labels.installOutcomeStatus === '提交后校验已确认',
-    `${scenario.name}: visible enable panel did not show post-commit verification success`)
-  assert(labels.uiIpcDeliveryStatus === expectedUiIpcDeliveryStatus,
-    `${scenario.name}: visible enable panel did not show the expected UI/IPC delivery`)
-  assert(labels.runtimePublicationStatus === '已确认',
-    `${scenario.name}: visible enable panel did not show runtime publication success`)
-  assert(labels.liveRegistryStatus === '已切换',
-    `${scenario.name}: visible enable panel did not show live registry swap success`)
-  assert(labels.appStartupStatus === '已接入已挂载应用',
-    `${scenario.name}: visible enable panel did not show mounted app-startup handoff`)
-  assert(labels.startupPersistentStateStatus === '已写入',
-    `${scenario.name}: visible enable panel did not show startup persistent state write`)
   assert(labels.installedManagementStatus === '已就绪',
     `${scenario.name}: visible enable panel did not settle installed management`)
+  const enableResult = labels.enableResult ?? ''
+  for (const label of [
+    '启用事务：已完成',
+    'settings 已写入',
+    'mod-lock 已写入',
+    'startup 已写入',
+    'package 已保留',
+    'runtime 已包含',
+    'live registry 已切换',
+    'handoff 已接受'
+  ]) {
+    assert(enableResult.includes(label),
+      `${scenario.name}: visible enable panel omitted ${label}`)
+  }
 }
 
 const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
@@ -1593,8 +1587,6 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
   assertVisibleEnablePanelLabels(
     visibleImport,
     scenario,
-    electron ? '已确认（Electron）' : '已确认（Web）',
-    electron ? '已送达（Electron）' : '已送达（Web）',
     electron ? '已从程序目录恢复' : '已从 IndexedDB 恢复'
   )
   assert(visibleImport.targetPackageId === 'product_probe_pack',
@@ -1615,52 +1607,46 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
     `${scenario.name}: visible enable used the wrong restored source file count`)
   assert(visibleImport.pickStatus === 'restored',
     `${scenario.name}: visible enable source was not restored before dispatch`)
-  assert(visibleImport.dispatchPreflightStatus === 'deferred',
-    `${scenario.name}: visible enable dispatch preflight was not deferred`)
-  assert(visibleImport.discoveryStatus === 'completed',
-    `${scenario.name}: visible enable discovery was not completed`)
-  assert(visibleImport.transactionCommandDispatcherHostKind === (electron ? 'renderer' : 'web'),
-    `${scenario.name}: visible enable used the wrong dispatcher host`)
-  assert(visibleImport.transactionCommandDispatcherSourceStatus === 'dispatched',
-    `${scenario.name}: visible enable command was not dispatched`)
-  assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'ready',
-    `${scenario.name}: visible enable post-commit acknowledgement was not ready`)
-  if (electron) {
-    assert(visibleImport.postCommitVerificationExecutorHostMode === 'electron-main-visible-import',
-      `${scenario.name}: visible enable did not use the Electron post-commit verification host mode`)
+  assert(visibleImport.dispatchPreflightStatus === undefined,
+    `${scenario.name}: visible enable should not reuse install dispatch preflight`)
+  assert(visibleImport.transactionCommandDispatcherSourceStatus === undefined,
+    `${scenario.name}: visible enable should not report install command dispatch`)
+  assert(visibleImport.installCommandPostCommitAcknowledgementStatus === undefined,
+    `${scenario.name}: visible enable should not require install post-commit acknowledgement`)
+  assert(visibleImport.installTransactionLogPreparedStatus === undefined,
+    `${scenario.name}: visible enable should not prepare an install transaction log`)
+  assert(visibleImport.installTransactionCommitFinalizationStatus === undefined,
+    `${scenario.name}: visible enable should not finalize an install transaction`)
+  assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === undefined,
+    `${scenario.name}: visible enable should not use the ordinary install terminal`)
+  assert(visibleImport.enableTerminalStatus === 'ready',
+    `${scenario.name}: visible enable terminal was not ready`)
+  assert(visibleImport.enableTargetPackageId === 'product_probe_pack',
+    `${scenario.name}: visible enable terminal target mismatch`)
+  assert(visibleImport.enableSelectedPackageCount === 1,
+    `${scenario.name}: visible enable terminal selected count mismatch`)
+  assert(visibleImport.enableBlockedPackageCount === 0,
+    `${scenario.name}: visible enable terminal blocked package mismatch`)
+  assert(visibleImport.enableLoadOrderCount === 1,
+    `${scenario.name}: visible enable terminal load order mismatch`)
+  assert(visibleImport.enableRegistryCount === 54,
+    `${scenario.name}: visible enable terminal registry count mismatch`)
+  assert(visibleImport.enableEntryCount === 4245,
+    `${scenario.name}: visible enable terminal entry count mismatch`)
+  assert(visibleImport.enablePackageCount === 1,
+    `${scenario.name}: visible enable terminal package count mismatch`)
+  for (const fieldName of [
+    'enableSettingsWritten',
+    'enableLockfileWritten',
+    'enableStartupStateWritten',
+    'enablePackageFilesPreserved',
+    'enableRuntimePublicationIncluded',
+    'enableLiveRegistrySwapped',
+    'enableAppStartupHandoffAccepted'
+  ]) {
+    assert(visibleImport[fieldName] === true,
+      `${scenario.name}: visible enable terminal field ${fieldName} was not true`)
   }
-  assert(visibleImport.installTransactionLogPreparedStatus === 'prepared',
-    `${scenario.name}: visible enable transaction log was not prepared`)
-  assert(
-    visibleImport.installTransactionLogPreparedStorageKind === (
-      electron
-        ? 'program-directory-userdata-install-transaction-log-prepared'
-        : 'web-indexeddb-install-transaction-log-prepared'
-    ),
-    `${scenario.name}: visible enable transaction log used the wrong storage host`
-  )
-  assert(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus === 'verified',
-    `${scenario.name}: visible enable transaction log read verification was not verified`)
-  assert(visibleImport.installTransactionCommitFinalizationStatus === 'committed',
-    `${scenario.name}: visible enable transaction finalization was not committed`)
-  assert(visibleImport.postCommitUiIpcDeliveryContinuationStatus === 'ready',
-    `${scenario.name}: visible enable UI/IPC continuation was not ready`)
-  assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === 'ready',
-    `${scenario.name}: visible enable ordinary terminal was not ready`)
-  assert(visibleImport.ordinaryInstallTransactionOutcomeKind === 'success',
-    `${scenario.name}: visible enable ordinary terminal did not report success outcome`)
-  assert(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus === 'accepted',
-    `${scenario.name}: visible enable runtime publication verification was not accepted`)
-  assert(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === 'swapped',
-    `${scenario.name}: visible enable live registry swap was not acknowledged`)
-  assert(visibleImport.runtimePublicationCommitAppStartupReadinessStatus === 'ready',
-    `${scenario.name}: visible enable app-startup readiness was not ready`)
-  assert(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus === 'accepted',
-    `${scenario.name}: visible enable app-startup host handoff was not accepted`)
-  assert((visibleImport.webStartupPersistentStateWriteStatus === 'written') !== electron,
-    `${scenario.name}: visible enable Web startup persistent-state write mismatch`)
-  assert((visibleImport.electronStartupPersistentStateWriteStatus === 'written') === electron,
-    `${scenario.name}: visible enable Electron startup persistent-state write mismatch`)
   assert(visibleImport.selectedPackageCount === 1,
     `${scenario.name}: visible enable selected package count mismatch`)
   assert(visibleImport.blockedPackageCount === 0,
@@ -1688,30 +1674,30 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
   assert(visibleImport.contentAccessShopOfferVisibleAfter === true,
     `${scenario.name}: visible enable shop offer was not visible after live registry swap`)
   for (const effectName of [
-    'commandDispatched',
-    'packageFilesWritten',
     'settingsWritten',
     'lockfileWritten',
     'rendererLiveRegistrySwapped',
     'runtimeEnablementAllowed',
-    'uiIpcResponseDelivered',
     'transactionCommitted',
-    'transactionLogPrepared',
-    'transactionLogRead',
     'startupPersistentStateWritten',
-    'realNormalStartupHostCalled',
     'realAppStartupHostCalled',
     'gameAppCreated',
     'piniaCreated',
-    'routerMounted',
-    'transactionLogWritten'
+    'routerMounted'
   ]) {
     assert(visibleImport.effects?.[effectName] === true,
       `${scenario.name}: visible enable effect ${effectName} was not true`)
   }
   for (const effectName of [
+    'commandDispatched',
+    'packageFilesWritten',
+    'uiIpcResponseDelivered',
+    'transactionLogPrepared',
+    'transactionLogRead',
+    'realNormalStartupHostCalled',
     'savesWritten',
     'cacheWritten',
+    'transactionLogWritten',
     'rollbackExecuted',
     'diagnosticsWritten'
   ]) {
@@ -4492,8 +4478,8 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(enabledLockfile.packages?.[0]?.packageId === 'product_probe_pack',
       `${scenario.name}: re-enabled package lockfile lost the installed package record`)
     const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
-    assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
-      `${scenario.name}: re-enabled package settings did not persist the install command`)
+    assert(settingsJson.thirdPartyDataPacks?.commandId === 'enable',
+      `${scenario.name}: re-enabled package settings did not persist the enable command`)
     assert(settingsJson.thirdPartyDataPacks?.targetPackageId === 'product_probe_pack',
       `${scenario.name}: re-enabled package settings reported the wrong target`)
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
@@ -4579,7 +4565,6 @@ const runPackagedScenario = async (scenario, isolated) => {
   if (
     scenario.installTransactionCommitFinalization
     || scenario.visibleImportRendererLiveRegistry
-    || scenario.visibleEnable
     || exercisesVisibleUpgrade
   ) {
     const preparedLog = readJson(installTransactionPreparedLogPath(userDataPath))

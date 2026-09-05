@@ -75,6 +75,16 @@
           live registry {{ lastDisableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastDisableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
         </p>
+        <p v-if="lastEnableResult" data-testid="web-mod-enable-result" class="text-muted mt-2">
+          启用事务：{{ lastEnableResult.terminal.status === 'ready' ? '已完成' : '已阻断' }} ·
+          settings {{ lastEnableResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
+          mod-lock {{ lastEnableResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
+          startup {{ lastEnableResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
+          package {{ lastEnableResult.terminal.packageFilesPreserved ? '已保留' : '未保留' }} ·
+          runtime {{ lastEnableResult.terminal.runtimePublicationIncluded ? '已包含' : '未包含' }} ·
+          live registry {{ lastEnableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
+          handoff {{ lastEnableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
+        </p>
         <p v-if="lastUninstallResult" data-testid="web-mod-uninstall-result" class="text-muted mt-2">
           卸载事务：{{ lastUninstallResult.terminal.status === 'ready' ? '已完成' : '已阻断' }} ·
           settings {{ lastUninstallResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
@@ -165,6 +175,7 @@
   import { Download, Power, PowerOff, RotateCcw, Trash2, Upload } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import {
+    buildWebFilePickerSourceMountInput,
     useWebFilePickerImportEntry,
     type WebFilePickerAtomicTransactionCommitHost,
     type WebFilePickerInjectedAtomicTransactionCommitHost,
@@ -206,6 +217,11 @@
     type ThirdPartyDataPackElectronUninstallCommandResult
   } from '@/domain/mods/thirdPartyDataPackElectronUninstallCommandBridge'
   import {
+    createThirdPartyDataPackElectronEnableCommandRendererHost,
+    type ThirdPartyDataPackElectronEnableCommandEnvelope,
+    type ThirdPartyDataPackElectronEnableCommandResult
+  } from '@/domain/mods/thirdPartyDataPackElectronEnableCommandBridge'
+  import {
     createThirdPartyDataPackElectronInstalledStateRendererHost
   } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
   import type {
@@ -214,6 +230,9 @@
   import type {
     ThirdPartyDataPackUninstallTransactionResult
   } from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
+  import type {
+    ThirdPartyDataPackEnableTransactionResult
+  } from '@/domain/mods/thirdPartyDataPackEnableTransaction'
   import type { PackageId } from '@/domain/mods/ids'
   import {
     useWebInstalledDataPackManagement,
@@ -240,6 +259,9 @@
     electronUninstallCommand?: (
       envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
     ) => Promise<ThirdPartyDataPackElectronUninstallCommandResult>
+    electronEnableCommand?: (
+      envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
+    ) => Promise<ThirdPartyDataPackElectronEnableCommandResult>
   }>()
 
   const createDefaultPersistenceStore = (): WebIndexedDbImportPersistenceStore | null => {
@@ -324,6 +346,21 @@
   }
   const electronUninstallCommand =
     props.electronUninstallCommand ?? createDefaultElectronUninstallCommand()
+  const createDefaultElectronEnableCommand = () => {
+    if (typeof window === 'undefined') return undefined
+    const electronApi = (window as Window & {
+      electronAPI?: {
+        enableThirdPartyDataPack?: (envelope: unknown) => Promise<unknown>
+      }
+    }).electronAPI
+    if (typeof electronApi?.enableThirdPartyDataPack !== 'function') return undefined
+    const host = createThirdPartyDataPackElectronEnableCommandRendererHost({
+      invoke: async(_channel, envelope) => await electronApi.enableThirdPartyDataPack!(envelope)
+    })
+    return host.enable
+  }
+  const electronEnableCommand =
+    props.electronEnableCommand ?? createDefaultElectronEnableCommand()
   const readMountedAppStartupHostEvidence =
     (): WebFilePickerMountedAppStartupHostEvidence | undefined => {
       const evidence = getThirdPartyDataPackMountedAppStartupHostEvidence()
@@ -362,6 +399,11 @@
     executePostCommitVerification: props.executePostCommitVerification,
     readPostCommitUiIpcDeliveryContinuationSource: props.readPostCommitUiIpcDeliveryContinuationSource
   })
+  const restoreInstalledPackageSource = async() =>
+    readElectronInstalledState === undefined
+      ? await entry.restorePersistedImport()
+      : await entry.restoreElectronInstalledSource()
+
   const installedManagement = useWebInstalledDataPackManagement({
     officialRegistrySet: props.officialRegistrySet ?? getOfficialRegistrySet(),
     settingsLockfileStore: readElectronInstalledState === undefined ? webSettingsLockfileStore : null,
@@ -370,6 +412,26 @@
     mountedAppStartupEvidence: () => readMountedAppStartupHostEvidence() !== undefined,
     electronDisableCommand,
     electronUninstallCommand,
+    electronEnableCommand,
+    readEnableMountInput: async(packageId: PackageId) => {
+      const result = await restoreInstalledPackageSource()
+      if (!isReadyImportStatus(result.status)) return null
+      const source = entry.lastSource.value
+      if (source === null) return null
+      const mountInput = await buildWebFilePickerSourceMountInput({
+        source,
+        officialRegistrySet: props.officialRegistrySet ?? getOfficialRegistrySet()
+      })
+      if (
+        mountInput.status !== 'ready'
+        || !mountInput.selectedPackageIds.includes(packageId)
+        || !mountInput.loadOrder.includes(packageId)
+        || mountInput.blockedPackageIds.includes(packageId)
+      ) {
+        return null
+      }
+      return mountInput
+    },
     readElectronInstalledState
   })
   const installedRows = computed<readonly WebInstalledDataPackManagementRow[]>(
@@ -377,6 +439,7 @@
   )
   const installedManagementStatus = computed(() => installedManagement.status.value)
   const lastDisableResult = computed(() => installedManagement.lastResult.value)
+  const lastEnableResult = computed(() => installedManagement.lastEnableResult.value)
   const lastUninstallResult = computed(() => installedManagement.lastUninstallResult.value)
   const installedManagementStatusLabel = computed(() => {
     if (installedManagement.status.value === 'loading') return '读取中'
@@ -524,7 +587,10 @@
   })
   const commandReason = computed(() => lastDispatch.value?.reason ?? lastPreflight.value?.reason ?? '未运行')
   const targetPackageLabel = computed(() =>
-    lastPreflight.value?.preflight?.targetPackageId
+    lastEnableResult.value?.terminal.targetPackageId
+      ?? lastDisableResult.value?.terminal.targetPackageId
+      ?? lastUninstallResult.value?.terminal.targetPackageId
+      ?? lastPreflight.value?.preflight?.targetPackageId
       ?? lastPreflight.value?.selectedPackageIds[0]
       ?? '未选择'
   )
@@ -536,11 +602,13 @@
 
   const visibleImportPanelProbeResultEventName = 'taoyuan:third-party-visible-import-panel-result'
   const visibleDisablePanelProbeResultEventName = 'taoyuan:third-party-visible-disable-panel-result'
+  const visibleEnablePanelProbeResultEventName = 'taoyuan:third-party-visible-enable-panel-result'
   const visibleUninstallPanelProbeResultEventName = 'taoyuan:third-party-visible-uninstall-panel-result'
 
   type VisibleImportPanelProbeWindow = Window & {
     __TAOYUAN_VISIBLE_IMPORT_PANEL_RESULT__?: WebFilePickerSourceInstallCommandDispatchResult
     __TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__?: ThirdPartyDataPackDisableTransactionResult
+    __TAOYUAN_VISIBLE_ENABLE_PANEL_RESULT__?: ThirdPartyDataPackEnableTransactionResult
     __TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__?: ThirdPartyDataPackUninstallTransactionResult
   }
 
@@ -584,6 +652,25 @@
       configurable: true
     })
     window.dispatchEvent(new CustomEvent(visibleDisablePanelProbeResultEventName))
+  }
+
+  const shouldPublishVisibleEnablePanelProbeResult = (): boolean => {
+    if (typeof window === 'undefined') return false
+    const search = new URLSearchParams(window.location.search)
+    return search.get('taoyuanContentProbe') === '1'
+      && search.get('taoyuanThirdPartyVisibleEnableProbe') === '1'
+  }
+
+  const publishVisibleEnablePanelProbeResult = (
+    result: ThirdPartyDataPackEnableTransactionResult
+  ): void => {
+    if (!shouldPublishVisibleEnablePanelProbeResult()) return
+    const probeWindow = window as VisibleImportPanelProbeWindow
+    Object.defineProperty(probeWindow, '__TAOYUAN_VISIBLE_ENABLE_PANEL_RESULT__', {
+      value: result,
+      configurable: true
+    })
+    window.dispatchEvent(new CustomEvent(visibleEnablePanelProbeResultEventName))
   }
 
   const shouldPublishVisibleUninstallPanelProbeResult = (): boolean => {
@@ -640,11 +727,6 @@
       }
   }
 
-  const restoreInstalledPackageSource = async() =>
-    readElectronInstalledState === undefined
-      ? await entry.restorePersistedImport()
-      : await entry.restoreElectronInstalledSource()
-
   const runRestorePreflight = async(): Promise<void> => {
     if (isNativePlatform.value || isPreparing.value || persistenceStore === null) return
     isPreparing.value = true
@@ -688,10 +770,8 @@
     if (isNativePlatform.value || isPreparing.value) return
     isPreparing.value = true
     try {
-      const result = await restoreInstalledPackageSource()
-      if (!isReadyImportStatus(result.status)) return
-      publishVisibleImportPanelProbeResult(await dispatchCurrentImportSource(packageId as PackageId))
-      await installedManagement.refresh()
+      const result = await installedManagement.enable(packageId as PackageId)
+      if (result !== null) publishVisibleEnablePanelProbeResult(result)
     } finally {
       isPreparing.value = false
     }

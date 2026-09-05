@@ -10,6 +10,10 @@ import type {
   ThirdPartyDataPackStartupGatePersistentStateSnapshot,
   ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult
 } from './thirdPartyDataPackStartupGatePersistentStateSourceAdapter'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
@@ -136,7 +140,7 @@ export interface ThirdPartyDataPackElectronStartupGateDecisionEnvelope {
   readonly executionStatus?: ThirdPartyDataPackElectronStartupGatePersistentStateExecutionResult['startupGateHandoffStatus']
   readonly persistentStatePreflightStatus?: string
   readonly sourceAdapterStatus?: ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['status']
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -658,7 +662,9 @@ const baseEnvelope = (
     executionStatus: readOwnStringField(execution, 'startupGateHandoffStatus') as ThirdPartyDataPackElectronStartupGatePersistentStateExecutionResult['startupGateHandoffStatus'] | undefined,
     persistentStatePreflightStatus: persistentStatePreflightStatus(execution),
     sourceAdapterStatus: readOwnStringField(adapterResult, 'status') as ThirdPartyDataPackStartupGatePersistentStateSourceAdapterResult['status'] | undefined,
-    requestedCommandId: readOwnStringField(adapterResult, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(adapterResult, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(adapterResult, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,

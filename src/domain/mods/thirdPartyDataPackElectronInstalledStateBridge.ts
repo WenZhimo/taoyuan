@@ -104,6 +104,7 @@ const normalizeRecord = (
     readOwnStringField(record, 'recordId') !== 'active'
     || (
       requestedCommandId !== 'install'
+      && requestedCommandId !== 'enable'
       && requestedCommandId !== 'disable'
       && requestedCommandId !== 'uninstall'
     )

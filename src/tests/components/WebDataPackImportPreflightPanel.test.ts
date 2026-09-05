@@ -1659,29 +1659,25 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
 
       await wrapper.get(`[data-testid="web-mod-enable-${packageId}"]`).trigger('click')
-      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-enable-result"]').text())
 
       expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
       expect(wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).text()).toContain('禁用')
       expect(wrapper.find(`[data-testid="web-mod-enable-${packageId}"]`).exists()).toBe(false)
       expect(wrapper.get('[data-testid="web-mod-import-status"]').text()).toBe('已恢复')
-      expect(wrapper.get('[data-testid="web-mod-dispatch-status"]').text()).toBe('dispatched')
-      expect(wrapper.get('[data-testid="web-mod-host-ack-status"]').text()).toBe('已确认（Web）')
-      expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('提交后校验已确认')
-      expect(wrapper.get('[data-testid="web-mod-ui-ipc-delivery-status"]').text()).toBe('已送达（Web）')
-      expectRuntimeHandoffStatusLabels(wrapper, {
-        runtimePublication: '已确认',
-        liveRegistry: '已切换',
-        appStartup: '已接入已挂载应用'
-      })
-      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('已写入')
-      expect(wrapper.text()).toContain('事务提交：已提交')
-      expect(wrapper.text()).toContain('写入：已执行')
-      expect(wrapper.text()).toContain('运行时启用：允许')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('启用事务：已完成')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('settings 已写入')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('mod-lock 已写入')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('startup 已写入')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('package 已保留')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime 已包含')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('live registry 已切换')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('handoff 已接受')
       expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
         .toBe(`${packageId}:linen_ribbon`)
       expect((await webSettingsLockfileStore.read()).record).toMatchObject({
         recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'enable',
         targetPackageId: packageId,
         selectedPackageIds: [packageId],
         blockedPackageIds: [],

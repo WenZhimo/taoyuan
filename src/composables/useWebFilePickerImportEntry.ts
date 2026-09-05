@@ -2132,6 +2132,24 @@ export const createBrowserWebFilePickerSelector = (
   })
 }
 
+export interface BuildWebFilePickerSourceMountInputOptions {
+  readonly source: ContentPackageSource
+  readonly officialRegistrySet: RegistrySet
+}
+
+export const buildWebFilePickerSourceMountInput = async(
+  options: BuildWebFilePickerSourceMountInputOptions
+): Promise<ThirdPartyDataPackMountInputResult> => {
+  const discoveryReport = await discoverThirdPartyDataPacks(
+    options.source.identity.rootPath,
+    createDiscoveryFileSystemFromContentPackageSource(options.source)
+  )
+  return buildThirdPartyDataPackMountInput({
+    officialRegistrySet: options.officialRegistrySet,
+    discoveryReport
+  })
+}
+
 export const useWebFilePickerImportEntry = (
   options: UseWebFilePickerImportEntryOptions = {}
 ) => {

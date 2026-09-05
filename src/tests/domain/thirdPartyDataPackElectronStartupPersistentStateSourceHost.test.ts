@@ -177,6 +177,7 @@ const createSettingsFile = (
 ) => ({
   closeToTray: false,
   thirdPartyDataPacks: {
+    commandId: 'install',
     candidateHash: candidateIdentity.candidateHash,
     lockfileHash,
     selectedPackageIds: [packageId],
@@ -356,6 +357,39 @@ describe('third-party Electron startup persistent state source host', () => {
     expectJsonGraphFrozen(result)
   }, 30_000)
 
+  it('loads an enable startup request when settings preserve the enable command identity', async() => {
+    const root = await createRoot()
+    await writeSettingsAndModLock(root, {
+      settingsOverrides: {
+        commandId: 'enable'
+      }
+    })
+    await writeSnapshot(root)
+    const enableRequest: ThirdPartyDataPackStartupGatePersistentStateSourceRequest = {
+      ...request,
+      commandId: 'enable'
+    }
+
+    const result = await readThirdPartyDataPackElectronStartupPersistentStateSnapshot({
+      programDirectoryPath: root,
+      request: enableRequest
+    })
+
+    expect(result.report.status).toBe('loaded')
+    expect(result.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(result.report.effects.settingsStateRead).toBe(true)
+    expect(result.report.effects.modLockStateRead).toBe(true)
+    expect(result.snapshot).toEqual(expect.objectContaining({
+      kind: 'startup-persistent-state-snapshot',
+      settled: true,
+      packageId,
+      lockfileHash
+    }))
+    expectNoPersistentWrites(result.report.effects)
+    expect(JSON.stringify(result)).not.toContain(root)
+    expectJsonGraphFrozen(result)
+  })
+
   it('reports missing, invalid and identity-drift snapshots without leaking host paths', async() => {
     const missingRoot = await createRoot()
     const invalidRoot = await createRoot()
@@ -416,6 +450,14 @@ describe('third-party Electron startup persistent state source host', () => {
       }
     })
 
+    const commandDriftRoot = await createRoot()
+    await writeSnapshot(commandDriftRoot)
+    await writeSettingsAndModLock(commandDriftRoot, {
+      settingsOverrides: {
+        commandId: 'disable'
+      }
+    })
+
     const { lockfileHash: _lockfileHash, ...modLockBody } = modLockDraft
     const driftedModLockBody = {
       ...modLockBody,
@@ -437,6 +479,10 @@ describe('third-party Electron startup persistent state source host', () => {
       programDirectoryPath: settingsDriftRoot,
       request
     })
+    const commandDrift = await readThirdPartyDataPackElectronStartupPersistentStateSnapshot({
+      programDirectoryPath: commandDriftRoot,
+      request
+    })
     const modLockDrift = await readThirdPartyDataPackElectronStartupPersistentStateSnapshot({
       programDirectoryPath: modLockDriftRoot,
       request
@@ -449,6 +495,13 @@ describe('third-party Electron startup persistent state source host', () => {
     expect(settingsDrift.report.effects.settingsStateRead).toBe(true)
     expect(settingsDrift.report.effects.modLockStateRead).toBe(false)
     expect(settingsDrift.snapshot).toBeNull()
+    expect(commandDrift.report.status).toBe('blocked')
+    expect(commandDrift.report.reason)
+      .toBe('electron startup settings state does not match the startup request identity')
+    expect(commandDrift.report.effects.startupPersistentStateSnapshotRead).toBe(true)
+    expect(commandDrift.report.effects.settingsStateRead).toBe(true)
+    expect(commandDrift.report.effects.modLockStateRead).toBe(false)
+    expect(commandDrift.snapshot).toBeNull()
     expect(modLockDrift.report.status).toBe('blocked')
     expect(modLockDrift.report.reason)
       .toBe('electron startup mod-lock state does not match the startup request identity')
@@ -456,10 +509,11 @@ describe('third-party Electron startup persistent state source host', () => {
     expect(modLockDrift.report.effects.settingsStateRead).toBe(true)
     expect(modLockDrift.report.effects.modLockStateRead).toBe(true)
     expect(modLockDrift.snapshot).toBeNull()
-    for (const current of [settingsDrift, modLockDrift]) {
+    for (const current of [settingsDrift, commandDrift, modLockDrift]) {
       expectNoPersistentWrites(current.report.effects)
       const serialized = JSON.stringify(current)
       expect(serialized).not.toContain(settingsDriftRoot)
+      expect(serialized).not.toContain(commandDriftRoot)
       expect(serialized).not.toContain(modLockDriftRoot)
       expect(serialized).not.toContain('C:/Users')
       expectJsonGraphFrozen(current)

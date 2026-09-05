@@ -7,6 +7,10 @@ import {
   type CreateThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineOptions,
   type ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult
 } from './thirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -183,7 +187,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnect
   readonly normalStartupContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
   readonly uiIpcResultContinuationAllowed: boolean
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -963,7 +967,9 @@ const baseResult = (
     normalStartupContinuationAllowed: options.status === 'accepted',
     commandContinuationAllowed: options.status === 'accepted',
     uiIpcResultContinuationAllowed: options.status === 'accepted',
-    requestedCommandId: readOwnStringField(options.readinessResult, 'requestedCommandId') === 'install' ? 'install' : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.readinessResult, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.readinessResult, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,

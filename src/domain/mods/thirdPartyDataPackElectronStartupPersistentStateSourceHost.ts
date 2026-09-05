@@ -19,6 +19,10 @@ import {
 import type {
   ThirdPartyDataPackLockfileDraft
 } from './thirdPartyDataPackLockfileDraft'
+import {
+  isThirdPartyDataPackRuntimeCommandId,
+  type ThirdPartyDataPackRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 export const THIRD_PARTY_DATA_PACK_ELECTRON_STARTUP_PERSISTENT_STATE_SOURCE_HOST_KIND =
   'electron-program-directory-startup-persistent-state-source-host'
@@ -114,6 +118,7 @@ export interface ThirdPartyDataPackElectronStartupPersistentStateSourceHostRepor
 }
 
 interface ElectronStartupSettingsSummary {
+  readonly commandId: ThirdPartyDataPackRuntimeCommandId
   readonly candidateHash: Sha256Hash
   readonly lockfileHash: Sha256Hash
   readonly selectedPackageIds: readonly PackageId[]
@@ -531,12 +536,14 @@ const parseSettingsSummary = (
   }
 
   const candidateHash = readOwnStringField(thirdPartyDataPacks, 'candidateHash')
+  const commandId = readOwnStringField(thirdPartyDataPacks, 'commandId')
   const lockfileHash = readOwnStringField(thirdPartyDataPacks, 'lockfileHash')
   const selectedPackageIds = readStringArrayField(thirdPartyDataPacks, 'selectedPackageIds')
   const loadOrder = readStringArrayField(thirdPartyDataPacks, 'loadOrder')
   if (
     candidateHash === undefined
     || !sha256Pattern.test(candidateHash)
+    || !isThirdPartyDataPackRuntimeCommandId(commandId)
     || lockfileHash === undefined
     || !sha256Pattern.test(lockfileHash)
     || selectedPackageIds === undefined
@@ -546,6 +553,7 @@ const parseSettingsSummary = (
   }
 
   return Object.freeze({
+    commandId,
     candidateHash: candidateHash as Sha256Hash,
     lockfileHash: lockfileHash as Sha256Hash,
     selectedPackageIds: selectedPackageIds as readonly PackageId[],
@@ -556,7 +564,8 @@ const parseSettingsSummary = (
 const settingsSummaryMatchesRequest = (
   request: ThirdPartyDataPackStartupGatePersistentStateSourceRequest,
   summary: ElectronStartupSettingsSummary
-): boolean => summary.candidateHash === request.candidateIdentity.candidateHash
+): boolean => summary.commandId === request.commandId
+  && summary.candidateHash === request.candidateIdentity.candidateHash
   && summary.lockfileHash === request.lockfileHash
   && arraysEqual(summary.selectedPackageIds, request.selectedPackageIds)
   && arraysEqual(summary.loadOrder, request.loadOrder)

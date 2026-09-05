@@ -2,12 +2,25 @@ import type { PackageId } from './ids'
 import type { ThirdPartyDataPackModManagementCommandId } from './thirdPartyDataPackModManagementReadModel'
 
 export type ThirdPartyDataPackRuntimeCommandId =
-  Extract<ThirdPartyDataPackModManagementCommandId, 'install' | 'disable' | 'uninstall'>
+  Extract<ThirdPartyDataPackModManagementCommandId, 'install' | 'enable' | 'disable' | 'uninstall'>
+
+export type ThirdPartyDataPackEnabledRuntimeCommandId =
+  Extract<ThirdPartyDataPackRuntimeCommandId, 'install' | 'enable'>
 
 export const isThirdPartyDataPackRuntimeCommandId = (
   value: unknown
 ): value is ThirdPartyDataPackRuntimeCommandId =>
-  value === 'install' || value === 'disable' || value === 'uninstall'
+  value === 'install' || value === 'enable' || value === 'disable' || value === 'uninstall'
+
+export const isThirdPartyDataPackEnabledRuntimeCommandId = (
+  value: unknown
+): value is ThirdPartyDataPackEnabledRuntimeCommandId =>
+  value === 'install' || value === 'enable'
+
+export const readThirdPartyDataPackEnabledRuntimeCommandId = (
+  value: unknown
+): ThirdPartyDataPackEnabledRuntimeCommandId | undefined =>
+  isThirdPartyDataPackEnabledRuntimeCommandId(value) ? value : undefined
 
 export const runtimeCommandTargetPackageId = (
   commandId: ThirdPartyDataPackRuntimeCommandId | undefined,
@@ -17,7 +30,7 @@ export const runtimeCommandTargetPackageId = (
 ): PackageId | undefined => {
   if (commandId === 'uninstall') return explicitTargetPackageId
   if (commandId === 'disable') return blockedPackageIds[0]
-  if (commandId === 'install') return selectedPackageIds[0]
+  if (commandId === 'install' || commandId === 'enable') return selectedPackageIds[0]
   return undefined
 }
 
@@ -29,7 +42,7 @@ export const runtimeCommandTargetMatchesPackageState = (
   loadOrder: readonly PackageId[]
 ): boolean => {
   if (targetPackageId === undefined) return false
-  if (commandId === 'install') {
+  if (commandId === 'install' || commandId === 'enable') {
     return selectedPackageIds.includes(targetPackageId)
       && loadOrder.includes(targetPackageId)
       && !blockedPackageIds.includes(targetPackageId)

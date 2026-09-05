@@ -7,6 +7,10 @@ import type {
 import type {
   ThirdPartyDataPackUiIpcResponseDeliveryOrchestrationHandoffResult
 } from './thirdPartyDataPackUiIpcResponseDeliveryOrchestrationHandoff'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyDataPackUiIpcResultEnvelope,
   ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind,
@@ -149,7 +153,7 @@ export interface ThirdPartyDataPackStartupGateHandoffPreflightResult {
   readonly runtimeEnablementAllowed: false
   readonly writeAllowed: false
   readonly rollbackRecoveryAllowed: false
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly envelopeKind?: ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind
   readonly messageKey?: string
@@ -811,7 +815,7 @@ const baseResult = (
     runtimeEnablementAllowed: false,
     writeAllowed: false,
     rollbackRecoveryAllowed: false,
-    requestedCommandId: source.requestedCommandId === 'install' ? 'install' as const : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(source.requestedCommandId),
     targetPackageId: source.targetPackageId,
     envelopeKind: deliveryEnvelope?.kind,
     messageKey: deliveryEnvelope?.messageKey,

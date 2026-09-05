@@ -15,6 +15,10 @@ import {
   ThirdPartyDataPackLiveRegistrySwapExecutionBlockedError,
   type ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult
 } from './thirdPartyDataPackLiveRegistrySwapExecutionSource'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -115,7 +119,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostC
     ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult['status']
   readonly liveRegistrySwapStatus?: ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult['status']
   readonly liveRegistrySwapHostStatus?: ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult['liveRegistrySwapHostStatus']
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -356,7 +360,7 @@ const safeAcceptedCommit = (
     && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
     && readOwnBooleanField(result, 'commandContinuationAllowed') === true
     && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
-    && readOwnStringField(result, 'requestedCommandId') === 'install'
+    && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(result, 'requestedCommandId')) !== undefined
     && readOwnStringField(result, 'targetPackageId') !== undefined
     && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
       readOwnStringField(result, 'targetPackageId') as PackageId
@@ -398,7 +402,7 @@ const safeSwappedLiveRegistry = (
     && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
     && readOwnBooleanField(result, 'commandContinuationAllowed') === true
     && readOwnStringField(result, 'liveRegistrySwapHostStatus') === 'swapped'
-    && readOwnStringField(result, 'requestedCommandId') === 'install'
+    && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(result, 'requestedCommandId')) !== undefined
     && targetPackageId !== undefined
     && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(targetPackageId as PackageId)
     && cloneCandidateIdentity(readOwnDataField(result, 'candidateIdentity')) !== undefined
@@ -736,7 +740,9 @@ const baseResult = (
     liveRegistrySwapHostStatus: readOwnStringField(options.liveSwapResult, 'liveRegistrySwapHostStatus') as
       | ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult['liveRegistrySwapHostStatus']
       | undefined,
-    requestedCommandId: readOwnStringField(options.commitResult, 'requestedCommandId') === 'install' ? 'install' : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.commitResult, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.commitResult, 'targetPackageId') as PackageId | undefined
       ?? readOwnStringField(options.liveSwapResult, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,

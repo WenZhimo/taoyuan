@@ -41,6 +41,10 @@ import {
   thirdPartyDataPackElectronDisableCommandIpcChannel
 } from '../src/domain/mods/thirdPartyDataPackElectronDisableCommandBridge'
 import {
+  createThirdPartyDataPackElectronEnableCommandMainHandler,
+  thirdPartyDataPackElectronEnableCommandIpcChannel
+} from '../src/domain/mods/thirdPartyDataPackElectronEnableCommandBridge'
+import {
   createThirdPartyDataPackElectronUninstallCommandMainHandler,
   thirdPartyDataPackElectronUninstallCommandIpcChannel
 } from '../src/domain/mods/thirdPartyDataPackElectronUninstallCommandBridge'
@@ -1388,6 +1392,40 @@ const assertSafePackageRemovalPlan = (modsPath, targetPackage) => {
   return packageRootPath
 }
 
+const assertSafePackagePreservationPlan = (modsPath, targetPackage) => {
+  const source = targetPackage?.source
+  if (
+    source === null
+    || typeof source !== 'object'
+    || !isSafeRelativeDataPackPath(source.candidatePath)
+    || !isSafeRelativeDataPackPath(source.manifestPath)
+    || !Array.isArray(source.contentFiles)
+  ) {
+    throw new Error('Electron enable package source paths are not preservable')
+  }
+
+  const packageRootPath = path.resolve(modsPath, source.candidatePath)
+  if (!isPathInside(modsPath, packageRootPath) || path.resolve(packageRootPath) === path.resolve(modsPath)) {
+    throw new Error('Electron enable package root escaped the mods directory')
+  }
+  if (!fs.statSync(packageRootPath).isDirectory()) {
+    throw new Error('Electron enable package root is unavailable')
+  }
+  for (const filePath of [source.manifestPath, ...source.contentFiles]) {
+    if (!isSafeRelativeDataPackPath(filePath)) {
+      throw new Error('Electron enable package file path is not preservable')
+    }
+    const absolutePath = path.resolve(modsPath, filePath)
+    if (!isPathInside(packageRootPath, absolutePath)) {
+      throw new Error('Electron enable package file escaped the package root')
+    }
+    if (!fs.statSync(absolutePath).isFile()) {
+      throw new Error('Electron enable package file is unavailable')
+    }
+  }
+  return packageRootPath
+}
+
 const parseJsonObjectOrNull = text => {
   try {
     const value = JSON.parse(text)
@@ -1519,6 +1557,113 @@ const writeElectronUninstalledState = async envelope => {
   }
 }
 
+const writeElectronEnabledState = async envelope => {
+  const record = envelope.record
+  const draft = record.lockfileDraft
+  const enabledPackage = draft.packages.find(
+    currentPackage => currentPackage.packageId === envelope.targetPackageId
+  )
+  if (
+    record.requestedCommandId !== 'enable'
+    || record.targetPackageId !== envelope.targetPackageId
+    || draft.selectedPackageIds.length !== 1
+    || draft.selectedPackageIds[0] !== envelope.targetPackageId
+    || draft.loadOrder.length !== 1
+    || draft.loadOrder[0] !== envelope.targetPackageId
+    || draft.packages.length === 0
+    || enabledPackage === undefined
+  ) {
+    throw new Error('Electron enable state does not describe a disabled package activation')
+  }
+
+  const programDirectoryPath = getExecutableDirectoryPath()
+  const startupPaths = resolveThirdPartyDataPackElectronStartupPersistentStateSourceHostPaths(
+    programDirectoryPath
+  )
+  const settingsPrevious = readOptionalFile(settingsPath)
+  const modLockPrevious = readOptionalFile(startupPaths.modLockFilePath)
+  const startupPrevious = readOptionalFile(startupPaths.snapshotFilePath)
+  const currentModLock = await createModLockProbe().read()
+  if (currentModLock.report.status !== 'loaded' || currentModLock.draft === null) {
+    throw new Error('Electron enable requires a loaded disabled mod-lock')
+  }
+
+  const previousDraft = currentModLock.draft
+  const disabledPackage = previousDraft.packages.find(
+    currentPackage => currentPackage.packageId === envelope.targetPackageId
+  )
+  const currentSettings = settingsPrevious.exists
+    ? parseJsonObjectOrNull(settingsPrevious.contents)
+    : null
+  const currentDataPacks = currentSettings?.thirdPartyDataPacks
+  if (
+    disabledPackage === undefined
+    || previousDraft.selectedPackageIds.length !== 0
+    || previousDraft.loadOrder.length !== 0
+    || currentDataPacks === null
+    || typeof currentDataPacks !== 'object'
+    || currentDataPacks.commandId !== 'disable'
+    || currentDataPacks.targetPackageId !== envelope.targetPackageId
+    || currentDataPacks.candidateHash !== previousDraft.candidateIdentity.candidateHash
+    || currentDataPacks.lockfileHash !== previousDraft.lockfileHash
+    || !stringListsMatch(currentDataPacks.selectedPackageIds, [])
+    || !stringListsMatch(currentDataPacks.blockedPackageIds, [envelope.targetPackageId])
+    || !stringListsMatch(currentDataPacks.loadOrder, [])
+    || disabledPackage.source?.candidatePath !== enabledPackage.source?.candidatePath
+  ) {
+    throw new Error('Electron enable requires the current package to be disabled')
+  }
+
+  const modsPath = getExecutableModsPath()
+  assertSafePackagePreservationPlan(modsPath, disabledPackage)
+  assertSafePackagePreservationPlan(modsPath, enabledPackage)
+  let modLockWritten = false
+
+  try {
+    const lockfileResult = await createModLockProbe().write(draft)
+    if (lockfileResult.report.status !== 'written') {
+      throw new Error('Electron enable mod-lock write was blocked')
+    }
+    modLockWritten = true
+
+    writeJsonFileAtomically(settingsPath, {
+      ...currentSettings,
+      thirdPartyDataPacks: {
+        commandId: 'enable',
+        targetPackageId: envelope.targetPackageId,
+        candidateHash: record.candidateHash,
+        lockfileHash: record.lockfileHash,
+        selectedPackageIds: [envelope.targetPackageId],
+        blockedPackageIds: [],
+        loadOrder: [envelope.targetPackageId]
+      }
+    })
+
+    writeJsonFileAtomically(startupPaths.snapshotFilePath, envelope.startupSnapshot)
+
+    return {
+      settingsWritten: true,
+      lockfileWritten: true,
+      startupStateWritten: true
+    }
+  } catch (error) {
+    try {
+      restoreOptionalFile(startupPaths.snapshotFilePath, startupPrevious)
+      restoreOptionalFile(settingsPath, settingsPrevious)
+      if (modLockWritten) {
+        await rollbackModLockFile(
+          startupPaths.modLockFilePath,
+          modLockPrevious,
+          'Electron enable rollback of mod-lock was blocked'
+        )
+      }
+    } catch {
+      // The IPC terminal remains blocked; the next startup will revalidate all three files.
+    }
+    throw error
+  }
+}
+
 const stringListsMatch = (left, right) =>
   Array.isArray(left)
   && Array.isArray(right)
@@ -1602,6 +1747,7 @@ const readElectronInstalledState = async () => {
   if (
     (
       effectiveCommandId !== 'install'
+      && effectiveCommandId !== 'enable'
       && effectiveCommandId !== 'disable'
       && effectiveCommandId !== 'uninstall'
     )
@@ -1620,7 +1766,7 @@ const readElectronInstalledState = async () => {
       : [])
     || (effectiveCommandId !== 'uninstall' && !targetPackageIsInDraft)
     || (effectiveCommandId === 'uninstall' && targetPackageIsInDraft)
-    || (effectiveCommandId === 'install'
+    || ((effectiveCommandId === 'install' || effectiveCommandId === 'enable')
       && (selectedPackageIds.length === 0 || selectedPackageIds[0] !== effectiveTargetPackageId))
     || (effectiveCommandId === 'disable'
       && (selectedPackageIds.length !== 0 || loadOrder.length !== 0))
@@ -1694,6 +1840,11 @@ const thirdPartyDataPackInstalledStateReadHandler =
 const thirdPartyDataPackDisableCommandHandler =
   createThirdPartyDataPackElectronDisableCommandMainHandler({
     writeDisabledState: writeElectronDisabledState
+  })
+
+const thirdPartyDataPackEnableCommandHandler =
+  createThirdPartyDataPackElectronEnableCommandMainHandler({
+    writeEnabledState: writeElectronEnabledState
   })
 
 const thirdPartyDataPackUninstallCommandHandler =
@@ -4859,6 +5010,9 @@ ipcMain.handle(thirdPartyDataPackElectronInstallCommandDispatchIpcChannel, (_eve
 
 ipcMain.handle(thirdPartyDataPackElectronDisableCommandIpcChannel, (_event, envelope) =>
   thirdPartyDataPackDisableCommandHandler(envelope))
+
+ipcMain.handle(thirdPartyDataPackElectronEnableCommandIpcChannel, (_event, envelope) =>
+  thirdPartyDataPackEnableCommandHandler(envelope))
 
 ipcMain.handle(thirdPartyDataPackElectronUninstallCommandIpcChannel, (_event, envelope) =>
   thirdPartyDataPackUninstallCommandHandler(envelope))

@@ -16,6 +16,10 @@ import {
   type ThirdPartyDataPackRuntimePublicationCommitHostStatus,
   type ThirdPartyDataPackRuntimePublicationCommitSourceResult
 } from './thirdPartyDataPackRuntimePublicationCommitSource'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -127,7 +131,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerifi
     ThirdPartyDataPackPostCommitVerificationAfterInstallTransactionCommitPipelineResult['status']
   readonly runtimePublicationCommitStatus?: ThirdPartyDataPackRuntimePublicationCommitSourceResult['status']
   readonly runtimePublicationCommitHostStatus?: ThirdPartyDataPackRuntimePublicationCommitHostStatus
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -410,7 +414,7 @@ const safeReadyPostCommit = (
   && readOwnBooleanField(postCommit, 'appBootstrapContinuationAllowed') === true
   && readOwnBooleanField(postCommit, 'commandContinuationAllowed') === true
   && readOwnBooleanField(postCommit, 'uiIpcResultContinuationAllowed') === true
-  && readOwnStringField(postCommit, 'requestedCommandId') === 'install'
+  && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(postCommit, 'requestedCommandId')) !== undefined
   && cloneCandidateIdentity(readOwnDataField(postCommit, 'candidateIdentity')) !== undefined
   && readOwnStringField(postCommit, 'lockfileHash') !== undefined
   && readOwnStringField(postCommit, 'committedTransactionId') !== undefined
@@ -740,7 +744,9 @@ const baseResult = (
     runtimePublicationCommitHostStatus: readOwnStringField(options.runtimeCommit, 'runtimePublicationCommitHostStatus') as
       | ThirdPartyDataPackRuntimePublicationCommitHostStatus
       | undefined,
-    requestedCommandId: readOwnStringField(options.postCommit, 'requestedCommandId') === 'install' ? 'install' : undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.postCommit, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.postCommit, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,
