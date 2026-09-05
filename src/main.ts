@@ -69,6 +69,9 @@ const thirdPartyVisibleImportFailureProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
+const thirdPartyVisibleDisableExpectBlockedProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleDisableExpectBlocked') === '1'
 const thirdPartyVisibleUninstallProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleUninstallProbe') === '1'
@@ -177,7 +180,8 @@ void bootstrapApplication({
         )
         thirdPartyVisibleDisableProductProbeResult =
           await runThirdPartyVisibleDisableProductProbe({
-            targetPackageId: 'product_probe_pack' as PackageId
+            targetPackageId: 'product_probe_pack' as PackageId,
+            expectBlocked: thirdPartyVisibleDisableExpectBlockedProbeRequested
           })
       }
       if (thirdPartyVisibleUninstallProbeRequested) {

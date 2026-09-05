@@ -482,6 +482,59 @@ const electronScenarios = [
     startupGateEntryCount: 4242
   },
   {
+    name: 'visible-import-disable-write-failure-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true
+  },
+  {
+    name: 'visible-import-disable-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleDisable: true,
+    visibleDisableFailAfterModLockWrite: true
+  },
+  {
+    name: 'visible-import-disable-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-disable-uninstall-initial-import',
     fault: null,
     source: 'disk-cache',
@@ -1823,6 +1876,90 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     `${scenario.name}: visible disable probe ran with an unsupported protocol`)
   assert(visibleImport.observed === true,
     `${scenario.name}: visible disable probe was not observed`)
+  if (scenario.visibleDisableFailAfterModLockWrite) {
+    assert(protocol === 'file:',
+      `${scenario.name}: visible disable failure rollback must run in Electron`)
+    assert(visibleImport.status === 'blocked',
+      `${scenario.name}: visible disable failure rollback did not block`)
+    assert(visibleImport.operation === 'disable',
+      `${scenario.name}: visible disable failure rollback reported the wrong operation`)
+    assert(visibleImport.entrypoint === 'main-menu-panel',
+      `${scenario.name}: visible disable failure rollback did not start from the MainMenu panel`)
+    assert(visibleImport.mainMenuPanelOpened === true,
+      `${scenario.name}: visible disable failure rollback did not open the MainMenu panel`)
+    assert(visibleImport.disableButtonClicked === true,
+      `${scenario.name}: visible disable failure rollback did not click disable`)
+    assert(visibleImport.targetPackageId === 'product_probe_pack',
+      `${scenario.name}: visible disable failure rollback reported the wrong package`)
+    assert(visibleImport.disableTerminalStatus === 'blocked',
+      `${scenario.name}: visible disable failure rollback terminal was not blocked`)
+    assert(visibleImport.disableTargetPackageId === 'product_probe_pack',
+      `${scenario.name}: visible disable failure rollback terminal target mismatch`)
+    assert(visibleImport.contentAccessItemVisibleBefore === true,
+      `${scenario.name}: disable failure package item was not visible before failure`)
+    assert(visibleImport.contentAccessItemVisibleAfter === true,
+      `${scenario.name}: disable failure removed runtime item visibility`)
+    assert(visibleImport.contentAccessRecipeVisibleBefore === true,
+      `${scenario.name}: disable failure package recipe was not visible before failure`)
+    assert(visibleImport.contentAccessRecipeVisibleAfter === true,
+      `${scenario.name}: disable failure removed runtime recipe visibility`)
+    assert(visibleImport.contentAccessShopOfferVisibleBefore === true,
+      `${scenario.name}: disable failure shop offer was not visible before failure`)
+    assert(visibleImport.contentAccessShopOfferVisibleAfter === true,
+      `${scenario.name}: disable failure removed runtime shop offer visibility`)
+    assert(visibleImport.panelStatusLabels?.installedManagementStatus === '已阻断',
+      `${scenario.name}: visible disable failure did not mark management blocked`)
+    const disableResult = visibleImport.panelStatusLabels?.disableResult ?? ''
+    for (const label of [
+      '禁用事务：已阻断',
+      'settings 未写入',
+      'mod-lock 未写入',
+      'startup 未写入',
+      'runtime 未排除',
+      'live registry 未切换',
+      'handoff 未接受'
+    ]) {
+      assert(disableResult.includes(label),
+        `${scenario.name}: visible disable failure panel omitted ${label}`)
+    }
+    for (const fieldName of [
+      'disableSettingsWritten',
+      'disableLockfileWritten',
+      'disableStartupStateWritten',
+      'disableRuntimePublicationExcluded',
+      'disableLiveRegistrySwapped',
+      'disableAppStartupHandoffAccepted'
+    ]) {
+      assert(visibleImport[fieldName] === false,
+        `${scenario.name}: visible disable failure field ${fieldName} was not false`)
+    }
+    assert(visibleImport.disablePackageFilesPreserved === true,
+      `${scenario.name}: visible disable failure did not preserve package files`)
+    assert(visibleImport.diagnosticsCount === 1,
+      `${scenario.name}: visible disable failure did not report one blocked diagnostic`)
+    for (const effectName of [
+      'settingsWritten',
+      'lockfileWritten',
+      'rendererLiveRegistrySwapped',
+      'runtimeEnablementAllowed',
+      'uiIpcResponseDelivered',
+      'transactionCommitted',
+      'startupPersistentStateWritten',
+      'realAppStartupHostCalled',
+      'gameAppCreated',
+      'piniaCreated',
+      'routerMounted',
+      'savesWritten',
+      'cacheWritten',
+      'transactionLogWritten',
+      'rollbackExecuted',
+      'diagnosticsWritten'
+    ]) {
+      assert(visibleImport.effects?.[effectName] === false,
+        `${scenario.name}: visible disable failure effect ${effectName} was not false`)
+    }
+    return
+  }
   assert(visibleImport.status === 'ready',
     `${scenario.name}: visible disable probe did not reach ready status`)
   assert(visibleImport.operation === 'disable',
@@ -4504,6 +4641,9 @@ const runPackagedScenario = async (scenario, isolated) => {
     ...(scenario.visibleDisable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE: '1' }
       : {}),
+    ...(scenario.visibleDisableFailAfterModLockWrite
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE_FAIL_AFTER_MOD_LOCK_WRITE: '1' }
+      : {}),
     ...(scenario.visibleUninstall
       && !scenario.visibleUninstallFailAfterModLockWrite
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_UNINSTALL: '1' }
@@ -4638,7 +4778,12 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
       `${scenario.name}: mod-lock file changed during inspect-only probe`)
   }
-  if ((scenario.visibleDisable || scenario.startupGateDisabled) && !scenario.visibleEnable && !scenario.visibleUninstall) {
+  if (
+    (scenario.visibleDisable || scenario.startupGateDisabled)
+    && !scenario.visibleEnable
+    && !scenario.visibleUninstall
+    && !scenario.visibleDisableFailAfterModLockWrite
+  ) {
     assert(preservedPackageBefore !== null && preservedPackageBefore.length > 0,
       `${scenario.name}: disabled package files were not present before restart validation`)
     assert(JSON.stringify(directoryFingerprint(preservedPackageRoot))
@@ -4685,6 +4830,53 @@ const runPackagedScenario = async (scenario, isolated) => {
       `${scenario.name}: disabled startup state did not preserve save/cache isolation evidence`)
     assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ disabledLockfile, settingsJson, startupState })),
       `${scenario.name}: disabled persistent state leaked an absolute path`)
+  }
+  if (scenario.visibleDisableFailAfterModLockWrite) {
+    assert(preservedPackageBefore !== null && preservedPackageBefore.length > 0,
+      `${scenario.name}: disable failure did not start with package files present`)
+    assert(JSON.stringify(directoryFingerprint(preservedPackageRoot)) === JSON.stringify(preservedPackageBefore),
+      `${scenario.name}: disable failure did not preserve package files`)
+    const restoredLockfile = readJson(lockfilePath)
+    assert(JSON.stringify(restoredLockfile.selectedPackageIds) === JSON.stringify(['product_probe_pack']),
+      `${scenario.name}: disable failure did not restore selected package ids`)
+    assert(JSON.stringify(restoredLockfile.loadOrder) === JSON.stringify(['product_probe_pack']),
+      `${scenario.name}: disable failure did not restore load order`)
+    assert(JSON.stringify(restoredLockfile.blockedPackageIds ?? []) === JSON.stringify([]),
+      `${scenario.name}: disable failure left blocked package ids`)
+    assert(restoredLockfile.packages?.[0]?.packageId === 'product_probe_pack',
+      `${scenario.name}: disable failure lost installed package record`)
+    const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
+    assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
+      `${scenario.name}: disable failure did not restore install settings command`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
+      === JSON.stringify(['product_probe_pack']),
+    `${scenario.name}: disable failure did not restore settings selected packages`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
+      === JSON.stringify(['product_probe_pack']),
+    `${scenario.name}: disable failure did not restore settings load order`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.blockedPackageIds ?? [])
+      === JSON.stringify([]),
+    `${scenario.name}: disable failure left settings blocked packages`)
+    const startupStatePath = path.join(
+      userDataPath,
+      'mod-startup-state',
+      'startup-persistent-state-snapshot.json'
+    )
+    const startupState = readJson(startupStatePath)
+    assert(startupState.packageId === 'product_probe_pack',
+      `${scenario.name}: disable failure startup state reported the wrong package`)
+    assert(startupState.packageState?.matched === true,
+      `${scenario.name}: disable failure startup state lost package evidence`)
+    assert(startupState.settingsState?.matched === true,
+      `${scenario.name}: disable failure startup state lost settings evidence`)
+    assert(startupState.modLockState?.matched === true,
+      `${scenario.name}: disable failure startup state lost mod-lock evidence`)
+    assert(startupState.liveRegistry?.matched === true,
+      `${scenario.name}: disable failure startup state lost live registry evidence`)
+    assert(startupState.saveCache?.isolated === true,
+      `${scenario.name}: disable failure startup state lost save/cache isolation evidence`)
+    assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify({ restoredLockfile, settingsJson, startupState })),
+      `${scenario.name}: disable failure restored persistent state leaked an absolute path`)
   }
   if (scenario.visibleUninstallFailAfterModLockWrite) {
     assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,

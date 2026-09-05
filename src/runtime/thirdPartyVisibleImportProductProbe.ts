@@ -75,6 +75,7 @@ export interface RunThirdPartyVisibleImportProductProbeOptions {
 
 export interface RunThirdPartyVisibleDisableProductProbeOptions {
   readonly targetPackageId?: PackageId
+  readonly expectBlocked?: boolean
 }
 
 export interface RunThirdPartyVisibleUninstallProductProbeOptions {
@@ -1065,12 +1066,22 @@ const runMainMenuPanelDisableProbe = async(
       () => readPanelDisableResult(probeWindow),
       'visible disable panel did not publish the disable transaction result'
     )
-    await waitForCondition(
-      () => document.querySelector(
-        `[data-testid="web-mod-installed-row-${targetPackageId}"]`
-      )?.textContent?.includes('已禁用') === true,
-      'visible disable panel did not show the installed package as disabled'
-    )
+    if (options.expectBlocked === true) {
+      await waitForCondition(
+        () => readPanelDisableResult(probeWindow)?.terminal.status === 'blocked'
+          && document.querySelector(
+            `[data-testid="web-mod-installed-row-${targetPackageId}"]`
+          )?.textContent?.includes('已启用') === true,
+        'visible disable panel did not keep the installed package enabled after blocked disable'
+      )
+    } else {
+      await waitForCondition(
+        () => document.querySelector(
+          `[data-testid="web-mod-installed-row-${targetPackageId}"]`
+        )?.textContent?.includes('已禁用') === true,
+        'visible disable panel did not show the installed package as disabled'
+      )
+    }
     const panelStatusLabels = readVisibleImportPanelStatusLabels()
     const contentAccessItemVisibleAfter = getOfficialItemDef(itemId) !== undefined
     const contentAccessRecipeVisibleAfter = getOfficialRecipeDef(recipeId) !== undefined
