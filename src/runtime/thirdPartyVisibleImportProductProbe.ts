@@ -71,6 +71,7 @@ export interface RunThirdPartyVisibleImportProductProbeOptions {
   readonly persistenceStore?: WebIndexedDbImportPersistenceStore | null
   readonly entrypoint?: VisibleImportProductProbeEntrypoint
   readonly operation?: VisibleImportProductProbeOperation
+  readonly expectBlocked?: boolean
 }
 
 export interface RunThirdPartyVisibleDisableProductProbeOptions {
@@ -715,6 +716,23 @@ const hasReadyVisibleEnablePanelLabels = (
   && labels.enableResult.includes('live registry 已切换')
   && labels.enableResult.includes('handoff 已接受')
 
+const hasBlockedVisibleEnablePanelLabels = (
+  terminal: ThirdPartyDataPackEnableTransactionResult['terminal'],
+  labels: ThirdPartyVisibleImportPanelStatusLabels
+): boolean =>
+  labels.importStatus === '已恢复'
+  && labels.targetPackage === terminal.targetPackageId
+  && (labels.persistenceStatus === '已从程序目录恢复' || labels.persistenceStatus === '已从 IndexedDB 恢复')
+  && labels.installedManagementStatus === '已阻断'
+  && labels.enableResult?.includes('启用事务：已阻断') === true
+  && labels.enableResult.includes('settings 未写入')
+  && labels.enableResult.includes('mod-lock 未写入')
+  && labels.enableResult.includes('startup 未写入')
+  && labels.enableResult.includes('package 已保留')
+  && labels.enableResult.includes('runtime 未包含')
+  && labels.enableResult.includes('live registry 未切换')
+  && labels.enableResult.includes('handoff 未接受')
+
 const toPickStatus = (label: string | null): string => {
   if (label === '已暂存') return 'persisted'
   if (label === '已读取') return 'ready'
@@ -923,7 +941,9 @@ const runMainMenuPanelImportProbe = async(
   }
 }
 
-const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution> => {
+const runMainMenuPanelEnableProbe = async(
+  options: RunThirdPartyVisibleImportProductProbeOptions = {}
+): Promise<VisibleImportProbeExecution> => {
   const probeWindow = window
   let mainMenuPanelOpened = false
   let enableButtonClicked = false
@@ -950,19 +970,29 @@ const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution
     enableButtonClicked = true
     enableButton.click()
     const transactionResult = await transactionResultPromise
-    await waitForCondition(
-      () =>
-        getOfficialItemDef(itemId)?.name.fallback === expectedItemName
-        && getOfficialRecipeDef(recipeId)?.name.fallback === expectedRecipeName
-        && readProbeShopOfferNameFallback() === expectedShopOfferName,
-      'visible enable panel did not publish the enabled item, recipe, and shop offer to contentAccess'
-    )
-    await waitForCondition(
-      () => document.querySelector(
-        `[data-testid="web-mod-installed-row-${packageId}"]`
-      )?.textContent?.includes('已启用') === true,
-      'visible enable panel did not show the installed package as enabled'
-    )
+    if (options.expectBlocked === true) {
+      await waitForCondition(
+        () => readPanelEnableResult(probeWindow)?.terminal.status === 'blocked'
+          && document.querySelector(
+            `[data-testid="web-mod-installed-row-${packageId}"]`
+          )?.textContent?.includes('已禁用') === true,
+        'visible enable panel did not keep the installed package disabled after blocked enable'
+      )
+    } else {
+      await waitForCondition(
+        () =>
+          getOfficialItemDef(itemId)?.name.fallback === expectedItemName
+          && getOfficialRecipeDef(recipeId)?.name.fallback === expectedRecipeName
+          && readProbeShopOfferNameFallback() === expectedShopOfferName,
+        'visible enable panel did not publish the enabled item, recipe, and shop offer to contentAccess'
+      )
+      await waitForCondition(
+        () => document.querySelector(
+          `[data-testid="web-mod-installed-row-${packageId}"]`
+        )?.textContent?.includes('已启用') === true,
+        'visible enable panel did not show the installed package as enabled'
+      )
+    }
     const stableLabel = await waitForCondition(
       () => {
         const label = readPanelText('web-mod-import-status')
@@ -975,9 +1005,10 @@ const runMainMenuPanelEnableProbe = async(): Promise<VisibleImportProbeExecution
     const panelStatusLabels = await waitForCondition(
       () => {
         const labels = readVisibleImportPanelStatusLabels()
-        return hasReadyVisibleEnablePanelLabels(transactionResult.terminal, labels)
-          ? labels
-          : false
+        const settled = options.expectBlocked === true
+          ? hasBlockedVisibleEnablePanelLabels(transactionResult.terminal, labels)
+          : hasReadyVisibleEnablePanelLabels(transactionResult.terminal, labels)
+        return settled ? labels : false
       },
       'visible enable panel did not render the enable transaction terminal labels'
     )
@@ -1216,7 +1247,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
   const contentAccessShopOfferVisibleBefore = readProbeShopOfferNameFallback() !== undefined
   const execution = options.entrypoint === 'main-menu-panel'
     ? operation === 'enable'
-      ? await runMainMenuPanelEnableProbe()
+      ? await runMainMenuPanelEnableProbe(options)
       : await runMainMenuPanelImportProbe({ ...options, operation })
     : await runComposableImportProbe(options)
   const dispatchResult = execution.dispatchResult

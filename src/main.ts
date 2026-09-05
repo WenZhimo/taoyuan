@@ -81,6 +81,9 @@ const thirdPartyVisibleUninstallExpectBlockedProbeRequested = runtimeProbeReques
 const thirdPartyVisibleEnableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleEnableProbe') === '1'
+const thirdPartyVisibleEnableExpectBlockedProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleEnableExpectBlocked') === '1'
 const thirdPartyVisibleUpgradeProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleUpgradeProbe') === '1'
@@ -171,7 +174,8 @@ void bootstrapApplication({
               : thirdPartyVisibleUpgradeProbeRequested
                 ? 'upgrade'
                 : 'install',
-            persistSource: thirdPartyVisibleImportPersistSourceProbeRequested
+            persistSource: thirdPartyVisibleImportPersistSourceProbeRequested,
+            ...(thirdPartyVisibleEnableExpectBlockedProbeRequested ? { expectBlocked: true } : {})
           })
       }
       if (thirdPartyVisibleDisableProbeRequested) {

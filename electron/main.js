@@ -219,6 +219,10 @@ const runtimeProbeVisibleDisableFailAfterModLockWrite =
   && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE_FAIL_AFTER_MOD_LOCK_WRITE === '1'
 const runtimeProbeVisibleEnable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE === '1'
+const runtimeProbeVisibleEnableFailAfterModLockWrite =
+  runtimeProbeEnabled
+  && runtimeProbeVisibleEnable
+  && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE_FAIL_AFTER_MOD_LOCK_WRITE === '1'
 const runtimeProbeVisibleUpgrade =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE === '1'
 const runtimeProbeVisibleUninstall =
@@ -1631,6 +1635,9 @@ const writeElectronEnabledState = async envelope => {
       throw new Error('Electron enable mod-lock write was blocked')
     }
     modLockWritten = true
+    if (runtimeProbeVisibleEnableFailAfterModLockWrite) {
+      throw new Error('Electron enable runtime probe failed after mod-lock write')
+    }
 
     writeJsonFileAtomically(settingsPath, {
       ...currentSettings,
@@ -4971,6 +4978,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleEnable
             ? { taoyuanThirdPartyVisibleEnableProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleEnableFailAfterModLockWrite
+            ? { taoyuanThirdPartyVisibleEnableExpectBlocked: '1' }
             : {}),
           ...(runtimeProbeVisibleUpgrade
             ? { taoyuanThirdPartyVisibleUpgradeProbe: '1' }

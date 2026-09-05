@@ -743,6 +743,81 @@ const electronScenarios = [
     startupGateEntryCount: 4245
   },
   {
+    name: 'visible-import-enable-write-failure-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-enable-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true
+  },
+  {
+    name: 'visible-import-enable-write-failure-disable',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-enable-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleDisable: true
+  },
+  {
+    name: 'visible-import-enable-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-enable-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupGateDisabled: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4242,
+    visibleEnable: true,
+    visibleEnableFailAfterModLockWrite: true
+  },
+  {
+    name: 'visible-import-enable-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-enable-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupGateDisabled: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4242,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'startup-gate-ready',
     fault: null,
     source: 'disk-cache',
@@ -1735,6 +1810,91 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
     `${scenario.name}: visible enable probe ran with an unsupported protocol`)
   assert(visibleImport.observed === true,
     `${scenario.name}: visible enable probe was not observed`)
+  if (scenario.visibleEnableFailAfterModLockWrite) {
+    assert(electron,
+      `${scenario.name}: visible enable failure rollback must run in Electron`)
+    assert(visibleImport.status === 'blocked',
+      `${scenario.name}: visible enable failure rollback did not block`)
+    assert(visibleImport.operation === 'enable',
+      `${scenario.name}: visible enable failure rollback reported the wrong operation`)
+    assert(visibleImport.entrypoint === 'main-menu-panel',
+      `${scenario.name}: visible enable failure rollback did not start from the MainMenu panel`)
+    assert(visibleImport.mainMenuPanelOpened === true,
+      `${scenario.name}: visible enable failure rollback did not open the MainMenu panel`)
+    assert(visibleImport.enableButtonClicked === true,
+      `${scenario.name}: visible enable failure rollback did not click enable`)
+    assert(visibleImport.targetPackageId === 'product_probe_pack',
+      `${scenario.name}: visible enable failure rollback reported the wrong package`)
+    assert(visibleImport.enableTerminalStatus === 'blocked',
+      `${scenario.name}: visible enable failure rollback terminal was not blocked`)
+    assert(visibleImport.enableTargetPackageId === 'product_probe_pack',
+      `${scenario.name}: visible enable failure rollback terminal target mismatch`)
+    assert(visibleImport.contentAccessItemVisibleBefore === false,
+      `${scenario.name}: enable failure package item was visible before failure`)
+    assert(visibleImport.contentAccessItemVisibleAfter === false,
+      `${scenario.name}: enable failure published runtime item visibility`)
+    assert(visibleImport.contentAccessRecipeVisibleBefore === false,
+      `${scenario.name}: enable failure package recipe was visible before failure`)
+    assert(visibleImport.contentAccessRecipeVisibleAfter === false,
+      `${scenario.name}: enable failure published runtime recipe visibility`)
+    assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
+      `${scenario.name}: enable failure shop offer was visible before failure`)
+    assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
+      `${scenario.name}: enable failure published runtime shop offer visibility`)
+    assert(visibleImport.panelStatusLabels?.installedManagementStatus === '已阻断',
+      `${scenario.name}: visible enable failure did not mark management blocked`)
+    const enableResult = visibleImport.panelStatusLabels?.enableResult ?? ''
+    for (const label of [
+      '启用事务：已阻断',
+      'settings 未写入',
+      'mod-lock 未写入',
+      'startup 未写入',
+      'package 已保留',
+      'runtime 未包含',
+      'live registry 未切换',
+      'handoff 未接受'
+    ]) {
+      assert(enableResult.includes(label),
+        `${scenario.name}: visible enable failure panel omitted ${label}`)
+    }
+    for (const fieldName of [
+      'enableSettingsWritten',
+      'enableLockfileWritten',
+      'enableStartupStateWritten',
+      'enableRuntimePublicationIncluded',
+      'enableLiveRegistrySwapped',
+      'enableAppStartupHandoffAccepted'
+    ]) {
+      assert(visibleImport[fieldName] === false,
+        `${scenario.name}: visible enable failure field ${fieldName} was not false`)
+    }
+    assert(visibleImport.enablePackageFilesPreserved === true,
+      `${scenario.name}: visible enable failure did not preserve package files`)
+    assert(visibleImport.diagnosticsCount === 1,
+      `${scenario.name}: visible enable failure did not report one blocked diagnostic`)
+    for (const effectName of [
+      'settingsWritten',
+      'lockfileWritten',
+      'rendererLiveRegistrySwapped',
+      'runtimeEnablementAllowed',
+      'uiIpcResponseDelivered',
+      'transactionCommitted',
+      'startupPersistentStateWritten',
+      'realAppStartupHostCalled',
+      'gameAppCreated',
+      'piniaCreated',
+      'routerMounted',
+      'savesWritten',
+      'cacheWritten',
+      'transactionLogWritten',
+      'rollbackExecuted',
+      'diagnosticsWritten'
+    ]) {
+      assert(visibleImport.effects?.[effectName] === false,
+        `${scenario.name}: visible enable failure effect ${effectName} was not false`)
+    }
+    return
+  }
   assert(visibleImport.status === 'ready',
     `${scenario.name}: visible enable did not reach ready status`)
   assert(visibleImport.operation === 'enable',
@@ -4635,6 +4795,9 @@ const runPackagedScenario = async (scenario, isolated) => {
     ...(scenario.visibleEnable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE: '1' }
       : {}),
+    ...(scenario.visibleEnableFailAfterModLockWrite
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE_FAIL_AFTER_MOD_LOCK_WRITE: '1' }
+      : {}),
     ...(exercisesVisibleUpgrade
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE: '1' }
       : {}),
@@ -4878,6 +5041,52 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify({ restoredLockfile, settingsJson, startupState })),
       `${scenario.name}: disable failure restored persistent state leaked an absolute path`)
   }
+  if (scenario.visibleEnableFailAfterModLockWrite) {
+    assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
+      `${scenario.name}: enable failure did not start with package files present`)
+    assert(JSON.stringify(activePackageContentFingerprint(preservedPackageRoot))
+      === JSON.stringify(preservedPackageContentBefore),
+    `${scenario.name}: enable failure changed preserved package file contents`)
+    const restoredLockfile = readJson(lockfilePath)
+    assert(JSON.stringify(restoredLockfile.selectedPackageIds) === JSON.stringify([]),
+      `${scenario.name}: enable failure did not restore disabled selected package ids`)
+    assert(JSON.stringify(restoredLockfile.loadOrder) === JSON.stringify([]),
+      `${scenario.name}: enable failure did not restore disabled load order`)
+    assert(restoredLockfile.packages?.[0]?.packageId === 'product_probe_pack',
+      `${scenario.name}: enable failure lost installed package record`)
+    const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
+    assert(settingsJson.thirdPartyDataPacks?.commandId === 'disable',
+      `${scenario.name}: enable failure did not restore disable settings command`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
+      === JSON.stringify([]),
+    `${scenario.name}: enable failure did not restore disabled settings selected packages`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
+      === JSON.stringify([]),
+    `${scenario.name}: enable failure did not restore disabled settings load order`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.blockedPackageIds ?? [])
+      === JSON.stringify(['product_probe_pack']),
+    `${scenario.name}: enable failure did not restore settings blocked packages`)
+    const startupStatePath = path.join(
+      userDataPath,
+      'mod-startup-state',
+      'startup-persistent-state-snapshot.json'
+    )
+    const startupState = readJson(startupStatePath)
+    assert(startupState.packageId === 'product_probe_pack',
+      `${scenario.name}: enable failure startup state reported the wrong package`)
+    assert(startupState.packageState?.matched === true,
+      `${scenario.name}: enable failure startup state lost package evidence`)
+    assert(startupState.settingsState?.matched === true,
+      `${scenario.name}: enable failure startup state lost settings evidence`)
+    assert(startupState.modLockState?.matched === true,
+      `${scenario.name}: enable failure startup state lost mod-lock evidence`)
+    assert(startupState.liveRegistry?.matched === true,
+      `${scenario.name}: enable failure startup state lost live registry evidence`)
+    assert(startupState.saveCache?.isolated === true,
+      `${scenario.name}: enable failure startup state lost save/cache isolation evidence`)
+    assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify({ restoredLockfile, settingsJson, startupState })),
+      `${scenario.name}: enable failure restored persistent state leaked an absolute path`)
+  }
   if (scenario.visibleUninstallFailAfterModLockWrite) {
     assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
       `${scenario.name}: uninstall failure did not start with package files present`)
@@ -4975,7 +5184,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ uninstalledLockfile, settingsJson, startupState })),
       `${scenario.name}: uninstall persistent state leaked an absolute path`)
   }
-  if (scenario.visibleEnable) {
+  if (scenario.visibleEnable && !scenario.visibleEnableFailAfterModLockWrite) {
     assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
       `${scenario.name}: enabled package files were not present before re-enable validation`)
     assert(JSON.stringify(activePackageContentFingerprint(preservedPackageRoot))
