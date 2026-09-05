@@ -432,13 +432,15 @@ const hasReadyVisibleImportDispatch = (
   const isEnable = execution.operation === 'enable'
   const isRollback = execution.operation === 'rollback'
   const isFailure = execution.operation === 'failure'
+  const isBlockedUpgrade = execution.operation === 'upgrade'
+    && dispatchResult?.ordinaryInstallTransactionTerminalConnection?.outcomeKind === 'rollback'
   const interactionReady = isEnable
     ? execution.enableButtonClicked === true && !execution.defaultFileInputSelectorUsed
     : execution.panelImportButtonClicked && execution.defaultFileInputSelectorUsed
   const panelLabelsReady = isEnable
     ? enableTerminal !== null && hasReadyVisibleEnablePanelLabels(enableTerminal, execution.panelStatusLabels)
     : dispatchResult !== null && (
-      isRollback
+      isRollback || isBlockedUpgrade
         ? hasReadyVisibleImportRollbackPanelLabels(dispatchResult, execution.panelStatusLabels)
       : isFailure
         ? hasReadyVisibleImportFailurePanelLabels(dispatchResult, execution.panelStatusLabels)
@@ -847,7 +849,10 @@ const runMainMenuPanelImportProbe = async(
   const operation = options.operation ?? 'install'
   const variant = packageVariantForOperation(operation)
   const fixture = visibleImportProductProbeFixtures[variant]
-  const blocksRuntime = operation === 'rollback' || operation === 'failure'
+  const blocksRuntime =
+    operation === 'rollback'
+    || operation === 'failure'
+    || (operation === 'upgrade' && options.expectBlocked === true)
   const probeWindow = window
   const fileInputProbe = installDefaultFileInputProbeSelector(createVisibleImportFiles(variant))
   let mainMenuPanelOpened = false
@@ -898,6 +903,8 @@ const runMainMenuPanelImportProbe = async(
         const labels = readVisibleImportPanelStatusLabels()
         return (
           operation === 'rollback'
+            ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
+          : operation === 'upgrade' && options.expectBlocked === true
             ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
           : operation === 'failure'
             ? hasReadyVisibleImportFailurePanelLabels(readyDispatchResult, labels)

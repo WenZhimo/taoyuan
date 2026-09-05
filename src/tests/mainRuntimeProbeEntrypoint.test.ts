@@ -190,4 +190,34 @@ describe('main runtime probe entrypoint', () => {
       })
     )
   })
+
+  it('runs the visible import product probe for blocked replacement query wiring', async() => {
+    const visibleImportResult = {
+      status: 'blocked',
+      operation: 'upgrade'
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleUpgradeProbe=1&taoyuanThirdPartyVisibleUpgradeExpectBlocked=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'upgrade',
+        persistSource: false,
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
 })

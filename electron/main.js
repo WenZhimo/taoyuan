@@ -225,6 +225,10 @@ const runtimeProbeVisibleEnableFailAfterModLockWrite =
   && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE_FAIL_AFTER_MOD_LOCK_WRITE === '1'
 const runtimeProbeVisibleUpgrade =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE === '1'
+const runtimeProbeVisibleUpgradeFailAfterModLockWrite =
+  runtimeProbeEnabled
+  && runtimeProbeVisibleUpgrade
+  && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE_FAIL_AFTER_MOD_LOCK_WRITE === '1'
 const runtimeProbeVisibleUninstall =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UNINSTALL === '1'
 const runtimeProbeVisibleUninstallFailAfterModLockWrite =
@@ -3725,6 +3729,186 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     }
   }
 
+  if (runtimeProbeVisibleUpgradeFailAfterModLockWrite) {
+    const startupPaths = resolveThirdPartyDataPackElectronStartupPersistentStateSourceHostPaths(
+      programDirectoryPath
+    )
+    const settingsPrevious = readOptionalFile(settingsPath)
+    const modLockPrevious = readOptionalFile(startupPaths.modLockFilePath)
+    const startupPrevious = readOptionalFile(startupPaths.snapshotFilePath)
+    let upgradePackageFilePersistentStagingResult
+    let upgradeSettingsLockfileLifecycleResult
+    let upgradePackageFileRestoreResult
+    try {
+      upgradePackageFilePersistentStagingResult =
+        await readPackageFilePersistentStagingPipeline()
+      upgradeSettingsLockfileLifecycleResult =
+        await readSettingsLockfileLifecyclePipeline()
+      if (
+        installCommandPostCommitAcknowledgementResult.status !== 'ready'
+        || upgradePackageFilePersistentStagingResult.status !== 'written'
+        || upgradeSettingsLockfileLifecycleResult.status !== 'ready'
+      ) {
+        throw new Error('Electron visible replacement did not reach the injected write-failure boundary')
+      }
+
+      upgradePackageFileRestoreResult =
+        await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+          packageId: targetPackageId,
+          writtenFiles: upgradePackageFilePersistentStagingResult.writtenFiles,
+          storage: packageFilePersistentStagingStorage,
+          allowPersistentRestoreProbe: true
+        })
+      restoreOptionalFile(startupPaths.snapshotFilePath, startupPrevious)
+      restoreOptionalFile(settingsPath, settingsPrevious)
+      await rollbackModLockFile(
+        startupPaths.modLockFilePath,
+        modLockPrevious,
+        'Electron visible replacement rollback of mod-lock was blocked'
+      )
+    } catch (error) {
+      try {
+        if (
+          upgradePackageFilePersistentStagingResult !== undefined
+          && upgradePackageFileRestoreResult === undefined
+        ) {
+          upgradePackageFileRestoreResult =
+            await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+              packageId: targetPackageId,
+              writtenFiles: upgradePackageFilePersistentStagingResult.writtenFiles,
+              storage: packageFilePersistentStagingStorage,
+              allowPersistentRestoreProbe: true
+            })
+        }
+        restoreOptionalFile(startupPaths.snapshotFilePath, startupPrevious)
+        restoreOptionalFile(settingsPath, settingsPrevious)
+        await rollbackModLockFile(
+          startupPaths.modLockFilePath,
+          modLockPrevious,
+          'Electron visible replacement rollback of mod-lock was blocked'
+        )
+      } catch {}
+      return createBlockedOrdinaryInstallTerminalContinuationResult(
+        [
+          'Electron visible replacement failed after settings/mod-lock write and could not prove rollback',
+          `ack=${installCommandPostCommitAcknowledgementResult.status}`,
+          `package=${safePipelineStatus(upgradePackageFilePersistentStagingResult)}`,
+          `settings=${safePipelineStatus(upgradeSettingsLockfileLifecycleResult)}`,
+          `restore=${safePipelineStatus(upgradePackageFileRestoreResult)}`,
+          `packageDiag=${safeFirstDiagnosticStage(upgradePackageFilePersistentStagingResult)}`,
+          `settingsDiag=${safeFirstDiagnosticStage(upgradeSettingsLockfileLifecycleResult)}`,
+          `restoreDiag=${safeFirstDiagnosticStage(upgradePackageFileRestoreResult)}`
+        ].join('; '),
+        [
+          ...installCommandPostCommitAcknowledgementResult.diagnostics,
+          ...(upgradePackageFilePersistentStagingResult?.diagnostics ?? []),
+          ...(upgradeSettingsLockfileLifecycleResult?.diagnostics ?? []),
+          ...(upgradePackageFileRestoreResult?.diagnostics ?? [])
+        ]
+      )
+    }
+
+    let recoveryLogReplayRestoreSource
+    const rollbackRecoveryExecutionPipeline =
+      createThirdPartyDataPackRollbackRecoveryExecutionPipeline({
+        enabled: true,
+        readAtomicTransactionCommitOutcomeContract: async() =>
+          createSyntheticRollbackOutcomeContract(lockfileDraft),
+        readRecoveryLogReplayRestoreSource: async() => {
+          recoveryLogReplayRestoreSource ??=
+            await createRealRecoveryLogReplayRestoreSourceResult(
+              packageFilePayload,
+              lockfileDraft,
+              runtimePublicationCommitAdapter,
+              upgradePackageFileRestoreResult
+            )
+          return recoveryLogReplayRestoreSource
+        },
+        executeRollbackRecovery: async currentEnvelope =>
+          createSyntheticRollbackRecoveryExecutionHostResult(
+            currentEnvelope,
+            upgradePackageFileRestoreResult,
+            recoveryLogReplayRestoreSource
+          )
+      })
+    const rollbackRecoveryExecution = await rollbackRecoveryExecutionPipeline()
+    const rollbackOrdinaryInstallTerminalPipeline =
+      createThirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline({
+        enabled: true,
+        readRollbackRecoveryExecutionSource: async() => rollbackRecoveryExecution
+      })
+
+    let rollbackOrdinaryInstallTransactionTerminalConnection
+    try {
+      rollbackOrdinaryInstallTransactionTerminalConnection =
+        await rollbackOrdinaryInstallTerminalPipeline()
+    } catch (error) {
+      if (error instanceof ThirdPartyDataPackOrdinaryInstallTransactionBlockedError) {
+        rollbackOrdinaryInstallTransactionTerminalConnection = error.result
+      } else {
+        throw error
+      }
+    }
+
+    const postCommitRollbackUiIpcDeliveryContinuation =
+      createOrdinaryInstallTerminalRollbackUiIpcContinuationResult(
+        rollbackOrdinaryInstallTransactionTerminalConnection
+      )
+
+    if (
+      upgradePackageFileRestoreResult.status !== 'restored'
+      || rollbackRecoveryExecution.status !== 'executed'
+      || rollbackRecoveryExecution.effects.realRecoveryLogReplayRestoreCalled !== true
+      || rollbackRecoveryExecution.effects.recoveryLogRead !== true
+      || rollbackRecoveryExecution.effects.recoveryLogReplayed !== true
+      || rollbackOrdinaryInstallTransactionTerminalConnection.status !== 'ready'
+      || rollbackOrdinaryInstallTransactionTerminalConnection.outcomeKind !== 'rollback'
+      || rollbackOrdinaryInstallTransactionTerminalConnection.effects.rollbackExecuted !== true
+      || postCommitRollbackUiIpcDeliveryContinuation.status !== 'ready'
+    ) {
+      return createBlockedOrdinaryInstallTerminalContinuationResult(
+        [
+          'Electron visible replacement write-failure rollback did not reach restored terminal state',
+          `restore=${safePipelineStatus(upgradePackageFileRestoreResult)}`,
+          `rollback=${safePipelineStatus(rollbackRecoveryExecution)}`,
+          `ordinary=${safePipelineStatus(rollbackOrdinaryInstallTransactionTerminalConnection)}`,
+          `postCommit=${safePipelineStatus(postCommitRollbackUiIpcDeliveryContinuation)}`,
+          `ordinaryReason=${safePipelineReason(rollbackOrdinaryInstallTransactionTerminalConnection)}`,
+          `restoreDiag=${safeFirstDiagnosticStage(upgradePackageFileRestoreResult)}`,
+          `rollbackDiag=${safeFirstDiagnosticStage(rollbackRecoveryExecution)}`,
+          `ordinaryDiag=${safeFirstDiagnosticStage(rollbackOrdinaryInstallTransactionTerminalConnection)}`
+        ].join('; '),
+        [
+          ...installCommandPostCommitAcknowledgementResult.diagnostics,
+          ...upgradePackageFilePersistentStagingResult.diagnostics,
+          ...upgradeSettingsLockfileLifecycleResult.diagnostics,
+          ...upgradePackageFileRestoreResult.diagnostics,
+          ...rollbackRecoveryExecution.diagnostics,
+          ...rollbackOrdinaryInstallTransactionTerminalConnection.diagnostics,
+          ...postCommitRollbackUiIpcDeliveryContinuation.diagnostics
+        ]
+      )
+    }
+
+    return {
+      status: 'ready',
+      reason: 'Electron visible renderer replacement rolled back after settings/mod-lock write failure',
+      installCommandPostCommitAcknowledgement: installCommandPostCommitAcknowledgementResult,
+      postCommitUiIpcDeliveryContinuation: postCommitRollbackUiIpcDeliveryContinuation,
+      ordinaryInstallTransactionTerminalConnection:
+        rollbackOrdinaryInstallTransactionTerminalConnection,
+      diagnostics: [
+        ...installCommandPostCommitAcknowledgementResult.diagnostics,
+        ...upgradePackageFilePersistentStagingResult.diagnostics,
+        ...upgradeSettingsLockfileLifecycleResult.diagnostics,
+        ...upgradePackageFileRestoreResult.diagnostics,
+        ...rollbackRecoveryExecution.diagnostics,
+        ...rollbackOrdinaryInstallTransactionTerminalConnection.diagnostics,
+        ...postCommitRollbackUiIpcDeliveryContinuation.diagnostics
+      ]
+    }
+  }
+
   const installTransactionLogPreparedResult =
     await readInstallTransactionLogPrepared()
   const installTransactionLogPreparedPersistentReadVerificationResult =
@@ -4984,6 +5168,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleUpgrade
             ? { taoyuanThirdPartyVisibleUpgradeProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleUpgradeFailAfterModLockWrite
+            ? { taoyuanThirdPartyVisibleUpgradeExpectBlocked: '1' }
             : {}),
           ...(runtimeProbeVisibleDisable
             ? { taoyuanThirdPartyVisibleDisableProbe: '1' }

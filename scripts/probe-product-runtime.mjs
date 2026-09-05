@@ -377,6 +377,61 @@ const electronScenarios = [
     startupGateExpectedProductProbeVariant: 'v2'
   },
   {
+    name: 'visible-import-replace-write-failure-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-replace-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true
+  },
+  {
+    name: 'visible-import-replace-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-replace-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleImportRendererLiveRegistry: true,
+    visibleUpgrade: true,
+    visibleUpgradeFailAfterModLockWrite: true
+  },
+  {
+    name: 'visible-import-replace-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-replace-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-installed-startup-persistent-state-cache-corrupt-fallback',
     fault: null,
     source: 'precompiled',
@@ -1616,6 +1671,139 @@ const assertVisibleImportRollbackProductProbe = (visibleImport, scenario, protoc
   ]) {
     assert(visibleImport.effects?.[effectName] === false,
       `${scenario.name}: visible rollback effect ${effectName} was not false`)
+  }
+}
+
+const assertVisibleImportBlockedUpgradeProductProbe = (visibleImport, scenario, protocol) => {
+  assert(protocol === 'file:',
+    `${scenario.name}: visible replacement write-failure rollback must run in Electron`)
+  assert(visibleImport.observed === true,
+    `${scenario.name}: visible replacement write-failure rollback was not observed`)
+  assert(visibleImport.status === 'blocked',
+    `${scenario.name}: visible replacement write-failure rollback did not block`)
+  assert(visibleImport.operation === 'upgrade',
+    `${scenario.name}: visible replacement write-failure rollback reported the wrong operation`)
+  assert(visibleImport.entrypoint === 'main-menu-panel',
+    `${scenario.name}: visible replacement write-failure rollback did not start from the MainMenu panel`)
+  assert(visibleImport.mainMenuPanelOpened === true,
+    `${scenario.name}: visible replacement write-failure rollback did not open the MainMenu panel`)
+  assert(visibleImport.panelImportButtonClicked === true,
+    `${scenario.name}: visible replacement write-failure rollback did not click import`)
+  assert(visibleImport.defaultFileInputSelectorUsed === true,
+    `${scenario.name}: visible replacement write-failure rollback did not use the default file input selector`)
+  assertVisibleImportRollbackPanelLabels(visibleImport, scenario)
+  assert(visibleImport.targetPackageId === visibleProbePackageId,
+    `${scenario.name}: visible replacement write-failure rollback reported the wrong package`)
+  assert(visibleImport.itemId === visibleProbeItemId,
+    `${scenario.name}: visible replacement write-failure rollback reported the wrong item`)
+  assert(visibleImport.itemNameFallback === visibleProbePackageFixtures.v1.itemNameFallback,
+    `${scenario.name}: visible replacement write-failure rollback did not preserve v1 item visibility`)
+  assert(visibleImport.recipeId === visibleProbeRecipeId,
+    `${scenario.name}: visible replacement write-failure rollback reported the wrong recipe`)
+  assert(visibleImport.recipeNameFallback === visibleProbePackageFixtures.v1.recipeNameFallback,
+    `${scenario.name}: visible replacement write-failure rollback did not preserve v1 recipe visibility`)
+  assert(visibleImport.shopOfferId === visibleProbeShopOfferId,
+    `${scenario.name}: visible replacement write-failure rollback reported the wrong shop offer`)
+  assert(visibleImport.shopOfferNameFallback === visibleProbePackageFixtures.v1.shopOfferNameFallback,
+    `${scenario.name}: visible replacement write-failure rollback did not preserve v1 shop offer visibility`)
+  assert(visibleImport.expectedPackageVersion === visibleProbePackageFixtures.v2.version,
+    `${scenario.name}: visible replacement write-failure rollback did not attempt v1.1.0`)
+  assert(visibleImport.fileCount === 5,
+    `${scenario.name}: visible replacement write-failure rollback used the wrong file count`)
+  assert(visibleImport.pickStatus === 'persisted',
+    `${scenario.name}: visible replacement write-failure rollback source was not persisted after panel selection`)
+  assert(visibleImport.dispatchPreflightStatus === 'deferred',
+    `${scenario.name}: visible replacement write-failure rollback dispatch preflight was not deferred`)
+  assert(visibleImport.discoveryStatus === 'completed',
+    `${scenario.name}: visible replacement write-failure rollback discovery was not completed`)
+  assert(visibleImport.transactionCommandDispatcherHostKind === 'renderer',
+    `${scenario.name}: visible replacement write-failure rollback did not use the renderer dispatcher host`)
+  assert(visibleImport.transactionCommandDispatcherSourceStatus === 'dispatched',
+    `${scenario.name}: visible replacement write-failure rollback command was not dispatched`)
+  assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'ready',
+    `${scenario.name}: visible replacement write-failure rollback post-commit acknowledgement was not ready`)
+  assert(visibleImport.postCommitVerificationExecutorHostMode === 'electron-main-visible-import',
+    `${scenario.name}: visible replacement write-failure rollback did not use the Electron visible-import post-commit host`)
+  assert(visibleImport.postCommitUiIpcDeliveryContinuationStatus === 'ready',
+    `${scenario.name}: visible replacement write-failure rollback UI/IPC continuation was not ready`)
+  assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === 'ready',
+    `${scenario.name}: visible replacement write-failure rollback ordinary terminal was not ready`)
+  assert(visibleImport.ordinaryInstallTransactionOutcomeKind === 'rollback',
+    `${scenario.name}: visible replacement write-failure rollback ordinary terminal did not report rollback outcome`)
+  assert(visibleImport.installTransactionLogPreparedStatus === undefined,
+    `${scenario.name}: visible replacement write-failure rollback should not prepare the transaction log`)
+  assert(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus === undefined,
+    `${scenario.name}: visible replacement write-failure rollback should not read the transaction log`)
+  assert(visibleImport.installTransactionCommitFinalizationStatus === undefined,
+    `${scenario.name}: visible replacement write-failure rollback should not finalize the transaction`)
+  assert(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus === undefined,
+    `${scenario.name}: visible replacement write-failure rollback should not publish runtime content`)
+  assert(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === undefined,
+    `${scenario.name}: visible replacement write-failure rollback should not swap the live registry`)
+  assert(visibleImport.runtimePublicationCommitAppStartupReadinessStatus === undefined,
+    `${scenario.name}: visible replacement write-failure rollback should not prepare app-startup readiness`)
+  assert(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus === undefined,
+    `${scenario.name}: visible replacement write-failure rollback should not hand off to app startup`)
+  assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
+    `${scenario.name}: Electron replacement rollback should not write Web startup persistent state`)
+  assert(visibleImport.electronStartupPersistentStateWriteStatus === 'blocked',
+    `${scenario.name}: Electron replacement rollback did not report blocked startup persistence`)
+  assert(visibleImport.selectedPackageCount === 1,
+    `${scenario.name}: visible replacement write-failure rollback selected package count mismatch`)
+  assert(visibleImport.blockedPackageCount === 0,
+    `${scenario.name}: visible replacement write-failure rollback blocked packages unexpectedly`)
+  assert(visibleImport.loadOrderCount === 1,
+    `${scenario.name}: visible replacement write-failure rollback load order count mismatch`)
+  assert(visibleImport.registryCount === 54,
+    `${scenario.name}: visible replacement write-failure rollback registry count mismatch`)
+  assert(visibleImport.entryCount === 4245,
+    `${scenario.name}: visible replacement write-failure rollback entry count mismatch`)
+  assert(visibleImport.packageCount === 1,
+    `${scenario.name}: visible replacement write-failure rollback package count mismatch`)
+  assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
+    `${scenario.name}: visible replacement write-failure rollback diagnostics count was invalid`)
+  assert(visibleImport.contentAccessItemVisibleBefore === true,
+    `${scenario.name}: visible replacement write-failure rollback did not start from installed v1 item visibility`)
+  assert(visibleImport.contentAccessItemVisibleAfter === false,
+    `${scenario.name}: visible replacement write-failure rollback incorrectly exposed v2 item visibility`)
+  assert(visibleImport.contentAccessRecipeVisibleBefore === true,
+    `${scenario.name}: visible replacement write-failure rollback did not start from installed v1 recipe visibility`)
+  assert(visibleImport.contentAccessRecipeVisibleAfter === false,
+    `${scenario.name}: visible replacement write-failure rollback incorrectly exposed v2 recipe visibility`)
+  assert(visibleImport.contentAccessShopOfferVisibleBefore === true,
+    `${scenario.name}: visible replacement write-failure rollback did not start from installed v1 shop offer visibility`)
+  assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
+    `${scenario.name}: visible replacement write-failure rollback incorrectly exposed v2 shop offer visibility`)
+  for (const effectName of [
+    'commandDispatched',
+    'uiIpcResponseDelivered',
+    'rollbackExecuted'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === true,
+      `${scenario.name}: visible replacement write-failure rollback effect ${effectName} was not true`)
+  }
+  for (const effectName of [
+    'packageFilesWritten',
+    'settingsWritten',
+    'lockfileWritten',
+    'rendererLiveRegistrySwapped',
+    'runtimeEnablementAllowed',
+    'transactionCommitted',
+    'transactionLogPrepared',
+    'transactionLogRead',
+    'startupPersistentStateWritten',
+    'realNormalStartupHostCalled',
+    'realAppStartupHostCalled',
+    'gameAppCreated',
+    'piniaCreated',
+    'routerMounted',
+    'savesWritten',
+    'cacheWritten',
+    'transactionLogWritten',
+    'diagnosticsWritten'
+  ]) {
+    assert(visibleImport.effects?.[effectName] === false,
+      `${scenario.name}: visible replacement write-failure rollback effect ${effectName} was not false`)
   }
 }
 
@@ -3066,6 +3254,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     assertVisibleImportFailureProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleImportRollback) {
     assertVisibleImportRollbackProductProbe(visibleImport, scenario, protocol)
+  } else if (scenario.visibleUpgradeFailAfterModLockWrite) {
+    assertVisibleImportBlockedUpgradeProductProbe(visibleImport, scenario, protocol)
   } else if (scenario.visibleImportRendererLiveRegistry) {
     assert(protocol === 'file:',
       `${scenario.name}: visible import probe must run in Electron`)
@@ -4801,6 +4991,9 @@ const runPackagedScenario = async (scenario, isolated) => {
     ...(exercisesVisibleUpgrade
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE: '1' }
       : {}),
+    ...(scenario.visibleUpgradeFailAfterModLockWrite
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE_FAIL_AFTER_MOD_LOCK_WRITE: '1' }
+      : {}),
     ...(scenario.visibleDisable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE: '1' }
       : {}),
@@ -4931,8 +5124,11 @@ const runPackagedScenario = async (scenario, isolated) => {
       if (exercisesVisibleUpgrade) {
         assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
           `${scenario.name}: replacement settings did not preserve install command semantics`)
-        assert(lockfileJson.packages?.[0]?.version === visibleProbePackageFixtures.v2.version,
-          `${scenario.name}: replacement mod-lock did not persist v1.1.0`)
+        const expectedPersistedVersion = scenario.visibleUpgradeFailAfterModLockWrite
+          ? visibleProbePackageFixtures.v1.version
+          : visibleProbePackageFixtures.v2.version
+        assert(lockfileJson.packages?.[0]?.version === expectedPersistedVersion,
+          `${scenario.name}: replacement mod-lock did not persist the expected package version`)
       }
       assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(settingsJson)),
         `${scenario.name}: settings file leaked an absolute path`)
@@ -5214,7 +5410,74 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ enabledLockfile, settingsJson })),
       `${scenario.name}: re-enabled persistent state leaked an absolute path`)
   }
-  if (exercisesVisibleUpgrade) {
+  if (scenario.visibleUpgradeFailAfterModLockWrite) {
+    const paths = packageFileProbePaths(scenarioRoot)
+    const manifestJson = readJson(paths.manifest)
+    const itemsJson = readJson(paths.itemFile)
+    const recipesJson = readJson(path.join(paths.packageRoot, 'data', 'recipes.json'))
+    const shopOffersJson = readJson(path.join(paths.packageRoot, 'data', 'shop-offers.json'))
+    assert(preservedPackageManifestBefore?.version === visibleProbePackageFixtures.v1.version,
+      `${scenario.name}: replacement failure did not start from v1 package files`)
+    assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
+      `${scenario.name}: replacement failure package files were not present before import`)
+    assert(JSON.stringify(activePackageContentFingerprint(preservedPackageRoot))
+      === JSON.stringify(preservedPackageContentBefore),
+    `${scenario.name}: replacement failure did not restore active package file contents`)
+    assert(manifestJson.id === visibleProbePackageId,
+      `${scenario.name}: replacement failure package manifest reported the wrong package`)
+    assert(manifestJson.version === visibleProbePackageFixtures.v1.version,
+      `${scenario.name}: replacement failure did not restore v1.0.0 manifest`)
+    assert(Array.isArray(itemsJson) && itemsJson[0]?.name?.fallback === visibleProbePackageFixtures.v1.itemNameFallback,
+      `${scenario.name}: replacement failure did not restore v1 item payload`)
+    assert(Array.isArray(recipesJson) && recipesJson[0]?.name?.fallback === visibleProbePackageFixtures.v1.recipeNameFallback,
+      `${scenario.name}: replacement failure did not restore v1 recipe payload`)
+    assert(Array.isArray(shopOffersJson)
+      && shopOffersJson[0]?.name?.fallback === visibleProbePackageFixtures.v1.shopOfferNameFallback,
+    `${scenario.name}: replacement failure did not restore v1 shop offer payload`)
+    const restoredLockfile = readJson(lockfilePath)
+    assert(JSON.stringify(restoredLockfile.selectedPackageIds) === JSON.stringify(['product_probe_pack']),
+      `${scenario.name}: replacement failure did not restore selected package ids`)
+    assert(JSON.stringify(restoredLockfile.loadOrder) === JSON.stringify(['product_probe_pack']),
+      `${scenario.name}: replacement failure did not restore load order`)
+    assert(JSON.stringify(restoredLockfile.blockedPackageIds ?? []) === JSON.stringify([]),
+      `${scenario.name}: replacement failure left blocked package ids`)
+    assert(restoredLockfile.packages?.[0]?.packageId === 'product_probe_pack',
+      `${scenario.name}: replacement failure lost installed package record`)
+    assert(restoredLockfile.packages?.[0]?.version === visibleProbePackageFixtures.v1.version,
+      `${scenario.name}: replacement failure did not restore v1 lockfile version`)
+    const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
+    assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
+      `${scenario.name}: replacement failure did not restore install settings command`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
+      === JSON.stringify(['product_probe_pack']),
+    `${scenario.name}: replacement failure did not restore settings selected packages`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
+      === JSON.stringify(['product_probe_pack']),
+    `${scenario.name}: replacement failure did not restore settings load order`)
+    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.blockedPackageIds ?? [])
+      === JSON.stringify([]),
+    `${scenario.name}: replacement failure left settings blocked packages`)
+    const startupStatePath = path.join(
+      userDataPath,
+      'mod-startup-state',
+      'startup-persistent-state-snapshot.json'
+    )
+    const startupState = readJson(startupStatePath)
+    assert(startupState.packageId === 'product_probe_pack',
+      `${scenario.name}: replacement failure startup state reported the wrong package`)
+    assert(startupState.packageState?.matched === true,
+      `${scenario.name}: replacement failure startup state lost package evidence`)
+    assert(startupState.settingsState?.matched === true,
+      `${scenario.name}: replacement failure startup state lost settings evidence`)
+    assert(startupState.modLockState?.matched === true,
+      `${scenario.name}: replacement failure startup state lost mod-lock evidence`)
+    assert(startupState.liveRegistry?.matched === true,
+      `${scenario.name}: replacement failure startup state lost live registry evidence`)
+    assert(startupState.saveCache?.isolated === true,
+      `${scenario.name}: replacement failure startup state lost save/cache isolation evidence`)
+    assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify({ manifestJson, itemsJson, recipesJson, shopOffersJson, restoredLockfile, settingsJson, startupState })),
+      `${scenario.name}: replacement failure restored persistent state leaked an absolute path`)
+  } else if (exercisesVisibleUpgrade) {
     const paths = packageFileProbePaths(scenarioRoot)
     const manifestJson = readJson(paths.manifest)
     const itemsJson = readJson(paths.itemFile)
@@ -5283,9 +5546,12 @@ const runPackagedScenario = async (scenario, isolated) => {
       `${scenario.name}: visible non-success import wrote a startup persistent state snapshot`)
   }
   if (
-    scenario.installTransactionCommitFinalization
-    || scenario.visibleImportRendererLiveRegistry
-    || exercisesVisibleUpgrade
+    !scenario.visibleUpgradeFailAfterModLockWrite
+    && (
+      scenario.installTransactionCommitFinalization
+      || scenario.visibleImportRendererLiveRegistry
+      || exercisesVisibleUpgrade
+    )
   ) {
     const preparedLog = readJson(installTransactionPreparedLogPath(userDataPath))
     const probe = productReport.electron?.installTransactionCommitFinalizationProbe
