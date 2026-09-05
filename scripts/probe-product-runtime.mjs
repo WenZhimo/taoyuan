@@ -77,7 +77,6 @@ const webScenarios = [
     startupGateReady: true,
     startupPersistentStateReady: true,
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
-    startupGateRealRuntimePublicationCommit: false,
     startupGateRegistryCount: 54
   },
   {

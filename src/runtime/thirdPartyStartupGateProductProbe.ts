@@ -1290,95 +1290,6 @@ const blockedStartupGateHandoffPreflightFromResponseDelivery = (
   })
 })
 
-const createAcceptedCommitAfterPostCommit = (
-  source: ThirdPartyStartupGateProductProbeSummarySource = sampleProductProbeProfile
-): ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult => ({
-    kind: 'third-party-runtime-publication-commit-after-post-commit-verification-pipeline',
-    mode: 'default-disabled-runtime-publication-commit-after-post-commit-verification-pipeline',
-    status: 'accepted',
-    reason: 'runtime publication commit accepted after committed post-commit verification',
-    readOnly: true,
-    enabled: true,
-    postCommitVerificationAfterInstallTransactionCommitSourceCalled: true,
-    runtimePublicationCommitSourceCalled: true,
-    appBootstrapContinuationAllowed: true,
-    commandContinuationAllowed: true,
-    uiIpcResultContinuationAllowed: true,
-    postCommitVerificationAfterInstallTransactionCommitStatus: 'ready',
-    runtimePublicationCommitStatus: 'accepted',
-    runtimePublicationCommitHostStatus: 'accepted',
-    requestedCommandId: 'install',
-    targetPackageId: source.selectedPackageIds[0]!,
-    selectedPackageIds: source.selectedPackageIds,
-    blockedPackageIds: blockedPackageIdsFromSource(source),
-    loadOrder: source.loadOrder,
-    registryCount: source.registryCount,
-    entryCount: source.entryCount,
-    packageCount: source.packageCount,
-    candidateIdentity: source.candidateIdentity,
-    candidateHash: source.candidateIdentity.candidateHash,
-    lockfileHash: source.lockfileHash,
-    transactionId: 'install-transaction-1',
-    committedTransactionId: 'install-transaction-1',
-    committedTransactionLogEntryHash: testHash('e'),
-    checks: [],
-    diagnostics: [],
-    effects: {
-      runtimePublicationCommitAfterPostCommitVerificationPipelineCalled: true,
-      postCommitVerificationAfterInstallTransactionCommitPipelineCalled: true,
-      runtimePublicationCommitPipelineCalled: true,
-      runtimePublicationCommitHostAccepted: true,
-      transactionCommitted: true,
-      transactionLogCommitted: true,
-      postCommitVerificationAcknowledged: true,
-      persistentReadProofAcknowledged: true,
-      runtimePublicationCommitAcknowledged: true,
-      appBootstrapContinuationAllowed: true,
-      commandContinuationAllowed: true,
-      uiIpcResultContinuationAllowed: true,
-      realRuntimePublicationCommitCalled: false,
-      officialRegistryPublished: false,
-      thirdPartyRegistryPublished: false,
-      liveRegistryMutated: false,
-      liveRegistrySwapped: false,
-      previousRegistryReleased: false,
-      previousRegistryRestored: false,
-      candidateRegistryExposed: false,
-      runtimeEnablementAllowed: false,
-      modManagementUiMounted: false,
-      electronIpcExposed: false,
-      webFilePickerOpened: false,
-      androidFilePickerOpened: false,
-      commandDispatcherCalled: false,
-      commandDispatched: false,
-      atomicCommitExecutorCalled: false,
-      runtimePublicationCommitted: false,
-      postCommitVerificationExecuted: false,
-      uiIpcResponseDelivered: false,
-      transactionLogPrepared: true,
-      transactionLogWritten: true,
-      transactionLogRead: true,
-      packageStateRead: false,
-      settingsRead: false,
-      lockfileRead: false,
-      liveRegistryRead: false,
-      saveCacheIsolationChecked: false,
-      packageFilesWritten: true,
-      packageBackupsWritten: true,
-      packageFilesRestored: false,
-      lockfileWritten: true,
-      lockfileRestored: false,
-      settingsWritten: true,
-      settingsRestored: false,
-      savesWritten: false,
-      cacheWritten: false,
-      recoveryLogRead: false,
-      recoveryLogReplayed: false,
-      rollbackExecuted: false,
-      diagnosticsWritten: false
-    }
-  } as unknown as ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult)
-
 const createSwappedLiveRegistrySource = async(
   context: ThirdPartyStartupGateRealProductProbeContext
 ): Promise<ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult> => {
@@ -1405,77 +1316,6 @@ const createSwappedLiveRegistrySource = async(
 
   return await pipeline()
 }
-
-const createSyntheticSwappedLiveRegistrySource = (
-  source: ThirdPartyStartupGateProductProbeSummarySource = sampleProductProbeProfile
-): ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult => ({
-    kind: 'third-party-live-registry-swap-execution-source',
-    mode: 'default-disabled-live-registry-swap-execution-source',
-    status: 'swapped',
-    reason: 'live registry swap execution source accepted a runtime-only synthetic host acknowledgement',
-    runtimeOnly: true,
-    persistentWrite: false,
-    enabled: true,
-    sourceCalled: true,
-    appBootstrapContinuationAllowed: true,
-    commandContinuationAllowed: true,
-    liveRegistrySwapProtectionStatus: 'deferred',
-    liveRegistrySwapHostStatus: 'swapped',
-    requestedCommandId: 'install',
-    targetPackageId: source.selectedPackageIds[0]!,
-    selectedPackageIds: source.selectedPackageIds,
-    blockedPackageIds: blockedPackageIdsFromSource(source),
-    blockedCandidatePaths: Object.freeze([]),
-    loadOrder: source.loadOrder,
-    registryCount: source.registryCount,
-    entryCount: source.entryCount,
-    packageCount: source.packageCount,
-    candidateIdentity: source.candidateIdentity,
-    lockfileHash: source.lockfileHash,
-    requiredProtectionIds: Object.freeze([]),
-    diagnostics: Object.freeze([]),
-    effects: {
-      liveRegistrySwapExecutionSourceCalled: true,
-      liveRegistrySwapProtectionSourceCalled: true,
-      injectedLiveRegistrySwapHostCalled: true,
-      liveRegistrySwapHostCalled: true,
-      liveRegistrySwapHostAccepted: true,
-      appBootstrapContinuationAllowed: true,
-      commandContinuationAllowed: true,
-      thirdPartyRegistryPublished: true,
-      liveRegistryMutated: true,
-      liveRegistrySwapped: true,
-      runtimeEnablementAllowed: true,
-      officialRegistryPublished: false,
-      previousRegistryReleased: false,
-      previousRegistryRestored: false,
-      candidateRegistryExposed: false,
-      modManagementUiMounted: false,
-      electronIpcExposed: false,
-      webFilePickerOpened: false,
-      androidFilePickerOpened: false,
-      commandDispatcherCalled: false,
-      commandDispatched: false,
-      transactionCommitted: false,
-      runtimePublicationCommitted: false,
-      postCommitVerificationExecuted: false,
-      uiIpcResponseDelivered: false,
-      packageFilesWritten: false,
-      packageBackupsWritten: false,
-      packageFilesRestored: false,
-      lockfileWritten: false,
-      lockfileRestored: false,
-      settingsWritten: false,
-      settingsRestored: false,
-      savesWritten: false,
-      cacheWritten: false,
-      transactionLogWritten: false,
-      recoveryLogRead: false,
-      recoveryLogReplayed: false,
-      rollbackExecuted: false,
-      diagnosticsWritten: false
-    }
-  } as unknown as ThirdPartyDataPackLiveRegistrySwapExecutionSourceResult)
 
 const createStartupGateHandoffPreflight = (
   source: ThirdPartyStartupGateProductProbeSummarySource = sampleProductProbeProfile
@@ -2142,9 +1982,7 @@ export const createThirdPartyStartupPersistentStateProductProbeBootstrapSource =
   const readRuntimePublicationLiveRegistrySwapOnce = async() => {
     runtimePublicationLiveRegistrySwapPromise ??= (async() => {
       const context = await readContext()
-      return context.sourceKind === 'electron-program-directory-userdata'
-        ? createSwappedLiveRegistrySource(context.sourceContext)
-        : createSyntheticSwappedLiveRegistrySource(context.sourceContext)
+      return createSwappedLiveRegistrySource(context.sourceContext)
     })()
     return runtimePublicationLiveRegistrySwapPromise
   }
@@ -2170,9 +2008,7 @@ export const createThirdPartyStartupPersistentStateProductProbeBootstrapSource =
       ...(options.runtimeHost === undefined ? {} : { runtimeHost: options.runtimeHost }),
       readRuntimePublicationCommitAfterPostCommitVerification: async() => {
         const context = await readContext()
-        return context.sourceKind === 'electron-program-directory-userdata'
-          ? createAcceptedRealCommitAfterPostCommit(context.sourceContext)
-          : createAcceptedCommitAfterPostCommit(context.sourceContext)
+        return createAcceptedRealCommitAfterPostCommit(context.sourceContext)
       },
       readRuntimePublicationLiveRegistrySwapHostConnection:
         readRuntimePublicationLiveRegistrySwapOnce,

@@ -640,7 +640,7 @@ describe('third-party shared renderer startup gate bootstrap source', () => {
     expect(serialized).not.toContain('C:/Users')
   })
 
-  it('composes the probe-only Web IndexedDB startup persistent state path through shared renderer startup', async() => {
+  it('composes the Web IndexedDB startup persistent state path through real runtime publication', async() => {
     const runtimeHost = new EventTarget()
     const store = createInMemoryWebIndexedDbImportPersistenceStore()
     const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
@@ -682,10 +682,11 @@ describe('third-party shared renderer startup gate bootstrap source', () => {
     expect(result.effects.thirdPartyRegistryPublished).toBe(true)
     expect(result.effects.liveRegistrySwapped).toBe(true)
     expect(result.effects.runtimeEnablementAllowed).toBe(true)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
     expect(result.effects.realNormalStartupHostCalled).toBe(true)
     expect(result.effects.uiIpcResponseDelivered).toBe(false)
     expect(result.effects.transactionCommitted).toBe(false)
-    expect(result.effects.runtimePublicationCommitted).toBe(false)
+    expect(result.effects.runtimePublicationCommitted).toBe(true)
     expect(result.effects.packageFilesWritten).toBe(false)
     expect(result.effects.lockfileWritten).toBe(false)
     expect(result.effects.settingsWritten).toBe(false)
