@@ -79,6 +79,7 @@ export interface RunThirdPartyVisibleDisableProductProbeOptions {
 
 export interface RunThirdPartyVisibleUninstallProductProbeOptions {
   readonly targetPackageId?: PackageId
+  readonly expectBlocked?: boolean
 }
 
 export interface ThirdPartyVisibleImportProductProbeResult {
@@ -1143,11 +1144,19 @@ const runMainMenuPanelUninstallProbe = async(
       () => readPanelUninstallResult(probeWindow),
       'visible uninstall panel did not publish the uninstall transaction result'
     )
-    await waitForCondition(
-      () => document.querySelector(`[data-testid="web-mod-installed-row-${targetPackageId}"]`) === null
-        || document.querySelector('[data-testid="web-mod-installed-empty"]') !== null,
-      'visible uninstall panel did not remove the installed package row'
-    )
+    if (options.expectBlocked === true) {
+      await waitForCondition(
+        () => readPanelUninstallResult(probeWindow)?.terminal.status === 'blocked'
+          && document.querySelector(`[data-testid="web-mod-installed-row-${targetPackageId}"]`) !== null,
+        'visible uninstall panel did not keep the installed package row after blocked uninstall'
+      )
+    } else {
+      await waitForCondition(
+        () => document.querySelector(`[data-testid="web-mod-installed-row-${targetPackageId}"]`) === null
+          || document.querySelector('[data-testid="web-mod-installed-empty"]') !== null,
+        'visible uninstall panel did not remove the installed package row'
+      )
+    }
     const panelStatusLabels = readVisibleImportPanelStatusLabels()
     const contentAccessItemVisibleAfter = getOfficialItemDef(itemId) !== undefined
     const contentAccessRecipeVisibleAfter = getOfficialRecipeDef(recipeId) !== undefined
