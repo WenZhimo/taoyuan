@@ -1113,6 +1113,129 @@ describe('official content runtime report', () => {
     expect(JSON.stringify(summary)).not.toContain('document')
   })
 
+  it('summarizes visible management renderer command delivery without exposing hosts', () => {
+    let hostileGetterRead = false
+    const probeResult = {
+      status: 'ready',
+      operation: 'disable',
+      entrypoint: 'main-menu-panel',
+      mainMenuPanelOpened: true,
+      panelImportButtonClicked: false,
+      defaultFileInputSelectorUsed: false,
+      managementCommandHostKind: 'electron-renderer',
+      managementCommandDispatched: true,
+      managementUiIpcResponseDelivered: true,
+      targetPackageId: 'product_probe_pack',
+      itemId: 'product_probe_pack:linen_ribbon',
+      recipeId: 'product_probe_pack:linen_ribbon_snack',
+      shopOfferId: 'product_probe_pack:shop/wanwupu/linen_ribbon/0',
+      fileCount: 0,
+      pickStatus: 'not-run',
+      panelStatusLabels: {
+        installedManagementStatus: '已就绪',
+        disableResult: '禁用事务：已完成 · settings 已写入 · mod-lock 已写入'
+      },
+      selectedPackageCount: 0,
+      blockedPackageCount: 1,
+      loadOrderCount: 0,
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 1,
+      diagnosticsCount: 0,
+      contentAccessItemVisibleBefore: true,
+      contentAccessItemVisibleAfter: false,
+      contentAccessRecipeVisibleBefore: true,
+      contentAccessRecipeVisibleAfter: false,
+      contentAccessShopOfferVisibleBefore: true,
+      contentAccessShopOfferVisibleAfter: false,
+      disableTerminalStatus: 'ready',
+      disableTargetPackageId: 'product_probe_pack',
+      disableSelectedPackageCount: 0,
+      disableBlockedPackageCount: 1,
+      disableLoadOrderCount: 0,
+      disableSettingsWritten: true,
+      disableLockfileWritten: true,
+      disableStartupStateWritten: true,
+      disablePackageFilesPreserved: true,
+      disableRuntimePublicationExcluded: true,
+      disableLiveRegistrySwapped: true,
+      disableAppStartupHandoffAccepted: true,
+      effects: {
+        commandDispatched: true,
+        packageFilesWritten: false,
+        settingsWritten: true,
+        lockfileWritten: true,
+        rendererLiveRegistrySwapped: true,
+        runtimeEnablementAllowed: false,
+        uiIpcResponseDelivered: true,
+        transactionCommitted: true,
+        transactionLogPrepared: false,
+        transactionLogRead: false,
+        startupPersistentStateWritten: true,
+        realNormalStartupHostCalled: false,
+        realAppStartupHostCalled: true,
+        gameAppCreated: true,
+        piniaCreated: true,
+        routerMounted: true,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false,
+        rollbackExecuted: false,
+        diagnosticsWritten: false
+      }
+    }
+    Object.defineProperty(probeResult, 'electronAPI', {
+      enumerable: true,
+      get() {
+        hostileGetterRead = true
+        throw new Error('C:\\secret\\management-host')
+      }
+    })
+
+    const summary = createThirdPartyVisibleImportRuntimeProbeSummary(probeResult)
+
+    expect(summary).toMatchObject({
+      observed: true,
+      status: 'ready',
+      operation: 'disable',
+      entrypoint: 'main-menu-panel',
+      mainMenuPanelOpened: true,
+      panelImportButtonClicked: false,
+      defaultFileInputSelectorUsed: false,
+      managementCommandHostKind: 'electron-renderer',
+      managementCommandDispatched: true,
+      managementUiIpcResponseDelivered: true,
+      targetPackageId: 'product_probe_pack',
+      selectedPackageCount: 0,
+      blockedPackageCount: 1,
+      loadOrderCount: 0,
+      disableTerminalStatus: 'ready',
+      disableTargetPackageId: 'product_probe_pack',
+      disableSettingsWritten: true,
+      disableLockfileWritten: true,
+      disableStartupStateWritten: true,
+      disableRuntimePublicationExcluded: true,
+      disableLiveRegistrySwapped: true,
+      disableAppStartupHandoffAccepted: true,
+      effects: {
+        commandDispatched: true,
+        uiIpcResponseDelivered: true,
+        settingsWritten: true,
+        lockfileWritten: true,
+        transactionCommitted: true,
+        startupPersistentStateWritten: true,
+        realAppStartupHostCalled: true,
+        savesWritten: false,
+        cacheWritten: false
+      }
+    })
+    expect(hostileGetterRead).toBe(false)
+    expect(JSON.stringify(summary)).not.toContain('C:\\secret')
+    expect(JSON.stringify(summary)).not.toContain('electronAPI')
+    expect(JSON.stringify(summary)).not.toContain('window')
+    expect(JSON.stringify(summary)).not.toContain('document')
+  })
+
   it('summarizes the probe-only Electron install command dispatch bridge from preload', async () => {
     const dispatchThirdPartyDataPackInstallCommand = vi.fn(envelope =>
       acknowledgeThirdPartyDataPackElectronInstallCommandDispatchIpcEnvelope(envelope))

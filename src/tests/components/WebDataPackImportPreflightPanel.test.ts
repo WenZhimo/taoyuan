@@ -28,6 +28,10 @@ import type {
 import type {
   ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
 } from '@/domain/mods/thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationBridge'
+import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
+import type { PackageId } from '@/domain/mods/ids'
+import type { Sha256Hash } from '@/domain/mods/hash'
+import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 import { createInMemoryWebIndexedDbImportPersistenceStore } from '@/domain/mods/webIndexedDbImportPersistence'
 import {
   createInMemoryWebSettingsLockfilePersistentWriterStore,
@@ -52,6 +56,7 @@ import type {
 type JsonObject = Record<string, unknown>
 
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
+const hash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 const createManifest = (packageId = 'web_panel_entry', version = '1.0.0'): JsonObject => ({
   id: packageId,
@@ -100,6 +105,49 @@ const createValidFiles = (
     createItem(`${packageId}:linen_ribbon`, options.itemNameFallback)
   ]))
 ]
+
+const createInstalledDraft = (packageId: string): ThirdPartyDataPackLockfileDraft => {
+  const typedPackageId = packageId as PackageId
+  return {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: committedMetadata.artifactHash as Sha256Hash,
+      contentHash: committedMetadata.contentHash as Sha256Hash,
+      schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+      environmentHash: committedMetadata.environmentHash as Sha256Hash,
+      snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity: {
+      formatVersion: 1,
+      contentHash: hash('a'),
+      snapshotHash: hash('b'),
+      candidateHash: hash('c')
+    },
+    registryCount: 55,
+    entryCount: 4243,
+    selectedPackageIds: [typedPackageId],
+    loadOrder: [typedPackageId],
+    packages: [{
+      packageId: typedPackageId,
+      version: '1.0.0',
+      loadIndex: 0,
+      source: {
+        candidatePath: 'web-panel-electron-disable-visible',
+        manifestPath: 'web-panel-electron-disable-visible/manifest.json',
+        contentFiles: ['web-panel-electron-disable-visible/data/items.json']
+      },
+      manifestHash: hash('d'),
+      contentHash: hash('e'),
+      configurationHash: hash('f'),
+      resolvedDependencies: [],
+      contentFiles: []
+    }],
+    lockfileHash: hash('1')
+  }
+}
 
 const publishMountedAppStartupHostEvidence = () =>
   publishThirdPartyDataPackMountedAppStartupHostEvidence({
@@ -606,6 +654,12 @@ const withWindowElectronApi = (
     }
     Object.defineProperty(window, 'electronAPI', previousDescriptor)
   }
+}
+
+const withWindowQuery = (query: string): (() => void) => {
+  const previousHref = window.location.href
+  window.history.replaceState({}, '', query)
+  return () => window.history.replaceState({}, '', previousHref)
 }
 
 const waitForPreflight = async(
@@ -1617,6 +1671,132 @@ describe('WebDataPackImportPreflightPanel', () => {
     expect(wrapper.text()).not.toContain('LENOVO')
 
     wrapper.unmount()
+  })
+
+  it('publishes visible disable renderer command delivery from the default Electron host', async() => {
+    const packageId = 'web_panel_electron_disable_visible'
+    const installedDraft = createInstalledDraft(packageId)
+    const readThirdPartyDataPackInstalledState = vi.fn(async() => ({
+      status: 'ready' as const,
+      record: {
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install' as const,
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId],
+        candidateHash: installedDraft.candidateIdentity.candidateHash,
+        lockfileHash: installedDraft.lockfileHash,
+        lockfileDraft: installedDraft
+      },
+      packageFilesPreserved: true
+    }))
+    const disableThirdPartyDataPack = vi.fn(async(_envelope: unknown) => ({
+      status: 'written' as const
+    }))
+    const disablePanelResultEvent = vi.fn()
+    const restoreElectronApi = withWindowElectronApi({
+      readThirdPartyDataPackInstalledState,
+      disableThirdPartyDataPack
+    })
+    const restoreQuery = withWindowQuery(
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisableProbe=1'
+    )
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    window.addEventListener('taoyuan:third-party-visible-disable-panel-result', disablePanelResultEvent)
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        officialRegistrySet,
+        persistenceStore: null,
+        webSettingsLockfileStore: null,
+        webInstallTransactionLogStore: null
+      }
+    })
+
+    try {
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        await nextTick()
+        if (wrapper.find(`[data-testid="web-mod-disable-${packageId}"]`).exists()) break
+      }
+
+      expect(wrapper.get('[data-testid="web-mod-installed-management-status"]').text()).toBe('已就绪')
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+
+      await wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).trigger('click')
+
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        await new Promise(resolve => setTimeout(resolve, 10))
+        await nextTick()
+        const panelResult = (window as Window & {
+          __TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__?: unknown
+        }).__TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__
+        if (panelResult !== undefined) break
+      }
+
+      const panelResult = (window as Window & {
+        __TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__?: unknown
+      }).__TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__
+      expect(readThirdPartyDataPackInstalledState).toHaveBeenCalledTimes(2)
+      expect(disableThirdPartyDataPack).toHaveBeenCalledOnce()
+      expect(disablePanelResultEvent).toHaveBeenCalledOnce()
+      expect(disableThirdPartyDataPack.mock.calls[0]?.[0]).toMatchObject({
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: [],
+        packageFilesPreserved: true,
+        record: {
+          recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+          requestedCommandId: 'disable',
+          targetPackageId: packageId,
+          selectedPackageIds: [],
+          blockedPackageIds: [packageId],
+          loadOrder: []
+        },
+        startupSnapshot: {
+          kind: 'electron-startup-persistent-state-snapshot',
+          packageId
+        }
+      })
+      expect(panelResult).toMatchObject({
+        managementCommandHostKind: 'electron-renderer',
+        managementCommandDispatched: true,
+        managementUiIpcResponseDelivered: true,
+        terminal: {
+          status: 'ready',
+          requestedCommandId: 'disable',
+          targetPackageId: packageId,
+          selectedPackageIds: [],
+          blockedPackageIds: [packageId],
+          loadOrder: [],
+          settingsWritten: true,
+          lockfileWritten: true,
+          startupStateWritten: true,
+          packageFilesPreserved: true,
+          runtimePublicationExcluded: true,
+          liveRegistrySwapped: true,
+          appStartupHandoffAccepted: true
+        }
+      })
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已禁用')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('禁用事务：已完成')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
+      expect(JSON.stringify(disableThirdPartyDataPack.mock.calls[0]?.[0])).not.toContain('C:/Users')
+      expect(JSON.stringify(panelResult)).not.toContain('C:/Users')
+      expect(JSON.stringify(panelResult)).not.toContain('LENOVO')
+      expect(JSON.stringify(panelResult)).not.toContain('electronAPI')
+    } finally {
+      wrapper.unmount()
+      window.removeEventListener('taoyuan:third-party-visible-disable-panel-result', disablePanelResultEvent)
+      Reflect.deleteProperty(window, '__TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__')
+      restoreQuery()
+      restoreElectronApi()
+    }
   })
 
   it('disables and re-enables an installed package from the visible management list', async() => {

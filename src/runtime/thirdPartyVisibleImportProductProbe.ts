@@ -36,6 +36,7 @@ export const visibleEnablePanelProbeResultEventName =
 type VisibleImportProductProbeEntrypoint = 'composable' | 'main-menu-panel'
 type VisibleImportProductProbePackageVariant = 'v1' | 'v2'
 type VisibleImportProductProbeOperation = 'install' | 'enable' | 'upgrade' | 'rollback' | 'failure'
+type VisibleManagementCommandHostKind = 'web-indexeddb' | 'electron-renderer'
 
 const visibleImportProductProbeFixtures = {
   v1: {
@@ -92,6 +93,9 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly mainMenuPanelOpened: boolean
   readonly panelImportButtonClicked: boolean
   readonly defaultFileInputSelectorUsed: boolean
+  readonly managementCommandHostKind?: VisibleManagementCommandHostKind
+  readonly managementCommandDispatched?: boolean
+  readonly managementUiIpcResponseDelivered?: boolean
   readonly targetPackageId: string
   readonly itemId: string
   readonly itemNameFallback?: string
@@ -245,6 +249,9 @@ interface VisibleImportProbeExecution {
   readonly mainMenuPanelOpened: boolean
   readonly panelImportButtonClicked: boolean
   readonly enableButtonClicked?: boolean
+  readonly managementCommandHostKind?: VisibleManagementCommandHostKind
+  readonly managementCommandDispatched?: boolean
+  readonly managementUiIpcResponseDelivered?: boolean
   readonly defaultFileInputSelectorUsed: boolean
   readonly blockedReason?: string
 }
@@ -256,6 +263,9 @@ interface VisibleDisableProbeExecution {
   readonly entrypoint: 'main-menu-panel'
   readonly mainMenuPanelOpened: boolean
   readonly disableButtonClicked: boolean
+  readonly managementCommandHostKind?: VisibleManagementCommandHostKind
+  readonly managementCommandDispatched?: boolean
+  readonly managementUiIpcResponseDelivered?: boolean
   readonly contentAccessItemVisibleBefore: boolean
   readonly contentAccessItemVisibleAfter: boolean
   readonly contentAccessRecipeVisibleBefore: boolean
@@ -272,6 +282,9 @@ interface VisibleUninstallProbeExecution {
   readonly entrypoint: 'main-menu-panel'
   readonly mainMenuPanelOpened: boolean
   readonly uninstallButtonClicked: boolean
+  readonly managementCommandHostKind?: VisibleManagementCommandHostKind
+  readonly managementCommandDispatched?: boolean
+  readonly managementUiIpcResponseDelivered?: boolean
   readonly contentAccessItemVisibleBefore: boolean
   readonly contentAccessItemVisibleAfter: boolean
   readonly contentAccessRecipeVisibleBefore: boolean
@@ -596,6 +609,35 @@ const waitForCondition = async<T>(
     await delay(25)
   }
   throw new Error(reason)
+}
+
+const readOwnDataField = (value: unknown, fieldName: string): unknown => {
+  if (value === null || typeof value !== 'object') return undefined
+  try {
+    const descriptor = Reflect.getOwnPropertyDescriptor(value, fieldName)
+    return descriptor?.enumerable === true && 'value' in descriptor ? descriptor.value : undefined
+  } catch {
+    return undefined
+  }
+}
+
+const readOwnBooleanField = (value: unknown, fieldName: string): boolean | undefined => {
+  const field = readOwnDataField(value, fieldName)
+  return typeof field === 'boolean' ? field : undefined
+}
+
+const readOwnStringField = (value: unknown, fieldName: string): string | undefined => {
+  const field = readOwnDataField(value, fieldName)
+  return typeof field === 'string' ? field : undefined
+}
+
+const readManagementCommandHostKind = (
+  result: unknown
+): VisibleManagementCommandHostKind | undefined => {
+  const hostKind = readOwnStringField(result, 'managementCommandHostKind')
+  return hostKind === 'web-indexeddb' || hostKind === 'electron-renderer'
+    ? hostKind
+    : undefined
 }
 
 const findButtonContainingText = (text: string): HTMLButtonElement | null => {
@@ -1023,6 +1065,11 @@ const runMainMenuPanelEnableProbe = async(
     return Object.freeze({
       dispatchResult: null,
       enableTransactionResult: transactionResult,
+      managementCommandHostKind: readManagementCommandHostKind(transactionResult),
+      managementCommandDispatched:
+        readOwnBooleanField(transactionResult, 'managementCommandDispatched'),
+      managementUiIpcResponseDelivered:
+        readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       fileCount: Number(readPanelText('web-mod-file-count') ?? 0),
       pickStatus: toPickStatus(stableLabel),
       panelStatusLabels,
@@ -1034,9 +1081,15 @@ const runMainMenuPanelEnableProbe = async(
       defaultFileInputSelectorUsed: false
     })
   } catch (error) {
+    const transactionResult = readPanelEnableResult(probeWindow)
     return Object.freeze({
       dispatchResult: null,
-      enableTransactionResult: readPanelEnableResult(probeWindow),
+      enableTransactionResult: transactionResult,
+      managementCommandHostKind: readManagementCommandHostKind(transactionResult),
+      managementCommandDispatched:
+        readOwnBooleanField(transactionResult, 'managementCommandDispatched'),
+      managementUiIpcResponseDelivered:
+        readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       fileCount: Number(readPanelText('web-mod-file-count') ?? 0),
       pickStatus: toPickStatus(readPanelText('web-mod-import-status')),
       panelStatusLabels: readVisibleImportPanelStatusLabels(),
@@ -1132,6 +1185,11 @@ const runMainMenuPanelDisableProbe = async(
       entrypoint: 'main-menu-panel' as const,
       mainMenuPanelOpened,
       disableButtonClicked,
+      managementCommandHostKind: readManagementCommandHostKind(transactionResult),
+      managementCommandDispatched:
+        readOwnBooleanField(transactionResult, 'managementCommandDispatched'),
+      managementUiIpcResponseDelivered:
+        readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter,
       contentAccessRecipeVisibleBefore,
@@ -1140,13 +1198,19 @@ const runMainMenuPanelDisableProbe = async(
       contentAccessShopOfferVisibleAfter
     })
   } catch (error) {
+    const transactionResult = readPanelDisableResult(probeWindow)
     return Object.freeze({
-      transactionResult: readPanelDisableResult(probeWindow),
+      transactionResult,
       targetPackageId,
       panelStatusLabels: readVisibleImportPanelStatusLabels(),
       entrypoint: 'main-menu-panel' as const,
       mainMenuPanelOpened,
       disableButtonClicked,
+      managementCommandHostKind: readManagementCommandHostKind(transactionResult),
+      managementCommandDispatched:
+        readOwnBooleanField(transactionResult, 'managementCommandDispatched'),
+      managementUiIpcResponseDelivered:
+        readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter: getOfficialItemDef(itemId) !== undefined,
       contentAccessRecipeVisibleBefore,
@@ -1218,6 +1282,11 @@ const runMainMenuPanelUninstallProbe = async(
       entrypoint: 'main-menu-panel' as const,
       mainMenuPanelOpened,
       uninstallButtonClicked,
+      managementCommandHostKind: readManagementCommandHostKind(transactionResult),
+      managementCommandDispatched:
+        readOwnBooleanField(transactionResult, 'managementCommandDispatched'),
+      managementUiIpcResponseDelivered:
+        readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter,
       contentAccessRecipeVisibleBefore,
@@ -1226,13 +1295,19 @@ const runMainMenuPanelUninstallProbe = async(
       contentAccessShopOfferVisibleAfter
     })
   } catch (error) {
+    const transactionResult = readPanelUninstallResult(probeWindow)
     return Object.freeze({
-      transactionResult: readPanelUninstallResult(probeWindow),
+      transactionResult,
       targetPackageId,
       panelStatusLabels: readVisibleImportPanelStatusLabels(),
       entrypoint: 'main-menu-panel' as const,
       mainMenuPanelOpened,
       uninstallButtonClicked,
+      managementCommandHostKind: readManagementCommandHostKind(transactionResult),
+      managementCommandDispatched:
+        readOwnBooleanField(transactionResult, 'managementCommandDispatched'),
+      managementUiIpcResponseDelivered:
+        readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter: getOfficialItemDef(itemId) !== undefined,
       contentAccessRecipeVisibleBefore,
@@ -1277,13 +1352,13 @@ export const runThirdPartyVisibleImportProductProbe = async(
   const enableTerminal = execution.enableTransactionResult?.terminal ?? null
   const effects: ThirdPartyVisibleImportProductProbeResult['effects'] = operation === 'enable'
     ? {
-        commandDispatched: false,
+        commandDispatched: execution.managementCommandDispatched === true,
         packageFilesWritten: false,
         settingsWritten: enableTerminal?.settingsWritten === true,
         lockfileWritten: enableTerminal?.lockfileWritten === true,
         rendererLiveRegistrySwapped: enableTerminal?.liveRegistrySwapped === true,
         runtimeEnablementAllowed: enableTerminal?.runtimePublicationIncluded === true,
-        uiIpcResponseDelivered: false,
+        uiIpcResponseDelivered: execution.managementUiIpcResponseDelivered === true,
         transactionCommitted: enableTerminal?.status === 'ready',
         transactionLogPrepared: false,
         transactionLogRead: false,
@@ -1361,6 +1436,15 @@ export const runThirdPartyVisibleImportProductProbe = async(
     panelImportButtonClicked: execution.panelImportButtonClicked,
     ...(execution.enableButtonClicked === undefined ? {} : { enableButtonClicked: execution.enableButtonClicked }),
     defaultFileInputSelectorUsed: execution.defaultFileInputSelectorUsed,
+    ...(execution.managementCommandHostKind === undefined
+      ? {}
+      : { managementCommandHostKind: execution.managementCommandHostKind }),
+    ...(execution.managementCommandDispatched === undefined
+      ? {}
+      : { managementCommandDispatched: execution.managementCommandDispatched }),
+    ...(execution.managementUiIpcResponseDelivered === undefined
+      ? {}
+      : { managementUiIpcResponseDelivered: execution.managementUiIpcResponseDelivered }),
     targetPackageId: packageId,
     itemId,
     ...(visibleItem?.name.fallback !== undefined ? { itemNameFallback: visibleItem.name.fallback } : {}),
@@ -1484,6 +1568,15 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     panelImportButtonClicked: false,
     disableButtonClicked: execution.disableButtonClicked,
     defaultFileInputSelectorUsed: false,
+    ...(execution.managementCommandHostKind === undefined
+      ? {}
+      : { managementCommandHostKind: execution.managementCommandHostKind }),
+    ...(execution.managementCommandDispatched === undefined
+      ? {}
+      : { managementCommandDispatched: execution.managementCommandDispatched }),
+    ...(execution.managementUiIpcResponseDelivered === undefined
+      ? {}
+      : { managementUiIpcResponseDelivered: execution.managementUiIpcResponseDelivered }),
     targetPackageId: execution.targetPackageId,
     itemId,
     recipeId,
@@ -1542,13 +1635,13 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     disableAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,
     blockedReason: execution.blockedReason,
     effects: {
-      commandDispatched: false,
+      commandDispatched: execution.managementCommandDispatched === true,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,
       rendererLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
       runtimeEnablementAllowed: false,
-      uiIpcResponseDelivered: false,
+      uiIpcResponseDelivered: execution.managementUiIpcResponseDelivered === true,
       transactionCommitted: terminal?.status === 'ready',
       transactionLogPrepared: false,
       transactionLogRead: false,
@@ -1603,6 +1696,15 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     panelImportButtonClicked: false,
     uninstallButtonClicked: execution.uninstallButtonClicked,
     defaultFileInputSelectorUsed: false,
+    ...(execution.managementCommandHostKind === undefined
+      ? {}
+      : { managementCommandHostKind: execution.managementCommandHostKind }),
+    ...(execution.managementCommandDispatched === undefined
+      ? {}
+      : { managementCommandDispatched: execution.managementCommandDispatched }),
+    ...(execution.managementUiIpcResponseDelivered === undefined
+      ? {}
+      : { managementUiIpcResponseDelivered: execution.managementUiIpcResponseDelivered }),
     targetPackageId: execution.targetPackageId,
     itemId,
     recipeId,
@@ -1661,13 +1763,13 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     uninstallAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,
     blockedReason: execution.blockedReason,
     effects: {
-      commandDispatched: false,
+      commandDispatched: execution.managementCommandDispatched === true,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,
       rendererLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
       runtimeEnablementAllowed: false,
-      uiIpcResponseDelivered: false,
+      uiIpcResponseDelivered: execution.managementUiIpcResponseDelivered === true,
       transactionCommitted: terminal?.status === 'ready',
       transactionLogPrepared: false,
       transactionLogRead: false,

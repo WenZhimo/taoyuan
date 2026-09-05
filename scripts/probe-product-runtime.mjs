@@ -1991,6 +1991,34 @@ const assertVisibleEnablePanelLabels = (
   }
 }
 
+const expectedVisibleManagementCommandHostKind = protocol =>
+  protocol === 'file:' ? 'electron-renderer' : 'web-indexeddb'
+
+const assertVisibleManagementCommandDelivery = (
+  visibleImport,
+  scenario,
+  protocol,
+  operation
+) => {
+  const expectUiIpcResponseDelivered = protocol === 'file:'
+  assert(
+    visibleImport.managementCommandHostKind === expectedVisibleManagementCommandHostKind(protocol),
+    `${scenario.name}: visible ${operation} management command used the wrong host kind`
+  )
+  assert(visibleImport.managementCommandDispatched === true,
+    `${scenario.name}: visible ${operation} management command was not dispatched`)
+  assert(
+    visibleImport.managementUiIpcResponseDelivered === expectUiIpcResponseDelivered,
+    `${scenario.name}: visible ${operation} management UI/IPC delivery did not match the platform`
+  )
+  assert(visibleImport.effects?.commandDispatched === true,
+    `${scenario.name}: visible ${operation} did not surface management command dispatch`)
+  assert(
+    visibleImport.effects?.uiIpcResponseDelivered === expectUiIpcResponseDelivered,
+    `${scenario.name}: visible ${operation} did not surface management UI/IPC delivery`
+  )
+}
+
 const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
   const electron = protocol === 'file:'
   assert(protocol === 'http:' || electron,
@@ -2016,6 +2044,7 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
       `${scenario.name}: visible enable failure rollback terminal was not blocked`)
     assert(visibleImport.enableTargetPackageId === 'product_probe_pack',
       `${scenario.name}: visible enable failure rollback terminal target mismatch`)
+    assertVisibleManagementCommandDelivery(visibleImport, scenario, protocol, 'enable')
     assert(visibleImport.contentAccessItemVisibleBefore === false,
       `${scenario.name}: enable failure package item was visible before failure`)
     assert(visibleImport.contentAccessItemVisibleAfter === false,
@@ -2064,7 +2093,6 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
       'lockfileWritten',
       'rendererLiveRegistrySwapped',
       'runtimeEnablementAllowed',
-      'uiIpcResponseDelivered',
       'transactionCommitted',
       'startupPersistentStateWritten',
       'realAppStartupHostCalled',
@@ -2096,6 +2124,7 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
     `${scenario.name}: visible enable did not click the package enable action`)
   assert(visibleImport.defaultFileInputSelectorUsed === false,
     `${scenario.name}: visible enable should not use the default file input selector`)
+  assertVisibleManagementCommandDelivery(visibleImport, scenario, protocol, 'enable')
   assertVisibleEnablePanelLabels(
     visibleImport,
     scenario,
@@ -2201,9 +2230,7 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
       `${scenario.name}: visible enable effect ${effectName} was not true`)
   }
   for (const effectName of [
-    'commandDispatched',
     'packageFilesWritten',
-    'uiIpcResponseDelivered',
     'transactionLogPrepared',
     'transactionLogRead',
     'realNormalStartupHostCalled',
@@ -2242,6 +2269,7 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
       `${scenario.name}: visible disable failure rollback terminal was not blocked`)
     assert(visibleImport.disableTargetPackageId === 'product_probe_pack',
       `${scenario.name}: visible disable failure rollback terminal target mismatch`)
+    assertVisibleManagementCommandDelivery(visibleImport, scenario, protocol, 'disable')
     assert(visibleImport.contentAccessItemVisibleBefore === true,
       `${scenario.name}: disable failure package item was not visible before failure`)
     assert(visibleImport.contentAccessItemVisibleAfter === true,
@@ -2289,7 +2317,6 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
       'lockfileWritten',
       'rendererLiveRegistrySwapped',
       'runtimeEnablementAllowed',
-      'uiIpcResponseDelivered',
       'transactionCommitted',
       'startupPersistentStateWritten',
       'realAppStartupHostCalled',
@@ -2317,6 +2344,7 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     `${scenario.name}: visible disable probe did not open the MainMenu panel`)
   assert(visibleImport.disableButtonClicked === true,
     `${scenario.name}: visible disable probe did not click the package disable action`)
+  assertVisibleManagementCommandDelivery(visibleImport, scenario, protocol, 'disable')
   assert(visibleImport.targetPackageId === 'product_probe_pack',
     `${scenario.name}: visible disable probe reported the wrong package`)
   assert(visibleImport.disableTerminalStatus === 'ready',
@@ -2389,10 +2417,8 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
       `${scenario.name}: visible disable effect ${effectName} was not true`)
   }
   for (const effectName of [
-    'commandDispatched',
     'packageFilesWritten',
     'runtimeEnablementAllowed',
-    'uiIpcResponseDelivered',
     'transactionLogPrepared',
     'transactionLogRead',
     'transactionLogWritten',
@@ -2430,6 +2456,7 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
       `${scenario.name}: visible uninstall failure rollback terminal was not blocked`)
     assert(visibleImport.uninstallTargetPackageId === 'product_probe_pack',
       `${scenario.name}: visible uninstall failure rollback terminal target mismatch`)
+    assertVisibleManagementCommandDelivery(visibleImport, scenario, protocol, 'uninstall')
     assert(visibleImport.contentAccessItemVisibleBefore === true,
       `${scenario.name}: uninstall failure package item was not visible before failure`)
     assert(visibleImport.contentAccessItemVisibleAfter === true,
@@ -2477,7 +2504,6 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
       'lockfileWritten',
       'rendererLiveRegistrySwapped',
       'runtimeEnablementAllowed',
-      'uiIpcResponseDelivered',
       'transactionCommitted',
       'startupPersistentStateWritten',
       'realAppStartupHostCalled',
@@ -2505,6 +2531,7 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
     `${scenario.name}: visible uninstall probe did not open the MainMenu panel`)
   assert(visibleImport.uninstallButtonClicked === true,
     `${scenario.name}: visible uninstall probe did not click the package uninstall action`)
+  assertVisibleManagementCommandDelivery(visibleImport, scenario, protocol, 'uninstall')
   assert(visibleImport.targetPackageId === 'product_probe_pack',
     `${scenario.name}: visible uninstall probe reported the wrong package`)
   assert(visibleImport.uninstallTerminalStatus === 'ready',
@@ -2579,10 +2606,8 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
       `${scenario.name}: visible uninstall effect ${effectName} was not true`)
   }
   for (const effectName of [
-    'commandDispatched',
     'packageFilesWritten',
     'runtimeEnablementAllowed',
-    'uiIpcResponseDelivered',
     'transactionLogPrepared',
     'transactionLogRead',
     'transactionLogWritten',

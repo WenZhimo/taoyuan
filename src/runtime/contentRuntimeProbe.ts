@@ -212,6 +212,10 @@ export interface ThirdPartyVisibleImportPanelStatusLabels {
   uninstallResult?: string
 }
 
+type ThirdPartyVisibleManagementCommandHostKind =
+  | 'web-indexeddb'
+  | 'electron-renderer'
+
 export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   schemaVersion: 1
   observed: boolean
@@ -221,6 +225,9 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   mainMenuPanelOpened: boolean
   panelImportButtonClicked: boolean
   defaultFileInputSelectorUsed: boolean
+  managementCommandHostKind?: ThirdPartyVisibleManagementCommandHostKind
+  managementCommandDispatched?: boolean
+  managementUiIpcResponseDelivered?: boolean
   targetPackageId?: string
   itemId?: string
   itemNameFallback?: string
@@ -433,6 +440,15 @@ const readStartupPersistentStateSourceHostMode = (
     || mode === 'web-indexeddb-startup-persistent-state'
     || mode === 'electron-program-directory-startup-persistent-state'
     ? mode
+    : undefined
+}
+
+const readVisibleManagementCommandHostKind = (
+  value: unknown
+): ThirdPartyVisibleManagementCommandHostKind | undefined => {
+  const hostKind = readOwnStringField(value, 'managementCommandHostKind')
+  return hostKind === 'web-indexeddb' || hostKind === 'electron-renderer'
+    ? hostKind
     : undefined
 }
 
@@ -1081,6 +1097,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const disableButtonClicked = readOwnBooleanField(result, 'disableButtonClicked')
   const enableButtonClicked = readOwnBooleanField(result, 'enableButtonClicked')
   const uninstallButtonClicked = readOwnBooleanField(result, 'uninstallButtonClicked')
+  const managementCommandHostKind = readVisibleManagementCommandHostKind(result)
+  const managementCommandDispatched = readOwnBooleanField(result, 'managementCommandDispatched')
+  const managementUiIpcResponseDelivered =
+    readOwnBooleanField(result, 'managementUiIpcResponseDelivered')
   const disableTerminalStatus = readOwnStringField(result, 'disableTerminalStatus')
   const disableTargetPackageId = readOwnStringField(result, 'disableTargetPackageId')
   const disableSelectedPackageCount = readOwnNumberField(result, 'disableSelectedPackageCount')
@@ -1136,6 +1156,11 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     panelImportButtonClicked: readOwnBooleanField(result, 'panelImportButtonClicked') === true,
     defaultFileInputSelectorUsed:
       readOwnBooleanField(result, 'defaultFileInputSelectorUsed') === true,
+    ...(managementCommandHostKind === undefined ? {} : { managementCommandHostKind }),
+    ...(managementCommandDispatched === undefined ? {} : { managementCommandDispatched }),
+    ...(managementUiIpcResponseDelivered === undefined
+      ? {}
+      : { managementUiIpcResponseDelivered }),
     ...(targetPackageId !== undefined && isPackageId(targetPackageId)
       ? { targetPackageId }
       : {}),

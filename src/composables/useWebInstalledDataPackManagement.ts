@@ -80,6 +80,25 @@ export type WebInstalledDataPackManagementStatus =
   | 'blocked'
   | 'failed'
 
+export type WebInstalledDataPackManagementCommandHostKind =
+  | 'web-indexeddb'
+  | 'electron-renderer'
+
+export interface WebInstalledDataPackManagementCommandDeliveryResult {
+  readonly managementCommandHostKind: WebInstalledDataPackManagementCommandHostKind
+  readonly managementCommandDispatched: boolean
+  readonly managementUiIpcResponseDelivered: boolean
+}
+
+export type WebInstalledDataPackManagementDisableResult =
+  ThirdPartyDataPackDisableTransactionResult & WebInstalledDataPackManagementCommandDeliveryResult
+
+export type WebInstalledDataPackManagementEnableResult =
+  ThirdPartyDataPackEnableTransactionResult & WebInstalledDataPackManagementCommandDeliveryResult
+
+export type WebInstalledDataPackManagementUninstallResult =
+  ThirdPartyDataPackUninstallTransactionResult & WebInstalledDataPackManagementCommandDeliveryResult
+
 export interface UseWebInstalledDataPackManagementOptions {
   readonly officialRegistrySet: RegistrySet
   readonly settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null
@@ -259,14 +278,23 @@ const matchesRecord = (
   right: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null
 ): boolean => JSON.stringify(left) === JSON.stringify(right)
 
+const withManagementCommandDelivery = <Result extends object>(
+  result: Result,
+  delivery: WebInstalledDataPackManagementCommandDeliveryResult
+): Result & WebInstalledDataPackManagementCommandDeliveryResult =>
+  Object.freeze({
+    ...result,
+    ...delivery
+  })
+
 export const useWebInstalledDataPackManagement = (
   options: UseWebInstalledDataPackManagementOptions
 ) => {
   const status = ref<WebInstalledDataPackManagementStatus>('idle')
   const rows = ref<readonly WebInstalledDataPackManagementRow[]>(Object.freeze([]))
-  const lastResult = ref<ThirdPartyDataPackDisableTransactionResult | null>(null)
-  const lastUninstallResult = ref<ThirdPartyDataPackUninstallTransactionResult | null>(null)
-  const lastEnableResult = ref<ThirdPartyDataPackEnableTransactionResult | null>(null)
+  const lastResult = ref<WebInstalledDataPackManagementDisableResult | null>(null)
+  const lastUninstallResult = ref<WebInstalledDataPackManagementUninstallResult | null>(null)
+  const lastEnableResult = ref<WebInstalledDataPackManagementEnableResult | null>(null)
   const reason = ref('')
   const currentRecord = ref<ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null>(null)
   const installedImportId = options.installedImportId ?? defaultInstalledImportId
@@ -307,7 +335,7 @@ export const useWebInstalledDataPackManagement = (
 
   const disable = async(
     packageId: PackageId
-  ): Promise<ThirdPartyDataPackDisableTransactionResult | null> => {
+  ): Promise<WebInstalledDataPackManagementDisableResult | null> => {
     if (status.value === 'loading') return null
     status.value = 'loading'
     reason.value = ''
@@ -317,6 +345,10 @@ export const useWebInstalledDataPackManagement = (
 
     let installedRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null = null
     let previousStartupRecord: WebIndexedDbImportRecord | null = null
+    const managementCommandHostKind: WebInstalledDataPackManagementCommandHostKind =
+      options.electronDisableCommand === undefined ? 'web-indexeddb' : 'electron-renderer'
+    let managementCommandDispatched = false
+    let managementUiIpcResponseDelivered = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -370,6 +402,7 @@ export const useWebInstalledDataPackManagement = (
             throw new Error('Web disable requires startup persistent state storage')
           }
           if (options.electronDisableCommand !== undefined) {
+            managementCommandDispatched = true
             const electronResult = await options.electronDisableCommand({
               requestedCommandId: 'disable',
               targetPackageId: state.targetPackageId,
@@ -380,6 +413,7 @@ export const useWebInstalledDataPackManagement = (
               record: disableRecord,
               startupSnapshot: createElectronDisableStartupSnapshot(state)
             })
+            managementUiIpcResponseDelivered = true
             if (electronResult.status !== 'written') {
               throw new Error('Electron disable persistent state write was blocked')
             }
@@ -394,6 +428,7 @@ export const useWebInstalledDataPackManagement = (
             throw new Error('Web disable requires startup persistent state storage')
           }
           try {
+            managementCommandDispatched = true
             const writeResult = await options.settingsLockfileStore!.write(disableRecord)
             if (writeResult.status !== 'written') throw new Error('Web disable settings-lockfile write was blocked')
             await startupStore.put(startupSnapshotRecord)
@@ -425,7 +460,12 @@ export const useWebInstalledDataPackManagement = (
         },
         acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() === true
       })
-      lastResult.value = transaction
+      const result = withManagementCommandDelivery(transaction, {
+        managementCommandHostKind,
+        managementCommandDispatched,
+        managementUiIpcResponseDelivered
+      })
+      lastResult.value = result
       reason.value = transaction.terminal.reason
       if (transaction.terminal.status === 'ready') {
         currentRecord.value = disableRecord
@@ -435,7 +475,7 @@ export const useWebInstalledDataPackManagement = (
         await refresh()
         status.value = 'blocked'
       }
-      return transaction
+      return result
     } catch (error) {
       status.value = 'failed'
       reason.value = error instanceof Error ? error.message : 'Web installed package disable failed'
@@ -445,7 +485,7 @@ export const useWebInstalledDataPackManagement = (
 
   const uninstall = async(
     packageId: PackageId
-  ): Promise<ThirdPartyDataPackUninstallTransactionResult | null> => {
+  ): Promise<WebInstalledDataPackManagementUninstallResult | null> => {
     if (status.value === 'loading') return null
     status.value = 'loading'
     reason.value = ''
@@ -456,6 +496,10 @@ export const useWebInstalledDataPackManagement = (
     let installedRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null = null
     let previousStartupRecord: WebIndexedDbImportRecord | null = null
     let previousInstalledPackageRecord: WebIndexedDbImportRecord | null = null
+    const managementCommandHostKind: WebInstalledDataPackManagementCommandHostKind =
+      options.electronUninstallCommand === undefined ? 'web-indexeddb' : 'electron-renderer'
+    let managementCommandDispatched = false
+    let managementUiIpcResponseDelivered = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -508,6 +552,7 @@ export const useWebInstalledDataPackManagement = (
             throw new Error('Web uninstall requires startup persistent state storage')
           }
           if (options.electronUninstallCommand !== undefined) {
+            managementCommandDispatched = true
             const electronResult = await options.electronUninstallCommand({
               requestedCommandId: 'uninstall',
               targetPackageId: state.targetPackageId,
@@ -518,6 +563,7 @@ export const useWebInstalledDataPackManagement = (
               record: uninstallRecord,
               startupSnapshot: createElectronUninstallStartupSnapshot(state)
             })
+            managementUiIpcResponseDelivered = true
             if (electronResult.status !== 'written') {
               throw new Error('Electron uninstall persistent state write was blocked')
             }
@@ -532,6 +578,7 @@ export const useWebInstalledDataPackManagement = (
             throw new Error('Web uninstall requires startup persistent state storage')
           }
           try {
+            managementCommandDispatched = true
             const writeResult = await options.settingsLockfileStore!.write(uninstallRecord)
             if (writeResult.status !== 'written') throw new Error('Web uninstall settings-lockfile write was blocked')
             await options.installedPackageStore!.delete(installedImportId)
@@ -569,7 +616,12 @@ export const useWebInstalledDataPackManagement = (
         },
         acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() === true
       })
-      lastUninstallResult.value = transaction
+      const result = withManagementCommandDelivery(transaction, {
+        managementCommandHostKind,
+        managementCommandDispatched,
+        managementUiIpcResponseDelivered
+      })
+      lastUninstallResult.value = result
       reason.value = transaction.terminal.reason
       if (transaction.terminal.status === 'ready') {
         currentRecord.value = uninstallRecord
@@ -579,7 +631,7 @@ export const useWebInstalledDataPackManagement = (
         await refresh()
         status.value = 'blocked'
       }
-      return transaction
+      return result
     } catch (error) {
       status.value = 'failed'
       reason.value = error instanceof Error ? error.message : 'Web installed package uninstall failed'
@@ -589,7 +641,7 @@ export const useWebInstalledDataPackManagement = (
 
   const enable = async(
     packageId: PackageId
-  ): Promise<ThirdPartyDataPackEnableTransactionResult | null> => {
+  ): Promise<WebInstalledDataPackManagementEnableResult | null> => {
     if (status.value === 'loading') return null
     status.value = 'loading'
     reason.value = ''
@@ -599,6 +651,10 @@ export const useWebInstalledDataPackManagement = (
 
     let installedRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null = null
     let previousStartupRecord: WebIndexedDbImportRecord | null = null
+    const managementCommandHostKind: WebInstalledDataPackManagementCommandHostKind =
+      options.electronEnableCommand === undefined ? 'web-indexeddb' : 'electron-renderer'
+    let managementCommandDispatched = false
+    let managementUiIpcResponseDelivered = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -669,6 +725,7 @@ export const useWebInstalledDataPackManagement = (
             throw new Error('Web enable requires startup persistent state storage')
           }
           if (options.electronEnableCommand !== undefined) {
+            managementCommandDispatched = true
             const electronResult = await options.electronEnableCommand({
               requestedCommandId: 'enable',
               targetPackageId: state.targetPackageId,
@@ -679,6 +736,7 @@ export const useWebInstalledDataPackManagement = (
               record: enableRecord,
               startupSnapshot: createElectronEnableStartupSnapshot(state)
             })
+            managementUiIpcResponseDelivered = true
             if (electronResult.status !== 'written') {
               throw new Error('Electron enable persistent state write was blocked')
             }
@@ -693,6 +751,7 @@ export const useWebInstalledDataPackManagement = (
             throw new Error('Web enable requires startup persistent state storage')
           }
           try {
+            managementCommandDispatched = true
             const writeResult = await options.settingsLockfileStore!.write(enableRecord)
             if (writeResult.status !== 'written') throw new Error('Web enable settings-lockfile write was blocked')
             await startupStore.put(startupSnapshotRecord)
@@ -727,7 +786,12 @@ export const useWebInstalledDataPackManagement = (
         },
         acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() === true
       })
-      lastEnableResult.value = transaction
+      const result = withManagementCommandDelivery(transaction, {
+        managementCommandHostKind,
+        managementCommandDispatched,
+        managementUiIpcResponseDelivered
+      })
+      lastEnableResult.value = result
       reason.value = transaction.terminal.reason
       if (transaction.terminal.status === 'ready') {
         currentRecord.value = enableRecord
@@ -737,7 +801,7 @@ export const useWebInstalledDataPackManagement = (
         await refresh()
         status.value = 'blocked'
       }
-      return transaction
+      return result
     } catch (error) {
       status.value = 'failed'
       reason.value = error instanceof Error ? error.message : 'Web installed package enable failed'

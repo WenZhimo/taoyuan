@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { getOfficialItemDef } from '@/domain/mods/contentAccess'
@@ -30,6 +30,12 @@ import {
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 import { buildWebFilePickerSourceMountInput } from '@/composables/useWebFilePickerImportEntry'
 import type { ThirdPartyDataPackMountInputResult } from '@/domain/mods/thirdPartyDataPackMountInput'
+import type {
+  ThirdPartyDataPackElectronDisableCommandEnvelope
+} from '@/domain/mods/thirdPartyDataPackElectronDisableCommandBridge'
+import type {
+  ThirdPartyDataPackElectronInstalledStateReadResult
+} from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
 
 const packageId = 'web_disable_management_test_pack' as PackageId
 const hash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
@@ -434,5 +440,107 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(startupSnapshot.modLockState?.matched).toBe(true)
     expect(startupSnapshot.liveRegistry?.matched).toBe(true)
     expect(startupSnapshot.saveCache?.isolated).toBe(true)
+  })
+
+  it('routes visible disable persistence through the Electron renderer command host', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const installedDraft = createInstalledDraft()
+    const readElectronInstalledState = vi.fn(async(): Promise<ThirdPartyDataPackElectronInstalledStateReadResult> => ({
+      status: 'ready' as const,
+      record: {
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install' as const,
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId],
+        candidateHash: installedDraft.candidateIdentity.candidateHash,
+        lockfileHash: installedDraft.lockfileHash,
+        lockfileDraft: installedDraft
+      },
+      packageFilesPreserved: true
+    }))
+    const electronDisableCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
+    ) => ({
+      status: 'written' as const,
+      requestedCommandId: 'disable' as const,
+      targetPackageId: envelope.targetPackageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [envelope.targetPackageId],
+      loadOrder: [],
+      packageFilesPreserved: true,
+      settingsWritten: true,
+      lockfileWritten: true,
+      startupStateWritten: true,
+      diagnostics: []
+    }))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore: null,
+      installedPackageStore: null,
+      startupPersistentStateStore: null,
+      mountedAppStartupEvidence: () => true,
+      readElectronInstalledState,
+      electronDisableCommand
+    })
+    await management.refresh()
+
+    const result = await management.disable(packageId)
+    await nextTick()
+
+    expect(readElectronInstalledState).toHaveBeenCalledTimes(2)
+    expect(electronDisableCommand).toHaveBeenCalledOnce()
+    expect(electronDisableCommand.mock.calls[0]?.[0]).toMatchObject({
+      requestedCommandId: 'disable',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [packageId],
+      loadOrder: [],
+      packageFilesPreserved: true,
+      record: {
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: []
+      },
+      startupSnapshot: {
+        kind: 'electron-startup-persistent-state-snapshot',
+        packageId
+      }
+    })
+    expect(result).toMatchObject({
+      managementCommandHostKind: 'electron-renderer',
+      managementCommandDispatched: true,
+      managementUiIpcResponseDelivered: true,
+      terminal: {
+        status: 'ready',
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: [],
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        packageFilesPreserved: true,
+        runtimePublicationExcluded: true,
+        liveRegistrySwapped: true,
+        appStartupHandoffAccepted: true
+      }
+    })
+    expect(management.lastResult.value).toBe(result)
+    expect(management.rows.value).toEqual([{
+      packageId,
+      version: '1.0.0',
+      status: 'disabled'
+    }])
+    expect(JSON.stringify(electronDisableCommand.mock.calls[0]?.[0])).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
   })
 })
