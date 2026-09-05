@@ -665,6 +665,7 @@ const createReadyElectronOrdinaryInstallTerminalContinuationResult = (
     postCommitUiIpcDeliveryContinuation: {
       status: 'ready',
       selectedPlatform: 'electron',
+      envelopeKind: 'success',
       persistentPackageWriteExecuted: true,
       persistentSettingsLockfileWriteExecuted: true,
       effects: {
@@ -873,6 +874,9 @@ const createRollbackElectronOrdinaryInstallTerminalContinuationResult = (
         rollbackOutcomeAccepted: true,
         rollbackRecoverySettled: true,
         rollbackRecoveryExecutionAcknowledged: true,
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
         packageFilesRestored: true,
         packageFilesWritten: false,
         settingsWritten: false,
@@ -1431,13 +1435,13 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(dispatchThirdPartyDataPackInstallCommand).toHaveBeenCalledOnce()
       expect(continueThirdPartyDataPackOrdinaryInstallTerminal).toHaveBeenCalledOnce()
       expect(wrapper.get('[data-testid="web-mod-target-package"]').text()).toBe('web_panel_terminal_status_only')
-      expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('终端已阻断')
+      expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('等待事务主机')
       expectRuntimeHandoffStatusLabels(wrapper, {
-        runtimePublication: '已阻断',
-        liveRegistry: '已阻断',
-        appStartup: '已阻断'
+        runtimePublication: '未运行',
+        liveRegistry: '未运行',
+        appStartup: '未运行'
       })
-      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('未运行')
       expect(wrapper.text()).toContain('运行时启用：关闭')
       expect(wrapper.text()).not.toContain('运行时启用：允许')
       expect(wrapper.text()).not.toContain('C:/Users')

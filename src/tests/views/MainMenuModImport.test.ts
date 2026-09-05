@@ -249,6 +249,7 @@ const createReadyElectronOrdinaryInstallTerminalContinuationResult = (
     postCommitUiIpcDeliveryContinuation: {
       status: 'ready',
       selectedPlatform: 'electron',
+      envelopeKind: 'success',
       persistentPackageWriteExecuted: true,
       persistentSettingsLockfileWriteExecuted: true,
       effects: {
@@ -474,6 +475,9 @@ const createRollbackElectronOrdinaryInstallTerminalContinuationResult = (
         rollbackOutcomeAccepted: true,
         rollbackRecoverySettled: true,
         rollbackRecoveryExecutionAcknowledged: true,
+        realRecoveryLogReplayRestoreCalled: true,
+        recoveryLogRead: true,
+        recoveryLogReplayed: true,
         packageFilesRestored: true,
         packageFilesWritten: false,
         settingsWritten: false,

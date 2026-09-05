@@ -249,8 +249,23 @@ describe('third-party Electron install command dispatch bridge', () => {
           status: 'ready',
           reason: 'safe runtime publication continuation',
           installCommandPostCommitAcknowledgement: { status: 'ready' },
-          postCommitUiIpcDeliveryContinuation: { status: 'ready' },
-          ordinaryInstallTransactionTerminalConnection: { status: 'ready' },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'success'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'success',
+            retryable: false,
+            rollbackRequired: false,
+            effects: {
+              ordinaryInstallTransactionReady: true,
+              successOutcomeAccepted: true
+            }
+          },
+          installTransactionLogPrepared: { status: 'prepared' },
+          installTransactionLogPreparedPersistentReadVerification: { status: 'verified' },
+          installTransactionCommitFinalization: { status: 'committed' },
           runtimePublicationCommitAfterPostCommitVerification: { status: 'accepted' },
           runtimePublicationCommitLiveRegistrySwapHostConnection: { status: 'swapped' },
           runtimePublicationCommitAppStartupReadiness: { status: 'ready' },
@@ -277,6 +292,53 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(result.startupPersistentStateSnapshotWrite?.targetPackageId).toBe(packageId)
     expect(JSON.stringify(result)).not.toContain('candidateRegistrySet')
     expect(JSON.stringify(result)).not.toContain('liveRegistryReference')
+  })
+
+  it('preserves rollback terminal results only when real recovery replay evidence is present', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'safe rollback recovery continuation',
+          installCommandPostCommitAcknowledgement: { status: 'ready' },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'rollback'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'rollback',
+            retryable: false,
+            rollbackRequired: true,
+            effects: {
+              rollbackOutcomeAccepted: true,
+              rollbackRecoveryExecutionAcknowledged: true,
+              realRecoveryLogReplayRestoreCalled: true,
+              recoveryLogRead: true,
+              recoveryLogReplayed: true,
+              packageFilesRestored: true,
+              rollbackExecuted: true
+            }
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('ready')
+    expect(result.postCommitUiIpcDeliveryContinuation?.envelopeKind).toBe('rollback')
+    expect(result.ordinaryInstallTransactionTerminalConnection?.outcomeKind).toBe('rollback')
+    expect(result.ordinaryInstallTransactionTerminalConnection?.effects.realRecoveryLogReplayRestoreCalled)
+      .toBe(true)
+    expect(result.ordinaryInstallTransactionTerminalConnection?.effects.recoveryLogRead).toBe(true)
+    expect(result.ordinaryInstallTransactionTerminalConnection?.effects.recoveryLogReplayed).toBe(true)
+    expect(result.ordinaryInstallTransactionTerminalConnection?.effects.rollbackExecuted).toBe(true)
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
   })
 
   it('preserves retryable failure terminal results without a successful lifecycle acknowledgement', async() => {
@@ -321,13 +383,73 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
   })
 
+  it('blocks terminal class drift before success-only runtime state reaches the renderer', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'unsafe terminal class drift',
+          installCommandPostCommitAcknowledgement: { status: 'ready' },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'rollback'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'success',
+            retryable: false,
+            rollbackRequired: false,
+            effects: {
+              ordinaryInstallTransactionReady: true,
+              successOutcomeAccepted: true
+            }
+          },
+          runtimePublicationCommitAfterPostCommitVerification: { status: 'accepted' },
+          runtimePublicationCommitLiveRegistrySwapHostConnection: { status: 'swapped' },
+          runtimePublicationCommitAppStartupReadiness: { status: 'ready' },
+          runtimePublicationCommitAppStartupHostConnection: { status: 'accepted' },
+          startupPersistentStateSnapshotWrite: {
+            status: 'written',
+            storageKind: 'electron-program-directory-userdata-startup-persistent-state',
+            targetPackageId: packageId,
+            snapshotWritten: true
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('blocked')
+    expect(result.ordinaryInstallTransactionTerminalConnection).toBeUndefined()
+    expect(result.runtimePublicationCommitAppStartupHostConnection).toBeUndefined()
+    expect(result.startupPersistentStateSnapshotWrite).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
+  })
+
   it('blocks unsafe ordinary terminal continuation results before they reach renderer state', async() => {
     const cyclicResult: Record<string, unknown> = {
       status: 'ready',
       reason: 'unsafe cyclic result',
       installCommandPostCommitAcknowledgement: { status: 'ready' },
-      postCommitUiIpcDeliveryContinuation: { status: 'ready' },
-      ordinaryInstallTransactionTerminalConnection: { status: 'ready' },
+      postCommitUiIpcDeliveryContinuation: {
+        status: 'ready',
+        envelopeKind: 'success'
+      },
+      ordinaryInstallTransactionTerminalConnection: {
+        status: 'ready',
+        outcomeKind: 'success',
+        retryable: false,
+        rollbackRequired: false,
+        effects: {
+          ordinaryInstallTransactionReady: true,
+          successOutcomeAccepted: true
+        }
+      },
       diagnostics: []
     }
     cyclicResult.self = cyclicResult

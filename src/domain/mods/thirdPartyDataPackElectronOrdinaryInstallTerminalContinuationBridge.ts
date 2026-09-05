@@ -133,6 +133,24 @@ const safeJsonStringify = (value: unknown): string | undefined => {
   }
 }
 
+const hasStatus = (
+  value: unknown,
+  expectedStatus: string
+): boolean =>
+  value !== null
+  && typeof value === 'object'
+  && readOwnDataField(value, 'status') === expectedStatus
+
+const effectFlag = (
+  value: unknown,
+  fieldName: string
+): boolean => {
+  const effects = readOwnDataField(value, 'effects')
+  return effects !== null
+    && typeof effects === 'object'
+    && readOwnDataField(effects, fieldName) === true
+}
+
 const safeResultFromRawMainProcessValue = (
   value: unknown
 ): ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult => {
@@ -236,36 +254,71 @@ const safeResultFromRawMainProcessValue = (
     installCommandPostCommitAcknowledgement !== null
     && typeof installCommandPostCommitAcknowledgement === 'object'
     && readOwnDataField(installCommandPostCommitAcknowledgement, 'status') === 'ready'
+  const postCommitUiIpcDeliveryContinuationReady =
+    hasStatus(postCommitUiIpcDeliveryContinuation, 'ready')
+  const ordinaryInstallTransactionTerminalConnectionReady =
+    hasStatus(ordinaryInstallTransactionTerminalConnection, 'ready')
+  const successTerminalReady =
+    installCommandPostCommitAcknowledgementReady
+    && postCommitUiIpcDeliveryContinuationReady
+    && ordinaryInstallTransactionTerminalConnectionReady
+    && readOwnDataField(postCommitUiIpcDeliveryContinuation, 'envelopeKind') === 'success'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'outcomeKind') === 'success'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'retryable') === false
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'rollbackRequired') === false
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'ordinaryInstallTransactionReady')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'successOutcomeAccepted')
+    && installTransactionFinalizationReady
+    && runtimePublicationContinuationReady
+    && startupPersistentStateSnapshotWriteReady
   const retryableFailureTerminalReady =
-    installCommandPostCommitAcknowledgement !== null
-    && typeof installCommandPostCommitAcknowledgement === 'object'
-    && postCommitUiIpcDeliveryContinuation !== null
-    && typeof postCommitUiIpcDeliveryContinuation === 'object'
-    && readOwnDataField(postCommitUiIpcDeliveryContinuation, 'status') === 'ready'
+    (
+      hasStatus(installCommandPostCommitAcknowledgement, 'ready')
+      || hasStatus(installCommandPostCommitAcknowledgement, 'blocked')
+    )
+    && postCommitUiIpcDeliveryContinuationReady
+    && ordinaryInstallTransactionTerminalConnectionReady
     && readOwnDataField(postCommitUiIpcDeliveryContinuation, 'envelopeKind') === 'failure'
-    && ordinaryInstallTransactionTerminalConnection !== null
-    && typeof ordinaryInstallTransactionTerminalConnection === 'object'
-    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'status') === 'ready'
     && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'outcomeKind') === 'failure'
     && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'retryable') === true
     && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'rollbackRequired') === false
-    && readOwnDataField(
-      readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'effects') as object | undefined,
-      'failureOutcomeAccepted'
-    ) === true
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'failureOutcomeAccepted')
+  const rollbackTerminalReady =
+    installCommandPostCommitAcknowledgementReady
+    && postCommitUiIpcDeliveryContinuationReady
+    && ordinaryInstallTransactionTerminalConnectionReady
+    && readOwnDataField(postCommitUiIpcDeliveryContinuation, 'envelopeKind') === 'rollback'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'outcomeKind') === 'rollback'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'retryable') === false
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'rollbackRequired') === true
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'rollbackOutcomeAccepted')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'rollbackRecoveryExecutionAcknowledged')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'realRecoveryLogReplayRestoreCalled')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'recoveryLogRead')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'recoveryLogReplayed')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'packageFilesRestored')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'rollbackExecuted')
+  const terminalClassReady =
+    successTerminalReady || retryableFailureTerminalReady || rollbackTerminalReady
+  const nonSuccessTerminalCarriesSuccessOnlyState =
+    !successTerminalReady
+    && (
+      hasInstallTransactionFinalization
+      || hasRuntimePublicationContinuation
+      || hasStartupPersistentStateSnapshotWrite
+    )
 
   if (
     status !== 'ready'
     || typeof reason !== 'string'
     || installCommandPostCommitAcknowledgement === null
     || typeof installCommandPostCommitAcknowledgement !== 'object'
-    || (!installCommandPostCommitAcknowledgementReady && !retryableFailureTerminalReady)
+    || !terminalClassReady
+    || nonSuccessTerminalCarriesSuccessOnlyState
     || postCommitUiIpcDeliveryContinuation === null
     || typeof postCommitUiIpcDeliveryContinuation !== 'object'
-    || readOwnDataField(postCommitUiIpcDeliveryContinuation, 'status') !== 'ready'
     || ordinaryInstallTransactionTerminalConnection === null
     || typeof ordinaryInstallTransactionTerminalConnection !== 'object'
-    || readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'status') !== 'ready'
     || (hasInstallTransactionFinalization && !installTransactionFinalizationReady)
     || (hasRuntimePublicationContinuation && !runtimePublicationContinuationReady)
     || (hasStartupPersistentStateSnapshotWrite && !startupPersistentStateSnapshotWriteReady)
