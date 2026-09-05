@@ -149,6 +149,13 @@ const createInstalledDraft = (): ThirdPartyDataPackLockfileDraft => ({
   lockfileHash: hash('1')
 })
 
+const mountedAppStartupEvidence = () => Object.freeze({
+  realAppStartupHostCalled: true,
+  gameAppCreated: true,
+  piniaCreated: true,
+  routerMounted: true
+})
+
 afterEach(() => {
   resetLiveContentRegistryForTests()
 })
@@ -187,7 +194,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore,
       installedPackageStore,
       startupPersistentStateStore,
-      mountedAppStartupEvidence: () => true
+      mountedAppStartupEvidence
     })
     await management.refresh()
     expect(management.rows.value).toEqual([{
@@ -207,6 +214,10 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(result?.terminal.runtimePublicationExcluded).toBe(true)
     expect(result?.terminal.liveRegistrySwapped).toBe(true)
     expect(result?.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(result?.terminal.realAppStartupHostCalled).toBe(true)
+    expect(result?.terminal.gameAppCreated).toBe(true)
+    expect(result?.terminal.piniaCreated).toBe(true)
+    expect(result?.terminal.routerMounted).toBe(true)
     expect(management.status.value).toBe('ready')
     expect(management.rows.value).toEqual([{
       packageId,
@@ -231,6 +242,10 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(uninstallResult?.terminal.runtimePublicationExcluded).toBe(true)
     expect(uninstallResult?.terminal.liveRegistrySwapped).toBe(true)
     expect(uninstallResult?.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(uninstallResult?.terminal.realAppStartupHostCalled).toBe(true)
+    expect(uninstallResult?.terminal.gameAppCreated).toBe(true)
+    expect(uninstallResult?.terminal.piniaCreated).toBe(true)
+    expect(uninstallResult?.terminal.routerMounted).toBe(true)
     expect(management.status.value).toBe('ready')
     expect(management.rows.value).toEqual([])
     const uninstalledRecord = (await settingsLockfileStore.read()).record
@@ -293,7 +308,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore,
       installedPackageStore,
       startupPersistentStateStore,
-      mountedAppStartupEvidence: () => true
+      mountedAppStartupEvidence
     })
     await management.refresh()
 
@@ -308,6 +323,10 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(uninstallResult?.terminal.runtimePublicationExcluded).toBe(true)
     expect(uninstallResult?.terminal.liveRegistrySwapped).toBe(true)
     expect(uninstallResult?.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(uninstallResult?.terminal.realAppStartupHostCalled).toBe(true)
+    expect(uninstallResult?.terminal.gameAppCreated).toBe(true)
+    expect(uninstallResult?.terminal.piniaCreated).toBe(true)
+    expect(uninstallResult?.terminal.routerMounted).toBe(true)
     expect(management.status.value).toBe('ready')
     expect(management.rows.value).toEqual([])
     const uninstalledRecord = (await settingsLockfileStore.read()).record
@@ -370,7 +389,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore,
       installedPackageStore,
       startupPersistentStateStore,
-      mountedAppStartupEvidence: () => true,
+      mountedAppStartupEvidence,
       readEnableMountInput: async(targetPackageId) =>
         targetPackageId === packageId ? enabledMountInput : null
     })
@@ -402,6 +421,10 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(enableResult?.terminal.runtimePublicationIncluded).toBe(true)
     expect(enableResult?.terminal.liveRegistrySwapped).toBe(true)
     expect(enableResult?.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(enableResult?.terminal.realAppStartupHostCalled).toBe(true)
+    expect(enableResult?.terminal.gameAppCreated).toBe(true)
+    expect(enableResult?.terminal.piniaCreated).toBe(true)
+    expect(enableResult?.terminal.routerMounted).toBe(true)
     expect(management.status.value).toBe('ready')
     expect(management.rows.value).toEqual([{
       packageId,
@@ -483,7 +506,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore: null,
       installedPackageStore: null,
       startupPersistentStateStore: null,
-      mountedAppStartupEvidence: () => true,
+      mountedAppStartupEvidence,
       readElectronInstalledState,
       electronDisableCommand
     })
@@ -527,12 +550,16 @@ describe('useWebInstalledDataPackManagement', () => {
         settingsWritten: true,
         lockfileWritten: true,
         startupStateWritten: true,
-        packageFilesPreserved: true,
-        runtimePublicationExcluded: true,
-        liveRegistrySwapped: true,
-        appStartupHandoffAccepted: true
-      }
-    })
+          packageFilesPreserved: true,
+          runtimePublicationExcluded: true,
+          liveRegistrySwapped: true,
+          appStartupHandoffAccepted: true,
+          realAppStartupHostCalled: true,
+          gameAppCreated: true,
+          piniaCreated: true,
+          routerMounted: true
+        }
+      })
     expect(management.lastResult.value).toBe(result)
     expect(management.rows.value).toEqual([{
       packageId,

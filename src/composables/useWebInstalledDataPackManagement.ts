@@ -65,6 +65,9 @@ import {
   THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
   THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID
 } from '@/domain/mods/thirdPartyDataPackWebStartupPersistentStateSourceHost'
+import type {
+  ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement
+} from '@/domain/mods/thirdPartyDataPackRuntimeCommandState'
 import { utf8ByteLength } from '@/domain/mods/hash'
 
 export interface WebInstalledDataPackManagementRow {
@@ -104,7 +107,8 @@ export interface UseWebInstalledDataPackManagementOptions {
   readonly settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null
   readonly installedPackageStore: WebIndexedDbImportPersistenceStore | null
   readonly startupPersistentStateStore: WebIndexedDbImportPersistenceStore | null
-  readonly mountedAppStartupEvidence?: () => boolean
+  readonly mountedAppStartupEvidence?: () =>
+    ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement | null | undefined
   readonly electronDisableCommand?: (
     envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
   ) => Promise<ThirdPartyDataPackElectronDisableCommandResult>
@@ -458,7 +462,7 @@ export const useWebInstalledDataPackManagement = (
             throw error
           }
         },
-        acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() === true
+        acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() ?? false
       })
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
@@ -614,7 +618,7 @@ export const useWebInstalledDataPackManagement = (
             throw error
           }
         },
-        acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() === true
+        acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() ?? false
       })
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
@@ -784,7 +788,7 @@ export const useWebInstalledDataPackManagement = (
             throw error
           }
         },
-        acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() === true
+        acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() ?? false
       })
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,

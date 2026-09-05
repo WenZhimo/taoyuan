@@ -27,6 +27,11 @@ import type {
   ThirdPartyDataPackRuntimePublicationCommitHostResult,
   ThirdPartyDataPackRuntimePublicationCommitSourceStageSummary
 } from './thirdPartyDataPackRuntimePublicationCommitSource'
+import {
+  normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff,
+  type ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement,
+  type ThirdPartyDataPackRuntimeCommandMountedAppStartupHandoffEvidence
+} from './thirdPartyDataPackRuntimeCommandState'
 
 export const THIRD_PARTY_DATA_PACK_DISABLE_COMMAND_ID = 'disable' as const
 
@@ -64,6 +69,10 @@ export interface ThirdPartyDataPackDisableTransactionTerminal {
   readonly runtimePublicationExcluded: boolean
   readonly liveRegistrySwapped: boolean
   readonly appStartupHandoffAccepted: boolean
+  readonly realAppStartupHostCalled: boolean
+  readonly gameAppCreated: boolean
+  readonly piniaCreated: boolean
+  readonly routerMounted: boolean
   readonly reason: string
 }
 
@@ -74,12 +83,8 @@ export interface ThirdPartyDataPackDisablePersistentWriteResult {
   readonly packageFilesPreserved: boolean
 }
 
-export interface ThirdPartyDataPackDisableAppStartupHandoffEvidence {
-  readonly realAppStartupHostCalled: true
-  readonly gameAppCreated: true
-  readonly piniaCreated: true
-  readonly routerMounted: true
-}
+export type ThirdPartyDataPackDisableAppStartupHandoffEvidence =
+  ThirdPartyDataPackRuntimeCommandMountedAppStartupHandoffEvidence
 
 export interface ThirdPartyDataPackDisableTransactionResult {
   readonly terminal: ThirdPartyDataPackDisableTransactionTerminal
@@ -237,6 +242,10 @@ export const createThirdPartyDataPackDisableTerminal = (options: {
   readonly runtimePublicationExcluded?: boolean
   readonly liveRegistrySwapped?: boolean
   readonly appStartupHandoffAccepted?: boolean
+  readonly realAppStartupHostCalled?: boolean
+  readonly gameAppCreated?: boolean
+  readonly piniaCreated?: boolean
+  readonly routerMounted?: boolean
   readonly reason: string
 }): ThirdPartyDataPackDisableTransactionTerminal => freeze({
   status: options.status,
@@ -257,6 +266,10 @@ export const createThirdPartyDataPackDisableTerminal = (options: {
   runtimePublicationExcluded: options.runtimePublicationExcluded ?? options.status === 'ready',
   liveRegistrySwapped: options.liveRegistrySwapped === true,
   appStartupHandoffAccepted: options.appStartupHandoffAccepted === true,
+  realAppStartupHostCalled: options.realAppStartupHostCalled === true,
+  gameAppCreated: options.gameAppCreated === true,
+  piniaCreated: options.piniaCreated === true,
+  routerMounted: options.routerMounted === true,
   reason: options.reason
 })
 
@@ -306,7 +319,8 @@ export interface ExecuteThirdPartyDataPackDisableTransactionOptions {
   readonly acknowledgeAppStartupHandoff: (
     state: ThirdPartyDataPackDisableState,
     liveRegistrySwap: ThirdPartyDataPackLiveRegistrySwapHostResult
-  ) => boolean | Promise<boolean>
+  ) => ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement
+    | Promise<ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement>
 }
 
 const createRuntimePublicationCommitEnvelope = (
@@ -434,25 +448,27 @@ export const executeThirdPartyDataPackDisableTransaction = async (
     }
   }
 
-  let appStartupHandoffAccepted = false
+  let appStartupHandoff = normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff(undefined)
   try {
-    appStartupHandoffAccepted = await options.acknowledgeAppStartupHandoff(
-      options.state,
-      liveRegistrySwap
+    appStartupHandoff = normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff(
+      await options.acknowledgeAppStartupHandoff(
+        options.state,
+        liveRegistrySwap
+      )
     )
   } catch {
-    appStartupHandoffAccepted = false
+    appStartupHandoff = normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff(undefined)
   }
 
   return {
     terminal: createThirdPartyDataPackDisableTerminal({
       state: options.state,
-      status: appStartupHandoffAccepted ? 'ready' : 'blocked',
+      status: appStartupHandoff.appStartupHandoffAccepted ? 'ready' : 'blocked',
       ...persistentOptions,
       runtimePublicationExcluded: true,
       liveRegistrySwapped: true,
-      appStartupHandoffAccepted,
-      reason: appStartupHandoffAccepted
+      ...appStartupHandoff,
+      reason: appStartupHandoff.appStartupHandoffAccepted
         ? 'disable transaction committed and handed off to the mounted application'
         : 'disable transaction committed but mounted application startup handoff was not accepted'
     }),

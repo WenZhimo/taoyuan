@@ -7,6 +7,25 @@ export type ThirdPartyDataPackRuntimeCommandId =
 export type ThirdPartyDataPackEnabledRuntimeCommandId =
   Extract<ThirdPartyDataPackRuntimeCommandId, 'install' | 'enable'>
 
+export interface ThirdPartyDataPackRuntimeCommandMountedAppStartupHandoffEvidence {
+  readonly realAppStartupHostCalled: true
+  readonly gameAppCreated: true
+  readonly piniaCreated: true
+  readonly routerMounted: true
+}
+
+export type ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement =
+  | boolean
+  | ThirdPartyDataPackRuntimeCommandMountedAppStartupHandoffEvidence
+
+export interface ThirdPartyDataPackRuntimeCommandAppStartupHandoffSummary {
+  readonly appStartupHandoffAccepted: boolean
+  readonly realAppStartupHostCalled: boolean
+  readonly gameAppCreated: boolean
+  readonly piniaCreated: boolean
+  readonly routerMounted: boolean
+}
+
 export const isThirdPartyDataPackRuntimeCommandId = (
   value: unknown
 ): value is ThirdPartyDataPackRuntimeCommandId =>
@@ -63,3 +82,42 @@ export const runtimeCommandTargetMatchesPackageState = (
 export const runtimeCommandSuccessMessageKey = (
   commandId: ThirdPartyDataPackRuntimeCommandId
 ): string => `mods.ui.ipc.result.${commandId}.success`
+
+const readOwnBooleanField = (
+  value: unknown,
+  fieldName: string
+): boolean | undefined => {
+  if (value === null || typeof value !== 'object') return undefined
+  try {
+    const descriptor = Reflect.getOwnPropertyDescriptor(value, fieldName)
+    return descriptor?.enumerable === true && 'value' in descriptor && typeof descriptor.value === 'boolean'
+      ? descriptor.value
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+const hasMountedAppStartupHandoffEvidence = (
+  value: unknown
+): value is ThirdPartyDataPackRuntimeCommandMountedAppStartupHandoffEvidence =>
+  value !== null
+  && typeof value === 'object'
+  && readOwnBooleanField(value, 'gameAppCreated') === true
+  && readOwnBooleanField(value, 'piniaCreated') === true
+  && readOwnBooleanField(value, 'routerMounted') === true
+  && readOwnBooleanField(value, 'realAppStartupHostCalled') === true
+
+export const normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff = (
+  acknowledgement: ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement | undefined
+): ThirdPartyDataPackRuntimeCommandAppStartupHandoffSummary => {
+  const hasEvidence = hasMountedAppStartupHandoffEvidence(acknowledgement)
+  const accepted = acknowledgement === true || hasEvidence
+  return Object.freeze({
+    appStartupHandoffAccepted: accepted,
+    realAppStartupHostCalled: hasEvidence,
+    gameAppCreated: hasEvidence,
+    piniaCreated: hasEvidence,
+    routerMounted: hasEvidence
+  })
+}

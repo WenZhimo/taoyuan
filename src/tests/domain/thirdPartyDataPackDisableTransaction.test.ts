@@ -14,6 +14,12 @@ import committedMetadata from '@/generated/mods/official-precompiled-metadata.js
 
 const packageId = 'disable_transaction_test_pack' as PackageId
 const hash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
+const mountedAppStartupEvidence = () => Object.freeze({
+  realAppStartupHostCalled: true,
+  gameAppCreated: true,
+  piniaCreated: true,
+  routerMounted: true
+})
 
 const createInstalledDraft = (): ThirdPartyDataPackLockfileDraft => {
   const officialSnapshot = createSerializableRegistrySnapshot(buildOfficialRegistrySetFromStaticData())
@@ -76,7 +82,7 @@ describe('third-party data-pack disable transaction', () => {
       startupStateWritten: true,
       packageFilesPreserved: true
     }))
-    const acknowledgeAppStartupHandoff = vi.fn(async() => true)
+    const acknowledgeAppStartupHandoff = vi.fn(async() => mountedAppStartupEvidence())
 
     const result = await executeThirdPartyDataPackDisableTransaction({
       state,
@@ -96,6 +102,10 @@ describe('third-party data-pack disable transaction', () => {
     expect(result.terminal.runtimePublicationExcluded).toBe(true)
     expect(result.terminal.liveRegistrySwapped).toBe(true)
     expect(result.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(result.terminal.realAppStartupHostCalled).toBe(true)
+    expect(result.terminal.gameAppCreated).toBe(true)
+    expect(result.terminal.piniaCreated).toBe(true)
+    expect(result.terminal.routerMounted).toBe(true)
     expect(result.runtimePublicationCommit?.status).toBe('accepted')
     expect(result.liveRegistrySwap?.status).toBe('swapped')
     expect(liveRegistryReference.current).toBe(officialRegistrySet)

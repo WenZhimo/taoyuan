@@ -410,7 +410,7 @@
     settingsLockfileStore: readElectronInstalledState === undefined ? webSettingsLockfileStore : null,
     installedPackageStore: readElectronInstalledState === undefined ? persistenceStore : null,
     startupPersistentStateStore: persistenceStore,
-    mountedAppStartupEvidence: () => readMountedAppStartupHostEvidence() !== undefined,
+    mountedAppStartupEvidence: readMountedAppStartupHostEvidence,
     electronDisableCommand,
     electronUninstallCommand,
     electronEnableCommand,

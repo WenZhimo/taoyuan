@@ -19,6 +19,12 @@ type JsonObject = Record<string, unknown>
 
 const packageId = 'enable_transaction_test_pack' as PackageId
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
+const mountedAppStartupEvidence = () => Object.freeze({
+  realAppStartupHostCalled: true,
+  gameAppCreated: true,
+  piniaCreated: true,
+  routerMounted: true
+})
 
 const createManifest = (): JsonObject => ({
   id: packageId,
@@ -94,7 +100,7 @@ describe('third-party data-pack enable transaction', () => {
       startupStateWritten: true,
       packageFilesPreserved: true
     }))
-    const acknowledgeAppStartupHandoff = vi.fn(async() => true)
+    const acknowledgeAppStartupHandoff = vi.fn(async() => mountedAppStartupEvidence())
 
     const result = await executeThirdPartyDataPackEnableTransaction({
       state,
@@ -116,6 +122,10 @@ describe('third-party data-pack enable transaction', () => {
     expect(result.terminal.runtimePublicationIncluded).toBe(true)
     expect(result.terminal.liveRegistrySwapped).toBe(true)
     expect(result.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(result.terminal.realAppStartupHostCalled).toBe(true)
+    expect(result.terminal.gameAppCreated).toBe(true)
+    expect(result.terminal.piniaCreated).toBe(true)
+    expect(result.terminal.routerMounted).toBe(true)
     expect(result.runtimePublicationCommit?.status).toBe('accepted')
     expect(result.liveRegistrySwap?.status).toBe('swapped')
     expect(liveRegistryReference.current).toBe(enabledMountInput.candidateRegistrySet)

@@ -24,6 +24,10 @@ import type {
   ThirdPartyDataPackRuntimePublicationCommitHostResult,
   ThirdPartyDataPackRuntimePublicationCommitSourceStageSummary
 } from './thirdPartyDataPackRuntimePublicationCommitSource'
+import {
+  normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff,
+  type ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement
+} from './thirdPartyDataPackRuntimeCommandState'
 
 export const THIRD_PARTY_DATA_PACK_ENABLE_COMMAND_ID = 'enable' as const
 
@@ -61,6 +65,10 @@ export interface ThirdPartyDataPackEnableTransactionTerminal {
   readonly runtimePublicationIncluded: boolean
   readonly liveRegistrySwapped: boolean
   readonly appStartupHandoffAccepted: boolean
+  readonly realAppStartupHostCalled: boolean
+  readonly gameAppCreated: boolean
+  readonly piniaCreated: boolean
+  readonly routerMounted: boolean
   readonly reason: string
 }
 
@@ -228,6 +236,10 @@ export const createThirdPartyDataPackEnableTerminal = (options: {
   readonly runtimePublicationIncluded?: boolean
   readonly liveRegistrySwapped?: boolean
   readonly appStartupHandoffAccepted?: boolean
+  readonly realAppStartupHostCalled?: boolean
+  readonly gameAppCreated?: boolean
+  readonly piniaCreated?: boolean
+  readonly routerMounted?: boolean
   readonly reason: string
 }): ThirdPartyDataPackEnableTransactionTerminal => freeze({
   status: options.status,
@@ -248,6 +260,10 @@ export const createThirdPartyDataPackEnableTerminal = (options: {
   runtimePublicationIncluded: options.runtimePublicationIncluded ?? options.status === 'ready',
   liveRegistrySwapped: options.liveRegistrySwapped === true,
   appStartupHandoffAccepted: options.appStartupHandoffAccepted === true,
+  realAppStartupHostCalled: options.realAppStartupHostCalled === true,
+  gameAppCreated: options.gameAppCreated === true,
+  piniaCreated: options.piniaCreated === true,
+  routerMounted: options.routerMounted === true,
   reason: options.reason
 })
 
@@ -297,7 +313,8 @@ export interface ExecuteThirdPartyDataPackEnableTransactionOptions {
   readonly acknowledgeAppStartupHandoff: (
     state: ThirdPartyDataPackEnableState,
     liveRegistrySwap: ThirdPartyDataPackLiveRegistrySwapHostResult
-  ) => boolean | Promise<boolean>
+  ) => ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement
+    | Promise<ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement>
 }
 
 const createRuntimePublicationCommitEnvelope = (
@@ -425,25 +442,27 @@ export const executeThirdPartyDataPackEnableTransaction = async (
     }
   }
 
-  let appStartupHandoffAccepted = false
+  let appStartupHandoff = normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff(undefined)
   try {
-    appStartupHandoffAccepted = await options.acknowledgeAppStartupHandoff(
-      options.state,
-      liveRegistrySwap
+    appStartupHandoff = normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff(
+      await options.acknowledgeAppStartupHandoff(
+        options.state,
+        liveRegistrySwap
+      )
     )
   } catch {
-    appStartupHandoffAccepted = false
+    appStartupHandoff = normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff(undefined)
   }
 
   return {
     terminal: createThirdPartyDataPackEnableTerminal({
       state: options.state,
-      status: appStartupHandoffAccepted ? 'ready' : 'blocked',
+      status: appStartupHandoff.appStartupHandoffAccepted ? 'ready' : 'blocked',
       ...persistentOptions,
       runtimePublicationIncluded: true,
       liveRegistrySwapped: true,
-      appStartupHandoffAccepted,
-      reason: appStartupHandoffAccepted
+      ...appStartupHandoff,
+      reason: appStartupHandoff.appStartupHandoffAccepted
         ? 'enable transaction committed and handed off to the mounted application'
         : 'enable transaction committed but mounted application startup handoff was not accepted'
     }),
