@@ -1535,7 +1535,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     schemaVersion: 1,
     status,
     reason: ready
-      ? 'visible MainMenu panel uninstalled the disabled package and preserved official-only runtime'
+      ? 'visible MainMenu panel uninstalled the installed package and preserved official-only runtime'
       : execution.blockedReason
         ?? terminal?.reason
         ?? 'visible uninstall panel did not reach a ready uninstall transaction terminal',

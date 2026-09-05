@@ -1453,21 +1453,30 @@ const writeElectronUninstalledState = async envelope => {
     ? parseJsonObjectOrNull(settingsPrevious.contents)
     : null
   const currentDataPacks = currentSettings?.thirdPartyDataPacks
+  const currentStateMatchesPreviousDraft = currentDataPacks !== null
+    && typeof currentDataPacks === 'object'
+    && currentDataPacks.targetPackageId === envelope.targetPackageId
+    && currentDataPacks.candidateHash === previousDraft.candidateIdentity.candidateHash
+    && currentDataPacks.lockfileHash === previousDraft.lockfileHash
+  const currentPackageIsDisabled = currentStateMatchesPreviousDraft
+    && currentDataPacks.commandId === 'disable'
+    && previousDraft.selectedPackageIds.length === 0
+    && previousDraft.loadOrder.length === 0
+    && stringListsMatch(currentDataPacks.selectedPackageIds, [])
+    && stringListsMatch(currentDataPacks.blockedPackageIds, [envelope.targetPackageId])
+    && stringListsMatch(currentDataPacks.loadOrder, [])
+  const currentPackageIsEnabled = currentStateMatchesPreviousDraft
+    && (currentDataPacks.commandId === 'install' || currentDataPacks.commandId === 'enable')
+    && stringListsMatch(previousDraft.selectedPackageIds, [envelope.targetPackageId])
+    && stringListsMatch(previousDraft.loadOrder, [envelope.targetPackageId])
+    && stringListsMatch(currentDataPacks.selectedPackageIds, [envelope.targetPackageId])
+    && stringListsMatch(currentDataPacks.blockedPackageIds, [])
+    && stringListsMatch(currentDataPacks.loadOrder, [envelope.targetPackageId])
   if (
     targetPackage === undefined
-    || previousDraft.selectedPackageIds.length !== 0
-    || previousDraft.loadOrder.length !== 0
-    || currentDataPacks === null
-    || typeof currentDataPacks !== 'object'
-    || currentDataPacks.commandId !== 'disable'
-    || currentDataPacks.targetPackageId !== envelope.targetPackageId
-    || currentDataPacks.candidateHash !== previousDraft.candidateIdentity.candidateHash
-    || currentDataPacks.lockfileHash !== previousDraft.lockfileHash
-    || !stringListsMatch(currentDataPacks.selectedPackageIds, [])
-    || !stringListsMatch(currentDataPacks.blockedPackageIds, [envelope.targetPackageId])
-    || !stringListsMatch(currentDataPacks.loadOrder, [])
+    || (!currentPackageIsDisabled && !currentPackageIsEnabled)
   ) {
-    throw new Error('Electron uninstall requires the current package to be disabled')
+    throw new Error('Electron uninstall requires the current package to be installed')
   }
 
   const modsPath = getExecutableModsPath()

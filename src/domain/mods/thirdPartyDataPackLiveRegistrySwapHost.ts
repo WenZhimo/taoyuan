@@ -273,6 +273,20 @@ const installPreviousRegistryMatchesEnvelope = (
   return currentRegistryMatchesOfficialEnvelope(baselineWithoutSelectedPackages, envelope)
 }
 
+const uninstallPreviousRegistryMatchesEnvelope = (
+  previousRegistrySet: RegistrySet,
+  previousSummary: RegistrySetSummary,
+  envelope: ThirdPartyDataPackLiveRegistrySwapExecutionHostEnvelope
+): boolean => {
+  if (currentRegistryMatchesOfficialEnvelope(previousSummary, envelope)) return true
+  if (envelope.requestedCommandId !== 'uninstall') return false
+
+  const baselineWithoutTargetPackage = summarizeRegistrySet(
+    cloneRegistrySetExcludingOwners(previousRegistrySet, new Set<PackageId>([envelope.targetPackageId]))
+  )
+  return currentRegistryMatchesOfficialEnvelope(baselineWithoutTargetPackage, envelope)
+}
+
 const candidateRegistryMatchesEnvelope = (
   candidate: RegistrySetSummary,
   envelope: ThirdPartyDataPackLiveRegistrySwapExecutionHostEnvelope
@@ -311,6 +325,7 @@ export const createThirdPartyDataPackLiveRegistrySwapHost = (
       && hasAllRequiredProtectionIds(envelope.requiredProtectionIds)
     const previousRegistryMatchesCommand = envelope.requestedCommandId === 'disable'
       || installPreviousRegistryMatchesEnvelope(previousRegistrySet, previousSummary, envelope)
+      || uninstallPreviousRegistryMatchesEnvelope(previousRegistrySet, previousSummary, envelope)
 
     if (
       !validEnvelope

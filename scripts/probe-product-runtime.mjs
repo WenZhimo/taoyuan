@@ -127,6 +127,16 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-uninstall-then-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledUninstallSequence: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
+  {
     name: 'visible-import-web-disable-enable-restart',
     fault: null,
     source: 'precompiled',
@@ -533,6 +543,53 @@ const electronScenarios = [
     cacheStatus: 'disk-cache-fast-hit',
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-disable-uninstall',
+    cacheSeed: 'valid',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupGateUninstalled: true
+  },
+  {
+    name: 'visible-import-uninstall-enabled-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-direct-uninstall',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true
+  },
+  {
+    name: 'visible-import-uninstall-enabled-package',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-direct-uninstall',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleUninstall: true,
+    visibleUninstallStartedEnabled: true
+  },
+  {
+    name: 'visible-import-uninstalled-enabled-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-direct-uninstall',
     cacheSeed: 'valid',
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
@@ -1856,16 +1913,17 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
     assert(visibleImport[fieldName] === true,
       `${scenario.name}: visible uninstall probe field ${fieldName} was not true`)
   }
-  assert(visibleImport.contentAccessItemVisibleBefore === false,
-    `${scenario.name}: uninstalled package item was visible before uninstall`)
+  const expectedContentVisibleBeforeUninstall = scenario.visibleUninstallStartedEnabled === true
+  assert(visibleImport.contentAccessItemVisibleBefore === expectedContentVisibleBeforeUninstall,
+    `${scenario.name}: uninstalled package item visibility before uninstall did not match the starting state`)
   assert(visibleImport.contentAccessItemVisibleAfter === false,
     `${scenario.name}: uninstalled package item became visible after uninstall`)
-  assert(visibleImport.contentAccessRecipeVisibleBefore === false,
-    `${scenario.name}: uninstalled package recipe was visible before uninstall`)
+  assert(visibleImport.contentAccessRecipeVisibleBefore === expectedContentVisibleBeforeUninstall,
+    `${scenario.name}: uninstalled package recipe visibility before uninstall did not match the starting state`)
   assert(visibleImport.contentAccessRecipeVisibleAfter === false,
     `${scenario.name}: uninstalled package recipe became visible after uninstall`)
-  assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
-    `${scenario.name}: uninstalled package shop offer was visible before uninstall`)
+  assert(visibleImport.contentAccessShopOfferVisibleBefore === expectedContentVisibleBeforeUninstall,
+    `${scenario.name}: uninstalled package shop offer visibility before uninstall did not match the starting state`)
   assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
     `${scenario.name}: uninstalled package shop offer became visible after uninstall`)
   assert(visibleImport.panelStatusLabels?.installedManagementStatus === '已就绪',
@@ -3906,6 +3964,7 @@ const runWebProbe = async () => {
         scenario.visibleImportInstalledDisableSequence
         || scenario.visibleImportInstalledDisableEnableSequence
         || scenario.visibleImportInstalledDisableUninstallSequence
+        || scenario.visibleImportInstalledUninstallSequence
       ) {
         const installScenario = {
           ...scenario,
@@ -3915,7 +3974,8 @@ const runWebProbe = async () => {
           startupGateDisabled: false,
           visibleImportWebOrdinary: true,
           visibleEnable: false,
-          visibleDisable: false
+          visibleDisable: false,
+          visibleUninstall: false
         }
         const installOutputPath = path.join(scenarioRoot, 'install-report.json')
         await runProcess(electronPath, [hostPath], {
@@ -3926,6 +3986,60 @@ const runWebProbe = async () => {
         const installEnvelope = readJson(installOutputPath)
         assertRuntimeEnvelope(installEnvelope, installScenario, 'http:')
         assertWebProductSurface(installEnvelope, installScenario)
+
+        if (scenario.visibleImportInstalledUninstallSequence) {
+          const uninstallScenario = {
+            ...scenario,
+            name: `${scenario.name}:uninstall`,
+            startupGateReady: true,
+            startupPersistentStateReady: true,
+            startupPersistentStateUseInstalledState: true,
+            startupGateRealRuntimePublicationCommit: true,
+            startupGateRegistryCount: 54,
+            startupGateEntryCount: 4245,
+            startupPersistentStateExpectsResponseDeliveryHandoff: false,
+            visibleImportWebOrdinary: false,
+            visibleEnable: false,
+            visibleDisable: false,
+            visibleUninstall: true,
+            visibleUninstallStartedEnabled: true
+          }
+          const uninstallOutputPath = path.join(scenarioRoot, 'uninstall-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: uninstallOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(uninstallScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const uninstallEnvelope = readJson(uninstallOutputPath)
+          assertRuntimeEnvelope(uninstallEnvelope, uninstallScenario, 'http:')
+          assertWebProductSurface(uninstallEnvelope, uninstallScenario)
+
+          const restartScenario = {
+            ...uninstallScenario,
+            name: `${scenario.name}:restart`,
+            startupGateReady: false,
+            startupPersistentStateReady: false,
+            startupPersistentStateUseInstalledState: false,
+            visibleUninstall: false,
+            startupGateUninstalled: true
+          }
+          const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const restartEnvelope = readJson(restartOutputPath)
+          assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+          assertWebProductSurface(restartEnvelope, restartScenario)
+          reports.push({
+            scenario: scenario.name,
+            installRuntime: installEnvelope.runtime,
+            uninstallRuntime: uninstallEnvelope.runtime,
+            restartRuntime: restartEnvelope.runtime
+          })
+          continue
+        }
 
         const disableScenario = {
           ...scenario,

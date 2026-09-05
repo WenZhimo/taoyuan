@@ -34,18 +34,19 @@
               <p class="text-text break-all">{{ row.packageId }}</p>
               <p class="text-muted">v{{ row.version }} · {{ row.status === 'enabled' ? '已启用' : '已禁用' }}</p>
             </div>
-            <Button
-              v-if="row.status === 'enabled'"
-              class="shrink-0 justify-center"
-              :icon="PowerOff"
-              :disabled="isPreparing || installedManagementStatus === 'loading'"
-              :data-testid="`web-mod-disable-${row.packageId}`"
-              @click="disableInstalledPackage(row.packageId)"
-            >
-              禁用
-            </Button>
-            <div v-else class="flex shrink-0 gap-2">
+            <div class="flex shrink-0 gap-2">
               <Button
+                v-if="row.status === 'enabled'"
+                class="justify-center"
+                :icon="PowerOff"
+                :disabled="isPreparing || installedManagementStatus === 'loading'"
+                :data-testid="`web-mod-disable-${row.packageId}`"
+                @click="disableInstalledPackage(row.packageId)"
+              >
+                禁用
+              </Button>
+              <Button
+                v-else
                 class="justify-center"
                 :icon="Power"
                 :disabled="isPreparing || installedManagementStatus === 'loading'"

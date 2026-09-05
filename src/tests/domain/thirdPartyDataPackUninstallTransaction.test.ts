@@ -62,6 +62,19 @@ const createDisabledDraft = (): ThirdPartyDataPackLockfileDraft => {
   }
 }
 
+const createEnabledDraft = (): ThirdPartyDataPackLockfileDraft => {
+  const disabledDraft = createDisabledDraft()
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    ...disabledDraft,
+    selectedPackageIds: [packageId],
+    loadOrder: [packageId]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
 describe('third-party data-pack uninstall transaction', () => {
   it('removes a disabled package before publishing official-only runtime', async() => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
@@ -151,18 +164,55 @@ describe('third-party data-pack uninstall transaction', () => {
     expect(acknowledgeAppStartupHandoff).not.toHaveBeenCalled()
   })
 
-  it('rejects uninstalling an enabled package in this disabled-only transaction', () => {
+  it('removes an enabled package directly before publishing official-only runtime', async() => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
-    const enabledDraft = {
+    officialRegistrySet.freezeEntries()
+    const state = buildThirdPartyDataPackUninstallState({
+      officialRegistrySet,
+      installedDraft: createEnabledDraft(),
+      targetPackageId: packageId
+    })
+    const liveRegistryReference = createThirdPartyDataPackInMemoryLiveRegistryReference(
+      officialRegistrySet
+    )
+
+    const result = await executeThirdPartyDataPackUninstallTransaction({
+      state,
+      candidateRegistrySet: officialRegistrySet,
+      liveRegistryReference,
+      writePersistentState: async() => ({
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        packageFilesRemoved: true
+      }),
+      acknowledgeAppStartupHandoff: async() => true
+    })
+
+    expect(result.terminal.status, JSON.stringify(result)).toBe('ready')
+    expect(result.terminal.selectedPackageIds).toEqual([])
+    expect(result.terminal.blockedPackageIds).toEqual([])
+    expect(result.terminal.loadOrder).toEqual([])
+    expect(result.terminal.packageCount).toBe(0)
+    expect(result.terminal.runtimePublicationExcluded).toBe(true)
+    expect(result.terminal.liveRegistrySwapped).toBe(true)
+    expect(result.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(liveRegistryReference.current).toBe(officialRegistrySet)
+  })
+
+  it('rejects uninstalling while another package is still active', () => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const otherPackageId = 'other_active_package' as PackageId
+    const activeOtherDraft = {
       ...createDisabledDraft(),
-      selectedPackageIds: [packageId],
-      loadOrder: [packageId]
+      selectedPackageIds: [otherPackageId],
+      loadOrder: [otherPackageId]
     }
 
     expect(() => buildThirdPartyDataPackUninstallState({
       officialRegistrySet,
-      installedDraft: enabledDraft,
+      installedDraft: activeOtherDraft,
       targetPackageId: packageId
-    })).toThrow('Only a disabled installed package can be uninstalled')
+    })).toThrow('Only the target installed package can be active when uninstalling')
   })
 })

@@ -102,24 +102,52 @@ const createOfficialIdentity = (
 
 const createCandidateIdentity = (
   registrySet: RegistrySet,
-  officialIdentity: ThirdPartyCandidateOfficialIdentitySummary
+  officialIdentity: ThirdPartyCandidateOfficialIdentitySummary,
+  options: {
+    readonly commandId?: 'install' | 'uninstall'
+    readonly targetPackageId?: PackageId
+    readonly selectedPackages?: readonly {
+      readonly packageId: PackageId
+      readonly version: string
+    }[]
+    readonly selectedPackageIds?: readonly PackageId[]
+    readonly blockedPackageIds?: readonly PackageId[]
+    readonly loadOrder?: readonly PackageId[]
+    readonly remainingPackageIds?: readonly PackageId[]
+  } = {}
 ): ThirdPartyCandidateIdentitySummary => {
   const summary = summarizeRegistrySet(registrySet)
+  const selectedPackages = options.selectedPackages ?? [{
+    packageId,
+    version: '1.0.0'
+  }]
+  const loadOrder = options.loadOrder ?? selectedPackages.map(selectedPackage => selectedPackage.packageId)
+  const identityBody = options.commandId === 'uninstall'
+    ? {
+      formatVersion: 1,
+      commandId: 'uninstall',
+      targetPackageId: options.targetPackageId ?? packageId,
+      officialIdentity,
+      selectedPackageIds: options.selectedPackageIds ?? [],
+      blockedPackageIds: options.blockedPackageIds ?? [],
+      loadOrder,
+      remainingPackageIds: options.remainingPackageIds ?? [],
+      contentHash: summary.contentHash,
+      snapshotHash: summary.snapshotHash
+    }
+    : {
+      formatVersion: 1,
+      officialIdentity,
+      selectedPackages,
+      loadOrder,
+      contentHash: summary.contentHash,
+      snapshotHash: summary.snapshotHash
+    }
   return {
     formatVersion: 1,
     contentHash: summary.contentHash,
     snapshotHash: summary.snapshotHash,
-    candidateHash: hashCanonicalJson({
-      formatVersion: 1,
-      officialIdentity,
-      selectedPackages: [{
-        packageId,
-        version: '1.0.0'
-      }],
-      loadOrder: [packageId],
-      contentHash: summary.contentHash,
-      snapshotHash: summary.snapshotHash
-    })
+    candidateHash: hashCanonicalJson(identityBody)
   }
 }
 
@@ -446,6 +474,165 @@ describe('third-party live registry swap host', () => {
       registryCount: candidateSummary.registryCount,
       entryCount: candidateSummary.entryCount,
       packageCount: 1,
+      officialIdentity,
+      candidateIdentity,
+      lockfileHash,
+      liveRegistrySwap: 'deferred',
+      requiredProtectionIds
+    })
+
+    expect(result.status).toBe('blocked')
+    expect(reference.current).toBe(previousRegistrySet)
+    expect(host.getRetainedPreviousRegistrySet()).toBeUndefined()
+    expect(host.getLastSwapRecord()).toBeUndefined()
+    expectPathFree(result)
+  })
+
+  it('allows an uninstall command to remove the enabled target package before publishing official-only runtime', async() => {
+    const officialRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      }
+    ])
+    const previousRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      },
+      {
+        owner: packageId,
+        localId: 'third_party_seed',
+        label: 'Third-party seed'
+      }
+    ])
+    const candidateRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      }
+    ])
+    const officialIdentity = createOfficialIdentity(officialRegistrySet)
+    const candidateIdentity = createCandidateIdentity(candidateRegistrySet, officialIdentity, {
+      commandId: 'uninstall',
+      selectedPackages: [],
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      remainingPackageIds: []
+    })
+    const candidateSummary = summarizeRegistrySet(candidateRegistrySet)
+    const reference = createThirdPartyDataPackInMemoryLiveRegistryReference(previousRegistrySet)
+    const host = createThirdPartyDataPackLiveRegistrySwapHost({
+      liveRegistryReference: reference,
+      candidateRegistrySet,
+      candidateIdentity
+    })
+
+    const result = await host.executeLiveRegistrySwap({
+      requestedCommandId: 'uninstall',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [],
+      registryCount: candidateSummary.registryCount,
+      entryCount: candidateSummary.entryCount,
+      packageCount: 0,
+      officialIdentity,
+      candidateIdentity,
+      lockfileHash,
+      liveRegistrySwap: 'deferred',
+      requiredProtectionIds
+    })
+
+    expect(result.status).toBe('swapped')
+    expect(result.requestedCommandId).toBe('uninstall')
+    expect(result.effects.liveRegistrySwapHostAccepted).toBe(true)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(false)
+    expect(result.effects.liveRegistrySwapped).toBe(true)
+    expect(result.effects.runtimeEnablementAllowed).toBe(true)
+    expect(reference.current).toBe(candidateRegistrySet)
+    expect(host.getRetainedPreviousRegistrySet()).toBe(previousRegistrySet)
+    expect(host.getLastSwapRecord()).toMatchObject({
+      requestedCommandId: 'uninstall',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      previousEntryCount: 2,
+      candidateEntryCount: 1,
+      candidateHash: candidateIdentity.candidateHash,
+      lockfileHash,
+      sequenceNumber: 1
+    })
+    expectPathFree(result)
+    expectPathFree(host.getLastSwapRecord())
+  })
+
+  it('blocks uninstall when the current registry would still contain another third-party package', async() => {
+    const otherPackageId = requirePackageId('other_pack')
+    const officialRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      }
+    ])
+    const previousRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      },
+      {
+        owner: packageId,
+        localId: 'third_party_seed',
+        label: 'Third-party seed'
+      },
+      {
+        owner: otherPackageId,
+        localId: 'other_third_party_seed',
+        label: 'Other third-party seed'
+      }
+    ])
+    const candidateRegistrySet = buildRegistrySet([
+      {
+        owner: officialPackageId,
+        localId: 'official_seed',
+        label: 'Official seed'
+      }
+    ])
+    const officialIdentity = createOfficialIdentity(officialRegistrySet)
+    const candidateIdentity = createCandidateIdentity(candidateRegistrySet, officialIdentity, {
+      commandId: 'uninstall',
+      selectedPackages: [],
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      remainingPackageIds: []
+    })
+    const candidateSummary = summarizeRegistrySet(candidateRegistrySet)
+    const reference = createThirdPartyDataPackInMemoryLiveRegistryReference(previousRegistrySet)
+    const host = createThirdPartyDataPackLiveRegistrySwapHost({
+      liveRegistryReference: reference,
+      candidateRegistrySet,
+      candidateIdentity
+    })
+
+    const result = await host.executeLiveRegistrySwap({
+      requestedCommandId: 'uninstall',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      blockedCandidatePaths: [],
+      loadOrder: [],
+      registryCount: candidateSummary.registryCount,
+      entryCount: candidateSummary.entryCount,
+      packageCount: 0,
       officialIdentity,
       candidateIdentity,
       lockfileHash,

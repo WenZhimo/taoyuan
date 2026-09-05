@@ -132,11 +132,14 @@ export const buildThirdPartyDataPackUninstallState = (
   if (targetPackage === undefined) {
     throw new Error('Cannot uninstall a package that is not present in the installed lockfile')
   }
-  if (
-    options.installedDraft.selectedPackageIds.length !== 0
-    || options.installedDraft.loadOrder.length !== 0
-  ) {
-    throw new Error('Only a disabled installed package can be uninstalled by this transaction')
+  const targetIsTheOnlyActivePackage = options.installedDraft.selectedPackageIds.length === 1
+    && options.installedDraft.selectedPackageIds[0] === options.targetPackageId
+    && options.installedDraft.loadOrder.length === 1
+    && options.installedDraft.loadOrder[0] === options.targetPackageId
+  const targetIsAlreadyDisabled = options.installedDraft.selectedPackageIds.length === 0
+    && options.installedDraft.loadOrder.length === 0
+  if (!targetIsTheOnlyActivePackage && !targetIsAlreadyDisabled) {
+    throw new Error('Only the target installed package can be active when uninstalling')
   }
 
   const officialSnapshot = createSerializableRegistrySnapshot(options.officialRegistrySet)

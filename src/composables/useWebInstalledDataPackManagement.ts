@@ -248,6 +248,12 @@ const isCurrentDisabledRecord = (
   && record.blockedPackageIds[0] === packageId
   && record.lockfileDraft.packages.some(currentPackage => currentPackage.packageId === packageId)
 
+const isCurrentUninstallableRecord = (
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null,
+  packageId: PackageId
+): boolean => isCurrentEnabledRecord(record, packageId)
+  || isCurrentDisabledRecord(record, packageId)
+
 const matchesRecord = (
   left: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null,
   right: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null
@@ -472,8 +478,8 @@ export const useWebInstalledDataPackManagement = (
         packageFilesPreserved = previousInstalledPackageRecord !== null
           && previousInstalledPackageRecord.files.length > 0
       }
-      if (installedRecord === null || !isCurrentDisabledRecord(installedRecord, packageId)) {
-        throw new Error('Only a disabled installed package can be uninstalled')
+      if (installedRecord === null || !isCurrentUninstallableRecord(installedRecord, packageId)) {
+        throw new Error('Only an installed package can be uninstalled')
       }
       const verifiedInstalledRecord = installedRecord
 

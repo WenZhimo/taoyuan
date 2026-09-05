@@ -254,7 +254,7 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(startupSnapshot.saveCache?.isolated).toBe(true)
   })
 
-  it('does not uninstall an enabled package before the disabled state is persisted', async() => {
+  it('uninstalls an enabled package directly with official-only persisted state', async() => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     officialRegistrySet.freezeEntries()
     publishOfficialContentRegistrySet(officialRegistrySet)
@@ -294,17 +294,43 @@ describe('useWebInstalledDataPackManagement', () => {
     const uninstallResult = await management.uninstall(packageId)
     await nextTick()
 
-    expect(uninstallResult).toBeNull()
-    expect(management.status.value).toBe('failed')
-    expect(management.reason.value).toBe('Only a disabled installed package can be uninstalled')
-    expect(management.rows.value).toEqual([{
-      packageId,
-      version: '1.0.0',
-      status: 'enabled'
-    }])
-    expect((await settingsLockfileStore.read()).record?.requestedCommandId).toBe('install')
-    expect((await installedPackageStore.get(THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))?.files)
-      .toHaveLength(1)
+    expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.terminal.settingsWritten).toBe(true)
+    expect(uninstallResult?.terminal.lockfileWritten).toBe(true)
+    expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
+    expect(uninstallResult?.terminal.packageFilesRemoved).toBe(true)
+    expect(uninstallResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(uninstallResult?.terminal.liveRegistrySwapped).toBe(true)
+    expect(uninstallResult?.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(management.status.value).toBe('ready')
+    expect(management.rows.value).toEqual([])
+    const uninstalledRecord = (await settingsLockfileStore.read()).record
+    expect(uninstalledRecord).toMatchObject({
+      requestedCommandId: 'uninstall',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: []
+    })
+    expect(uninstalledRecord?.lockfileDraft.packages).toEqual([])
+    expect(await installedPackageStore.get(THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))
+      .toBeNull()
+    const startupRecord = await startupPersistentStateStore.get(
+      THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID
+    )
+    expect(startupRecord?.files).toHaveLength(1)
+    const startupSnapshot = JSON.parse(startupRecord!.files[0]!.text) as {
+      packageState?: { matched?: boolean, removed?: boolean }
+      settingsState?: { matched?: boolean }
+      modLockState?: { matched?: boolean }
+      liveRegistry?: { matched?: boolean }
+      saveCache?: { isolated?: boolean }
+    }
+    expect(startupSnapshot.packageState).toEqual({ matched: true, removed: true })
+    expect(startupSnapshot.settingsState?.matched).toBe(true)
+    expect(startupSnapshot.modLockState?.matched).toBe(true)
+    expect(startupSnapshot.liveRegistry?.matched).toBe(true)
+    expect(startupSnapshot.saveCache?.isolated).toBe(true)
   })
 
   it('re-enables a disabled installed package through the enable transaction terminal', async() => {
