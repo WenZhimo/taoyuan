@@ -164,6 +164,22 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-dependency-disable-then-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableSequence: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-disable-uninstall-restart',
     fault: null,
     source: 'precompiled',
@@ -762,6 +778,66 @@ const electronScenarios = [
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
     startupGateTargetPackageId: 'product_probe_pack',
     startupGateEntryCount: 4242
+  },
+  {
+    name: 'visible-import-dependency-disable-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-installed-package',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleDisable: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disabled-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupGateDisabled: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4242,
+    startupGatePackageCount: 2,
+    visibleDependency: true
   },
   {
     name: 'visible-import-disable-write-failure-initial-import',
@@ -5797,6 +5873,13 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(JSON.stringify(directoryFingerprint(preservedPackageRoot))
       === JSON.stringify(preservedPackageBefore),
     `${scenario.name}: disabled package files were not preserved across the startup boundary`)
+    if (scenario.visibleDependency) {
+      assert(preservedDependencyPackageBefore !== null && preservedDependencyPackageBefore.length > 0,
+        `${scenario.name}: disabled dependency package files were not present before restart validation`)
+      assert(JSON.stringify(directoryFingerprint(preservedDependencyPackageRoot))
+        === JSON.stringify(preservedDependencyPackageBefore),
+      `${scenario.name}: disabled dependency package files were not preserved across the startup boundary`)
+    }
     const disabledLockfile = readJson(lockfilePath)
     assert(disabledLockfile.selectedPackageIds?.length === 0,
       `${scenario.name}: disabled package lockfile still selected a package`)

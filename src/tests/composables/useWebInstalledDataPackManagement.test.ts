@@ -750,4 +750,114 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(JSON.stringify(result)).not.toContain('C:/Users')
     expect(JSON.stringify(result)).not.toContain('LENOVO')
   })
+
+  it('routes dependency disable persistence through the Electron renderer command host', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
+    expect(enabledMountInput.status).toBe('ready')
+    expect(enabledMountInput.selectedPackageIds).toEqual([dependencyPackageId, packageId])
+    expect(enabledMountInput.loadOrder).toEqual([dependencyPackageId, packageId])
+    const installedDraft = enabledMountInput.lockfileDraft!
+    const readElectronInstalledState = vi.fn(async(): Promise<ThirdPartyDataPackElectronInstalledStateReadResult> => ({
+      status: 'ready' as const,
+      record: {
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install' as const,
+        targetPackageId: packageId,
+        selectedPackageIds: [dependencyPackageId, packageId],
+        blockedPackageIds: [],
+        loadOrder: [dependencyPackageId, packageId],
+        candidateHash: installedDraft.candidateIdentity.candidateHash,
+        lockfileHash: installedDraft.lockfileHash,
+        lockfileDraft: installedDraft
+      },
+      packageFilesPreserved: true
+    }))
+    const electronDisableCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
+    ) => ({
+      status: 'written' as const,
+      requestedCommandId: 'disable' as const,
+      targetPackageId: envelope.targetPackageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [envelope.targetPackageId],
+      loadOrder: [],
+      packageFilesPreserved: true,
+      settingsWritten: true,
+      lockfileWritten: true,
+      startupStateWritten: true,
+      diagnostics: []
+    }))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore: null,
+      installedPackageStore: null,
+      startupPersistentStateStore: null,
+      mountedAppStartupEvidence,
+      readElectronInstalledState,
+      electronDisableCommand
+    })
+    await management.refresh()
+    expect(management.rows.value).toEqual([
+      { packageId: dependencyPackageId, version: '1.0.0', status: 'enabled' },
+      { packageId, version: '1.0.0', status: 'enabled' }
+    ])
+
+    const result = await management.disable(packageId)
+    await nextTick()
+
+    expect(readElectronInstalledState).toHaveBeenCalledTimes(2)
+    expect(electronDisableCommand).toHaveBeenCalledOnce()
+    expect(electronDisableCommand.mock.calls[0]?.[0]).toMatchObject({
+      requestedCommandId: 'disable',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [packageId],
+      loadOrder: [],
+      packageFilesPreserved: true,
+      record: {
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: [],
+        lockfileDraft: {
+          packages: [
+            { packageId: dependencyPackageId },
+            { packageId }
+          ]
+        }
+      }
+    })
+    expect(result).toMatchObject({
+      managementCommandHostKind: 'electron-renderer',
+      managementCommandDispatched: true,
+      managementUiIpcResponseDelivered: true,
+      terminal: {
+        status: 'ready',
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: [],
+        packageCount: 2,
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        packageFilesPreserved: true,
+        runtimePublicationExcluded: true,
+        liveRegistrySwapped: true,
+        appStartupHandoffAccepted: true
+      }
+    })
+    expect(management.rows.value).toEqual([
+      { packageId: dependencyPackageId, version: '1.0.0', status: 'disabled' },
+      { packageId, version: '1.0.0', status: 'disabled' }
+    ])
+    expect(getOfficialItemDef(`${dependencyPackageId}:library_token`)).toBeUndefined()
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+  })
 })
