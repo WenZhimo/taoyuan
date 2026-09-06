@@ -3,6 +3,9 @@ import type {
   ThirdPartyDataPackEnablePersistentRecord,
   ThirdPartyDataPackEnableStartupPersistentStateSnapshot
 } from './thirdPartyDataPackEnableTransaction'
+import type {
+  ThirdPartyDataPackElectronInstalledStateReadResult
+} from './thirdPartyDataPackElectronInstalledStateBridge'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -52,6 +55,8 @@ export interface ThirdPartyDataPackElectronEnableCommandBridge {
 }
 
 export interface CreateThirdPartyDataPackElectronEnableCommandMainHandlerOptions {
+  readonly readCurrentInstalledState?: () =>
+    Awaitable<ThirdPartyDataPackElectronInstalledStateReadResult>
   readonly writeEnabledState: (
     envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
   ) => Awaitable<{
@@ -202,6 +207,40 @@ const writtenResult = (
   diagnostics: Object.freeze([])
 })
 
+const packageRecordsMatch = (
+  left: ThirdPartyDataPackElectronInstalledStateReadResult['record'],
+  right: ThirdPartyDataPackEnablePersistentRecord
+): boolean =>
+  JSON.stringify(left?.lockfileDraft.officialIdentity) === JSON.stringify(right.lockfileDraft.officialIdentity)
+  && JSON.stringify(left?.lockfileDraft.packages) === JSON.stringify(right.lockfileDraft.packages)
+
+const currentStateMatchesDisabledPackage = (
+  currentState: ThirdPartyDataPackElectronInstalledStateReadResult,
+  envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
+): boolean => {
+  const record = currentState.record
+  if (
+    currentState.status !== 'ready'
+    || currentState.packageFilesPreserved !== true
+    || record === null
+    || record.requestedCommandId !== 'disable'
+    || record.targetPackageId !== envelope.targetPackageId
+    || record.selectedPackageIds.length !== 0
+    || record.blockedPackageIds.length !== 1
+    || record.blockedPackageIds[0] !== envelope.targetPackageId
+    || record.loadOrder.length !== 0
+    || record.lockfileDraft.selectedPackageIds.length !== 0
+    || record.lockfileDraft.loadOrder.length !== 0
+    || record.candidateHash !== record.lockfileDraft.candidateIdentity.candidateHash
+    || record.lockfileHash !== record.lockfileDraft.lockfileHash
+    || !packageRecordsMatch(record, envelope.record)
+  ) {
+    return false
+  }
+
+  return true
+}
+
 export const createThirdPartyDataPackElectronEnableCommandRendererHost = (
   bridge: ThirdPartyDataPackElectronEnableCommandBridge
 ) => Object.freeze({
@@ -225,6 +264,17 @@ export const createThirdPartyDataPackElectronEnableCommandMainHandler = (
   if (!isValidEnvelope(value)) return blockedResult(targetPackageId)
 
   try {
+    if (options.readCurrentInstalledState !== undefined) {
+      let currentState: ThirdPartyDataPackElectronInstalledStateReadResult
+      try {
+        currentState = await options.readCurrentInstalledState()
+      } catch {
+        return blockedResult(value.targetPackageId, 'third-party.electron-enable-command.current-state-read')
+      }
+      if (!currentStateMatchesDisabledPackage(currentState, value)) {
+        return blockedResult(value.targetPackageId, 'third-party.electron-enable-command.current-state-mismatch')
+      }
+    }
     const writeResult = await options.writeEnabledState(value)
     if (
       writeResult.settingsWritten !== true

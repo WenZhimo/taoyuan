@@ -1918,11 +1918,13 @@ const thirdPartyDataPackDisableCommandHandler =
 
 const thirdPartyDataPackEnableCommandHandler =
   createThirdPartyDataPackElectronEnableCommandMainHandler({
+    readCurrentInstalledState: readElectronInstalledState,
     writeEnabledState: writeElectronEnabledState
   })
 
 const thirdPartyDataPackUninstallCommandHandler =
   createThirdPartyDataPackElectronUninstallCommandMainHandler({
+    readCurrentInstalledState: readElectronInstalledState,
     writeUninstalledState: writeElectronUninstalledState
   })
 

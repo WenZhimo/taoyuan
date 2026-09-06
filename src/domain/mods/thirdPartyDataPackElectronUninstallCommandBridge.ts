@@ -3,6 +3,9 @@ import type {
   ThirdPartyDataPackUninstallPersistentRecord,
   ThirdPartyDataPackUninstallStartupPersistentStateSnapshot
 } from './thirdPartyDataPackUninstallTransaction'
+import type {
+  ThirdPartyDataPackElectronInstalledStateReadResult
+} from './thirdPartyDataPackElectronInstalledStateBridge'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -52,6 +55,8 @@ export interface ThirdPartyDataPackElectronUninstallCommandBridge {
 }
 
 export interface CreateThirdPartyDataPackElectronUninstallCommandMainHandlerOptions {
+  readonly readCurrentInstalledState?: () =>
+    Awaitable<ThirdPartyDataPackElectronInstalledStateReadResult>
   readonly writeUninstalledState: (
     envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
   ) => Awaitable<{
@@ -176,6 +181,63 @@ const writtenResult = (
   diagnostics: Object.freeze([])
 })
 
+const packageIdListsMatch = (
+  left: readonly PackageId[],
+  right: readonly PackageId[]
+): boolean =>
+  left.length === right.length
+  && left.every((packageId, index) => packageId === right[index])
+
+const packageRecordsAfterTargetRemovalMatch = (
+  currentState: ThirdPartyDataPackElectronInstalledStateReadResult,
+  envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
+): boolean => {
+  const currentDraft = currentState.record?.lockfileDraft
+  if (currentDraft === undefined) return false
+  const remainingPackages = currentDraft.packages.filter(
+    currentPackage => currentPackage.packageId !== envelope.targetPackageId
+  )
+  return JSON.stringify(currentDraft.officialIdentity) === JSON.stringify(envelope.record.lockfileDraft.officialIdentity)
+    && JSON.stringify(remainingPackages) === JSON.stringify(envelope.record.lockfileDraft.packages)
+}
+
+const currentStateMatchesInstalledPackage = (
+  currentState: ThirdPartyDataPackElectronInstalledStateReadResult,
+  envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
+): boolean => {
+  const record = currentState.record
+  if (
+    currentState.status !== 'ready'
+    || currentState.packageFilesPreserved !== true
+    || record === null
+    || record.targetPackageId !== envelope.targetPackageId
+    || record.candidateHash !== record.lockfileDraft.candidateIdentity.candidateHash
+    || record.lockfileHash !== record.lockfileDraft.lockfileHash
+    || !record.lockfileDraft.packages.some(currentPackage => currentPackage.packageId === envelope.targetPackageId)
+    || !packageRecordsAfterTargetRemovalMatch(currentState, envelope)
+  ) {
+    return false
+  }
+
+  if (record.requestedCommandId === 'disable') {
+    return record.selectedPackageIds.length === 0
+      && record.loadOrder.length === 0
+      && record.lockfileDraft.selectedPackageIds.length === 0
+      && record.lockfileDraft.loadOrder.length === 0
+      && packageIdListsMatch(record.blockedPackageIds, [envelope.targetPackageId])
+  }
+
+  if (record.requestedCommandId === 'install' || record.requestedCommandId === 'enable') {
+    return packageIdListsMatch(record.selectedPackageIds, [envelope.targetPackageId])
+      && packageIdListsMatch(record.loadOrder, [envelope.targetPackageId])
+      && packageIdListsMatch(record.blockedPackageIds, [])
+      && packageIdListsMatch(record.lockfileDraft.selectedPackageIds, [envelope.targetPackageId])
+      && packageIdListsMatch(record.lockfileDraft.loadOrder, [envelope.targetPackageId])
+  }
+
+  return false
+}
+
 export const createThirdPartyDataPackElectronUninstallCommandRendererHost = (
   bridge: ThirdPartyDataPackElectronUninstallCommandBridge
 ) => Object.freeze({
@@ -199,6 +261,17 @@ export const createThirdPartyDataPackElectronUninstallCommandMainHandler = (
   if (!isValidEnvelope(value)) return blockedResult(targetPackageId)
 
   try {
+    if (options.readCurrentInstalledState !== undefined) {
+      let currentState: ThirdPartyDataPackElectronInstalledStateReadResult
+      try {
+        currentState = await options.readCurrentInstalledState()
+      } catch {
+        return blockedResult(value.targetPackageId, 'third-party.electron-uninstall-command.current-state-read')
+      }
+      if (!currentStateMatchesInstalledPackage(currentState, value)) {
+        return blockedResult(value.targetPackageId, 'third-party.electron-uninstall-command.current-state-mismatch')
+      }
+    }
     const writeResult = await options.writeUninstalledState(value)
     if (
       writeResult.settingsWritten !== true

@@ -6,7 +6,10 @@ import {
 import { discoverThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackDiscovery'
 import { buildThirdPartyDataPackMountInput } from '@/domain/mods/thirdPartyDataPackMountInput'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
-import { buildThirdPartyDataPackDisableState } from '@/domain/mods/thirdPartyDataPackDisableTransaction'
+import {
+  buildThirdPartyDataPackDisableState,
+  createThirdPartyDataPackDisablePersistentRecord
+} from '@/domain/mods/thirdPartyDataPackDisableTransaction'
 import {
   buildThirdPartyDataPackEnableState,
   createThirdPartyDataPackEnablePersistentRecord,
@@ -22,6 +25,9 @@ import { createThirdPartyDataPackModLockText } from '@/domain/mods/thirdPartyDat
 import type { PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackMountInputResult } from '@/domain/mods/thirdPartyDataPackMountInput'
 import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
+import type {
+  ThirdPartyDataPackElectronInstalledStateReadResult
+} from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
 
 type JsonObject = Record<string, unknown>
 
@@ -148,6 +154,26 @@ const createEnvelope = async(
   }
 }
 
+const createCurrentDisabledState = (
+  envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
+): ThirdPartyDataPackElectronInstalledStateReadResult => {
+  const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+  officialRegistrySet.freezeEntries()
+  const disabledState = buildThirdPartyDataPackDisableState({
+    officialRegistrySet,
+    installedDraft: envelope.record.lockfileDraft,
+    targetPackageId: packageId
+  })
+  return {
+    status: 'ready',
+    record: {
+      ...createThirdPartyDataPackDisablePersistentRecord('active', disabledState),
+      recordId: 'active' as const
+    },
+    packageFilesPreserved: true
+  }
+}
+
 describe('third-party data-pack Electron enable command bridge', () => {
   it('accepts the ordinary renderer enable envelope at the main handler boundary', async() => {
     const envelope = await createEnvelope()
@@ -173,6 +199,53 @@ describe('third-party data-pack Electron enable command bridge', () => {
     expect(result.packageFilesPreserved).toBe(true)
     expect(writeEnabledState).toHaveBeenCalledOnce()
     expect(writeEnabledState).toHaveBeenCalledWith(envelope)
+  })
+
+  it('accepts enable only after matching the current disabled installed state', async() => {
+    const envelope = await createEnvelope(true)
+    const readCurrentInstalledState = vi.fn(async() =>
+      createCurrentDisabledState(envelope))
+    const writeEnabledState = vi.fn(async() => ({
+      settingsWritten: true as const,
+      lockfileWritten: true as const,
+      startupStateWritten: true as const
+    }))
+    const mainHandler = createThirdPartyDataPackElectronEnableCommandMainHandler({
+      readCurrentInstalledState,
+      writeEnabledState
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status, JSON.stringify(result)).toBe('written')
+    expect(readCurrentInstalledState).toHaveBeenCalledOnce()
+    expect(writeEnabledState).toHaveBeenCalledOnce()
+    expect(writeEnabledState).toHaveBeenCalledWith(envelope)
+  })
+
+  it('blocks stale renderer enable envelopes before writing enabled state', async() => {
+    const envelope = await createEnvelope()
+    const writeEnabledState = vi.fn()
+    const alreadyEnabledState: ThirdPartyDataPackElectronInstalledStateReadResult = {
+      status: 'ready',
+      record: {
+        ...envelope.record,
+        recordId: 'active'
+      },
+      packageFilesPreserved: true
+    }
+    const mainHandler = createThirdPartyDataPackElectronEnableCommandMainHandler({
+      readCurrentInstalledState: vi.fn(async() => alreadyEnabledState),
+      writeEnabledState
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-enable-command.current-state-mismatch'
+    )
+    expect(writeEnabledState).not.toHaveBeenCalled()
   })
 
   it('preserves dependency-first enable envelopes at the main handler boundary', async() => {
