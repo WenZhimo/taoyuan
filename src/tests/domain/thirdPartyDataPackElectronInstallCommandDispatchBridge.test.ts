@@ -227,6 +227,15 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitHost')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline')
+    const runtimeContinuationSource = mainSource.slice(
+      mainSource.indexOf('const createRuntimePublicationContinuationContext'),
+      mainSource.indexOf('const createRealRecoveryLogReplayRestoreSourceResult')
+    )
+    const liveRegistryProtectionSource = runtimeContinuationSource.slice(
+      runtimeContinuationSource.indexOf('const liveRegistrySwapProtection'),
+      runtimeContinuationSource.indexOf('const publicationRollbackRecovery')
+    )
+    expect(liveRegistryProtectionSource).toContain('targetPackageId')
     const failureContinuationSource = mainSource.slice(
       mainSource.indexOf('const createOrdinaryInstallTerminalFailureUiIpcContinuationResult'),
       mainSource.indexOf('const electronVisibleImportContinuationRootPath')

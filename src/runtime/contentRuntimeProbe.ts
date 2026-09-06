@@ -13,6 +13,8 @@ const productProbePackageId = 'product_probe_pack'
 const productProbeItemId = `${productProbePackageId}:linen_ribbon`
 const productProbeRecipeId = `${productProbePackageId}:linen_ribbon_snack`
 const productProbeShopOfferId = `${productProbePackageId}:shop/wanwupu/linen_ribbon/0`
+const productProbeDependencyPackageId = 'a_product_probe_library'
+const productProbeDependencyItemId = `${productProbeDependencyPackageId}:library_token`
 
 export interface ThirdPartyStartupGateRuntimeProbeSummary {
   schemaVersion: 1
@@ -35,8 +37,10 @@ export interface ThirdPartyStartupGateRuntimeProbeSummary {
   responseDeliveryStartupGateHandoffPrepared: boolean
   webResponseDeliveryAcknowledgementConsumed: boolean
   targetPackageId?: string
+  selectedPackageIds: readonly string[]
   selectedPackageCount: number
   blockedPackageCount: number
+  loadOrder: readonly string[]
   loadOrderCount: number
   registryCount?: number
   entryCount?: number
@@ -44,6 +48,7 @@ export interface ThirdPartyStartupGateRuntimeProbeSummary {
   productProbeItemNameFallback?: string
   productProbeRecipeNameFallback?: string
   productProbeShopOfferNameFallback?: string
+  productProbeDependencyItemNameFallback?: string
   lockfileHashPresent: boolean
   effects: {
     appStartupHostConnectionSourceCalled: boolean
@@ -229,6 +234,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   managementCommandDispatched?: boolean
   managementUiIpcResponseDelivered?: boolean
   targetPackageId?: string
+  selectedPackageIds: readonly string[]
   itemId?: string
   itemNameFallback?: string
   recipeId?: string
@@ -259,6 +265,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   electronStartupPersistentStateWriteStatus?: string
   selectedPackageCount: number
   blockedPackageCount: number
+  loadOrder: readonly string[]
   loadOrderCount: number
   registryCount?: number
   entryCount?: number
@@ -270,6 +277,11 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   contentAccessRecipeVisibleAfter: boolean
   contentAccessShopOfferVisibleBefore: boolean
   contentAccessShopOfferVisibleAfter: boolean
+  dependencyPackageId?: string
+  dependencyItemId?: string
+  dependencyItemNameFallback?: string
+  contentAccessDependencyItemVisibleBefore?: boolean
+  contentAccessDependencyItemVisibleAfter?: boolean
   effects: {
     commandDispatched: boolean
     packageFilesWritten: boolean
@@ -429,6 +441,33 @@ const readOwnStringField = (
 ): string | undefined => {
   const field = readOwnDataField(value, fieldName)
   return typeof field === 'string' ? field : undefined
+}
+
+const readOwnStringArray = (
+  value: unknown,
+  fieldName: string
+): readonly string[] => {
+  const field = readOwnDataField(value, fieldName)
+  if (!Array.isArray(field)) return Object.freeze([])
+  const length = readOwnArrayLength(field)
+  const result: string[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(field, index)
+    } catch {
+      return Object.freeze([])
+    }
+    if (
+      descriptor === undefined
+      || !('value' in descriptor)
+      || typeof descriptor.value !== 'string'
+    ) {
+      return Object.freeze([])
+    }
+    result.push(descriptor.value)
+  }
+  return Object.freeze(result)
 }
 
 const readStartupPersistentStateSourceHostMode = (
@@ -647,14 +686,28 @@ const defaultAppStartupHostEffects =
 
 const createProductProbeContentFallbackSummary = (
   result: unknown,
-  targetPackageId: string | undefined
+  targetPackageId: string | undefined,
+  selectedPackageIds: readonly string[]
 ): Partial<Pick<
   ThirdPartyStartupGateRuntimeProbeSummary,
   'productProbeItemNameFallback'
   | 'productProbeRecipeNameFallback'
   | 'productProbeShopOfferNameFallback'
+  | 'productProbeDependencyItemNameFallback'
 >> => {
-  if (targetPackageId !== productProbePackageId) return {}
+  const resultDependencyItemNameFallback =
+    readOwnStringField(result, 'productProbeDependencyItemNameFallback')
+  const dependencyItemNameFallback = resultDependencyItemNameFallback
+    ?? (selectedPackageIds.includes(productProbeDependencyPackageId)
+      ? getOfficialItemDef(productProbeDependencyItemId)?.name.fallback
+      : undefined)
+  if (targetPackageId !== productProbePackageId) {
+    return {
+      ...(dependencyItemNameFallback === undefined
+        ? {}
+        : { productProbeDependencyItemNameFallback: dependencyItemNameFallback })
+    }
+  }
   const resultItemNameFallback = readOwnStringField(result, 'productProbeItemNameFallback')
   const resultRecipeNameFallback = readOwnStringField(result, 'productProbeRecipeNameFallback')
   const resultShopOfferNameFallback = readOwnStringField(result, 'productProbeShopOfferNameFallback')
@@ -670,7 +723,10 @@ const createProductProbeContentFallbackSummary = (
   return {
     ...(itemNameFallback === undefined ? {} : { productProbeItemNameFallback: itemNameFallback }),
     ...(recipeNameFallback === undefined ? {} : { productProbeRecipeNameFallback: recipeNameFallback }),
-    ...(shopOfferNameFallback === undefined ? {} : { productProbeShopOfferNameFallback: shopOfferNameFallback })
+    ...(shopOfferNameFallback === undefined ? {} : { productProbeShopOfferNameFallback: shopOfferNameFallback }),
+    ...(dependencyItemNameFallback === undefined
+      ? {}
+      : { productProbeDependencyItemNameFallback: dependencyItemNameFallback })
   }
 }
 
@@ -756,8 +812,10 @@ export const createThirdPartyStartupGateRuntimeProbeSummary = (
       persistentStateProofsAccepted: false,
       responseDeliveryStartupGateHandoffPrepared: false,
       webResponseDeliveryAcknowledgementConsumed: false,
+      selectedPackageIds: Object.freeze([]),
       selectedPackageCount: 0,
       blockedPackageCount: 0,
+      loadOrder: Object.freeze([]),
       loadOrderCount: 0,
       lockfileHashPresent: false,
       effects: defaultStartupGateEffects()
@@ -766,6 +824,8 @@ export const createThirdPartyStartupGateRuntimeProbeSummary = (
 
   const effects = readOwnDataField(result, 'effects')
   const targetPackageId = readOwnStringField(result, 'targetPackageId')
+  const selectedPackageIds = readOwnStringArray(result, 'selectedPackageIds')
+  const loadOrder = readOwnStringArray(result, 'loadOrder')
   const startupPersistentStateSourceKind = readOwnStringField(result, 'startupPersistentStateSourceKind')
   const startupPersistentStateSourceHostMode = readStartupPersistentStateSourceHostMode(
     result,
@@ -816,10 +876,12 @@ export const createThirdPartyStartupGateRuntimeProbeSummary = (
     ...(targetPackageId !== undefined && isPackageId(targetPackageId)
       ? { targetPackageId }
       : {}),
-    ...createProductProbeContentFallbackSummary(result, targetPackageId),
-    selectedPackageCount: readOwnArrayLength(readOwnDataField(result, 'selectedPackageIds')),
+    ...createProductProbeContentFallbackSummary(result, targetPackageId, selectedPackageIds),
+    selectedPackageIds,
+    selectedPackageCount: selectedPackageIds.length,
     blockedPackageCount: readOwnArrayLength(readOwnDataField(result, 'blockedPackageIds')),
-    loadOrderCount: readOwnArrayLength(readOwnDataField(result, 'loadOrder')),
+    loadOrder,
+    loadOrderCount: loadOrder.length,
     registryCount: readOwnNumberField(result, 'registryCount'),
     entryCount: readOwnNumberField(result, 'entryCount'),
     packageCount: readOwnNumberField(result, 'packageCount'),
@@ -1077,8 +1139,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       defaultFileInputSelectorUsed: false,
       fileCount: 0,
       panelStatusLabels: {},
+      selectedPackageIds: Object.freeze([]),
       selectedPackageCount: 0,
       blockedPackageCount: 0,
+      loadOrder: Object.freeze([]),
       loadOrderCount: 0,
       diagnosticsCount: 0,
       contentAccessItemVisibleBefore: false,
@@ -1093,7 +1157,16 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
 
   const effects = readOwnDataField(result, 'effects')
   const targetPackageId = readOwnStringField(result, 'targetPackageId')
+  const selectedPackageIds = readOwnStringArray(result, 'selectedPackageIds')
+  const loadOrder = readOwnStringArray(result, 'loadOrder')
   const operation = readOwnStringField(result, 'operation')
+  const dependencyPackageId = readOwnStringField(result, 'dependencyPackageId')
+  const dependencyItemId = readOwnStringField(result, 'dependencyItemId')
+  const dependencyItemNameFallback = readOwnStringField(result, 'dependencyItemNameFallback')
+  const contentAccessDependencyItemVisibleBefore =
+    readOwnBooleanField(result, 'contentAccessDependencyItemVisibleBefore')
+  const contentAccessDependencyItemVisibleAfter =
+    readOwnBooleanField(result, 'contentAccessDependencyItemVisibleAfter')
   const disableButtonClicked = readOwnBooleanField(result, 'disableButtonClicked')
   const enableButtonClicked = readOwnBooleanField(result, 'enableButtonClicked')
   const uninstallButtonClicked = readOwnBooleanField(result, 'uninstallButtonClicked')
@@ -1209,9 +1282,11 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       readOwnStringField(result, 'webStartupPersistentStateWriteStatus'),
     electronStartupPersistentStateWriteStatus:
       readOwnStringField(result, 'electronStartupPersistentStateWriteStatus'),
-    selectedPackageCount: readOwnNumberField(result, 'selectedPackageCount') ?? 0,
+    selectedPackageIds,
+    selectedPackageCount: selectedPackageIds.length || readOwnNumberField(result, 'selectedPackageCount') || 0,
     blockedPackageCount: readOwnNumberField(result, 'blockedPackageCount') ?? 0,
-    loadOrderCount: readOwnNumberField(result, 'loadOrderCount') ?? 0,
+    loadOrder,
+    loadOrderCount: loadOrder.length || readOwnNumberField(result, 'loadOrderCount') || 0,
     expectedPackageVersion: readOwnStringField(result, 'expectedPackageVersion'),
     registryCount: readOwnNumberField(result, 'registryCount'),
     entryCount: readOwnNumberField(result, 'entryCount'),
@@ -1229,6 +1304,17 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       readOwnBooleanField(result, 'contentAccessShopOfferVisibleBefore') === true,
     contentAccessShopOfferVisibleAfter:
       readOwnBooleanField(result, 'contentAccessShopOfferVisibleAfter') === true,
+    ...(dependencyPackageId !== undefined && isPackageId(dependencyPackageId)
+      ? { dependencyPackageId }
+      : {}),
+    ...(dependencyItemId !== undefined ? { dependencyItemId } : {}),
+    ...(dependencyItemNameFallback !== undefined ? { dependencyItemNameFallback } : {}),
+    ...(contentAccessDependencyItemVisibleBefore === undefined
+      ? {}
+      : { contentAccessDependencyItemVisibleBefore }),
+    ...(contentAccessDependencyItemVisibleAfter === undefined
+      ? {}
+      : { contentAccessDependencyItemVisibleAfter }),
     ...(operation === 'install'
       || operation === 'disable'
       || operation === 'enable'

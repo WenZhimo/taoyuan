@@ -23,6 +23,8 @@ import {
 } from '@/domain/mods/thirdPartyDataPackPackageFilePersistentWriteProbe'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
+type JsonObject = Record<string, unknown>
+
 const roots: string[] = []
 
 afterEach(async() => {
@@ -261,6 +263,130 @@ const createFiles = () => [
   }
 ]
 
+const createScopedFile = (
+  packageId: PackageId,
+  packagePath: string,
+  filePath: string,
+  contents: string
+) => ({
+  packageId,
+  packagePath,
+  path: filePath,
+  contents,
+  sha256: sha256Utf8(contents)
+})
+
+const createDependencyDraft = (): {
+  readonly draft: ThirdPartyDataPackLockfileDraft
+  readonly files: ReturnType<typeof createScopedFile>[]
+} => {
+  const libraryPackageId = 'a_library' as PackageId
+  const appPackageId = 'z_app' as PackageId
+  const libraryPackagePath = 'a-library'
+  const appPackagePath = 'z-app'
+  const libraryItemId = `${libraryPackageId}:linen_ribbon` as ContentId
+  const appItemId = `${appPackageId}:linen_ribbon` as ContentId
+  const libraryManifest = {
+    ...manifest,
+    id: libraryPackageId,
+    name: { key: 'a_library.package.name', fallback: 'Library Pack' }
+  }
+  const appManifest = {
+    ...manifest,
+    id: appPackageId,
+    name: { key: 'z_app.package.name', fallback: 'App Pack' },
+    dependencies: [{ id: libraryPackageId, version: '1.0.0' }]
+  }
+  const libraryItem = {
+    ...item,
+    id: libraryItemId,
+    name: { key: 'a_library.item.linen_ribbon.name', fallback: 'Library Ribbon' }
+  }
+  const appItem = {
+    ...item,
+    id: appItemId,
+    name: { key: 'z_app.item.linen_ribbon.name', fallback: 'App Ribbon' }
+  }
+  const packageEntry = (
+    packageId: PackageId,
+    packagePath: string,
+    currentManifest: JsonObject,
+    currentItem: JsonObject,
+    loadIndex: number,
+    resolvedDependencies: readonly PackageId[]
+  ) => {
+    const currentManifestHash = hashCanonicalJson(currentManifest)
+    const currentItemCanonicalHash = hashCanonicalJson(currentItem)
+    const contentFiles = [{
+      registryId,
+      path: 'data/items.json',
+      entryCount: 1,
+      entries: [{
+        registryId,
+        contentId: `${packageId}:linen_ribbon` as ContentId,
+        index: 0,
+        canonicalHash: currentItemCanonicalHash
+      }]
+    }]
+    return {
+      packageId,
+      version: '1.0.0',
+      loadIndex,
+      source: {
+        candidatePath: packagePath,
+        manifestPath: `${packagePath}/manifest.json`,
+        contentFiles: [`${packagePath}/data/items.json`]
+      },
+      manifestHash: currentManifestHash,
+      contentHash: hashCanonicalJson({
+        manifestHash: currentManifestHash,
+        contentFiles
+      }),
+      configurationHash: sha(loadIndex === 0 ? 'e' : 'f'),
+      resolvedDependencies,
+      contentFiles
+    }
+  }
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: committedMetadata.artifactHash as Sha256Hash,
+      contentHash: committedMetadata.contentHash as Sha256Hash,
+      schemaSetHash: committedMetadata.schemaSetHash as Sha256Hash,
+      environmentHash: committedMetadata.environmentHash as Sha256Hash,
+      snapshotHash: committedMetadata.snapshotHash as Sha256Hash,
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity,
+    registryCount: 54,
+    entryCount: 4244,
+    selectedPackageIds: [libraryPackageId, appPackageId],
+    loadOrder: [libraryPackageId, appPackageId],
+    packages: [
+      packageEntry(libraryPackageId, libraryPackagePath, libraryManifest, libraryItem, 0, []),
+      packageEntry(appPackageId, appPackagePath, appManifest, appItem, 1, [libraryPackageId])
+    ]
+  }
+  const libraryManifestText = `${JSON.stringify(libraryManifest, null, 2)}\n`
+  const libraryItemsText = `${JSON.stringify([libraryItem], null, 2)}\n`
+  const appManifestText = `${JSON.stringify(appManifest, null, 2)}\n`
+  const appItemsText = `${JSON.stringify([appItem], null, 2)}\n`
+  return {
+    draft: {
+      ...body,
+      lockfileHash: hashCanonicalJson(body) as Sha256Hash
+    },
+    files: [
+      createScopedFile(libraryPackageId, libraryPackagePath, 'manifest.json', libraryManifestText),
+      createScopedFile(libraryPackageId, libraryPackagePath, 'data/items.json', libraryItemsText),
+      createScopedFile(appPackageId, appPackagePath, 'manifest.json', appManifestText),
+      createScopedFile(appPackageId, appPackagePath, 'data/items.json', appItemsText)
+    ]
+  }
+}
+
 const expectJsonGraphFrozen = (value: unknown): void => {
   if (value && typeof value === 'object') {
     expect(Object.isFrozen(value)).toBe(true)
@@ -411,6 +537,82 @@ describe('third-party package file persistent staging pipeline', () => {
     expect(serialized).not.toContain('settings.json')
     expect(serialized).not.toContain('mod-lock.json')
     expect(serialized).not.toContain('Local Storage')
+    expect(serialized).not.toContain('programDirectoryPath')
+    expect(serialized).not.toContain('lockfileDraft')
+    expectJsonGraphFrozen(result)
+  }, 30_000)
+
+  it('writes every selected dependency stack package with the explicit top-level target preserved', async() => {
+    const root = await createRoot()
+    const { draft, files } = createDependencyDraft()
+    const targetPackageId = draft.selectedPackageIds[1]!
+    const selectedPackageIds = [...draft.selectedPackageIds]
+    const loadOrder = [...draft.loadOrder]
+    const pipeline = createThirdPartyDataPackPackageFilePersistentStagingPipeline({
+      enabled: true,
+      allowPersistentWriteProbe: true,
+      readAtomicCommitPreflight: async() => createDeferredPreflight(draft, {
+        targetPackageId
+      }),
+      readLockfileDraft: async envelope => {
+        expect(Object.isFrozen(envelope)).toBe(true)
+        expect(envelope.targetPackageId).toBe(targetPackageId)
+        expect(envelope.selectedPackageIds).toEqual(selectedPackageIds)
+        expect(envelope.loadOrder).toEqual(loadOrder)
+        expect('lockfileDraft' in envelope).toBe(false)
+        expect('programDirectoryPath' in envelope).toBe(false)
+        return draft
+      },
+      readPackageFilePayload: async envelope => {
+        expect(Object.isFrozen(envelope)).toBe(true)
+        expect(envelope.selectedPackageIds).toEqual(selectedPackageIds)
+        expect(envelope.loadOrder).toEqual(loadOrder)
+        return files
+      },
+      storage: createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
+        programDirectoryPath: root
+      })
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('written')
+    expect(result.packageFileStagingSourceStatus).toBe('accepted')
+    expect(result.packageFilePersistentWriteProbeStatus).toBe('written')
+    expect(result.targetPackageId).toBe(targetPackageId)
+    expect(result.selectedPackageIds).toEqual(selectedPackageIds)
+    expect(result.loadOrder).toEqual(loadOrder)
+    expect(result.packageCount).toBe(2)
+    expect(result.entryCount).toBe(draft.entryCount)
+    expect(result.writtenFileCount).toBe(4)
+    expect(result.backedUpFileCount).toBe(0)
+    expect(result.writtenFiles.map(file => file.packagePath)).toEqual([
+      'a-library',
+      'a-library',
+      'z-app',
+      'z-app'
+    ])
+    expect(result.writtenFiles.map(file => file.path)).toEqual([
+      'manifest.json',
+      'data/items.json',
+      'manifest.json',
+      'data/items.json'
+    ])
+    expect(await readFile(path.join(root, 'mods', 'a-library', 'manifest.json'), 'utf8'))
+      .toBe(files[0]!.contents)
+    expect(await readFile(path.join(root, 'mods', 'a-library', 'data', 'items.json'), 'utf8'))
+      .toBe(files[1]!.contents)
+    expect(await readFile(path.join(root, 'mods', 'z-app', 'manifest.json'), 'utf8'))
+      .toBe(files[2]!.contents)
+    expect(await readFile(path.join(root, 'mods', 'z-app', 'data', 'items.json'), 'utf8'))
+      .toBe(files[3]!.contents)
+    expectContainedEffects(result, {
+      packageFilesWritten: true,
+      packageBackupsWritten: false,
+      continuationAllowed: true
+    })
+    const serialized = JSON.stringify(result)
+    expect(serialized).not.toContain(root)
     expect(serialized).not.toContain('programDirectoryPath')
     expect(serialized).not.toContain('lockfileDraft')
     expectJsonGraphFrozen(result)

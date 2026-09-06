@@ -1,5 +1,6 @@
 import {
-  buildThirdPartyDataPackRuntimePublicationCommitAdapter
+  buildThirdPartyDataPackRuntimePublicationCommitAdapter,
+  type ThirdPartyDataPackRuntimePublicationCommitAdapterResult
 } from './thirdPartyDataPackRuntimePublicationCommitAdapter'
 import {
   createThirdPartyDataPackRuntimePublicationCommitSource,
@@ -27,6 +28,8 @@ export interface CreateThirdPartyDataPackRuntimePublicationCommitPipelineOptions
   readonly readTransactionPreCommitPlan?: () => Awaitable<ThirdPartyDataPackTransactionPreCommitPlanResult>
   readonly readLiveRegistrySwapProtection?: () => Awaitable<ThirdPartyDataPackLiveRegistrySwapProtectionResult>
   readonly readPublicationRollbackRecovery?: () => Awaitable<ThirdPartyDataPackPublicationRollbackRecoveryResult>
+  readonly readRuntimePublicationCommitAdapter?: () =>
+    Awaitable<ThirdPartyDataPackRuntimePublicationCommitAdapterResult>
   readonly acknowledgeRuntimePublicationCommit?:
     CreateThirdPartyDataPackRuntimePublicationCommitSourceOptions['acknowledgeRuntimePublicationCommit']
 }
@@ -35,6 +38,9 @@ export const createThirdPartyDataPackRuntimePublicationCommitPipeline = (
   options: CreateThirdPartyDataPackRuntimePublicationCommitPipelineOptions = {}
 ): (() => Promise<ThirdPartyDataPackRuntimePublicationCommitSourceResult>) => {
   const readRuntimePublicationCommitAdapter = async() => {
+    if (options.readRuntimePublicationCommitAdapter !== undefined) {
+      return await options.readRuntimePublicationCommitAdapter()
+    }
     if (
       options.readRuntimePublicationPreflight === undefined
       || options.readTransactionPreCommitPlan === undefined

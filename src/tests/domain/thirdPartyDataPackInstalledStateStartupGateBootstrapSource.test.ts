@@ -69,7 +69,10 @@ type JsonObject = Record<string, unknown>
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
 const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
-const createManifest = (packageId: PackageId): JsonObject => ({
+const createManifest = (
+  packageId: PackageId,
+  dependencies: readonly JsonObject[] = []
+): JsonObject => ({
   id: packageId,
   name: { key: `${packageId}.package.name`, fallback: `${packageId} startup pack` },
   version: '1.0.0',
@@ -80,7 +83,7 @@ const createManifest = (packageId: PackageId): JsonObject => ({
   locales: { 'zh-CN': 'locales/zh-CN.json' },
   authors: [{ name: 'Startup Installed State Test', role: 'developer' }],
   license: 'MIT',
-  dependencies: [],
+  dependencies,
   entrypoints: {
     'taoyuan:item': ['data/items.json'],
     'taoyuan:recipe': ['data/recipes.json'],
@@ -168,29 +171,33 @@ const expectStartupPackContentVisible = (packageId: PackageId) => {
     .toBe(`${packageId} Startup Linen Ribbon Stand`)
 }
 
-const packageFiles = (packageId: PackageId) => [
+const packageFiles = (
+  packageId: PackageId,
+  rootPath = 'installed-pack',
+  dependencies: readonly JsonObject[] = []
+) => [
   {
-    path: 'installed-pack/manifest.json',
-    text: toJson(createManifest(packageId)),
-    sizeBytes: toJson(createManifest(packageId)).length
+    path: `${rootPath}/manifest.json`,
+    text: toJson(createManifest(packageId, dependencies)),
+    sizeBytes: toJson(createManifest(packageId, dependencies)).length
   },
   {
-    path: 'installed-pack/data/items.json',
+    path: `${rootPath}/data/items.json`,
     text: toJson([createItem(packageId)]),
     sizeBytes: toJson([createItem(packageId)]).length
   },
   {
-    path: 'installed-pack/data/recipes.json',
+    path: `${rootPath}/data/recipes.json`,
     text: toJson([createRecipe(packageId)]),
     sizeBytes: toJson([createRecipe(packageId)]).length
   },
   {
-    path: 'installed-pack/data/shop-offers.json',
+    path: `${rootPath}/data/shop-offers.json`,
     text: toJson([createShopOffer(packageId)]),
     sizeBytes: toJson([createShopOffer(packageId)]).length
   },
   {
-    path: 'installed-pack/locales/zh-CN.json',
+    path: `${rootPath}/locales/zh-CN.json`,
     text: '{}\n',
     sizeBytes: 3
   }
@@ -315,6 +322,49 @@ const seedWebInstalledState = async(
       lockfileDraft: mountInput.lockfileDraft
     })
   }
+  return mountInput
+}
+
+const seedWebInstalledStateWithDependency = async(
+  store: WebIndexedDbImportPersistenceStore,
+  targetPackageId: PackageId,
+  dependencyPackageId: PackageId,
+  settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore,
+  officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+): Promise<ThirdPartyDataPackMountInputResult> => {
+  await store.put(createDefaultWebIndexedDbImportRecord([
+    ...packageFiles(dependencyPackageId, 'a-startup-library'),
+    ...packageFiles(targetPackageId, 'z-startup-app', [
+      { id: dependencyPackageId, version: '1.0.0' }
+    ])
+  ], THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))
+  const mountInput = await buildWebMountInput(store, officialRegistrySet)
+  expect(mountInput.status, JSON.stringify(mountInput.diagnostics, null, 2))
+    .toBe('ready')
+  expect(mountInput.selectedPackageIds).toEqual([dependencyPackageId, targetPackageId])
+  expect(mountInput.loadOrder).toEqual([dependencyPackageId, targetPackageId])
+  const snapshotText = startupSnapshotText(targetPackageId, mountInput)
+  await store.put(createDefaultWebIndexedDbImportRecord([
+    {
+      path: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
+      text: snapshotText,
+      sizeBytes: snapshotText.length
+    }
+  ], THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))
+  expect(mountInput.candidateIdentity).toBeDefined()
+  expect(mountInput.lockfileHash).toBeDefined()
+  expect(mountInput.lockfileDraft).toBeDefined()
+  await settingsLockfileStore.write({
+    recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+    requestedCommandId: 'install',
+    targetPackageId,
+    selectedPackageIds: mountInput.selectedPackageIds,
+    blockedPackageIds: mountInput.blockedPackageIds,
+    loadOrder: mountInput.loadOrder,
+    candidateHash: mountInput.candidateIdentity!.candidateHash,
+    lockfileHash: mountInput.lockfileHash!,
+    lockfileDraft: mountInput.lockfileDraft!
+  })
   return mountInput
 }
 
@@ -746,6 +796,47 @@ describe('third-party installed-state startup gate bootstrap source', () => {
     expect(result.effects.runtimeEnablementAllowed).toBe(true)
     expect(result.effects.realNormalStartupHostCalled).toBe(true)
     expectStartupPackContentVisible(packageId)
+    expect(JSON.stringify(result)).not.toContain('indexedDb')
+    expect(JSON.stringify(result)).not.toContain('window')
+    expect(JSON.stringify(result)).not.toContain('startup-persistent-state-snapshot.json')
+  })
+
+  it('restores a Web installed dependency stack through ordinary app-startup handoff', async() => {
+    const dependencyPackageId = 'a_web_startup_library' as PackageId
+    const targetPackageId = 'z_web_startup_app' as PackageId
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const mountInput = await seedWebInstalledStateWithDependency(
+      store,
+      targetPackageId,
+      dependencyPackageId,
+      settingsLockfileStore,
+      buildOfficialRegistrySetFromStaticData()
+    )
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('ready')
+    expect(result.targetPackageId).toBe(targetPackageId)
+    expect(result.selectedPackageIds).toEqual([dependencyPackageId, targetPackageId])
+    expect(result.loadOrder).toEqual([dependencyPackageId, targetPackageId])
+    expect(result.entryCount).toBe(mountInput.entryCount)
+    expect(result.packageCount).toBe(2)
+    expect(result.lockfileHash).toBe(mountInput.lockfileHash)
+    expect(result.startupPersistentStateSourceStatus).toBe('ready')
+    expect(result.appStartupHostConnectionSourceStatus).toBe('accepted')
+    expect(result.effects.startupStateSnapshotAccepted).toBe(true)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(true)
+    expect(result.effects.runtimeEnablementAllowed).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expectStartupPackContentVisible(dependencyPackageId)
+    expectStartupPackContentVisible(targetPackageId)
     expect(JSON.stringify(result)).not.toContain('indexedDb')
     expect(JSON.stringify(result)).not.toContain('window')
     expect(JSON.stringify(result)).not.toContain('startup-persistent-state-snapshot.json')

@@ -10,6 +10,7 @@ import {
   buildThirdPartyDataPackRuntimePublicationPreflight,
   type ThirdPartyDataPackRuntimePublicationPreflightResult
 } from './thirdPartyDataPackRuntimePublicationPreflight'
+import { runtimeCommandTargetPackageId } from './thirdPartyDataPackRuntimeCommandState'
 import {
   buildThirdPartyDataPackTransactionPreCommitPlan,
   type BuildThirdPartyDataPackTransactionPreCommitPlanOptions,
@@ -64,6 +65,7 @@ export interface ThirdPartyDataPackLiveRegistrySwapProtectionResult {
   readonly status: ThirdPartyDataPackLiveRegistrySwapProtectionStatus
   readonly runtimePublicationPreflightStatus: ThirdPartyDataPackRuntimePublicationPreflightResult['status']
   readonly transactionPreCommitPlanStatus: ThirdPartyDataPackTransactionPreCommitPlanResult['status']
+  readonly targetPackageId?: PackageId
   readonly reason: string
   readonly diagnostics: readonly ModDiagnostic[]
   readonly selectedPackageIds: readonly PackageId[]
@@ -88,6 +90,7 @@ export interface BuildThirdPartyDataPackLiveRegistrySwapProtectionOptions
   extends BuildThirdPartyDataPackTransactionPreCommitPlanOptions {
   readonly runtimePublicationPreflight?: ThirdPartyDataPackRuntimePublicationPreflightResult
   readonly transactionPreCommitPlan?: ThirdPartyDataPackTransactionPreCommitPlanResult
+  readonly targetPackageId?: PackageId
 }
 
 const createEffectSummary = (): ThirdPartyDataPackLiveRegistrySwapProtectionEffectSummary => ({
@@ -496,30 +499,48 @@ const baseResult = (
   preCommitPlan: ThirdPartyDataPackTransactionPreCommitPlanResult,
   protectionChecks: readonly ThirdPartyDataPackLiveRegistrySwapProtectionCheck[],
   diagnostics: readonly ModDiagnostic[],
-  includeRequiredProtections: boolean
-): ThirdPartyDataPackLiveRegistrySwapProtectionResult => freezeResult({
-  status,
-  runtimePublicationPreflightStatus: runtimePublicationPreflight.status,
-  transactionPreCommitPlanStatus: preCommitPlan.status,
-  reason,
-  diagnostics: cloneDiagnostics(diagnostics),
-  selectedPackageIds: clonePackageIds(preCommitPlan.selectedPackageIds),
-  blockedPackageIds: clonePackageIds(preCommitPlan.blockedPackageIds),
-  blockedCandidatePaths: cloneStringList(preCommitPlan.blockedCandidatePaths),
-  loadOrder: clonePackageIds(preCommitPlan.loadOrder),
-  registryCount: preCommitPlan.registryCount,
-  entryCount: preCommitPlan.entryCount,
-  packageCount: preCommitPlan.packageCount,
-  officialIdentity: cloneOfficialIdentity(preCommitPlan.officialIdentity),
-  candidateIdentity: cloneCandidateIdentity(preCommitPlan.candidateIdentity),
-  lockfileHash: preCommitPlan.lockfileHash,
-  liveRegistrySwap: 'deferred',
-  swapAllowed: false,
-  liveRegistryMutable: false,
-  protectionChecks,
-  requiredProtections: includeRequiredProtections ? requiredProtections() : Object.freeze([]),
-  effects: createEffectSummary()
-})
+  includeRequiredProtections: boolean,
+  explicitTargetPackageId?: PackageId
+): ThirdPartyDataPackLiveRegistrySwapProtectionResult => {
+  const selectedPackageIds = clonePackageIds(preCommitPlan.selectedPackageIds)
+  const blockedPackageIds = clonePackageIds(preCommitPlan.blockedPackageIds)
+  const loadOrder = clonePackageIds(preCommitPlan.loadOrder)
+  const requestedCommandId = selectedPackageIds.length > 0
+    ? 'install'
+    : blockedPackageIds.length > 0
+      ? 'disable'
+      : undefined
+  const targetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds,
+    explicitTargetPackageId
+  )
+  return freezeResult({
+    status,
+    runtimePublicationPreflightStatus: runtimePublicationPreflight.status,
+    transactionPreCommitPlanStatus: preCommitPlan.status,
+    ...(targetPackageId === undefined ? {} : { targetPackageId }),
+    reason,
+    diagnostics: cloneDiagnostics(diagnostics),
+    selectedPackageIds,
+    blockedPackageIds,
+    blockedCandidatePaths: cloneStringList(preCommitPlan.blockedCandidatePaths),
+    loadOrder,
+    registryCount: preCommitPlan.registryCount,
+    entryCount: preCommitPlan.entryCount,
+    packageCount: preCommitPlan.packageCount,
+    officialIdentity: cloneOfficialIdentity(preCommitPlan.officialIdentity),
+    candidateIdentity: cloneCandidateIdentity(preCommitPlan.candidateIdentity),
+    lockfileHash: preCommitPlan.lockfileHash,
+    liveRegistrySwap: 'deferred',
+    swapAllowed: false,
+    liveRegistryMutable: false,
+    protectionChecks,
+    requiredProtections: includeRequiredProtections ? requiredProtections() : Object.freeze([]),
+    effects: createEffectSummary()
+  })
+}
 
 export const buildThirdPartyDataPackLiveRegistrySwapProtection = (
   options: BuildThirdPartyDataPackLiveRegistrySwapProtectionOptions
@@ -541,7 +562,8 @@ export const buildThirdPartyDataPackLiveRegistrySwapProtection = (
       transactionPreCommitPlan,
       skippedChecks(reason),
       [],
-      false
+      false,
+      options.targetPackageId
     )
   }
 
@@ -559,7 +581,8 @@ export const buildThirdPartyDataPackLiveRegistrySwapProtection = (
         ...cloneDiagnostics(runtimePublicationPreflight.diagnostics),
         ...cloneDiagnostics(transactionPreCommitPlan.diagnostics)
       ],
-      false
+      false,
+      options.targetPackageId
     )
   }
 
@@ -577,7 +600,8 @@ export const buildThirdPartyDataPackLiveRegistrySwapProtection = (
         ...cloneDiagnostics(transactionPreCommitPlan.diagnostics),
         ...blockedDiagnostics
       ],
-      false
+      false,
+      options.targetPackageId
     )
   }
 
@@ -591,6 +615,7 @@ export const buildThirdPartyDataPackLiveRegistrySwapProtection = (
       ...cloneDiagnostics(runtimePublicationPreflight.diagnostics),
       ...cloneDiagnostics(transactionPreCommitPlan.diagnostics)
     ],
-    true
+    true,
+    options.targetPackageId
   )
 }

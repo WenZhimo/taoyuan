@@ -211,6 +211,8 @@ const runtimeProbeVisibleImportRollback =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_ROLLBACK === '1'
 const runtimeProbeVisibleImportFailure =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_FAILURE === '1'
+const runtimeProbeVisibleDependency =
+  process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DEPENDENCY === '1'
 const runtimeProbeVisibleDisable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE === '1'
 const runtimeProbeVisibleDisableFailAfterModLockWrite =
@@ -461,7 +463,16 @@ const createSyntheticModLockDraft = () => {
   }
 }
 
-const createSyntheticInstallPersistentStagingLifecycleResult = (draft, packageResult) => ({
+const resolveDraftTargetPackageId = (draft, targetPackageId) =>
+  typeof targetPackageId === 'string' ? targetPackageId : draft.selectedPackageIds[0]
+
+const createSyntheticInstallPersistentStagingLifecycleResult = (
+  draft,
+  packageResult,
+  targetPackageId
+) => {
+  const effectiveTargetPackageId = resolveDraftTargetPackageId(draft, targetPackageId)
+  return {
   kind: 'third-party-install-persistent-staging-lifecycle-pipeline',
   mode: 'default-disabled-install-persistent-staging-lifecycle-pipeline',
   status: 'ready',
@@ -474,7 +485,7 @@ const createSyntheticInstallPersistentStagingLifecycleResult = (draft, packageRe
   packageFilePersistentStagingPipelineStatus: packageResult?.status ?? 'written',
   installCommandLifecyclePipelineStatus: 'ready',
   requestedCommandId: 'install',
-  targetPackageId: draft.selectedPackageIds[0],
+  targetPackageId: effectiveTargetPackageId,
   selectedPackageIds: draft.selectedPackageIds,
   blockedPackageIds: [],
   blockedCandidatePaths: [],
@@ -542,9 +553,12 @@ const createSyntheticInstallPersistentStagingLifecycleResult = (draft, packageRe
     rollbackExecuted: false,
     diagnosticsWritten: false
   }
-})
+  }
+}
 
-const createSyntheticSettingsLockfileCommitSourceResult = draft => ({
+const createSyntheticSettingsLockfileCommitSourceResult = (draft, targetPackageId) => {
+  const effectiveTargetPackageId = resolveDraftTargetPackageId(draft, targetPackageId)
+  return {
   kind: 'third-party-settings-lockfile-commit-source',
   mode: 'default-disabled-settings-lockfile-commit-source',
   status: 'accepted',
@@ -558,7 +572,7 @@ const createSyntheticSettingsLockfileCommitSourceResult = draft => ({
   packageFileStagingHostStatus: 'accepted',
   settingsLockfileCommitHostStatus: 'accepted',
   requestedCommandId: 'install',
-  targetPackageId: draft.selectedPackageIds[0],
+  targetPackageId: effectiveTargetPackageId,
   selectedPackageIds: draft.selectedPackageIds,
   blockedPackageIds: [],
   blockedCandidatePaths: [],
@@ -619,7 +633,8 @@ const createSyntheticSettingsLockfileCommitSourceResult = draft => ({
     rollbackExecuted: false,
     diagnosticsWritten: false
   }
-})
+  }
+}
 
 const createSyntheticInstallTransactionCommitConnectionHostResult = envelope => ({
   status: 'accepted',
@@ -663,14 +678,16 @@ const createSyntheticInstallTransactionCommitConnectionHostResult = envelope => 
   }
 })
 
-const createSyntheticAtomicCommitPreflightResult = draft => ({
+const createSyntheticAtomicCommitPreflightResult = (draft, targetPackageId) => {
+  const effectiveTargetPackageId = resolveDraftTargetPackageId(draft, targetPackageId)
+  return {
   status: 'deferred',
   transactionCommandDispatcherHandoffStatus: 'deferred',
   installTransactionDispatchPlanStatus: 'deferred',
   runtimePublicationCommitAdapterStatus: 'deferred',
   reason: 'product runtime probe supplies a path-free atomic transaction commit preflight acknowledgement',
   requestedCommandId: 'install',
-  targetPackageId: draft.selectedPackageIds[0],
+  targetPackageId: effectiveTargetPackageId,
   selectedPackageIds: draft.selectedPackageIds,
   blockedPackageIds: [],
   blockedCandidatePaths: [],
@@ -738,7 +755,8 @@ const createSyntheticAtomicCommitPreflightResult = draft => ({
     rollbackExecuted: false,
     diagnosticsWritten: false
   }
-})
+  }
+}
 
 const createSyntheticNoRealLifecycleEffects = () => ({
   officialRegistryPublished: false,
@@ -783,13 +801,14 @@ const createSyntheticNoRealLifecycleEffects = () => ({
   diagnosticsWritten: false
 })
 
-const createSyntheticRollbackOutcomeContract = draft =>
-  buildThirdPartyDataPackAtomicTransactionCommitOutcomeContract({
-    preflight: createSyntheticAtomicCommitPreflightResult(draft),
+const createSyntheticRollbackOutcomeContract = (draft, targetPackageId) => {
+  const effectiveTargetPackageId = resolveDraftTargetPackageId(draft, targetPackageId)
+  return buildThirdPartyDataPackAtomicTransactionCommitOutcomeContract({
+    preflight: createSyntheticAtomicCommitPreflightResult(draft, effectiveTargetPackageId),
     outcome: {
       kind: 'rollback',
       settled: true,
-      packageId: draft.selectedPackageIds[0],
+      packageId: effectiveTargetPackageId,
       candidateIdentity: draft.candidateIdentity,
       lockfileHash: draft.lockfileHash,
       messageKey: 'mods.atomic.commit.install.rollback',
@@ -799,6 +818,7 @@ const createSyntheticRollbackOutcomeContract = draft =>
       diagnostics: []
     }
   })
+}
 
 const createRealRecoveryLogReplayRestoreHostResult = (envelope, restoreResult) => ({
   status: 'accepted',
@@ -1133,8 +1153,11 @@ const createSyntheticPostCommitVerificationSummary = draft => ({
 
 const createSyntheticPostCommitVerificationExecutorAdapterResult = (
   draft,
-  hostMode = 'injected-test-only'
-) => ({
+  hostMode = 'injected-test-only',
+  targetPackageId
+) => {
+  const effectiveTargetPackageId = resolveDraftTargetPackageId(draft, targetPackageId)
+  return {
   status: 'executed',
   sourcePreflightStatus: 'deferred',
   reason: hostMode === 'electron-main-visible-import'
@@ -1163,7 +1186,7 @@ const createSyntheticPostCommitVerificationExecutorAdapterResult = (
   writeAllowed: false,
   rollbackRecoveryAllowed: false,
   requestedCommandId: 'install',
-  targetPackageId: draft.selectedPackageIds[0],
+  targetPackageId: effectiveTargetPackageId,
   selectedPackageIds: draft.selectedPackageIds,
   blockedPackageIds: [],
   blockedCandidateCount: 0,
@@ -1179,7 +1202,7 @@ const createSyntheticPostCommitVerificationExecutorAdapterResult = (
     formatVersion: 1,
     kind: 'verified',
     commandId: 'install',
-    packageId: draft.selectedPackageIds[0],
+    packageId: effectiveTargetPackageId,
     candidateHash: draft.candidateIdentity.candidateHash,
     lockfileHash: draft.lockfileHash,
     transactionLogMatched: true,
@@ -1205,7 +1228,8 @@ const createSyntheticPostCommitVerificationExecutorAdapterResult = (
     retryOutcomeReceived: false,
     rollbackOutcomeReceived: false
   }
-})
+  }
+}
 
 const createModLockProbe = () => createElectronThirdPartyDataPackModLockStorageProbe({
   host: {
@@ -1784,7 +1808,11 @@ const readElectronInstalledState = async () => {
     || (effectiveCommandId !== 'uninstall' && !targetPackageIsInDraft)
     || (effectiveCommandId === 'uninstall' && targetPackageIsInDraft)
     || ((effectiveCommandId === 'install' || effectiveCommandId === 'enable')
-      && (selectedPackageIds.length === 0 || selectedPackageIds[0] !== effectiveTargetPackageId))
+      && (
+        selectedPackageIds.length === 0
+        || !selectedPackageIds.includes(effectiveTargetPackageId)
+        || !loadOrder.includes(effectiveTargetPackageId)
+      ))
     || (effectiveCommandId === 'disable'
       && (selectedPackageIds.length !== 0 || loadOrder.length !== 0))
     || (effectiveCommandId === 'uninstall'
@@ -2396,13 +2424,13 @@ const installCommandDispatchIpcProofMatchesEnvelopeSafely = (proof, envelope) =>
   }
 }
 
-const createOrdinaryInstallTerminalSettingsLockfileCommitSourceResult = draft => ({
-  ...createSyntheticSettingsLockfileCommitSourceResult(draft),
+const createOrdinaryInstallTerminalSettingsLockfileCommitSourceResult = (draft, targetPackageId) => ({
+  ...createSyntheticSettingsLockfileCommitSourceResult(draft, targetPackageId),
   reason: 'Electron ordinary install terminal continuation accepted settings-lockfile commit handoff evidence'
 })
 
-const createOrdinaryInstallTerminalAtomicPreflightResult = draft => ({
-  ...createSyntheticAtomicCommitPreflightResult(draft),
+const createOrdinaryInstallTerminalAtomicPreflightResult = (draft, targetPackageId) => ({
+  ...createSyntheticAtomicCommitPreflightResult(draft, targetPackageId),
   reason: 'Electron ordinary install terminal continuation supplies a path-free atomic preflight acknowledgement'
 })
 
@@ -2919,15 +2947,25 @@ const runtimePublicationSummariesMatch = (left, right) => left !== undefined
   && candidateIdentitiesEqual(left.candidateIdentity, right.candidateIdentity)
 
 const createVisibleImportContinuationMemorySource = (packageFilePayload, lockfileDraft) => {
-  const packageDraft = lockfileDraft?.packages?.[0]
-  const candidatePath = typeof packageDraft?.source?.candidatePath === 'string'
-    ? packageDraft.source.candidatePath
-    : syntheticPackageRoot
+  const packages = Array.isArray(lockfileDraft?.packages) ? lockfileDraft.packages : []
+  const packagePathForPayloadFile = file => {
+    const scopedPackageId = typeof file.packageId === 'string' ? file.packageId : undefined
+    const scopedPackagePath = typeof file.packagePath === 'string' ? file.packagePath : undefined
+    const packageDraft = packages.find(currentPackage =>
+      currentPackage?.packageId === scopedPackageId
+      || currentPackage?.source?.candidatePath === scopedPackagePath
+    )
+    if (typeof packageDraft?.source?.candidatePath === 'string') return packageDraft.source.candidatePath
+    if (scopedPackagePath !== undefined) return scopedPackagePath
+    return typeof packages[0]?.source?.candidatePath === 'string'
+      ? packages[0].source.candidatePath
+      : syntheticPackageRoot
+  }
   return createMemoryContentPackageSource({
     sourceId: electronVisibleImportContinuationSourceId,
     rootPath: electronVisibleImportContinuationRootPath,
     files: packageFilePayload.map(file => ({
-      path: `${candidatePath}/${file.path}`,
+      path: `${packagePathForPayloadFile(file)}/${file.path}`,
       text: file.contents
     }))
   })
@@ -2936,7 +2974,8 @@ const createVisibleImportContinuationMemorySource = (packageFilePayload, lockfil
 const createRuntimePublicationContinuationContext = async(
   packageFilePayload,
   lockfileDraft,
-  rendererRuntimePublicationCommitAdapter
+  rendererRuntimePublicationCommitAdapter,
+  targetPackageId
 ) => {
   const source = createVisibleImportContinuationMemorySource(packageFilePayload, lockfileDraft)
   const discoveryReport = await discoverThirdPartyDataPacks(
@@ -2968,7 +3007,8 @@ const createRuntimePublicationContinuationContext = async(
     discoveryReport,
     mountInput,
     runtimePublicationPreflight,
-    transactionPreCommitPlan
+    transactionPreCommitPlan,
+    targetPackageId
   })
   const publicationRollbackRecovery = buildThirdPartyDataPackPublicationRollbackRecovery({
     officialRegistrySet,
@@ -2982,7 +3022,8 @@ const createRuntimePublicationContinuationContext = async(
     runtimePublicationPreflight,
     transactionPreCommitPlan,
     liveRegistrySwapProtection,
-    publicationRollbackRecovery
+    publicationRollbackRecovery,
+    targetPackageId
   })
 
   if (
@@ -3027,7 +3068,8 @@ const createRealRecoveryLogReplayRestoreSourceResult = async(
   const context = await createRuntimePublicationContinuationContext(
     packageFilePayload,
     lockfileDraft,
-    runtimePublicationCommitAdapter
+    runtimePublicationCommitAdapter,
+    runtimePublicationCommitAdapter.targetPackageId
   )
   if (context === undefined) {
     throw new Error('Electron recovery log replay/restore requires a matching runtime publication context')
@@ -3098,7 +3140,7 @@ const createOrdinaryInstallTerminalPostCommitAfterInstallTransactionCommitResult
   }
 })
 
-const createOrdinaryInstallTerminalReadyNormalStartupSource = source => ({
+const createOrdinaryInstallTerminalReadyNormalStartupSource = (source, targetPackageId) => ({
   kind: 'third-party-normal-startup-handoff-execution-source',
   mode: 'default-disabled-normal-startup-handoff-execution-source',
   status: 'ready',
@@ -3109,7 +3151,7 @@ const createOrdinaryInstallTerminalReadyNormalStartupSource = source => ({
   normalStartupContinuationAllowed: true,
   startupGateBootstrapSourceStatus: 'ready',
   normalStartupHandoffHostStatus: 'accepted',
-  targetPackageId: source.selectedPackageIds[0],
+  targetPackageId,
   selectedPackageIds: source.selectedPackageIds,
   blockedPackageIds: source.blockedPackageIds,
   blockedCandidateCount: source.blockedCandidatePaths.length,
@@ -3129,7 +3171,7 @@ const createOrdinaryInstallTerminalReadyNormalStartupSource = source => ({
   diagnostics: [],
   summary: createOrdinaryInstallTerminalUiIpcSummary({
     ...source,
-    targetPackageId: source.selectedPackageIds[0]
+    targetPackageId
   }),
   effects: {
     normalStartupHandoffExecutionSourceCalled: true,
@@ -3246,7 +3288,10 @@ const createRuntimePublicationContinuationResults = async(
       enabled: true,
       readRuntimePublicationCommitAfterPostCommitVerification,
       readRuntimePublicationNormalStartupAppFactoryBindingHostConnection: async() =>
-        createOrdinaryInstallTerminalReadyNormalStartupSource(source)
+        createOrdinaryInstallTerminalReadyNormalStartupSource(
+          source,
+          installTransactionCommitFinalization.targetPackageId
+        )
     })()
   const runtimePublicationCommitAppStartupReadiness =
     await createThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline({
@@ -3333,7 +3378,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   const programDirectoryPath = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
 
   const readSettingsLockfileCommitSource = async() =>
-    createOrdinaryInstallTerminalSettingsLockfileCommitSourceResult(lockfileDraft)
+    createOrdinaryInstallTerminalSettingsLockfileCommitSourceResult(lockfileDraft, targetPackageId)
 
   const installCommandLifecyclePipeline = createThirdPartyDataPackInstallCommandLifecyclePipeline({
     enabled: true,
@@ -3367,7 +3412,8 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     readPostCommitVerificationExecutorAdapter: async() =>
       createSyntheticPostCommitVerificationExecutorAdapterResult(
         lockfileDraft,
-        'electron-main-visible-import'
+        'electron-main-visible-import',
+        targetPackageId
       ),
     readPostCommitPersistentState: async currentEnvelope =>
       createOrdinaryInstallTerminalPersistentReadStateResult(currentEnvelope),
@@ -3392,7 +3438,8 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   const packageFilePersistentStagingPipeline = createThirdPartyDataPackPackageFilePersistentStagingPipeline({
     enabled: true,
     allowPersistentWriteProbe: true,
-    readAtomicCommitPreflight: async() => createOrdinaryInstallTerminalAtomicPreflightResult(lockfileDraft),
+    readAtomicCommitPreflight: async() =>
+      createOrdinaryInstallTerminalAtomicPreflightResult(lockfileDraft, targetPackageId),
     readLockfileDraft: async() => lockfileDraft,
     readPackageFilePayload: async() => packageFilePayload,
     storage: packageFilePersistentStagingStorage
@@ -3629,7 +3676,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
       createThirdPartyDataPackRollbackRecoveryExecutionPipeline({
         enabled: true,
         readAtomicTransactionCommitOutcomeContract: async() =>
-          createSyntheticRollbackOutcomeContract(lockfileDraft),
+          createSyntheticRollbackOutcomeContract(lockfileDraft, targetPackageId),
         readRecoveryLogReplayRestoreSource: async() => {
           recoveryLogReplayRestoreSource ??=
             await createRealRecoveryLogReplayRestoreSourceResult(
@@ -3813,7 +3860,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
       createThirdPartyDataPackRollbackRecoveryExecutionPipeline({
         enabled: true,
         readAtomicTransactionCommitOutcomeContract: async() =>
-          createSyntheticRollbackOutcomeContract(lockfileDraft),
+          createSyntheticRollbackOutcomeContract(lockfileDraft, targetPackageId),
         readRecoveryLogReplayRestoreSource: async() => {
           recoveryLogReplayRestoreSource ??=
             await createRealRecoveryLogReplayRestoreSourceResult(
@@ -3998,11 +4045,12 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     const runtimeContinuationContext = await createRuntimePublicationContinuationContext(
       packageFilePayload,
       lockfileDraft,
-      runtimePublicationCommitAdapter
+      runtimePublicationCommitAdapter,
+      targetPackageId
     )
     if (
       runtimeContinuationContext === undefined
-      || runtimeContinuationContext.runtimePublicationCommitAdapter.selectedPackageIds[0] !== targetPackageId
+      || !runtimeContinuationContext.runtimePublicationCommitAdapter.selectedPackageIds.includes(targetPackageId)
       || installTransactionCommitFinalizationResult.targetPackageId !== targetPackageId
     ) {
       return createBlockedOrdinaryInstallTerminalContinuationResult(
@@ -4690,7 +4738,7 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
           await createRealRecoveryLogReplayRestoreSourceResult(
             packageFilePayload,
             rollbackDraft,
-            undefined,
+            recoveryRuntimeContinuationContext.runtimePublicationCommitAdapter,
             restoreResult
           )
         return recoveryLogReplayRestoreSource
@@ -5159,6 +5207,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleImportFailure
             ? { taoyuanThirdPartyVisibleImportFailureProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleDependency
+            ? { taoyuanThirdPartyVisibleDependencyProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleEnable
             ? { taoyuanThirdPartyVisibleEnableProbe: '1' }

@@ -101,6 +101,9 @@ const thirdPartyVisibleOperationProbeRequested =
 const thirdPartyVisibleImportPersistSourceProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportPersistSource') === '1'
+const thirdPartyVisibleDependencyProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleDependencyProbe') === '1'
 let thirdPartyRendererUiIpcProductProbeResult: ThirdPartyRendererUiIpcProductProbeResult | undefined
 let thirdPartyElectronInstallCommandDispatchProductProbeResult:
   ThirdPartyDataPackTransactionCommandDispatcherHostResult | undefined
@@ -179,6 +182,7 @@ void bootstrapApplication({
                 ? 'upgrade'
                 : 'install',
             persistSource: thirdPartyVisibleImportPersistSourceProbeRequested,
+            ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),
             ...(thirdPartyVisibleEnableExpectBlockedProbeRequested
               || thirdPartyVisibleUpgradeExpectBlockedProbeRequested
               ? { expectBlocked: true }

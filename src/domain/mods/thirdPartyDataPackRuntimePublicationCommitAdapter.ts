@@ -3,6 +3,7 @@ import { createDiagnostic, type ModDiagnostic, type ModDiagnosticSeverity } from
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
 import type { ThirdPartyDataPackRuntimeCommandId } from './thirdPartyDataPackRuntimeCommandState'
+import { runtimeCommandTargetPackageId } from './thirdPartyDataPackRuntimeCommandState'
 import type {
   ThirdPartyCandidateIdentitySummary,
   ThirdPartyCandidateOfficialIdentitySummary
@@ -101,6 +102,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAdapterEffectSummary 
 export interface ThirdPartyDataPackRuntimePublicationCommitAdapterResult {
   readonly status: ThirdPartyDataPackRuntimePublicationCommitAdapterStatus
   readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
+  readonly targetPackageId?: PackageId
   readonly runtimePublicationPreflightStatus: ThirdPartyDataPackRuntimePublicationPreflightResult['status']
   readonly transactionPreCommitPlanStatus: ThirdPartyDataPackTransactionPreCommitPlanResult['status']
   readonly liveRegistrySwapProtectionStatus: ThirdPartyDataPackLiveRegistrySwapProtectionResult['status']
@@ -135,6 +137,7 @@ export interface BuildThirdPartyDataPackRuntimePublicationCommitAdapterOptions
   readonly transactionPreCommitPlan?: ThirdPartyDataPackTransactionPreCommitPlanResult
   readonly liveRegistrySwapProtection?: ThirdPartyDataPackLiveRegistrySwapProtectionResult
   readonly publicationRollbackRecovery?: ThirdPartyDataPackPublicationRollbackRecoveryResult
+  readonly targetPackageId?: PackageId
 }
 
 const createEffectSummary = (): ThirdPartyDataPackRuntimePublicationCommitAdapterEffectSummary => ({
@@ -709,19 +712,28 @@ const baseResult = (
   commitChecks: readonly ThirdPartyDataPackRuntimePublicationCommitAdapterCheck[],
   diagnostics: readonly ModDiagnostic[],
   commitStages: readonly ThirdPartyDataPackRuntimePublicationCommitStage[],
-  includeRequiredAdapters: boolean
+  includeRequiredAdapters: boolean,
+  explicitTargetPackageId?: PackageId
 ): ThirdPartyDataPackRuntimePublicationCommitAdapterResult => {
   const selectedPackageIds = clonePackageIds(recovery.selectedPackageIds)
   const blockedPackageIds = clonePackageIds(recovery.blockedPackageIds)
   const blockedCandidatePaths = cloneStringList(recovery.blockedCandidatePaths)
   const loadOrder = clonePackageIds(recovery.loadOrder)
+  const requestedCommandId = selectedPackageIds.length > 0
+    ? 'install'
+    : blockedPackageIds.length > 0
+      ? 'disable'
+      : undefined
+  const targetPackageId = runtimeCommandTargetPackageId(
+    requestedCommandId,
+    selectedPackageIds,
+    blockedPackageIds,
+    explicitTargetPackageId
+  )
   return freezeResult({
     status,
-    requestedCommandId: selectedPackageIds.length > 0
-      ? 'install'
-      : blockedPackageIds.length > 0
-        ? 'disable'
-        : undefined,
+    requestedCommandId,
+    ...(targetPackageId === undefined ? {} : { targetPackageId }),
     runtimePublicationPreflightStatus: runtimePublicationPreflight.status,
     transactionPreCommitPlanStatus: preCommitPlan.status,
     liveRegistrySwapProtectionStatus: liveRegistrySwapProtection.status,
@@ -792,7 +804,8 @@ export const buildThirdPartyDataPackRuntimePublicationCommitAdapter = (
       skippedChecks(reason),
       [],
       terminalStages('skipped', reason),
-      false
+      false,
+      options.targetPackageId
     )
   }
 
@@ -824,7 +837,8 @@ export const buildThirdPartyDataPackRuntimePublicationCommitAdapter = (
         ...cloneDiagnostics(publicationRollbackRecovery.diagnostics)
       ],
       terminalStages('blocked', reason),
-      false
+      false,
+      options.targetPackageId
     )
   }
 
@@ -852,7 +866,8 @@ export const buildThirdPartyDataPackRuntimePublicationCommitAdapter = (
         ...blockedDiagnostics
       ],
       terminalStages('blocked', 'runtime publication commit adapter inputs are inconsistent'),
-      false
+      false,
+      options.targetPackageId
     )
   }
 
@@ -871,6 +886,7 @@ export const buildThirdPartyDataPackRuntimePublicationCommitAdapter = (
       ...cloneDiagnostics(publicationRollbackRecovery.diagnostics)
     ],
     deferredStages(),
-    true
+    true,
+    options.targetPackageId
   )
 }

@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   normalizeThirdPartyDataPackRuntimeCommandAppStartupHandoff,
+  runtimeCommandTargetPackageId,
   type ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement
 } from '@/domain/mods/thirdPartyDataPackRuntimeCommandState'
+import type { PackageId } from '@/domain/mods/ids'
 
 describe('third-party data-pack runtime command state', () => {
   it('keeps legacy boolean acceptance separate from real mounted app-startup evidence', () => {
@@ -49,5 +51,23 @@ describe('third-party data-pack runtime command state', () => {
       piniaCreated: false,
       routerMounted: false
     })
+  })
+
+  it('uses the explicit target when install selection includes dependency packages first', () => {
+    const dependencyPackageId = 'a_dependency_pack' as PackageId
+    const targetPackageId = 'z_player_selected_pack' as PackageId
+
+    expect(runtimeCommandTargetPackageId(
+      'install',
+      [dependencyPackageId, targetPackageId],
+      [],
+      targetPackageId
+    )).toBe(targetPackageId)
+  })
+
+  it('falls back to the selected package for legacy install targets without explicit identity', () => {
+    const packageId = 'legacy_install_pack' as PackageId
+
+    expect(runtimeCommandTargetPackageId('install', [packageId], [])).toBe(packageId)
   })
 })

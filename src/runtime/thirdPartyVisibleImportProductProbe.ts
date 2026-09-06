@@ -25,6 +25,9 @@ const packageId = 'product_probe_pack' as PackageId
 const itemId = `${packageId}:linen_ribbon`
 const recipeId = `${packageId}:linen_ribbon_snack`
 const shopOfferId = `${packageId}:shop/wanwupu/linen_ribbon/0`
+const dependencyPackageId = 'a_product_probe_library' as PackageId
+const dependencyItemId = `${dependencyPackageId}:library_token`
+const dependencyItemNameFallback = 'Product Probe Library Token'
 const itemRegistryId = 'taoyuan:item'
 const recipeRegistryId = 'taoyuan:recipe'
 const shopOfferRegistryId = 'taoyuan:shop_offer'
@@ -72,11 +75,13 @@ export interface RunThirdPartyVisibleImportProductProbeOptions {
   readonly persistenceStore?: WebIndexedDbImportPersistenceStore | null
   readonly entrypoint?: VisibleImportProductProbeEntrypoint
   readonly operation?: VisibleImportProductProbeOperation
+  readonly includeDependency?: boolean
   readonly expectBlocked?: boolean
 }
 
 export interface RunThirdPartyVisibleDisableProductProbeOptions {
   readonly targetPackageId?: PackageId
+  readonly includeDependency?: boolean
   readonly expectBlocked?: boolean
 }
 
@@ -106,6 +111,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly fileCount: number
   readonly pickStatus: string
   readonly panelStatusLabels: ThirdPartyVisibleImportPanelStatusLabels
+  readonly dispatchReason: string | null
   readonly dispatchPreflightStatus: string | null
   readonly discoveryStatus: string | null
   readonly transactionCommandDispatcherHostKind: string | null
@@ -125,8 +131,10 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly runtimePublicationCommitAppStartupHostConnectionStatus: string | null
   readonly webStartupPersistentStateWriteStatus: string | null
   readonly electronStartupPersistentStateWriteStatus: string | null
+  readonly selectedPackageIds: readonly string[]
   readonly selectedPackageCount: number
   readonly blockedPackageCount: number
+  readonly loadOrder: readonly string[]
   readonly loadOrderCount: number
   readonly expectedPackageVersion?: string
   readonly registryCount?: number
@@ -139,6 +147,11 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly contentAccessRecipeVisibleAfter: boolean
   readonly contentAccessShopOfferVisibleBefore: boolean
   readonly contentAccessShopOfferVisibleAfter: boolean
+  readonly dependencyPackageId?: string
+  readonly dependencyItemId?: string
+  readonly dependencyItemNameFallback?: string
+  readonly contentAccessDependencyItemVisibleBefore?: boolean
+  readonly contentAccessDependencyItemVisibleAfter?: boolean
   readonly effects: {
     readonly commandDispatched: boolean
     readonly packageFilesWritten: boolean
@@ -272,6 +285,8 @@ interface VisibleDisableProbeExecution {
   readonly contentAccessRecipeVisibleAfter: boolean
   readonly contentAccessShopOfferVisibleBefore: boolean
   readonly contentAccessShopOfferVisibleAfter: boolean
+  readonly contentAccessDependencyItemVisibleBefore: boolean
+  readonly contentAccessDependencyItemVisibleAfter: boolean
   readonly blockedReason?: string
 }
 
@@ -332,6 +347,45 @@ const createManifest = (variant: VisibleImportProductProbePackageVariant = 'v1')
   }
 })
 
+const createDependencyManifest = () => ({
+  id: dependencyPackageId,
+  name: {
+    key: `${dependencyPackageId}.package.name`,
+    fallback: 'Product Probe Library'
+  },
+  version: '1.0.0',
+  gameVersion: CURRENT_GAME_VERSION,
+  engineApiVersion: '1',
+  contentSchemaVersion: '1',
+  defaultLocale: 'zh-CN',
+  locales: {
+    'zh-CN': 'locales/zh-CN.json'
+  },
+  authors: [
+    {
+      name: 'Product Probe',
+      role: 'developer'
+    }
+  ],
+  license: 'MIT',
+  dependencies: [],
+  entrypoints: {
+    [itemRegistryId]: ['data/items.json']
+  }
+})
+
+const createDependentAppManifest = (
+  variant: VisibleImportProductProbePackageVariant = 'v1'
+) => ({
+  ...createManifest(variant),
+  dependencies: [
+    {
+      id: dependencyPackageId,
+      version: '1.0.0'
+    }
+  ]
+})
+
 const createItem = (variant: VisibleImportProductProbePackageVariant = 'v1') => ({
   id: itemId,
   name: {
@@ -346,6 +400,22 @@ const createItem = (variant: VisibleImportProductProbePackageVariant = 'v1') => 
   sellPrice: 8,
   edible: false,
   tags: [`${packageId}:soft_gift`]
+})
+
+const createDependencyItem = () => ({
+  id: dependencyItemId,
+  name: {
+    key: `${dependencyPackageId}.item.library_token.name`,
+    fallback: dependencyItemNameFallback
+  },
+  category: 'gift',
+  description: {
+    key: `${dependencyPackageId}.item.library_token.description`,
+    fallback: 'Synthetic dependency item used by the packaged visible import runtime probe.'
+  },
+  sellPrice: 6,
+  edible: false,
+  tags: [`${dependencyPackageId}:soft_gift`]
 })
 
 const createRecipe = (variant: VisibleImportProductProbePackageVariant = 'v1') => ({
@@ -404,9 +474,20 @@ const createFile = (path: string, text: string): WebFilePickerImportFile => Obje
 })
 
 const createVisibleImportFiles = (
-  variant: VisibleImportProductProbePackageVariant = 'v1'
+  variant: VisibleImportProductProbePackageVariant = 'v1',
+  includeDependency = false
 ): readonly WebFilePickerImportFile[] => Object.freeze([
-  createFile('product-probe-pack/manifest.json', toJson(createManifest(variant))),
+  ...(includeDependency
+    ? [
+        createFile('a-product-probe-library/manifest.json', toJson(createDependencyManifest())),
+        createFile('a-product-probe-library/locales/zh-CN.json', '{}\n'),
+        createFile('a-product-probe-library/data/items.json', toJson([createDependencyItem()]))
+      ]
+    : []),
+  createFile(
+    'product-probe-pack/manifest.json',
+    toJson(includeDependency ? createDependentAppManifest(variant) : createManifest(variant))
+  ),
   createFile('product-probe-pack/locales/zh-CN.json', '{}\n'),
   createFile('product-probe-pack/data/items.json', toJson([createItem(variant)])),
   createFile('product-probe-pack/data/recipes.json', toJson([createRecipe(variant)])),
@@ -436,7 +517,8 @@ const hasReadyVisibleImportDispatch = (
   execution: VisibleImportProbeExecution,
   contentAccessItemVisibleAfter: boolean,
   contentAccessRecipeVisibleAfter: boolean,
-  contentAccessShopOfferVisibleAfter: boolean
+  contentAccessShopOfferVisibleAfter: boolean,
+  contentAccessDependencyItemVisibleAfter: boolean
 ): boolean => {
   const dispatchResult = execution.dispatchResult
   const enableTerminal = execution.enableTransactionResult?.terminal ?? null
@@ -578,6 +660,7 @@ const hasReadyVisibleImportDispatch = (
     && contentAccessItemVisibleAfter
     && contentAccessRecipeVisibleAfter
     && contentAccessShopOfferVisibleAfter
+    && contentAccessDependencyItemVisibleAfter
 }
 
 const createProbePersistenceStore = (
@@ -859,7 +942,7 @@ const runComposableImportProbe = async(
   const operation = options.operation ?? 'install'
   const variant = packageVariantForOperation(operation)
   const entry = useWebFilePickerImportEntry({
-    selectFiles: async() => createVisibleImportFiles(variant),
+    selectFiles: async() => createVisibleImportFiles(variant, options.includeDependency === true),
     persistenceStore: createProbePersistenceStore(options)
   })
 
@@ -896,7 +979,9 @@ const runMainMenuPanelImportProbe = async(
     || operation === 'failure'
     || (operation === 'upgrade' && options.expectBlocked === true)
   const probeWindow = window
-  const fileInputProbe = installDefaultFileInputProbeSelector(createVisibleImportFiles(variant))
+  const fileInputProbe = installDefaultFileInputProbeSelector(
+    createVisibleImportFiles(variant, options.includeDependency === true)
+  )
   let mainMenuPanelOpened = false
   let panelImportButtonClicked = false
   let dispatchResult: WebFilePickerSourceInstallCommandDispatchResult | null = null
@@ -1130,6 +1215,8 @@ const runMainMenuPanelDisableProbe = async(
   const contentAccessItemVisibleBefore = getOfficialItemDef(itemId) !== undefined
   const contentAccessRecipeVisibleBefore = getOfficialRecipeDef(recipeId) !== undefined
   const contentAccessShopOfferVisibleBefore = readProbeShopOfferNameFallback() !== undefined
+  const contentAccessDependencyItemVisibleBefore =
+    getOfficialItemDef(dependencyItemId) !== undefined
   let mainMenuPanelOpened = false
   let disableButtonClicked = false
   try {
@@ -1177,6 +1264,8 @@ const runMainMenuPanelDisableProbe = async(
     const contentAccessItemVisibleAfter = getOfficialItemDef(itemId) !== undefined
     const contentAccessRecipeVisibleAfter = getOfficialRecipeDef(recipeId) !== undefined
     const contentAccessShopOfferVisibleAfter = readProbeShopOfferNameFallback() !== undefined
+    const contentAccessDependencyItemVisibleAfter =
+      getOfficialItemDef(dependencyItemId) !== undefined
 
     return Object.freeze({
       transactionResult,
@@ -1195,7 +1284,9 @@ const runMainMenuPanelDisableProbe = async(
       contentAccessRecipeVisibleBefore,
       contentAccessRecipeVisibleAfter,
       contentAccessShopOfferVisibleBefore,
-      contentAccessShopOfferVisibleAfter
+      contentAccessShopOfferVisibleAfter,
+      contentAccessDependencyItemVisibleBefore,
+      contentAccessDependencyItemVisibleAfter
     })
   } catch (error) {
     const transactionResult = readPanelDisableResult(probeWindow)
@@ -1217,6 +1308,8 @@ const runMainMenuPanelDisableProbe = async(
       contentAccessRecipeVisibleAfter: getOfficialRecipeDef(recipeId) !== undefined,
       contentAccessShopOfferVisibleBefore,
       contentAccessShopOfferVisibleAfter: readProbeShopOfferNameFallback() !== undefined,
+      contentAccessDependencyItemVisibleBefore,
+      contentAccessDependencyItemVisibleAfter: getOfficialItemDef(dependencyItemId) !== undefined,
       blockedReason: toErrorMessage(error)
     })
   }
@@ -1327,6 +1420,9 @@ export const runThirdPartyVisibleImportProductProbe = async(
   const contentAccessItemVisibleBefore = getOfficialItemDef(itemId) !== undefined
   const contentAccessRecipeVisibleBefore = getOfficialRecipeDef(recipeId) !== undefined
   const contentAccessShopOfferVisibleBefore = readProbeShopOfferNameFallback() !== undefined
+  const contentAccessDependencyItemVisibleBefore = options.includeDependency === true
+    ? getOfficialItemDef(dependencyItemId) !== undefined
+    : true
   const execution = options.entrypoint === 'main-menu-panel'
     ? operation === 'enable'
       ? await runMainMenuPanelEnableProbe(options)
@@ -1336,16 +1432,21 @@ export const runThirdPartyVisibleImportProductProbe = async(
   const visibleItem = getOfficialItemDef(itemId)
   const visibleRecipe = getOfficialRecipeDef(recipeId)
   const visibleShopOfferNameFallback = readProbeShopOfferNameFallback()
+  const visibleDependencyItemNameFallback = getOfficialItemDef(dependencyItemId)?.name.fallback
   const contentAccessItemVisibleAfter = visibleItem?.name.fallback === fixture.itemNameFallback
   const contentAccessRecipeVisibleAfter =
     visibleRecipe?.name.fallback === fixture.recipeNameFallback
   const contentAccessShopOfferVisibleAfter =
     visibleShopOfferNameFallback === fixture.shopOfferNameFallback
+  const contentAccessDependencyItemVisibleAfter = options.includeDependency === true
+    ? visibleDependencyItemNameFallback === dependencyItemNameFallback
+    : true
   const status = hasReadyVisibleImportDispatch(
     execution,
     contentAccessItemVisibleAfter,
     contentAccessRecipeVisibleAfter,
-    contentAccessShopOfferVisibleAfter
+    contentAccessShopOfferVisibleAfter,
+    contentAccessDependencyItemVisibleAfter
   )
     ? 'ready'
     : 'blocked'
@@ -1457,6 +1558,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
     fileCount: execution.fileCount,
     pickStatus: execution.pickStatus,
     panelStatusLabels: execution.panelStatusLabels,
+    dispatchReason: dispatchResult?.reason ?? null,
     dispatchPreflightStatus: dispatchResult?.status ?? null,
     discoveryStatus: dispatchResult?.discoveryStatus ?? null,
     transactionCommandDispatcherHostKind: dispatchResult?.transactionCommandDispatcherHostKind ?? null,
@@ -1492,8 +1594,10 @@ export const runThirdPartyVisibleImportProductProbe = async(
       dispatchResult?.webStartupPersistentStateWriteStatus ?? null,
     electronStartupPersistentStateWriteStatus:
       dispatchResult?.electronStartupPersistentStateWriteStatus ?? null,
+    selectedPackageIds: enableTerminal?.selectedPackageIds ?? dispatchResult?.selectedPackageIds ?? Object.freeze([]),
     selectedPackageCount: enableTerminal?.selectedPackageIds.length ?? dispatchResult?.selectedPackageIds.length ?? 0,
     blockedPackageCount: enableTerminal?.blockedPackageIds.length ?? dispatchResult?.preflight?.blockedPackageIds.length ?? 0,
+    loadOrder: enableTerminal?.loadOrder ?? dispatchResult?.loadOrder ?? Object.freeze([]),
     loadOrderCount: enableTerminal?.loadOrder.length ?? dispatchResult?.loadOrder.length ?? 0,
     expectedPackageVersion: fixture.version,
     registryCount: enableTerminal?.registryCount ?? dispatchResult?.preflight?.registryCount,
@@ -1508,6 +1612,17 @@ export const runThirdPartyVisibleImportProductProbe = async(
     contentAccessRecipeVisibleAfter,
     contentAccessShopOfferVisibleBefore,
     contentAccessShopOfferVisibleAfter,
+    ...(options.includeDependency === true
+      ? {
+          dependencyPackageId,
+          dependencyItemId,
+          ...(visibleDependencyItemNameFallback === undefined
+            ? {}
+            : { dependencyItemNameFallback: visibleDependencyItemNameFallback }),
+          contentAccessDependencyItemVisibleBefore,
+          contentAccessDependencyItemVisibleAfter
+        }
+      : {}),
     ...(operation === 'enable'
       ? {
           enableTerminalStatus: enableTerminal?.status ?? null,
@@ -1552,6 +1667,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     && !execution.contentAccessItemVisibleAfter
     && !execution.contentAccessRecipeVisibleAfter
     && !execution.contentAccessShopOfferVisibleAfter
+    && (options.includeDependency !== true || !execution.contentAccessDependencyItemVisibleAfter)
   const status = ready ? 'ready' : 'blocked'
 
   return Object.freeze({
@@ -1584,6 +1700,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     fileCount: 0,
     pickStatus: 'not-run',
     panelStatusLabels: execution.panelStatusLabels,
+    dispatchReason: null,
     dispatchPreflightStatus: null,
     discoveryStatus: null,
     transactionCommandDispatcherHostKind: null,
@@ -1603,8 +1720,10 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     runtimePublicationCommitAppStartupHostConnectionStatus: null,
     webStartupPersistentStateWriteStatus: null,
     electronStartupPersistentStateWriteStatus: null,
+    selectedPackageIds: terminal?.selectedPackageIds ?? Object.freeze([]),
     selectedPackageCount: terminal?.selectedPackageIds.length ?? 0,
     blockedPackageCount: terminal?.blockedPackageIds.length ?? 0,
+    loadOrder: terminal?.loadOrder ?? Object.freeze([]),
     loadOrderCount: terminal?.loadOrder.length ?? 0,
     registryCount: terminal?.registryCount,
     entryCount: terminal?.entryCount,
@@ -1618,6 +1737,17 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     contentAccessRecipeVisibleAfter: execution.contentAccessRecipeVisibleAfter,
     contentAccessShopOfferVisibleBefore: execution.contentAccessShopOfferVisibleBefore,
     contentAccessShopOfferVisibleAfter: execution.contentAccessShopOfferVisibleAfter,
+    ...(options.includeDependency === true
+      ? {
+          dependencyPackageId,
+          dependencyItemId,
+          dependencyItemNameFallback,
+          contentAccessDependencyItemVisibleBefore:
+            execution.contentAccessDependencyItemVisibleBefore,
+          contentAccessDependencyItemVisibleAfter:
+            execution.contentAccessDependencyItemVisibleAfter
+        }
+      : {}),
     disableTerminalStatus: terminal?.status ?? null,
     disableTargetPackageId: terminal?.targetPackageId ?? null,
     disableSelectedPackageCount: terminal?.selectedPackageIds.length ?? 0,
@@ -1712,6 +1842,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     fileCount: 0,
     pickStatus: 'not-run',
     panelStatusLabels: execution.panelStatusLabels,
+    dispatchReason: null,
     dispatchPreflightStatus: null,
     discoveryStatus: null,
     transactionCommandDispatcherHostKind: null,
@@ -1731,8 +1862,10 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     runtimePublicationCommitAppStartupHostConnectionStatus: null,
     webStartupPersistentStateWriteStatus: null,
     electronStartupPersistentStateWriteStatus: null,
+    selectedPackageIds: terminal?.selectedPackageIds ?? Object.freeze([]),
     selectedPackageCount: terminal?.selectedPackageIds.length ?? 0,
     blockedPackageCount: terminal?.blockedPackageIds.length ?? 0,
+    loadOrder: terminal?.loadOrder ?? Object.freeze([]),
     loadOrderCount: terminal?.loadOrder.length ?? 0,
     registryCount: terminal?.registryCount,
     entryCount: terminal?.entryCount,

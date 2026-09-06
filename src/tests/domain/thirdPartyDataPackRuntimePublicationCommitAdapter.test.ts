@@ -399,6 +399,32 @@ describe('third-party data pack runtime publication commit adapter', () => {
     expect(JSON.stringify(commitAdapter)).toBe(frozenOutputSnapshot)
   })
 
+  it('preserves an explicit install target when dependency packages are selected first', () => {
+    const dependencyPackageId = requirePackageId('a_dependency_pack')
+    const targetPackageId = requirePackageId('z_player_selected_pack')
+    const dependencyFirstSelection = {
+      selectedPackageIds: [dependencyPackageId, targetPackageId],
+      loadOrder: [dependencyPackageId, targetPackageId],
+      packageCount: 2
+    }
+
+    const commitAdapter = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
+      runtimePublicationPreflight: createRuntimePublicationPreflight(dependencyFirstSelection),
+      transactionPreCommitPlan: createTransactionPreCommitPlan(dependencyFirstSelection),
+      liveRegistrySwapProtection: createLiveRegistrySwapProtection(dependencyFirstSelection),
+      publicationRollbackRecovery: createPublicationRollbackRecovery(dependencyFirstSelection),
+      targetPackageId
+    } as never)
+
+    expect(commitAdapter.status).toBe('deferred')
+    expect(commitAdapter.requestedCommandId).toBe('install')
+    expect(commitAdapter.targetPackageId).toBe(targetPackageId)
+    expect(commitAdapter.selectedPackageIds).toEqual([dependencyPackageId, targetPackageId])
+    expect(commitAdapter.loadOrder).toEqual([dependencyPackageId, targetPackageId])
+    expectNoWriteEffects(commitAdapter)
+    expectJsonGraphFrozen(commitAdapter)
+  })
+
   it('skips runtime publication commit when no third-party packages are selected', () => {
     const commitAdapter = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
       runtimePublicationPreflight: createRuntimePublicationPreflight({

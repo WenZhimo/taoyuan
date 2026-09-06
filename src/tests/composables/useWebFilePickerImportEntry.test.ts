@@ -67,7 +67,11 @@ type JsonObject = Record<string, unknown>
 
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
 
-const createManifest = (packageId = 'web_entry', version = '1.0.0'): JsonObject => ({
+const createManifest = (
+  packageId = 'web_entry',
+  version = '1.0.0',
+  dependencies: readonly JsonObject[] = []
+): JsonObject => ({
   id: packageId,
   name: { key: `${packageId}.package.name`, fallback: packageId },
   version,
@@ -78,7 +82,7 @@ const createManifest = (packageId = 'web_entry', version = '1.0.0'): JsonObject 
   locales: { 'zh-CN': 'locales/zh-CN.json' },
   authors: [{ name: 'Web Entry Tester', role: 'developer' }],
   license: 'MIT',
-  dependencies: [],
+  dependencies,
   entrypoints: { 'taoyuan:item': ['data/items.json'] }
 })
 
@@ -112,6 +116,26 @@ const createValidFiles = (
   createFile('valid-gift-pack/locales/zh-CN.json', '{}\n'),
   createFile('valid-gift-pack/data/items.json', toJson([
     createItem(`${packageId}:linen_ribbon`, options.itemNameFallback)
+  ]))
+]
+
+const dependencyPackageId = requirePackageId('a_library')
+const dependentAppPackageId = requirePackageId('z_app')
+
+const createValidDependencyFiles = (): readonly WebFilePickerImportFile[] => [
+  createFile('a-library/manifest.json', toJson(createManifest(dependencyPackageId))),
+  createFile('a-library/locales/zh-CN.json', '{}\n'),
+  createFile('a-library/data/items.json', toJson([
+    createItem(`${dependencyPackageId}:linen_ribbon`, 'Library Ribbon')
+  ])),
+  createFile('z-app/manifest.json', toJson(createManifest(
+    dependentAppPackageId,
+    '1.0.0',
+    [{ id: dependencyPackageId, version: '1.0.0' }]
+  ))),
+  createFile('z-app/locales/zh-CN.json', '{}\n'),
+  createFile('z-app/data/items.json', toJson([
+    createItem(`${dependentAppPackageId}:linen_ribbon`, 'App Ribbon')
   ]))
 ]
 
@@ -1478,6 +1502,27 @@ describe('useWebFilePickerImportEntry', () => {
     expect(entry.runtimeBoundaryClosed.value).toBe(true)
   })
 
+  it('auto-targets the dependent app package while preserving dependency-first load order', async() => {
+    const entry = useWebFilePickerImportEntry({
+      selectFiles: vi.fn(async() => createValidDependencyFiles())
+    })
+
+    await entry.pickFiles()
+    const preflightResult = await entry.prepareInstallCommandPreflightFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+    })
+
+    expect(preflightResult.status).toBe('deferred')
+    expect(preflightResult.selectedPackageIds).toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(preflightResult.loadOrder).toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(preflightResult.preflight?.targetPackageId).toBe(dependentAppPackageId)
+    expect(preflightResult.preflight?.selectedPackageIds).toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(preflightResult.preflight?.loadOrder).toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(preflightResult.preflight?.preflightChecks.every(check => check.status === 'satisfied')).toBe(true)
+    expect(entry.runtimeBoundaryClosed.value).toBe(true)
+  })
+
   it('dispatches a source-derived install command through the path-free dispatcher boundary', async() => {
     const entry = useWebFilePickerImportEntry({
       selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId))
@@ -1862,6 +1907,85 @@ describe('useWebFilePickerImportEntry', () => {
       expect(JSON.stringify(dispatchThirdPartyDataPackInstallCommand.mock.calls[0]?.[0])).not.toContain('C:/Users')
       expect(JSON.stringify(continuationEnvelope)).not.toContain('C:/Users')
       expect(JSON.stringify(continuationEnvelope)).not.toContain('LENOVO')
+      expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
+    } finally {
+      restoreElectronApi()
+    }
+  })
+
+  it('sends the complete dependency package payload through the renderer ordinary continuation', async() => {
+    const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+    ) => createDispatchedHostResult(envelope))
+    const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+    ) => createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope))
+    const restoreElectronApi = withWindowElectronApi({
+      dispatchThirdPartyDataPackInstallCommand,
+      continueThirdPartyDataPackOrdinaryInstallTerminal
+    })
+    const entry = useWebFilePickerImportEntry({
+      selectFiles: vi.fn(async() => createValidDependencyFiles())
+    })
+
+    try {
+      await entry.pickFiles()
+      const dispatchResult = await entry.dispatchInstallCommandFromSource({
+        confirmed: true,
+        officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+        mountedAppStartupHostEvidence
+      })
+      const continuationEnvelope = continueThirdPartyDataPackOrdinaryInstallTerminal.mock.calls[0]?.[0]
+
+      expect(dispatchThirdPartyDataPackInstallCommand).toHaveBeenCalledOnce()
+      expect(continueThirdPartyDataPackOrdinaryInstallTerminal).toHaveBeenCalledOnce()
+      expect(dispatchThirdPartyDataPackInstallCommand.mock.calls[0]?.[0]).toMatchObject({
+        requestedCommandId: 'install',
+        targetPackageId: dependentAppPackageId,
+        selectedPackageIds: [dependencyPackageId, dependentAppPackageId],
+        loadOrder: [dependencyPackageId, dependentAppPackageId],
+        registryCount: 54,
+        entryCount: 4244,
+        packageCount: 2
+      })
+      expect(continuationEnvelope?.transactionCommandDispatcherHandoff).toMatchObject({
+        requestedCommandId: 'install',
+        targetPackageId: dependentAppPackageId,
+        selectedPackageIds: [dependencyPackageId, dependentAppPackageId],
+        loadOrder: [dependencyPackageId, dependentAppPackageId],
+        packageCount: 2
+      })
+      expect(continuationEnvelope?.lockfileDraft.packages.map(pkg => pkg.packageId))
+        .toEqual([dependencyPackageId, dependentAppPackageId])
+      expect(continuationEnvelope?.lockfileDraft.packages[1]?.resolvedDependencies)
+        .toEqual([dependencyPackageId])
+      expect(continuationEnvelope?.packageFilePayload.map(file => [
+        file.packageId,
+        file.packagePath,
+        file.path
+      ])).toEqual([
+        [dependencyPackageId, 'a-library', 'manifest.json'],
+        [dependencyPackageId, 'a-library', 'data/items.json'],
+        [dependentAppPackageId, 'z-app', 'manifest.json'],
+        [dependentAppPackageId, 'z-app', 'data/items.json']
+      ])
+      expect(dispatchResult.preflight?.targetPackageId).toBe(dependentAppPackageId)
+      expect(dispatchResult.selectedPackageIds).toEqual([dependencyPackageId, dependentAppPackageId])
+      expect(dispatchResult.loadOrder).toEqual([dependencyPackageId, dependentAppPackageId])
+      expect(dispatchResult.installCommandPostCommitAcknowledgementStatus).toBe('ready')
+      expect(dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus).toBe('ready')
+      expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
+      expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).toBe('accepted')
+      expect(dispatchResult.runtimePublicationCommitAppStartupHostConnection?.targetPackageId)
+        .toBe(dependentAppPackageId)
+      expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('written')
+      expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(true)
+      expect(dispatchResult.runtimeEnablementAllowed).toBe(true)
+      expect(getOfficialItemDef(`${dependencyPackageId}:linen_ribbon`)?.name.fallback)
+        .toBe('Library Ribbon')
+      expect(getOfficialItemDef(`${dependentAppPackageId}:linen_ribbon`)?.name.fallback)
+        .toBe('App Ribbon')
+      expect(JSON.stringify(continuationEnvelope)).not.toContain('C:/Users')
       expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
     } finally {
       restoreElectronApi()
@@ -2465,6 +2589,65 @@ describe('useWebFilePickerImportEntry', () => {
     expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)?.name.fallback)
       .toBe(`${webEntryPackageId}:linen_ribbon`)
     expect(entry.runtimeBoundaryClosed.value).toBe(true)
+    expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
+  })
+
+  it('preserves the top-level target while committing a dependency-first Web ordinary install', async() => {
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const selectFiles = vi.fn(async() => createValidDependencyFiles())
+    const entry = useWebFilePickerImportEntry({
+      selectFiles,
+      persistenceStore: store,
+      webSettingsLockfileStore,
+      webInstallTransactionLogStore
+    })
+
+    await entry.pickFiles()
+    await entry.reset()
+    const restoreResult = await entry.restorePersistedImport()
+    const dispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      mountedAppStartupHostEvidence
+    })
+    const readSettingsLockfile = await webSettingsLockfileStore.read()
+
+    expect(selectFiles).toHaveBeenCalledTimes(1)
+    expect(restoreResult.status).toBe('restored')
+    expect(restoreResult.fileCount).toBe(6)
+    expect(dispatchResult.preflight?.targetPackageId).toBe(dependentAppPackageId)
+    expect(dispatchResult.selectedPackageIds).toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(dispatchResult.loadOrder).toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(dispatchResult.installCommandPostCommitAcknowledgementStatus).toBe('ready')
+    expect(dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus).toBe('ready')
+    expect(dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus).toBe('accepted')
+    expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
+    expect(dispatchResult.runtimePublicationCommitAppStartupReadinessStatus).toBe('ready')
+    expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).toBe('accepted')
+    expect(dispatchResult.runtimePublicationCommitAfterPostCommitVerification?.targetPackageId)
+      .toBe(dependentAppPackageId)
+    expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnection?.targetPackageId)
+      .toBe(dependentAppPackageId)
+    expect(dispatchResult.runtimePublicationCommitAppStartupHostConnection?.targetPackageId)
+      .toBe(dependentAppPackageId)
+    expect(dispatchResult.webStartupPersistentStateWriteStatus).toBe('written')
+    expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(true)
+    expect(dispatchResult.runtimeEnablementAllowed).toBe(true)
+    expect(readSettingsLockfile.record).toMatchObject({
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      targetPackageId: dependentAppPackageId,
+      selectedPackageIds: [dependencyPackageId, dependentAppPackageId],
+      loadOrder: [dependencyPackageId, dependentAppPackageId]
+    })
+    expect(readSettingsLockfile.record?.lockfileDraft.packages.map(pkg => pkg.packageId))
+      .toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(getOfficialItemDef(`${dependencyPackageId}:linen_ribbon`)?.name.fallback)
+      .toBe('Library Ribbon')
+    expect(getOfficialItemDef(`${dependentAppPackageId}:linen_ribbon`)?.name.fallback)
+      .toBe('App Ribbon')
     expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
     expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
   })

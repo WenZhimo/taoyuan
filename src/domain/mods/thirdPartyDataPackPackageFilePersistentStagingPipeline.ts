@@ -5,7 +5,8 @@ import type {
   ThirdPartyDataPackAtomicTransactionCommitExecutorPreflightResult
 } from './thirdPartyDataPackAtomicTransactionCommitExecutorPreflight'
 import type {
-  ThirdPartyDataPackLockfileDraft
+  ThirdPartyDataPackLockfileDraft,
+  ThirdPartyDataPackLockfileDraftPackage
 } from './thirdPartyDataPackLockfileDraft'
 import {
   runThirdPartyDataPackPackageFilePersistentWriteProbe,
@@ -323,17 +324,79 @@ const blockedHostResult = (
   effects: stagingHostEffects(false)
 })
 
+const packageEnvelopeFor = (
+  envelope: ThirdPartyDataPackPackageFileStagingHostEnvelope,
+  packageId: PackageId
+): ThirdPartyDataPackPackageFileStagingHostEnvelope =>
+  packageId === envelope.targetPackageId
+    ? envelope
+    : deepFreezeObjectGraph({
+        ...envelope,
+        targetPackageId: packageId
+      })
+
+const packagePayloadScopeMatches = (
+  file: ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile,
+  packageDraft: ThirdPartyDataPackLockfileDraftPackage
+): boolean => {
+  const hasPackageScope = file.packageId !== undefined || file.packagePath !== undefined
+  if (!hasPackageScope) return true
+  return file.packageId === packageDraft.packageId
+    || file.packagePath === packageDraft.source.candidatePath
+}
+
+const packagePayloadFor = (
+  files: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[],
+  packageDraft: ThirdPartyDataPackLockfileDraftPackage
+): readonly ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[] =>
+  Object.freeze(files
+    .filter(file => packagePayloadScopeMatches(file, packageDraft))
+    .map(file => Object.freeze({
+      path: file.path,
+      contents: file.contents,
+      sha256: file.sha256
+    })))
+
+const selectedPackageDrafts = (
+  draft: ThirdPartyDataPackLockfileDraft,
+  envelope: ThirdPartyDataPackPackageFileStagingHostEnvelope
+): readonly ThirdPartyDataPackLockfileDraftPackage[] => {
+  const selectedPackageIds = new Set(envelope.selectedPackageIds)
+  const packages = draft.packages.filter(pkg => selectedPackageIds.has(pkg.packageId))
+  return Object.freeze(packages.length > 0
+    ? packages
+    : draft.packages.filter(pkg => pkg.packageId === envelope.targetPackageId))
+}
+
+const aggregateProbeStatus = (
+  probeResults: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeResult[]
+): ThirdPartyDataPackPackageFilePersistentWriteProbeResult['status'] | undefined => {
+  if (probeResults.length === 0) return undefined
+  if (probeResults.some(result => result.status === 'failed')) return 'failed'
+  if (probeResults.some(result => result.status === 'blocked')) return 'blocked'
+  if (probeResults.some(result => result.status === 'deferred')) return 'deferred'
+  if (probeResults.some(result => result.status === 'skipped')) return 'skipped'
+  return 'written'
+}
+
+const aggregatePackageFileWriteProbe = (
+  probeResults: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeResult[]
+): ThirdPartyDataPackPackageFilePersistentWriteProbeResult['packageFileWriteProbe'] =>
+  probeResults.length > 0 && probeResults.every(result => result.packageFileWriteProbe === 'written')
+    ? 'written'
+    : 'deferred'
+
 const effectSummary = (
   options: {
     readonly stagingResult?: ThirdPartyDataPackPackageFileStagingSourceResult
-    readonly probeResult?: ThirdPartyDataPackPackageFilePersistentWriteProbeResult
+    readonly probeResults?: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeResult[]
     readonly continuationAllowed: boolean
   }
 ): ThirdPartyDataPackPackageFilePersistentStagingPipelineEffectSummary => ({
   packageFilePersistentStagingPipelineCalled: true,
   packageFileStagingSourceCalled: options.stagingResult?.effects.packageFileStagingSourceCalled ?? false,
   atomicCommitPreflightSourceCalled: options.stagingResult?.effects.atomicCommitPreflightSourceCalled ?? false,
-  packageFilePersistentWriteProbeCalled: options.probeResult !== undefined,
+  packageFilePersistentWriteProbeCalled: (options.probeResults?.length ?? 0) > 0,
   injectedPackageFileStagingHostCalled: options.stagingResult?.effects.injectedPackageFileStagingHostCalled ?? false,
   packageFileStagingHostAccepted: options.stagingResult?.effects.packageFileStagingHostAccepted ?? false,
   commandContinuationAllowed: options.continuationAllowed,
@@ -350,8 +413,8 @@ const effectSummary = (
   runtimePublicationCommitted: false,
   postCommitVerificationExecuted: false,
   uiIpcResponseDelivered: false,
-  packageFilesWritten: options.probeResult?.effects.packageFilesWritten ?? false,
-  packageBackupsWritten: options.probeResult?.effects.packageBackupsWritten ?? false,
+  packageFilesWritten: options.probeResults?.some(result => result.effects.packageFilesWritten) ?? false,
+  packageBackupsWritten: options.probeResults?.some(result => result.effects.packageBackupsWritten) ?? false,
   packageFilesRestored: false,
   lockfileWritten: false,
   lockfileRestored: false,
@@ -372,15 +435,17 @@ const baseResult = (
     readonly reason: string
     readonly enabled: boolean
     readonly stagingResult?: ThirdPartyDataPackPackageFileStagingSourceResult
-    readonly probeResult?: ThirdPartyDataPackPackageFilePersistentWriteProbeResult
+    readonly probeResults?: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeResult[]
     readonly diagnostics?: readonly ModDiagnostic[]
   }
 ): ThirdPartyDataPackPackageFilePersistentStagingPipelineResult => {
   const stagingResult = options.stagingResult
-  const probeResult = options.probeResult
+  const probeResults = Object.freeze([...(options.probeResults ?? [])])
+  const firstProbeResult = probeResults[0]
+  const writtenFiles = Object.freeze(probeResults.flatMap(result => [...result.writtenFiles]))
   const continuationAllowed = options.status === 'written'
     || (options.status === 'skipped' && options.enabled === false)
-  const writtenFiles = Object.freeze([...(probeResult?.writtenFiles ?? [])])
+  const probeStatus = aggregateProbeStatus(probeResults)
   return deepFreezeObjectGraph({
     kind: THIRD_PARTY_DATA_PACK_PACKAGE_FILE_PERSISTENT_STAGING_PIPELINE_KIND,
     mode: THIRD_PARTY_DATA_PACK_PACKAGE_FILE_PERSISTENT_STAGING_PIPELINE_MODE,
@@ -388,31 +453,31 @@ const baseResult = (
     reason: options.reason,
     enabled: options.enabled,
     packageFileStagingSourceStatus: stagingResult?.status,
-    packageFilePersistentWriteProbeStatus: probeResult?.status,
+    packageFilePersistentWriteProbeStatus: probeStatus,
     requestedCommandId: stagingResult?.requestedCommandId === 'install' ? 'install' : undefined,
-    targetPackageId: stagingResult?.targetPackageId ?? probeResult?.targetPackageId,
-    selectedPackageIds: clonePackageIds(stagingResult?.selectedPackageIds ?? probeResult?.selectedPackageIds),
-    blockedPackageIds: clonePackageIds(stagingResult?.blockedPackageIds ?? probeResult?.blockedPackageIds),
-    loadOrder: clonePackageIds(stagingResult?.loadOrder ?? probeResult?.loadOrder),
-    registryCount: stagingResult?.registryCount ?? probeResult?.registryCount ?? 54,
-    entryCount: stagingResult?.entryCount ?? probeResult?.entryCount ?? 4242,
-    packageCount: stagingResult?.packageCount ?? probeResult?.packageCount ?? 0,
-    candidateHash: stagingResult?.candidateIdentity?.candidateHash ?? probeResult?.candidateIdentity?.candidateHash,
-    lockfileHash: stagingResult?.lockfileHash ?? probeResult?.lockfileHash,
-    packageFileWriteProbe: probeResult?.packageFileWriteProbe ?? 'deferred',
-    writeProbeAllowed: probeResult?.writeProbeAllowed ?? false,
-    persistentWriteExecuted: probeResult?.persistentWriteExecuted ?? false,
-    writtenFileCount: probeResult?.writtenFileCount ?? 0,
-    backedUpFileCount: probeResult?.backedUpFileCount ?? 0,
+    targetPackageId: stagingResult?.targetPackageId ?? firstProbeResult?.targetPackageId,
+    selectedPackageIds: clonePackageIds(stagingResult?.selectedPackageIds ?? firstProbeResult?.selectedPackageIds),
+    blockedPackageIds: clonePackageIds(stagingResult?.blockedPackageIds ?? firstProbeResult?.blockedPackageIds),
+    loadOrder: clonePackageIds(stagingResult?.loadOrder ?? firstProbeResult?.loadOrder),
+    registryCount: stagingResult?.registryCount ?? firstProbeResult?.registryCount ?? 54,
+    entryCount: stagingResult?.entryCount ?? firstProbeResult?.entryCount ?? 4242,
+    packageCount: stagingResult?.packageCount ?? firstProbeResult?.packageCount ?? 0,
+    candidateHash: stagingResult?.candidateIdentity?.candidateHash ?? firstProbeResult?.candidateIdentity?.candidateHash,
+    lockfileHash: stagingResult?.lockfileHash ?? firstProbeResult?.lockfileHash,
+    packageFileWriteProbe: aggregatePackageFileWriteProbe(probeResults),
+    writeProbeAllowed: probeResults.some(result => result.writeProbeAllowed),
+    persistentWriteExecuted: probeResults.length > 0 && probeResults.every(result => result.persistentWriteExecuted),
+    writtenFileCount: writtenFiles.length,
+    backedUpFileCount: writtenFiles.filter(file => file.backedUp).length,
     writtenFiles,
     diagnostics: cloneDiagnostics([
       ...(options.diagnostics ?? []),
       ...(stagingResult?.diagnostics ?? []),
-      ...(probeResult?.diagnostics ?? [])
+      ...probeResults.flatMap(result => [...result.diagnostics])
     ]),
     effects: effectSummary({
       stagingResult,
-      probeResult,
+      probeResults,
       continuationAllowed
     })
   })
@@ -445,21 +510,29 @@ export const createThirdPartyDataPackPackageFilePersistentStagingPipeline = (
     })
   }
 
-  let probeResult: ThirdPartyDataPackPackageFilePersistentWriteProbeResult | undefined
+  let probeResults: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeResult[] | undefined
   const readPackageFileStagingSource = createThirdPartyDataPackPackageFileStagingSource({
     enabled: true,
     readAtomicCommitPreflight: options.readAtomicCommitPreflight,
     stagePackageFiles: async envelope => {
       try {
         const draft = await options.readLockfileDraft!(envelope)
-        const files = await options.readPackageFilePayload!(envelope)
-        probeResult = await runThirdPartyDataPackPackageFilePersistentWriteProbe({
-          envelope,
-          draft,
-          files,
-          storage: options.storage!,
-          allowPersistentWriteProbe: options.allowPersistentWriteProbe === true
-        })
+        const currentProbeResults: ThirdPartyDataPackPackageFilePersistentWriteProbeResult[] = []
+        for (const packageDraft of selectedPackageDrafts(draft, envelope)) {
+          const packageEnvelope = packageEnvelopeFor(envelope, packageDraft.packageId)
+          const files = packagePayloadFor(
+            await options.readPackageFilePayload!(packageEnvelope),
+            packageDraft
+          )
+          currentProbeResults.push(await runThirdPartyDataPackPackageFilePersistentWriteProbe({
+            envelope: packageEnvelope,
+            draft,
+            files,
+            storage: options.storage!,
+            allowPersistentWriteProbe: options.allowPersistentWriteProbe === true
+          }))
+        }
+        probeResults = Object.freeze(currentProbeResults)
       } catch {
         return blockedHostResult(envelope, [
           commandDiagnostic(
@@ -469,13 +542,14 @@ export const createThirdPartyDataPackPackageFilePersistentStagingPipeline = (
         ])
       }
 
-      if (probeResult.status === 'written') {
+      if (probeResults.length > 0 && probeResults.every(result => result.status === 'written')) {
         return acceptedHostResult(envelope)
       }
 
+      const status = aggregateProbeStatus(probeResults) ?? 'blocked'
       return blockedHostResult(envelope, [
         commandDiagnostic(
-          `third-party.package-file-persistent-staging-pipeline.probe-${probeResult.status}`,
+          `third-party.package-file-persistent-staging-pipeline.probe-${status}`,
           envelope.targetPackageId
         )
       ])
@@ -484,13 +558,13 @@ export const createThirdPartyDataPackPackageFilePersistentStagingPipeline = (
 
   try {
     const stagingResult = await readPackageFileStagingSource()
-    if (stagingResult.status === 'accepted' && probeResult?.status === 'written') {
+    if (stagingResult.status === 'accepted' && probeResults?.every(result => result.status === 'written')) {
       return baseResult({
         status: 'written',
-        reason: 'package file staging source accepted a persistent package-file write probe acknowledgement',
+        reason: 'package file staging source accepted persistent package-file write probe acknowledgements for selected packages',
         enabled: true,
         stagingResult,
-        probeResult
+        probeResults
       })
     }
 
@@ -499,18 +573,19 @@ export const createThirdPartyDataPackPackageFilePersistentStagingPipeline = (
       reason: 'package file persistent staging pipeline did not reach an accepted persistent write acknowledgement',
       enabled: true,
       stagingResult,
-      probeResult
+      probeResults
     })
   } catch (error) {
     const stagingResult = error instanceof ThirdPartyDataPackPackageFileStagingBlockedError
       ? error.result
       : undefined
+    const status = aggregateProbeStatus(probeResults ?? [])
     return baseResult({
-      status: probeResult?.status === 'failed' ? 'failed' : probeResult?.status === 'deferred' ? 'deferred' : 'blocked',
+      status: status === 'failed' ? 'failed' : status === 'deferred' ? 'deferred' : 'blocked',
       reason: 'package file persistent staging pipeline was blocked before command continuation',
       enabled: true,
       stagingResult,
-      probeResult,
+      probeResults,
       diagnostics: [
         ...(!(error instanceof ThirdPartyDataPackPackageFileStagingBlockedError)
           ? [commandDiagnostic('third-party.package-file-persistent-staging-pipeline.source-failed')]

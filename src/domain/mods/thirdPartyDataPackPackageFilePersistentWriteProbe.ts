@@ -63,6 +63,8 @@ export interface ThirdPartyDataPackPackageFilePersistentWriteProbeCheck {
 }
 
 export interface ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile {
+  readonly packageId?: PackageId
+  readonly packagePath?: string
   readonly path: string
   readonly contents: string
   readonly sha256?: Sha256Hash

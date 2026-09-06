@@ -47,7 +47,9 @@ export const runtimeCommandTargetPackageId = (
   blockedPackageIds: readonly PackageId[],
   explicitTargetPackageId?: PackageId
 ): PackageId | undefined => {
-  if (commandId === 'uninstall') return explicitTargetPackageId
+  if (commandId === undefined) return undefined
+  if (explicitTargetPackageId !== undefined) return explicitTargetPackageId
+  if (commandId === 'uninstall') return undefined
   if (commandId === 'disable') return blockedPackageIds[0]
   if (commandId === 'install' || commandId === 'enable') return selectedPackageIds[0]
   return undefined

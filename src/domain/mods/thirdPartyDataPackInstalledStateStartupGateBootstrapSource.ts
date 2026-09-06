@@ -161,6 +161,7 @@ type InstalledStateSourceKind = 'web-indexeddb' | 'electron-program-directory-us
 interface InstalledStateContext {
   readonly kind: 'enabled'
   readonly sourceKind: InstalledStateSourceKind
+  readonly targetPackageId: PackageId
   readonly officialRegistrySet: RegistrySet
   readonly source: ContentPackageSource
   readonly discoveryReport: ThirdPartyDataPackDiscoveryReport
@@ -364,7 +365,7 @@ const readRegistryNameFallback = (
 const createProductProbeContentFallbackSummary = (
   context: InstalledStateContext
 ): ProductProbeContentFallbackSummary => {
-  if (context.mountInput.selectedPackageIds[0] !== productProbePackageId) {
+  if (context.targetPackageId !== productProbePackageId) {
     return Object.freeze({})
   }
   const registrySet = context.mountInput.candidateRegistrySet
@@ -566,6 +567,25 @@ const resolveOfficialBaselineRegistrySet = (): RegistrySet => {
   }
 }
 
+const dependencyPackageIdsFor = (
+  mountInput: ThirdPartyDataPackMountInputResult
+): ReadonlySet<PackageId> => {
+  const dependencyIds = new Set<PackageId>()
+  mountInput.lockfileDraft?.packages.forEach(currentPackage => {
+    currentPackage.resolvedDependencies.forEach(dependencyId => dependencyIds.add(dependencyId))
+  })
+  return dependencyIds
+}
+
+const resolveInstalledStateTargetPackageId = (
+  mountInput: ThirdPartyDataPackMountInputResult
+): PackageId | undefined => {
+  const dependencyIds = dependencyPackageIdsFor(mountInput)
+  if (dependencyIds.size === 0) return mountInput.selectedPackageIds[0]
+  return mountInput.selectedPackageIds.find(packageId => !dependencyIds.has(packageId))
+    ?? mountInput.selectedPackageIds[0]
+}
+
 const buildInstalledStateRuntimeContext = async(
   sourceKind: InstalledStateSourceKind,
   source: ContentPackageSource
@@ -598,6 +618,10 @@ const buildInstalledStateRuntimeContext = async(
   ) {
     throw new Error('third-party installed state startup source mount input is missing runtime identity')
   }
+  const targetPackageId = resolveInstalledStateTargetPackageId(mountInput)
+  if (targetPackageId === undefined) {
+    throw new Error('third-party installed state startup source has no selected package')
+  }
 
   const runtimePublicationPreflight = buildThirdPartyDataPackRuntimePublicationPreflight({
     officialRegistrySet,
@@ -617,32 +641,41 @@ const buildInstalledStateRuntimeContext = async(
     runtimePublicationPreflight,
     transactionPreCommitPlan
   })
+  const targetedLiveRegistrySwapProtection = Object.freeze({
+    ...liveRegistrySwapProtection,
+    targetPackageId
+  })
   const publicationRollbackRecovery = buildThirdPartyDataPackPublicationRollbackRecovery({
     officialRegistrySet,
     discoveryReport,
     mountInput,
     runtimePublicationPreflight,
     transactionPreCommitPlan,
-    liveRegistrySwapProtection
+    liveRegistrySwapProtection: targetedLiveRegistrySwapProtection
   })
   const runtimePublicationCommitAdapter = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
     officialRegistrySet,
     discoveryReport,
     runtimePublicationPreflight,
     transactionPreCommitPlan,
-    liveRegistrySwapProtection,
+    liveRegistrySwapProtection: targetedLiveRegistrySwapProtection,
     publicationRollbackRecovery
+  })
+  const targetedRuntimePublicationCommitAdapter = Object.freeze({
+    ...runtimePublicationCommitAdapter,
+    targetPackageId
   })
 
   return Object.freeze({
+    targetPackageId,
     officialRegistrySet,
     discoveryReport,
     mountInput,
     runtimePublicationPreflight,
     transactionPreCommitPlan,
-    liveRegistrySwapProtection,
+    liveRegistrySwapProtection: targetedLiveRegistrySwapProtection,
     publicationRollbackRecovery,
-    runtimePublicationCommitAdapter,
+    runtimePublicationCommitAdapter: targetedRuntimePublicationCommitAdapter,
     summary: Object.freeze({
       selectedPackageCount: mountInput.selectedPackageIds.length,
       blockedPackageCount: mountInput.blockedPackageIds.length,
@@ -707,7 +740,7 @@ const enabledRecordMatchesRuntimeContext = (
   runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
   record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
 ): boolean => {
-  const targetPackageId = runtimeContext.mountInput.selectedPackageIds[0]
+  const targetPackageId = runtimeContext.targetPackageId
   return targetPackageId !== undefined
     && record.targetPackageId === targetPackageId
     && record.candidateHash === runtimeContext.mountInput.candidateIdentity?.candidateHash
@@ -1175,10 +1208,10 @@ const startupGateStages = (): readonly ThirdPartyDataPackStartupGateHandoffStage
 const createStartupGateHandoffPreflight = (
   context: Pick<
     InstalledStateContext,
-    'mountInput' | 'summary' | 'requestedCommandId'
+    'mountInput' | 'summary' | 'requestedCommandId' | 'targetPackageId'
   >
 ): ThirdPartyDataPackStartupGateHandoffPreflightResult => {
-  const targetPackageId = context.mountInput.selectedPackageIds[0]!
+  const targetPackageId = context.targetPackageId
   const messageKey = runtimeCommandSuccessMessageKey(context.requestedCommandId)
   return Object.freeze({
     status: 'deferred',
@@ -1544,7 +1577,7 @@ const createPostCommitAfterInstallTransactionCommit = (
   installTransactionCommitFinalizationStatus: 'committed',
   postCommitVerificationReadAcknowledgementStatus: 'ready',
   requestedCommandId: context.requestedCommandId,
-  targetPackageId: context.mountInput.selectedPackageIds[0]!,
+  targetPackageId: context.targetPackageId,
   verificationOutcomeKind: 'verified',
   transactionLogMatched: true,
   packageStateMatched: true,
@@ -1580,6 +1613,7 @@ const createRuntimePublicationCommitAfterPostCommit = async(
     readTransactionPreCommitPlan: async() => context.transactionPreCommitPlan,
     readLiveRegistrySwapProtection: async() => context.liveRegistrySwapProtection,
     readPublicationRollbackRecovery: async() => context.publicationRollbackRecovery,
+    readRuntimePublicationCommitAdapter: async() => context.runtimePublicationCommitAdapter,
     acknowledgeRuntimePublicationCommit:
       runtimePublicationCommitHost.acknowledgeRuntimePublicationCommit
   })()
@@ -1602,6 +1636,7 @@ const createLiveRegistrySwap = async(
     readTransactionPreCommitPlan: async() => context.transactionPreCommitPlan,
     readLiveRegistrySwapProtection: async() => context.liveRegistrySwapProtection,
     readPublicationRollbackRecovery: async() => context.publicationRollbackRecovery,
+    readRuntimePublicationCommitAdapter: async() => context.runtimePublicationCommitAdapter,
     acknowledgeRuntimePublicationCommit:
       runtimePublicationCommitHost.acknowledgeRuntimePublicationCommit,
     liveRegistryReference,

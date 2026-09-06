@@ -28,6 +28,8 @@ export interface CreateThirdPartyDataPackRuntimePublicationLiveRegistrySwapPipel
   readonly readTransactionPreCommitPlan?: () => Awaitable<ThirdPartyDataPackTransactionPreCommitPlanResult>
   readonly readLiveRegistrySwapProtection?: () => Awaitable<ThirdPartyDataPackLiveRegistrySwapProtectionResult>
   readonly readPublicationRollbackRecovery?: () => Awaitable<ThirdPartyDataPackPublicationRollbackRecoveryResult>
+  readonly readRuntimePublicationCommitAdapter?:
+    CreateThirdPartyDataPackRuntimePublicationCommitPipelineOptions['readRuntimePublicationCommitAdapter']
   readonly acknowledgeRuntimePublicationCommit?:
     CreateThirdPartyDataPackRuntimePublicationCommitPipelineOptions['acknowledgeRuntimePublicationCommit']
   readonly executeLiveRegistrySwap?:
@@ -60,12 +62,13 @@ export const createThirdPartyDataPackRuntimePublicationLiveRegistrySwapPipeline 
       readTransactionPreCommitPlan: options.readTransactionPreCommitPlan,
       readLiveRegistrySwapProtection,
       readPublicationRollbackRecovery: options.readPublicationRollbackRecovery,
+      readRuntimePublicationCommitAdapter: options.readRuntimePublicationCommitAdapter,
       acknowledgeRuntimePublicationCommit: options.acknowledgeRuntimePublicationCommit
     })
     await runtimePublicationCommit()
 
     if (liveRegistrySwapProtection === undefined) {
-      throw new Error('third-party runtime publication live registry swap pipeline missing live swap protection result')
+      liveRegistrySwapProtection = await readConfiguredLiveRegistrySwapProtection()
     }
     return liveRegistrySwapProtection
   }

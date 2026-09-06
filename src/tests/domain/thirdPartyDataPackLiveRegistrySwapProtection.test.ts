@@ -17,6 +17,8 @@ import committedMetadata from '@/generated/mods/official-precompiled-metadata.js
 
 const packageId = requirePackageId('discovery_valid')
 const blockedPackageId = requirePackageId('blocked_pack')
+const dependencyPackageId = requirePackageId('a_dependency_library')
+const dependencyTargetPackageId = requirePackageId('z_dependency_app')
 const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 const officialIdentity = {
@@ -180,6 +182,7 @@ const expectDeferredProtection = (result: ThirdPartyDataPackLiveRegistrySwapProt
   expect(result.liveRegistrySwap).toBe('deferred')
   expect(result.swapAllowed).toBe(false)
   expect(result.liveRegistryMutable).toBe(false)
+  expect(result.targetPackageId).toBe(packageId)
   expect(result.selectedPackageIds).toEqual(['discovery_valid'])
   expect(result.loadOrder).toEqual(['discovery_valid'])
   expect(result.registryCount).toBe(54)
@@ -244,6 +247,37 @@ describe('third-party data pack live registry swap protection', () => {
     expect(Reflect.set(firstRequirement as unknown as Record<string, unknown>, 'status', 'satisfied')).toBe(false)
     expect(Reflect.set(protection.effects as unknown as Record<string, unknown>, 'liveRegistrySwapped', true)).toBe(false)
     expect(JSON.stringify(protection)).toBe(frozenOutputSnapshot)
+  })
+
+  it('preserves an explicit install target when dependency load order comes first', () => {
+    const selectedPackageIds = [dependencyPackageId, dependencyTargetPackageId]
+    const protection = buildThirdPartyDataPackLiveRegistrySwapProtection({
+      targetPackageId: dependencyTargetPackageId,
+      runtimePublicationPreflight: createRuntimePublicationPreflight({
+        selectedPackageIds,
+        loadOrder: selectedPackageIds,
+        packageCount: 2
+      }),
+      transactionPreCommitPlan: createTransactionPreCommitPlan({
+        selectedPackageIds,
+        loadOrder: selectedPackageIds,
+        packageCount: 2
+      })
+    } as never)
+
+    expect(protection.status).toBe('deferred')
+    expect(protection.targetPackageId).toBe(dependencyTargetPackageId)
+    expect(protection.selectedPackageIds).toEqual([
+      'a_dependency_library',
+      'z_dependency_app'
+    ])
+    expect(protection.loadOrder).toEqual([
+      'a_dependency_library',
+      'z_dependency_app'
+    ])
+    expect(protection.packageCount).toBe(2)
+    expectNoWriteEffects(protection)
+    expectJsonGraphFrozen(protection)
   })
 
   it('skips live registry swap protection when no third-party packages are selected', () => {

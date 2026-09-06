@@ -703,29 +703,67 @@ const createRendererElectronReadonlyDirectorySource = (
 const resolveRendererRuntimeHost = (): unknown =>
   typeof window === 'undefined' ? undefined : window
 
+const packageDependencyIdsFor = (
+  draft: ThirdPartyDataPackLockfileDraft | undefined
+): ReadonlySet<PackageId> => {
+  const dependencyIds = new Set<PackageId>()
+  draft?.packages.forEach(currentPackage => {
+    currentPackage.resolvedDependencies.forEach(dependencyId => dependencyIds.add(dependencyId))
+  })
+  return dependencyIds
+}
+
+const firstTopLevelPackageId = (
+  packageIds: readonly PackageId[],
+  draft: ThirdPartyDataPackLockfileDraft | undefined
+): PackageId | undefined => {
+  const dependencyIds = packageDependencyIdsFor(draft)
+  if (dependencyIds.size === 0) return packageIds[0]
+  return packageIds.find(packageId => !dependencyIds.has(packageId)) ?? packageIds[0]
+}
+
+const resolveDefaultInstallTargetPackageId = (
+  mountInput: ThirdPartyDataPackMountInputResult,
+  runtimePublicationCommitAdapter: ThirdPartyDataPackRuntimePublicationCommitAdapterResult
+): PackageId | undefined =>
+  firstTopLevelPackageId(runtimePublicationCommitAdapter.selectedPackageIds, mountInput.lockfileDraft)
+  ?? firstTopLevelPackageId(mountInput.selectedPackageIds, mountInput.lockfileDraft)
+  ?? runtimePublicationCommitAdapter.loadOrder[0]
+  ?? mountInput.loadOrder[0]
+  ?? mountInput.selectedPackageIds[0]
+
 const readPackageFilePayloadFromSource = async(
   source: ContentPackageSource,
   draft: ThirdPartyDataPackLockfileDraft,
-  targetPackageId: PackageId
+  targetPackageId?: PackageId
 ): Promise<readonly ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[]> => {
-  const packageDraft = draft.packages.find(currentPackage => currentPackage.packageId === targetPackageId)
-  if (packageDraft === undefined) return Object.freeze([])
+  const packageDrafts = targetPackageId === undefined
+    ? draft.packages
+    : draft.packages.filter(currentPackage => currentPackage.packageId === targetPackageId)
+  if (packageDrafts.length === 0) return Object.freeze([])
 
-  const manifestContents = await source.readTextFile(packageDraft.source.manifestPath)
-  const files: ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[] = [{
-    path: 'manifest.json',
-    contents: manifestContents,
-    sha256: sha256Utf8(manifestContents)
-  }]
-
-  for (const contentFile of packageDraft.contentFiles) {
-    const sourcePath = `${packageDraft.source.candidatePath}/${contentFile.path}`
-    const contents = await source.readTextFile(sourcePath)
+  const files: ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[] = []
+  for (const packageDraft of packageDrafts) {
+    const manifestContents = await source.readTextFile(packageDraft.source.manifestPath)
     files.push({
-      path: contentFile.path,
-      contents,
-      sha256: sha256Utf8(contents)
+      packageId: packageDraft.packageId,
+      packagePath: packageDraft.source.candidatePath,
+      path: 'manifest.json',
+      contents: manifestContents,
+      sha256: sha256Utf8(manifestContents)
     })
+
+    for (const contentFile of packageDraft.contentFiles) {
+      const sourcePath = `${packageDraft.source.candidatePath}/${contentFile.path}`
+      const contents = await source.readTextFile(sourcePath)
+      files.push({
+        packageId: packageDraft.packageId,
+        packagePath: packageDraft.source.candidatePath,
+        path: contentFile.path,
+        contents,
+        sha256: sha256Utf8(contents)
+      })
+    }
   }
 
   return Object.freeze(files)
@@ -1663,6 +1701,7 @@ const hasRealMountedAppStartupHostEvidence = (
 
 const createRendererReadyNormalStartupSource = (
   source: ThirdPartyDataPackRuntimePublicationCommitAdapterResult,
+  targetPackageId: PackageId,
   platform: SharedRendererRuntimePublicationPlatform,
   mountedAppStartupHostEvidence?: WebFilePickerMountedAppStartupHostEvidence
 ): ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult => {
@@ -1679,7 +1718,7 @@ const createRendererReadyNormalStartupSource = (
   normalStartupContinuationAllowed: true,
   startupGateBootstrapSourceStatus: 'ready',
   normalStartupHandoffHostStatus: 'accepted',
-  targetPackageId: source.selectedPackageIds[0],
+  targetPackageId,
   selectedPackageIds: source.selectedPackageIds,
   blockedPackageIds: source.blockedPackageIds,
   blockedCandidateCount: source.blockedCandidatePaths.length,
@@ -1797,6 +1836,7 @@ const createRendererAppStartupHostConnectionFromReadiness = async(options: {
 const createWebRuntimePublicationContinuationResults = async(options: {
   readonly officialRegistrySet: RegistrySet
   readonly mountInput: ThirdPartyDataPackMountInputResult
+  readonly targetPackageId: PackageId
   readonly runtimePublicationPreflight: ReturnType<typeof buildThirdPartyDataPackRuntimePublicationPreflight>
   readonly transactionPreCommitPlan: ReturnType<typeof buildThirdPartyDataPackTransactionPreCommitPlan>
   readonly liveRegistrySwapProtection: ReturnType<typeof buildThirdPartyDataPackLiveRegistrySwapProtection>
@@ -1847,6 +1887,7 @@ const createWebRuntimePublicationContinuationResults = async(options: {
       readTransactionPreCommitPlan: async() => options.transactionPreCommitPlan,
       readLiveRegistrySwapProtection: async() => options.liveRegistrySwapProtection,
       readPublicationRollbackRecovery: async() => options.publicationRollbackRecovery,
+      readRuntimePublicationCommitAdapter: async() => options.runtimePublicationCommitAdapter,
       acknowledgeRuntimePublicationCommit:
         runtimePublicationCommitHost.acknowledgeRuntimePublicationCommit,
       liveRegistryReference: createThirdPartyDataPackInMemoryLiveRegistryReference(
@@ -1868,6 +1909,7 @@ const createWebRuntimePublicationContinuationResults = async(options: {
       readRuntimePublicationNormalStartupAppFactoryBindingHostConnection: async() =>
         createRendererReadyNormalStartupSource(
           options.runtimePublicationCommitAdapter,
+          options.targetPackageId,
           'web',
           options.mountedAppStartupHostEvidence
         )
@@ -2468,11 +2510,19 @@ export const useWebFilePickerImportEntry = (
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport
     })
-    const runtimePublicationCommitAdapter = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
+    const baseRuntimePublicationCommitAdapter = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport,
       mountInput
     })
+    const targetPackageId = options.packageId
+      ?? resolveDefaultInstallTargetPackageId(mountInput, baseRuntimePublicationCommitAdapter)
+    const runtimePublicationCommitAdapter = targetPackageId === undefined
+      ? baseRuntimePublicationCommitAdapter
+      : Object.freeze({
+          ...baseRuntimePublicationCommitAdapter,
+          targetPackageId
+        })
     const recoveryLogReplayRestoreAdapter = buildThirdPartyDataPackRecoveryLogReplayRestoreAdapter({
       officialRegistrySet: options.officialRegistrySet,
       discoveryReport,
@@ -2492,10 +2542,6 @@ export const useWebFilePickerImportEntry = (
     const readModel = buildThirdPartyDataPackModManagementReadModel({
       preflight: modManagementUiIpcPreflight
     })
-    const targetPackageId = options.packageId
-      ?? runtimePublicationCommitAdapter.loadOrder[0]
-      ?? mountInput.loadOrder[0]
-      ?? mountInput.selectedPackageIds[0]
     const request = targetPackageId === undefined
       ? {
           commandId: 'install' as const,
@@ -2754,7 +2800,7 @@ export const useWebFilePickerImportEntry = (
       transactionPreCommitPlan,
       liveRegistrySwapProtection
     })
-    const runtimePublicationCommitAdapter = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
+    const baseRuntimePublicationCommitAdapter = buildThirdPartyDataPackRuntimePublicationCommitAdapter({
       officialRegistrySet: dispatchOptions.officialRegistrySet,
       discoveryReport,
       runtimePublicationPreflight,
@@ -2762,6 +2808,20 @@ export const useWebFilePickerImportEntry = (
       liveRegistrySwapProtection,
       publicationRollbackRecovery
     })
+    const targetPackageId = dispatchOptions.packageId
+      ?? resolveDefaultInstallTargetPackageId(mountInput, baseRuntimePublicationCommitAdapter)
+    const runtimePublicationCommitAdapter = targetPackageId === undefined
+      ? baseRuntimePublicationCommitAdapter
+      : Object.freeze({
+          ...baseRuntimePublicationCommitAdapter,
+          targetPackageId
+        })
+    const targetedLiveRegistrySwapProtection = targetPackageId === undefined
+      ? liveRegistrySwapProtection
+      : Object.freeze({
+          ...liveRegistrySwapProtection,
+          targetPackageId
+        })
     const recoveryLogReplayRestoreAdapter = buildThirdPartyDataPackRecoveryLogReplayRestoreAdapter({
       officialRegistrySet: dispatchOptions.officialRegistrySet,
       discoveryReport,
@@ -2783,10 +2843,6 @@ export const useWebFilePickerImportEntry = (
     const readModel = buildThirdPartyDataPackModManagementReadModel({
       preflight: modManagementUiIpcPreflight
     })
-    const targetPackageId = dispatchOptions.packageId
-      ?? runtimePublicationCommitAdapter.loadOrder[0]
-      ?? mountInput.loadOrder[0]
-      ?? mountInput.selectedPackageIds[0]
     const request = targetPackageId === undefined
       ? {
           commandId: 'install' as const,
@@ -2999,8 +3055,7 @@ export const useWebFilePickerImportEntry = (
     ) {
       const packageFilePayload = await readPackageFilePayloadFromSource(
         source,
-        mountInput.lockfileDraft,
-        targetPackageId
+        mountInput.lockfileDraft
       )
       const continuation = await rendererOrdinaryInstallTerminalContinuationHost({
         transactionCommandDispatcherHandoff,
@@ -3076,6 +3131,7 @@ export const useWebFilePickerImportEntry = (
               readRuntimePublicationNormalStartupAppFactoryBindingHostConnection: async() =>
                 createRendererReadyNormalStartupSource(
                   runtimePublicationCommitAdapter,
+                  targetPackageId,
                   'electron',
                   mountedAppStartupHostEvidence
                 )
@@ -3148,8 +3204,7 @@ export const useWebFilePickerImportEntry = (
       }
       const packageFilePayload = await readPackageFilePayloadFromSource(
         source,
-        mountInput.lockfileDraft,
-        targetPackageId
+        mountInput.lockfileDraft
       )
       if (packageFilePayload.length === 0) {
         rendererOrdinaryInstallTerminalContinuationBlockedReason =
@@ -3218,10 +3273,11 @@ export const useWebFilePickerImportEntry = (
                 mountInput,
                 runtimePublicationPreflight,
                 transactionPreCommitPlan,
-                liveRegistrySwapProtection,
+                liveRegistrySwapProtection: targetedLiveRegistrySwapProtection,
                 publicationRollbackRecovery,
                 runtimePublicationCommitAdapter,
                 installTransactionCommitFinalization,
+                targetPackageId,
                 mountedAppStartupHostEvidence
               })
             runtimePublicationCommitAfterPostCommitVerification =

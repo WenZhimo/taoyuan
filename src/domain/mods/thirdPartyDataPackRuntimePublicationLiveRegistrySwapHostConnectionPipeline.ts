@@ -41,6 +41,7 @@ export const createThirdPartyDataPackRuntimePublicationLiveRegistrySwapHostConne
     readTransactionPreCommitPlan: options.readTransactionPreCommitPlan,
     readLiveRegistrySwapProtection: options.readLiveRegistrySwapProtection,
     readPublicationRollbackRecovery: options.readPublicationRollbackRecovery,
+    readRuntimePublicationCommitAdapter: options.readRuntimePublicationCommitAdapter,
     acknowledgeRuntimePublicationCommit: options.acknowledgeRuntimePublicationCommit,
     executeLiveRegistrySwap: derivedLiveRegistrySwapHost?.executeLiveRegistrySwap
   })
