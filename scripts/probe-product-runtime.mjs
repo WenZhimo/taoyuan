@@ -72,6 +72,10 @@ const expectedVisibleProbeLoadOrder = scenario =>
 const expectedVisibleProbeFileCount = scenario => scenario.visibleDependency ? 8 : 5
 const expectedVisibleProbeEntryCount = scenario => scenario.visibleDependency ? 4246 : 4245
 const expectedVisibleProbePackageCount = scenario => scenario.visibleDependency ? 2 : 1
+const expectedVisibleProbePackageRoots = scenario =>
+  scenario.visibleDependency
+    ? ['a-product-probe-library', 'product-probe-pack']
+    : ['product-probe-pack']
 const webScenarios = [
   { name: 'precompiled', fault: null, source: 'precompiled', status: 'official-precompiled-hit' },
   {
@@ -947,6 +951,69 @@ const electronScenarios = [
     cacheStatus: 'disk-cache-fast-hit',
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-dependency-disable-enable',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-write-failure-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleDisable: true,
+    visibleDependency: true,
+    visibleDisableFailAfterModLockWrite: true
+  },
+  {
+    name: 'visible-import-dependency-disable-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-write-failure',
     cacheSeed: 'valid',
     startupGateReady: true,
     startupPersistentStateReady: true,
@@ -2531,6 +2598,18 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
       `${scenario.name}: disable failure shop offer was not visible before failure`)
     assert(visibleImport.contentAccessShopOfferVisibleAfter === true,
       `${scenario.name}: disable failure removed runtime shop offer visibility`)
+    if (scenario.visibleDependency) {
+      assert(visibleImport.dependencyPackageId === visibleProbeDependencyPackageId,
+        `${scenario.name}: visible disable failure dependency package id mismatch`)
+      assert(visibleImport.dependencyItemId === visibleProbeDependencyItemId,
+        `${scenario.name}: visible disable failure dependency item id mismatch`)
+      assert(visibleImport.dependencyItemNameFallback === visibleProbeDependencyItemNameFallback,
+        `${scenario.name}: visible disable failure dependency item fallback mismatch`)
+      assert(visibleImport.contentAccessDependencyItemVisibleBefore === true,
+        `${scenario.name}: dependency item was not visible before disable failure`)
+      assert(visibleImport.contentAccessDependencyItemVisibleAfter === true,
+        `${scenario.name}: disable failure removed dependency runtime item visibility`)
+    }
     assert(visibleImport.panelStatusLabels?.installedManagementStatus === '已阻断',
       `${scenario.name}: visible disable failure did not mark management blocked`)
     const disableResult = visibleImport.panelStatusLabels?.disableResult ?? ''
@@ -5222,9 +5301,18 @@ const runPackagedScenario = async (scenario, isolated) => {
     : null
   const packageFileTempsBefore = packageFileTemporaryNames(scenarioRoot)
   const preservedPackageRoot = path.join(scenarioRoot, 'mods', 'product-probe-pack')
+  const preservedDependencyPackageRoot = path.join(scenarioRoot, 'mods', 'a-product-probe-library')
   const preservedPackageBefore = scenario.visibleDisable || scenario.visibleUninstall || scenario.startupGateDisabled
     ? directoryFingerprint(preservedPackageRoot)
     : null
+  const preservedDependencyPackageBefore =
+    scenario.visibleDependency && (
+      scenario.visibleDisable
+      || scenario.visibleUninstall
+      || scenario.startupGateDisabled
+    )
+      ? directoryFingerprint(preservedDependencyPackageRoot)
+      : null
   const preservedPackageContentBefore = scenario.visibleEnable || exercisesVisibleUpgrade
     || scenario.visibleUninstallFailAfterModLockWrite
     ? activePackageContentFingerprint(preservedPackageRoot)
@@ -5387,9 +5475,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       assert(lockfileJson.loadOrder?.length === 0,
         `${scenario.name}: uninstall mod-lock draft exposed a load order`)
     } else {
-      const expectedPackagePaths = scenario.visibleDependency
-        ? ['a-product-probe-library', 'product-probe-pack']
-        : ['product-probe-pack']
+      const expectedPackagePaths = expectedVisibleProbePackageRoots(scenario)
       assert(JSON.stringify((lockfileJson.packages ?? []).map(currentPackage =>
         currentPackage?.source?.candidatePath
       )) === JSON.stringify(expectedPackagePaths),
@@ -5502,23 +5588,41 @@ const runPackagedScenario = async (scenario, isolated) => {
       `${scenario.name}: disable failure did not start with package files present`)
     assert(JSON.stringify(directoryFingerprint(preservedPackageRoot)) === JSON.stringify(preservedPackageBefore),
       `${scenario.name}: disable failure did not preserve package files`)
+    if (scenario.visibleDependency) {
+      assert(preservedDependencyPackageBefore !== null && preservedDependencyPackageBefore.length > 0,
+        `${scenario.name}: disable failure did not start with dependency package files present`)
+      assert(JSON.stringify(directoryFingerprint(preservedDependencyPackageRoot))
+        === JSON.stringify(preservedDependencyPackageBefore),
+      `${scenario.name}: disable failure did not preserve dependency package files`)
+    }
     const restoredLockfile = readJson(lockfilePath)
-    assert(JSON.stringify(restoredLockfile.selectedPackageIds) === JSON.stringify(['product_probe_pack']),
-      `${scenario.name}: disable failure did not restore selected package ids`)
-    assert(JSON.stringify(restoredLockfile.loadOrder) === JSON.stringify(['product_probe_pack']),
-      `${scenario.name}: disable failure did not restore load order`)
+    const expectedSelectedPackageIds = expectedVisibleProbeSelectedPackageIds(scenario)
+    const expectedLoadOrder = expectedVisibleProbeLoadOrder(scenario)
+    assertStringArrayEquals(
+      restoredLockfile.selectedPackageIds,
+      expectedSelectedPackageIds,
+      `${scenario.name}: disable failure did not restore selected package ids`
+    )
+    assertStringArrayEquals(
+      restoredLockfile.loadOrder,
+      expectedLoadOrder,
+      `${scenario.name}: disable failure did not restore load order`
+    )
     assert(JSON.stringify(restoredLockfile.blockedPackageIds ?? []) === JSON.stringify([]),
       `${scenario.name}: disable failure left blocked package ids`)
-    assert(restoredLockfile.packages?.[0]?.packageId === 'product_probe_pack',
-      `${scenario.name}: disable failure lost installed package record`)
+    assertStringArrayEquals(
+      (restoredLockfile.packages ?? []).map(currentPackage => currentPackage?.packageId),
+      expectedSelectedPackageIds,
+      `${scenario.name}: disable failure lost installed package records`
+    )
     const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
     assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
       `${scenario.name}: disable failure did not restore install settings command`)
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
-      === JSON.stringify(['product_probe_pack']),
+      === JSON.stringify(expectedSelectedPackageIds),
     `${scenario.name}: disable failure did not restore settings selected packages`)
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
-      === JSON.stringify(['product_probe_pack']),
+      === JSON.stringify(expectedLoadOrder),
     `${scenario.name}: disable failure did not restore settings load order`)
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.blockedPackageIds ?? [])
       === JSON.stringify([]),
