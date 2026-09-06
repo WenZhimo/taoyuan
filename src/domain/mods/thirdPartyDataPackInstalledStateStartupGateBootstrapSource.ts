@@ -1005,8 +1005,12 @@ const readElectronUninstalledState = async(
   }
   const record = installedState.record
   if (record?.requestedCommandId !== 'uninstall') return null
-  if (installedState.packageFilesPreserved) {
+  const hasRemainingPackages = record.lockfileDraft.packages.length > 0
+  if (installedState.packageFilesPreserved && !hasRemainingPackages) {
     throw new Error('Electron installed state uninstall record still preserves package files')
+  }
+  if (!installedState.packageFilesPreserved && hasRemainingPackages) {
+    throw new Error('Electron installed state uninstall record has missing remaining package files')
   }
   if (!webUninstallRecordMatchesRemovedState(record)) {
     throw new Error('Electron installed state uninstall record does not match removed package state')
@@ -1355,6 +1359,19 @@ const createElectronStartupPersistentState = async(
 const createInstalledStateContext = async(
   resolvedSource: ResolvedInstalledStateSource
 ): Promise<InstalledStateContextResult | null> => {
+  const uninstalledState = resolvedSource.sourceKind === 'web-indexeddb'
+    ? await readWebUninstalledState(
+        resolvedSource.webSettingsLockfileStore!,
+        resolvedSource.webStartupPersistentStateHost!
+      )
+    : resolvedSource.electronInstalledStateHost === undefined
+      ? null
+      : await readElectronUninstalledState(
+          await resolvedSource.electronInstalledStateHost.read(),
+          resolvedSource.electronStartupPersistentStateHost!
+        )
+  if (uninstalledState !== null) return uninstalledState
+
   const runtimeContext = await buildInstalledStateRuntimeContext(
     resolvedSource.sourceKind,
     resolvedSource.source

@@ -207,6 +207,7 @@ void bootstrapApplication({
         thirdPartyVisibleUninstallProductProbeResult =
           await runThirdPartyVisibleUninstallProductProbe({
             targetPackageId: 'product_probe_pack' as PackageId,
+            ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),
             expectBlocked: thirdPartyVisibleUninstallExpectBlockedProbeRequested
           })
       }

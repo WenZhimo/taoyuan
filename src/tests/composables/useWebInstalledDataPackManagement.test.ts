@@ -41,6 +41,9 @@ import type {
   ThirdPartyDataPackElectronEnableCommandEnvelope
 } from '@/domain/mods/thirdPartyDataPackElectronEnableCommandBridge'
 import type {
+  ThirdPartyDataPackElectronUninstallCommandEnvelope
+} from '@/domain/mods/thirdPartyDataPackElectronUninstallCommandBridge'
+import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
 
@@ -859,5 +862,184 @@ describe('useWebInstalledDataPackManagement', () => {
     ])
     expect(getOfficialItemDef(`${dependencyPackageId}:library_token`)).toBeUndefined()
     expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+  })
+
+  it('uninstalls only the target from a disabled dependency stack and preserves dependency source files', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
+    expect(enabledMountInput.status).toBe('ready')
+    const installedDraft = enabledMountInput.lockfileDraft!
+    await settingsLockfileStore.write({
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [dependencyPackageId, packageId],
+      blockedPackageIds: [],
+      loadOrder: [dependencyPackageId, packageId],
+      candidateHash: installedDraft.candidateIdentity.candidateHash,
+      lockfileHash: installedDraft.lockfileHash,
+      lockfileDraft: installedDraft
+    })
+    await installedPackageStore.put(createDefaultWebIndexedDbImportRecord(
+      createInstalledPackageFiles(true),
+      THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
+    ))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore,
+      installedPackageStore,
+      startupPersistentStateStore,
+      mountedAppStartupEvidence
+    })
+    await management.refresh()
+
+    const disableResult = await management.disable(packageId)
+    await nextTick()
+    expect(disableResult?.terminal.status).toBe('ready')
+
+    const uninstallResult = await management.uninstall(packageId)
+    await nextTick()
+
+    expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.terminal.packageCount).toBe(1)
+    expect(management.rows.value).toEqual([{
+      packageId: dependencyPackageId,
+      version: '1.0.0',
+      status: 'disabled'
+    }])
+    const uninstalledRecord = (await settingsLockfileStore.read()).record
+    expect(uninstalledRecord?.requestedCommandId).toBe('uninstall')
+    expect(uninstalledRecord?.targetPackageId).toBe(packageId)
+    expect(uninstalledRecord?.lockfileDraft.packages.map(pkg => pkg.packageId))
+      .toEqual([dependencyPackageId])
+    const preservedPackageSource = await installedPackageStore.get(
+      THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
+    )
+    expect(preservedPackageSource?.files.map(file => file.path)).toHaveLength(3)
+    expect(preservedPackageSource?.files.map(file => file.path)).toEqual(expect.arrayContaining([
+      'a-web-management-dependency-pack/manifest.json',
+      'a-web-management-dependency-pack/locales/zh-CN.json',
+      'a-web-management-dependency-pack/data/items.json'
+    ]))
+    expect(preservedPackageSource?.files.some(file =>
+      file.path.startsWith('web-disable-management-test-pack/')
+    )).toBe(false)
+    expect(getOfficialItemDef(`${dependencyPackageId}:library_token`)).toBeUndefined()
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+  })
+
+  it('routes dependency target uninstall persistence through the Electron renderer command host', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
+    expect(enabledMountInput.status).toBe('ready')
+    const installedDraft = enabledMountInput.lockfileDraft!
+    const disabledState = buildThirdPartyDataPackDisableState({
+      officialRegistrySet,
+      installedDraft,
+      targetPackageId: packageId
+    })
+    const disabledPersistentRecord = createThirdPartyDataPackDisablePersistentRecord(
+      THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      disabledState
+    )
+    const disabledRecord = {
+      ...disabledPersistentRecord,
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+    } as const
+    const readElectronInstalledState = vi.fn(async(): Promise<ThirdPartyDataPackElectronInstalledStateReadResult> => ({
+      status: 'ready' as const,
+      record: disabledRecord,
+      packageFilesPreserved: true
+    }))
+    const electronUninstallCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
+    ) => ({
+      status: 'written' as const,
+      requestedCommandId: 'uninstall' as const,
+      targetPackageId: envelope.targetPackageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      packageFilesRemoved: true,
+      settingsWritten: true,
+      lockfileWritten: true,
+      startupStateWritten: true,
+      diagnostics: []
+    }))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore: null,
+      installedPackageStore: null,
+      startupPersistentStateStore: null,
+      mountedAppStartupEvidence,
+      readElectronInstalledState,
+      electronUninstallCommand
+    })
+    await management.refresh()
+
+    const result = await management.uninstall(packageId)
+    await nextTick()
+
+    expect(readElectronInstalledState).toHaveBeenCalledTimes(2)
+    expect(electronUninstallCommand).toHaveBeenCalledOnce()
+    expect(electronUninstallCommand.mock.calls[0]?.[0]).toMatchObject({
+      requestedCommandId: 'uninstall',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      packageFilesRemoved: true,
+      record: {
+        requestedCommandId: 'uninstall',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [],
+        loadOrder: [],
+        lockfileDraft: {
+          packages: [
+            { packageId: dependencyPackageId }
+          ]
+        }
+      },
+      startupSnapshot: {
+        kind: 'electron-startup-persistent-state-snapshot',
+        packageId
+      }
+    })
+    expect(result).toMatchObject({
+      managementCommandHostKind: 'electron-renderer',
+      managementCommandDispatched: true,
+      managementUiIpcResponseDelivered: true,
+      terminal: {
+        status: 'ready',
+        requestedCommandId: 'uninstall',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [],
+        loadOrder: [],
+        packageCount: 1,
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        packageFilesRemoved: true,
+        runtimePublicationExcluded: true,
+        liveRegistrySwapped: true,
+        appStartupHandoffAccepted: true
+      }
+    })
+    expect(management.rows.value).toEqual([{
+      packageId: dependencyPackageId,
+      version: '1.0.0',
+      status: 'disabled'
+    }])
   })
 })

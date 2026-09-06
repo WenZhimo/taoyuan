@@ -282,6 +282,32 @@ const matchesRecord = (
   right: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null
 ): boolean => JSON.stringify(left) === JSON.stringify(right)
 
+const fileBelongsToPackageSource = (
+  file: WebIndexedDbImportRecord['files'][number],
+  candidatePath: string
+): boolean => file.path === candidatePath || file.path.startsWith(`${candidatePath}/`)
+
+const buildRemainingInstalledPackageRecord = (
+  previousRecord: WebIndexedDbImportRecord,
+  uninstallRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+): WebIndexedDbImportRecord | null => {
+  const remainingSources = uninstallRecord.lockfileDraft.packages.map(pkg => pkg.source)
+  if (remainingSources.length === 0) return null
+
+  const remainingFiles = previousRecord.files.filter(file =>
+    remainingSources.some(source => fileBelongsToPackageSource(file, source.candidatePath))
+  )
+  const preservedManifestPaths = new Set(remainingFiles.map(file => file.path))
+  if (remainingSources.some(source => !preservedManifestPaths.has(source.manifestPath))) {
+    throw new Error('Web uninstall remaining package files could not be preserved')
+  }
+
+  return Object.freeze({
+    ...previousRecord,
+    files: Object.freeze(remainingFiles)
+  })
+}
+
 const withManagementCommandDelivery = <Result extends object>(
   result: Result,
   delivery: WebInstalledDataPackManagementCommandDeliveryResult
@@ -585,13 +611,24 @@ export const useWebInstalledDataPackManagement = (
             managementCommandDispatched = true
             const writeResult = await options.settingsLockfileStore!.write(uninstallRecord)
             if (writeResult.status !== 'written') throw new Error('Web uninstall settings-lockfile write was blocked')
-            await options.installedPackageStore!.delete(installedImportId)
+            const remainingInstalledPackageRecord = buildRemainingInstalledPackageRecord(
+              previousInstalledPackageRecord!,
+              uninstallRecord
+            )
+            if (remainingInstalledPackageRecord === null) {
+              await options.installedPackageStore!.delete(installedImportId)
+            } else {
+              await options.installedPackageStore!.put(remainingInstalledPackageRecord)
+            }
             await startupStore.put(startupSnapshotRecord)
             const writtenSettings = await options.settingsLockfileStore!.read()
             const writtenStartup = await startupStore.get(startupImportId)
-            const removedPackageSource = await options.installedPackageStore!.get(installedImportId)
+            const writtenPackageSource = await options.installedPackageStore!.get(installedImportId)
+            const packageSourceMatched = remainingInstalledPackageRecord === null
+              ? writtenPackageSource === null
+              : JSON.stringify(writtenPackageSource) === JSON.stringify(remainingInstalledPackageRecord)
             if (!matchesRecord(writtenSettings.record, uninstallRecord)
-              || removedPackageSource !== null
+              || !packageSourceMatched
               || JSON.stringify(writtenStartup) !== JSON.stringify(startupSnapshotRecord)) {
               throw new Error('Web uninstall persistent state verification did not match')
             }

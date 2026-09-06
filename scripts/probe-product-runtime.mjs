@@ -76,6 +76,12 @@ const expectedVisibleProbePackageRoots = scenario =>
   scenario.visibleDependency
     ? ['a-product-probe-library', 'product-probe-pack']
     : ['product-probe-pack']
+const expectedVisibleProbeUninstallRemainingPackageIds = scenario =>
+  scenario.visibleDependency ? [visibleProbeDependencyPackageId] : []
+const expectedVisibleProbeUninstallRemainingPackageRoots = scenario =>
+  scenario.visibleDependency ? ['a-product-probe-library'] : []
+const expectedVisibleProbeUninstallPackageCount = scenario =>
+  expectedVisibleProbeUninstallRemainingPackageIds(scenario).length
 const webScenarios = [
   { name: 'precompiled', fault: null, source: 'precompiled', status: 'official-precompiled-hit' },
   {
@@ -185,6 +191,17 @@ const webScenarios = [
     source: 'precompiled',
     status: 'official-precompiled-hit',
     visibleImportInstalledDisableUninstallSequence: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
+  {
+    name: 'visible-import-web-dependency-disable-uninstall-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableUninstallSequence: true,
+    visibleDependency: true,
     startupPersistentStateSourceKind: 'web-indexeddb',
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack'
@@ -837,6 +854,83 @@ const electronScenarios = [
     startupGateTargetPackageId: 'product_probe_pack',
     startupGateEntryCount: 4242,
     startupGatePackageCount: 2,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-uninstall-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-uninstall',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-uninstall-disable',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-uninstall',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleDisable: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-uninstall-disabled-package',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-uninstall',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupGateDisabled: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4242,
+    startupGatePackageCount: 2,
+    visibleUninstall: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-uninstalled-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-uninstall',
+    cacheSeed: 'valid',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupGateUninstalled: true,
+    startupGatePackageCount: 1,
     visibleDependency: true
   },
   {
@@ -3217,8 +3311,8 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
     `${scenario.name}: visible uninstall probe changed the official registry count`)
   assert(visibleImport.uninstallEntryCount === 4242,
     `${scenario.name}: visible uninstall probe changed the official entry count`)
-  assert(visibleImport.uninstallPackageCount === 0,
-    `${scenario.name}: visible uninstall probe did not remove the package record`)
+  assert(visibleImport.uninstallPackageCount === expectedVisibleProbeUninstallPackageCount(scenario),
+    `${scenario.name}: visible uninstall probe package count mismatch`)
   for (const fieldName of [
     'uninstallSettingsWritten',
     'uninstallLockfileWritten',
@@ -3244,6 +3338,20 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
     `${scenario.name}: uninstalled package shop offer visibility before uninstall did not match the starting state`)
   assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
     `${scenario.name}: uninstalled package shop offer became visible after uninstall`)
+  if (scenario.visibleDependency) {
+    assert(visibleImport.dependencyPackageId === visibleProbeDependencyPackageId,
+      `${scenario.name}: visible uninstall dependency package id mismatch`)
+    assert(visibleImport.dependencyItemId === visibleProbeDependencyItemId,
+      `${scenario.name}: visible uninstall dependency item id mismatch`)
+    assert(visibleImport.dependencyItemNameFallback === visibleProbeDependencyItemNameFallback,
+      `${scenario.name}: visible uninstall dependency item fallback mismatch`)
+    assert(
+      visibleImport.contentAccessDependencyItemVisibleBefore === expectedContentVisibleBeforeUninstall,
+      `${scenario.name}: dependency visibility before uninstall did not match the starting state`
+    )
+    assert(visibleImport.contentAccessDependencyItemVisibleAfter === false,
+      `${scenario.name}: dependency item became visible after uninstall`)
+  }
   assert(visibleImport.panelStatusLabels?.installedManagementStatus === '已就绪',
     `${scenario.name}: visible uninstall panel did not settle installed management`)
   const uninstallResult = visibleImport.panelStatusLabels?.uninstallResult ?? ''
@@ -3396,8 +3504,9 @@ const assertUninstalledStartupState = (startupGate, scenario) => {
     `${scenario.name}: uninstalled startup gate changed the official registry count`)
   assert(startupGate.entryCount === 4242,
     `${scenario.name}: uninstalled startup gate changed the official entry count`)
-  assert(startupGate.packageCount === 0,
-    `${scenario.name}: uninstalled startup gate reported an installed package`)
+  assert(startupGate.packageCount === (
+    scenario.startupGatePackageCount ?? expectedVisibleProbeUninstallPackageCount(scenario)
+  ), `${scenario.name}: uninstalled startup gate package count mismatch`)
   assert(startupGate.lockfileHashPresent === false,
     `${scenario.name}: uninstalled startup gate exposed a runtime lockfile hash`)
   assert(startupGate.startupPersistentStateSourceStatus === 'ready',
@@ -3699,8 +3808,9 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: uninstalled mounted app-startup host blocked a package`)
     assert(thirdPartyAppStartupHost.loadOrderCount === 0,
       `${scenario.name}: uninstalled mounted app-startup host reported a load order`)
-    assert(thirdPartyAppStartupHost.packageCount === 0,
-      `${scenario.name}: uninstalled mounted app-startup host reported an installed package`)
+    assert(thirdPartyAppStartupHost.packageCount === (
+      scenario.startupGatePackageCount ?? expectedVisibleProbeUninstallPackageCount(scenario)
+    ), `${scenario.name}: uninstalled mounted app-startup host package count mismatch`)
     assert(thirdPartyAppStartupHost.effects?.realAppStartupHostCalled === false,
       `${scenario.name}: uninstalled mounted app-startup host claimed a runtime handoff`)
     assert(thirdPartyAppStartupHost.effects?.appStartupHostConnectionAccepted === false,
@@ -5346,7 +5456,8 @@ const runWebProbe = async () => {
             startupPersistentStateReady: false,
             startupPersistentStateUseInstalledState: false,
             visibleUninstall: false,
-            startupGateUninstalled: true
+            startupGateUninstalled: true,
+            startupGatePackageCount: expectedVisibleProbeUninstallPackageCount(scenario)
           }
           const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
           await runProcess(electronPath, [hostPath], {
@@ -5469,7 +5580,8 @@ const runWebProbe = async () => {
             startupPersistentStateReady: false,
             startupPersistentStateUseInstalledState: false,
             visibleUninstall: false,
-            startupGateUninstalled: true
+            startupGateUninstalled: true,
+            startupGatePackageCount: expectedVisibleProbeUninstallPackageCount(scenario)
           }
           const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
           await runProcess(electronPath, [hostPath], {
@@ -5650,7 +5762,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     ? activePackageContentFingerprint(preservedPackageRoot)
     : null
   const preservedDependencyPackageContentBefore = scenario.visibleDependency
-    && (scenario.visibleEnable || exercisesVisibleUpgrade)
+    && (scenario.visibleEnable || scenario.visibleUninstall || exercisesVisibleUpgrade)
     ? activePackageContentFingerprint(preservedDependencyPackageRoot)
     : null
   const preservedPackageManifestBefore = exercisesVisibleUpgrade
@@ -5802,8 +5914,16 @@ const runPackagedScenario = async (scenario, isolated) => {
     assert(lockfileJson.kind === 'third-party-data-pack-lockfile-draft',
       `${scenario.name}: mod-lock file has the wrong kind`)
     if (scenario.visibleUninstall && !scenario.visibleUninstallFailAfterModLockWrite) {
-      assert(lockfileJson.packages?.length === 0,
-        `${scenario.name}: uninstall mod-lock draft retained package records`)
+      assertStringArrayEquals(
+        (lockfileJson.packages ?? []).map(currentPackage => currentPackage?.packageId),
+        expectedVisibleProbeUninstallRemainingPackageIds(scenario),
+        `${scenario.name}: uninstall mod-lock draft package records mismatch`
+      )
+      assertStringArrayEquals(
+        (lockfileJson.packages ?? []).map(currentPackage => currentPackage?.source?.candidatePath),
+        expectedVisibleProbeUninstallRemainingPackageRoots(scenario),
+        `${scenario.name}: uninstall mod-lock draft package paths mismatch`
+      )
       assert(lockfileJson.selectedPackageIds?.length === 0,
         `${scenario.name}: uninstall mod-lock draft selected a package`)
       assert((lockfileJson.blockedPackageIds ?? []).length === 0,
@@ -6117,8 +6237,23 @@ const runPackagedScenario = async (scenario, isolated) => {
       `${scenario.name}: uninstall lockfile still blocked a package`)
     assert(uninstalledLockfile.loadOrder?.length === 0,
       `${scenario.name}: uninstall lockfile still exposed a load order`)
-    assert(uninstalledLockfile.packages?.length === 0,
-      `${scenario.name}: uninstall lockfile retained package records`)
+    assertStringArrayEquals(
+      (uninstalledLockfile.packages ?? []).map(currentPackage => currentPackage?.packageId),
+      expectedVisibleProbeUninstallRemainingPackageIds(scenario),
+      `${scenario.name}: uninstall lockfile package records mismatch`
+    )
+    if (scenario.visibleDependency) {
+      assert(
+        preservedDependencyPackageContentBefore !== null
+          && preservedDependencyPackageContentBefore.length > 0,
+        `${scenario.name}: uninstall did not start with dependency package files present`
+      )
+      assert(fs.existsSync(preservedDependencyPackageRoot) === true,
+        `${scenario.name}: uninstall removed the dependency package root`)
+      assert(JSON.stringify(activePackageContentFingerprint(preservedDependencyPackageRoot))
+        === JSON.stringify(preservedDependencyPackageContentBefore),
+      `${scenario.name}: uninstall changed preserved dependency package file contents`)
+    }
     const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
     assert(settingsJson.thirdPartyDataPacks?.commandId === 'uninstall',
       `${scenario.name}: uninstall settings did not persist the uninstall command`)

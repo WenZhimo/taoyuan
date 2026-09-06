@@ -97,6 +97,7 @@ export interface RunThirdPartyVisibleDisableProductProbeOptions {
 
 export interface RunThirdPartyVisibleUninstallProductProbeOptions {
   readonly targetPackageId?: PackageId
+  readonly includeDependency?: boolean
   readonly expectBlocked?: boolean
 }
 
@@ -316,6 +317,8 @@ interface VisibleUninstallProbeExecution {
   readonly contentAccessRecipeVisibleAfter: boolean
   readonly contentAccessShopOfferVisibleBefore: boolean
   readonly contentAccessShopOfferVisibleAfter: boolean
+  readonly contentAccessDependencyItemVisibleBefore: boolean
+  readonly contentAccessDependencyItemVisibleAfter: boolean
   readonly blockedReason?: string
 }
 
@@ -1334,6 +1337,7 @@ const runMainMenuPanelUninstallProbe = async(
   const contentAccessItemVisibleBefore = getOfficialItemDef(itemId) !== undefined
   const contentAccessRecipeVisibleBefore = getOfficialRecipeDef(recipeId) !== undefined
   const contentAccessShopOfferVisibleBefore = readProbeShopOfferNameFallback() !== undefined
+  const contentAccessDependencyItemVisibleBefore = getOfficialItemDef(dependencyItemId) !== undefined
   let mainMenuPanelOpened = false
   let uninstallButtonClicked = false
   try {
@@ -1378,6 +1382,7 @@ const runMainMenuPanelUninstallProbe = async(
     const contentAccessItemVisibleAfter = getOfficialItemDef(itemId) !== undefined
     const contentAccessRecipeVisibleAfter = getOfficialRecipeDef(recipeId) !== undefined
     const contentAccessShopOfferVisibleAfter = readProbeShopOfferNameFallback() !== undefined
+    const contentAccessDependencyItemVisibleAfter = getOfficialItemDef(dependencyItemId) !== undefined
 
     return Object.freeze({
       transactionResult,
@@ -1396,7 +1401,9 @@ const runMainMenuPanelUninstallProbe = async(
       contentAccessRecipeVisibleBefore,
       contentAccessRecipeVisibleAfter,
       contentAccessShopOfferVisibleBefore,
-      contentAccessShopOfferVisibleAfter
+      contentAccessShopOfferVisibleAfter,
+      contentAccessDependencyItemVisibleBefore,
+      contentAccessDependencyItemVisibleAfter
     })
   } catch (error) {
     const transactionResult = readPanelUninstallResult(probeWindow)
@@ -1418,6 +1425,8 @@ const runMainMenuPanelUninstallProbe = async(
       contentAccessRecipeVisibleAfter: getOfficialRecipeDef(recipeId) !== undefined,
       contentAccessShopOfferVisibleBefore,
       contentAccessShopOfferVisibleAfter: readProbeShopOfferNameFallback() !== undefined,
+      contentAccessDependencyItemVisibleBefore,
+      contentAccessDependencyItemVisibleAfter: getOfficialItemDef(dependencyItemId) !== undefined,
       blockedReason: toErrorMessage(error)
     })
   }
@@ -1822,6 +1831,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     && !execution.contentAccessItemVisibleAfter
     && !execution.contentAccessRecipeVisibleAfter
     && !execution.contentAccessShopOfferVisibleAfter
+    && (options.includeDependency !== true || !execution.contentAccessDependencyItemVisibleAfter)
   const status = ready ? 'ready' : 'blocked'
 
   return Object.freeze({
@@ -1891,6 +1901,17 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     contentAccessRecipeVisibleAfter: execution.contentAccessRecipeVisibleAfter,
     contentAccessShopOfferVisibleBefore: execution.contentAccessShopOfferVisibleBefore,
     contentAccessShopOfferVisibleAfter: execution.contentAccessShopOfferVisibleAfter,
+    ...(options.includeDependency === true
+      ? {
+          dependencyPackageId,
+          dependencyItemId,
+          dependencyItemNameFallback,
+          contentAccessDependencyItemVisibleBefore:
+            execution.contentAccessDependencyItemVisibleBefore,
+          contentAccessDependencyItemVisibleAfter:
+            execution.contentAccessDependencyItemVisibleAfter
+        }
+      : {}),
     uninstallTerminalStatus: terminal?.status ?? null,
     uninstallTargetPackageId: terminal?.targetPackageId ?? null,
     uninstallSelectedPackageCount: terminal?.selectedPackageIds.length ?? 0,
