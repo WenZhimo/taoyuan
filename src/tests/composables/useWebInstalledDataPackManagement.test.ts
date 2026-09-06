@@ -14,6 +14,10 @@ import {
   THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
 } from '@/domain/mods/thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 import {
+  buildThirdPartyDataPackDisableState,
+  createThirdPartyDataPackDisablePersistentRecord
+} from '@/domain/mods/thirdPartyDataPackDisableTransaction'
+import {
   publishOfficialContentRegistrySet,
   resetLiveContentRegistryForTests
 } from '@/domain/mods/liveContentRegistry'
@@ -34,16 +38,35 @@ import type {
   ThirdPartyDataPackElectronDisableCommandEnvelope
 } from '@/domain/mods/thirdPartyDataPackElectronDisableCommandBridge'
 import type {
+  ThirdPartyDataPackElectronEnableCommandEnvelope
+} from '@/domain/mods/thirdPartyDataPackElectronEnableCommandBridge'
+import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
 
 const packageId = 'web_disable_management_test_pack' as PackageId
+const dependencyPackageId = 'a_web_management_dependency_pack' as PackageId
 const hash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
 
-const createManifest = () => ({
+const createManifest = (dependencies: readonly Record<string, string>[] = []) => ({
   id: packageId,
   name: { key: `${packageId}.package.name`, fallback: packageId },
+  version: '1.0.0',
+  gameVersion: '2.4.0',
+  engineApiVersion: '1',
+  contentSchemaVersion: '1',
+  defaultLocale: 'zh-CN',
+  locales: { 'zh-CN': 'locales/zh-CN.json' },
+  authors: [{ name: 'Web Management Tester', role: 'developer' }],
+  license: 'MIT',
+  dependencies: [...dependencies],
+  entrypoints: { 'taoyuan:item': ['data/items.json'] }
+})
+
+const createDependencyManifest = () => ({
+  id: dependencyPackageId,
+  name: { key: `${dependencyPackageId}.package.name`, fallback: dependencyPackageId },
   version: '1.0.0',
   gameVersion: '2.4.0',
   engineApiVersion: '1',
@@ -71,11 +94,47 @@ const createItem = () => ({
   edible: false
 })
 
-const createInstalledPackageFiles = () => {
-  const manifestText = toJson(createManifest())
+const createDependencyItem = () => ({
+  id: `${dependencyPackageId}:library_token`,
+  name: {
+    key: `${dependencyPackageId}.library_token.name`,
+    fallback: 'Web Management Dependency Token'
+  },
+  category: 'gift',
+  description: {
+    key: `${dependencyPackageId}.library_token.description`,
+    fallback: 'Synthetic dependency item for installed package management tests.'
+  },
+  sellPrice: 6,
+  edible: false
+})
+
+const createInstalledPackageFiles = (includeDependency = false) => {
+  const manifestText = toJson(createManifest(
+    includeDependency ? [{ id: dependencyPackageId, version: '1.0.0' }] : []
+  ))
   const localeText = '{}\n'
   const itemText = toJson([createItem()])
   return [
+    ...(includeDependency
+      ? [
+          {
+            path: 'a-web-management-dependency-pack/manifest.json',
+            text: toJson(createDependencyManifest()),
+            sizeBytes: toJson(createDependencyManifest()).length
+          },
+          {
+            path: 'a-web-management-dependency-pack/locales/zh-CN.json',
+            text: localeText,
+            sizeBytes: localeText.length
+          },
+          {
+            path: 'a-web-management-dependency-pack/data/items.json',
+            text: toJson([createDependencyItem()]),
+            sizeBytes: toJson([createDependencyItem()]).length
+          }
+        ]
+      : []),
     {
       path: 'web-disable-management-test-pack/manifest.json',
       text: manifestText,
@@ -95,14 +154,15 @@ const createInstalledPackageFiles = () => {
 }
 
 const createEnabledMountInput = async(
-  officialRegistrySet: ReturnType<typeof buildOfficialRegistrySetFromStaticData>
+  officialRegistrySet: ReturnType<typeof buildOfficialRegistrySetFromStaticData>,
+  includeDependency = false
 ): Promise<ThirdPartyDataPackMountInputResult> =>
   await buildWebFilePickerSourceMountInput({
     officialRegistrySet,
     source: createMemoryContentPackageSource({
       sourceId: 'memory/web-management-enable-test',
       rootPath: 'packs',
-      files: createInstalledPackageFiles().map(file => ({
+      files: createInstalledPackageFiles(includeDependency).map(file => ({
         path: file.path,
         text: file.text
       }))
@@ -463,6 +523,126 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(startupSnapshot.modLockState?.matched).toBe(true)
     expect(startupSnapshot.liveRegistry?.matched).toBe(true)
     expect(startupSnapshot.saveCache?.isolated).toBe(true)
+  })
+
+  it('routes dependency enable persistence through the Electron renderer command host', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
+    expect(enabledMountInput.status).toBe('ready')
+    expect(enabledMountInput.selectedPackageIds).toEqual([dependencyPackageId, packageId])
+    expect(enabledMountInput.loadOrder).toEqual([dependencyPackageId, packageId])
+    const installedDraft = enabledMountInput.lockfileDraft!
+    const disabledState = buildThirdPartyDataPackDisableState({
+      officialRegistrySet,
+      installedDraft,
+      targetPackageId: packageId
+    })
+    const disabledPersistentRecord = createThirdPartyDataPackDisablePersistentRecord(
+      THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      disabledState
+    )
+    const disabledRecord = {
+      ...disabledPersistentRecord,
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+    } as const
+    const readElectronInstalledState = vi.fn(async(): Promise<ThirdPartyDataPackElectronInstalledStateReadResult> => ({
+      status: 'ready' as const,
+      record: disabledRecord,
+      packageFilesPreserved: true
+    }))
+    const electronEnableCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
+    ) => ({
+      status: 'written' as const,
+      requestedCommandId: 'enable' as const,
+      targetPackageId: envelope.targetPackageId,
+      selectedPackageIds: [...envelope.selectedPackageIds],
+      blockedPackageIds: [],
+      loadOrder: [...envelope.loadOrder],
+      packageFilesPreserved: true,
+      settingsWritten: true,
+      lockfileWritten: true,
+      startupStateWritten: true,
+      diagnostics: []
+    }))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore: null,
+      installedPackageStore: null,
+      startupPersistentStateStore: null,
+      mountedAppStartupEvidence,
+      readElectronInstalledState,
+      electronEnableCommand,
+      readEnableMountInput: async(targetPackageId) =>
+        targetPackageId === packageId ? enabledMountInput : null
+    })
+    await management.refresh()
+    expect(management.rows.value).toEqual([
+      { packageId: dependencyPackageId, version: '1.0.0', status: 'disabled' },
+      { packageId, version: '1.0.0', status: 'disabled' }
+    ])
+
+    const result = await management.enable(packageId)
+    await nextTick()
+
+    expect(readElectronInstalledState).toHaveBeenCalledTimes(2)
+    expect(electronEnableCommand).toHaveBeenCalledOnce()
+    expect(electronEnableCommand.mock.calls[0]?.[0]).toMatchObject({
+      requestedCommandId: 'enable',
+      targetPackageId: packageId,
+      selectedPackageIds: [dependencyPackageId, packageId],
+      blockedPackageIds: [],
+      loadOrder: [dependencyPackageId, packageId],
+      record: {
+        requestedCommandId: 'enable',
+        targetPackageId: packageId,
+        selectedPackageIds: [dependencyPackageId, packageId],
+        blockedPackageIds: [],
+        loadOrder: [dependencyPackageId, packageId]
+      },
+      startupSnapshot: {
+        kind: 'electron-startup-persistent-state-snapshot',
+        packageId
+      }
+    })
+    expect(result).toMatchObject({
+      managementCommandHostKind: 'electron-renderer',
+      managementCommandDispatched: true,
+      managementUiIpcResponseDelivered: true,
+      terminal: {
+        status: 'ready',
+        requestedCommandId: 'enable',
+        targetPackageId: packageId,
+        selectedPackageIds: [dependencyPackageId, packageId],
+        blockedPackageIds: [],
+        loadOrder: [dependencyPackageId, packageId],
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        packageFilesPreserved: true,
+        runtimePublicationIncluded: true,
+        liveRegistrySwapped: true,
+        appStartupHandoffAccepted: true,
+        realAppStartupHostCalled: true,
+        gameAppCreated: true,
+        piniaCreated: true,
+        routerMounted: true
+      }
+    })
+    expect(management.rows.value).toEqual([
+      { packageId: dependencyPackageId, version: '1.0.0', status: 'enabled' },
+      { packageId, version: '1.0.0', status: 'enabled' }
+    ])
+    expect(getOfficialItemDef(`${dependencyPackageId}:library_token`)?.name.fallback)
+      .toBe('Web Management Dependency Token')
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+      .toBe('Web Management Linen Ribbon')
+    expect(JSON.stringify(electronEnableCommand.mock.calls[0]?.[0])).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
   })
 
   it('routes visible disable persistence through the Electron renderer command host', async() => {

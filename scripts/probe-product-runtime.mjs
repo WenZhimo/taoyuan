@@ -173,6 +173,22 @@ const webScenarios = [
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack'
   },
+  {
+    name: 'visible-import-web-dependency-disable-enable-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableEnableSequence: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
   { name: 'missing', fault: 'missing', source: 'static-fallback', status: 'cache-miss-not-found' },
   { name: 'corrupt', fault: 'corrupt', source: 'static-fallback', status: 'cache-invalid-json' },
   {
@@ -860,6 +876,91 @@ const electronScenarios = [
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
     startupGateTargetPackageId: 'product_probe_pack',
     startupGateEntryCount: 4245
+  },
+  {
+    name: 'visible-import-dependency-disable-enable-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-enable',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-enable-disable',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-enable',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleDisable: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-enable-enable',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-enable',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupGateDisabled: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4242,
+    startupGatePackageCount: 2,
+    visibleEnable: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-disable-enable-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disable-enable',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleDependency: true
   },
   {
     name: 'visible-import-enable-write-failure-initial-import',
@@ -2152,6 +2253,8 @@ const assertVisibleManagementCommandDelivery = (
 
 const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
   const electron = protocol === 'file:'
+  const expectedSelectedPackageIds = expectedVisibleProbeSelectedPackageIds(scenario)
+  const expectedLoadOrder = expectedVisibleProbeLoadOrder(scenario)
   assert(protocol === 'http:' || electron,
     `${scenario.name}: visible enable probe ran with an unsupported protocol`)
   assert(visibleImport.observed === true,
@@ -2275,7 +2378,12 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
     `${scenario.name}: visible enable reported the wrong shop offer`)
   assert(visibleImport.shopOfferNameFallback === 'Product Probe Ribbon Stand',
     `${scenario.name}: visible enable shop offer was not readable from contentAccess`)
-  assert(visibleImport.fileCount === (electron ? 1 : 5),
+  assertVisibleImportDependencyContent(visibleImport, scenario)
+  assert(visibleImport.fileCount === (
+    electron
+      ? expectedVisibleProbePackageCount(scenario)
+      : expectedVisibleProbeFileCount(scenario)
+  ),
     `${scenario.name}: visible enable used the wrong restored source file count`)
   assert(visibleImport.pickStatus === 'restored',
     `${scenario.name}: visible enable source was not restored before dispatch`)
@@ -2295,17 +2403,17 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
     `${scenario.name}: visible enable terminal was not ready`)
   assert(visibleImport.enableTargetPackageId === 'product_probe_pack',
     `${scenario.name}: visible enable terminal target mismatch`)
-  assert(visibleImport.enableSelectedPackageCount === 1,
+  assert(visibleImport.enableSelectedPackageCount === expectedSelectedPackageIds.length,
     `${scenario.name}: visible enable terminal selected count mismatch`)
   assert(visibleImport.enableBlockedPackageCount === 0,
     `${scenario.name}: visible enable terminal blocked package mismatch`)
-  assert(visibleImport.enableLoadOrderCount === 1,
+  assert(visibleImport.enableLoadOrderCount === expectedLoadOrder.length,
     `${scenario.name}: visible enable terminal load order mismatch`)
   assert(visibleImport.enableRegistryCount === 54,
     `${scenario.name}: visible enable terminal registry count mismatch`)
-  assert(visibleImport.enableEntryCount === 4245,
+  assert(visibleImport.enableEntryCount === expectedVisibleProbeEntryCount(scenario),
     `${scenario.name}: visible enable terminal entry count mismatch`)
-  assert(visibleImport.enablePackageCount === 1,
+  assert(visibleImport.enablePackageCount === expectedVisibleProbePackageCount(scenario),
     `${scenario.name}: visible enable terminal package count mismatch`)
   for (const fieldName of [
     'enableSettingsWritten',
@@ -2319,17 +2427,27 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
     assert(visibleImport[fieldName] === true,
       `${scenario.name}: visible enable terminal field ${fieldName} was not true`)
   }
-  assert(visibleImport.selectedPackageCount === 1,
+  assertStringArrayEquals(
+    visibleImport.selectedPackageIds,
+    expectedSelectedPackageIds,
+    `${scenario.name}: visible enable selected package ids mismatch`
+  )
+  assert(visibleImport.selectedPackageCount === expectedSelectedPackageIds.length,
     `${scenario.name}: visible enable selected package count mismatch`)
   assert(visibleImport.blockedPackageCount === 0,
     `${scenario.name}: visible enable blocked packages unexpectedly`)
-  assert(visibleImport.loadOrderCount === 1,
+  assertStringArrayEquals(
+    visibleImport.loadOrder,
+    expectedLoadOrder,
+    `${scenario.name}: visible enable load order mismatch`
+  )
+  assert(visibleImport.loadOrderCount === expectedLoadOrder.length,
     `${scenario.name}: visible enable load order count mismatch`)
   assert(visibleImport.registryCount === 54,
     `${scenario.name}: visible enable registry count mismatch`)
-  assert(visibleImport.entryCount === 4245,
+  assert(visibleImport.entryCount === expectedVisibleProbeEntryCount(scenario),
     `${scenario.name}: visible enable entry count mismatch`)
-  assert(visibleImport.packageCount === 1,
+  assert(visibleImport.packageCount === expectedVisibleProbePackageCount(scenario),
     `${scenario.name}: visible enable package count mismatch`)
   assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
     `${scenario.name}: visible enable diagnostics count was invalid`)
@@ -2492,7 +2610,7 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     `${scenario.name}: visible disable probe changed the official registry count`)
   assert(visibleImport.disableEntryCount === 4242,
     `${scenario.name}: visible disable probe changed the official entry count`)
-  assert(visibleImport.disablePackageCount === 1,
+  assert(visibleImport.disablePackageCount === expectedVisibleProbePackageCount(scenario),
     `${scenario.name}: visible disable probe reported the wrong package count`)
   for (const fieldName of [
     'disableSettingsWritten',
@@ -2518,6 +2636,18 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     `${scenario.name}: disabled package shop offer was not visible before disable`)
   assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
     `${scenario.name}: disabled package shop offer remained visible after disable`)
+  if (scenario.visibleDependency) {
+    assert(visibleImport.dependencyPackageId === visibleProbeDependencyPackageId,
+      `${scenario.name}: visible disable dependency package id mismatch`)
+    assert(visibleImport.dependencyItemId === visibleProbeDependencyItemId,
+      `${scenario.name}: visible disable dependency item id mismatch`)
+    assert(visibleImport.dependencyItemNameFallback === visibleProbeDependencyItemNameFallback,
+      `${scenario.name}: visible disable dependency item fallback mismatch`)
+    assert(visibleImport.contentAccessDependencyItemVisibleBefore === true,
+      `${scenario.name}: dependency item was not visible before disable`)
+    assert(visibleImport.contentAccessDependencyItemVisibleAfter === false,
+      `${scenario.name}: dependency item remained visible after disable`)
+  }
   assert(visibleImport.panelStatusLabels?.installedManagementStatus === '已就绪',
     `${scenario.name}: visible disable panel did not settle installed management`)
   const disableResult = visibleImport.panelStatusLabels?.disableResult ?? ''
@@ -2790,7 +2920,7 @@ const assertDisabledInstalledStartupState = (startupGate, scenario) => {
     `${scenario.name}: disabled installed-state startup gate changed the official registry count`)
   assert(startupGate.entryCount === 4242,
     `${scenario.name}: disabled installed-state startup gate changed the official entry count`)
-  assert(startupGate.packageCount === 1,
+  assert(startupGate.packageCount === expectedVisibleProbePackageCount(scenario),
     `${scenario.name}: disabled installed-state startup gate reported the wrong package count`)
   assert(startupGate.lockfileHashPresent === false,
     `${scenario.name}: disabled installed-state startup gate exposed a runtime lockfile hash`)
@@ -3118,7 +3248,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: disabled installed-state mounted app-startup host changed the registry count`)
     assert(thirdPartyAppStartupHost.entryCount === 4242,
       `${scenario.name}: disabled installed-state mounted app-startup host changed the entry count`)
-    assert(thirdPartyAppStartupHost.packageCount === 1,
+    assert(thirdPartyAppStartupHost.packageCount === expectedVisibleProbePackageCount(scenario),
       `${scenario.name}: disabled installed-state mounted app-startup host reported the wrong package count`)
     assert(thirdPartyAppStartupHost.lockfileHashPresent === false,
       `${scenario.name}: disabled installed-state mounted app-startup host exposed a lockfile hash`)
@@ -4834,7 +4964,10 @@ const runWebProbe = async () => {
           startupGateDisabled: false,
           startupGateRealRuntimePublicationCommit: true,
           startupGateRegistryCount: 54,
-          startupGateEntryCount: 4245,
+          startupGateSelectedPackageCount: expectedVisibleProbeSelectedPackageIds(scenario).length,
+          startupGateLoadOrderCount: expectedVisibleProbeLoadOrder(scenario).length,
+          startupGateEntryCount: expectedVisibleProbeEntryCount(scenario),
+          startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
           startupPersistentStateExpectsResponseDeliveryHandoff: false,
           visibleImportWebOrdinary: false,
           visibleEnable: false,
@@ -5320,7 +5453,14 @@ const runPackagedScenario = async (scenario, isolated) => {
       `${scenario.name}: disabled package lockfile still selected a package`)
     assert(disabledLockfile.loadOrder?.length === 0,
       `${scenario.name}: disabled package lockfile still exposed a load order`)
-    assert(disabledLockfile.packages?.[0]?.packageId === 'product_probe_pack',
+    assertStringArrayEquals(
+      (disabledLockfile.packages ?? []).map(currentPackage => currentPackage?.packageId),
+      expectedVisibleProbeSelectedPackageIds(scenario),
+      `${scenario.name}: disabled package lockfile lost the installed package records`
+    )
+    assert(disabledLockfile.packages?.some(currentPackage =>
+      currentPackage?.packageId === 'product_probe_pack'
+    ),
       `${scenario.name}: disabled package lockfile lost the installed package record`)
     const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
     assert(settingsJson.thirdPartyDataPacks?.commandId === 'disable',
@@ -5554,25 +5694,38 @@ const runPackagedScenario = async (scenario, isolated) => {
       === JSON.stringify(preservedPackageContentBefore),
     `${scenario.name}: re-enable changed preserved package file contents unexpectedly`)
     const enabledLockfile = readJson(lockfilePath)
-    assert(JSON.stringify(enabledLockfile.selectedPackageIds) === JSON.stringify(['product_probe_pack']),
+    assertStringArrayEquals(
+      enabledLockfile.selectedPackageIds,
+      expectedVisibleProbeSelectedPackageIds(scenario),
+      `${scenario.name}: re-enabled package lockfile did not select the expected packages`
+    )
+    assertStringArrayEquals(
+      enabledLockfile.loadOrder,
+      expectedVisibleProbeLoadOrder(scenario),
+      `${scenario.name}: re-enabled package lockfile did not restore load order`
+    )
+    assertStringArrayEquals(
+      (enabledLockfile.packages ?? []).map(currentPackage => currentPackage?.packageId),
+      expectedVisibleProbeSelectedPackageIds(scenario),
+      `${scenario.name}: re-enabled package lockfile lost the installed package records`
+    )
+    assert(enabledLockfile.packages?.some(currentPackage =>
+      currentPackage?.packageId === 'product_probe_pack'
+    ),
       `${scenario.name}: re-enabled package lockfile did not select the package`)
-    assert(JSON.stringify(enabledLockfile.loadOrder) === JSON.stringify(['product_probe_pack']),
-      `${scenario.name}: re-enabled package lockfile did not restore load order`)
-    assert(enabledLockfile.packages?.[0]?.packageId === 'product_probe_pack',
-      `${scenario.name}: re-enabled package lockfile lost the installed package record`)
     const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
     assert(settingsJson.thirdPartyDataPacks?.commandId === 'enable',
       `${scenario.name}: re-enabled package settings did not persist the enable command`)
     assert(settingsJson.thirdPartyDataPacks?.targetPackageId === 'product_probe_pack',
       `${scenario.name}: re-enabled package settings reported the wrong target`)
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
-      === JSON.stringify(['product_probe_pack']),
-    `${scenario.name}: re-enabled package settings did not select the package`)
+      === JSON.stringify(expectedVisibleProbeSelectedPackageIds(scenario)),
+    `${scenario.name}: re-enabled package settings did not select the expected packages`)
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.blockedPackageIds ?? [])
       === JSON.stringify([]),
     `${scenario.name}: re-enabled package settings still blocked the package`)
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
-      === JSON.stringify(['product_probe_pack']),
+      === JSON.stringify(expectedVisibleProbeLoadOrder(scenario)),
     `${scenario.name}: re-enabled package settings did not restore load order`)
     assert(!/[A-Za-z]:[\/]/.test(JSON.stringify({ enabledLockfile, settingsJson })),
       `${scenario.name}: re-enabled persistent state leaked an absolute path`)

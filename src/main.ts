@@ -196,6 +196,7 @@ void bootstrapApplication({
         thirdPartyVisibleDisableProductProbeResult =
           await runThirdPartyVisibleDisableProductProbe({
             targetPackageId: 'product_probe_pack' as PackageId,
+            ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),
             expectBlocked: thirdPartyVisibleDisableExpectBlockedProbeRequested
           })
       }

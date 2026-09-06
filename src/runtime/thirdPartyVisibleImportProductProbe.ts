@@ -70,6 +70,16 @@ const packageVariantForOperation = (
 ): VisibleImportProductProbePackageVariant =>
   operation === 'upgrade' ? 'v2' : 'v1'
 
+const expectedSelectedPackageIds = (includeDependency: boolean): readonly PackageId[] =>
+  includeDependency ? [dependencyPackageId, packageId] : [packageId]
+
+const packageIdListMatches = (
+  actual: readonly PackageId[],
+  expected: readonly PackageId[]
+): boolean =>
+  actual.length === expected.length
+  && actual.every((packageId, index) => packageId === expected[index])
+
 export interface RunThirdPartyVisibleImportProductProbeOptions {
   readonly persistSource?: boolean
   readonly persistenceStore?: WebIndexedDbImportPersistenceStore | null
@@ -518,10 +528,12 @@ const hasReadyVisibleImportDispatch = (
   contentAccessItemVisibleAfter: boolean,
   contentAccessRecipeVisibleAfter: boolean,
   contentAccessShopOfferVisibleAfter: boolean,
-  contentAccessDependencyItemVisibleAfter: boolean
+  contentAccessDependencyItemVisibleAfter: boolean,
+  includeDependency: boolean
 ): boolean => {
   const dispatchResult = execution.dispatchResult
   const enableTerminal = execution.enableTransactionResult?.terminal ?? null
+  const expectedPackageIds = expectedSelectedPackageIds(includeDependency)
   const appStartupHostEffects =
     dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects
   const isEnable = execution.operation === 'enable'
@@ -547,11 +559,9 @@ const hasReadyVisibleImportDispatch = (
       && execution.mainMenuPanelOpened
       && interactionReady
       && enableTerminal.targetPackageId === packageId
-      && enableTerminal.selectedPackageIds.length === 1
-      && enableTerminal.selectedPackageIds[0] === packageId
+      && packageIdListMatches(enableTerminal.selectedPackageIds, expectedPackageIds)
       && enableTerminal.blockedPackageIds.length === 0
-      && enableTerminal.loadOrder.length === 1
-      && enableTerminal.loadOrder[0] === packageId
+      && packageIdListMatches(enableTerminal.loadOrder, expectedPackageIds)
       && enableTerminal.settingsWritten
       && enableTerminal.lockfileWritten
       && enableTerminal.startupStateWritten
@@ -563,6 +573,7 @@ const hasReadyVisibleImportDispatch = (
       && contentAccessItemVisibleAfter
       && contentAccessRecipeVisibleAfter
       && contentAccessShopOfferVisibleAfter
+      && (!includeDependency || contentAccessDependencyItemVisibleAfter)
   }
   if (isFailure) {
     return dispatchResult !== null
@@ -1446,7 +1457,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
     contentAccessItemVisibleAfter,
     contentAccessRecipeVisibleAfter,
     contentAccessShopOfferVisibleAfter,
-    contentAccessDependencyItemVisibleAfter
+    contentAccessDependencyItemVisibleAfter,
+    options.includeDependency === true
   )
     ? 'ready'
     : 'blocked'

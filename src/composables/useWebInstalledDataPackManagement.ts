@@ -733,9 +733,9 @@ export const useWebInstalledDataPackManagement = (
             const electronResult = await options.electronEnableCommand({
               requestedCommandId: 'enable',
               targetPackageId: state.targetPackageId,
-              selectedPackageIds: [state.targetPackageId],
+              selectedPackageIds: [...state.selectedPackageIds],
               blockedPackageIds: [],
-              loadOrder: [state.targetPackageId],
+              loadOrder: [...state.loadOrder],
               packageFilesPreserved: true,
               record: enableRecord,
               startupSnapshot: createElectronEnableStartupSnapshot(state)

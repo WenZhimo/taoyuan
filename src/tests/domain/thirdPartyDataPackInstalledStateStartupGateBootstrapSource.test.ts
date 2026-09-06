@@ -106,6 +106,21 @@ const createItem = (packageId: PackageId): JsonObject => ({
   edible: false
 })
 
+const createProductProbeDependencyItem = (packageId: PackageId): JsonObject => ({
+  id: `${packageId}:library_token`,
+  name: {
+    key: `${packageId}.item.library_token.name`,
+    fallback: 'Product Probe Library Token'
+  },
+  category: 'gift',
+  description: {
+    key: `${packageId}.item.library_token.description`,
+    fallback: 'Installed-state startup dependency item.'
+  },
+  sellPrice: 6,
+  edible: false
+})
+
 const createRecipe = (packageId: PackageId): JsonObject => ({
   id: `${packageId}:linen_ribbon_snack`,
   name: {
@@ -195,6 +210,37 @@ const packageFiles = (
     path: `${rootPath}/data/shop-offers.json`,
     text: toJson([createShopOffer(packageId)]),
     sizeBytes: toJson([createShopOffer(packageId)]).length
+  },
+  {
+    path: `${rootPath}/locales/zh-CN.json`,
+    text: '{}\n',
+    sizeBytes: 3
+  }
+]
+
+const productProbeDependencyPackageFiles = (
+  packageId: PackageId,
+  rootPath = 'a-product-probe-library'
+) => [
+  {
+    path: `${rootPath}/manifest.json`,
+    text: toJson(createManifest(packageId)),
+    sizeBytes: toJson(createManifest(packageId)).length
+  },
+  {
+    path: `${rootPath}/data/items.json`,
+    text: toJson([createProductProbeDependencyItem(packageId)]),
+    sizeBytes: toJson([createProductProbeDependencyItem(packageId)]).length
+  },
+  {
+    path: `${rootPath}/data/recipes.json`,
+    text: '[]\n',
+    sizeBytes: 3
+  },
+  {
+    path: `${rootPath}/data/shop-offers.json`,
+    text: '[]\n',
+    sizeBytes: 3
   },
   {
     path: `${rootPath}/locales/zh-CN.json`,
@@ -335,6 +381,49 @@ const seedWebInstalledStateWithDependency = async(
   await store.put(createDefaultWebIndexedDbImportRecord([
     ...packageFiles(dependencyPackageId, 'a-startup-library'),
     ...packageFiles(targetPackageId, 'z-startup-app', [
+      { id: dependencyPackageId, version: '1.0.0' }
+    ])
+  ], THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))
+  const mountInput = await buildWebMountInput(store, officialRegistrySet)
+  expect(mountInput.status, JSON.stringify(mountInput.diagnostics, null, 2))
+    .toBe('ready')
+  expect(mountInput.selectedPackageIds).toEqual([dependencyPackageId, targetPackageId])
+  expect(mountInput.loadOrder).toEqual([dependencyPackageId, targetPackageId])
+  const snapshotText = startupSnapshotText(targetPackageId, mountInput)
+  await store.put(createDefaultWebIndexedDbImportRecord([
+    {
+      path: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
+      text: snapshotText,
+      sizeBytes: snapshotText.length
+    }
+  ], THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))
+  expect(mountInput.candidateIdentity).toBeDefined()
+  expect(mountInput.lockfileHash).toBeDefined()
+  expect(mountInput.lockfileDraft).toBeDefined()
+  await settingsLockfileStore.write({
+    recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+    requestedCommandId: 'install',
+    targetPackageId,
+    selectedPackageIds: mountInput.selectedPackageIds,
+    blockedPackageIds: mountInput.blockedPackageIds,
+    loadOrder: mountInput.loadOrder,
+    candidateHash: mountInput.candidateIdentity!.candidateHash,
+    lockfileHash: mountInput.lockfileHash!,
+    lockfileDraft: mountInput.lockfileDraft!
+  })
+  return mountInput
+}
+
+const seedWebInstalledProductProbeDependencyState = async(
+  store: WebIndexedDbImportPersistenceStore,
+  settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore,
+  officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+): Promise<ThirdPartyDataPackMountInputResult> => {
+  const targetPackageId = 'product_probe_pack' as PackageId
+  const dependencyPackageId = 'a_product_probe_library' as PackageId
+  await store.put(createDefaultWebIndexedDbImportRecord([
+    ...productProbeDependencyPackageFiles(dependencyPackageId),
+    ...packageFiles(targetPackageId, 'z-product-probe-pack', [
       { id: dependencyPackageId, version: '1.0.0' }
     ])
   ], THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID))
@@ -866,6 +955,26 @@ describe('third-party installed-state startup gate bootstrap source', () => {
       productProbeItemNameFallback: 'product_probe_pack Startup Linen Ribbon',
       productProbeRecipeNameFallback: 'product_probe_pack Startup Linen Ribbon Snack',
       productProbeShopOfferNameFallback: 'product_probe_pack Startup Linen Ribbon Stand'
+    })
+  })
+
+  it('reports dependency product probe fallback from the installed startup candidate', async() => {
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    await seedWebInstalledProductProbeDependencyState(store, settingsLockfileStore)
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore
+    })
+
+    const result = await source()
+
+    expect(result).toMatchObject({
+      status: 'ready',
+      targetPackageId: 'product_probe_pack',
+      selectedPackageIds: ['a_product_probe_library', 'product_probe_pack'],
+      productProbeDependencyItemNameFallback: 'Product Probe Library Token'
     })
   })
 

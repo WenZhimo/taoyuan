@@ -12,9 +12,9 @@ export const thirdPartyDataPackElectronEnableCommandIpcChannel =
 export interface ThirdPartyDataPackElectronEnableCommandEnvelope {
   readonly requestedCommandId: 'enable'
   readonly targetPackageId: PackageId
-  readonly selectedPackageIds: readonly [PackageId]
+  readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly []
-  readonly loadOrder: readonly [PackageId]
+  readonly loadOrder: readonly PackageId[]
   readonly packageFilesPreserved: true
   readonly record: ThirdPartyDataPackEnablePersistentRecord
   readonly startupSnapshot: ThirdPartyDataPackEnableStartupPersistentStateSnapshot
@@ -84,6 +84,14 @@ const packageIdList = (value: unknown): readonly PackageId[] | undefined => {
   return Object.freeze([...value]) as readonly PackageId[]
 }
 
+const packageIdListsMatch = (
+  left: readonly PackageId[] | undefined,
+  right: readonly PackageId[]
+): boolean =>
+  left !== undefined
+  && left.length === right.length
+  && left.every((packageId, index) => packageId === right[index])
+
 const diagnostic = (stage: string, packageId?: PackageId): ThirdPartyDataPackElectronEnableCommandDiagnostic =>
   Object.freeze({
     code: 'LIFECYCLE-TRANSACTION-001' as const,
@@ -114,22 +122,36 @@ const blockedResult = (
 
 const isValidEnableRecord = (
   record: unknown,
-  targetPackageId: PackageId
+  targetPackageId: PackageId,
+  selectedPackageIds: readonly PackageId[],
+  loadOrder: readonly PackageId[]
 ): record is ThirdPartyDataPackEnablePersistentRecord => {
   if (record === null || typeof record !== 'object') return false
   const lockfileDraft = readOwnDataField(record, 'lockfileDraft')
   if (lockfileDraft === null || typeof lockfileDraft !== 'object') return false
   const packages = readOwnDataField(lockfileDraft, 'packages')
+  const draftSelectedPackageIds = packageIdList(readOwnDataField(lockfileDraft, 'selectedPackageIds'))
+  const draftLoadOrder = packageIdList(readOwnDataField(lockfileDraft, 'loadOrder'))
   return readOwnStringField(record, 'recordId') === 'active'
     && readOwnStringField(record, 'requestedCommandId') === 'enable'
     && readOwnStringField(record, 'targetPackageId') === targetPackageId
-    && JSON.stringify(packageIdList(readOwnDataField(record, 'selectedPackageIds'))) === JSON.stringify([targetPackageId])
+    && packageIdListsMatch(packageIdList(readOwnDataField(record, 'selectedPackageIds')), selectedPackageIds)
     && packageIdList(readOwnDataField(record, 'blockedPackageIds'))?.length === 0
-    && JSON.stringify(packageIdList(readOwnDataField(record, 'loadOrder'))) === JSON.stringify([targetPackageId])
+    && packageIdListsMatch(packageIdList(readOwnDataField(record, 'loadOrder')), loadOrder)
     && hashPattern.test(readOwnStringField(record, 'candidateHash') ?? '')
     && hashPattern.test(readOwnStringField(record, 'lockfileHash') ?? '')
     && readOwnStringField(lockfileDraft, 'lockfileHash') === readOwnStringField(record, 'lockfileHash')
+    && packageIdListsMatch(draftSelectedPackageIds, selectedPackageIds)
+    && packageIdListsMatch(draftLoadOrder, loadOrder)
     && Array.isArray(packages)
+    && selectedPackageIds.every(packageId =>
+      packages.some(currentPackage =>
+        currentPackage !== null
+        && typeof currentPackage === 'object'
+        && readOwnStringField(currentPackage, 'packageId') === packageId
+      )
+    )
+    && loadOrder.every(packageId => selectedPackageIds.includes(packageId))
     && packages.some(currentPackage =>
       currentPackage !== null
       && typeof currentPackage === 'object'
@@ -147,13 +169,16 @@ const isValidEnvelope = (value: unknown): value is ThirdPartyDataPackElectronEna
   const startupSnapshot = readOwnDataField(value, 'startupSnapshot')
   return readOwnStringField(value, 'requestedCommandId') === 'enable'
     && isPackageId(targetPackageId)
-    && selectedPackageIds?.length === 1
-    && selectedPackageIds[0] === targetPackageId
+    && selectedPackageIds !== undefined
+    && selectedPackageIds.length > 0
+    && selectedPackageIds.includes(targetPackageId)
     && blockedPackageIds?.length === 0
-    && loadOrder?.length === 1
-    && loadOrder[0] === targetPackageId
+    && loadOrder !== undefined
+    && loadOrder.length === selectedPackageIds.length
+    && loadOrder.includes(targetPackageId)
+    && loadOrder.every(packageId => selectedPackageIds.includes(packageId))
     && readOwnDataField(value, 'packageFilesPreserved') === true
-    && isValidEnableRecord(record, targetPackageId)
+    && isValidEnableRecord(record, targetPackageId, selectedPackageIds, loadOrder)
     && startupSnapshot !== null
     && typeof startupSnapshot === 'object'
     && readOwnStringField(startupSnapshot, 'kind') === 'electron-startup-persistent-state-snapshot'
@@ -167,9 +192,9 @@ const writtenResult = (
   status: 'written',
   requestedCommandId: 'enable',
   targetPackageId: envelope.targetPackageId,
-  selectedPackageIds: Object.freeze([envelope.targetPackageId]),
+  selectedPackageIds: Object.freeze([...envelope.selectedPackageIds]),
   blockedPackageIds: Object.freeze([]),
-  loadOrder: Object.freeze([envelope.targetPackageId]),
+  loadOrder: Object.freeze([...envelope.loadOrder]),
   packageFilesPreserved: true,
   settingsWritten: true,
   lockfileWritten: true,

@@ -1604,12 +1604,22 @@ const writeElectronEnabledState = async envelope => {
   if (
     record.requestedCommandId !== 'enable'
     || record.targetPackageId !== envelope.targetPackageId
-    || draft.selectedPackageIds.length !== 1
-    || draft.selectedPackageIds[0] !== envelope.targetPackageId
-    || draft.loadOrder.length !== 1
-    || draft.loadOrder[0] !== envelope.targetPackageId
+    || !stringListsMatch(draft.selectedPackageIds, envelope.selectedPackageIds)
+    || !stringListsMatch(draft.loadOrder, envelope.loadOrder)
+    || !stringListsMatch(record.selectedPackageIds, envelope.selectedPackageIds)
+    || !stringListsMatch(record.loadOrder, envelope.loadOrder)
+    || !Array.isArray(envelope.selectedPackageIds)
+    || !Array.isArray(envelope.loadOrder)
+    || envelope.selectedPackageIds.length === 0
+    || envelope.loadOrder.length !== envelope.selectedPackageIds.length
+    || !envelope.selectedPackageIds.includes(envelope.targetPackageId)
+    || !envelope.loadOrder.includes(envelope.targetPackageId)
+    || !envelope.loadOrder.every(packageId => envelope.selectedPackageIds.includes(packageId))
     || draft.packages.length === 0
     || enabledPackage === undefined
+    || !envelope.selectedPackageIds.every(packageId =>
+      draft.packages.some(currentPackage => currentPackage.packageId === packageId)
+    )
   ) {
     throw new Error('Electron enable state does not describe a disabled package activation')
   }
@@ -1655,6 +1665,24 @@ const writeElectronEnabledState = async envelope => {
   const modsPath = getExecutableModsPath()
   assertSafePackagePreservationPlan(modsPath, disabledPackage)
   assertSafePackagePreservationPlan(modsPath, enabledPackage)
+  for (const packageId of envelope.selectedPackageIds) {
+    const packageRecord = draft.packages.find(
+      currentPackage => currentPackage.packageId === packageId
+    )
+    const previousPackageRecord = previousDraft.packages.find(
+      currentPackage => currentPackage.packageId === packageId
+    )
+    if (packageRecord === undefined) {
+      throw new Error('Electron enable selected package is missing from the enabled draft')
+    }
+    if (
+      previousPackageRecord === undefined
+      || previousPackageRecord.source?.candidatePath !== packageRecord.source?.candidatePath
+    ) {
+      throw new Error('Electron enable selected package source changed from the disabled draft')
+    }
+    assertSafePackagePreservationPlan(modsPath, packageRecord)
+  }
   let modLockWritten = false
 
   try {
@@ -1674,9 +1702,9 @@ const writeElectronEnabledState = async envelope => {
         targetPackageId: envelope.targetPackageId,
         candidateHash: record.candidateHash,
         lockfileHash: record.lockfileHash,
-        selectedPackageIds: [envelope.targetPackageId],
+        selectedPackageIds: [...envelope.selectedPackageIds],
         blockedPackageIds: [],
-        loadOrder: [envelope.targetPackageId]
+        loadOrder: [...envelope.loadOrder]
       }
     })
 

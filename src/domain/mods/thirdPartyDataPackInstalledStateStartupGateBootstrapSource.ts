@@ -149,10 +149,12 @@ type Awaitable<T> = T | Promise<T>
 export const THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID =
   'latest-web-file-picker-import'
 const productProbePackageId = 'product_probe_pack' as PackageId
+const productProbeDependencyPackageId = 'a_product_probe_library' as PackageId
 const productProbeItemRegistryId = 'taoyuan:item' as RegistryTypeId
 const productProbeRecipeRegistryId = 'taoyuan:recipe' as RegistryTypeId
 const productProbeShopOfferRegistryId = 'taoyuan:shop_offer' as RegistryTypeId
 const productProbeItemLocalId = 'linen_ribbon'
+const productProbeDependencyItemLocalId = 'library_token'
 const productProbeRecipeLocalId = 'linen_ribbon_snack'
 const productProbeShopOfferLocalId = 'shop/wanwupu/linen_ribbon/0'
 
@@ -225,6 +227,7 @@ interface ProductProbeContentFallbackSummary {
   readonly productProbeItemNameFallback?: string
   readonly productProbeRecipeNameFallback?: string
   readonly productProbeShopOfferNameFallback?: string
+  readonly productProbeDependencyItemNameFallback?: string
 }
 
 interface ResolvedInstalledStateSource {
@@ -385,10 +388,22 @@ const createProductProbeContentFallbackSummary = (
     productProbeShopOfferRegistryId,
     productProbeContentId(productProbePackageId, productProbeShopOfferLocalId)
   )
+  const dependencyItemNameFallback = context.mountInput.selectedPackageIds.includes(
+    productProbeDependencyPackageId
+  )
+    ? readRegistryNameFallback(
+        registrySet,
+        productProbeItemRegistryId,
+        productProbeContentId(productProbeDependencyPackageId, productProbeDependencyItemLocalId)
+      )
+    : undefined
   return Object.freeze({
     ...(itemNameFallback === undefined ? {} : { productProbeItemNameFallback: itemNameFallback }),
     ...(recipeNameFallback === undefined ? {} : { productProbeRecipeNameFallback: recipeNameFallback }),
-    ...(shopOfferNameFallback === undefined ? {} : { productProbeShopOfferNameFallback: shopOfferNameFallback })
+    ...(shopOfferNameFallback === undefined ? {} : { productProbeShopOfferNameFallback: shopOfferNameFallback }),
+    ...(dependencyItemNameFallback === undefined
+      ? {}
+      : { productProbeDependencyItemNameFallback: dependencyItemNameFallback })
   })
 }
 

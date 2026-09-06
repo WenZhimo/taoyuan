@@ -26,11 +26,15 @@ import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDa
 type JsonObject = Record<string, unknown>
 
 const packageId = 'electron_enable_bridge_test_pack' as PackageId
+const dependencyPackageId = 'a_electron_enable_bridge_library' as PackageId
 const toJson = (value: unknown): string => `${JSON.stringify(value, null, 2)}\n`
 
-const createManifest = (): JsonObject => ({
-  id: packageId,
-  name: { key: `${packageId}.package.name`, fallback: packageId },
+const createManifest = (
+  id: PackageId = packageId,
+  dependencies: readonly JsonObject[] = []
+): JsonObject => ({
+  id,
+  name: { key: `${id}.package.name`, fallback: id },
   version: '1.0.0',
   gameVersion: '2.4.0',
   engineApiVersion: '1',
@@ -39,7 +43,7 @@ const createManifest = (): JsonObject => ({
   locales: { 'zh-CN': 'locales/zh-CN.json' },
   authors: [{ name: 'Electron Enable Bridge Tester', role: 'developer' }],
   license: 'MIT',
-  dependencies: [],
+  dependencies: [...dependencies],
   entrypoints: { 'taoyuan:item': ['data/items.json'] }
 })
 
@@ -55,14 +59,50 @@ const createItem = (): JsonObject => ({
   edible: false
 })
 
-const createMountInput = async(): Promise<ThirdPartyDataPackMountInputResult> => {
+const createDependencyItem = (): JsonObject => ({
+  id: `${dependencyPackageId}:library_token`,
+  name: {
+    key: `${dependencyPackageId}.library_token.name`,
+    fallback: 'Electron Enable Bridge Library Token'
+  },
+  category: 'gift',
+  description: {
+    key: `${dependencyPackageId}.library_token.description`,
+    fallback: 'Synthetic dependency item for Electron enable bridge tests.'
+  },
+  sellPrice: 6,
+  edible: false
+})
+
+const createMountInput = async(
+  includeDependency = false
+): Promise<ThirdPartyDataPackMountInputResult> => {
   const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
   officialRegistrySet.freezeEntries()
   const source = createMemoryContentPackageSource({
     sourceId: 'memory/electron-enable-bridge-test',
     rootPath: 'packs',
     files: [
-      { path: 'electron-enable-bridge-test-pack/manifest.json', text: toJson(createManifest()) },
+      ...(includeDependency
+        ? [
+            {
+              path: 'a-electron-enable-bridge-library/manifest.json',
+              text: toJson(createManifest(dependencyPackageId))
+            },
+            { path: 'a-electron-enable-bridge-library/locales/zh-CN.json', text: '{}\n' },
+            {
+              path: 'a-electron-enable-bridge-library/data/items.json',
+              text: toJson([createDependencyItem()])
+            }
+          ]
+        : []),
+      {
+        path: 'electron-enable-bridge-test-pack/manifest.json',
+        text: toJson(createManifest(
+          packageId,
+          includeDependency ? [{ id: dependencyPackageId, version: '1.0.0' }] : []
+        ))
+      },
       { path: 'electron-enable-bridge-test-pack/locales/zh-CN.json', text: '{}\n' },
       { path: 'electron-enable-bridge-test-pack/data/items.json', text: toJson([createItem()]) }
     ]
@@ -77,10 +117,12 @@ const createMountInput = async(): Promise<ThirdPartyDataPackMountInputResult> =>
   })
 }
 
-const createEnvelope = async(): Promise<ThirdPartyDataPackElectronEnableCommandEnvelope> => {
+const createEnvelope = async(
+  includeDependency = false
+): Promise<ThirdPartyDataPackElectronEnableCommandEnvelope> => {
   const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
   officialRegistrySet.freezeEntries()
-  const enabledMountInput = await createMountInput()
+  const enabledMountInput = await createMountInput(includeDependency)
   const disabledState = buildThirdPartyDataPackDisableState({
     officialRegistrySet,
     installedDraft: enabledMountInput.lockfileDraft!,
@@ -94,9 +136,9 @@ const createEnvelope = async(): Promise<ThirdPartyDataPackElectronEnableCommandE
   return {
     requestedCommandId: 'enable',
     targetPackageId: packageId,
-    selectedPackageIds: [packageId],
+    selectedPackageIds: [...state.selectedPackageIds],
     blockedPackageIds: [],
-    loadOrder: [packageId],
+    loadOrder: [...state.loadOrder],
     packageFilesPreserved: true,
     record: createThirdPartyDataPackEnablePersistentRecord('active', state),
     startupSnapshot: createThirdPartyDataPackEnableStartupPersistentStateSnapshot(
@@ -130,6 +172,31 @@ describe('third-party data-pack Electron enable command bridge', () => {
     expect(result.startupStateWritten).toBe(true)
     expect(result.packageFilesPreserved).toBe(true)
     expect(writeEnabledState).toHaveBeenCalledOnce()
+    expect(writeEnabledState).toHaveBeenCalledWith(envelope)
+  })
+
+  it('preserves dependency-first enable envelopes at the main handler boundary', async() => {
+    const envelope = await createEnvelope(true)
+    const writeEnabledState = vi.fn(async() => ({
+      settingsWritten: true as const,
+      lockfileWritten: true as const,
+      startupStateWritten: true as const
+    }))
+    const mainHandler = createThirdPartyDataPackElectronEnableCommandMainHandler({
+      writeEnabledState
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status, JSON.stringify(result)).toBe('written')
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([dependencyPackageId, packageId])
+    expect(result.loadOrder).toEqual([dependencyPackageId, packageId])
+    expect(result.blockedPackageIds).toEqual([])
+    expect(envelope.record.lockfileDraft.packages.map(pkg => pkg.packageId))
+      .toEqual([dependencyPackageId, packageId])
+    expect(envelope.record.lockfileDraft.packages[1]?.resolvedDependencies)
+      .toEqual([dependencyPackageId])
     expect(writeEnabledState).toHaveBeenCalledWith(envelope)
   })
 
