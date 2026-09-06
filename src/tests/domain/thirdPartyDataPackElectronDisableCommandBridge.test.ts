@@ -17,6 +17,9 @@ import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
 import type { PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
+import type {
+  ThirdPartyDataPackElectronInstalledStateReadResult
+} from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
 const packageId = 'electron_disable_bridge_test_pack' as PackageId
@@ -91,6 +94,24 @@ const createEnvelope = (): ThirdPartyDataPackElectronDisableCommandEnvelope => {
   }
 }
 
+const createCurrentInstalledState = (
+  draft = createInstalledDraft()
+): ThirdPartyDataPackElectronInstalledStateReadResult => ({
+  status: 'ready',
+  record: {
+    recordId: 'active',
+    requestedCommandId: 'install',
+    targetPackageId: packageId,
+    selectedPackageIds: [packageId],
+    blockedPackageIds: [],
+    loadOrder: [packageId],
+    candidateHash: draft.candidateIdentity.candidateHash,
+    lockfileHash: draft.lockfileHash,
+    lockfileDraft: draft
+  },
+  packageFilesPreserved: true
+})
+
 describe('third-party data-pack Electron disable command bridge', () => {
   it('accepts the ordinary renderer disable envelope at the main handler boundary', async() => {
     const envelope = createEnvelope()
@@ -115,6 +136,53 @@ describe('third-party data-pack Electron disable command bridge', () => {
     expect(result.startupStateWritten).toBe(true)
     expect(writeDisabledState).toHaveBeenCalledOnce()
     expect(writeDisabledState).toHaveBeenCalledWith(envelope)
+  })
+
+  it('accepts disable only after matching the current enabled installed state', async() => {
+    const envelope = createEnvelope()
+    const readCurrentInstalledState = vi.fn(async() =>
+      createCurrentInstalledState())
+    const writeDisabledState = vi.fn(async() => ({
+      settingsWritten: true as const,
+      lockfileWritten: true as const,
+      startupStateWritten: true as const
+    }))
+    const mainHandler = createThirdPartyDataPackElectronDisableCommandMainHandler({
+      readCurrentInstalledState,
+      writeDisabledState
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status, JSON.stringify(result)).toBe('written')
+    expect(readCurrentInstalledState).toHaveBeenCalledOnce()
+    expect(writeDisabledState).toHaveBeenCalledOnce()
+    expect(writeDisabledState).toHaveBeenCalledWith(envelope)
+  })
+
+  it('blocks stale renderer disable envelopes before writing disabled state', async() => {
+    const envelope = createEnvelope()
+    const writeDisabledState = vi.fn()
+    const currentDisabledState: ThirdPartyDataPackElectronInstalledStateReadResult = {
+      status: 'ready',
+      record: {
+        ...envelope.record,
+        recordId: 'active'
+      },
+      packageFilesPreserved: true
+    }
+    const mainHandler = createThirdPartyDataPackElectronDisableCommandMainHandler({
+      readCurrentInstalledState: vi.fn(async() => currentDisabledState),
+      writeDisabledState
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-disable-command.current-state-mismatch'
+    )
+    expect(writeDisabledState).not.toHaveBeenCalled()
   })
 
   it('builds a disable lockfile draft that passes mod-lock self-hash validation', () => {

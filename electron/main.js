@@ -1912,6 +1912,7 @@ const thirdPartyDataPackInstalledStateReadHandler =
 
 const thirdPartyDataPackDisableCommandHandler =
   createThirdPartyDataPackElectronDisableCommandMainHandler({
+    readCurrentInstalledState: readElectronInstalledState,
     writeDisabledState: writeElectronDisabledState
   })
 

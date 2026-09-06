@@ -3,6 +3,9 @@ import type {
   ThirdPartyDataPackDisablePersistentRecord,
   ThirdPartyDataPackDisableStartupPersistentStateSnapshot
 } from './thirdPartyDataPackDisableTransaction'
+import type {
+  ThirdPartyDataPackElectronInstalledStateReadResult
+} from './thirdPartyDataPackElectronInstalledStateBridge'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -52,6 +55,8 @@ export interface ThirdPartyDataPackElectronDisableCommandBridge {
 }
 
 export interface CreateThirdPartyDataPackElectronDisableCommandMainHandlerOptions {
+  readonly readCurrentInstalledState?: () =>
+    Awaitable<ThirdPartyDataPackElectronInstalledStateReadResult>
   readonly writeDisabledState: (
     envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
   ) => Awaitable<{
@@ -155,6 +160,49 @@ const writtenResult = (
   diagnostics: Object.freeze([])
 })
 
+const packageRecordsMatch = (
+  left: ThirdPartyDataPackElectronInstalledStateReadResult['record'],
+  right: ThirdPartyDataPackDisablePersistentRecord
+): boolean =>
+  JSON.stringify(left?.lockfileDraft.officialIdentity) === JSON.stringify(right.lockfileDraft.officialIdentity)
+  && JSON.stringify(left?.lockfileDraft.packages) === JSON.stringify(right.lockfileDraft.packages)
+
+const packageIdListsMatch = (
+  left: readonly PackageId[],
+  right: readonly PackageId[]
+): boolean =>
+  left.length === right.length
+  && left.every((packageId, index) => packageId === right[index])
+
+const currentStateMatchesEnabledPackage = (
+  currentState: ThirdPartyDataPackElectronInstalledStateReadResult,
+  envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
+): boolean => {
+  const record = currentState.record
+  if (
+    currentState.status !== 'ready'
+    || currentState.packageFilesPreserved !== true
+    || record === null
+    || (record.requestedCommandId !== 'install' && record.requestedCommandId !== 'enable')
+    || record.targetPackageId !== envelope.targetPackageId
+    || record.blockedPackageIds.length !== 0
+    || record.selectedPackageIds.length === 0
+    || record.loadOrder.length !== record.selectedPackageIds.length
+    || !record.selectedPackageIds.includes(envelope.targetPackageId)
+    || !record.loadOrder.includes(envelope.targetPackageId)
+    || !record.loadOrder.every(packageId => record.selectedPackageIds.includes(packageId))
+    || !packageIdListsMatch(record.selectedPackageIds, record.lockfileDraft.selectedPackageIds)
+    || !packageIdListsMatch(record.loadOrder, record.lockfileDraft.loadOrder)
+    || record.candidateHash !== record.lockfileDraft.candidateIdentity.candidateHash
+    || record.lockfileHash !== record.lockfileDraft.lockfileHash
+    || !packageRecordsMatch(record, envelope.record)
+  ) {
+    return false
+  }
+
+  return true
+}
+
 export const createThirdPartyDataPackElectronDisableCommandRendererHost = (
   bridge: ThirdPartyDataPackElectronDisableCommandBridge
 ) => Object.freeze({
@@ -178,6 +226,17 @@ export const createThirdPartyDataPackElectronDisableCommandMainHandler = (
   if (!isValidEnvelope(value)) return blockedResult(targetPackageId)
 
   try {
+    if (options.readCurrentInstalledState !== undefined) {
+      let currentState: ThirdPartyDataPackElectronInstalledStateReadResult
+      try {
+        currentState = await options.readCurrentInstalledState()
+      } catch {
+        return blockedResult(value.targetPackageId, 'third-party.electron-disable-command.current-state-read')
+      }
+      if (!currentStateMatchesEnabledPackage(currentState, value)) {
+        return blockedResult(value.targetPackageId, 'third-party.electron-disable-command.current-state-mismatch')
+      }
+    }
     const writeResult = await options.writeDisabledState(value)
     if (
       writeResult.settingsWritten !== true
