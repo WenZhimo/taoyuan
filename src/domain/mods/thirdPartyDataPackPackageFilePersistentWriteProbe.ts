@@ -1130,22 +1130,41 @@ const restorePackageFiles = async(
   return Object.freeze(restoredFiles)
 }
 
-const restorePackagePathFromWrittenFiles = (
+interface RestorePackageFileGroup {
+  readonly packagePath: string
+  readonly writtenFiles: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[]
+}
+
+const restorePackageFileGroupsFromWrittenFiles = (
   packageId: PackageId,
   writtenFiles: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[]
-): string => {
+): readonly RestorePackageFileGroup[] => {
   const rawPackagePaths = writtenFiles.map(file => file.packagePath)
-  if (rawPackagePaths.every(packagePath => packagePath === undefined)) return packageId
+  if (rawPackagePaths.every(packagePath => packagePath === undefined)) {
+    return Object.freeze([Object.freeze({
+      packagePath: packageId,
+      writtenFiles: Object.freeze([...writtenFiles])
+    })])
+  }
   if (rawPackagePaths.some(packagePath => packagePath === undefined)) {
     throw new Error('package file restore probe written-file evidence mixed legacy and candidate-root package paths')
   }
 
-  const packagePaths = rawPackagePaths.map(packagePath => normalizePackagePath(packagePath as string))
-  const uniquePackagePaths = new Set(packagePaths)
-  if (uniquePackagePaths.size !== 1) {
-    throw new Error('package file restore probe written-file evidence contains multiple package roots')
+  const groups = new Map<string, ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[]>()
+  for (const file of writtenFiles) {
+    const packagePath = normalizePackagePath(file.packagePath as string)
+    const currentGroup = groups.get(packagePath)
+    if (currentGroup) {
+      currentGroup.push(file)
+    } else {
+      groups.set(packagePath, [file])
+    }
   }
-  return packagePaths[0]!
+
+  return Object.freeze([...groups].map(([packagePath, groupWrittenFiles]) => Object.freeze({
+    packagePath,
+    writtenFiles: Object.freeze([...groupWrittenFiles])
+  })))
 }
 
 export const createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter = (
@@ -1184,9 +1203,12 @@ export const createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapt
     },
     async restore(packageId, writtenFiles) {
       try {
-        const packagePath = restorePackagePathFromWrittenFiles(packageId, writtenFiles)
-        const paths = await resolvePaths(packagePath)
-        const restoredFiles = await restorePackageFiles(paths, writtenFiles, options.fileOptions)
+        const groups = restorePackageFileGroupsFromWrittenFiles(packageId, writtenFiles)
+        const restoredFiles: ThirdPartyDataPackPackageFilePersistentRestoreProbeRestoredFile[] = []
+        for (const group of groups) {
+          const paths = await resolvePaths(group.packagePath)
+          restoredFiles.push(...await restorePackageFiles(paths, group.writtenFiles, options.fileOptions))
+        }
         return deepFreezeObjectGraph({
           report: createRestoreStorageReport({
             status: 'restored',

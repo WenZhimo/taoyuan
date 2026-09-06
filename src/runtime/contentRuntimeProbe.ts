@@ -244,6 +244,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   fileCount: number
   pickStatus?: string
   panelStatusLabels: ThirdPartyVisibleImportPanelStatusLabels
+  dispatchReason?: string
   dispatchPreflightStatus?: string
   discoveryStatus?: string
   transactionCommandDispatcherHostKind?: string
@@ -1246,6 +1247,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     fileCount: readOwnNumberField(result, 'fileCount') ?? 0,
     pickStatus: readOwnStringField(result, 'pickStatus'),
     panelStatusLabels: readVisibleImportPanelStatusLabels(result),
+    dispatchReason: readOwnStringField(result, 'dispatchReason'),
     dispatchPreflightStatus: readOwnStringField(result, 'dispatchPreflightStatus'),
     discoveryStatus: readOwnStringField(result, 'discoveryStatus'),
     transactionCommandDispatcherHostKind:

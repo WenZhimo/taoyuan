@@ -481,6 +481,85 @@ describe('third-party package file persistent write probe', () => {
     expectJsonGraphFrozen(restoreResult)
   }, 30_000)
 
+  it('restores dependency-first writes across multiple candidate package roots', async() => {
+    const root = await createRoot()
+    const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
+      programDirectoryPath: root
+    })
+    const libraryPackagePath = 'a-product-probe-library'
+    const targetPackagePath = 'product-probe-pack'
+    const targetPackageId = 'product_probe_pack' as PackageId
+    const libraryPaths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(
+      root,
+      libraryPackagePath
+    )
+    const targetPaths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(
+      root,
+      targetPackagePath
+    )
+    const libraryManifestPath = path.join(libraryPaths.packageDirectoryPath, 'manifest.json')
+    const targetManifestPath = path.join(targetPaths.packageDirectoryPath, 'manifest.json')
+    const targetItemPath = path.join(targetPaths.packageDirectoryPath, 'data', 'items.json')
+    const libraryPreviousManifest = '{"id":"a_product_probe_library","version":"1.0.0"}\n'
+    const targetPreviousManifest = '{"id":"product_probe_pack","version":"1.0.0"}\n'
+    const libraryReplacementManifest = '{"id":"a_product_probe_library","version":"1.0.0","stable":true}\n'
+    const targetReplacementManifest = '{"id":"product_probe_pack","version":"1.1.0"}\n'
+    const targetReplacementItems = '[{"id":"product_probe_pack:linen_ribbon"}]\n'
+    const preparedFile = (filePath: string, contents: string) => ({
+      path: filePath,
+      contents,
+      sha256: sha256Utf8(contents),
+      bytes: contents.length
+    })
+    await mkdir(path.dirname(libraryManifestPath), { recursive: true })
+    await mkdir(path.dirname(targetItemPath), { recursive: true })
+    await writeFile(libraryManifestPath, libraryPreviousManifest, 'utf8')
+    await writeFile(targetManifestPath, targetPreviousManifest, 'utf8')
+
+    const libraryWrite = await storage.write(libraryPackagePath, [
+      preparedFile('manifest.json', libraryReplacementManifest)
+    ])
+    const targetWrite = await storage.write(targetPackagePath, [
+      preparedFile('manifest.json', targetReplacementManifest),
+      preparedFile('data/items.json', targetReplacementItems)
+    ])
+    const restoreResult = await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+      packageId: targetPackageId,
+      writtenFiles: [
+        ...libraryWrite.report.writtenFiles,
+        ...targetWrite.report.writtenFiles
+      ],
+      storage,
+      allowPersistentRestoreProbe: true
+    })
+
+    expect(libraryWrite.report.status).toBe('written')
+    expect(targetWrite.report.status).toBe('written')
+    expect(libraryWrite.report.writtenFiles.map(file => file.packagePath)).toEqual([
+      libraryPackagePath
+    ])
+    expect(targetWrite.report.writtenFiles.map(file => file.packagePath)).toEqual([
+      targetPackagePath,
+      targetPackagePath
+    ])
+    expect(restoreResult.status).toBe('restored')
+    expect(restoreResult.restoredFileCount).toBe(3)
+    expect(restoreResult.backupRestoredFileCount).toBe(2)
+    expect(restoreResult.removedCreatedFileCount).toBe(1)
+    expect(restoreResult.restoredFiles.map(file => file.path)).toEqual([
+      'manifest.json',
+      'manifest.json',
+      'data/items.json'
+    ])
+    expect(await readFile(libraryManifestPath, 'utf8')).toBe(libraryPreviousManifest)
+    expect(await readFile(targetManifestPath, 'utf8')).toBe(targetPreviousManifest)
+    await expect(readFile(targetItemPath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+    expect(restoreResult.effects.packageFilesRestored).toBe(true)
+    expect(restoreResult.effects.rollbackExecuted).toBe(true)
+    expect(JSON.stringify(restoreResult)).not.toContain(root)
+    expectJsonGraphFrozen(restoreResult)
+  }, 30_000)
+
   it('restores legacy package-id written file evidence when candidate package path is absent', async() => {
     const root = await createRoot()
     const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({

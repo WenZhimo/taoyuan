@@ -801,6 +801,7 @@ describe('official content runtime report', () => {
         appStartupStatus: '已接入已挂载应用',
         startupPersistentStateStatus: '已写入'
       },
+      dispatchReason: 'visible import dispatch reached runtime publication handoff',
       dispatchPreflightStatus: 'deferred',
       discoveryStatus: 'completed',
       transactionCommandDispatcherHostKind: 'renderer',
@@ -899,6 +900,7 @@ describe('official content runtime report', () => {
         appStartupStatus: '已接入已挂载应用',
         startupPersistentStateStatus: '已写入'
       },
+      dispatchReason: 'visible import dispatch reached runtime publication handoff',
       dispatchPreflightStatus: 'deferred',
       discoveryStatus: 'completed',
       transactionCommandDispatcherHostKind: 'renderer',
@@ -985,6 +987,7 @@ describe('official content runtime report', () => {
         appStartupStatus: '已阻断',
         startupPersistentStateStatus: '已阻断'
       },
+      dispatchReason: 'Electron visible renderer import reached rollback terminal',
       dispatchPreflightStatus: 'deferred',
       discoveryStatus: 'completed',
       transactionCommandDispatcherHostKind: 'renderer',
@@ -1078,6 +1081,7 @@ describe('official content runtime report', () => {
         appStartupStatus: '已阻断',
         startupPersistentStateStatus: '已阻断'
       },
+      dispatchReason: 'Electron visible renderer import reached rollback terminal',
       installCommandPostCommitAcknowledgementStatus: 'ready',
       installTransactionLogPreparedStatus: undefined,
       installTransactionCommitFinalizationStatus: undefined,
