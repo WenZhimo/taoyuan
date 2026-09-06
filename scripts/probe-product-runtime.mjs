@@ -138,6 +138,22 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-dependency-replace-then-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledReplacementSequence: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v2'
+  },
+  {
     name: 'visible-import-web-disable-then-restart',
     fault: null,
     source: 'precompiled',
@@ -459,6 +475,69 @@ const electronScenarios = [
     startupGateTargetPackageId: 'product_probe_pack',
     startupGateEntryCount: 4245,
     startupGateExpectedProductProbeVariant: 'v2'
+  },
+  {
+    name: 'visible-import-dependency-replacement-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-replacement',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-replace-installed-package',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-replacement',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleImportRendererLiveRegistry: true,
+    visibleUpgrade: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-replaced-installed-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-replacement',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v2',
+    visibleDependency: true
   },
   {
     name: 'visible-import-replace-write-failure-initial-import',
@@ -1828,14 +1907,17 @@ const assertVisibleImportProductContent = (visibleImport, scenario) => {
 
 const assertVisibleImportDependencyContent = (visibleImport, scenario) => {
   if (!scenario.visibleDependency) return
+  const expectedDependencyVisibleBefore = !!scenario.visibleUpgrade
   assert(visibleImport.dependencyPackageId === visibleProbeDependencyPackageId,
     `${scenario.name}: visible import dependency package id mismatch`)
   assert(visibleImport.dependencyItemId === visibleProbeDependencyItemId,
     `${scenario.name}: visible import dependency item id mismatch`)
   assert(visibleImport.dependencyItemNameFallback === visibleProbeDependencyItemNameFallback,
     `${scenario.name}: visible import dependency item fallback mismatch`)
-  assert(visibleImport.contentAccessDependencyItemVisibleBefore === false,
-    `${scenario.name}: visible import dependency item was visible before import`)
+  assert(
+    visibleImport.contentAccessDependencyItemVisibleBefore === expectedDependencyVisibleBefore,
+    `${scenario.name}: visible import dependency item visibility before import was unexpected`
+  )
   assert(visibleImport.contentAccessDependencyItemVisibleAfter === true,
     `${scenario.name}: visible import dependency item was not visible after import`)
 }
@@ -5031,7 +5113,10 @@ const runWebProbe = async () => {
           startupPersistentStateUseInstalledState: true,
           startupGateRealRuntimePublicationCommit: true,
           startupGateRegistryCount: 54,
-          startupGateEntryCount: 4245,
+          startupGateSelectedPackageCount: expectedVisibleProbeSelectedPackageIds(scenario).length,
+          startupGateLoadOrderCount: expectedVisibleProbeLoadOrder(scenario).length,
+          startupGateEntryCount: expectedVisibleProbeEntryCount(scenario),
+          startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
           startupGateExpectedProductProbeVariant: 'v1',
           startupPersistentStateExpectsResponseDeliveryHandoff: false,
           visibleImportWebOrdinary: true,
@@ -5435,7 +5520,8 @@ const runPackagedScenario = async (scenario, isolated) => {
     || scenario.visibleUninstallFailAfterModLockWrite
     ? activePackageContentFingerprint(preservedPackageRoot)
     : null
-  const preservedDependencyPackageContentBefore = scenario.visibleDependency && scenario.visibleEnable
+  const preservedDependencyPackageContentBefore = scenario.visibleDependency
+    && (scenario.visibleEnable || exercisesVisibleUpgrade)
     ? activePackageContentFingerprint(preservedDependencyPackageRoot)
     : null
   const preservedPackageManifestBefore = exercisesVisibleUpgrade
@@ -5634,7 +5720,10 @@ const runPackagedScenario = async (scenario, isolated) => {
         const expectedPersistedVersion = scenario.visibleUpgradeFailAfterModLockWrite
           ? visibleProbePackageFixtures.v1.version
           : visibleProbePackageFixtures.v2.version
-        assert(lockfileJson.packages?.[0]?.version === expectedPersistedVersion,
+        const persistedTargetPackage = lockfileJson.packages?.find(currentPackage =>
+          currentPackage?.packageId === visibleProbePackageId
+        )
+        assert(persistedTargetPackage?.version === expectedPersistedVersion,
           `${scenario.name}: replacement mod-lock did not persist the expected package version`)
       }
       assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(settingsJson)),
@@ -6046,6 +6135,16 @@ const runPackagedScenario = async (scenario, isolated) => {
     const itemsJson = readJson(paths.itemFile)
     const recipesJson = readJson(path.join(paths.packageRoot, 'data', 'recipes.json'))
     const shopOffersJson = readJson(path.join(paths.packageRoot, 'data', 'shop-offers.json'))
+    if (scenario.visibleDependency) {
+      assert(
+        preservedDependencyPackageContentBefore !== null
+          && preservedDependencyPackageContentBefore.length > 0,
+        `${scenario.name}: replacement did not start with dependency package files present`
+      )
+      assert(JSON.stringify(activePackageContentFingerprint(preservedDependencyPackageRoot))
+        === JSON.stringify(preservedDependencyPackageContentBefore),
+      `${scenario.name}: replacement changed preserved dependency package file contents`)
+    }
     assert(preservedPackageManifestBefore?.version === visibleProbePackageFixtures.v1.version,
       `${scenario.name}: replacement did not start from v1 package files`)
     assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
