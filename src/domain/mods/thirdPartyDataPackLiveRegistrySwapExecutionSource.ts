@@ -42,6 +42,7 @@ export interface ThirdPartyDataPackLiveRegistrySwapExecutionHostEnvelope {
   readonly registryCount: number
   readonly entryCount: number
   readonly packageCount: number
+  readonly runtimeExcludedPackageIds?: readonly PackageId[]
   readonly officialIdentity: ThirdPartyCandidateOfficialIdentitySummary
   readonly candidateIdentity: ThirdPartyCandidateIdentitySummary
   readonly lockfileHash: Sha256Hash

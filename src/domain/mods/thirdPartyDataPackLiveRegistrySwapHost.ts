@@ -284,7 +284,15 @@ const uninstallPreviousRegistryMatchesEnvelope = (
   const baselineWithoutTargetPackage = summarizeRegistrySet(
     cloneRegistrySetExcludingOwners(previousRegistrySet, new Set<PackageId>([envelope.targetPackageId]))
   )
-  return currentRegistryMatchesOfficialEnvelope(baselineWithoutTargetPackage, envelope)
+  if (currentRegistryMatchesOfficialEnvelope(baselineWithoutTargetPackage, envelope)) return true
+
+  const runtimeExcludedPackageIds = new Set<PackageId>(envelope.runtimeExcludedPackageIds ?? [])
+  if (!runtimeExcludedPackageIds.has(envelope.targetPackageId)) return false
+
+  const baselineWithoutRuntimeOnlyOwners = summarizeRegistrySet(
+    cloneRegistrySetExcludingOwners(previousRegistrySet, runtimeExcludedPackageIds)
+  )
+  return currentRegistryMatchesOfficialEnvelope(baselineWithoutRuntimeOnlyOwners, envelope)
 }
 
 const candidateRegistryMatchesEnvelope = (

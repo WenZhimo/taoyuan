@@ -44,6 +44,7 @@ export interface ThirdPartyDataPackUninstallState {
   readonly registryCount: number
   readonly entryCount: number
   readonly packageCount: number
+  readonly runtimeExcludedPackageIds: readonly PackageId[]
   readonly candidateIdentity: ThirdPartyCandidateIdentitySummary
   readonly lockfileHash: Sha256Hash
   readonly lockfileDraft: ThirdPartyDataPackLockfileDraft
@@ -131,6 +132,46 @@ const freeze = <T>(value: T): T => {
 const cloneDraft = (draft: ThirdPartyDataPackLockfileDraft): ThirdPartyDataPackLockfileDraft =>
   JSON.parse(JSON.stringify(draft)) as ThirdPartyDataPackLockfileDraft
 
+const packageIdsMatchSet = (
+  packageIds: readonly PackageId[],
+  expectedPackageIds: ReadonlySet<PackageId>
+): boolean => packageIds.length === expectedPackageIds.size
+  && packageIds.every(packageId => expectedPackageIds.has(packageId))
+
+const collectTransitiveDependencyIds = (
+  draft: ThirdPartyDataPackLockfileDraft,
+  packageId: PackageId
+): Set<PackageId> | null => {
+  const packagesById = new Map(
+    draft.packages.map(currentPackage => [currentPackage.packageId, currentPackage])
+  )
+  const result = new Set<PackageId>()
+  const pending = [...(packagesById.get(packageId)?.resolvedDependencies ?? [])]
+  while (pending.length > 0) {
+    const dependencyId = pending.shift()!
+    if (result.has(dependencyId)) continue
+    const dependencyPackage = packagesById.get(dependencyId)
+    if (dependencyPackage === undefined) return null
+    result.add(dependencyId)
+    pending.push(...dependencyPackage.resolvedDependencies)
+  }
+  return result
+}
+
+const collectSelectedTargetAndDependencyPackageIds = (
+  draft: ThirdPartyDataPackLockfileDraft,
+  targetPackageId: PackageId
+): readonly PackageId[] | null => {
+  if (draft.loadOrder[draft.loadOrder.length - 1] !== targetPackageId) return null
+  const dependencyIds = collectTransitiveDependencyIds(draft, targetPackageId)
+  if (dependencyIds === null) return null
+  const expectedActivePackageIds = new Set<PackageId>([...dependencyIds, targetPackageId])
+  if (!packageIdsMatchSet(draft.selectedPackageIds, expectedActivePackageIds)
+    || !packageIdsMatchSet(draft.loadOrder, expectedActivePackageIds)
+  ) return null
+  return draft.loadOrder
+}
+
 export const buildThirdPartyDataPackUninstallState = (
   options: CreateThirdPartyDataPackUninstallStateOptions
 ): ThirdPartyDataPackUninstallState => {
@@ -144,9 +185,20 @@ export const buildThirdPartyDataPackUninstallState = (
     && options.installedDraft.selectedPackageIds[0] === options.targetPackageId
     && options.installedDraft.loadOrder.length === 1
     && options.installedDraft.loadOrder[0] === options.targetPackageId
+  const selectedTargetAndDependencyPackageIds =
+    collectSelectedTargetAndDependencyPackageIds(
+      options.installedDraft,
+      options.targetPackageId
+    )
+  const targetIsActiveWithOnlyDependencyPackages =
+    selectedTargetAndDependencyPackageIds !== null
   const targetIsAlreadyDisabled = options.installedDraft.selectedPackageIds.length === 0
     && options.installedDraft.loadOrder.length === 0
-  if (!targetIsTheOnlyActivePackage && !targetIsAlreadyDisabled) {
+  if (
+    !targetIsTheOnlyActivePackage
+    && !targetIsActiveWithOnlyDependencyPackages
+    && !targetIsAlreadyDisabled
+  ) {
     throw new Error('Only the target installed package can be active when uninstalling')
   }
 
@@ -159,6 +211,9 @@ export const buildThirdPartyDataPackUninstallState = (
   const remainingPackages = cloneDraft(options.installedDraft)
     .packages
     .filter(currentPackage => currentPackage.packageId !== options.targetPackageId)
+  const runtimeExcludedPackageIds = Object.freeze(
+    selectedTargetAndDependencyPackageIds ?? [options.targetPackageId]
+  )
   const candidateIdentity = {
     formatVersion: 1 as const,
     contentHash: officialContentHash,
@@ -202,6 +257,7 @@ export const buildThirdPartyDataPackUninstallState = (
     registryCount: officialSnapshot.registries.length,
     entryCount: officialEntryCount,
     packageCount: lockfileDraft.packages.length,
+    runtimeExcludedPackageIds,
     candidateIdentity,
     lockfileHash: lockfileDraft.lockfileHash,
     lockfileDraft
@@ -361,6 +417,7 @@ const createLiveRegistrySwapEnvelope = (
   registryCount: state.registryCount,
   entryCount: state.entryCount,
   packageCount: state.packageCount,
+  runtimeExcludedPackageIds: [...state.runtimeExcludedPackageIds],
   officialIdentity: state.lockfileDraft.officialIdentity,
   candidateIdentity: state.candidateIdentity,
   lockfileHash: state.lockfileHash,

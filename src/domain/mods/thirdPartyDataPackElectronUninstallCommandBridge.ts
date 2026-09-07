@@ -6,6 +6,7 @@ import type {
 import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from './thirdPartyDataPackElectronInstalledStateBridge'
+import type { ThirdPartyDataPackLockfileDraft } from './thirdPartyDataPackLockfileDraft'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -188,6 +189,44 @@ const packageIdListsMatch = (
   left.length === right.length
   && left.every((packageId, index) => packageId === right[index])
 
+const packageIdsMatchSet = (
+  packageIds: readonly PackageId[],
+  expectedPackageIds: ReadonlySet<PackageId>
+): boolean => packageIds.length === expectedPackageIds.size
+  && packageIds.every(packageId => expectedPackageIds.has(packageId))
+
+const collectTransitiveDependencyIds = (
+  draft: ThirdPartyDataPackLockfileDraft,
+  packageId: PackageId
+): Set<PackageId> | null => {
+  const packagesById = new Map(
+    draft.packages.map(currentPackage => [currentPackage.packageId, currentPackage])
+  )
+  const result = new Set<PackageId>()
+  const pending = [...(packagesById.get(packageId)?.resolvedDependencies ?? [])]
+  while (pending.length > 0) {
+    const dependencyId = pending.shift()!
+    if (result.has(dependencyId)) continue
+    const dependencyPackage = packagesById.get(dependencyId)
+    if (dependencyPackage === undefined) return null
+    result.add(dependencyId)
+    pending.push(...dependencyPackage.resolvedDependencies)
+  }
+  return result
+}
+
+const enabledTargetStackMatches = (
+  draft: ThirdPartyDataPackLockfileDraft,
+  targetPackageId: PackageId
+): boolean => {
+  if (draft.loadOrder[draft.loadOrder.length - 1] !== targetPackageId) return false
+  const dependencyIds = collectTransitiveDependencyIds(draft, targetPackageId)
+  if (dependencyIds === null) return false
+  const expectedActivePackageIds = new Set<PackageId>([...dependencyIds, targetPackageId])
+  return packageIdsMatchSet(draft.selectedPackageIds, expectedActivePackageIds)
+    && packageIdsMatchSet(draft.loadOrder, expectedActivePackageIds)
+}
+
 const packageRecordsAfterTargetRemovalMatch = (
   currentState: ThirdPartyDataPackElectronInstalledStateReadResult,
   envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
@@ -228,11 +267,10 @@ const currentStateMatchesInstalledPackage = (
   }
 
   if (record.requestedCommandId === 'install' || record.requestedCommandId === 'enable') {
-    return packageIdListsMatch(record.selectedPackageIds, [envelope.targetPackageId])
-      && packageIdListsMatch(record.loadOrder, [envelope.targetPackageId])
-      && packageIdListsMatch(record.blockedPackageIds, [])
-      && packageIdListsMatch(record.lockfileDraft.selectedPackageIds, [envelope.targetPackageId])
-      && packageIdListsMatch(record.lockfileDraft.loadOrder, [envelope.targetPackageId])
+    return packageIdListsMatch(record.blockedPackageIds, [])
+      && packageIdListsMatch(record.selectedPackageIds, record.lockfileDraft.selectedPackageIds)
+      && packageIdListsMatch(record.loadOrder, record.lockfileDraft.loadOrder)
+      && enabledTargetStackMatches(record.lockfileDraft, envelope.targetPackageId)
   }
 
   return false

@@ -1510,11 +1510,10 @@ const writeElectronUninstalledState = async envelope => {
     && stringListsMatch(currentDataPacks.loadOrder, [])
   const currentPackageIsEnabled = currentStateMatchesPreviousDraft
     && (currentDataPacks.commandId === 'install' || currentDataPacks.commandId === 'enable')
-    && stringListsMatch(previousDraft.selectedPackageIds, [envelope.targetPackageId])
-    && stringListsMatch(previousDraft.loadOrder, [envelope.targetPackageId])
-    && stringListsMatch(currentDataPacks.selectedPackageIds, [envelope.targetPackageId])
+    && stringListsMatch(currentDataPacks.selectedPackageIds, previousDraft.selectedPackageIds)
     && stringListsMatch(currentDataPacks.blockedPackageIds, [])
-    && stringListsMatch(currentDataPacks.loadOrder, [envelope.targetPackageId])
+    && stringListsMatch(currentDataPacks.loadOrder, previousDraft.loadOrder)
+    && enabledUninstallTargetStackMatches(previousDraft, envelope.targetPackageId)
   if (
     targetPackage === undefined
     || (!currentPackageIsDisabled && !currentPackageIsEnabled)
@@ -1738,6 +1737,46 @@ const stringListsMatch = (left, right) =>
   && Array.isArray(right)
   && left.length === right.length
   && left.every((value, index) => value === right[index])
+
+const packageIdsMatchSet = (packageIds, expectedPackageIds) =>
+  Array.isArray(packageIds)
+  && packageIds.length === expectedPackageIds.size
+  && packageIds.every(packageId => expectedPackageIds.has(packageId))
+
+const collectTransitiveDependencyIds = (draft, packageId) => {
+  if (!Array.isArray(draft?.packages)) return null
+  const packagesById = new Map(
+    draft.packages.map(currentPackage => [currentPackage.packageId, currentPackage])
+  )
+  const targetPackage = packagesById.get(packageId)
+  if (targetPackage === undefined) return null
+  const result = new Set()
+  const pending = [...(targetPackage.resolvedDependencies ?? [])]
+  while (pending.length > 0) {
+    const dependencyId = pending.shift()
+    if (result.has(dependencyId)) continue
+    const dependencyPackage = packagesById.get(dependencyId)
+    if (dependencyPackage === undefined) return null
+    result.add(dependencyId)
+    pending.push(...(dependencyPackage.resolvedDependencies ?? []))
+  }
+  return result
+}
+
+const enabledUninstallTargetStackMatches = (draft, targetPackageId) => {
+  if (
+    !Array.isArray(draft?.selectedPackageIds)
+    || !Array.isArray(draft.loadOrder)
+    || draft.loadOrder[draft.loadOrder.length - 1] !== targetPackageId
+  ) {
+    return false
+  }
+  const dependencyIds = collectTransitiveDependencyIds(draft, targetPackageId)
+  if (dependencyIds === null) return false
+  const expectedActivePackageIds = new Set([...dependencyIds, targetPackageId])
+  return packageIdsMatchSet(draft.selectedPackageIds, expectedActivePackageIds)
+    && packageIdsMatchSet(draft.loadOrder, expectedActivePackageIds)
+}
 
 const readElectronInstalledState = async () => {
   const modLockRead = await createModLockProbe().read()

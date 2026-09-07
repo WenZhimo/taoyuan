@@ -934,6 +934,72 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
   })
 
+  it('uninstalls an enabled dependency target directly and preserves dependency source files disabled', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
+    expect(enabledMountInput.status).toBe('ready')
+    const installedDraft = enabledMountInput.lockfileDraft!
+    await settingsLockfileStore.write({
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [dependencyPackageId, packageId],
+      blockedPackageIds: [],
+      loadOrder: [dependencyPackageId, packageId],
+      candidateHash: installedDraft.candidateIdentity.candidateHash,
+      lockfileHash: installedDraft.lockfileHash,
+      lockfileDraft: installedDraft
+    })
+    await installedPackageStore.put(createDefaultWebIndexedDbImportRecord(
+      createInstalledPackageFiles(true),
+      THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
+    ))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore,
+      installedPackageStore,
+      startupPersistentStateStore,
+      mountedAppStartupEvidence
+    })
+    await management.refresh()
+
+    const uninstallResult = await management.uninstall(packageId)
+    await nextTick()
+
+    expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.terminal.packageCount).toBe(1)
+    expect(management.rows.value).toEqual([{
+      packageId: dependencyPackageId,
+      version: '1.0.0',
+      status: 'disabled'
+    }])
+    const uninstalledRecord = (await settingsLockfileStore.read()).record
+    expect(uninstalledRecord?.requestedCommandId).toBe('uninstall')
+    expect(uninstalledRecord?.targetPackageId).toBe(packageId)
+    expect(uninstalledRecord?.lockfileDraft.packages.map(pkg => pkg.packageId))
+      .toEqual([dependencyPackageId])
+    const preservedPackageSource = await installedPackageStore.get(
+      THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
+    )
+    expect(preservedPackageSource?.files.map(file => file.path)).toHaveLength(3)
+    expect(preservedPackageSource?.files.map(file => file.path)).toEqual(expect.arrayContaining([
+      'a-web-management-dependency-pack/manifest.json',
+      'a-web-management-dependency-pack/locales/zh-CN.json',
+      'a-web-management-dependency-pack/data/items.json'
+    ]))
+    expect(preservedPackageSource?.files.some(file =>
+      file.path.startsWith('web-disable-management-test-pack/')
+    )).toBe(false)
+    expect(getOfficialItemDef(`${dependencyPackageId}:library_token`)).toBeUndefined()
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+  })
+
   it('routes dependency target uninstall persistence through the Electron renderer command host', async() => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     officialRegistrySet.freezeEntries()

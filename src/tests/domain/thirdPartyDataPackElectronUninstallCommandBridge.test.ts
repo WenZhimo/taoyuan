@@ -23,6 +23,8 @@ import type {
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
 const packageId = 'electron_uninstall_bridge_test_pack' as PackageId
+const dependencyPackageId = 'electron_uninstall_bridge_dependency_pack' as PackageId
+const unrelatedPackageId = 'electron_uninstall_bridge_unrelated_pack' as PackageId
 const hash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 const createOfficialIdentity = () => {
@@ -54,6 +56,18 @@ const createPackageRecord = () => ({
   contentFiles: []
 })
 
+const createDependencyPackageRecord = () => ({
+  ...createPackageRecord(),
+  packageId: dependencyPackageId,
+  loadIndex: 0,
+  source: {
+    candidatePath: 'electron-uninstall-bridge-dependency-pack',
+    manifestPath: 'electron-uninstall-bridge-dependency-pack/manifest.json',
+    contentFiles: ['electron-uninstall-bridge-dependency-pack/data/items.json']
+  },
+  resolvedDependencies: []
+})
+
 const createInstalledDraft = (): ThirdPartyDataPackLockfileDraft => {
   const officialIdentity = createOfficialIdentity()
   const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
@@ -71,6 +85,37 @@ const createInstalledDraft = (): ThirdPartyDataPackLockfileDraft => {
     selectedPackageIds: [packageId],
     loadOrder: [packageId],
     packages: [createPackageRecord()]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
+const createEnabledDependencyDraft = (): ThirdPartyDataPackLockfileDraft => {
+  const officialIdentity = createOfficialIdentity()
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity,
+    candidateIdentity: {
+      formatVersion: 1,
+      contentHash: hash('1'),
+      snapshotHash: hash('2'),
+      candidateHash: hash('3')
+    },
+    registryCount: officialIdentity.registryCount + 2,
+    entryCount: officialIdentity.entryCount + 2,
+    selectedPackageIds: [dependencyPackageId, packageId],
+    loadOrder: [dependencyPackageId, packageId],
+    packages: [
+      createDependencyPackageRecord(),
+      {
+        ...createPackageRecord(),
+        loadIndex: 1,
+        resolvedDependencies: [dependencyPackageId]
+      }
+    ]
   }
   return {
     ...body,
@@ -149,16 +194,16 @@ const createCurrentEnabledState = (
   draft: ThirdPartyDataPackLockfileDraft
 ): ThirdPartyDataPackElectronInstalledStateReadResult => ({
   status: 'ready',
-  record: {
-    recordId: 'active',
-    requestedCommandId: 'install',
-    targetPackageId: packageId,
-    selectedPackageIds: [packageId],
-    blockedPackageIds: [],
-    loadOrder: [packageId],
-    candidateHash: draft.candidateIdentity.candidateHash,
-    lockfileHash: draft.lockfileHash,
-    lockfileDraft: draft
+    record: {
+      recordId: 'active',
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: draft.selectedPackageIds,
+      blockedPackageIds: [],
+      loadOrder: draft.loadOrder,
+      candidateHash: draft.candidateIdentity.candidateHash,
+      lockfileHash: draft.lockfileHash,
+      lockfileDraft: draft
   },
   packageFilesPreserved: true
 })
@@ -234,6 +279,57 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
 
     expect(result.status, JSON.stringify(result)).toBe('written')
     expect(writeUninstalledState).toHaveBeenCalledOnce()
+  })
+
+  it('accepts uninstall after matching a current enabled dependency stack', async() => {
+    const dependencyDraft = createEnabledDependencyDraft()
+    const envelope = createEnvelope(dependencyDraft)
+    const writeUninstalledState = vi.fn(async() => ({
+      settingsWritten: true as const,
+      lockfileWritten: true as const,
+      startupStateWritten: true as const,
+      packageFilesRemoved: true as const
+    }))
+    const mainHandler = createThirdPartyDataPackElectronUninstallCommandMainHandler({
+      readCurrentInstalledState: vi.fn(async() =>
+        createCurrentEnabledState(dependencyDraft)),
+      writeUninstalledState
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status, JSON.stringify(result)).toBe('written')
+    expect(envelope.record.lockfileDraft.packages.map(pkg => pkg.packageId))
+      .toEqual([dependencyPackageId])
+    expect(writeUninstalledState).toHaveBeenCalledOnce()
+  })
+
+  it('blocks enabled current state with active packages outside the target dependency stack', async() => {
+    const dependencyDraft = createEnabledDependencyDraft()
+    const envelope = createEnvelope(dependencyDraft)
+    const mismatchedBody: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+      ...dependencyDraft,
+      selectedPackageIds: [dependencyPackageId, unrelatedPackageId, packageId],
+      loadOrder: [dependencyPackageId, unrelatedPackageId, packageId]
+    }
+    const mismatchedDraft = {
+      ...mismatchedBody,
+      lockfileHash: hashCanonicalJson(mismatchedBody) as Sha256Hash
+    }
+    const writeUninstalledState = vi.fn()
+    const mainHandler = createThirdPartyDataPackElectronUninstallCommandMainHandler({
+      readCurrentInstalledState: vi.fn(async() =>
+        createCurrentEnabledState(mismatchedDraft)),
+      writeUninstalledState
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-uninstall-command.current-state-mismatch'
+    )
+    expect(writeUninstalledState).not.toHaveBeenCalled()
   })
 
   it('blocks missing current packages before writing uninstalled state', async() => {

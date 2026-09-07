@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { createOfficialContentHash } from '@/domain/mods/officialPrecompiled'
-import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
+import {
+  createSerializableRegistrySnapshot,
+  RegistrySet,
+  type RegistryEntry
+} from '@/domain/mods/registry'
 import { createThirdPartyDataPackInMemoryLiveRegistryReference } from '@/domain/mods/thirdPartyDataPackLiveRegistrySwapHost'
 import { createThirdPartyDataPackModLockText } from '@/domain/mods/thirdPartyDataPackModLockFile'
 import {
@@ -9,11 +13,17 @@ import {
   executeThirdPartyDataPackUninstallTransaction
 } from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
 import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
-import type { PackageId } from '@/domain/mods/ids'
+import {
+  toOfficialContentId,
+  toOfficialRegistryTypeId,
+  type PackageId
+} from '@/domain/mods/ids'
 import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
 const packageId = 'uninstall_transaction_test_pack' as PackageId
+const dependencyPackageId = 'uninstall_transaction_dependency_pack' as PackageId
+const unrelatedPackageId = 'uninstall_transaction_unrelated_pack' as PackageId
 const hash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 const mountedAppStartupEvidence = () => Object.freeze({
   realAppStartupHostCalled: true,
@@ -79,6 +89,92 @@ const createEnabledDraft = (): ThirdPartyDataPackLockfileDraft => {
     ...body,
     lockfileHash: hashCanonicalJson(body) as Sha256Hash
   }
+}
+
+const createEnabledDependencyDraft = (): ThirdPartyDataPackLockfileDraft => {
+  const disabledDraft = createDisabledDraft()
+  const targetPackage = disabledDraft.packages[0]!
+  const dependencyPackage = {
+    ...targetPackage,
+    packageId: dependencyPackageId,
+    loadIndex: 0,
+    source: {
+      candidatePath: 'uninstall-transaction-dependency-pack',
+      manifestPath: 'uninstall-transaction-dependency-pack/manifest.json',
+      contentFiles: ['uninstall-transaction-dependency-pack/data/items.json']
+    },
+    resolvedDependencies: []
+  }
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: disabledDraft.formatVersion,
+    kind: disabledDraft.kind,
+    officialIdentity: disabledDraft.officialIdentity,
+    candidateIdentity: disabledDraft.candidateIdentity,
+    registryCount: disabledDraft.registryCount,
+    entryCount: disabledDraft.entryCount,
+    selectedPackageIds: [dependencyPackageId, packageId],
+    loadOrder: [dependencyPackageId, packageId],
+    packages: [
+      dependencyPackage,
+      {
+        ...targetPackage,
+        loadIndex: 1,
+        resolvedDependencies: [dependencyPackageId]
+      }
+    ]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
+const cloneOfficialRegistrySetWithRuntimePackages = (
+  officialRegistrySet: RegistrySet,
+  options: { readonly includeUnrelated?: boolean } = {}
+): RegistrySet => {
+  const registrySet = new RegistrySet()
+  for (const registryId of officialRegistrySet.registryIds()) {
+    registrySet.defineRegistry(officialRegistrySet.get<RegistryEntry>(registryId).definition)
+  }
+  registrySet.freezeDefinitions()
+  for (const registryId of officialRegistrySet.registryIds()) {
+    const sourceRegistry = officialRegistrySet.get<RegistryEntry>(registryId)
+    const targetRegistry = registrySet.get<RegistryEntry>(registryId)
+    for (const record of sourceRegistry.entries()) {
+      targetRegistry.register(record.owner, record.entry, record.source
+        ? { file: record.source.file, localId: record.source.localId }
+        : undefined)
+    }
+  }
+  const itemRegistry = registrySet.get<RegistryEntry & { readonly name: string }>(
+    toOfficialRegistryTypeId('item')
+  )
+  itemRegistry.register(dependencyPackageId, {
+    id: toOfficialContentId(`${dependencyPackageId}:library_token`),
+    name: 'Uninstall Transaction Library Token'
+  }, {
+    file: 'uninstall-transaction-dependency-pack/data/items.json',
+    localId: 'library_token'
+  })
+  itemRegistry.register(packageId, {
+    id: toOfficialContentId(`${packageId}:linen_ribbon`),
+    name: 'Uninstall Transaction Linen Ribbon'
+  }, {
+    file: 'uninstall-transaction-test-pack/data/items.json',
+    localId: 'linen_ribbon'
+  })
+  if (options.includeUnrelated === true) {
+    itemRegistry.register(unrelatedPackageId, {
+      id: toOfficialContentId(`${unrelatedPackageId}:pine_button`),
+      name: 'Uninstall Transaction Pine Button'
+    }, {
+      file: 'uninstall-transaction-unrelated-pack/data/items.json',
+      localId: 'pine_button'
+    })
+  }
+  registrySet.freezeEntries()
+  return registrySet
 }
 
 describe('third-party data-pack uninstall transaction', () => {
@@ -212,6 +308,87 @@ describe('third-party data-pack uninstall transaction', () => {
     expect(result.terminal.piniaCreated).toBe(true)
     expect(result.terminal.routerMounted).toBe(true)
     expect(liveRegistryReference.current).toBe(officialRegistrySet)
+  })
+
+  it('removes an enabled target package with active dependencies and keeps dependencies installed disabled', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    const state = buildThirdPartyDataPackUninstallState({
+      officialRegistrySet,
+      installedDraft: createEnabledDependencyDraft(),
+      targetPackageId: packageId
+    })
+    const activeRegistrySet = cloneOfficialRegistrySetWithRuntimePackages(officialRegistrySet)
+    const liveRegistryReference = createThirdPartyDataPackInMemoryLiveRegistryReference(activeRegistrySet)
+
+    const result = await executeThirdPartyDataPackUninstallTransaction({
+      state,
+      candidateRegistrySet: officialRegistrySet,
+      liveRegistryReference,
+      writePersistentState: async() => ({
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        packageFilesRemoved: true
+      }),
+      acknowledgeAppStartupHandoff: async() => mountedAppStartupEvidence()
+    })
+
+    expect(result.terminal.status, JSON.stringify(result)).toBe('ready')
+    expect(result.terminal.selectedPackageIds).toEqual([])
+    expect(result.terminal.blockedPackageIds).toEqual([])
+    expect(result.terminal.loadOrder).toEqual([])
+    expect(result.terminal.packageCount).toBe(1)
+    expect(result.terminal.runtimePublicationExcluded).toBe(true)
+    expect(result.terminal.liveRegistrySwapped).toBe(true)
+    expect(result.terminal.appStartupHandoffAccepted).toBe(true)
+    expect(liveRegistryReference.current).toBe(officialRegistrySet)
+    expect(result.liveRegistrySwap?.status).toBe('swapped')
+    expect(result.liveRegistrySwap?.effects.liveRegistrySwapped).toBe(true)
+
+    const parsedLockfile = JSON.parse(
+      createThirdPartyDataPackModLockText(state.lockfileDraft)
+    ) as ThirdPartyDataPackLockfileDraft
+    expect(parsedLockfile.packages.map(pkg => pkg.packageId))
+      .toEqual([dependencyPackageId])
+    expect(parsedLockfile.selectedPackageIds).toEqual([])
+    expect(parsedLockfile.loadOrder).toEqual([])
+    expect(parsedLockfile.lockfileHash).toBe(state.lockfileHash)
+  })
+
+  it('blocks active dependency uninstall when an unrelated runtime package would be dropped', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    const state = buildThirdPartyDataPackUninstallState({
+      officialRegistrySet,
+      installedDraft: createEnabledDependencyDraft(),
+      targetPackageId: packageId
+    })
+    const activeRegistrySet = cloneOfficialRegistrySetWithRuntimePackages(officialRegistrySet, {
+      includeUnrelated: true
+    })
+    const liveRegistryReference = createThirdPartyDataPackInMemoryLiveRegistryReference(activeRegistrySet)
+    const acknowledgeAppStartupHandoff = vi.fn(async() => mountedAppStartupEvidence())
+
+    const result = await executeThirdPartyDataPackUninstallTransaction({
+      state,
+      candidateRegistrySet: officialRegistrySet,
+      liveRegistryReference,
+      writePersistentState: async() => ({
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        packageFilesRemoved: true
+      }),
+      acknowledgeAppStartupHandoff
+    })
+
+    expect(result.terminal.status).toBe('blocked')
+    expect(result.terminal.reason).toBe('uninstall transaction live registry swap was blocked')
+    expect(result.terminal.liveRegistrySwapped).toBe(false)
+    expect(result.liveRegistrySwap?.status).toBe('blocked')
+    expect(liveRegistryReference.current).toBe(activeRegistrySet)
+    expect(acknowledgeAppStartupHandoff).not.toHaveBeenCalled()
   })
 
   it('rejects uninstalling while another package is still active', () => {
