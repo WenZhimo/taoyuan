@@ -1172,6 +1172,70 @@ const electronScenarios = [
     visibleDependency: true
   },
   {
+    name: 'visible-import-dependency-uninstall-write-failure-initial-import',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-uninstall-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-uninstall-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-uninstall-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleUninstall: true,
+    visibleUninstallStartedEnabled: true,
+    visibleUninstallFailAfterModLockWrite: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-uninstall-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-uninstall-write-failure',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1',
+    visibleDependency: true
+  },
+  {
     name: 'visible-import-uninstall-write-failure-initial-import',
     fault: null,
     source: 'disk-cache',
@@ -6253,27 +6317,53 @@ const runPackagedScenario = async (scenario, isolated) => {
       `${scenario.name}: enable failure restored persistent state leaked an absolute path`)
   }
   if (scenario.visibleUninstallFailAfterModLockWrite) {
+    const expectedRestoredPackageIds = expectedVisibleProbeSelectedPackageIds(scenario)
     assert(preservedPackageContentBefore !== null && preservedPackageContentBefore.length > 0,
       `${scenario.name}: uninstall failure did not start with package files present`)
     assert(JSON.stringify(activePackageContentFingerprint(preservedPackageRoot))
       === JSON.stringify(preservedPackageContentBefore),
     `${scenario.name}: uninstall failure did not restore package files`)
     const restoredLockfile = readJson(lockfilePath)
-    assert(JSON.stringify(restoredLockfile.selectedPackageIds) === JSON.stringify(['product_probe_pack']),
-      `${scenario.name}: uninstall failure did not restore selected package ids`)
-    assert(JSON.stringify(restoredLockfile.loadOrder) === JSON.stringify(['product_probe_pack']),
-      `${scenario.name}: uninstall failure did not restore load order`)
-    assert(restoredLockfile.packages?.[0]?.packageId === 'product_probe_pack',
-      `${scenario.name}: uninstall failure lost installed package record`)
+    assertStringArrayEquals(
+      restoredLockfile.selectedPackageIds,
+      expectedRestoredPackageIds,
+      `${scenario.name}: uninstall failure did not restore selected package ids`
+    )
+    assertStringArrayEquals(
+      restoredLockfile.loadOrder,
+      expectedVisibleProbeLoadOrder(scenario),
+      `${scenario.name}: uninstall failure did not restore load order`
+    )
+    assertStringArrayEquals(
+      restoredLockfile.packages?.map(currentPackage => currentPackage?.packageId),
+      expectedRestoredPackageIds,
+      `${scenario.name}: uninstall failure lost installed package records`
+    )
+    if (scenario.visibleDependency) {
+      assert(
+        preservedDependencyPackageContentBefore !== null
+          && preservedDependencyPackageContentBefore.length > 0,
+        `${scenario.name}: uninstall failure did not start with dependency package files present`
+      )
+      assert(fs.existsSync(preservedDependencyPackageRoot) === true,
+        `${scenario.name}: uninstall failure removed the dependency package root`)
+      assert(JSON.stringify(activePackageContentFingerprint(preservedDependencyPackageRoot))
+        === JSON.stringify(preservedDependencyPackageContentBefore),
+      `${scenario.name}: uninstall failure did not restore dependency package files`)
+    }
     const settingsJson = readJson(path.join(userDataPath, 'settings.json'))
     assert(settingsJson.thirdPartyDataPacks?.commandId === 'install',
       `${scenario.name}: uninstall failure did not restore install settings command`)
-    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.selectedPackageIds)
-      === JSON.stringify(['product_probe_pack']),
-    `${scenario.name}: uninstall failure did not restore settings selected packages`)
-    assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.loadOrder)
-      === JSON.stringify(['product_probe_pack']),
-    `${scenario.name}: uninstall failure did not restore settings load order`)
+    assertStringArrayEquals(
+      settingsJson.thirdPartyDataPacks?.selectedPackageIds,
+      expectedRestoredPackageIds,
+      `${scenario.name}: uninstall failure did not restore settings selected packages`
+    )
+    assertStringArrayEquals(
+      settingsJson.thirdPartyDataPacks?.loadOrder,
+      expectedVisibleProbeLoadOrder(scenario),
+      `${scenario.name}: uninstall failure did not restore settings load order`
+    )
     assert(JSON.stringify(settingsJson.thirdPartyDataPacks?.blockedPackageIds ?? [])
       === JSON.stringify([]),
     `${scenario.name}: uninstall failure left settings blocked packages`)
