@@ -1,6 +1,6 @@
 import type { ModDiagnosticRecovery, ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
-import type { PackageId } from './ids'
+import { isPackageId, type PackageId } from './ids'
 import type {
   ThirdPartyCandidateIdentitySummary
 } from './thirdPartyCandidateRegistrySnapshot'
@@ -270,6 +270,10 @@ const cloneStringList = (value: unknown): string[] => {
 const clonePackageIds = (value: unknown): PackageId[] =>
   cloneStringList(value) as PackageId[]
 
+const packageIdsUnique = (
+  packageIds: readonly PackageId[]
+): boolean => new Set(packageIds).size === packageIds.length
+
 const readOwnDataField = (
   value: object | undefined,
   fieldName: string
@@ -489,13 +493,34 @@ const safeSkippedSource = (
 
 const safeDeferredSource = (
   source: ThirdPartyDataPackTransactionCommandDispatcherHandoffResult
-): boolean => readOwnStringField(source, 'status') === 'deferred'
-  && readOwnStringField(source, 'requestedCommandId') === 'install'
-  && readOwnStringField(source, 'targetPackageId') !== undefined
-  && cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity')) !== undefined
-  && readOwnStringField(source, 'lockfileHash') !== undefined
-  && noRuntimeOrWriteDrift(source)
-  && pathFreeDispatcherSource(source)
+): boolean => {
+  const targetPackageId = readOwnStringField(source, 'targetPackageId')
+  const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
+  const blockedPackageIds = clonePackageIds(readOwnDataField(source, 'blockedPackageIds'))
+  const loadOrder = clonePackageIds(readOwnDataField(source, 'loadOrder'))
+  const packageCount = readOwnNumberField(source, 'packageCount')
+  return readOwnStringField(source, 'status') === 'deferred'
+    && readOwnStringField(source, 'requestedCommandId') === 'install'
+    && isPackageId(targetPackageId)
+    && selectedPackageIds.length > 0
+    && packageCount === selectedPackageIds.length
+    && selectedPackageIds.every(isPackageId)
+    && blockedPackageIds.every(isPackageId)
+    && loadOrder.every(isPackageId)
+    && packageIdsUnique(selectedPackageIds)
+    && packageIdsUnique(blockedPackageIds)
+    && packageIdsUnique(loadOrder)
+    && selectedPackageIds.includes(targetPackageId)
+    && !blockedPackageIds.includes(targetPackageId)
+    && blockedPackageIds.every(packageId => !selectedPackageIds.includes(packageId))
+    && loadOrder.length === selectedPackageIds.length
+    && loadOrder.every(packageId => selectedPackageIds.includes(packageId))
+    && selectedPackageIds.every(packageId => loadOrder.includes(packageId))
+    && cloneCandidateIdentity(readOwnDataField(source, 'candidateIdentity')) !== undefined
+    && readOwnStringField(source, 'lockfileHash') !== undefined
+    && noRuntimeOrWriteDrift(source)
+    && pathFreeDispatcherSource(source)
+}
 
 const pathFreeDispatcherHostResult = (
   hostResult: ThirdPartyDataPackTransactionCommandDispatcherHostResult

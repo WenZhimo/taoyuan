@@ -18,6 +18,7 @@ import type {
 } from '@/domain/mods/thirdPartyDataPackTransactionCommandDispatcherSource'
 
 const packageId = 'sample_pack' as PackageId
+const blockedPackageId = 'blocked_pack' as PackageId
 const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 const createEnvelope = (
@@ -169,6 +170,77 @@ describe('third-party Electron install command dispatch bridge', () => {
     expectNoPersistentEffects(result, false)
     expect(JSON.stringify(result)).not.toContain('C:/Users')
     expect(JSON.stringify(result)).not.toContain('LENOVO')
+  })
+
+  it('blocks stale package summaries before recording an Electron install dispatch proof', () => {
+    const cases = [
+      {
+        label: 'target not selected',
+        overrides: {
+          selectedPackageIds: Object.freeze([blockedPackageId]),
+          loadOrder: Object.freeze([blockedPackageId])
+        }
+      },
+      {
+        label: 'target not loaded',
+        overrides: {
+          loadOrder: Object.freeze([blockedPackageId])
+        }
+      },
+      {
+        label: 'target blocked',
+        overrides: {
+          blockedPackageIds: Object.freeze([packageId])
+        }
+      },
+      {
+        label: 'blocked package selected',
+        overrides: {
+          selectedPackageIds: Object.freeze([packageId, blockedPackageId]),
+          blockedPackageIds: Object.freeze([blockedPackageId]),
+          loadOrder: Object.freeze([packageId, blockedPackageId]),
+          packageCount: 2
+        }
+      },
+      {
+        label: 'duplicate selected package',
+        overrides: {
+          selectedPackageIds: Object.freeze([packageId, packageId]),
+          loadOrder: Object.freeze([packageId, packageId]),
+          packageCount: 2
+        }
+      },
+      {
+        label: 'package count drift',
+        overrides: {
+          packageCount: 2
+        }
+      }
+    ] as const
+
+    for (const currentCase of cases) {
+      const proofs: unknown[] = []
+      const mainHandler = createThirdPartyDataPackElectronInstallCommandDispatchMainHandler({
+        onDispatched: proof => proofs.push(proof)
+      })
+      const result = mainHandler(createEnvelope(currentCase.overrides))
+
+      expect(result.status, currentCase.label).toBe('blocked')
+      expect(result.requestedCommandId).toBe('install')
+      expect(result.targetPackageId).toBe(packageId)
+      expect(result.diagnostics).toEqual([
+        expect.objectContaining({
+          stage: 'third-party.electron-install-command-dispatch.invalid-envelope',
+          packageId
+        })
+      ])
+      expect(proofs, currentCase.label).toEqual([])
+      expectNoPersistentEffects(result, false)
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('candidateRegistrySet')
+      expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
+    }
   })
 
   it('blocks invalid main IPC results before they reach the renderer dispatcher source', async() => {

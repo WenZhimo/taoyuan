@@ -322,6 +322,89 @@ describe('third-party transaction command dispatcher source', () => {
     expectJsonGraphFrozen(result)
   })
 
+  it('blocks inconsistent deferred install summaries before calling the dispatcher host', async() => {
+    const cases = [
+      {
+        label: 'target not selected',
+        overrides: {
+          selectedPackageIds: [blockedPackageId],
+          loadOrder: [blockedPackageId]
+        }
+      },
+      {
+        label: 'target not loaded',
+        overrides: {
+          loadOrder: [blockedPackageId]
+        }
+      },
+      {
+        label: 'target blocked',
+        overrides: {
+          blockedPackageIds: [packageId]
+        }
+      },
+      {
+        label: 'blocked package selected',
+        overrides: {
+          selectedPackageIds: [packageId, blockedPackageId],
+          blockedPackageIds: [blockedPackageId],
+          loadOrder: [packageId, blockedPackageId],
+          packageCount: 2
+        }
+      },
+      {
+        label: 'duplicate selected package',
+        overrides: {
+          selectedPackageIds: [packageId, packageId],
+          loadOrder: [packageId, packageId],
+          packageCount: 2
+        }
+      },
+      {
+        label: 'package count drift',
+        overrides: {
+          packageCount: 2
+        }
+      }
+    ] as const
+
+    for (const currentCase of cases) {
+      const dispatchTransactionCommand = vi.fn()
+      const source = createThirdPartyDataPackTransactionCommandDispatcherSource({
+        enabled: true,
+        readTransactionCommandDispatcherHandoff: async() =>
+          createDeferredHandoff(currentCase.overrides),
+        dispatchTransactionCommand
+      })
+
+      let caught: unknown
+      try {
+        await source()
+      } catch (error) {
+        caught = error
+      }
+
+      expect(caught, currentCase.label).toBeInstanceOf(ThirdPartyDataPackTransactionCommandDispatcherBlockedError)
+      const result = (caught as ThirdPartyDataPackTransactionCommandDispatcherBlockedError).result
+      expect(result.status, currentCase.label).toBe('blocked')
+      expect(result.transactionCommandDispatcherHandoffStatus).toBe('deferred')
+      expect(result.transactionCommandDispatcherHostStatus).toBeUndefined()
+      expect(result.targetPackageId).toBe(packageId)
+      expect(result.diagnostics).toEqual([
+        expect.objectContaining({
+          stage: 'third-party.transaction-command-dispatcher-source.dispatcher-blocked',
+          packageId
+        })
+      ])
+      expect(dispatchTransactionCommand, currentCase.label).not.toHaveBeenCalled()
+      expect(JSON.stringify(result)).not.toContain('C:/Users')
+      expect(JSON.stringify(result)).not.toContain('LENOVO')
+      expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
+      expectNoRuntimeOrWriteEffects(result, false)
+      expectJsonGraphFrozen(result)
+    }
+  })
+
   it('blocks unsafe dispatcher host results without exposing host details', async() => {
     const dispatchTransactionCommand = vi.fn(async() => ({
       status: 'dispatched' as const,

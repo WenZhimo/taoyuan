@@ -105,6 +105,29 @@ const clonePackageIds = (value: unknown): readonly PackageId[] | undefined => {
 const isSha256Hash = (value: unknown): value is Sha256Hash =>
   typeof value === 'string' && sha256HashPattern.test(value)
 
+const packageIdsUnique = (
+  packageIds: readonly PackageId[]
+): boolean => new Set(packageIds).size === packageIds.length
+
+const packageSummaryConsistent = (
+  targetPackageId: PackageId,
+  selectedPackageIds: readonly PackageId[],
+  blockedPackageIds: readonly PackageId[],
+  loadOrder: readonly PackageId[],
+  packageCount: number
+): boolean =>
+  selectedPackageIds.length > 0
+  && packageCount === selectedPackageIds.length
+  && packageIdsUnique(selectedPackageIds)
+  && packageIdsUnique(blockedPackageIds)
+  && packageIdsUnique(loadOrder)
+  && selectedPackageIds.includes(targetPackageId)
+  && !blockedPackageIds.includes(targetPackageId)
+  && blockedPackageIds.every(packageId => !selectedPackageIds.includes(packageId))
+  && loadOrder.length === selectedPackageIds.length
+  && loadOrder.every(packageId => selectedPackageIds.includes(packageId))
+  && selectedPackageIds.every(packageId => loadOrder.includes(packageId))
+
 const cloneCandidateIdentity = (
   value: unknown
 ): ThirdPartyCandidateIdentitySummary | undefined => {
@@ -235,6 +258,13 @@ const isValidDispatchEnvelope = (
     && packageCount !== undefined
     && candidateIdentity !== undefined
     && isSha256Hash(lockfileHash)
+    && packageSummaryConsistent(
+      targetPackageId,
+      selectedPackageIds,
+      blockedPackageIds,
+      loadOrder,
+      packageCount
+    )
 }
 
 const cloneValidDispatchProof = (
