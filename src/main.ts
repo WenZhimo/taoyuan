@@ -90,6 +90,9 @@ const thirdPartyVisibleUpgradeProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleUpgradeExpectBlockedProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleUpgradeExpectBlocked') === '1'
+const thirdPartyVisibleArchiveImportProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleArchiveImportProbe') === '1'
 const thirdPartyVisibleOperationProbeRequested =
   thirdPartyVisibleImportProbeRequested
   || thirdPartyVisibleImportRollbackProbeRequested
@@ -183,6 +186,7 @@ void bootstrapApplication({
                 : 'install',
             persistSource: thirdPartyVisibleImportPersistSourceProbeRequested,
             ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),
+            ...(thirdPartyVisibleArchiveImportProbeRequested ? { archiveImport: true } : {}),
             ...(thirdPartyVisibleEnableExpectBlockedProbeRequested
               || thirdPartyVisibleUpgradeExpectBlockedProbeRequested
               ? { expectBlocked: true }

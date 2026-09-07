@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { strToU8, zipSync } from 'fflate'
 import {
   createDiscoveryFileSystemFromContentPackageSource,
   readContentPackageSourceJson,
@@ -38,7 +39,10 @@ import type {
   ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope,
   ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult
 } from '@/domain/mods/thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationBridge'
-import type { WebFilePickerImportFile } from '@/domain/mods/webFilePickerImportSource'
+import {
+  WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT,
+  type WebFilePickerImportFile
+} from '@/domain/mods/webFilePickerImportSource'
 import { createInMemoryWebIndexedDbImportPersistenceStore } from '@/domain/mods/webIndexedDbImportPersistence'
 import {
   createInMemoryWebSettingsLockfilePersistentWriterStore,
@@ -104,6 +108,29 @@ const createFile = (path: string, text: string): WebFilePickerImportFile => ({
   size: text.length,
   text: vi.fn(async() => text)
 })
+
+const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
+  const buffer = new ArrayBuffer(bytes.byteLength)
+  new Uint8Array(buffer).set(bytes)
+  return buffer
+}
+
+const createArchiveFile = (
+  name: string,
+  files: Readonly<Record<string, string>>
+): WebFilePickerImportFile => {
+  const archiveBytes = zipSync(Object.fromEntries(
+    Object.entries(files).map(([path, text]) => [path, strToU8(text)])
+  ))
+  return {
+    name,
+    size: archiveBytes.byteLength,
+    text: vi.fn(async() => {
+      throw new Error('ZIP import should not read the archive as text')
+    }),
+    arrayBuffer: vi.fn(async() => toArrayBuffer(archiveBytes))
+  }
+}
 
 const createValidFiles = (
   packageId = 'web_entry',
@@ -1383,6 +1410,37 @@ describe('useWebFilePickerImportEntry', () => {
     })
     await expect(readContentPackageSourceJson(result.source!, 'valid-gift-pack/manifest.json'))
       .resolves.toMatchObject({ ok: true, data: { id: 'web_entry' } })
+
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(result.source!)
+    const discoveryReport = await discoverThirdPartyDataPacks(result.source!.identity.rootPath, fileSystem)
+    expect(discoveryReport.status).toBe('completed')
+    expect(discoveryReport.candidates[0]?.path).toBe('valid-gift-pack')
+  })
+
+  it('opens the injected ZIP selector and exposes decompressed files through the ordinary source path', async() => {
+    const archive = createArchiveFile('valid-gift-pack.zip', {
+      'valid-gift-pack/manifest.json': toJson(createManifest('web_entry_zip')),
+      'valid-gift-pack/locales/zh-CN.json': '{}\n',
+      'valid-gift-pack/data/items.json': toJson([
+        createItem('web_entry_zip:linen_ribbon', 'Zip Ribbon')
+      ])
+    })
+    const selectFiles = vi.fn(async() => [archive])
+    const entry = useWebFilePickerImportEntry({ selectFiles })
+
+    const result = await entry.pickArchiveFile()
+
+    expect(selectFiles).toHaveBeenCalledWith({
+      directory: false,
+      multiple: false,
+      accept: WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT
+    })
+    expect(result.status).toBe('ready')
+    expect(result.fileCount).toBe(3)
+    expect(archive.text).not.toHaveBeenCalled()
+    expect(archive.arrayBuffer).toHaveBeenCalledOnce()
+    await expect(readContentPackageSourceJson(result.source!, 'valid-gift-pack/manifest.json'))
+      .resolves.toMatchObject({ ok: true, data: { id: 'web_entry_zip' } })
 
     const fileSystem = createDiscoveryFileSystemFromContentPackageSource(result.source!)
     const discoveryReport = await discoverThirdPartyDataPacks(result.source!.identity.rootPath, fileSystem)

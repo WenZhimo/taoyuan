@@ -1,34 +1,50 @@
+import { strFromU8, unzipSync, type UnzipFileInfo } from 'fflate'
 import { compareCodePoints } from './canonicalJson'
+import { utf8ByteLength } from './hash'
 import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
   ContentPackageSourceError,
+  assertContentPackageSourceTextWithinLimits,
   normalizeContentPackageSourceDirectoryEntries,
+  normalizeContentPackageSourceArchiveEntryPath,
   normalizeContentPackageSourcePath,
   normalizeContentPackageSourceTextPayload,
   toContentPackageSourceHostOperationError,
+  validateContentPackageSourceArchiveEntries,
   validateContentPackageSourceIdentity,
   type ContentPackageSource,
+  type ContentPackageSourceArchiveEntry,
   type ContentPackageSourceDirectoryEntry,
   type ContentPackageSourceIdentity,
-  type ContentPackageSourceSafeReadPolicy
+  type ContentPackageSourceSafeReadPolicy,
+  type ContentPackageSourceValidatedArchiveEntry
 } from './contentPackageSource'
 
 export const WEB_FILE_PICKER_IMPORT_SOURCE_KIND = 'web-file-picker-import'
 export const WEB_FILE_PICKER_IMPORT_SOURCE_ID = 'web/file-picker-import'
 export const WEB_FILE_PICKER_IMPORT_ROOT_PATH = 'web-import'
+export const WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT =
+  '.zip,application/zip,application/x-zip-compressed'
+export const WEB_FILE_PICKER_IMPORT_ARCHIVE_EXTENSION = '.zip'
 
 export interface WebFilePickerImportFile {
   readonly name: string
   readonly webkitRelativePath?: string
   readonly size?: number
   text(): Promise<string>
+  arrayBuffer?(): Promise<ArrayBuffer>
 }
 
 export interface CreateWebFilePickerImportSourceOptions {
   readonly files: readonly WebFilePickerImportFile[]
   readonly sourceId?: string
   readonly rootPath?: string
+  readonly policy?: ContentPackageSourceSafeReadPolicy
+}
+
+export interface ReadWebFilePickerImportArchiveFilesOptions {
+  readonly file: WebFilePickerImportFile
   readonly policy?: ContentPackageSourceSafeReadPolicy
 }
 
@@ -156,7 +172,7 @@ const readWebFileStringField = (
 
 const readWebFileSize = (
   file: WebFilePickerImportFile,
-  sourcePath: string
+  sourcePath?: string
 ): number | undefined => {
   let value: unknown
   try {
@@ -191,6 +207,24 @@ const readWebFileTextMethod = (
     )
   }
   return () => Promise.resolve(textMethod.call(file) as Promise<string>)
+}
+
+const readWebFileArrayBufferMethod = (
+  file: WebFilePickerImportFile
+): (() => Promise<ArrayBuffer>) => {
+  let arrayBufferMethod: unknown
+  try {
+    arrayBufferMethod = file.arrayBuffer
+  } catch {
+    throw toWebFileMetadataError()
+  }
+  if (typeof arrayBufferMethod !== 'function') {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Web file-picker ZIP import file arrayBuffer reader must be a function'
+    )
+  }
+  return () => Promise.resolve(arrayBufferMethod.call(file) as Promise<ArrayBuffer>)
 }
 
 const normalizeWebFilePath = (
@@ -235,6 +269,151 @@ const normalizeWebFile = (
   const path = normalizeWebFilePath(pathInput, policy)
   const readText = readWebFileTextMethod(file)
   return { path, file, readText }
+}
+
+const archiveDiagnosticPath = 'archive.zip'
+
+const isZipArchiveName = (name: string): boolean =>
+  name.toLowerCase().endsWith(WEB_FILE_PICKER_IMPORT_ARCHIVE_EXTENSION)
+
+const isArchiveDirectoryEntryName = (name: string): boolean => name.endsWith('/')
+
+const readArchiveBytes = async(
+  file: WebFilePickerImportFile,
+  policy: ContentPackageSourceSafeReadPolicy
+): Promise<Uint8Array> => {
+  const declaredSize = readWebFileSize(file, undefined)
+  if (declaredSize !== undefined && declaredSize > policy.maxPackageCompressedBytes) {
+    throw new ContentPackageSourceError(
+      'SOURCE_LIMIT_EXCEEDED',
+      `Archive exceeds ${policy.maxPackageCompressedBytes} total compressed bytes: ${declaredSize}`,
+      archiveDiagnosticPath
+    )
+  }
+
+  const readArrayBuffer = readWebFileArrayBufferMethod(file)
+  let buffer: ArrayBuffer
+  try {
+    buffer = await readArrayBuffer()
+  } catch (error) {
+    throw toContentPackageSourceHostOperationError('read', error, archiveDiagnosticPath, 'SOURCE_ENTRY_UNSAFE')
+  }
+  if (!(buffer instanceof ArrayBuffer)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Web file-picker ZIP import payload must be an ArrayBuffer',
+      archiveDiagnosticPath
+    )
+  }
+  const bytes = new Uint8Array(buffer)
+  if (bytes.byteLength > policy.maxPackageCompressedBytes) {
+    throw new ContentPackageSourceError(
+      'SOURCE_LIMIT_EXCEEDED',
+      `Archive exceeds ${policy.maxPackageCompressedBytes} total compressed bytes: ${bytes.byteLength}`,
+      archiveDiagnosticPath
+    )
+  }
+  return bytes
+}
+
+const collectArchiveEntryMetadata = (
+  archiveBytes: Uint8Array,
+  policy: ContentPackageSourceSafeReadPolicy
+) => {
+  const entries: ContentPackageSourceArchiveEntry[] = []
+  try {
+    unzipSync(archiveBytes, {
+      filter: (file: UnzipFileInfo) => {
+        if (!isArchiveDirectoryEntryName(file.name)) {
+          entries.push(Object.freeze({
+            path: file.name,
+            uncompressedSizeBytes: file.originalSize,
+            compressedSizeBytes: file.size
+          }))
+        }
+        return false
+      }
+    })
+  } catch (error) {
+    if (error instanceof ContentPackageSourceError) throw error
+    throw toContentPackageSourceHostOperationError('read', error, archiveDiagnosticPath, 'SOURCE_ENTRY_UNSAFE')
+  }
+  return validateContentPackageSourceArchiveEntries(entries, policy)
+}
+
+const extractValidatedArchiveFiles = (
+  archiveBytes: Uint8Array,
+  entries: readonly ContentPackageSourceValidatedArchiveEntry[],
+  policy: ContentPackageSourceSafeReadPolicy
+): readonly WebFilePickerImportFile[] => {
+  const selectedPaths = new Set(entries.map(entry => entry.path))
+  let extracted: Record<string, Uint8Array>
+  try {
+    extracted = unzipSync(archiveBytes, {
+      filter: (file: UnzipFileInfo) => {
+        if (isArchiveDirectoryEntryName(file.name)) return false
+        const normalizedPath = normalizeContentPackageSourceArchiveEntryPath(file.name, policy)
+        return selectedPaths.has(normalizedPath)
+      }
+    })
+  } catch (error) {
+    if (error instanceof ContentPackageSourceError) throw error
+    throw toContentPackageSourceHostOperationError('read', error, archiveDiagnosticPath, 'SOURCE_ENTRY_UNSAFE')
+  }
+
+  return Object.freeze(entries.map(entry => {
+    const payload = extracted[entry.path]
+    if (payload === undefined) {
+      throw new ContentPackageSourceError(
+        'SOURCE_ENTRY_NOT_FOUND',
+        'Validated archive entry was not extracted',
+        entry.path
+      )
+    }
+    let text: string
+    try {
+      text = assertContentPackageSourceTextWithinLimits(strFromU8(payload), entry.path, policy)
+    } catch (error) {
+      if (error instanceof ContentPackageSourceError) throw error
+      throw toContentPackageSourceHostOperationError('read', error, entry.path, 'SOURCE_ENTRY_UNSAFE')
+    }
+    return Object.freeze({
+      name: entryName(entry.path, entry.path),
+      webkitRelativePath: entry.path,
+      size: utf8ByteLength(text),
+      text: async() => text
+    })
+  }))
+}
+
+export const readWebFilePickerImportArchiveFiles = async(
+  options: ReadWebFilePickerImportArchiveFilesOptions
+): Promise<readonly WebFilePickerImportFile[]> => {
+  const policy = options.policy ?? CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS
+  const file = options.file
+  if (typeof file !== 'object' || file === null) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Web file-picker ZIP import file metadata must be an object'
+    )
+  }
+  const name = readWebFileStringField(file, 'name')
+  if (name === undefined) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Web file-picker ZIP import file name metadata must be a string'
+    )
+  }
+  if (!isZipArchiveName(name)) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'Web file-picker ZIP import requires a .zip file'
+    )
+  }
+
+  const archiveBytes = await readArchiveBytes(file, policy)
+  const entries = collectArchiveEntryMetadata(archiveBytes, policy)
+  return extractValidatedArchiveFiles(archiveBytes, entries, policy)
 }
 
 const readFiles = (

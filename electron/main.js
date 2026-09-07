@@ -213,6 +213,8 @@ const runtimeProbeVisibleImportFailure =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_FAILURE === '1'
 const runtimeProbeVisibleDependency =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DEPENDENCY === '1'
+const runtimeProbeVisibleArchiveImport =
+  process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ARCHIVE_IMPORT === '1'
 const runtimeProbeVisibleDisable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE === '1'
 const runtimeProbeVisibleDisableFailAfterModLockWrite =
@@ -5280,6 +5282,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleDependency
             ? { taoyuanThirdPartyVisibleDependencyProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleArchiveImport
+            ? { taoyuanThirdPartyVisibleArchiveImportProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleEnable
             ? { taoyuanThirdPartyVisibleEnableProbe: '1' }

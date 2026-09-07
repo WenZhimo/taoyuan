@@ -109,6 +109,14 @@ const webScenarios = [
     visibleImportWebOrdinary: true
   },
   {
+    name: 'visible-import-web-archive-ordinary',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportWebOrdinary: true,
+    visibleArchiveImport: true
+  },
+  {
     name: 'visible-import-web-dependency-then-restart',
     fault: null,
     source: 'precompiled',
@@ -415,6 +423,19 @@ const electronScenarios = [
     dataRoot: 'visible-import-renderer-live-registry',
     cacheSeed: 'valid',
     visibleImportRendererLiveRegistry: true
+  },
+  {
+    name: 'visible-import-archive-renderer-live-registry',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-renderer-live-registry',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleArchiveImport: true
   },
   {
     name: 'visible-import-dependency-renderer-live-registry',
@@ -4230,6 +4251,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: visible import did not open the MainMenu panel`)
     assert(visibleImport.panelImportButtonClicked === true,
       `${scenario.name}: visible import did not click the panel import button`)
+    assert(visibleImport.archiveImportButtonClicked === !!scenario.visibleArchiveImport,
+      `${scenario.name}: visible import archive button state was unexpected`)
     assert(visibleImport.defaultFileInputSelectorUsed === true,
       `${scenario.name}: visible import did not use the default file input selector`)
     assertVisibleImportPanelLabels(
@@ -4343,6 +4366,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: Web visible import did not open the MainMenu panel`)
     assert(visibleImport.panelImportButtonClicked === true,
       `${scenario.name}: Web visible import did not click the panel import button`)
+    assert(visibleImport.archiveImportButtonClicked === !!scenario.visibleArchiveImport,
+      `${scenario.name}: Web visible import archive button state was unexpected`)
     assert(visibleImport.defaultFileInputSelectorUsed === true,
       `${scenario.name}: Web visible import did not use the default file input selector`)
     assertVisibleImportPanelLabels(
@@ -4445,6 +4470,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: inactive visible import reported an opened panel`)
     assert(visibleImport.panelImportButtonClicked === false,
       `${scenario.name}: inactive visible import reported a panel import click`)
+    assert(visibleImport.archiveImportButtonClicked === false,
+      `${scenario.name}: inactive visible import reported an archive import click`)
     assert(visibleImport.defaultFileInputSelectorUsed === false,
       `${scenario.name}: inactive visible import reported a file input selection`)
     assert(visibleImport.contentAccessItemVisibleAfter === false,
@@ -5449,6 +5476,9 @@ const runWebProbe = async () => {
     if (scenario.visibleUninstall) {
       url.searchParams.set('taoyuanThirdPartyVisibleUninstallProbe', '1')
     }
+    if (scenario.visibleArchiveImport) {
+      url.searchParams.set('taoyuanThirdPartyVisibleArchiveImportProbe', '1')
+    }
     if (scenario.fault) url.searchParams.set('taoyuanPrecompiledFault', scenario.fault)
     return url
   }
@@ -5950,6 +5980,9 @@ const runPackagedScenario = async (scenario, isolated) => {
       : {}),
     ...(scenario.visibleDependency
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DEPENDENCY: '1' }
+      : {}),
+    ...(scenario.visibleArchiveImport
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ARCHIVE_IMPORT: '1' }
       : {}),
     ...(scenario.visibleEnable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE: '1' }

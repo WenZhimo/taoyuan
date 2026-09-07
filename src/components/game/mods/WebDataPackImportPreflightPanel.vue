@@ -3,7 +3,7 @@
     <div class="text-center">
       <p class="text-accent text-sm">数据包导入与运行时交接</p>
       <p class="text-xs text-muted mt-1">
-        读取本地选择的目录，可用时暂存到浏览器 IndexedDB，并继续到安装命令、UI/IPC、运行时发布和启动交接状态；不会写入存档或官方缓存。
+        读取本地选择的目录或 ZIP 包，可用时暂存到浏览器 IndexedDB，并继续到安装命令、UI/IPC、运行时发布和启动交接状态；不会写入存档或官方缓存。
       </p>
     </div>
 
@@ -155,6 +155,9 @@
       <div class="flex flex-wrap gap-2">
         <Button class="flex-1 justify-center" :icon="Upload" :disabled="isPreparing" @click="runImportPreflight">
           {{ isPreparing ? '预检中...' : '选择数据包目录' }}
+        </Button>
+        <Button class="flex-1 justify-center" :icon="Upload" :disabled="isPreparing" @click="runArchiveImportPreflight">
+          {{ isPreparing ? '预检中...' : '选择 ZIP 包' }}
         </Button>
         <Button
           class="flex-1 justify-center"
@@ -726,6 +729,19 @@
     } finally {
       isPreparing.value = false
       }
+  }
+
+  const runArchiveImportPreflight = async(): Promise<void> => {
+    if (isNativePlatform.value || isPreparing.value) return
+    isPreparing.value = true
+    try {
+      const result = await entry.pickArchiveFile()
+      if (!isReadyImportStatus(result.status)) return
+      publishVisibleImportPanelProbeResult(await dispatchCurrentImportSource())
+      await installedManagement.refresh()
+    } finally {
+      isPreparing.value = false
+    }
   }
 
   const runRestorePreflight = async(): Promise<void> => {

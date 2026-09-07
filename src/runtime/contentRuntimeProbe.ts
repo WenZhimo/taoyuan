@@ -229,6 +229,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   entrypoint?: string
   mainMenuPanelOpened: boolean
   panelImportButtonClicked: boolean
+  archiveImportButtonClicked?: boolean
   defaultFileInputSelectorUsed: boolean
   managementCommandHostKind?: ThirdPartyVisibleManagementCommandHostKind
   managementCommandDispatched?: boolean
@@ -1137,6 +1138,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       observed: false,
       mainMenuPanelOpened: false,
       panelImportButtonClicked: false,
+      archiveImportButtonClicked: false,
       defaultFileInputSelectorUsed: false,
       fileCount: 0,
       panelStatusLabels: {},
@@ -1171,6 +1173,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const disableButtonClicked = readOwnBooleanField(result, 'disableButtonClicked')
   const enableButtonClicked = readOwnBooleanField(result, 'enableButtonClicked')
   const uninstallButtonClicked = readOwnBooleanField(result, 'uninstallButtonClicked')
+  const archiveImportButtonClicked = readOwnBooleanField(result, 'archiveImportButtonClicked')
   const managementCommandHostKind = readVisibleManagementCommandHostKind(result)
   const managementCommandDispatched = readOwnBooleanField(result, 'managementCommandDispatched')
   const managementUiIpcResponseDelivered =
@@ -1228,6 +1231,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     entrypoint: readOwnStringField(result, 'entrypoint'),
     mainMenuPanelOpened: readOwnBooleanField(result, 'mainMenuPanelOpened') === true,
     panelImportButtonClicked: readOwnBooleanField(result, 'panelImportButtonClicked') === true,
+    ...(archiveImportButtonClicked === undefined ? {} : { archiveImportButtonClicked }),
     defaultFileInputSelectorUsed:
       readOwnBooleanField(result, 'defaultFileInputSelectorUsed') === true,
     ...(managementCommandHostKind === undefined ? {} : { managementCommandHostKind }),

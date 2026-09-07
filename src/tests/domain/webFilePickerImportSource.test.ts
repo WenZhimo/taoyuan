@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { strToU8, zipSync } from 'fflate'
 import {
   CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
   CONTENT_PACKAGE_SOURCE_SAFE_READ_LIMITS,
@@ -9,6 +10,7 @@ import {
 import { discoverThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackDiscovery'
 import {
   createWebFilePickerImportSource,
+  readWebFilePickerImportArchiveFiles,
   type WebFilePickerImportFile
 } from '@/domain/mods/webFilePickerImportSource'
 
@@ -52,6 +54,31 @@ const createFile = (
   ...overrides
 })
 
+const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
+  const buffer = new ArrayBuffer(bytes.byteLength)
+  new Uint8Array(buffer).set(bytes)
+  return buffer
+}
+
+const createArchiveFile = (
+  name: string,
+  files: Readonly<Record<string, string>>,
+  overrides: Partial<WebFilePickerImportFile> = {}
+): WebFilePickerImportFile => {
+  const archiveBytes = zipSync(Object.fromEntries(
+    Object.entries(files).map(([path, text]) => [path, strToU8(text)])
+  ))
+  return {
+    name,
+    size: archiveBytes.byteLength,
+    text: vi.fn(async() => {
+      throw new Error('ZIP import should not read the archive as text')
+    }),
+    arrayBuffer: vi.fn(async() => toArrayBuffer(archiveBytes)),
+    ...overrides
+  }
+}
+
 const captureSourceError = (fn: () => unknown): ContentPackageSourceError => {
   try {
     fn()
@@ -93,6 +120,50 @@ describe('web file-picker import source', () => {
     ])
     expect(discoveryReport.status).toBe('completed')
     expect(discoveryReport.candidates[0]?.path).toBe('valid-gift-pack')
+  })
+
+  it('expands a selected ZIP archive into the Web ContentPackageSource contract', async() => {
+    const archive = createArchiveFile('valid-gift-pack.zip', {
+      'valid-gift-pack/manifest.json': toJson(createManifest('zip_valid')),
+      'valid-gift-pack/locales/zh-CN.json': '{}\n',
+      'valid-gift-pack/data/items.json': toJson([createItem('zip_valid:linen_ribbon')])
+    })
+
+    const archiveFiles = await readWebFilePickerImportArchiveFiles({ file: archive })
+    const source = createWebFilePickerImportSource({ files: archiveFiles })
+    const fileSystem = createDiscoveryFileSystemFromContentPackageSource(source)
+    const discoveryReport = await discoverThirdPartyDataPacks(source.identity.rootPath, fileSystem)
+
+    expect(archiveFiles.map(file => file.webkitRelativePath)).toEqual([
+      'valid-gift-pack/data/items.json',
+      'valid-gift-pack/locales/zh-CN.json',
+      'valid-gift-pack/manifest.json'
+    ])
+    expect(archive.text).not.toHaveBeenCalled()
+    expect(archive.arrayBuffer).toHaveBeenCalledOnce()
+    expect(source.identity.kind).toBe('web-file-picker-import')
+    await expect(readContentPackageSourceJson(source, 'valid-gift-pack/manifest.json'))
+      .resolves.toMatchObject({ ok: true, data: { id: 'zip_valid' } })
+    expect(discoveryReport.status).toBe('completed')
+    expect(discoveryReport.candidates[0]?.path).toBe('valid-gift-pack')
+  })
+
+  it('rejects unsafe ZIP archive entry paths before publishing selected files', async() => {
+    const archive = createArchiveFile('private.zip', {
+      '../userdata/manifest.json': toJson(createManifest('unsafe_zip')),
+      'valid-gift-pack/manifest.json': toJson(createManifest('zip_valid'))
+    })
+
+    try {
+      await readWebFilePickerImportArchiveFiles({ file: archive })
+      throw new Error('Expected ContentPackageSourceError')
+    } catch (error) {
+      expect(error).toMatchObject({
+        code: 'SOURCE_PATH_UNSAFE'
+      })
+      expect(JSON.stringify(error)).not.toContain('userdata')
+    }
+    expect(archive.text).not.toHaveBeenCalled()
   })
 
   it('uses webkitRelativePath instead of the browser file name when present', async() => {

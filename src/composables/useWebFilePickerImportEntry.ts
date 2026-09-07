@@ -9,9 +9,11 @@ import {
 } from '@/domain/mods/contentPackageSource'
 import type { RegistrySet } from '@/domain/mods/registry'
 import {
+  WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT,
   WEB_FILE_PICKER_IMPORT_ROOT_PATH,
   WEB_FILE_PICKER_IMPORT_SOURCE_ID,
   createWebFilePickerImportSource,
+  readWebFilePickerImportArchiveFiles,
   type WebFilePickerImportFile
 } from '@/domain/mods/webFilePickerImportSource'
 import {
@@ -312,6 +314,7 @@ export interface WebFilePickerImportEntryEffects {
 export interface WebFilePickerImportSelectionOptions {
   readonly directory: boolean
   readonly multiple: boolean
+  readonly accept?: string
 }
 
 export type WebFilePickerImportSelector = (
@@ -2141,6 +2144,7 @@ export const createBrowserWebFilePickerSelector = (
     const input = browserDocument.createElement('input')
     input.type = 'file'
     input.multiple = selectionOptions.multiple
+    if (selectionOptions.accept !== undefined) input.accept = selectionOptions.accept
     ;(input as HTMLInputElement & { webkitdirectory?: boolean }).webkitdirectory = selectionOptions.directory
     input.style.display = 'none'
 
@@ -2317,6 +2321,60 @@ export const useWebFilePickerImportEntry = (
       return await importFiles(await selectFiles({ directory: true, multiple: true }))
     } catch (error) {
       return await fail(error, 'Web file-picker import selection failed')
+    }
+  }
+
+  const importArchiveFile = async(
+    files: readonly WebFilePickerImportFile[]
+  ): Promise<WebFilePickerImportEntryResult> => {
+    await disposeLastSource()
+    lastRecord.value = null
+    lastError.value = null
+    lastEffects.value = emptyEffects
+
+    if (files.length === 0) {
+      return setResult({
+        status: 'cancelled',
+        source: null,
+        record: null,
+        fileCount: 0,
+        effects: emptyEffects,
+        error: null
+      })
+    }
+    if (files.length !== 1) {
+      return await fail(
+        new ContentPackageSourceError(
+          'SOURCE_ENTRY_UNSAFE',
+          'Web file-picker ZIP import requires exactly one archive file'
+        ),
+        'Web file-picker ZIP import failed',
+        files.length
+      )
+    }
+    status.value = 'importing'
+    try {
+      const archiveFiles = await readWebFilePickerImportArchiveFiles({
+        file: files[0]!,
+        policy
+      })
+      return await importFiles(archiveFiles)
+    } catch (error) {
+      return await fail(error, 'Web file-picker ZIP import failed', files.length)
+    }
+  }
+
+  const pickArchiveFile = async(): Promise<WebFilePickerImportEntryResult> => {
+    status.value = 'selecting'
+    lastError.value = null
+    try {
+      return await importArchiveFile(await selectFiles({
+        directory: false,
+        multiple: false,
+        accept: WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT
+      }))
+    } catch (error) {
+      return await fail(error, 'Web file-picker ZIP import selection failed')
     }
   }
 
@@ -3396,7 +3454,9 @@ export const useWebFilePickerImportEntry = (
     lastSourceInstallCommandPreflight,
     lastSourceInstallCommandDispatch,
     pickFiles,
+    pickArchiveFile,
     importFiles,
+    importArchiveFile,
     restorePersistedImport,
     restoreElectronInstalledSource,
     prepareInstallCommandPreflight,

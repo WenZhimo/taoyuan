@@ -3,6 +3,7 @@ import {
   getOfficialRecipeDef,
   getOfficialShopOfferDefs
 } from '@/domain/mods/contentAccess'
+import { strToU8, zipSync } from 'fflate'
 import type { PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackDisableTransactionResult } from '@/domain/mods/thirdPartyDataPackDisableTransaction'
 import type { ThirdPartyDataPackEnableTransactionResult } from '@/domain/mods/thirdPartyDataPackEnableTransaction'
@@ -86,6 +87,7 @@ export interface RunThirdPartyVisibleImportProductProbeOptions {
   readonly entrypoint?: VisibleImportProductProbeEntrypoint
   readonly operation?: VisibleImportProductProbeOperation
   readonly includeDependency?: boolean
+  readonly archiveImport?: boolean
   readonly expectBlocked?: boolean
 }
 
@@ -108,6 +110,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly entrypoint: VisibleImportProductProbeEntrypoint
   readonly mainMenuPanelOpened: boolean
   readonly panelImportButtonClicked: boolean
+  readonly archiveImportButtonClicked?: boolean
   readonly defaultFileInputSelectorUsed: boolean
   readonly managementCommandHostKind?: VisibleManagementCommandHostKind
   readonly managementCommandDispatched?: boolean
@@ -272,6 +275,7 @@ interface VisibleImportProbeExecution {
   readonly operation?: VisibleImportProductProbeOperation
   readonly mainMenuPanelOpened: boolean
   readonly panelImportButtonClicked: boolean
+  readonly archiveImportButtonClicked?: boolean
   readonly enableButtonClicked?: boolean
   readonly managementCommandHostKind?: VisibleManagementCommandHostKind
   readonly managementCommandDispatched?: boolean
@@ -486,26 +490,58 @@ const createFile = (path: string, text: string): WebFilePickerImportFile => Obje
   text: async() => text
 })
 
+const createVisibleImportFilePayloads = (
+  variant: VisibleImportProductProbePackageVariant = 'v1',
+  includeDependency = false
+): readonly (readonly [string, string])[] => Object.freeze([
+  ...(includeDependency
+    ? [
+        ['a-product-probe-library/manifest.json', toJson(createDependencyManifest())] as const,
+        ['a-product-probe-library/locales/zh-CN.json', '{}\n'] as const,
+        ['a-product-probe-library/data/items.json', toJson([createDependencyItem()])] as const
+      ]
+    : []),
+  [
+    'product-probe-pack/manifest.json',
+    toJson(includeDependency ? createDependentAppManifest(variant) : createManifest(variant))
+  ] as const,
+  ['product-probe-pack/locales/zh-CN.json', '{}\n'] as const,
+  ['product-probe-pack/data/items.json', toJson([createItem(variant)])] as const,
+  ['product-probe-pack/data/recipes.json', toJson([createRecipe(variant)])] as const,
+  ['product-probe-pack/data/shop-offers.json', toJson([createShopOffer(variant)])] as const
+])
+
 const createVisibleImportFiles = (
   variant: VisibleImportProductProbePackageVariant = 'v1',
   includeDependency = false
-): readonly WebFilePickerImportFile[] => Object.freeze([
-  ...(includeDependency
-    ? [
-        createFile('a-product-probe-library/manifest.json', toJson(createDependencyManifest())),
-        createFile('a-product-probe-library/locales/zh-CN.json', '{}\n'),
-        createFile('a-product-probe-library/data/items.json', toJson([createDependencyItem()]))
-      ]
-    : []),
-  createFile(
-    'product-probe-pack/manifest.json',
-    toJson(includeDependency ? createDependentAppManifest(variant) : createManifest(variant))
-  ),
-  createFile('product-probe-pack/locales/zh-CN.json', '{}\n'),
-  createFile('product-probe-pack/data/items.json', toJson([createItem(variant)])),
-  createFile('product-probe-pack/data/recipes.json', toJson([createRecipe(variant)])),
-  createFile('product-probe-pack/data/shop-offers.json', toJson([createShopOffer(variant)]))
-])
+): readonly WebFilePickerImportFile[] => Object.freeze(
+  createVisibleImportFilePayloads(variant, includeDependency)
+    .map(([path, text]) => createFile(path, text))
+)
+
+const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
+  const buffer = new ArrayBuffer(bytes.byteLength)
+  new Uint8Array(buffer).set(bytes)
+  return buffer
+}
+
+const createVisibleImportArchiveFile = (
+  variant: VisibleImportProductProbePackageVariant = 'v1',
+  includeDependency = false
+): WebFilePickerImportFile => {
+  const archiveBytes = zipSync(Object.fromEntries(
+    createVisibleImportFilePayloads(variant, includeDependency)
+      .map(([path, text]) => [path, strToU8(text)])
+  ))
+  return Object.freeze({
+    name: 'product-probe-pack.zip',
+    size: archiveBytes.byteLength,
+    text: async() => {
+      throw new Error('ZIP import should not read the archive as text')
+    },
+    arrayBuffer: async() => toArrayBuffer(archiveBytes)
+  })
+}
 
 const diagnosticsCountFor = (
   dispatchResult: WebFilePickerSourceInstallCommandDispatchResult | null
@@ -956,11 +992,15 @@ const runComposableImportProbe = async(
   const operation = options.operation ?? 'install'
   const variant = packageVariantForOperation(operation)
   const entry = useWebFilePickerImportEntry({
-    selectFiles: async() => createVisibleImportFiles(variant, options.includeDependency === true),
+    selectFiles: async() => options.archiveImport === true
+      ? [createVisibleImportArchiveFile(variant, options.includeDependency === true)]
+      : createVisibleImportFiles(variant, options.includeDependency === true),
     persistenceStore: createProbePersistenceStore(options)
   })
 
-  const pickResult = await entry.pickFiles()
+  const pickResult = options.archiveImport === true
+    ? await entry.pickArchiveFile()
+    : await entry.pickFiles()
   let dispatchResult: WebFilePickerSourceInstallCommandDispatchResult | null = null
   if (pickResult.status === 'ready' || pickResult.status === 'persisted' || pickResult.status === 'restored') {
     dispatchResult = await entry.dispatchInstallCommandFromSource({
@@ -978,6 +1018,7 @@ const runComposableImportProbe = async(
     operation,
     mainMenuPanelOpened: false,
     panelImportButtonClicked: false,
+    archiveImportButtonClicked: false,
     defaultFileInputSelectorUsed: false
   })
 }
@@ -994,10 +1035,13 @@ const runMainMenuPanelImportProbe = async(
     || (operation === 'upgrade' && options.expectBlocked === true)
   const probeWindow = window
   const fileInputProbe = installDefaultFileInputProbeSelector(
-    createVisibleImportFiles(variant, options.includeDependency === true)
+    options.archiveImport === true
+      ? [createVisibleImportArchiveFile(variant, options.includeDependency === true)]
+      : createVisibleImportFiles(variant, options.includeDependency === true)
   )
   let mainMenuPanelOpened = false
   let panelImportButtonClicked = false
+  let archiveImportButtonClicked = false
   let dispatchResult: WebFilePickerSourceInstallCommandDispatchResult | null = null
   try {
     clearPanelDispatchResult(probeWindow)
@@ -1012,12 +1056,14 @@ const runMainMenuPanelImportProbe = async(
     )
     mainMenuPanelOpened = true
 
+    const importButtonLabel = options.archiveImport === true ? '选择 ZIP 包' : '选择数据包目录'
     const panelImportButton = await waitForCondition(
-      () => findButtonContainingText('选择数据包目录'),
+      () => findButtonContainingText(importButtonLabel),
       'visible import probe could not find the panel import button'
     )
     const dispatchResultPromise = waitForPanelDispatchResult(probeWindow)
     panelImportButtonClicked = true
+    archiveImportButtonClicked = options.archiveImport === true
     panelImportButton.click()
     const readyDispatchResult = await dispatchResultPromise
     dispatchResult = readyDispatchResult
@@ -1068,6 +1114,7 @@ const runMainMenuPanelImportProbe = async(
       operation,
       mainMenuPanelOpened,
       panelImportButtonClicked,
+      archiveImportButtonClicked,
       defaultFileInputSelectorUsed: fileInputProbe.clickCount() > 0
     })
   } catch (error) {
@@ -1081,6 +1128,7 @@ const runMainMenuPanelImportProbe = async(
       operation,
       mainMenuPanelOpened,
       panelImportButtonClicked,
+      archiveImportButtonClicked,
       defaultFileInputSelectorUsed: fileInputProbe.clickCount() > 0,
       blockedReason: toErrorMessage(error)
     })
@@ -1556,6 +1604,9 @@ export const runThirdPartyVisibleImportProductProbe = async(
       : {}),
     mainMenuPanelOpened: execution.mainMenuPanelOpened,
     panelImportButtonClicked: execution.panelImportButtonClicked,
+    ...(execution.archiveImportButtonClicked === undefined
+      ? {}
+      : { archiveImportButtonClicked: execution.archiveImportButtonClicked }),
     ...(execution.enableButtonClicked === undefined ? {} : { enableButtonClicked: execution.enableButtonClicked }),
     defaultFileInputSelectorUsed: execution.defaultFileInputSelectorUsed,
     ...(execution.managementCommandHostKind === undefined

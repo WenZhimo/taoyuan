@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { strToU8, zipSync } from 'fflate'
 import WebDataPackImportPreflightPanel from '@/components/game/mods/WebDataPackImportPreflightPanel.vue'
 import {
   publishOfficialContentRegistrySet,
@@ -44,7 +45,10 @@ import {
   publishThirdPartyDataPackMountedAppStartupHostEvidence,
   resetThirdPartyDataPackMountedAppStartupHostEvidenceForTests
 } from '@/domain/mods/thirdPartyDataPackMountedAppStartupHostConnection'
-import type { WebFilePickerImportFile } from '@/domain/mods/webFilePickerImportSource'
+import {
+  WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT,
+  type WebFilePickerImportFile
+} from '@/domain/mods/webFilePickerImportSource'
 import type {
   WebFilePickerPostCommitPersistentStateReader,
   WebFilePickerPostCommitSettingsLockfileCommitSourceReader,
@@ -91,6 +95,29 @@ const createFile = (path: string, text: string): WebFilePickerImportFile => ({
   size: text.length,
   text: vi.fn(async() => text)
 })
+
+const toArrayBuffer = (bytes: Uint8Array): ArrayBuffer => {
+  const buffer = new ArrayBuffer(bytes.byteLength)
+  new Uint8Array(buffer).set(bytes)
+  return buffer
+}
+
+const createArchiveFile = (
+  name: string,
+  files: Readonly<Record<string, string>>
+): WebFilePickerImportFile => {
+  const archiveBytes = zipSync(Object.fromEntries(
+    Object.entries(files).map(([path, text]) => [path, strToU8(text)])
+  ))
+  return {
+    name,
+    size: archiveBytes.byteLength,
+    text: vi.fn(async() => {
+      throw new Error('ZIP import should not read the archive as text')
+    }),
+    arrayBuffer: vi.fn(async() => toArrayBuffer(archiveBytes))
+  }
+}
 
 const createValidFiles = (
   packageId = 'web_panel_entry',
@@ -1084,6 +1111,65 @@ describe('WebDataPackImportPreflightPanel', () => {
       selectedPackageIds: ['web_panel_entry'],
       loadOrder: ['web_panel_entry']
     })
+
+    wrapper.unmount()
+  })
+
+  it('connects the visible ZIP import action to source-derived install command dispatch', async() => {
+    const archive = createArchiveFile('valid-panel-pack.zip', {
+      'valid-panel-pack/manifest.json': toJson(createManifest('web_panel_zip')),
+      'valid-panel-pack/locales/zh-CN.json': '{}\n',
+      'valid-panel-pack/data/items.json': toJson([
+        createItem('web_panel_zip:linen_ribbon', 'Panel Zip Ribbon')
+      ])
+    })
+    const selectFiles = vi.fn(async() => [archive])
+    const dispatchTransactionCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+    ) => createDispatchedHostResult(envelope))
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles,
+        officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+        persistenceStore,
+        dispatchTransactionCommand
+      }
+    })
+
+    await wrapper.findAll('button').find(button => button.text().includes('选择 ZIP 包'))!.trigger('click')
+    await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+    expect(selectFiles).toHaveBeenCalledWith({
+      directory: false,
+      multiple: false,
+      accept: WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT
+    })
+    expect(wrapper.get('[data-testid="web-mod-import-status"]').text()).toBe('已暂存')
+    expect(wrapper.get('[data-testid="web-mod-file-count"]').text()).toBe('3')
+    expect(wrapper.get('[data-testid="web-mod-target-package"]').text()).toBe('web_panel_zip')
+    expect(wrapper.get('[data-testid="web-mod-dispatch-status"]').text()).toBe('dispatched')
+    expect(wrapper.get('[data-testid="web-mod-persistence-status"]').text()).toBe('已写入 IndexedDB')
+    expect(wrapper.get('[data-testid="web-mod-selected-packages"]').text()).toBe('web_panel_zip')
+    expect(dispatchTransactionCommand).toHaveBeenCalledOnce()
+    expect(dispatchTransactionCommand.mock.calls[0]?.[0]).toMatchObject({
+      requestedCommandId: 'install',
+      targetPackageId: 'web_panel_zip',
+      selectedPackageIds: ['web_panel_zip'],
+      loadOrder: ['web_panel_zip'],
+      registryCount: 54,
+      entryCount: 4243,
+      packageCount: 1
+    })
+    expect(await persistenceStore.list()).toEqual([{
+      importId: 'latest-web-file-picker-import',
+      sourceId: 'web/file-picker-import',
+      rootPath: 'web-import',
+      fileCount: 3,
+      totalBytes: expect.any(Number)
+    }])
+    expect(archive.text).not.toHaveBeenCalled()
+    expect(archive.arrayBuffer).toHaveBeenCalledOnce()
 
     wrapper.unmount()
   })

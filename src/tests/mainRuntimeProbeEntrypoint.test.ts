@@ -220,4 +220,34 @@ describe('main runtime probe entrypoint', () => {
       })
     )
   })
+
+  it('passes visible ZIP archive import probe query wiring into the product probe', async() => {
+    const visibleImportResult = {
+      status: 'ready',
+      archiveImportButtonClicked: true
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleImportProbe=1&taoyuanThirdPartyVisibleImportPersistSource=1&taoyuanThirdPartyVisibleArchiveImportProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'install',
+        persistSource: true,
+        archiveImport: true
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
 })
