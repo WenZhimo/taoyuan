@@ -117,6 +117,16 @@ const webScenarios = [
     visibleArchiveImport: true
   },
   {
+    name: 'visible-import-web-archive-installed-startup-persistent-state',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledStartupPersistentState: true,
+    visibleArchiveImport: true,
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
+  {
     name: 'visible-import-web-dependency-then-restart',
     fault: null,
     source: 'precompiled',
@@ -435,6 +445,26 @@ const electronScenarios = [
     dataRoot: 'visible-import-archive-renderer-live-registry',
     cacheSeed: 'valid',
     visibleImportRendererLiveRegistry: true,
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-archive-installed-startup-persistent-state',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-renderer-live-registry',
+    cacheSeed: 'valid',
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
     visibleArchiveImport: true
   },
   {
