@@ -5556,7 +5556,6 @@ const runWebProbe = async () => {
       url.searchParams.set('taoyuanThirdPartyVisibleDependencyProbe', '1')
     }
     if (scenario.visibleEnable) {
-      url.searchParams.set('taoyuanThirdPartyVisibleImportProbe', '1')
       url.searchParams.set('taoyuanThirdPartyVisibleEnableProbe', '1')
     }
     if (scenario.visibleDisable) {

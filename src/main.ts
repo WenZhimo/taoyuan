@@ -165,6 +165,7 @@ void bootstrapApplication({
     if (runtimeProbeRequested) {
       if (
         thirdPartyVisibleImportProbeRequested
+        || thirdPartyVisibleEnableProbeRequested
         || thirdPartyVisibleUpgradeProbeRequested
         || thirdPartyVisibleImportRollbackProbeRequested
         || thirdPartyVisibleImportFailureProbeRequested
