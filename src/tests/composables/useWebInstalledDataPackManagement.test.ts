@@ -270,6 +270,7 @@ describe('useWebInstalledDataPackManagement', () => {
     await nextTick()
 
     expect(result?.terminal.status).toBe('ready')
+    expect(result?.realWebPlatformWriterHostCalled).toBe(true)
     expect(result?.terminal.settingsWritten).toBe(true)
     expect(result?.terminal.lockfileWritten).toBe(true)
     expect(result?.terminal.startupStateWritten).toBe(true)
@@ -298,6 +299,7 @@ describe('useWebInstalledDataPackManagement', () => {
     await nextTick()
 
     expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
     expect(uninstallResult?.terminal.settingsWritten).toBe(true)
     expect(uninstallResult?.terminal.lockfileWritten).toBe(true)
     expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
@@ -379,6 +381,7 @@ describe('useWebInstalledDataPackManagement', () => {
     await nextTick()
 
     expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
     expect(uninstallResult?.terminal.settingsWritten).toBe(true)
     expect(uninstallResult?.terminal.lockfileWritten).toBe(true)
     expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
@@ -473,6 +476,7 @@ describe('useWebInstalledDataPackManagement', () => {
     await nextTick()
 
     expect(enableResult?.terminal.status).toBe('ready')
+    expect(enableResult?.realWebPlatformWriterHostCalled).toBe(true)
     expect(enableResult?.terminal.requestedCommandId).toBe('enable')
     expect(enableResult?.terminal.selectedPackageIds).toEqual([packageId])
     expect(enableResult?.terminal.blockedPackageIds).toEqual([])
@@ -615,6 +619,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandHostKind: 'electron-renderer',
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
+      realWebPlatformWriterHostCalled: false,
       terminal: {
         status: 'ready',
         requestedCommandId: 'enable',
@@ -723,6 +728,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandHostKind: 'electron-renderer',
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
+      realWebPlatformWriterHostCalled: false,
       terminal: {
         status: 'ready',
         requestedCommandId: 'disable',
@@ -839,6 +845,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandHostKind: 'electron-renderer',
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
+      realWebPlatformWriterHostCalled: false,
       terminal: {
         status: 'ready',
         requestedCommandId: 'disable',
@@ -907,6 +914,7 @@ describe('useWebInstalledDataPackManagement', () => {
     await nextTick()
 
     expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
     expect(uninstallResult?.terminal.packageCount).toBe(1)
     expect(management.rows.value).toEqual([{
       packageId: dependencyPackageId,
@@ -973,6 +981,7 @@ describe('useWebInstalledDataPackManagement', () => {
     await nextTick()
 
     expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
     expect(uninstallResult?.terminal.packageCount).toBe(1)
     expect(management.rows.value).toEqual([{
       packageId: dependencyPackageId,
@@ -1085,6 +1094,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandHostKind: 'electron-renderer',
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
+      realWebPlatformWriterHostCalled: false,
       terminal: {
         status: 'ready',
         requestedCommandId: 'uninstall',

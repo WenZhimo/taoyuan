@@ -2926,6 +2926,7 @@ const assertVisibleManagementCommandDelivery = (
   operation
 ) => {
   const expectUiIpcResponseDelivered = protocol === 'file:'
+  const expectRealWebPlatformWriterHostCalled = protocol === 'http:'
   assert(
     visibleImport.managementCommandHostKind === expectedVisibleManagementCommandHostKind(protocol),
     `${scenario.name}: visible ${operation} management command used the wrong host kind`
@@ -2941,6 +2942,10 @@ const assertVisibleManagementCommandDelivery = (
   assert(
     visibleImport.effects?.uiIpcResponseDelivered === expectUiIpcResponseDelivered,
     `${scenario.name}: visible ${operation} did not surface management UI/IPC delivery`
+  )
+  assert(
+    visibleImport.effects?.realWebPlatformWriterHostCalled === expectRealWebPlatformWriterHostCalled,
+    `${scenario.name}: visible ${operation} real Web platform writer host evidence did not match the platform`
   )
 }
 

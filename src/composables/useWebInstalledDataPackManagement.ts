@@ -91,6 +91,7 @@ export interface WebInstalledDataPackManagementCommandDeliveryResult {
   readonly managementCommandHostKind: WebInstalledDataPackManagementCommandHostKind
   readonly managementCommandDispatched: boolean
   readonly managementUiIpcResponseDelivered: boolean
+  readonly realWebPlatformWriterHostCalled: boolean
 }
 
 export type WebInstalledDataPackManagementDisableResult =
@@ -379,6 +380,7 @@ export const useWebInstalledDataPackManagement = (
       options.electronDisableCommand === undefined ? 'web-indexeddb' : 'electron-renderer'
     let managementCommandDispatched = false
     let managementUiIpcResponseDelivered = false
+    let realWebPlatformWriterHostCalled = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -468,6 +470,7 @@ export const useWebInstalledDataPackManagement = (
               || JSON.stringify(writtenStartup) !== JSON.stringify(startupSnapshotRecord)) {
               throw new Error('Web disable persistent state verification did not match')
             }
+            realWebPlatformWriterHostCalled = true
             return {
               settingsWritten: true,
               lockfileWritten: true,
@@ -493,7 +496,8 @@ export const useWebInstalledDataPackManagement = (
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
         managementCommandDispatched,
-        managementUiIpcResponseDelivered
+        managementUiIpcResponseDelivered,
+        realWebPlatformWriterHostCalled
       })
       lastResult.value = result
       reason.value = transaction.terminal.reason
@@ -530,6 +534,7 @@ export const useWebInstalledDataPackManagement = (
       options.electronUninstallCommand === undefined ? 'web-indexeddb' : 'electron-renderer'
     let managementCommandDispatched = false
     let managementUiIpcResponseDelivered = false
+    let realWebPlatformWriterHostCalled = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -632,6 +637,7 @@ export const useWebInstalledDataPackManagement = (
               || JSON.stringify(writtenStartup) !== JSON.stringify(startupSnapshotRecord)) {
               throw new Error('Web uninstall persistent state verification did not match')
             }
+            realWebPlatformWriterHostCalled = true
             return {
               settingsWritten: true,
               lockfileWritten: true,
@@ -660,7 +666,8 @@ export const useWebInstalledDataPackManagement = (
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
         managementCommandDispatched,
-        managementUiIpcResponseDelivered
+        managementUiIpcResponseDelivered,
+        realWebPlatformWriterHostCalled
       })
       lastUninstallResult.value = result
       reason.value = transaction.terminal.reason
@@ -696,6 +703,7 @@ export const useWebInstalledDataPackManagement = (
       options.electronEnableCommand === undefined ? 'web-indexeddb' : 'electron-renderer'
     let managementCommandDispatched = false
     let managementUiIpcResponseDelivered = false
+    let realWebPlatformWriterHostCalled = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -805,6 +813,7 @@ export const useWebInstalledDataPackManagement = (
               || preservedPackageSource.files.length === 0) {
               throw new Error('Web enable persistent state verification did not match')
             }
+            realWebPlatformWriterHostCalled = true
             return {
               settingsWritten: true,
               lockfileWritten: true,
@@ -830,7 +839,8 @@ export const useWebInstalledDataPackManagement = (
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
         managementCommandDispatched,
-        managementUiIpcResponseDelivered
+        managementUiIpcResponseDelivered,
+        realWebPlatformWriterHostCalled
       })
       lastEnableResult.value = result
       reason.value = transaction.terminal.reason
