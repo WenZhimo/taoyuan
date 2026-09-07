@@ -200,6 +200,7 @@ const createAcceptedHostResult = (
   effects: {
     webPlatformWriterHostCalled: true,
     webPlatformWriterHostAccepted: true,
+    realWebPlatformWriterHostCalled: false,
     webPlatformWriterConnected: true,
     webIndexedDbStorageResolved: true,
     webStorageEnvelopeExposed: false,
@@ -243,6 +244,7 @@ const expectNoWritesOrRuntime = (
   expect(result.effects.webPlatformWriterConnected).toBe(connected)
   expect(result.effects.webIndexedDbStorageResolved).toBe(connected)
   expect(result.effects.webPlatformWriterHostAccepted).toBe(connected)
+  expect(result.effects.injectedWebPlatformWriterHostCalled).toBe(connected)
   expect(result.effects.realWebPlatformWriterHostCalled).toBe(false)
   expect(result.effects.webStorageEnvelopeExposed).toBe(false)
   expect(result.effects.settingsWritten).toBe(upstreamWrites)

@@ -11,11 +11,14 @@ import {
 import {
   createThirdPartyDataPackWebPlatformWriterHostConnectionSource,
   type CreateThirdPartyDataPackWebPlatformWriterHostConnectionSourceOptions,
+  type ThirdPartyDataPackWebPlatformWriterHostConnectionEnvelope,
+  type ThirdPartyDataPackWebPlatformWriterHostConnectionResult,
   type ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult
 } from './thirdPartyDataPackWebPlatformWriterHostConnectionSource'
 import {
   createThirdPartyDataPackWebSettingsLockfilePersistentWriterHost,
-  type CreateThirdPartyDataPackWebSettingsLockfilePersistentWriterHostOptions
+  type CreateThirdPartyDataPackWebSettingsLockfilePersistentWriterHostOptions,
+  type ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
 } from './thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 
 export interface CreateThirdPartyDataPackWebPlatformWriterHostConnectionPipelineOptions {
@@ -47,6 +50,97 @@ const createWebSettingsLockfileWriter = (
   })
 }
 
+const packageIdListsEqual = (
+  left: readonly string[] | undefined,
+  right: readonly string[]
+): boolean => left !== undefined
+  && left.length === right.length
+  && left.every((value, index) => value === right[index])
+
+const createWebPlatformWriterHostConnectionResult = (
+  envelope: ThirdPartyDataPackWebPlatformWriterHostConnectionEnvelope,
+  status: ThirdPartyDataPackWebPlatformWriterHostConnectionResult['status']
+): ThirdPartyDataPackWebPlatformWriterHostConnectionResult => {
+  const accepted = status === 'accepted'
+  return Object.freeze({
+    status,
+    requestedCommandId: envelope.requestedCommandId,
+    targetPackageId: envelope.targetPackageId,
+    selectedPackageIds: envelope.selectedPackageIds,
+    blockedPackageIds: envelope.blockedPackageIds,
+    loadOrder: envelope.loadOrder,
+    registryCount: envelope.registryCount,
+    entryCount: envelope.entryCount,
+    packageCount: envelope.packageCount,
+    candidateHash: envelope.candidateIdentity.candidateHash,
+    lockfileHash: envelope.lockfileHash,
+    modLockWriteProbeStatus: envelope.writeProbeEvidence.modLockWriteProbeStatus,
+    transactionLogWriteProbeStatus: envelope.writeProbeEvidence.transactionLogWriteProbeStatus,
+    modLockPersistentWriteExecuted: envelope.writeProbeEvidence.modLockPersistentWriteExecuted,
+    transactionLogPersistentWriteExecuted: envelope.writeProbeEvidence.transactionLogPersistentWriteExecuted,
+    webRequirementIds: envelope.webRequirementIds,
+    diagnostics: Object.freeze([]),
+    effects: Object.freeze({
+      webPlatformWriterHostCalled: true,
+      webPlatformWriterHostAccepted: accepted,
+      realWebPlatformWriterHostCalled: true,
+      webPlatformWriterConnected: accepted,
+      webIndexedDbStorageResolved: accepted,
+      webStorageEnvelopeExposed: false,
+      transactionCommitted: false,
+      runtimePublicationCommitted: false,
+      postCommitVerificationExecuted: false,
+      uiIpcResponseDelivered: false,
+      packageFilesWritten: false,
+      packageBackupsWritten: false,
+      packageFilesRestored: false,
+      lockfileWritten: accepted,
+      lockfileRestored: false,
+      settingsWritten: accepted,
+      settingsRestored: false,
+      savesWritten: false,
+      cacheWritten: false,
+      transactionLogWritten: false,
+      recoveryLogRead: false,
+      recoveryLogReplayed: false,
+      rollbackExecuted: false,
+      diagnosticsWritten: false
+    })
+  })
+}
+
+const createWebPlatformWriterHostConnectionFromStore = (
+  store: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
+): NonNullable<CreateThirdPartyDataPackWebPlatformWriterHostConnectionSourceOptions['connectWebPlatformWriterHost']> =>
+  async envelope => {
+    try {
+      const readBack = await store.read()
+      const record = readBack.record
+      const matchesEnvelope = readBack.report.status === 'ready'
+        && record?.requestedCommandId === envelope.requestedCommandId
+        && record?.targetPackageId === envelope.targetPackageId
+        && packageIdListsEqual(record?.selectedPackageIds, envelope.selectedPackageIds)
+        && packageIdListsEqual(record?.blockedPackageIds, envelope.blockedPackageIds)
+        && packageIdListsEqual(record?.loadOrder, envelope.loadOrder)
+        && record?.candidateHash === envelope.candidateIdentity.candidateHash
+        && record?.lockfileHash === envelope.lockfileHash
+      return createWebPlatformWriterHostConnectionResult(
+        envelope,
+        matchesEnvelope ? 'accepted' : 'blocked'
+      )
+    } catch {
+      return createWebPlatformWriterHostConnectionResult(envelope, 'blocked')
+    }
+  }
+
+const createWebPlatformWriterHostConnection = (
+  options: CreateThirdPartyDataPackWebPlatformWriterHostConnectionPipelineOptions
+): CreateThirdPartyDataPackWebPlatformWriterHostConnectionSourceOptions['connectWebPlatformWriterHost'] => {
+  if (options.connectWebPlatformWriterHost !== undefined) return options.connectWebPlatformWriterHost
+  if (options.webSettingsLockfileStore === undefined) return undefined
+  return createWebPlatformWriterHostConnectionFromStore(options.webSettingsLockfileStore)
+}
+
 export const createThirdPartyDataPackWebPlatformWriterHostConnectionPipeline = (
   options: CreateThirdPartyDataPackWebPlatformWriterHostConnectionPipelineOptions = {}
 ): (() => Promise<ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult>) => {
@@ -74,7 +168,7 @@ export const createThirdPartyDataPackWebPlatformWriterHostConnectionPipeline = (
   return createThirdPartyDataPackWebPlatformWriterHostConnectionSource({
     enabled: options.enabled,
     readWebPlatformWriterAdapterPreflight,
-    connectWebPlatformWriterHost: options.connectWebPlatformWriterHost
+    connectWebPlatformWriterHost: createWebPlatformWriterHostConnection(options)
   })
 }
 

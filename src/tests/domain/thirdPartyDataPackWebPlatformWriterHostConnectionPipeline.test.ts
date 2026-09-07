@@ -284,6 +284,7 @@ const createAcceptedWebHostResult = (
   effects: {
     webPlatformWriterHostCalled: true,
     webPlatformWriterHostAccepted: true,
+    realWebPlatformWriterHostCalled: false,
     webPlatformWriterConnected: true,
     webIndexedDbStorageResolved: true,
     webStorageEnvelopeExposed: false,
@@ -313,14 +314,17 @@ const expectContainedPipelineEffects = (
   result: ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult,
   connected: boolean,
   upstreamWrites: boolean,
-  continuationAllowed = true
+  continuationAllowed = true,
+  realWebPlatformWriterHostCalled = false
 ): void => {
   expect(result.appBootstrapContinuationAllowed).toBe(continuationAllowed)
   expect(result.commandContinuationAllowed).toBe(continuationAllowed)
   expect(result.effects.webPlatformWriterConnected).toBe(connected)
   expect(result.effects.webIndexedDbStorageResolved).toBe(connected)
   expect(result.effects.webPlatformWriterHostAccepted).toBe(connected)
-  expect(result.effects.realWebPlatformWriterHostCalled).toBe(false)
+  expect(result.effects.injectedWebPlatformWriterHostCalled)
+    .toBe(connected && !realWebPlatformWriterHostCalled)
+  expect(result.effects.realWebPlatformWriterHostCalled).toBe(realWebPlatformWriterHostCalled)
   expect(result.effects.webStorageEnvelopeExposed).toBe(false)
   expect(result.effects.settingsWritten).toBe(upstreamWrites)
   expect(result.effects.lockfileWritten).toBe(upstreamWrites)
@@ -423,18 +427,14 @@ describe('third-party Web platform writer host connection pipeline', () => {
     expectJsonGraphFrozen(result)
   })
 
-  it('constructs the Web settings-lockfile host from a Web store when no injected writer is supplied', async() => {
+  it('uses the Web settings-lockfile store read-back as the default real host connection', async() => {
     const draft = createDraft()
     const store = createInMemoryWebSettingsLockfilePersistentWriterStore()
-    const connectWebPlatformWriterHost = vi.fn(async(
-      envelope: ThirdPartyDataPackWebPlatformWriterHostConnectionEnvelope
-    ) => createAcceptedWebHostResult(envelope))
     const pipeline = createThirdPartyDataPackWebPlatformWriterHostConnectionPipeline({
       enabled: true,
       readSettingsLockfileCommitSource: async() => createAcceptedCommitResultFromDraft(draft),
       webSettingsLockfileStore: store,
-      readLockfileDraft: async() => draft,
-      connectWebPlatformWriterHost
+      readLockfileDraft: async() => draft
     })
 
     const result = await pipeline()
@@ -446,7 +446,9 @@ describe('third-party Web platform writer host connection pipeline', () => {
     expect(result.targetPackageId).toBe(packageId)
     expect(result.candidateIdentity?.candidateHash).toBe(draft.candidateIdentity.candidateHash)
     expect(result.lockfileHash).toBe(draft.lockfileHash)
-    expect(connectWebPlatformWriterHost).toHaveBeenCalledOnce()
+    expect(result.reason).toBe(
+      'third-party Web platform writer host connection accepted verified Web persistent store evidence'
+    )
     expect(readBack.record).toMatchObject({
       recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
       targetPackageId: packageId,
@@ -454,7 +456,7 @@ describe('third-party Web platform writer host connection pipeline', () => {
       lockfileHash: draft.lockfileHash
     })
     expect(readBack.record?.lockfileDraft).toEqual(draft)
-    expectContainedPipelineEffects(result, true, true)
+    expectContainedPipelineEffects(result, true, true, true, true)
     const serialized = JSON.stringify(result)
     expect(serialized).not.toContain('lockfileDraft')
     expect(serialized).not.toContain('indexedDB')

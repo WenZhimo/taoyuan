@@ -2556,6 +2556,11 @@ describe('useWebFilePickerImportEntry', () => {
     expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.selectedPlatform).toBe('web')
     expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.persistentPackageWriteExecuted).toBe(true)
     expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.persistentSettingsLockfileWriteExecuted).toBe(true)
+    expect(dispatchResult.webPlatformWriterHostConnection?.reason).toBe(
+      'third-party Web platform writer host connection accepted verified Web persistent store evidence'
+    )
+    expect(dispatchResult.webPlatformWriterHostConnection?.effects.injectedWebPlatformWriterHostCalled).toBe(false)
+    expect(dispatchResult.webPlatformWriterHostConnection?.effects.realWebPlatformWriterHostCalled).toBe(true)
     expect(dispatchResult.webPlatformWriterHostConnection?.effects.settingsWritten).toBe(true)
     expect(dispatchResult.webPlatformWriterHostConnection?.effects.lockfileWritten).toBe(true)
     expect(dispatchResult.installTransactionLogPrepared?.storageKind)

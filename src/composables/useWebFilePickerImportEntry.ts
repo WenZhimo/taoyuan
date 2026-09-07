@@ -200,8 +200,6 @@ import {
 } from '@/domain/mods/thirdPartyDataPackWebPlatformWriterHostConnectionPipeline'
 import {
   ThirdPartyDataPackWebPlatformWriterHostConnectionBlockedError,
-  type ThirdPartyDataPackWebPlatformWriterHostConnectionEnvelope,
-  type ThirdPartyDataPackWebPlatformWriterHostConnectionResult,
   type ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult
 } from '@/domain/mods/thirdPartyDataPackWebPlatformWriterHostConnectionSource'
 import {
@@ -855,55 +853,6 @@ const createWebSettingsLockfileCommitSource = (
   effects: webSettingsLockfileCommitSourceEffects()
 })
 
-const webPlatformWriterHostConnectionEffects = () => Object.freeze({
-  webPlatformWriterHostCalled: true,
-  webPlatformWriterHostAccepted: true,
-  webPlatformWriterConnected: true,
-  webIndexedDbStorageResolved: true,
-  webStorageEnvelopeExposed: false,
-  transactionCommitted: false,
-  runtimePublicationCommitted: false,
-  postCommitVerificationExecuted: false,
-  uiIpcResponseDelivered: false,
-  packageFilesWritten: false,
-  packageBackupsWritten: false,
-  packageFilesRestored: false,
-  lockfileWritten: false,
-  lockfileRestored: false,
-  settingsWritten: false,
-  settingsRestored: false,
-  savesWritten: false,
-  cacheWritten: false,
-  transactionLogWritten: false,
-  recoveryLogRead: false,
-  recoveryLogReplayed: false,
-  rollbackExecuted: false,
-  diagnosticsWritten: false
-})
-
-const acceptWebPlatformWriterHostConnection = async(
-  envelope: ThirdPartyDataPackWebPlatformWriterHostConnectionEnvelope
-): Promise<ThirdPartyDataPackWebPlatformWriterHostConnectionResult> => Object.freeze({
-  status: 'accepted',
-  requestedCommandId: envelope.requestedCommandId,
-  targetPackageId: envelope.targetPackageId,
-  selectedPackageIds: envelope.selectedPackageIds,
-  blockedPackageIds: envelope.blockedPackageIds,
-  loadOrder: envelope.loadOrder,
-  registryCount: envelope.registryCount,
-  entryCount: envelope.entryCount,
-  packageCount: envelope.packageCount,
-  candidateHash: envelope.candidateIdentity.candidateHash,
-  lockfileHash: envelope.lockfileHash,
-  modLockWriteProbeStatus: envelope.writeProbeEvidence.modLockWriteProbeStatus,
-  transactionLogWriteProbeStatus: envelope.writeProbeEvidence.transactionLogWriteProbeStatus,
-  modLockPersistentWriteExecuted: envelope.writeProbeEvidence.modLockPersistentWriteExecuted,
-  transactionLogPersistentWriteExecuted: envelope.writeProbeEvidence.transactionLogPersistentWriteExecuted,
-  webRequirementIds: envelope.webRequirementIds,
-  diagnostics: Object.freeze([]),
-  effects: webPlatformWriterHostConnectionEffects()
-})
-
 const createDefaultWebSettingsLockfileStore =
   (): ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null => {
     try {
@@ -950,8 +899,7 @@ const connectWebSettingsLockfileWriter = async(options: {
     readSettingsLockfileCommitSource: async() =>
       createWebSettingsLockfileCommitSource(options.mountInput, options.targetPackageId),
     webSettingsLockfileStore: options.store,
-    readLockfileDraft: async() => options.mountInput.lockfileDraft as ThirdPartyDataPackLockfileDraft,
-    connectWebPlatformWriterHost: acceptWebPlatformWriterHostConnection
+    readLockfileDraft: async() => options.mountInput.lockfileDraft as ThirdPartyDataPackLockfileDraft
   })
   return await pipeline()
 }

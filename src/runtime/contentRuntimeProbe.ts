@@ -286,6 +286,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   contentAccessDependencyItemVisibleAfter?: boolean
   effects: {
     commandDispatched: boolean
+    realWebPlatformWriterHostCalled: boolean
     packageFilesWritten: boolean
     settingsWritten: boolean
     lockfileWritten: boolean
@@ -776,6 +777,7 @@ const defaultRendererUiIpcEffects = (): ThirdPartyRendererUiIpcRuntimeProbeSumma
 const defaultVisibleImportEffects =
   (): ThirdPartyVisibleImportRuntimeProbeSummary['effects'] => ({
     commandDispatched: false,
+    realWebPlatformWriterHostCalled: false,
     packageFilesWritten: false,
     settingsWritten: false,
     lockfileWritten: false,
@@ -1386,6 +1388,8 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(uninstallAppStartupHandoffAccepted === undefined ? {} : { uninstallAppStartupHandoffAccepted }),
     effects: {
       commandDispatched: readOwnBooleanField(effects, 'commandDispatched') === true,
+      realWebPlatformWriterHostCalled:
+        readOwnBooleanField(effects, 'realWebPlatformWriterHostCalled') === true,
       packageFilesWritten: readOwnBooleanField(effects, 'packageFilesWritten') === true,
       settingsWritten: readOwnBooleanField(effects, 'settingsWritten') === true,
       lockfileWritten: readOwnBooleanField(effects, 'lockfileWritten') === true,

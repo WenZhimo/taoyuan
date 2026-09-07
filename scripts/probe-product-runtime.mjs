@@ -4428,6 +4428,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     for (const effectName of [
       'savesWritten',
       'cacheWritten',
+      'realWebPlatformWriterHostCalled',
       'rollbackExecuted',
       'diagnosticsWritten'
     ]) {
@@ -4505,6 +4506,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: Web visible import item visibility before import was unexpected`)
     for (const effectName of [
       'commandDispatched',
+      'realWebPlatformWriterHostCalled',
       'packageFilesWritten',
       'settingsWritten',
       'lockfileWritten',
@@ -4563,6 +4565,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: inactive visible import reported shop offer visibility`)
     for (const effectName of [
       'commandDispatched',
+      'realWebPlatformWriterHostCalled',
       'packageFilesWritten',
       'settingsWritten',
       'lockfileWritten',

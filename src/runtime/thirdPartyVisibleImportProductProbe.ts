@@ -168,6 +168,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly contentAccessDependencyItemVisibleAfter?: boolean
   readonly effects: {
     readonly commandDispatched: boolean
+    readonly realWebPlatformWriterHostCalled: boolean
     readonly packageFilesWritten: boolean
     readonly settingsWritten: boolean
     readonly lockfileWritten: boolean
@@ -1523,6 +1524,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
   const effects: ThirdPartyVisibleImportProductProbeResult['effects'] = operation === 'enable'
     ? {
         commandDispatched: execution.managementCommandDispatched === true,
+        realWebPlatformWriterHostCalled: false,
         packageFilesWritten: false,
         settingsWritten: enableTerminal?.settingsWritten === true,
         lockfileWritten: enableTerminal?.lockfileWritten === true,
@@ -1546,6 +1548,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
       }
     : {
         commandDispatched: dispatchResult?.commandDispatched === true,
+        realWebPlatformWriterHostCalled:
+          dispatchResult?.webPlatformWriterHostConnection?.effects.realWebPlatformWriterHostCalled === true,
         packageFilesWritten:
           dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentPackageWriteExecuted === true,
         settingsWritten:
@@ -1838,6 +1842,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     blockedReason: execution.blockedReason,
     effects: {
       commandDispatched: execution.managementCommandDispatched === true,
+      realWebPlatformWriterHostCalled: false,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,
@@ -1981,6 +1986,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     blockedReason: execution.blockedReason,
     effects: {
       commandDispatched: execution.managementCommandDispatched === true,
+      realWebPlatformWriterHostCalled: false,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,

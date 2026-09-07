@@ -45,6 +45,7 @@ export interface ThirdPartyDataPackWebPlatformWriterHostConnectionEnvelope {
 export interface ThirdPartyDataPackWebPlatformWriterHostConnectionEffectSummary {
   readonly webPlatformWriterHostCalled: boolean
   readonly webPlatformWriterHostAccepted: boolean
+  readonly realWebPlatformWriterHostCalled: boolean
   readonly webPlatformWriterConnected: boolean
   readonly webIndexedDbStorageResolved: boolean
   readonly webStorageEnvelopeExposed: false
@@ -55,9 +56,9 @@ export interface ThirdPartyDataPackWebPlatformWriterHostConnectionEffectSummary 
   readonly packageFilesWritten: false
   readonly packageBackupsWritten: false
   readonly packageFilesRestored: false
-  readonly lockfileWritten: false
+  readonly lockfileWritten: boolean
   readonly lockfileRestored: false
-  readonly settingsWritten: false
+  readonly settingsWritten: boolean
   readonly settingsRestored: false
   readonly savesWritten: false
   readonly cacheWritten: false
@@ -95,7 +96,7 @@ export interface ThirdPartyDataPackWebPlatformWriterHostConnectionSourceEffectSu
   readonly injectedWebPlatformWriterHostCalled: boolean
   readonly webPlatformWriterHostCalled: boolean
   readonly webPlatformWriterHostAccepted: boolean
-  readonly realWebPlatformWriterHostCalled: false
+  readonly realWebPlatformWriterHostCalled: boolean
   readonly webPlatformWriterConnected: boolean
   readonly webIndexedDbStorageResolved: boolean
   readonly webStorageEnvelopeExposed: false
@@ -580,8 +581,11 @@ const hostEffectsSafe = (
   result: ThirdPartyDataPackWebPlatformWriterHostConnectionResult
 ): boolean => {
   const effects = readOwnDataField(result, 'effects')
+  const realWebPlatformWriterHostCalled = readOwnBooleanField(effects, 'realWebPlatformWriterHostCalled')
+  const persistentWriteExpected = realWebPlatformWriterHostCalled === true
   return readOwnBooleanField(effects, 'webPlatformWriterHostCalled') === true
     && readOwnBooleanField(effects, 'webPlatformWriterHostAccepted') === true
+    && (realWebPlatformWriterHostCalled === true || realWebPlatformWriterHostCalled === false)
     && readOwnBooleanField(effects, 'webPlatformWriterConnected') === true
     && readOwnBooleanField(effects, 'webIndexedDbStorageResolved') === true
     && readOwnBooleanField(effects, 'webStorageEnvelopeExposed') === false
@@ -592,9 +596,9 @@ const hostEffectsSafe = (
     && readOwnBooleanField(effects, 'packageFilesWritten') === false
     && readOwnBooleanField(effects, 'packageBackupsWritten') === false
     && readOwnBooleanField(effects, 'packageFilesRestored') === false
-    && readOwnBooleanField(effects, 'lockfileWritten') === false
+    && readOwnBooleanField(effects, 'lockfileWritten') === persistentWriteExpected
     && readOwnBooleanField(effects, 'lockfileRestored') === false
-    && readOwnBooleanField(effects, 'settingsWritten') === false
+    && readOwnBooleanField(effects, 'settingsWritten') === persistentWriteExpected
     && readOwnBooleanField(effects, 'settingsRestored') === false
     && readOwnBooleanField(effects, 'savesWritten') === false
     && readOwnBooleanField(effects, 'cacheWritten') === false
@@ -656,17 +660,21 @@ const effectSummary = (
     readonly continuationAllowed: boolean
     readonly source?: ThirdPartyDataPackWebPlatformWriterAdapterPreflightResult
     readonly hostAccepted?: boolean
+    readonly hostResult?: ThirdPartyDataPackWebPlatformWriterHostConnectionResult
   }
 ): ThirdPartyDataPackWebPlatformWriterHostConnectionSourceEffectSummary => {
   const hostAccepted = options.hostAccepted === true
   const sourceEffects = readOwnDataField(options.source, 'effects')
+  const hostEffects = readOwnDataField(options.hostResult, 'effects')
+  const realWebPlatformWriterHostCalled =
+    hostAccepted && readOwnBooleanField(hostEffects, 'realWebPlatformWriterHostCalled') === true
   return Object.freeze({
     webPlatformWriterHostConnectionSourceCalled: true,
     webPlatformWriterAdapterPreflightCalled: options.sourceCalled,
-    injectedWebPlatformWriterHostCalled: hostAccepted,
+    injectedWebPlatformWriterHostCalled: hostAccepted && !realWebPlatformWriterHostCalled,
     webPlatformWriterHostCalled: hostAccepted,
     webPlatformWriterHostAccepted: hostAccepted,
-    realWebPlatformWriterHostCalled: false,
+    realWebPlatformWriterHostCalled,
     webPlatformWriterConnected: hostAccepted,
     webIndexedDbStorageResolved: hostAccepted,
     webStorageEnvelopeExposed: false,
@@ -762,7 +770,8 @@ const baseResult = (
       sourceCalled: options.sourceCalled,
       continuationAllowed,
       source: options.source,
-      hostAccepted: options.status === 'connected'
+      hostAccepted: options.status === 'connected',
+      hostResult: options.hostResult
     })
   })
 }
@@ -870,9 +879,15 @@ const evaluateWebPlatformWriterHostConnectionSource = async(
 
   const hostDiagnostics = safeDiagnostics(readOwnDataField(hostResult, 'diagnostics') as readonly unknown[] | undefined)
   if (hostMatchesEnvelope(envelope, hostResult)) {
+    const realWebPlatformWriterHostCalled = readOwnBooleanField(
+      readOwnDataField(hostResult, 'effects'),
+      'realWebPlatformWriterHostCalled'
+    ) === true
     return baseResult({
       status: 'connected',
-      reason: 'third-party Web platform writer host connection accepted a path-free host acknowledgement',
+      reason: realWebPlatformWriterHostCalled
+        ? 'third-party Web platform writer host connection accepted verified Web persistent store evidence'
+        : 'third-party Web platform writer host connection accepted a path-free host acknowledgement',
       enabled: true,
       sourceCalled: true,
       source,
