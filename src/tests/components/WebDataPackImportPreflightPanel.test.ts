@@ -1884,12 +1884,15 @@ describe('WebDataPackImportPreflightPanel', () => {
           startupStateWritten: true,
           packageFilesPreserved: true,
           runtimePublicationExcluded: true,
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true,
           liveRegistrySwapped: true,
           appStartupHandoffAccepted: true
         }
       })
       expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已禁用')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('禁用事务：已完成')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime commit 已确认')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
       expect(JSON.stringify(disableThirdPartyDataPack.mock.calls[0]?.[0])).not.toContain('C:/Users')
       expect(JSON.stringify(panelResult)).not.toContain('C:/Users')
@@ -1942,6 +1945,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('settings 已写入')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('mod-lock 已写入')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('startup 已写入')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime commit 已确认')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
@@ -1959,6 +1963,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('mod-lock 已写入')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('startup 已写入')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('package 已保留')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime commit 已确认')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime 已包含')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('handoff 已接受')
@@ -2061,6 +2066,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('mod-lock 已写入')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('startup 已写入')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('package 已删除')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('runtime commit 已确认')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('handoff 已接受')
@@ -2122,6 +2128,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('mod-lock 已写入')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('startup 已写入')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('package 已删除')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('runtime commit 已确认')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('handoff 已接受')

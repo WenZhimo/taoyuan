@@ -120,6 +120,8 @@ describe('third-party data-pack enable transaction', () => {
     expect(result.terminal.startupStateWritten).toBe(true)
     expect(result.terminal.packageFilesPreserved).toBe(true)
     expect(result.terminal.runtimePublicationIncluded).toBe(true)
+    expect(result.terminal.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.terminal.runtimePublicationCommitted).toBe(true)
     expect(result.terminal.liveRegistrySwapped).toBe(true)
     expect(result.terminal.appStartupHandoffAccepted).toBe(true)
     expect(result.terminal.realAppStartupHostCalled).toBe(true)
@@ -167,6 +169,8 @@ describe('third-party data-pack enable transaction', () => {
 
     expect(result.terminal.status).toBe('blocked')
     expect(result.terminal.packageFilesPreserved).toBe(false)
+    expect(result.terminal.realRuntimePublicationCommitCalled).toBe(false)
+    expect(result.terminal.runtimePublicationCommitted).toBe(false)
     expect(result.runtimePublicationCommit).toBeUndefined()
     expect(result.liveRegistrySwap).toBeUndefined()
     expect(liveRegistryReference.current).toBe(officialRegistrySet)

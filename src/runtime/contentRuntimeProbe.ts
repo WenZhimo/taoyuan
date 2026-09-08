@@ -292,6 +292,8 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
     lockfileWritten: boolean
     rendererLiveRegistrySwapped: boolean
     runtimeEnablementAllowed: boolean
+    realRuntimePublicationCommitCalled: boolean
+    runtimePublicationCommitted: boolean
     uiIpcResponseDelivered: boolean
     transactionCommitted: boolean
     transactionLogPrepared: boolean
@@ -783,6 +785,8 @@ const defaultVisibleImportEffects =
     lockfileWritten: false,
     rendererLiveRegistrySwapped: false,
     runtimeEnablementAllowed: false,
+    realRuntimePublicationCommitCalled: false,
+    runtimePublicationCommitted: false,
     uiIpcResponseDelivered: false,
     transactionCommitted: false,
     transactionLogPrepared: false,
@@ -1397,6 +1401,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
         readOwnBooleanField(effects, 'rendererLiveRegistrySwapped') === true,
       runtimeEnablementAllowed:
         readOwnBooleanField(effects, 'runtimeEnablementAllowed') === true,
+      realRuntimePublicationCommitCalled:
+        readOwnBooleanField(effects, 'realRuntimePublicationCommitCalled') === true,
+      runtimePublicationCommitted:
+        readOwnBooleanField(effects, 'runtimePublicationCommitted') === true,
       uiIpcResponseDelivered: readOwnBooleanField(effects, 'uiIpcResponseDelivered') === true,
       transactionCommitted: readOwnBooleanField(effects, 'transactionCommitted') === true,
       transactionLogPrepared: readOwnBooleanField(effects, 'transactionLogPrepared') === true,

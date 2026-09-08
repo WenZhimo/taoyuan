@@ -67,6 +67,8 @@ export interface ThirdPartyDataPackDisableTransactionTerminal {
   readonly startupStateWritten: boolean
   readonly packageFilesPreserved: boolean
   readonly runtimePublicationExcluded: boolean
+  readonly realRuntimePublicationCommitCalled: boolean
+  readonly runtimePublicationCommitted: boolean
   readonly liveRegistrySwapped: boolean
   readonly appStartupHandoffAccepted: boolean
   readonly realAppStartupHostCalled: boolean
@@ -240,6 +242,8 @@ export const createThirdPartyDataPackDisableTerminal = (options: {
   readonly startupStateWritten?: boolean
   readonly packageFilesPreserved?: boolean
   readonly runtimePublicationExcluded?: boolean
+  readonly realRuntimePublicationCommitCalled?: boolean
+  readonly runtimePublicationCommitted?: boolean
   readonly liveRegistrySwapped?: boolean
   readonly appStartupHandoffAccepted?: boolean
   readonly realAppStartupHostCalled?: boolean
@@ -264,6 +268,8 @@ export const createThirdPartyDataPackDisableTerminal = (options: {
   startupStateWritten: options.startupStateWritten === true,
   packageFilesPreserved: options.packageFilesPreserved !== false,
   runtimePublicationExcluded: options.runtimePublicationExcluded ?? options.status === 'ready',
+  realRuntimePublicationCommitCalled: options.realRuntimePublicationCommitCalled === true,
+  runtimePublicationCommitted: options.runtimePublicationCommitted === true,
   liveRegistrySwapped: options.liveRegistrySwapped === true,
   appStartupHandoffAccepted: options.appStartupHandoffAccepted === true,
   realAppStartupHostCalled: options.realAppStartupHostCalled === true,
@@ -441,6 +447,10 @@ export const executeThirdPartyDataPackDisableTransaction = async (
         status: 'blocked',
         ...persistentOptions,
         runtimePublicationExcluded: true,
+        realRuntimePublicationCommitCalled:
+          runtimePublicationCommit.effects.realRuntimePublicationCommitCalled,
+        runtimePublicationCommitted:
+          runtimePublicationCommit.effects.runtimePublicationCommitted,
         reason: 'disable transaction live registry swap was blocked'
       }),
       runtimePublicationCommit,
@@ -466,6 +476,10 @@ export const executeThirdPartyDataPackDisableTransaction = async (
       status: appStartupHandoff.appStartupHandoffAccepted ? 'ready' : 'blocked',
       ...persistentOptions,
       runtimePublicationExcluded: true,
+      realRuntimePublicationCommitCalled:
+        runtimePublicationCommit.effects.realRuntimePublicationCommitCalled,
+      runtimePublicationCommitted:
+        runtimePublicationCommit.effects.runtimePublicationCommitted,
       liveRegistrySwapped: true,
       ...appStartupHandoff,
       reason: appStartupHandoff.appStartupHandoffAccepted

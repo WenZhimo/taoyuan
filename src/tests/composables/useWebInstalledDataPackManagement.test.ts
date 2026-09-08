@@ -277,6 +277,8 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(result?.terminal.startupStateWritten).toBe(true)
     expect(result?.terminal.packageFilesPreserved).toBe(true)
     expect(result?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(result?.terminal.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result?.terminal.runtimePublicationCommitted).toBe(true)
     expect(result?.terminal.liveRegistrySwapped).toBe(true)
     expect(result?.terminal.appStartupHandoffAccepted).toBe(true)
     expect(result?.terminal.realAppStartupHostCalled).toBe(true)
@@ -306,6 +308,8 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
     expect(uninstallResult?.terminal.packageFilesRemoved).toBe(true)
     expect(uninstallResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(uninstallResult?.terminal.realRuntimePublicationCommitCalled).toBe(true)
+    expect(uninstallResult?.terminal.runtimePublicationCommitted).toBe(true)
     expect(uninstallResult?.terminal.liveRegistrySwapped).toBe(true)
     expect(uninstallResult?.terminal.appStartupHandoffAccepted).toBe(true)
     expect(uninstallResult?.terminal.realAppStartupHostCalled).toBe(true)
@@ -388,6 +392,8 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
     expect(uninstallResult?.terminal.packageFilesRemoved).toBe(true)
     expect(uninstallResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(uninstallResult?.terminal.realRuntimePublicationCommitCalled).toBe(true)
+    expect(uninstallResult?.terminal.runtimePublicationCommitted).toBe(true)
     expect(uninstallResult?.terminal.liveRegistrySwapped).toBe(true)
     expect(uninstallResult?.terminal.appStartupHandoffAccepted).toBe(true)
     expect(uninstallResult?.terminal.realAppStartupHostCalled).toBe(true)
@@ -487,6 +493,8 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(enableResult?.terminal.startupStateWritten).toBe(true)
     expect(enableResult?.terminal.packageFilesPreserved).toBe(true)
     expect(enableResult?.terminal.runtimePublicationIncluded).toBe(true)
+    expect(enableResult?.terminal.realRuntimePublicationCommitCalled).toBe(true)
+    expect(enableResult?.terminal.runtimePublicationCommitted).toBe(true)
     expect(enableResult?.terminal.liveRegistrySwapped).toBe(true)
     expect(enableResult?.terminal.appStartupHandoffAccepted).toBe(true)
     expect(enableResult?.terminal.realAppStartupHostCalled).toBe(true)
@@ -633,6 +641,8 @@ describe('useWebInstalledDataPackManagement', () => {
         startupStateWritten: true,
         packageFilesPreserved: true,
         runtimePublicationIncluded: true,
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true,
         liveRegistrySwapped: true,
         appStartupHandoffAccepted: true,
         realAppStartupHostCalled: true,
@@ -742,6 +752,8 @@ describe('useWebInstalledDataPackManagement', () => {
         startupStateWritten: true,
           packageFilesPreserved: true,
           runtimePublicationExcluded: true,
+          realRuntimePublicationCommitCalled: true,
+          runtimePublicationCommitted: true,
           liveRegistrySwapped: true,
           appStartupHandoffAccepted: true,
           realAppStartupHostCalled: true,
@@ -860,6 +872,8 @@ describe('useWebInstalledDataPackManagement', () => {
         startupStateWritten: true,
         packageFilesPreserved: true,
         runtimePublicationExcluded: true,
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true,
         liveRegistrySwapped: true,
         appStartupHandoffAccepted: true
       }
@@ -975,6 +989,8 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(uninstallResult?.terminal.status).toBe('ready')
     expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
     expect(uninstallResult?.terminal.packageCount).toBe(1)
+    expect(uninstallResult?.terminal.realRuntimePublicationCommitCalled).toBe(true)
+    expect(uninstallResult?.terminal.runtimePublicationCommitted).toBe(true)
     expect(management.rows.value).toEqual([{
       packageId: dependencyPackageId,
       version: '1.0.0',
@@ -1042,6 +1058,8 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(uninstallResult?.terminal.status).toBe('ready')
     expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
     expect(uninstallResult?.terminal.packageCount).toBe(1)
+    expect(uninstallResult?.terminal.realRuntimePublicationCommitCalled).toBe(true)
+    expect(uninstallResult?.terminal.runtimePublicationCommitted).toBe(true)
     expect(management.rows.value).toEqual([{
       packageId: dependencyPackageId,
       version: '1.0.0',
@@ -1167,6 +1185,8 @@ describe('useWebInstalledDataPackManagement', () => {
         startupStateWritten: true,
         packageFilesRemoved: true,
         runtimePublicationExcluded: true,
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true,
         liveRegistrySwapped: true,
         appStartupHandoffAccepted: true
       }

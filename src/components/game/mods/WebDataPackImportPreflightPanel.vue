@@ -82,6 +82,7 @@
           settings {{ lastDisableResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
           mod-lock {{ lastDisableResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
           startup {{ lastDisableResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
+          runtime commit {{ lastDisableResult.terminal.runtimePublicationCommitted ? '已确认' : '未确认' }} ·
           runtime {{ lastDisableResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
           live registry {{ lastDisableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastDisableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
@@ -92,6 +93,7 @@
           mod-lock {{ lastEnableResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
           startup {{ lastEnableResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
           package {{ lastEnableResult.terminal.packageFilesPreserved ? '已保留' : '未保留' }} ·
+          runtime commit {{ lastEnableResult.terminal.runtimePublicationCommitted ? '已确认' : '未确认' }} ·
           runtime {{ lastEnableResult.terminal.runtimePublicationIncluded ? '已包含' : '未包含' }} ·
           live registry {{ lastEnableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastEnableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
@@ -102,6 +104,7 @@
           mod-lock {{ lastUninstallResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
           startup {{ lastUninstallResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
           package {{ lastUninstallResult.terminal.packageFilesRemoved ? '已删除' : '未删除' }} ·
+          runtime commit {{ lastUninstallResult.terminal.runtimePublicationCommitted ? '已确认' : '未确认' }} ·
           runtime {{ lastUninstallResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
           live registry {{ lastUninstallResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastUninstallResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}

@@ -174,6 +174,8 @@ export interface ThirdPartyVisibleImportProductProbeResult {
     readonly lockfileWritten: boolean
     readonly rendererLiveRegistrySwapped: boolean
     readonly runtimeEnablementAllowed: boolean
+    readonly realRuntimePublicationCommitCalled: boolean
+    readonly runtimePublicationCommitted: boolean
     readonly uiIpcResponseDelivered: boolean
     readonly transactionCommitted: boolean
     readonly transactionLogPrepared: boolean
@@ -1536,6 +1538,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
     ? 'ready'
     : 'blocked'
   const enableTerminal = execution.enableTransactionResult?.terminal ?? null
+  const installCommandDispatched = dispatchResult?.commandDispatched === true
   const effects: ThirdPartyVisibleImportProductProbeResult['effects'] = operation === 'enable'
     ? {
         commandDispatched: execution.managementCommandDispatched === true,
@@ -1545,6 +1548,9 @@ export const runThirdPartyVisibleImportProductProbe = async(
         lockfileWritten: enableTerminal?.lockfileWritten === true,
         rendererLiveRegistrySwapped: enableTerminal?.liveRegistrySwapped === true,
         runtimeEnablementAllowed: enableTerminal?.runtimePublicationIncluded === true,
+        realRuntimePublicationCommitCalled:
+          enableTerminal?.realRuntimePublicationCommitCalled === true,
+        runtimePublicationCommitted: enableTerminal?.runtimePublicationCommitted === true,
         uiIpcResponseDelivered: execution.managementUiIpcResponseDelivered === true,
         transactionCommitted: enableTerminal?.status === 'ready',
         transactionLogPrepared: false,
@@ -1562,7 +1568,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
         diagnosticsWritten: false
       }
     : {
-        commandDispatched: dispatchResult?.commandDispatched === true,
+        commandDispatched: installCommandDispatched,
         realWebPlatformWriterHostCalled:
           dispatchResult?.webPlatformWriterHostConnection?.effects.realWebPlatformWriterHostCalled === true,
         packageFilesWritten:
@@ -1573,6 +1579,12 @@ export const runThirdPartyVisibleImportProductProbe = async(
           dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentSettingsLockfileWriteExecuted === true,
         rendererLiveRegistrySwapped: dispatchResult?.rendererLiveRegistrySwapApplied === true,
         runtimeEnablementAllowed: dispatchResult?.runtimeEnablementAllowed === true,
+        realRuntimePublicationCommitCalled:
+          installCommandDispatched && dispatchResult?.runtimePublicationCommitAfterPostCommitVerification
+            ?.effects.realRuntimePublicationCommitCalled === true,
+        runtimePublicationCommitted:
+          installCommandDispatched && dispatchResult?.runtimePublicationCommitAfterPostCommitVerification
+            ?.effects.runtimePublicationCommitted === true,
         uiIpcResponseDelivered: dispatchResult?.uiIpcResponseDelivered === true,
         transactionCommitted: dispatchResult?.transactionCommitted === true,
         transactionLogPrepared:
@@ -1863,6 +1875,9 @@ export const runThirdPartyVisibleDisableProductProbe = async(
       lockfileWritten: terminal?.lockfileWritten === true,
       rendererLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
       runtimeEnablementAllowed: false,
+      realRuntimePublicationCommitCalled:
+        terminal?.realRuntimePublicationCommitCalled === true,
+      runtimePublicationCommitted: terminal?.runtimePublicationCommitted === true,
       uiIpcResponseDelivered: execution.managementUiIpcResponseDelivered === true,
       transactionCommitted: terminal?.status === 'ready',
       transactionLogPrepared: false,
@@ -2007,6 +2022,9 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
       lockfileWritten: terminal?.lockfileWritten === true,
       rendererLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
       runtimeEnablementAllowed: false,
+      realRuntimePublicationCommitCalled:
+        terminal?.realRuntimePublicationCommitCalled === true,
+      runtimePublicationCommitted: terminal?.runtimePublicationCommitted === true,
       uiIpcResponseDelivered: execution.managementUiIpcResponseDelivered === true,
       transactionCommitted: terminal?.status === 'ready',
       transactionLogPrepared: false,

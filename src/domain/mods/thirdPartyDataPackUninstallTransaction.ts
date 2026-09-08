@@ -67,6 +67,8 @@ export interface ThirdPartyDataPackUninstallTransactionTerminal {
   readonly startupStateWritten: boolean
   readonly packageFilesRemoved: boolean
   readonly runtimePublicationExcluded: boolean
+  readonly realRuntimePublicationCommitCalled: boolean
+  readonly runtimePublicationCommitted: boolean
   readonly liveRegistrySwapped: boolean
   readonly appStartupHandoffAccepted: boolean
   readonly realAppStartupHostCalled: boolean
@@ -304,6 +306,8 @@ export const createThirdPartyDataPackUninstallTerminal = (options: {
   readonly startupStateWritten?: boolean
   readonly packageFilesRemoved?: boolean
   readonly runtimePublicationExcluded?: boolean
+  readonly realRuntimePublicationCommitCalled?: boolean
+  readonly runtimePublicationCommitted?: boolean
   readonly liveRegistrySwapped?: boolean
   readonly appStartupHandoffAccepted?: boolean
   readonly realAppStartupHostCalled?: boolean
@@ -328,6 +332,8 @@ export const createThirdPartyDataPackUninstallTerminal = (options: {
   startupStateWritten: options.startupStateWritten === true,
   packageFilesRemoved: options.packageFilesRemoved === true,
   runtimePublicationExcluded: options.runtimePublicationExcluded ?? options.status === 'ready',
+  realRuntimePublicationCommitCalled: options.realRuntimePublicationCommitCalled === true,
+  runtimePublicationCommitted: options.runtimePublicationCommitted === true,
   liveRegistrySwapped: options.liveRegistrySwapped === true,
   appStartupHandoffAccepted: options.appStartupHandoffAccepted === true,
   realAppStartupHostCalled: options.realAppStartupHostCalled === true,
@@ -506,6 +512,10 @@ export const executeThirdPartyDataPackUninstallTransaction = async (
         status: 'blocked',
         ...persistentOptions,
         runtimePublicationExcluded: true,
+        realRuntimePublicationCommitCalled:
+          runtimePublicationCommit.effects.realRuntimePublicationCommitCalled,
+        runtimePublicationCommitted:
+          runtimePublicationCommit.effects.runtimePublicationCommitted,
         reason: 'uninstall transaction live registry swap was blocked'
       }),
       runtimePublicationCommit,
@@ -531,6 +541,10 @@ export const executeThirdPartyDataPackUninstallTransaction = async (
       status: appStartupHandoff.appStartupHandoffAccepted ? 'ready' : 'blocked',
       ...persistentOptions,
       runtimePublicationExcluded: true,
+      realRuntimePublicationCommitCalled:
+        runtimePublicationCommit.effects.realRuntimePublicationCommitCalled,
+      runtimePublicationCommitted:
+        runtimePublicationCommit.effects.runtimePublicationCommitted,
       liveRegistrySwapped: true,
       ...appStartupHandoff,
       reason: appStartupHandoff.appStartupHandoffAccepted
