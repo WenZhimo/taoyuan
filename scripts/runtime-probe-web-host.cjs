@@ -1,6 +1,9 @@
 const fs = require('node:fs')
 const path = require('node:path')
 const { app, BrowserWindow } = require('electron')
+const {
+  isVisibleDataPackOperationRequested
+} = require('./runtime-probe-visible-operation.cjs')
 
 const outputPath = process.env.TAOYUAN_RUNTIME_PROBE_OUTPUT
 const targetUrl = process.env.TAOYUAN_RUNTIME_PROBE_URL
@@ -99,11 +102,7 @@ const readWebProductSurface = async window => window.webContents.executeJavaScri
 )
 
 const urlParams = new URL(targetUrl).searchParams
-const visibleDataPackOperationRequested =
-  urlParams.get('taoyuanThirdPartyVisibleImportProbe') === '1'
-  || urlParams.get('taoyuanThirdPartyVisibleDisableProbe') === '1'
-  || urlParams.get('taoyuanThirdPartyVisibleUninstallProbe') === '1'
-  || urlParams.get('taoyuanThirdPartyVisibleEnableProbe') === '1'
+const visibleDataPackOperationRequested = isVisibleDataPackOperationRequested(urlParams)
 const rendererUiIpcInstallResultProbeRequested =
   urlParams.get('taoyuanThirdPartyRendererUiIpcInstallResultProbe') === '1'
 const rendererUiIpcProductSurfaceExpected =
