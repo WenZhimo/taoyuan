@@ -54,6 +54,31 @@ const disabledOfficialOnlyStartupGateResult = {
   }
 }
 
+const uninstalledOfficialOnlyStartupGateResult = {
+  status: 'skipped',
+  enabled: false,
+  appBootstrapContinuationAllowed: true,
+  appStartupHostConnectionSourceStatus: 'accepted',
+  targetPackageId: 'sample_pack',
+  selectedPackageIds: [],
+  blockedPackageIds: [],
+  loadOrder: [],
+  registryCount: 54,
+  entryCount: 4242,
+  packageCount: 0,
+  effects: {
+    appStartupHostConnectionSourceCalled: true,
+    appStartupHostConnectionAccepted: true,
+    startupPersistentStateSourceCalled: true,
+    startupStateSnapshotAccepted: true,
+    thirdPartyRegistryPublished: false,
+    liveRegistrySwapped: false,
+    runtimeEnablementAllowed: false,
+    realRuntimePublicationCommitCalled: false,
+    runtimePublicationCommitted: false
+  }
+}
+
 const mountedEvidence = (
   overrides: Partial<ThirdPartyDataPackMountedAppStartupHostConnectionEvidence> = {}
 ): ThirdPartyDataPackMountedAppStartupHostConnectionEvidence => ({
@@ -171,6 +196,53 @@ describe('third-party mounted app startup host connection', () => {
       registryCount: 54,
       entryCount: 4242,
       packageCount: 1,
+      lockfileHashPresent: false,
+      effects: {
+        realAppStartupHostCalled: true,
+        appStartupHostConnectionAccepted: true,
+        appBootstrapContinuationAllowed: true,
+        officialContentBootstrapped: true,
+        runtimeContentRegistryPublished: true,
+        thirdPartyStartupGateCompleted: true,
+        thirdPartyStartupGateAllowed: true,
+        gameAppCreated: true,
+        piniaCreated: true,
+        routerInstalled: true,
+        routerMounted: true,
+        thirdPartyRegistryPublished: false,
+        liveRegistrySwapped: false,
+        runtimeEnablementAllowed: false,
+        realRuntimePublicationCommitCalled: false,
+        runtimePublicationCommitted: false,
+        packageFilesWritten: false,
+        lockfileWritten: false,
+        settingsWritten: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false
+      }
+    })
+    expectFrozenGraph(result)
+  })
+
+  it('accepts an uninstalled official-only startup gate after the real app bootstrap has mounted', () => {
+    const result = acknowledgeThirdPartyDataPackMountedAppStartupHostConnection({
+      thirdPartyStartupGateResult: uninstalledOfficialOnlyStartupGateResult,
+      evidence: mountedEvidence()
+    })
+
+    expect(result).toMatchObject({
+      status: 'accepted',
+      enabled: false,
+      sourceCalled: true,
+      targetPackageId: 'sample_pack',
+      appStartupHostConnectionSourceStatus: 'accepted',
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 0,
       lockfileHashPresent: false,
       effects: {
         realAppStartupHostCalled: true,

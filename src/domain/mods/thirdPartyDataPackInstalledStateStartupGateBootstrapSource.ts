@@ -212,6 +212,7 @@ interface UninstalledInstalledState {
     NonNullable<ThirdPartyDataPackStartupGatePersistentStateSourceResult['startupPersistentStateSourceHostMode']>
   readonly startupPersistentStateInjectedSourceHostMode:
     NonNullable<ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode']>
+  readonly appStartupHostConnectionSourceStatus: 'accepted'
   readonly persistentStateProofs: {
     readonly transactionLogCommitted: true
     readonly packageStateMatched: true
@@ -987,6 +988,7 @@ const readWebUninstalledState = async(
     startupPersistentStateSourceStatus: 'ready',
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupPersistentStateInjectedSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    appStartupHostConnectionSourceStatus: 'accepted',
     persistentStateProofs: {
       transactionLogCommitted: true,
       packageStateMatched: true,
@@ -1030,6 +1032,7 @@ const readElectronUninstalledState = async(
     startupPersistentStateSourceStatus: 'ready',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateInjectedSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    appStartupHostConnectionSourceStatus: 'accepted',
     persistentStateProofs: {
       transactionLogCommitted: true,
       packageStateMatched: true,
@@ -1513,6 +1516,7 @@ const uninstalledInstalledStateResult = (
   startupPersistentStateSourceStatus: state.startupPersistentStateSourceStatus,
   startupPersistentStateSourceHostMode: state.startupPersistentStateSourceHostMode,
   startupPersistentStateInjectedSourceHostMode: state.startupPersistentStateInjectedSourceHostMode,
+  appStartupHostConnectionSourceStatus: state.appStartupHostConnectionSourceStatus,
   persistentStateProofs: state.persistentStateProofs,
   diagnostics: Object.freeze([]),
   summary: Object.freeze({
@@ -1528,7 +1532,10 @@ const uninstalledInstalledStateResult = (
   effects: Object.freeze({
     ...noStartupGateEffects(true),
     startupPersistentStateSourceCalled: true,
-    startupStateSnapshotAccepted: true
+    startupStateSnapshotAccepted: true,
+    appStartupHostConnectionSourceCalled: true,
+    appStartupHostConnectionAccepted: true,
+    realNormalStartupHostCalled: true
   })
 })
 

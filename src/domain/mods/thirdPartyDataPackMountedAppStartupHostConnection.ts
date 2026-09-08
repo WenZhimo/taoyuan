@@ -303,13 +303,23 @@ export const acknowledgeThirdPartyDataPackMountedAppStartupHostConnection = (
     && blockedPackageIds[0] === targetPackageId
     && loadOrder.length === 0
     && appStartupHostConnectionSourceAccepted
-  const startupGateSupportsAppHandoff = readyEnabledStartupGate || disabledOfficialOnlyStartupGate
+  const uninstalledOfficialOnlyStartupGate = startupGateStatus === 'skipped'
+    && !enabled
+    && startupGateAllowed
+    && targetPackageIdIsValid
+    && selectedPackageIds.length === 0
+    && blockedPackageIds.length === 0
+    && loadOrder.length === 0
+    && appStartupHostConnectionSourceAccepted
+  const startupGateSupportsAppHandoff = readyEnabledStartupGate
+    || disabledOfficialOnlyStartupGate
+    || uninstalledOfficialOnlyStartupGate
   const accepted = startupGateSupportsAppHandoff
     && validMountedEvidence(options.evidence)
 
   const status: ThirdPartyDataPackMountedAppStartupHostConnectionStatus = accepted
     ? 'accepted'
-    : startupGateReady || disabledOfficialOnlyStartupGate
+    : startupGateReady || disabledOfficialOnlyStartupGate || uninstalledOfficialOnlyStartupGate
       ? 'blocked'
       : 'skipped'
 

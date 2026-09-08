@@ -4395,6 +4395,8 @@ const assertUninstalledStartupState = (startupGate, scenario) => {
     `${scenario.name}: uninstalled startup snapshot was not accepted`)
   assert(startupGate.persistentStateProofsAccepted === true,
     `${scenario.name}: uninstalled persistent proofs were not accepted`)
+  assert(startupGate.appStartupHostConnectionSourceStatus === 'accepted',
+    `${scenario.name}: uninstalled startup gate did not accept official-only app-startup handoff`)
   assert(startupGate.startupPersistentStateReadFromIndexedDb === (expectedSourceKind === 'web-indexeddb'),
     `${scenario.name}: uninstalled IndexedDB read flag mismatch`)
   assert(startupGate.startupPersistentStateReadFromElectronUserdata === (
@@ -4402,14 +4404,15 @@ const assertUninstalledStartupState = (startupGate, scenario) => {
   ), `${scenario.name}: uninstalled Electron userdata read flag mismatch`)
   for (const effectName of [
     'startupPersistentStateSourceCalled',
-    'startupStateSnapshotAccepted'
+    'startupStateSnapshotAccepted',
+    'appStartupHostConnectionSourceCalled',
+    'appStartupHostConnectionAccepted',
+    'realNormalStartupHostCalled'
   ]) {
     assert(startupGate.effects?.[effectName] === true,
       `${scenario.name}: uninstalled startup effect ${effectName} was not true`)
   }
   for (const effectName of [
-    'appStartupHostConnectionSourceCalled',
-    'appStartupHostConnectionAccepted',
     'thirdPartyRegistryPublished',
     'liveRegistrySwapped',
     'runtimeEnablementAllowed',
@@ -4679,25 +4682,64 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
         `${scenario.name}: disabled installed-state app-startup effect ${effectName} was not false`)
     }
   } else if (scenario.startupGateUninstalled) {
-    assert(thirdPartyAppStartupHost.status === 'skipped',
-      `${scenario.name}: uninstalled mounted app-startup host should skip publication`)
+    assert(thirdPartyAppStartupHost.status === 'accepted',
+      `${scenario.name}: uninstalled mounted app-startup host did not accept official-only startup`)
     assert(thirdPartyAppStartupHost.enabled === false,
       `${scenario.name}: uninstalled mounted app-startup host should remain disabled`)
     assert(thirdPartyAppStartupHost.sourceCalled === true,
       `${scenario.name}: uninstalled mounted app-startup host did not observe startup state`)
+    assert(thirdPartyAppStartupHost.targetPackageId === 'product_probe_pack',
+      `${scenario.name}: uninstalled mounted app-startup host reported the wrong package`)
+    assert(thirdPartyAppStartupHost.appStartupHostConnectionSourceStatus === 'accepted',
+      `${scenario.name}: uninstalled mounted app-startup host source was not accepted`)
     assert(thirdPartyAppStartupHost.selectedPackageCount === 0,
       `${scenario.name}: uninstalled mounted app-startup host selected a package`)
     assert(thirdPartyAppStartupHost.blockedPackageCount === 0,
       `${scenario.name}: uninstalled mounted app-startup host blocked a package`)
     assert(thirdPartyAppStartupHost.loadOrderCount === 0,
       `${scenario.name}: uninstalled mounted app-startup host reported a load order`)
+    assert(thirdPartyAppStartupHost.registryCount === 54,
+      `${scenario.name}: uninstalled mounted app-startup host changed the registry count`)
+    assert(thirdPartyAppStartupHost.entryCount === 4242,
+      `${scenario.name}: uninstalled mounted app-startup host changed the entry count`)
     assert(thirdPartyAppStartupHost.packageCount === (
       scenario.startupGatePackageCount ?? expectedVisibleProbeUninstallPackageCount(scenario)
     ), `${scenario.name}: uninstalled mounted app-startup host package count mismatch`)
-    assert(thirdPartyAppStartupHost.effects?.realAppStartupHostCalled === false,
-      `${scenario.name}: uninstalled mounted app-startup host claimed a runtime handoff`)
-    assert(thirdPartyAppStartupHost.effects?.appStartupHostConnectionAccepted === false,
-      `${scenario.name}: uninstalled mounted app-startup host claimed acceptance`)
+    assert(thirdPartyAppStartupHost.lockfileHashPresent === false,
+      `${scenario.name}: uninstalled mounted app-startup host exposed a lockfile hash`)
+    assert(thirdPartyAppStartupHost.effects?.realAppStartupHostCalled === true,
+      `${scenario.name}: uninstalled mounted app-startup host missed runtime handoff`)
+    assert(thirdPartyAppStartupHost.effects?.appStartupHostConnectionAccepted === true,
+      `${scenario.name}: uninstalled mounted app-startup host did not accept app-startup handoff`)
+    assert(thirdPartyAppStartupHost.effects?.appBootstrapContinuationAllowed === true,
+      `${scenario.name}: uninstalled mounted app-startup host did not allow app bootstrap`)
+    assert(thirdPartyAppStartupHost.effects?.officialContentBootstrapped === true,
+      `${scenario.name}: uninstalled mounted app-startup host missed official content bootstrap`)
+    assert(thirdPartyAppStartupHost.effects?.runtimeContentRegistryPublished === true,
+      `${scenario.name}: uninstalled mounted app-startup host missed official registry publication`)
+    assert(thirdPartyAppStartupHost.effects?.thirdPartyStartupGateCompleted === true,
+      `${scenario.name}: uninstalled mounted app-startup host missed startup gate completion`)
+    assert(thirdPartyAppStartupHost.effects?.thirdPartyStartupGateAllowed === true,
+      `${scenario.name}: uninstalled mounted app-startup host missed startup gate allow state`)
+    for (const effectName of [
+      'gameAppCreated',
+      'piniaCreated',
+      'routerInstalled',
+      'routerMounted'
+    ]) {
+      assert(thirdPartyAppStartupHost.effects?.[effectName] === true,
+        `${scenario.name}: uninstalled mounted app-startup effect ${effectName} was not true`)
+    }
+    for (const effectName of [
+      'thirdPartyRegistryPublished',
+      'liveRegistrySwapped',
+      'runtimeEnablementAllowed',
+      'realRuntimePublicationCommitCalled',
+      'runtimePublicationCommitted'
+    ]) {
+      assert(thirdPartyAppStartupHost.effects?.[effectName] === false,
+        `${scenario.name}: uninstalled mounted app-startup effect ${effectName} was not false`)
+    }
   } else if (scenario.startupGateReady) {
     const expectsRealRuntimePublicationCommit =
       scenario.startupGateRealRuntimePublicationCommit !== false
