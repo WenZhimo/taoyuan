@@ -37,7 +37,9 @@ import {
   createThirdPartyDataPackInstalledStateStartupGateBootstrapSource
 } from '@/domain/mods/thirdPartyDataPackInstalledStateStartupGateBootstrapSource'
 import {
-  buildThirdPartyDataPackDisableState
+  buildThirdPartyDataPackDisableState,
+  createThirdPartyDataPackDisablePersistentRecord,
+  createThirdPartyDataPackDisableStartupPersistentStateSnapshot
 } from '@/domain/mods/thirdPartyDataPackDisableTransaction'
 import {
   buildThirdPartyDataPackUninstallState,
@@ -501,6 +503,49 @@ const seedWebUninstalledState = async(
   return uninstallState
 }
 
+const seedWebDisabledState = async(
+  store: WebIndexedDbImportPersistenceStore,
+  settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore,
+  packageId: PackageId,
+  officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+) => {
+  const mountInput = await seedWebInstalledState(
+    store,
+    packageId,
+    officialRegistrySet,
+    settingsLockfileStore
+  )
+  expect(mountInput.lockfileDraft).toBeDefined()
+  const disableState = buildThirdPartyDataPackDisableState({
+    officialRegistrySet,
+    installedDraft: mountInput.lockfileDraft!,
+    targetPackageId: packageId
+  })
+  await settingsLockfileStore.write({
+    ...createThirdPartyDataPackDisablePersistentRecord(
+      THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      disableState
+    ),
+    recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+  })
+  const startupSnapshotText = `${JSON.stringify(
+    createThirdPartyDataPackDisableStartupPersistentStateSnapshot(
+      disableState,
+      'web-startup-persistent-state-snapshot'
+    ),
+    null,
+    2
+  )}\n`
+  await store.put(createDefaultWebIndexedDbImportRecord([
+    {
+      path: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
+      text: startupSnapshotText,
+      sizeBytes: startupSnapshotText.length
+    }
+  ], THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))
+  return disableState
+}
+
 interface ElectronStartupPersistentStateRequest {
   readonly commandId: 'install' | 'disable' | 'uninstall'
   readonly packageId: PackageId
@@ -656,6 +701,159 @@ describe('third-party installed-state startup gate bootstrap source', () => {
     expect(result.appBootstrapContinuationAllowed).toBe(true)
     expect(result.effects.appStartupHostConnectionAccepted).toBe(false)
     expect(result.effects.liveRegistrySwapped).toBe(false)
+  })
+
+  it('preserves Web disabled state through an official-only app-startup handoff', async() => {
+    const packageId = 'web_disabled_startup_pack' as PackageId
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const disableState = await seedWebDisabledState(
+      store,
+      settingsLockfileStore,
+      packageId,
+      officialRegistrySet
+    )
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('skipped')
+    expect(result.enabled).toBe(true)
+    expect(result.sourceCalled).toBe(true)
+    expect(result.appBootstrapContinuationAllowed).toBe(true)
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([])
+    expect(result.blockedPackageIds).toEqual([packageId])
+    expect(result.loadOrder).toEqual([])
+    expect(result.registryCount).toBe(54)
+    expect(result.entryCount).toBe(4242)
+    expect(result.packageCount).toBe(disableState.packageCount)
+    expect(result.lockfileHash).toBeUndefined()
+    expect(result.appStartupHostConnectionSourceStatus).toBe('accepted')
+    expect(result.startupPersistentStateSourceKind).toBe('web-indexeddb')
+    expect(result.startupPersistentStateSourceStatus).toBe('ready')
+    expect(result.startupPersistentStateSourceHostMode)
+      .toBe('web-indexeddb-startup-persistent-state')
+    expect(result.startupPersistentStateInjectedSourceHostMode)
+      .toBe('web-indexeddb-startup-persistent-state')
+    expect(result.persistentStateProofs).toEqual({
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    })
+    expect(result.summary).toMatchObject({
+      selectedPackageCount: 0,
+      blockedPackageCount: 1,
+      loadOrderCount: 0,
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: disableState.packageCount
+    })
+    expect(result.effects.startupPersistentStateSourceCalled).toBe(true)
+    expect(result.effects.startupStateSnapshotAccepted).toBe(true)
+    expect(result.effects.appStartupHostConnectionSourceCalled).toBe(true)
+    expect(result.effects.appStartupHostConnectionAccepted).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(false)
+    expect(result.effects.liveRegistrySwapped).toBe(false)
+    expect(result.effects.runtimeEnablementAllowed).toBe(false)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(false)
+    expect(result.effects.runtimePublicationCommitted).toBe(false)
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+    expect(getOfficialRecipeDef(`${packageId}:linen_ribbon_snack`)).toBeUndefined()
+    expect(getStartupShopOfferNameFallback(packageId)).toBeUndefined()
+  })
+
+  it('preserves Electron disabled state through an official-only app-startup handoff', async() => {
+    const packageId = 'electron_disabled_startup_pack' as PackageId
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const mountInput = await seedWebInstalledState(
+      store,
+      packageId,
+      officialRegistrySet,
+      settingsLockfileStore
+    )
+    const disableState = buildThirdPartyDataPackDisableState({
+      officialRegistrySet,
+      installedDraft: mountInput.lockfileDraft!,
+      targetPackageId: packageId
+    })
+    const disableRecord = createThirdPartyDataPackDisablePersistentRecord(
+      'active',
+      disableState
+    )
+    const runtimeHost = createElectronRuntimeHost(packageId, {
+      readInstalledState: async() => ({
+        status: 'ready',
+        record: disableRecord,
+        packageFilesPreserved: true
+      }),
+      readStartupPersistentState: async request => {
+        expect(request.commandId).toBe('disable')
+        expect(request.packageId).toBe(packageId)
+        return {
+          kind: 'startup-persistent-state-snapshot',
+          settled: true,
+          packageId: request.packageId,
+          candidateIdentity: request.candidateIdentity,
+          lockfileHash: request.lockfileHash,
+          transactionLogCommitted: true,
+          packageStateMatched: true,
+          settingsStateMatched: true,
+          modLockStateMatched: true,
+          liveRegistryMatched: true,
+          saveCacheIsolated: true
+        }
+      }
+    })
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('skipped')
+    expect(result.enabled).toBe(true)
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([])
+    expect(result.blockedPackageIds).toEqual([packageId])
+    expect(result.loadOrder).toEqual([])
+    expect(result.registryCount).toBe(54)
+    expect(result.entryCount).toBe(4242)
+    expect(result.packageCount).toBe(disableState.packageCount)
+    expect(result.lockfileHash).toBeUndefined()
+    expect(result.appStartupHostConnectionSourceStatus).toBe('accepted')
+    expect(result.startupPersistentStateSourceKind)
+      .toBe('electron-program-directory-userdata')
+    expect(result.startupPersistentStateSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
+    expect(result.startupPersistentStateInjectedSourceHostMode)
+      .toBe('electron-program-directory-startup-persistent-state')
+    expect(result.effects.startupPersistentStateSourceCalled).toBe(true)
+    expect(result.effects.startupStateSnapshotAccepted).toBe(true)
+    expect(result.effects.appStartupHostConnectionSourceCalled).toBe(true)
+    expect(result.effects.appStartupHostConnectionAccepted).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(false)
+    expect(result.effects.liveRegistrySwapped).toBe(false)
+    expect(result.effects.runtimeEnablementAllowed).toBe(false)
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(false)
+    expect(result.effects.runtimePublicationCommitted).toBe(false)
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+    expect(getOfficialRecipeDef(`${packageId}:linen_ribbon_snack`)).toBeUndefined()
+    expect(getStartupShopOfferNameFallback(packageId)).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('electronAPI')
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
   })
 
   it('preserves Web uninstalled state through an official-only startup snapshot', async() => {

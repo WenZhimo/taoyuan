@@ -4295,6 +4295,8 @@ const assertDisabledInstalledStartupState = (startupGate, scenario) => {
     `${scenario.name}: disabled installed-state startup gate was not enabled`)
   assert(startupGate.appBootstrapContinuationAllowed === true,
     `${scenario.name}: disabled installed-state startup gate did not allow app bootstrap`)
+  assert(startupGate.appStartupHostConnectionSourceStatus === 'accepted',
+    `${scenario.name}: disabled installed-state startup gate did not accept official-only app-startup handoff`)
   assert(startupGate.targetPackageId === 'product_probe_pack',
     `${scenario.name}: disabled installed-state startup gate reported the wrong target package`)
   assert(startupGate.selectedPackageCount === 0,
@@ -4330,14 +4332,15 @@ const assertDisabledInstalledStartupState = (startupGate, scenario) => {
   ), `${scenario.name}: disabled installed-state Electron userdata read flag mismatch`)
   for (const effectName of [
     'startupPersistentStateSourceCalled',
-    'startupStateSnapshotAccepted'
+    'startupStateSnapshotAccepted',
+    'appStartupHostConnectionSourceCalled',
+    'appStartupHostConnectionAccepted',
+    'realNormalStartupHostCalled'
   ]) {
     assert(startupGate.effects?.[effectName] === true,
       `${scenario.name}: disabled installed-state startup effect ${effectName} was not true`)
   }
   for (const effectName of [
-    'appStartupHostConnectionSourceCalled',
-    'appStartupHostConnectionAccepted',
     'thirdPartyRegistryPublished',
     'liveRegistrySwapped',
     'runtimeEnablementAllowed',
@@ -4618,8 +4621,8 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   assert(thirdPartyAppStartupHost.observed === true,
     `${scenario.name}: mounted app-startup host result was not handed to the runtime probe`)
   if (scenario.startupGateDisabled) {
-    assert(thirdPartyAppStartupHost.status === 'skipped',
-      `${scenario.name}: disabled installed-state mounted app-startup host should skip publication`)
+    assert(thirdPartyAppStartupHost.status === 'accepted',
+      `${scenario.name}: disabled installed-state mounted app-startup host did not accept official-only startup`)
     assert(thirdPartyAppStartupHost.enabled === true,
       `${scenario.name}: disabled installed-state mounted app-startup host was not enabled`)
     assert(thirdPartyAppStartupHost.sourceCalled === true,
@@ -4640,10 +4643,14 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: disabled installed-state mounted app-startup host reported the wrong package count`)
     assert(thirdPartyAppStartupHost.lockfileHashPresent === false,
       `${scenario.name}: disabled installed-state mounted app-startup host exposed a lockfile hash`)
-    assert(thirdPartyAppStartupHost.effects?.realAppStartupHostCalled === false,
-      `${scenario.name}: disabled installed-state mounted app-startup host claimed a runtime handoff`)
-    assert(thirdPartyAppStartupHost.effects?.appStartupHostConnectionAccepted === false,
-      `${scenario.name}: disabled installed-state mounted app-startup host claimed acceptance`)
+    assert(thirdPartyAppStartupHost.appStartupHostConnectionSourceStatus === 'accepted',
+      `${scenario.name}: disabled installed-state mounted app-startup host source was not accepted`)
+    assert(thirdPartyAppStartupHost.effects?.realAppStartupHostCalled === true,
+      `${scenario.name}: disabled installed-state mounted app-startup host missed runtime handoff`)
+    assert(thirdPartyAppStartupHost.effects?.appStartupHostConnectionAccepted === true,
+      `${scenario.name}: disabled installed-state mounted app-startup host did not accept app-startup handoff`)
+    assert(thirdPartyAppStartupHost.effects?.appBootstrapContinuationAllowed === true,
+      `${scenario.name}: disabled installed-state mounted app-startup host did not allow app bootstrap`)
     assert(thirdPartyAppStartupHost.effects?.officialContentBootstrapped === true,
       `${scenario.name}: disabled installed-state mounted app-startup host missed official content bootstrap`)
     assert(thirdPartyAppStartupHost.effects?.runtimeContentRegistryPublished === true,
@@ -4656,7 +4663,12 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       'gameAppCreated',
       'piniaCreated',
       'routerInstalled',
-      'routerMounted',
+      'routerMounted'
+    ]) {
+      assert(thirdPartyAppStartupHost.effects?.[effectName] === true,
+        `${scenario.name}: disabled installed-state app-startup effect ${effectName} was not true`)
+    }
+    for (const effectName of [
       'thirdPartyRegistryPublished',
       'liveRegistrySwapped',
       'runtimeEnablementAllowed',

@@ -286,17 +286,30 @@ export const acknowledgeThirdPartyDataPackMountedAppStartupHostConnection = (
   const blockedPackageIds = clonePackageIds(readOwnDataField(startupGateResult, 'blockedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(startupGateResult, 'loadOrder'))
   const enabled = readOwnBooleanField(startupGateResult, 'enabled') === true
-  const accepted = startupGateReady
+  const appStartupHostConnectionSourceAccepted =
+    readOwnStringField(startupGateResult, 'appStartupHostConnectionSourceStatus') === 'accepted'
+  const targetPackageIdIsValid = targetPackageId !== undefined && isPackageId(targetPackageId)
+  const readyEnabledStartupGate = startupGateReady
     && startupGateAllowed
-    && targetPackageId !== undefined
-    && isPackageId(targetPackageId)
+    && targetPackageIdIsValid
     && selectedPackageIds.includes(targetPackageId)
-    && readOwnStringField(startupGateResult, 'appStartupHostConnectionSourceStatus') === 'accepted'
+    && appStartupHostConnectionSourceAccepted
+  const disabledOfficialOnlyStartupGate = startupGateStatus === 'skipped'
+    && enabled
+    && startupGateAllowed
+    && targetPackageIdIsValid
+    && selectedPackageIds.length === 0
+    && blockedPackageIds.length === 1
+    && blockedPackageIds[0] === targetPackageId
+    && loadOrder.length === 0
+    && appStartupHostConnectionSourceAccepted
+  const startupGateSupportsAppHandoff = readyEnabledStartupGate || disabledOfficialOnlyStartupGate
+  const accepted = startupGateSupportsAppHandoff
     && validMountedEvidence(options.evidence)
 
   const status: ThirdPartyDataPackMountedAppStartupHostConnectionStatus = accepted
     ? 'accepted'
-    : startupGateStatus === 'ready'
+    : startupGateReady || disabledOfficialOnlyStartupGate
       ? 'blocked'
       : 'skipped'
 
@@ -304,7 +317,7 @@ export const acknowledgeThirdPartyDataPackMountedAppStartupHostConnection = (
     kind: THIRD_PARTY_DATA_PACK_MOUNTED_APP_STARTUP_HOST_CONNECTION_KIND,
     status,
     reason: accepted
-      ? 'mounted application startup host accepted path-free post-mount bootstrap evidence'
+      ? 'mounted application startup host accepted post-mount bootstrap evidence'
       : status === 'skipped'
         ? 'mounted application startup host evidence is skipped because no ready third-party startup gate is active'
         : 'mounted application startup host evidence did not match a ready third-party startup gate',
@@ -313,7 +326,7 @@ export const acknowledgeThirdPartyDataPackMountedAppStartupHostConnection = (
     persistentWrite: false,
     enabled,
     sourceCalled: startupGateResult !== undefined,
-    ...(targetPackageId !== undefined && isPackageId(targetPackageId) ? { targetPackageId } : {}),
+    ...(targetPackageIdIsValid ? { targetPackageId } : {}),
     appStartupHostConnectionSourceStatus:
       readOwnStringField(startupGateResult, 'appStartupHostConnectionSourceStatus'),
     selectedPackageIds,
