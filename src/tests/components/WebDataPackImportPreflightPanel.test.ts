@@ -133,6 +133,25 @@ const createValidFiles = (
   ]))
 ]
 
+const createDependencyStackFiles = (
+  packageId = 'web_panel_dependency_target',
+  dependencyPackageId = 'a_web_panel_dependency'
+): readonly WebFilePickerImportFile[] => [
+  createFile('a-web-panel-dependency/manifest.json', toJson(createManifest(dependencyPackageId))),
+  createFile('a-web-panel-dependency/locales/zh-CN.json', '{}\n'),
+  createFile('a-web-panel-dependency/data/items.json', toJson([
+    createItem(`${dependencyPackageId}:library_token`)
+  ])),
+  createFile('web-panel-dependency-target/manifest.json', toJson({
+    ...createManifest(packageId),
+    dependencies: [{ id: dependencyPackageId, version: '1.0.0' }]
+  })),
+  createFile('web-panel-dependency-target/locales/zh-CN.json', '{}\n'),
+  createFile('web-panel-dependency-target/data/items.json', toJson([
+    createItem(`${packageId}:linen_ribbon`)
+  ]))
+]
+
 const createInstalledDraft = (packageId: string): ThirdPartyDataPackLockfileDraft => {
   const typedPackageId = packageId as PackageId
   return {
@@ -1955,6 +1974,44 @@ describe('WebDataPackImportPreflightPanel', () => {
       })
       expect(wrapper.text()).not.toContain('C:/Users')
       expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+    }
+  })
+
+  it('shows dependency package rows without direct management actions', async() => {
+    const packageId = 'web_panel_dependency_target'
+    const dependencyPackageId = 'a_web_panel_dependency'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles: vi.fn(async() => createDependencyStackFiles(packageId, dependencyPackageId)),
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${dependencyPackageId}"]`).text())
+        .toContain('依赖包')
+      expect(wrapper.get(`[data-testid="web-mod-installed-dependency-${dependencyPackageId}"]`).text())
+        .toBe('依赖包')
+      expect(wrapper.find(`[data-testid="web-mod-disable-${dependencyPackageId}"]`).exists()).toBe(false)
+      expect(wrapper.find(`[data-testid="web-mod-enable-${dependencyPackageId}"]`).exists()).toBe(false)
+      expect(wrapper.find(`[data-testid="web-mod-uninstall-${dependencyPackageId}"]`).exists()).toBe(false)
+      expect(wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).text()).toContain('禁用')
+      expect(wrapper.get(`[data-testid="web-mod-uninstall-${packageId}"]`).text()).toContain('卸载')
     } finally {
       wrapper.unmount()
     }

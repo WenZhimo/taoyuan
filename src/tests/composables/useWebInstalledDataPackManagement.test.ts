@@ -11,7 +11,8 @@ import {
 } from '@/domain/mods/webIndexedDbImportPersistence'
 import {
   createInMemoryWebSettingsLockfilePersistentWriterStore,
-  THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+  THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+  type ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
 } from '@/domain/mods/thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 import {
   buildThirdPartyDataPackDisableState,
@@ -869,6 +870,64 @@ describe('useWebInstalledDataPackManagement', () => {
     ])
     expect(getOfficialItemDef(`${dependencyPackageId}:library_token`)).toBeUndefined()
     expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+  })
+
+  it('blocks direct dependency package management while its dependent package remains installed', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
+    expect(enabledMountInput.status).toBe('ready')
+    const installedDraft = enabledMountInput.lockfileDraft!
+    const installRecord = {
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      requestedCommandId: 'install' as const,
+      targetPackageId: packageId,
+      selectedPackageIds: [dependencyPackageId, packageId],
+      blockedPackageIds: [],
+      loadOrder: [dependencyPackageId, packageId],
+      candidateHash: installedDraft.candidateIdentity.candidateHash,
+      lockfileHash: installedDraft.lockfileHash,
+      lockfileDraft: installedDraft
+    } satisfies ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+    await settingsLockfileStore.write(installRecord)
+    await installedPackageStore.put(createDefaultWebIndexedDbImportRecord(
+      createInstalledPackageFiles(true),
+      THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
+    ))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore,
+      installedPackageStore,
+      startupPersistentStateStore,
+      mountedAppStartupEvidence,
+      readEnableMountInput: async() => enabledMountInput
+    })
+    await management.refresh()
+
+    expect(management.canManagePackage(dependencyPackageId)).toBe(false)
+    expect(management.canManagePackage(packageId)).toBe(true)
+    expect(await management.disable(dependencyPackageId)).toBeNull()
+    expect(management.reason.value).toBe('Dependency packages must be managed through the dependent package')
+    expect((await settingsLockfileStore.read()).record).toEqual(installRecord)
+
+    await management.refresh()
+    expect(await management.uninstall(dependencyPackageId)).toBeNull()
+    expect(management.reason.value).toBe('Dependency packages must be managed through the dependent package')
+    expect((await settingsLockfileStore.read()).record).toEqual(installRecord)
+
+    await management.refresh()
+    const disabledTarget = await management.disable(packageId)
+    expect(disabledTarget?.terminal.status).toBe('ready')
+    await management.refresh()
+    expect(management.canManagePackage(dependencyPackageId)).toBe(false)
+    expect(management.canManagePackage(packageId)).toBe(true)
+    expect(await management.enable(dependencyPackageId)).toBeNull()
+    expect(management.reason.value).toBe('Dependency packages must be managed through the dependent package')
   })
 
   it('uninstalls only the target from a disabled dependency stack and preserves dependency source files', async() => {

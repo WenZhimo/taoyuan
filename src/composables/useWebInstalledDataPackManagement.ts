@@ -244,6 +244,28 @@ const readPackageRows = (
   })))
 }
 
+const dependencyPackageIdsIn = (
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null
+): ReadonlySet<PackageId> => {
+  const dependencyIds = new Set<PackageId>()
+  record?.lockfileDraft.packages.forEach(pkg => {
+    pkg.resolvedDependencies.forEach(dependencyId => dependencyIds.add(dependencyId))
+  })
+  return dependencyIds
+}
+
+const isManageablePackageRecord = (
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null,
+  packageId: PackageId
+): boolean =>
+  record?.lockfileDraft.packages.some(pkg => pkg.packageId === packageId) === true
+  && !dependencyPackageIdsIn(record).has(packageId)
+
+const hasPackageRecord = (
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null,
+  packageId: PackageId
+): boolean => record?.lockfileDraft.packages.some(pkg => pkg.packageId === packageId) === true
+
 const readPackageFilesPreserved = async(
   store: WebIndexedDbImportPersistenceStore | null,
   importId: string
@@ -404,7 +426,13 @@ export const useWebInstalledDataPackManagement = (
           installedImportId
         )
       }
-      if (installedRecord === null || !isCurrentEnabledRecord(installedRecord, packageId)) {
+      if (installedRecord === null || !hasPackageRecord(installedRecord, packageId)) {
+        throw new Error('Only an enabled installed package can be disabled')
+      }
+      if (!isManageablePackageRecord(installedRecord, packageId)) {
+        throw new Error('Dependency packages must be managed through the dependent package')
+      }
+      if (!isCurrentEnabledRecord(installedRecord, packageId)) {
         throw new Error('Only an enabled installed package can be disabled')
       }
       const verifiedInstalledRecord = installedRecord
@@ -557,7 +585,13 @@ export const useWebInstalledDataPackManagement = (
         packageFilesPreserved = previousInstalledPackageRecord !== null
           && previousInstalledPackageRecord.files.length > 0
       }
-      if (installedRecord === null || !isCurrentUninstallableRecord(installedRecord, packageId)) {
+      if (installedRecord === null || !hasPackageRecord(installedRecord, packageId)) {
+        throw new Error('Only an installed package can be uninstalled')
+      }
+      if (!isManageablePackageRecord(installedRecord, packageId)) {
+        throw new Error('Dependency packages must be managed through the dependent package')
+      }
+      if (!isCurrentUninstallableRecord(installedRecord, packageId)) {
         throw new Error('Only an installed package can be uninstalled')
       }
       const verifiedInstalledRecord = installedRecord
@@ -735,7 +769,13 @@ export const useWebInstalledDataPackManagement = (
           installedImportId
         )
       }
-      if (installedRecord === null || !isCurrentDisabledRecord(installedRecord, packageId)) {
+      if (installedRecord === null || !hasPackageRecord(installedRecord, packageId)) {
+        throw new Error('Only a disabled installed package can be enabled')
+      }
+      if (!isManageablePackageRecord(installedRecord, packageId)) {
+        throw new Error('Dependency packages must be managed through the dependent package')
+      }
+      if (!isCurrentDisabledRecord(installedRecord, packageId)) {
         throw new Error('Only a disabled installed package can be enabled')
       }
       const verifiedDisabledRecord = installedRecord
@@ -868,6 +908,8 @@ export const useWebInstalledDataPackManagement = (
     lastUninstallResult,
     lastEnableResult,
     reason,
+    canManagePackage: (packageId: PackageId) =>
+      isManageablePackageRecord(currentRecord.value, packageId),
     refresh,
     disable,
     uninstall,

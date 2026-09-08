@@ -32,9 +32,12 @@
           >
             <div class="min-w-0">
               <p class="text-text break-all">{{ row.packageId }}</p>
-              <p class="text-muted">v{{ row.version }} · {{ row.status === 'enabled' ? '已启用' : '已禁用' }}</p>
+              <p class="text-muted">
+                v{{ row.version }} · {{ row.status === 'enabled' ? '已启用' : '已禁用' }}
+                <span v-if="!canManageInstalledPackage(row.packageId)"> · 依赖包</span>
+              </p>
             </div>
-            <div class="flex shrink-0 gap-2">
+            <div v-if="canManageInstalledPackage(row.packageId)" class="flex shrink-0 gap-2">
               <Button
                 v-if="row.status === 'enabled'"
                 class="justify-center"
@@ -65,6 +68,13 @@
                 卸载
               </Button>
             </div>
+            <span
+              v-else
+              class="text-muted shrink-0 text-xs"
+              :data-testid="`web-mod-installed-dependency-${row.packageId}`"
+            >
+              依赖包
+            </span>
           </div>
         </div>
         <p v-if="lastDisableResult" data-testid="web-mod-disable-result" class="text-muted mt-2">
@@ -455,6 +465,8 @@
   const installedManagementReason = computed(() =>
     installedManagement.reason.value || ''
   )
+  const canManageInstalledPackage = (packageId: string): boolean =>
+    installedManagement.canManagePackage(packageId as PackageId)
   const isPreparing = ref(false)
   const isNativePlatform = computed(() => Capacitor.isNativePlatform())
   const lastPreflight = computed(() => entry.lastSourceInstallCommandPreflight.value)
