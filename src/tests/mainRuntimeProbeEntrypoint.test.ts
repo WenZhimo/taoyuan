@@ -315,6 +315,38 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
+  it('runs the visible disable product probe for installed package query wiring', async() => {
+    const visibleDisableResult = {
+      status: 'ready',
+      operation: 'disable',
+      targetPackageId: 'product_probe_pack',
+      dependencyPackageId: 'a_product_probe_library'
+    }
+    mocks.runThirdPartyVisibleDisableProductProbe.mockResolvedValueOnce(visibleDisableResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisableProbe=1&taoyuanThirdPartyVisibleDependencyProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleDisableProductProbe).toHaveBeenCalledWith({
+        targetPackageId: 'product_probe_pack',
+        includeDependency: true,
+        expectBlocked: false
+      })
+    })
+    expect(mocks.runThirdPartyVisibleImportProductProbe).not.toHaveBeenCalled()
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleDisableResult
+      })
+    )
+  })
+
   it('runs the visible import product probe for enable-only query wiring', async() => {
     const visibleImportResult = {
       status: 'ready',
