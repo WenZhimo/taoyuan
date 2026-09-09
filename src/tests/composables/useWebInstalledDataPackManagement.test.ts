@@ -47,6 +47,10 @@ import type {
 import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
+import {
+  thirdPartyDataPackWebResponseDeliveryEventName,
+  type ThirdPartyDataPackWebDomResponseDeliveryEvent
+} from '@/domain/mods/thirdPartyDataPackWebDomResponseDeliveryBridge'
 
 const packageId = 'web_disable_management_test_pack' as PackageId
 const dependencyPackageId = 'a_web_management_dependency_pack' as PackageId
@@ -220,6 +224,15 @@ const mountedAppStartupEvidence = () => Object.freeze({
   routerMounted: true
 })
 
+const createWebManagementResponseEventCollector = () => {
+  const target = new EventTarget()
+  const events: ThirdPartyDataPackWebDomResponseDeliveryEvent[] = []
+  target.addEventListener(thirdPartyDataPackWebResponseDeliveryEventName, event => {
+    events.push(event as ThirdPartyDataPackWebDomResponseDeliveryEvent)
+  })
+  return { target, events }
+}
+
 afterEach(() => {
   resetLiveContentRegistryForTests()
 })
@@ -232,6 +245,7 @@ describe('useWebInstalledDataPackManagement', () => {
     const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const responseDelivery = createWebManagementResponseEventCollector()
     const installedDraft = createInstalledDraft()
     await settingsLockfileStore.write({
       recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
@@ -258,7 +272,8 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore,
       installedPackageStore,
       startupPersistentStateStore,
-      mountedAppStartupEvidence
+      mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target
     })
     await management.refresh()
     expect(management.rows.value).toEqual([{
@@ -272,6 +287,7 @@ describe('useWebInstalledDataPackManagement', () => {
 
     expect(result?.terminal.status).toBe('ready')
     expect(result?.realWebPlatformWriterHostCalled).toBe(true)
+    expect(result?.managementUiIpcResponseDelivered).toBe(true)
     expect(result?.terminal.settingsWritten).toBe(true)
     expect(result?.terminal.lockfileWritten).toBe(true)
     expect(result?.terminal.startupStateWritten).toBe(true)
@@ -297,12 +313,20 @@ describe('useWebInstalledDataPackManagement', () => {
       .toHaveLength(1)
     expect((await startupPersistentStateStore.get(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))?.files)
       .toHaveLength(1)
+    expect(responseDelivery.events.map(event => event.detail.envelope.commandId)).toEqual(['disable'])
+    expect(responseDelivery.events[0]?.detail.envelope).toMatchObject({
+      kind: 'success',
+      commandId: 'disable',
+      packageId,
+      messageKey: 'mods.ui.ipc.result.disable.success'
+    })
 
     const uninstallResult = await management.uninstall(packageId)
     await nextTick()
 
     expect(uninstallResult?.terminal.status).toBe('ready')
     expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
+    expect(uninstallResult?.managementUiIpcResponseDelivered).toBe(true)
     expect(uninstallResult?.terminal.settingsWritten).toBe(true)
     expect(uninstallResult?.terminal.lockfileWritten).toBe(true)
     expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
@@ -343,6 +367,14 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(startupSnapshot.modLockState?.matched).toBe(true)
     expect(startupSnapshot.liveRegistry?.matched).toBe(true)
     expect(startupSnapshot.saveCache?.isolated).toBe(true)
+    expect(responseDelivery.events.map(event => event.detail.envelope.commandId))
+      .toEqual(['disable', 'uninstall'])
+    expect(responseDelivery.events[1]?.detail.envelope).toMatchObject({
+      kind: 'success',
+      commandId: 'uninstall',
+      packageId,
+      messageKey: 'mods.ui.ipc.result.uninstall.success'
+    })
   })
 
   it('uninstalls an enabled package directly with official-only persisted state', async() => {
@@ -352,6 +384,7 @@ describe('useWebInstalledDataPackManagement', () => {
     const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const responseDelivery = createWebManagementResponseEventCollector()
     const installedDraft = createInstalledDraft()
     await settingsLockfileStore.write({
       recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
@@ -378,7 +411,8 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore,
       installedPackageStore,
       startupPersistentStateStore,
-      mountedAppStartupEvidence
+      mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target
     })
     await management.refresh()
 
@@ -387,6 +421,7 @@ describe('useWebInstalledDataPackManagement', () => {
 
     expect(uninstallResult?.terminal.status).toBe('ready')
     expect(uninstallResult?.realWebPlatformWriterHostCalled).toBe(true)
+    expect(uninstallResult?.managementUiIpcResponseDelivered).toBe(true)
     expect(uninstallResult?.terminal.settingsWritten).toBe(true)
     expect(uninstallResult?.terminal.lockfileWritten).toBe(true)
     expect(uninstallResult?.terminal.startupStateWritten).toBe(true)
@@ -429,6 +464,13 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(startupSnapshot.modLockState?.matched).toBe(true)
     expect(startupSnapshot.liveRegistry?.matched).toBe(true)
     expect(startupSnapshot.saveCache?.isolated).toBe(true)
+    expect(responseDelivery.events.map(event => event.detail.envelope.commandId)).toEqual(['uninstall'])
+    expect(responseDelivery.events[0]?.detail.envelope).toMatchObject({
+      kind: 'success',
+      commandId: 'uninstall',
+      packageId,
+      messageKey: 'mods.ui.ipc.result.uninstall.success'
+    })
   })
 
   it('re-enables a disabled installed package through the enable transaction terminal', async() => {
@@ -438,6 +480,7 @@ describe('useWebInstalledDataPackManagement', () => {
     const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const responseDelivery = createWebManagementResponseEventCollector()
     const enabledMountInput = await createEnabledMountInput(officialRegistrySet)
     expect(enabledMountInput.status).toBe('ready')
     const installedDraft = enabledMountInput.lockfileDraft!
@@ -463,6 +506,7 @@ describe('useWebInstalledDataPackManagement', () => {
       installedPackageStore,
       startupPersistentStateStore,
       mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target,
       readEnableMountInput: async(targetPackageId) =>
         targetPackageId === packageId ? enabledMountInput : null
     })
@@ -472,6 +516,7 @@ describe('useWebInstalledDataPackManagement', () => {
     await nextTick()
 
     expect(disableResult?.terminal.status).toBe('ready')
+    expect(disableResult?.managementUiIpcResponseDelivered).toBe(true)
     expect(management.rows.value).toEqual([{
       packageId,
       version: '1.0.0',
@@ -484,6 +529,7 @@ describe('useWebInstalledDataPackManagement', () => {
 
     expect(enableResult?.terminal.status).toBe('ready')
     expect(enableResult?.realWebPlatformWriterHostCalled).toBe(true)
+    expect(enableResult?.managementUiIpcResponseDelivered).toBe(true)
     expect(enableResult?.terminal.requestedCommandId).toBe('enable')
     expect(enableResult?.terminal.selectedPackageIds).toEqual([packageId])
     expect(enableResult?.terminal.blockedPackageIds).toEqual([])
@@ -539,6 +585,13 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(startupSnapshot.modLockState?.matched).toBe(true)
     expect(startupSnapshot.liveRegistry?.matched).toBe(true)
     expect(startupSnapshot.saveCache?.isolated).toBe(true)
+    expect(responseDelivery.events.map(event => event.detail.envelope.commandId))
+      .toEqual(['disable', 'enable'])
+    expect(responseDelivery.events.map(event => event.detail.envelope.messageKey))
+      .toEqual([
+        'mods.ui.ipc.result.disable.success',
+        'mods.ui.ipc.result.enable.success'
+      ])
   })
 
   it('routes dependency enable persistence through the Electron renderer command host', async() => {
@@ -951,6 +1004,7 @@ describe('useWebInstalledDataPackManagement', () => {
     const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const responseDelivery = createWebManagementResponseEventCollector()
     const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
     expect(enabledMountInput.status).toBe('ready')
     const installedDraft = enabledMountInput.lockfileDraft!
@@ -975,7 +1029,8 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore,
       installedPackageStore,
       startupPersistentStateStore,
-      mountedAppStartupEvidence
+      mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target
     })
     await management.refresh()
 
@@ -1024,6 +1079,7 @@ describe('useWebInstalledDataPackManagement', () => {
     const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const responseDelivery = createWebManagementResponseEventCollector()
     const enabledMountInput = await createEnabledMountInput(officialRegistrySet, true)
     expect(enabledMountInput.status).toBe('ready')
     const installedDraft = enabledMountInput.lockfileDraft!
@@ -1048,7 +1104,8 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsLockfileStore,
       installedPackageStore,
       startupPersistentStateStore,
-      mountedAppStartupEvidence
+      mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target
     })
     await management.refresh()
 

@@ -614,6 +614,7 @@ const hasReadyVisibleImportDispatch = (
       && enableTerminal.runtimePublicationIncluded
       && enableTerminal.liveRegistrySwapped
       && enableTerminal.appStartupHandoffAccepted
+      && execution.managementUiIpcResponseDelivered === true
       && panelLabelsReady
       && contentAccessItemVisibleAfter
       && contentAccessRecipeVisibleAfter
@@ -1767,6 +1768,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     && terminal.runtimePublicationExcluded
     && terminal.liveRegistrySwapped
     && terminal.appStartupHandoffAccepted
+    && execution.managementUiIpcResponseDelivered === true
     && !execution.contentAccessItemVisibleAfter
     && !execution.contentAccessRecipeVisibleAfter
     && !execution.contentAccessShopOfferVisibleAfter
@@ -1914,6 +1916,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     && terminal.runtimePublicationExcluded
     && terminal.liveRegistrySwapped
     && terminal.appStartupHandoffAccepted
+    && execution.managementUiIpcResponseDelivered === true
     && !execution.contentAccessItemVisibleAfter
     && !execution.contentAccessRecipeVisibleAfter
     && !execution.contentAccessShopOfferVisibleAfter

@@ -19,6 +19,12 @@ export type ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind =
   | 'retry'
   | 'rollback'
 
+export type ThirdPartyDataPackUiIpcResultEnvelopeCommandId =
+  | 'install'
+  | 'disable'
+  | 'enable'
+  | 'uninstall'
+
 export type ThirdPartyDataPackUiIpcResultEnvelopeContractCheckId =
   | 'result-normalization-preflight-deferred'
   | 'install-command-source'
@@ -72,7 +78,7 @@ export interface ThirdPartyDataPackUiIpcResultEnvelopeSummary {
 export interface ThirdPartyDataPackUiIpcResultEnvelope {
   readonly formatVersion: 1
   readonly kind: ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind
-  readonly commandId: 'install'
+  readonly commandId: ThirdPartyDataPackUiIpcResultEnvelopeCommandId
   readonly packageId: PackageId
   readonly candidateHash?: Sha256Hash
   readonly lockfileHash?: Sha256Hash

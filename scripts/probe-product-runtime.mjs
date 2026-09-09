@@ -3540,7 +3540,7 @@ const assertVisibleManagementCommandDelivery = (
   protocol,
   operation
 ) => {
-  const expectUiIpcResponseDelivered = protocol === 'file:'
+  const expectUiIpcResponseDelivered = true
   const expectRealWebPlatformWriterHostCalled = protocol === 'http:'
   assert(
     visibleImport.managementCommandHostKind === expectedVisibleManagementCommandHostKind(protocol),

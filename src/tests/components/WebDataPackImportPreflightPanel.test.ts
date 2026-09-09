@@ -56,6 +56,10 @@ import type {
   WebFilePickerPostCommitVerificationExecutor,
   WebFilePickerPostCommitVerificationExecutorAdapterReader
 } from '@/composables/useWebFilePickerImportEntry'
+import {
+  thirdPartyDataPackWebResponseDeliveryEventName,
+  type ThirdPartyDataPackWebDomResponseDeliveryEvent
+} from '@/domain/mods/thirdPartyDataPackWebDomResponseDeliveryBridge'
 
 type JsonObject = Record<string, unknown>
 
@@ -1916,6 +1920,11 @@ describe('WebDataPackImportPreflightPanel', () => {
     const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const responseDeliveryEvents: ThirdPartyDataPackWebDomResponseDeliveryEvent[] = []
+    const collectResponseDeliveryEvent = (event: Event) => {
+      responseDeliveryEvents.push(event as ThirdPartyDataPackWebDomResponseDeliveryEvent)
+    }
+    window.addEventListener(thirdPartyDataPackWebResponseDeliveryEventName, collectResponseDeliveryEvent)
     const wrapper = mount(WebDataPackImportPreflightPanel, {
       props: {
         selectFiles: vi.fn(async() => createValidFiles(packageId)),
@@ -1949,6 +1958,13 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
+      expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['disable'])
+      expect(responseDeliveryEvents[0]?.detail.envelope).toMatchObject({
+        kind: 'success',
+        commandId: 'disable',
+        packageId,
+        messageKey: 'mods.ui.ipc.result.disable.success'
+      })
       expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
 
       await wrapper.get(`[data-testid="web-mod-enable-${packageId}"]`).trigger('click')
@@ -1967,6 +1983,14 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime 已包含')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('handoff 已接受')
+      expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId))
+        .toEqual(['disable', 'enable'])
+      expect(responseDeliveryEvents[1]?.detail.envelope).toMatchObject({
+        kind: 'success',
+        commandId: 'enable',
+        packageId,
+        messageKey: 'mods.ui.ipc.result.enable.success'
+      })
       expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
         .toBe(`${packageId}:linen_ribbon`)
       expect((await webSettingsLockfileStore.read()).record).toMatchObject({
@@ -1981,6 +2005,10 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.text()).not.toContain('LENOVO')
     } finally {
       wrapper.unmount()
+      window.removeEventListener(
+        thirdPartyDataPackWebResponseDeliveryEventName,
+        collectResponseDeliveryEvent
+      )
     }
   })
 

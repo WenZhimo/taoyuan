@@ -68,6 +68,10 @@ import {
 import type {
   ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement
 } from '@/domain/mods/thirdPartyDataPackRuntimeCommandState'
+import {
+  deliverThirdPartyDataPackWebManagementUiIpcResponse,
+  type ThirdPartyDataPackManagementUiIpcTerminal
+} from '@/domain/mods/thirdPartyDataPackManagementUiIpcResponseDelivery'
 import { utf8ByteLength } from '@/domain/mods/hash'
 
 export interface WebInstalledDataPackManagementRow {
@@ -110,6 +114,7 @@ export interface UseWebInstalledDataPackManagementOptions {
   readonly startupPersistentStateStore: WebIndexedDbImportPersistenceStore | null
   readonly mountedAppStartupEvidence?: () =>
     ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement | null | undefined
+  readonly webManagementResponseDeliveryTarget?: EventTarget | null
   readonly electronDisableCommand?: (
     envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
   ) => Promise<ThirdPartyDataPackElectronDisableCommandResult>
@@ -352,6 +357,21 @@ export const useWebInstalledDataPackManagement = (
   const currentRecord = ref<ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null>(null)
   const installedImportId = options.installedImportId ?? defaultInstalledImportId
   const startupImportId = options.startupImportId ?? defaultStartupImportId
+  const readWebManagementResponseDeliveryTarget = (): EventTarget | null => {
+    if (options.webManagementResponseDeliveryTarget !== undefined) {
+      return options.webManagementResponseDeliveryTarget
+    }
+    return typeof window === 'undefined' ? null : window
+  }
+  const deliverWebManagementUiIpcResponse = async(
+    terminal: ThirdPartyDataPackManagementUiIpcTerminal
+  ): Promise<boolean> => {
+    const delivery = await deliverThirdPartyDataPackWebManagementUiIpcResponse({
+      terminal,
+      target: readWebManagementResponseDeliveryTarget()
+    })
+    return delivery.uiIpcResponseDelivered
+  }
 
   const refresh = async(): Promise<void> => {
     status.value = 'loading'
@@ -521,6 +541,9 @@ export const useWebInstalledDataPackManagement = (
         },
         acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() ?? false
       })
+      if (options.electronDisableCommand === undefined) {
+        managementUiIpcResponseDelivered = await deliverWebManagementUiIpcResponse(transaction.terminal)
+      }
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
         managementCommandDispatched,
@@ -697,6 +720,9 @@ export const useWebInstalledDataPackManagement = (
         },
         acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() ?? false
       })
+      if (options.electronUninstallCommand === undefined) {
+        managementUiIpcResponseDelivered = await deliverWebManagementUiIpcResponse(transaction.terminal)
+      }
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
         managementCommandDispatched,
@@ -876,6 +902,9 @@ export const useWebInstalledDataPackManagement = (
         },
         acknowledgeAppStartupHandoff: async() => options.mountedAppStartupEvidence?.() ?? false
       })
+      if (options.electronEnableCommand === undefined) {
+        managementUiIpcResponseDelivered = await deliverWebManagementUiIpcResponse(transaction.terminal)
+      }
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
         managementCommandDispatched,
