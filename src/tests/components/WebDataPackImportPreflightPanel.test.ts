@@ -2072,6 +2072,70 @@ describe('WebDataPackImportPreflightPanel', () => {
     }
   })
 
+  it('rolls back Web visible enable when the probe fails after settings-lockfile write', async() => {
+    const packageId = 'web_panel_enable_failure_visible'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const restoreQuery = withWindowQuery(
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleEnableProbe=1&taoyuanThirdPartyVisibleEnableFailAfterModLockWrite=1'
+    )
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles: vi.fn(async() => createValidFiles(packageId)),
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      await wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-disable-result"]').text())
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已禁用')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+
+      await wrapper.get(`[data-testid="web-mod-enable-${packageId}"]`).trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-enable-result"]').text())
+
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已禁用')
+      expect(wrapper.get(`[data-testid="web-mod-enable-${packageId}"]`).text()).toContain('启用')
+      expect(wrapper.find(`[data-testid="web-mod-disable-${packageId}"]`).exists()).toBe(false)
+      expect(wrapper.get('[data-testid="web-mod-installed-management-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('启用事务：已阻断')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('settings 未写入')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('mod-lock 未写入')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('startup 未写入')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('package 已保留')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime commit 未确认')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime 未包含')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('live registry 未切换')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('handoff 未接受')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+      expect((await webSettingsLockfileStore.read()).record).toMatchObject({
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: []
+      })
+      expect(wrapper.text()).not.toContain('C:/Users')
+      expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+      restoreQuery()
+    }
+  })
+
   it('shows dependency package rows without direct management actions', async() => {
     const packageId = 'web_panel_dependency_target'
     const dependencyPackageId = 'a_web_panel_dependency'

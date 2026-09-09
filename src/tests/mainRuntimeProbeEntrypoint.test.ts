@@ -405,4 +405,34 @@ describe('main runtime probe entrypoint', () => {
       })
     )
   })
+
+  it('routes Web visible enable write-failure probes as blocked management runs', async() => {
+    const visibleImportResult = {
+      status: 'blocked',
+      operation: 'enable'
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleEnableProbe=1&taoyuanThirdPartyVisibleEnableFailAfterModLockWrite=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'enable',
+        persistSource: false,
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
 })

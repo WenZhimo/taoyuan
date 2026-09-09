@@ -380,6 +380,18 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-enable-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableEnableSequence: true,
+    visibleEnableFailAfterModLockWrite: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-dependency-disable-enable-restart',
     fault: null,
     source: 'precompiled',
@@ -3590,8 +3602,6 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
   assert(visibleImport.observed === true,
     `${scenario.name}: visible enable probe was not observed`)
   if (scenario.visibleEnableFailAfterModLockWrite) {
-    assert(electron,
-      `${scenario.name}: visible enable failure rollback must run in Electron`)
     assert(visibleImport.status === 'blocked',
       `${scenario.name}: visible enable failure rollback did not block`)
     assert(visibleImport.operation === 'enable',
@@ -6264,6 +6274,10 @@ const runWebProbe = async () => {
     if (scenario.visibleEnable) {
       url.searchParams.set('taoyuanThirdPartyVisibleEnableProbe', '1')
     }
+    if (scenario.visibleEnableFailAfterModLockWrite) {
+      url.searchParams.set('taoyuanThirdPartyVisibleEnableExpectBlocked', '1')
+      url.searchParams.set('taoyuanThirdPartyVisibleEnableFailAfterModLockWrite', '1')
+    }
     if (scenario.visibleDisable) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableProbe', '1')
     }
@@ -6458,6 +6472,7 @@ const runWebProbe = async () => {
           startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
           startupPersistentStateExpectsResponseDeliveryHandoff: false,
           visibleImportWebOrdinary: false,
+          visibleEnableFailAfterModLockWrite: false,
           visibleEnable: false,
           visibleDisable: true
         }
@@ -6507,7 +6522,8 @@ const runWebProbe = async () => {
             name: `${scenario.name}:enable`,
             startupGateDisabled: true,
             visibleDisable: false,
-            visibleEnable: true
+            visibleEnable: true,
+            visibleEnableFailAfterModLockWrite: scenario.visibleEnableFailAfterModLockWrite
           }
           const enableOutputPath = path.join(scenarioRoot, 'enable-report.json')
           await runProcess(electronPath, [hostPath], {
@@ -6518,6 +6534,34 @@ const runWebProbe = async () => {
           const enableEnvelope = readJson(enableOutputPath)
           assertRuntimeEnvelope(enableEnvelope, enableScenario, 'http:')
           assertWebProductSurface(enableEnvelope, enableScenario)
+
+          if (scenario.visibleEnableFailAfterModLockWrite) {
+            const restartScenario = {
+              ...enableScenario,
+              name: `${scenario.name}:restart`,
+              visibleEnable: false,
+              visibleEnableFailAfterModLockWrite: false,
+              startupGateDisabled: true,
+              startupGateEntryCount: 4242
+            }
+            const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
+            await runProcess(electronPath, [hostPath], {
+              TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+              TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+              TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+            })
+            const restartEnvelope = readJson(restartOutputPath)
+            assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+            assertWebProductSurface(restartEnvelope, restartScenario)
+            reports.push({
+              scenario: scenario.name,
+              installRuntime: installEnvelope.runtime,
+              disableRuntime: disableEnvelope.runtime,
+              enableRuntime: enableEnvelope.runtime,
+              restartRuntime: restartEnvelope.runtime
+            })
+            continue
+          }
 
           const restartScenario = {
             ...enableScenario,

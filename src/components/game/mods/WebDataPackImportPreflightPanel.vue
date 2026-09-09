@@ -311,26 +311,34 @@
       }
     }
 
-  const shouldFailVisibleDisableAfterSettingsLockfileWrite = (): boolean => {
-    if (typeof window === 'undefined') return false
+  const visibleFailureCommandAfterSettingsLockfileWrite = ():
+    'disable' | 'enable' | null => {
+    if (typeof window === 'undefined') return null
     const search = new URLSearchParams(window.location.search)
-    return search.get('taoyuanContentProbe') === '1'
-      && search.get('taoyuanThirdPartyVisibleDisableFailAfterModLockWrite') === '1'
+    if (search.get('taoyuanContentProbe') !== '1') return null
+    if (search.get('taoyuanThirdPartyVisibleDisableFailAfterModLockWrite') === '1') {
+      return 'disable'
+    }
+    if (search.get('taoyuanThirdPartyVisibleEnableFailAfterModLockWrite') === '1') {
+      return 'enable'
+    }
+    return null
   }
 
-  const createVisibleDisableFailureProbeSettingsLockfileStore = (
+  const createVisibleManagementFailureProbeSettingsLockfileStore = (
     store: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null
   ): ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null => {
-    if (store === null || !shouldFailVisibleDisableAfterSettingsLockfileWrite()) return store
+    const failureCommand = visibleFailureCommandAfterSettingsLockfileWrite()
+    if (store === null || failureCommand === null) return store
     let failureInjected = false
     return {
       inspect: async() => await store.inspect(),
       read: async() => await store.read(),
       write: async record => {
         const report = await store.write(record)
-        if (!failureInjected && record.requestedCommandId === 'disable' && report.status === 'written') {
+        if (!failureInjected && record.requestedCommandId === failureCommand && report.status === 'written') {
           failureInjected = true
-          throw new Error('Web visible disable probe failed after settings-lockfile write')
+          throw new Error(`Web visible ${failureCommand} probe failed after settings-lockfile write`)
         }
         return report
       }
@@ -344,7 +352,7 @@
     ? createDefaultWebSettingsLockfileStore()
     : props.webSettingsLockfileStore
   const webSettingsLockfileStore =
-    createVisibleDisableFailureProbeSettingsLockfileStore(baseWebSettingsLockfileStore)
+    createVisibleManagementFailureProbeSettingsLockfileStore(baseWebSettingsLockfileStore)
   const webInstallTransactionLogStore = props.webInstallTransactionLogStore === undefined
     ? createDefaultWebInstallTransactionLogStore()
     : props.webInstallTransactionLogStore
