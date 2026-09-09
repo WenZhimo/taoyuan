@@ -249,6 +249,18 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-disable-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableSequence: true,
+    visibleDisableFailAfterModLockWrite: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-dependency-disable-then-restart',
     fault: null,
     source: 'precompiled',
@@ -3541,7 +3553,12 @@ const assertVisibleManagementCommandDelivery = (
   operation
 ) => {
   const expectUiIpcResponseDelivered = true
-  const expectRealWebPlatformWriterHostCalled = protocol === 'http:'
+  const writeFailureInjected = !!(
+    scenario.visibleEnableFailAfterModLockWrite
+    || scenario.visibleDisableFailAfterModLockWrite
+    || scenario.visibleUninstallFailAfterModLockWrite
+  )
+  const expectRealWebPlatformWriterHostCalled = protocol === 'http:' && !writeFailureInjected
   assert(
     visibleImport.managementCommandHostKind === expectedVisibleManagementCommandHostKind(protocol),
     `${scenario.name}: visible ${operation} management command used the wrong host kind`
@@ -3851,8 +3868,8 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
   assert(visibleImport.observed === true,
     `${scenario.name}: visible disable probe was not observed`)
   if (scenario.visibleDisableFailAfterModLockWrite) {
-    assert(protocol === 'file:',
-      `${scenario.name}: visible disable failure rollback must run in Electron`)
+    assert(protocol === 'http:' || protocol === 'file:',
+      `${scenario.name}: visible disable failure rollback ran with an unsupported protocol`)
     assert(visibleImport.status === 'blocked',
       `${scenario.name}: visible disable failure rollback did not block`)
     assert(visibleImport.operation === 'disable',
@@ -6250,6 +6267,10 @@ const runWebProbe = async () => {
     if (scenario.visibleDisable) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableProbe', '1')
     }
+    if (scenario.visibleDisableFailAfterModLockWrite) {
+      url.searchParams.set('taoyuanThirdPartyVisibleDisableExpectBlocked', '1')
+      url.searchParams.set('taoyuanThirdPartyVisibleDisableFailAfterModLockWrite', '1')
+    }
     if (scenario.visibleUninstall) {
       url.searchParams.set('taoyuanThirdPartyVisibleUninstallProbe', '1')
     }
@@ -6454,6 +6475,31 @@ const runWebProbe = async () => {
           disableScenario,
           'http:'
         )
+
+        if (scenario.visibleDisableFailAfterModLockWrite) {
+          const restartScenario = {
+            ...disableScenario,
+            name: `${scenario.name}:restart`,
+            visibleDisable: false,
+            visibleDisableFailAfterModLockWrite: false
+          }
+          const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const restartEnvelope = readJson(restartOutputPath)
+          assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+          assertWebProductSurface(restartEnvelope, restartScenario)
+          reports.push({
+            scenario: scenario.name,
+            installRuntime: installEnvelope.runtime,
+            disableRuntime: disableEnvelope.runtime,
+            restartRuntime: restartEnvelope.runtime
+          })
+          continue
+        }
 
         if (scenario.visibleImportInstalledDisableEnableSequence) {
           const enableScenario = {

@@ -2012,6 +2012,66 @@ describe('WebDataPackImportPreflightPanel', () => {
     }
   })
 
+  it('rolls back Web visible disable when the probe fails after settings-lockfile write', async() => {
+    const packageId = 'web_panel_disable_failure_visible'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const restoreQuery = withWindowQuery(
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisableProbe=1&taoyuanThirdPartyVisibleDisableFailAfterModLockWrite=1'
+    )
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles: vi.fn(async() => createValidFiles(packageId)),
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe(`${packageId}:linen_ribbon`)
+
+      await wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-disable-result"]').text())
+
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+      expect(wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).text()).toContain('禁用')
+      expect(wrapper.find(`[data-testid="web-mod-enable-${packageId}"]`).exists()).toBe(false)
+      expect(wrapper.get('[data-testid="web-mod-installed-management-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('禁用事务：已阻断')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('settings 未写入')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('mod-lock 未写入')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('startup 未写入')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 未排除')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 未接受')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe(`${packageId}:linen_ribbon`)
+      expect((await webSettingsLockfileStore.read()).record).toMatchObject({
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install',
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId]
+      })
+      expect(wrapper.text()).not.toContain('C:/Users')
+      expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+      restoreQuery()
+    }
+  })
+
   it('shows dependency package rows without direct management actions', async() => {
     const packageId = 'web_panel_dependency_target'
     const dependencyPackageId = 'a_web_panel_dependency'

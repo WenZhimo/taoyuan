@@ -311,12 +311,40 @@
       }
     }
 
+  const shouldFailVisibleDisableAfterSettingsLockfileWrite = (): boolean => {
+    if (typeof window === 'undefined') return false
+    const search = new URLSearchParams(window.location.search)
+    return search.get('taoyuanContentProbe') === '1'
+      && search.get('taoyuanThirdPartyVisibleDisableFailAfterModLockWrite') === '1'
+  }
+
+  const createVisibleDisableFailureProbeSettingsLockfileStore = (
+    store: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null
+  ): ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null => {
+    if (store === null || !shouldFailVisibleDisableAfterSettingsLockfileWrite()) return store
+    let failureInjected = false
+    return {
+      inspect: async() => await store.inspect(),
+      read: async() => await store.read(),
+      write: async record => {
+        const report = await store.write(record)
+        if (!failureInjected && record.requestedCommandId === 'disable' && report.status === 'written') {
+          failureInjected = true
+          throw new Error('Web visible disable probe failed after settings-lockfile write')
+        }
+        return report
+      }
+    }
+  }
+
   const persistenceStore = props.persistenceStore === undefined
     ? createDefaultPersistenceStore()
     : props.persistenceStore
-  const webSettingsLockfileStore = props.webSettingsLockfileStore === undefined
+  const baseWebSettingsLockfileStore = props.webSettingsLockfileStore === undefined
     ? createDefaultWebSettingsLockfileStore()
     : props.webSettingsLockfileStore
+  const webSettingsLockfileStore =
+    createVisibleDisableFailureProbeSettingsLockfileStore(baseWebSettingsLockfileStore)
   const webInstallTransactionLogStore = props.webInstallTransactionLogStore === undefined
     ? createDefaultWebInstallTransactionLogStore()
     : props.webInstallTransactionLogStore

@@ -347,6 +347,36 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
+  it('routes Web visible disable write-failure probes as blocked management runs', async() => {
+    const visibleDisableResult = {
+      status: 'blocked',
+      operation: 'disable',
+      targetPackageId: 'product_probe_pack'
+    }
+    mocks.runThirdPartyVisibleDisableProductProbe.mockResolvedValueOnce(visibleDisableResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisableProbe=1&taoyuanThirdPartyVisibleDisableFailAfterModLockWrite=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleDisableProductProbe).toHaveBeenCalledWith({
+        targetPackageId: 'product_probe_pack',
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyVisibleImportProductProbe).not.toHaveBeenCalled()
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleDisableResult
+      })
+    )
+  })
+
   it('runs the visible import product probe for enable-only query wiring', async() => {
     const visibleImportResult = {
       status: 'ready',
