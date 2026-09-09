@@ -354,6 +354,18 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-uninstall-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledUninstallSequence: true,
+    visibleUninstallFailAfterModLockWrite: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-dependency-uninstall-then-restart',
     fault: null,
     source: 'precompiled',
@@ -3566,9 +3578,9 @@ const assertVisibleManagementCommandDelivery = (
 ) => {
   const expectUiIpcResponseDelivered = true
   const writeFailureInjected = !!(
-    scenario.visibleEnableFailAfterModLockWrite
-    || scenario.visibleDisableFailAfterModLockWrite
-    || scenario.visibleUninstallFailAfterModLockWrite
+    (operation === 'enable' && scenario.visibleEnableFailAfterModLockWrite)
+    || (operation === 'disable' && scenario.visibleDisableFailAfterModLockWrite)
+    || (operation === 'uninstall' && scenario.visibleUninstallFailAfterModLockWrite)
   )
   const expectRealWebPlatformWriterHostCalled = protocol === 'http:' && !writeFailureInjected
   assert(
@@ -4094,8 +4106,6 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
   assert(visibleImport.observed === true,
     `${scenario.name}: visible uninstall probe was not observed`)
   if (scenario.visibleUninstallFailAfterModLockWrite) {
-    assert(protocol === 'file:',
-      `${scenario.name}: visible uninstall failure rollback must run in Electron`)
     assert(visibleImport.status === 'blocked',
       `${scenario.name}: visible uninstall failure rollback did not block`)
     assert(visibleImport.operation === 'uninstall',
@@ -6274,19 +6284,23 @@ const runWebProbe = async () => {
     if (scenario.visibleEnable) {
       url.searchParams.set('taoyuanThirdPartyVisibleEnableProbe', '1')
     }
-    if (scenario.visibleEnableFailAfterModLockWrite) {
+    if (scenario.visibleEnable && scenario.visibleEnableFailAfterModLockWrite) {
       url.searchParams.set('taoyuanThirdPartyVisibleEnableExpectBlocked', '1')
       url.searchParams.set('taoyuanThirdPartyVisibleEnableFailAfterModLockWrite', '1')
     }
     if (scenario.visibleDisable) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableProbe', '1')
     }
-    if (scenario.visibleDisableFailAfterModLockWrite) {
+    if (scenario.visibleDisable && scenario.visibleDisableFailAfterModLockWrite) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableExpectBlocked', '1')
       url.searchParams.set('taoyuanThirdPartyVisibleDisableFailAfterModLockWrite', '1')
     }
     if (scenario.visibleUninstall) {
       url.searchParams.set('taoyuanThirdPartyVisibleUninstallProbe', '1')
+    }
+    if (scenario.visibleUninstall && scenario.visibleUninstallFailAfterModLockWrite) {
+      url.searchParams.set('taoyuanThirdPartyVisibleUninstallExpectBlocked', '1')
+      url.searchParams.set('taoyuanThirdPartyVisibleUninstallFailAfterModLockWrite', '1')
     }
     if (scenario.visibleArchiveImport) {
       url.searchParams.set('taoyuanThirdPartyVisibleArchiveImportProbe', '1')
@@ -6428,6 +6442,31 @@ const runWebProbe = async () => {
           const uninstallEnvelope = readJson(uninstallOutputPath)
           assertRuntimeEnvelope(uninstallEnvelope, uninstallScenario, 'http:')
           assertWebProductSurface(uninstallEnvelope, uninstallScenario)
+
+          if (scenario.visibleUninstallFailAfterModLockWrite) {
+            const restartScenario = {
+              ...uninstallScenario,
+              name: `${scenario.name}:restart`,
+              visibleUninstall: false,
+              visibleUninstallFailAfterModLockWrite: false
+            }
+            const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
+            await runProcess(electronPath, [hostPath], {
+              TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+              TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+              TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+            })
+            const restartEnvelope = readJson(restartOutputPath)
+            assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+            assertWebProductSurface(restartEnvelope, restartScenario)
+            reports.push({
+              scenario: scenario.name,
+              installRuntime: installEnvelope.runtime,
+              uninstallRuntime: uninstallEnvelope.runtime,
+              restartRuntime: restartEnvelope.runtime
+            })
+            continue
+          }
 
           const restartScenario = {
             ...uninstallScenario,

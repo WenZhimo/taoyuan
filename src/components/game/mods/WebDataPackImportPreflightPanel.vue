@@ -312,7 +312,7 @@
     }
 
   const visibleFailureCommandAfterSettingsLockfileWrite = ():
-    'disable' | 'enable' | null => {
+    'disable' | 'enable' | 'uninstall' | null => {
     if (typeof window === 'undefined') return null
     const search = new URLSearchParams(window.location.search)
     if (search.get('taoyuanContentProbe') !== '1') return null
@@ -321,6 +321,9 @@
     }
     if (search.get('taoyuanThirdPartyVisibleEnableFailAfterModLockWrite') === '1') {
       return 'enable'
+    }
+    if (search.get('taoyuanThirdPartyVisibleUninstallFailAfterModLockWrite') === '1') {
+      return 'uninstall'
     }
     return null
   }

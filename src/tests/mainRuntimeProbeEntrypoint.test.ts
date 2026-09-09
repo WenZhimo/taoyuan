@@ -377,6 +377,36 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
+  it('routes Web visible uninstall write-failure probes as blocked management runs', async() => {
+    const visibleUninstallResult = {
+      status: 'blocked',
+      operation: 'uninstall',
+      targetPackageId: 'product_probe_pack'
+    }
+    mocks.runThirdPartyVisibleUninstallProductProbe.mockResolvedValueOnce(visibleUninstallResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleUninstallProbe=1&taoyuanThirdPartyVisibleUninstallFailAfterModLockWrite=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleUninstallProductProbe).toHaveBeenCalledWith({
+        targetPackageId: 'product_probe_pack',
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyVisibleImportProductProbe).not.toHaveBeenCalled()
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleUninstallResult
+      })
+    )
+  })
+
   it('runs the visible import product probe for enable-only query wiring', async() => {
     const visibleImportResult = {
       status: 'ready',

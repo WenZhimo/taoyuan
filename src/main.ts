@@ -81,6 +81,9 @@ const thirdPartyVisibleUninstallProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleUninstallExpectBlockedProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleUninstallExpectBlocked') === '1'
+const thirdPartyVisibleUninstallFailAfterModLockWriteProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleUninstallFailAfterModLockWrite') === '1'
 const thirdPartyVisibleEnableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleEnableProbe') === '1'
@@ -222,6 +225,7 @@ void bootstrapApplication({
             targetPackageId: 'product_probe_pack' as PackageId,
             ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),
             expectBlocked: thirdPartyVisibleUninstallExpectBlockedProbeRequested
+              || thirdPartyVisibleUninstallFailAfterModLockWriteProbeRequested
           })
       }
       if (!thirdPartyVisibleOperationProbeRequested || thirdPartyRendererUiIpcInstallResultProbeRequested) {

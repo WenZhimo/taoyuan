@@ -2302,4 +2302,68 @@ describe('WebDataPackImportPreflightPanel', () => {
       wrapper.unmount()
     }
   })
+
+  it('rolls back Web visible uninstall when the probe fails after settings-lockfile write', async() => {
+    const packageId = 'web_panel_uninstall_failure_visible'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const restoreQuery = withWindowQuery(
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleUninstallProbe=1&taoyuanThirdPartyVisibleUninstallFailAfterModLockWrite=1'
+    )
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles: vi.fn(async() => createValidFiles(packageId)),
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe(`${packageId}:linen_ribbon`)
+
+      await wrapper.get(`[data-testid="web-mod-uninstall-${packageId}"]`).trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-uninstall-result"]').text())
+
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+      expect(wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).text()).toContain('禁用')
+      expect(wrapper.find(`[data-testid="web-mod-enable-${packageId}"]`).exists()).toBe(false)
+      expect(wrapper.get('[data-testid="web-mod-installed-management-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('卸载事务：已阻断')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('settings 未写入')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('mod-lock 未写入')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('startup 未写入')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('package 未删除')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('runtime commit 未确认')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('runtime 未排除')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('live registry 未切换')
+      expect(wrapper.get('[data-testid="web-mod-uninstall-result"]').text()).toContain('handoff 未接受')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe(`${packageId}:linen_ribbon`)
+      expect((await webSettingsLockfileStore.read()).record).toMatchObject({
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install',
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId]
+      })
+      expect(await persistenceStore.get('latest-web-file-picker-import')).not.toBeNull()
+      expect(wrapper.text()).not.toContain('C:/Users')
+      expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+      restoreQuery()
+    }
+  })
 })
