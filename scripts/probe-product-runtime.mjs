@@ -938,10 +938,8 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-archive-renderer-live-registry',
     cacheSeed: 'valid',
-    startupGateReady: true,
+    startupGateDefaultInstalledState: true,
     startupGateDisabled: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1672,10 +1670,8 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-renderer-live-registry',
     cacheSeed: 'valid',
-    startupGateReady: true,
+    startupGateDefaultInstalledState: true,
     startupGateDisabled: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1730,10 +1726,8 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-dependency-disable',
     cacheSeed: 'valid',
-    startupGateReady: true,
+    startupGateDefaultInstalledState: true,
     startupGateDisabled: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1791,10 +1785,8 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-archive-dependency-disable',
     cacheSeed: 'valid',
-    startupGateReady: true,
+    startupGateDefaultInstalledState: true,
     startupGateDisabled: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -3262,6 +3254,16 @@ const expectedStartupGatePackageIds = scenario =>
   scenario.visibleDependency
     ? expectedVisibleProbeSelectedPackageIds(scenario)
     : [scenario.startupGateTargetPackageId ?? 'sample_pack']
+
+const assertDefaultInstalledStateStartupUsesDefaultGate = scenario => {
+  if (!scenario.startupGateDefaultInstalledState) return
+  assert(
+    !scenario.startupGateReady
+      && !scenario.startupPersistentStateReady
+      && !scenario.startupPersistentStateUseInstalledState,
+    `${scenario.name}: default installed-state startup must not use startup probe flags`
+  )
+}
 
 const expectedRendererUiIpcPackageCount = scenario =>
   scenario.rendererUiIpcInstallResult
@@ -7383,6 +7385,7 @@ const runWebProbe = async () => {
   const { server, baseUrl } = await startWebServer()
   const reports = []
   const buildWebScenarioUrl = scenario => {
+    assertDefaultInstalledStateStartupUsesDefaultGate(scenario)
     const url = new URL(baseUrl)
     url.searchParams.set('taoyuanContentProbe', '1')
     if (scenario.startupGateReady) url.searchParams.set('taoyuanThirdPartyStartupGateProbe', '1')
@@ -7869,7 +7872,11 @@ const runWebProbe = async () => {
         const restartScenario = {
           ...disableScenario,
           name: `${scenario.name}:restart`,
+          startupGateDefaultInstalledState: true,
+          startupGateReady: false,
           startupGateDisabled: true,
+          startupPersistentStateReady: false,
+          startupPersistentStateUseInstalledState: false,
           visibleDisable: false
         }
         const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
@@ -7954,6 +7961,7 @@ const runWebProbe = async () => {
 }
 
 const runPackagedScenario = async (scenario, isolated) => {
+  assertDefaultInstalledStateStartupUsesDefaultGate(scenario)
   const scenarioRoot = path.join(runRoot, `electron-${scenario.dataRoot ?? scenario.name}`)
   const outputPath = path.join(runRoot, 'electron-reports', `${scenario.name}.json`)
   fs.mkdirSync(scenarioRoot, { recursive: true })
