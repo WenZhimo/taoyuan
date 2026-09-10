@@ -898,9 +898,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-archive-renderer-live-registry',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -977,9 +975,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-archive-renderer-live-registry',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1064,9 +1060,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-dependency-renderer-live-registry',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1088,9 +1082,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-renderer-live-registry',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1140,9 +1132,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-replacement',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1195,9 +1185,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-archive-replacement',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1254,9 +1242,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-dependency-replacement',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1319,9 +1305,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-archive-dependency-replacement',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1585,9 +1569,7 @@ const electronScenarios = [
     cacheWriteStatus: 'written',
     dataRoot: 'visible-import-renderer-live-registry',
     cacheSeed: 'corrupt',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -1828,9 +1810,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-archive-dependency-disable',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -2876,9 +2856,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-renderer-live-registry',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -2956,9 +2934,7 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-dependency-disable-enable',
     cacheSeed: 'valid',
-    startupGateReady: true,
-    startupPersistentStateReady: true,
-    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -3264,6 +3240,23 @@ const assertDefaultInstalledStateStartupUsesDefaultGate = scenario => {
     `${scenario.name}: default installed-state startup must not use startup probe flags`
   )
 }
+
+const withDefaultInstalledStateStartup = scenario => ({
+  ...scenario,
+  startupGateDefaultInstalledState: true,
+  startupGateReady: false,
+  startupPersistentStateReady: false,
+  startupPersistentStateUseInstalledState: false,
+  startupPersistentStateExpectsResponseDeliveryHandoff: false
+})
+
+const scenarioExpectsReadyStartupGate = scenario =>
+  !!scenario.startupGateReady
+  || (
+    !!scenario.startupGateDefaultInstalledState
+    && !scenario.startupGateDisabled
+    && !scenario.startupGateUninstalled
+  )
 
 const expectedRendererUiIpcPackageCount = scenario =>
   scenario.rendererUiIpcInstallResult
@@ -5577,7 +5570,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     assertDisabledInstalledStartupState(thirdPartyStartupGate, scenario)
   } else if (scenario.startupGateUninstalled) {
     assertUninstalledStartupState(thirdPartyStartupGate, scenario)
-  } else if (scenario.startupGateReady) {
+  } else if (scenarioExpectsReadyStartupGate(scenario)) {
     const expectedStartupGateRegistryCount =
       scenario.startupGateRegistryCount ?? defaultStartupGateRegistryCount
     const expectedStartupGateEntryCount =
@@ -5646,7 +5639,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     if (scenario.startupGateExpectedProductProbeVariant !== undefined) {
       assertStartupProductProbeContent(thirdPartyStartupGate, scenario)
     }
-    if (scenario.startupPersistentStateReady) {
+    if (scenario.startupPersistentStateReady || scenario.startupGateDefaultInstalledState) {
       assert(thirdPartyStartupGate.startupPersistentStateSourceStatus === 'ready',
         `${scenario.name}: startup persistent-state source was not ready`)
       assert(thirdPartyStartupGate.startupStateSnapshotAccepted === true,
@@ -5733,7 +5726,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     }
   }
   const expectsStartupGateUiIpcResponseDelivery =
-    !!scenario.startupGateReady
+    scenarioExpectsReadyStartupGate(scenario)
     && !!scenario.startupPersistentStateReady
     && scenario.startupPersistentStateExpectsResponseDeliveryHandoff !== false
   assert(
@@ -5879,7 +5872,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       assert(thirdPartyAppStartupHost.effects?.[effectName] === false,
         `${scenario.name}: uninstalled mounted app-startup effect ${effectName} was not false`)
     }
-  } else if (scenario.startupGateReady) {
+  } else if (scenarioExpectsReadyStartupGate(scenario)) {
     const expectsRealRuntimePublicationCommit =
       scenario.startupGateRealRuntimePublicationCommit !== false
     assert(thirdPartyAppStartupHost.status === 'accepted',
@@ -7555,13 +7548,13 @@ const runWebProbe = async () => {
           continue
         }
 
-        const restartScenario = {
+        const restartScenario = withDefaultInstalledStateStartup({
           ...upgradeScenario,
           name: `${scenario.name}:restart-v1_1`,
           visibleImportWebOrdinary: false,
           visibleUpgrade: false,
           startupGateExpectedProductProbeVariant: 'v2'
-        }
+        })
         const restartOutputPath = path.join(scenarioRoot, 'restart-v1_1-report.json')
         await runProcess(electronPath, [hostPath], {
           TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
@@ -7795,12 +7788,12 @@ const runWebProbe = async () => {
             continue
           }
 
-          const restartScenario = {
+          const restartScenario = withDefaultInstalledStateStartup({
             ...enableScenario,
             name: `${scenario.name}:restart`,
             startupGateDisabled: false,
             visibleEnable: false
-          }
+          })
           const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
           await runProcess(electronPath, [hostPath], {
             TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
@@ -7915,19 +7908,16 @@ const runWebProbe = async () => {
         assertRuntimeEnvelope(installEnvelope, installScenario, 'http:')
         assertWebProductSurface(installEnvelope, installScenario)
 
-        const startupScenario = {
+        const startupScenario = withDefaultInstalledStateStartup({
           ...scenario,
           name: `${scenario.name}:startup`,
-          startupGateReady: true,
-          startupPersistentStateReady: true,
-          startupPersistentStateUseInstalledState: true,
           startupGateRealRuntimePublicationCommit: true,
           startupGateRegistryCount: scenario.startupGateRegistryCount ?? 54,
           startupGateEntryCount: scenario.startupGateEntryCount ?? 4245,
           startupPersistentStateExpectsResponseDeliveryHandoff: false,
           visibleImportWebOrdinary: false,
           visibleImportInstalledStartupPersistentState: false
-        }
+        })
         const startupOutputPath = path.join(scenarioRoot, 'startup-report.json')
         await runProcess(electronPath, [hostPath], {
           TAOYUAN_RUNTIME_PROBE_OUTPUT: startupOutputPath,
