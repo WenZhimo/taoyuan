@@ -469,6 +469,38 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
+  it('routes Web visible dependency disable write-failure probes as blocked management runs', async() => {
+    const visibleDisableResult = {
+      status: 'blocked',
+      operation: 'disable',
+      targetPackageId: 'product_probe_pack',
+      dependencyPackageId: 'a_product_probe_library'
+    }
+    mocks.runThirdPartyVisibleDisableProductProbe.mockResolvedValueOnce(visibleDisableResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisableProbe=1&taoyuanThirdPartyVisibleDisableFailAfterModLockWrite=1&taoyuanThirdPartyVisibleDependencyProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleDisableProductProbe).toHaveBeenCalledWith({
+        targetPackageId: 'product_probe_pack',
+        includeDependency: true,
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyVisibleImportProductProbe).not.toHaveBeenCalled()
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleDisableResult
+      })
+    )
+  })
+
   it('routes Web visible uninstall write-failure probes as blocked management runs', async() => {
     const visibleUninstallResult = {
       status: 'blocked',
@@ -487,6 +519,38 @@ describe('main runtime probe entrypoint', () => {
     await vi.waitFor(() => {
       expect(mocks.runThirdPartyVisibleUninstallProductProbe).toHaveBeenCalledWith({
         targetPackageId: 'product_probe_pack',
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyVisibleImportProductProbe).not.toHaveBeenCalled()
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleUninstallResult
+      })
+    )
+  })
+
+  it('routes Web visible dependency uninstall write-failure probes as blocked management runs', async() => {
+    const visibleUninstallResult = {
+      status: 'blocked',
+      operation: 'uninstall',
+      targetPackageId: 'product_probe_pack',
+      dependencyPackageId: 'a_product_probe_library'
+    }
+    mocks.runThirdPartyVisibleUninstallProductProbe.mockResolvedValueOnce(visibleUninstallResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleUninstallProbe=1&taoyuanThirdPartyVisibleUninstallFailAfterModLockWrite=1&taoyuanThirdPartyVisibleDependencyProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleUninstallProductProbe).toHaveBeenCalledWith({
+        targetPackageId: 'product_probe_pack',
+        includeDependency: true,
         expectBlocked: true
       })
     })
@@ -518,6 +582,38 @@ describe('main runtime probe entrypoint', () => {
         entrypoint: 'main-menu-panel',
         operation: 'enable',
         persistSource: false
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
+
+  it('routes Web visible dependency enable write-failure probes as blocked management runs', async() => {
+    const visibleImportResult = {
+      status: 'blocked',
+      operation: 'enable',
+      dependencyPackageId: 'a_product_probe_library'
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleEnableProbe=1&taoyuanThirdPartyVisibleEnableFailAfterModLockWrite=1&taoyuanThirdPartyVisibleDependencyProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'enable',
+        persistSource: false,
+        includeDependency: true,
+        expectBlocked: true
       })
     })
     expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()

@@ -338,6 +338,23 @@ const webScenarios = [
     startupGateExpectedProductProbeVariant: 'v1'
   },
   {
+    name: 'visible-import-web-dependency-disable-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableSequence: true,
+    visibleDisableFailAfterModLockWrite: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-dependency-disable-then-restart',
     fault: null,
     source: 'precompiled',
@@ -443,6 +460,23 @@ const webScenarios = [
     startupGateExpectedProductProbeVariant: 'v1'
   },
   {
+    name: 'visible-import-web-dependency-uninstall-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledUninstallSequence: true,
+    visibleUninstallFailAfterModLockWrite: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-dependency-uninstall-then-restart',
     fault: null,
     source: 'precompiled',
@@ -478,6 +512,23 @@ const webScenarios = [
     startupPersistentStateSourceKind: 'web-indexeddb',
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack',
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
+    name: 'visible-import-web-dependency-enable-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisableEnableSequence: true,
+    visibleEnableFailAfterModLockWrite: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
     startupGateExpectedProductProbeVariant: 'v1'
   },
   {
