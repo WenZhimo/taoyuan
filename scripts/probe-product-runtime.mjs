@@ -646,6 +646,30 @@ const electronScenarios = [
     visibleImportRendererLiveRegistry: true
   },
   {
+    name: 'visible-import-install-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-install-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleInstallFailAfterModLockWrite: true
+  },
+  {
+    name: 'visible-import-install-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-install-write-failure',
+    cacheSeed: 'valid'
+  },
+  {
     name: 'visible-import-archive-renderer-live-registry',
     fault: null,
     source: 'disk-cache',
@@ -3538,113 +3562,156 @@ const assertVisibleImportBlockedUpgradeProductProbe = (visibleImport, scenario, 
 
 const assertVisibleImportBlockedInstallProductProbe = (visibleImport, scenario, protocol) => {
   const isAbsent = value => value === undefined || value === null
-  assert(protocol === 'http:',
-    `${scenario.name}: Web visible install write-failure rollback must run in the Web product host`)
+  assert(protocol === 'http:' || protocol === 'file:',
+    `${scenario.name}: visible install write-failure rollback ran on an unsupported protocol`)
   assert(visibleImport.observed === true,
-    `${scenario.name}: Web visible install write-failure rollback was not observed`)
+    `${scenario.name}: visible install write-failure rollback was not observed`)
   assert(visibleImport.status === 'blocked',
-    `${scenario.name}: Web visible install write-failure rollback did not block`)
+    `${scenario.name}: visible install write-failure rollback did not block`)
   assert(visibleImport.operation === 'install',
-    `${scenario.name}: Web visible install write-failure rollback reported the wrong operation`)
+    `${scenario.name}: visible install write-failure rollback reported the wrong operation`)
   assert(visibleImport.entrypoint === 'main-menu-panel',
-    `${scenario.name}: Web visible install write-failure rollback did not start from the MainMenu panel`)
+    `${scenario.name}: visible install write-failure rollback did not start from the MainMenu panel`)
   assert(visibleImport.mainMenuPanelOpened === true,
-    `${scenario.name}: Web visible install write-failure rollback did not open the MainMenu panel`)
+    `${scenario.name}: visible install write-failure rollback did not open the MainMenu panel`)
   assert(visibleImport.panelImportButtonClicked === true,
-    `${scenario.name}: Web visible install write-failure rollback did not click import`)
+    `${scenario.name}: visible install write-failure rollback did not click import`)
   assert(visibleImport.archiveImportButtonClicked === !!scenario.visibleArchiveImport,
-    `${scenario.name}: Web visible install write-failure rollback archive button state was unexpected`)
+    `${scenario.name}: visible install write-failure rollback archive button state was unexpected`)
   assert(visibleImport.defaultFileInputSelectorUsed === true,
-    `${scenario.name}: Web visible install write-failure rollback did not use the default file input selector`)
-  const labels = visibleImport.panelStatusLabels
-  assert(labels?.importStatus === '已暂存',
-    `${scenario.name}: Web visible install rollback panel did not show persisted import status`)
-  assert(labels.targetPackage === visibleProbePackageId,
-    `${scenario.name}: Web visible install rollback panel did not show the target package`)
-  assert(labels.preflightStatus === 'deferred',
-    `${scenario.name}: Web visible install rollback panel did not show deferred preflight status`)
-  assert(labels.dispatchStatus === 'dispatched',
-    `${scenario.name}: Web visible install rollback panel did not show dispatched command status`)
-  assert(labels.persistenceStatus === '已写入 IndexedDB',
-    `${scenario.name}: Web visible install rollback panel did not show IndexedDB persistence`)
-  assert(labels.hostAckStatus === '已确认（Web）',
-    `${scenario.name}: Web visible install rollback panel did not show Web host acknowledgement`)
-  assert(labels.installOutcomeStatus === '等待事务主机',
-    `${scenario.name}: Web visible install rollback panel did not show writer-host block`)
-  assert(labels.uiIpcDeliveryStatus === '未运行',
-    `${scenario.name}: Web visible install rollback unexpectedly delivered UI/IPC`)
-  assert(labels.runtimePublicationStatus === '未运行',
-    `${scenario.name}: Web visible install rollback unexpectedly published runtime content`)
-  assert(labels.liveRegistryStatus === '未运行',
-    `${scenario.name}: Web visible install rollback unexpectedly swapped live registry`)
-  assert(labels.appStartupStatus === '未运行',
-    `${scenario.name}: Web visible install rollback unexpectedly handed off app startup`)
-  assert(labels.startupPersistentStateStatus === '未运行',
-    `${scenario.name}: Web visible install rollback unexpectedly wrote startup state`)
-  assert(visibleImport.targetPackageId === visibleProbePackageId,
-    `${scenario.name}: Web visible install write-failure rollback reported the wrong package`)
-  assert(visibleImport.itemId === visibleProbeItemId,
-    `${scenario.name}: Web visible install write-failure rollback reported the wrong item`)
-  assert(visibleImport.recipeId === visibleProbeRecipeId,
-    `${scenario.name}: Web visible install write-failure rollback reported the wrong recipe`)
-  assert(visibleImport.shopOfferId === visibleProbeShopOfferId,
-    `${scenario.name}: Web visible install write-failure rollback reported the wrong shop offer`)
-  assert(visibleImport.expectedPackageVersion === visibleProbePackageFixtures.v1.version,
-    `${scenario.name}: Web visible install write-failure rollback attempted the wrong package version`)
-  assert(visibleImport.fileCount === expectedVisibleProbeFileCount(scenario),
-    `${scenario.name}: Web visible install write-failure rollback used the wrong file count`)
-  assert(visibleImport.pickStatus === 'persisted',
-    `${scenario.name}: Web visible install write-failure rollback source was not persisted before rollback`)
-  assert(visibleImport.dispatchPreflightStatus === 'deferred',
-    `${scenario.name}: Web visible install write-failure rollback dispatch preflight was not deferred`)
-  assert(visibleImport.discoveryStatus === 'completed',
-    `${scenario.name}: Web visible install write-failure rollback discovery was not completed`)
-  assert(visibleImport.transactionCommandDispatcherHostKind === 'web',
-    `${scenario.name}: Web visible install write-failure rollback did not use the Web dispatcher host`)
-  assert(visibleImport.transactionCommandDispatcherSourceStatus === 'dispatched',
-    `${scenario.name}: Web visible install write-failure rollback command was not dispatched`)
-  assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'blocked',
-    `${scenario.name}: Web visible install write-failure rollback acknowledgement was not blocked`)
-  assert(visibleImport.webPlatformWriterHostConnectionStatus === 'blocked',
-    `${scenario.name}: Web visible install write-failure rollback did not report blocked Web writer host`)
-  for (const [value, label] of [
-    [visibleImport.postCommitVerificationExecutorHostMode, 'post-commit verification host'],
-    [visibleImport.postCommitUiIpcDeliveryContinuationStatus, 'UI/IPC delivery continuation'],
-    [visibleImport.ordinaryInstallTransactionTerminalConnectionStatus, 'ordinary terminal'],
-    [visibleImport.ordinaryInstallTransactionOutcomeKind, 'ordinary terminal outcome'],
-    [visibleImport.installTransactionLogPreparedStatus, 'transaction log preparation'],
-    [visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus, 'transaction log read verification'],
-    [visibleImport.installTransactionCommitFinalizationStatus, 'transaction finalization'],
-    [visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus, 'runtime publication'],
-    [visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus, 'live registry swap'],
-    [visibleImport.runtimePublicationCommitAppStartupReadinessStatus, 'app-startup readiness'],
-    [visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus, 'app-startup handoff']
-  ]) {
-    assert(isAbsent(value),
-      `${scenario.name}: Web visible install write-failure rollback unexpectedly reached ${label}`)
+    `${scenario.name}: visible install write-failure rollback did not use the default file input selector`)
+  if (protocol === 'http:') {
+    const labels = visibleImport.panelStatusLabels
+    assert(labels?.importStatus === '已暂存',
+      `${scenario.name}: Web visible install rollback panel did not show persisted import status`)
+    assert(labels.targetPackage === visibleProbePackageId,
+      `${scenario.name}: Web visible install rollback panel did not show the target package`)
+    assert(labels.preflightStatus === 'deferred',
+      `${scenario.name}: Web visible install rollback panel did not show deferred preflight status`)
+    assert(labels.dispatchStatus === 'dispatched',
+      `${scenario.name}: Web visible install rollback panel did not show dispatched command status`)
+    assert(labels.persistenceStatus === '已写入 IndexedDB',
+      `${scenario.name}: Web visible install rollback panel did not show IndexedDB persistence`)
+    assert(labels.hostAckStatus === '已确认（Web）',
+      `${scenario.name}: Web visible install rollback panel did not show Web host acknowledgement`)
+    assert(labels.installOutcomeStatus === '等待事务主机',
+      `${scenario.name}: Web visible install rollback panel did not show writer-host block`)
+    assert(labels.uiIpcDeliveryStatus === '未运行',
+      `${scenario.name}: Web visible install rollback unexpectedly delivered UI/IPC`)
+    assert(labels.runtimePublicationStatus === '未运行',
+      `${scenario.name}: Web visible install rollback unexpectedly published runtime content`)
+    assert(labels.liveRegistryStatus === '未运行',
+      `${scenario.name}: Web visible install rollback unexpectedly swapped live registry`)
+    assert(labels.appStartupStatus === '未运行',
+      `${scenario.name}: Web visible install rollback unexpectedly handed off app startup`)
+    assert(labels.startupPersistentStateStatus === '未运行',
+      `${scenario.name}: Web visible install rollback unexpectedly wrote startup state`)
+  } else {
+    assertVisibleImportRollbackPanelLabels(visibleImport, scenario)
   }
-  assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
-    `${scenario.name}: Web visible install write-failure rollback wrote Web startup state`)
-  assert(isAbsent(visibleImport.electronStartupPersistentStateWriteStatus),
-    `${scenario.name}: Web visible install write-failure rollback reported Electron startup persistence`)
-  assertVisibleImportPackageSelection(visibleImport, scenario, 'Web visible install write-failure rollback')
-  assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 1,
-    `${scenario.name}: Web visible install write-failure rollback diagnostics count was invalid`)
+  assert(visibleImport.targetPackageId === visibleProbePackageId,
+    `${scenario.name}: visible install write-failure rollback reported the wrong package`)
+  assert(visibleImport.itemId === visibleProbeItemId,
+    `${scenario.name}: visible install write-failure rollback reported the wrong item`)
+  assert(visibleImport.recipeId === visibleProbeRecipeId,
+    `${scenario.name}: visible install write-failure rollback reported the wrong recipe`)
+  assert(visibleImport.shopOfferId === visibleProbeShopOfferId,
+    `${scenario.name}: visible install write-failure rollback reported the wrong shop offer`)
+  assert(visibleImport.expectedPackageVersion === visibleProbePackageFixtures.v1.version,
+    `${scenario.name}: visible install write-failure rollback attempted the wrong package version`)
+  assert(visibleImport.fileCount === expectedVisibleProbeFileCount(scenario),
+    `${scenario.name}: visible install write-failure rollback used the wrong file count`)
+  assert(visibleImport.pickStatus === 'persisted',
+    `${scenario.name}: visible install write-failure rollback source was not persisted before rollback`)
+  assert(visibleImport.dispatchPreflightStatus === 'deferred',
+    `${scenario.name}: visible install write-failure rollback dispatch preflight was not deferred`)
+  assert(visibleImport.discoveryStatus === 'completed',
+    `${scenario.name}: visible install write-failure rollback discovery was not completed`)
+  const expectedDispatcherHostKind = protocol === 'http:' ? 'web' : 'renderer'
+  assert(visibleImport.transactionCommandDispatcherHostKind === expectedDispatcherHostKind,
+    `${scenario.name}: visible install write-failure rollback did not use the ${expectedDispatcherHostKind} dispatcher host`)
+  assert(visibleImport.transactionCommandDispatcherSourceStatus === 'dispatched',
+    `${scenario.name}: visible install write-failure rollback command was not dispatched`)
+  if (protocol === 'http:') {
+    assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'blocked',
+      `${scenario.name}: Web visible install write-failure rollback acknowledgement was not blocked`)
+    assert(visibleImport.webPlatformWriterHostConnectionStatus === 'blocked',
+      `${scenario.name}: Web visible install write-failure rollback did not report blocked Web writer host`)
+    for (const [value, label] of [
+      [visibleImport.postCommitVerificationExecutorHostMode, 'post-commit verification host'],
+      [visibleImport.postCommitUiIpcDeliveryContinuationStatus, 'UI/IPC delivery continuation'],
+      [visibleImport.ordinaryInstallTransactionTerminalConnectionStatus, 'ordinary terminal'],
+      [visibleImport.ordinaryInstallTransactionOutcomeKind, 'ordinary terminal outcome'],
+      [visibleImport.installTransactionLogPreparedStatus, 'transaction log preparation'],
+      [visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus, 'transaction log read verification'],
+      [visibleImport.installTransactionCommitFinalizationStatus, 'transaction finalization'],
+      [visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus, 'runtime publication'],
+      [visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus, 'live registry swap'],
+      [visibleImport.runtimePublicationCommitAppStartupReadinessStatus, 'app-startup readiness'],
+      [visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus, 'app-startup handoff']
+    ]) {
+      assert(isAbsent(value),
+        `${scenario.name}: Web visible install write-failure rollback unexpectedly reached ${label}`)
+    }
+    assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
+      `${scenario.name}: Web visible install write-failure rollback wrote Web startup state`)
+    assert(isAbsent(visibleImport.electronStartupPersistentStateWriteStatus),
+      `${scenario.name}: Web visible install write-failure rollback reported Electron startup persistence`)
+  } else {
+    assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'ready',
+      `${scenario.name}: Electron visible install write-failure rollback post-commit acknowledgement was not ready`)
+    assert(visibleImport.postCommitVerificationExecutorHostMode === 'electron-main-visible-import',
+      `${scenario.name}: Electron visible install write-failure rollback did not use the Electron visible-import post-commit host`)
+    assert(visibleImport.postCommitUiIpcDeliveryContinuationStatus === 'ready',
+      `${scenario.name}: Electron visible install write-failure rollback UI/IPC continuation was not ready`)
+    assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === 'ready',
+      `${scenario.name}: Electron visible install write-failure rollback ordinary terminal was not ready`)
+    assert(visibleImport.ordinaryInstallTransactionOutcomeKind === 'rollback',
+      `${scenario.name}: Electron visible install write-failure rollback ordinary terminal did not report rollback outcome`)
+    assert(visibleImport.installTransactionLogPreparedStatus === undefined,
+      `${scenario.name}: Electron visible install write-failure rollback should not prepare the transaction log`)
+    assert(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus === undefined,
+      `${scenario.name}: Electron visible install write-failure rollback should not read the transaction log`)
+    assert(visibleImport.installTransactionCommitFinalizationStatus === undefined,
+      `${scenario.name}: Electron visible install write-failure rollback should not finalize the transaction`)
+    assert(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus === undefined,
+      `${scenario.name}: Electron visible install write-failure rollback should not publish runtime content`)
+    assert(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === undefined,
+      `${scenario.name}: Electron visible install write-failure rollback should not swap the live registry`)
+    assert(visibleImport.runtimePublicationCommitAppStartupReadinessStatus === undefined,
+      `${scenario.name}: Electron visible install write-failure rollback should not prepare app-startup readiness`)
+    assert(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus === undefined,
+      `${scenario.name}: Electron visible install write-failure rollback should not hand off to app startup`)
+    assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
+      `${scenario.name}: Electron visible install write-failure rollback should not write Web startup persistent state`)
+    assert(visibleImport.electronStartupPersistentStateWriteStatus === 'blocked',
+      `${scenario.name}: Electron visible install write-failure rollback did not report blocked startup persistence`)
+  }
+  assertVisibleImportPackageSelection(visibleImport, scenario, 'visible install write-failure rollback')
+  const minimumDiagnosticsCount = protocol === 'http:' ? 1 : 0
+  assert(Number.isSafeInteger(visibleImport.diagnosticsCount)
+    && visibleImport.diagnosticsCount >= minimumDiagnosticsCount,
+  `${scenario.name}: visible install write-failure rollback diagnostics count was invalid`)
   assert(visibleImport.contentAccessItemVisibleBefore === false,
-    `${scenario.name}: Web visible install write-failure rollback started with imported item visible`)
+    `${scenario.name}: visible install write-failure rollback started with imported item visible`)
   assert(visibleImport.contentAccessItemVisibleAfter === false,
-    `${scenario.name}: Web visible install write-failure rollback exposed the failed item`)
+    `${scenario.name}: visible install write-failure rollback exposed the failed item`)
   assert(visibleImport.contentAccessRecipeVisibleBefore === false,
-    `${scenario.name}: Web visible install write-failure rollback started with imported recipe visible`)
+    `${scenario.name}: visible install write-failure rollback started with imported recipe visible`)
   assert(visibleImport.contentAccessRecipeVisibleAfter === false,
-    `${scenario.name}: Web visible install write-failure rollback exposed the failed recipe`)
+    `${scenario.name}: visible install write-failure rollback exposed the failed recipe`)
   assert(visibleImport.contentAccessShopOfferVisibleBefore === false,
-    `${scenario.name}: Web visible install write-failure rollback started with imported shop offer visible`)
+    `${scenario.name}: visible install write-failure rollback started with imported shop offer visible`)
   assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
-    `${scenario.name}: Web visible install write-failure rollback exposed the failed shop offer`)
-  assert(visibleImport.effects?.commandDispatched === true,
-    `${scenario.name}: Web visible install write-failure rollback did not dispatch the command`)
-  for (const effectName of [
+    `${scenario.name}: visible install write-failure rollback exposed the failed shop offer`)
+  const expectedTrueEffects = protocol === 'http:'
+    ? ['commandDispatched']
+    : ['commandDispatched', 'uiIpcResponseDelivered', 'rollbackExecuted']
+  for (const effectName of expectedTrueEffects) {
+    assert(visibleImport.effects?.[effectName] === true,
+      `${scenario.name}: visible install write-failure rollback effect ${effectName} was not true`)
+  }
+  const expectedFalseEffects = [
     'realWebPlatformWriterHostCalled',
     'packageFilesWritten',
     'settingsWritten',
@@ -3653,7 +3720,6 @@ const assertVisibleImportBlockedInstallProductProbe = (visibleImport, scenario, 
     'runtimeEnablementAllowed',
     'realRuntimePublicationCommitCalled',
     'runtimePublicationCommitted',
-    'uiIpcResponseDelivered',
     'transactionCommitted',
     'transactionLogPrepared',
     'transactionLogRead',
@@ -3666,11 +3732,12 @@ const assertVisibleImportBlockedInstallProductProbe = (visibleImport, scenario, 
     'savesWritten',
     'cacheWritten',
     'transactionLogWritten',
-    'rollbackExecuted',
-    'diagnosticsWritten'
-  ]) {
+    'diagnosticsWritten',
+    ...(protocol === 'http:' ? ['uiIpcResponseDelivered', 'rollbackExecuted'] : [])
+  ]
+  for (const effectName of expectedFalseEffects) {
     assert(visibleImport.effects?.[effectName] === false,
-      `${scenario.name}: Web visible install write-failure rollback effect ${effectName} was not false`)
+      `${scenario.name}: visible install write-failure rollback effect ${effectName} was not false`)
   }
 }
 
@@ -7141,12 +7208,13 @@ const runPackagedScenario = async (scenario, isolated) => {
   const exercisesVisibleUpgrade = !!scenario.visibleUpgrade
   const exercisesVisibleRollback = !!scenario.visibleImportRollback
   const exercisesVisibleFailure = !!scenario.visibleImportFailure
+  const exercisesVisibleInstallWriteFailure = !!scenario.visibleInstallFailAfterModLockWrite
   const exercisesVisibleInitialImport =
     !!scenario.visibleImportRendererLiveRegistry && !exercisesVisibleUpgrade
   const exercisesVisibleImport =
     !!scenario.visibleImportRendererLiveRegistry || !!scenario.visibleEnable || exercisesVisibleUpgrade
   const exercisesPackageFileRestore =
-    !!scenario.packageFileRestore || exercisesVisibleRollback
+    !!scenario.packageFileRestore || exercisesVisibleRollback || exercisesVisibleInstallWriteFailure
   const exercisesVisibleDisable = !!scenario.visibleDisable
   const exercisesVisibleUninstall = !!scenario.visibleUninstall
   const exercisesSettingsOrLockfileWrite =
@@ -7241,6 +7309,7 @@ const runPackagedScenario = async (scenario, isolated) => {
       || scenario.visibleEnable
       || exercisesVisibleUpgrade
       || exercisesVisibleFailure
+      || exercisesVisibleInstallWriteFailure
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT: '1' }
       : {}),
     ...(exercisesVisibleRollback
@@ -7254,6 +7323,9 @@ const runPackagedScenario = async (scenario, isolated) => {
       : {}),
     ...(scenario.visibleArchiveImport
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ARCHIVE_IMPORT: '1' }
+      : {}),
+    ...(exercisesVisibleInstallWriteFailure
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_INSTALL_FAIL_AFTER_MOD_LOCK_WRITE: '1' }
       : {}),
     ...(scenario.visibleEnable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE: '1' }
@@ -7345,7 +7417,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     isolated
   )
   assertOfficialCacheFile(userDataPath, scenario.name)
-  if (exercisesSettingsOrLockfileWrite) {
+  if (exercisesSettingsOrLockfileWrite && !exercisesVisibleInstallWriteFailure) {
     const lockfileAfter = fileFingerprint(lockfilePath)
     if (scenario.modLockWriteRead) {
       assert(lockfileBefore.exists === false, `${scenario.name}: mod-lock file existed before write/read probe`)
@@ -7384,7 +7456,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     if (
       scenario.settingsLockfileWriteRead
       || scenario.installTransactionCommitFinalization
-      || scenario.visibleImportRendererLiveRegistry
+      || (scenario.visibleImportRendererLiveRegistry && !exercisesVisibleInstallWriteFailure)
       || scenario.visibleEnable
       || scenario.visibleDisable
       || scenario.visibleUninstall
@@ -7960,7 +8032,7 @@ const runPackagedScenario = async (scenario, isolated) => {
         `${scenario.name}: package file payload leaked an absolute path`)
     }
   }
-  if (exercisesVisibleRollback || exercisesVisibleFailure) {
+  if (exercisesVisibleRollback || exercisesVisibleFailure || exercisesVisibleInstallWriteFailure) {
     const startupStatePath = path.join(
       userDataPath,
       'mod-startup-state',
@@ -7971,9 +8043,10 @@ const runPackagedScenario = async (scenario, isolated) => {
   }
   if (
     !scenario.visibleUpgradeFailAfterModLockWrite
+    && !exercisesVisibleInstallWriteFailure
     && (
       scenario.installTransactionCommitFinalization
-      || scenario.visibleImportRendererLiveRegistry
+      || (scenario.visibleImportRendererLiveRegistry && !exercisesVisibleInstallWriteFailure)
       || exercisesVisibleUpgrade
     )
   ) {

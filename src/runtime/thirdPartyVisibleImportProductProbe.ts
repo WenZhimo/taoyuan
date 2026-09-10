@@ -1125,7 +1125,9 @@ const runMainMenuPanelImportProbe = async(
           operation === 'rollback'
             ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
           : operation === 'install' && options.expectBlocked === true
-            ? hasBlockedVisibleImportWebWriterPanelLabels(readyDispatchResult, labels)
+            ? window.location.protocol === 'file:'
+              ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
+              : hasBlockedVisibleImportWebWriterPanelLabels(readyDispatchResult, labels)
           : operation === 'upgrade' && options.expectBlocked === true
             ? hasBlockedVisibleImportUpgradePanelLabels(readyDispatchResult, labels)
           : operation === 'failure'
