@@ -1,6 +1,6 @@
 import { Buffer } from 'node:buffer'
 import { randomUUID } from 'node:crypto'
-import { mkdir, open, readFile, readdir, rename, stat, unlink } from 'node:fs/promises'
+import { mkdir, open, readFile, readdir, rename, rmdir, stat, unlink } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 import { assertPureJsonValue, type JsonValue } from './canonicalJson'
@@ -178,6 +178,7 @@ export interface ThirdPartyDataPackPackageFilePersistentWriteProbeFileSystem {
   readFile: typeof readFile
   readdir: typeof readdir
   rename: typeof rename
+  rmdir: typeof rmdir
   stat: typeof stat
   unlink: typeof unlink
 }
@@ -339,6 +340,7 @@ const fileSystem = (
   readFile,
   readdir,
   rename,
+  rmdir,
   stat,
   unlink,
   ...options?.fileSystem
@@ -939,6 +941,14 @@ const isNotFound = (error: unknown): boolean =>
   && 'code' in error
   && (error as { code?: unknown }).code === 'ENOENT'
 
+const isExpectedEmptyDirectoryCleanupStop = (error: unknown): boolean =>
+  error !== null
+  && typeof error === 'object'
+  && 'code' in error
+  && ['ENOENT', 'ENOTEMPTY', 'EEXIST', 'ENOTDIR'].includes(
+    String((error as { code?: unknown }).code)
+  )
+
 const isTemporaryName = (name: string): boolean => name.startsWith(TEMP_FILE_PREFIX)
 
 export const resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths = (
@@ -1095,6 +1105,34 @@ const writePackageFiles = async(
   return Object.freeze(writtenFiles)
 }
 
+const isSameDirectoryOrChild = (basePath: string, candidatePath: string): boolean =>
+  candidatePath === basePath || candidatePath.startsWith(`${basePath}${path.sep}`)
+
+const removeEmptyCreatedParentDirectories = async(
+  fs: ThirdPartyDataPackPackageFilePersistentWriteProbeFileSystem,
+  paths: ThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths,
+  targetPath: string
+): Promise<void> => {
+  const packageDirectoryPath = path.resolve(paths.packageDirectoryPath)
+  const modsDirectoryPath = path.resolve(paths.modsDirectoryPath)
+  let currentDirectoryPath = path.resolve(path.dirname(targetPath))
+  while (
+    currentDirectoryPath !== modsDirectoryPath
+    && isSameDirectoryOrChild(packageDirectoryPath, currentDirectoryPath)
+  ) {
+    try {
+      await fs.rmdir(currentDirectoryPath)
+    } catch (error) {
+      if (!isExpectedEmptyDirectoryCleanupStop(error)) throw error
+      return
+    }
+    if (currentDirectoryPath === packageDirectoryPath) return
+    const parentDirectoryPath = path.dirname(currentDirectoryPath)
+    if (parentDirectoryPath === currentDirectoryPath) return
+    currentDirectoryPath = parentDirectoryPath
+  }
+}
+
 const restorePackageFiles = async(
   paths: ThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths,
   writtenFiles: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeWrittenFile[],
@@ -1121,6 +1159,7 @@ const restorePackageFiles = async(
     } catch (error) {
       if (!isNotFound(error)) throw error
     }
+    await removeEmptyCreatedParentDirectories(fs, paths, targetPath)
     restoredFiles.push({
       path: file.path,
       restoredFromBackup: false,

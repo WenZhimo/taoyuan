@@ -125,6 +125,15 @@ const webScenarios = [
     visibleInstallFailAfterModLockWrite: true
   },
   {
+    name: 'visible-import-web-dependency-install-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportWebOrdinary: true,
+    visibleInstallFailAfterModLockWrite: true,
+    visibleDependency: true
+  },
+  {
     name: 'visible-import-web-archive-installed-startup-persistent-state',
     fault: null,
     source: 'precompiled',
@@ -667,6 +676,31 @@ const electronScenarios = [
     cacheStatus: 'disk-cache-fast-hit',
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-install-write-failure',
+    cacheSeed: 'valid'
+  },
+  {
+    name: 'visible-import-dependency-install-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-install-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleInstallFailAfterModLockWrite: true,
+    visibleDependency: true
+  },
+  {
+    name: 'visible-import-dependency-install-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-install-write-failure',
     cacheSeed: 'valid'
   },
   {
@@ -3113,18 +3147,26 @@ const assertVisibleImportProductContent = (visibleImport, scenario) => {
 const assertVisibleImportDependencyContent = (visibleImport, scenario) => {
   if (!scenario.visibleDependency) return
   const expectedDependencyVisibleBefore = !!scenario.visibleUpgrade
+  const expectedDependencyVisibleAfter = scenario.visibleInstallFailAfterModLockWrite
+    ? false
+    : true
   assert(visibleImport.dependencyPackageId === visibleProbeDependencyPackageId,
     `${scenario.name}: visible import dependency package id mismatch`)
   assert(visibleImport.dependencyItemId === visibleProbeDependencyItemId,
     `${scenario.name}: visible import dependency item id mismatch`)
-  assert(visibleImport.dependencyItemNameFallback === visibleProbeDependencyItemNameFallback,
-    `${scenario.name}: visible import dependency item fallback mismatch`)
+  if (expectedDependencyVisibleAfter) {
+    assert(visibleImport.dependencyItemNameFallback === visibleProbeDependencyItemNameFallback,
+      `${scenario.name}: visible import dependency item fallback mismatch`)
+  } else {
+    assert(visibleImport.dependencyItemNameFallback === undefined,
+      `${scenario.name}: visible import dependency item fallback should be absent after rollback`)
+  }
   assert(
     visibleImport.contentAccessDependencyItemVisibleBefore === expectedDependencyVisibleBefore,
     `${scenario.name}: visible import dependency item visibility before import was unexpected`
   )
-  assert(visibleImport.contentAccessDependencyItemVisibleAfter === true,
-    `${scenario.name}: visible import dependency item was not visible after import`)
+  assert(visibleImport.contentAccessDependencyItemVisibleAfter === expectedDependencyVisibleAfter,
+    `${scenario.name}: visible import dependency item visibility after import was unexpected`)
 }
 
 const assertVisibleImportPackageSelection = (visibleImport, scenario, label) => {
@@ -6700,7 +6742,8 @@ const runWebProbe = async () => {
           ...scenario,
           name: `${scenario.name}:restart`,
           visibleImportWebOrdinary: false,
-          visibleInstallFailAfterModLockWrite: false
+          visibleInstallFailAfterModLockWrite: false,
+          visibleDependency: false
         }
         const restartOutputPath = path.join(scenarioRoot, 'restart-report.json')
         await runProcess(electronPath, [hostPath], {
@@ -8031,6 +8074,10 @@ const runPackagedScenario = async (scenario, isolated) => {
       assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify({ manifestJson, itemsJson })),
         `${scenario.name}: package file payload leaked an absolute path`)
     }
+  }
+  if (exercisesVisibleInstallWriteFailure && scenario.visibleDependency) {
+    assert(fs.existsSync(preservedDependencyPackageRoot) === false,
+      `${scenario.name}: dependency install failure left the dependency package root on disk`)
   }
   if (exercisesVisibleRollback || exercisesVisibleFailure || exercisesVisibleInstallWriteFailure) {
     const startupStatePath = path.join(

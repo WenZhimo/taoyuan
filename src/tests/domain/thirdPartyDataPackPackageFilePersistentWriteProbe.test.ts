@@ -560,6 +560,72 @@ describe('third-party package file persistent write probe', () => {
     expectJsonGraphFrozen(restoreResult)
   }, 30_000)
 
+  it('removes newly-created dependency package directories during install rollback', async() => {
+    const root = await createRoot()
+    const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
+      programDirectoryPath: root
+    })
+    const libraryPackagePath = 'a-product-probe-library'
+    const targetPackagePath = 'product-probe-pack'
+    const targetPackageId = 'product_probe_pack' as PackageId
+    const libraryPaths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(
+      root,
+      libraryPackagePath
+    )
+    const targetPaths = resolveThirdPartyDataPackPackageFilePersistentWriteProbeStoragePaths(
+      root,
+      targetPackagePath
+    )
+    const libraryManifestPath = path.join(libraryPaths.packageDirectoryPath, 'manifest.json')
+    const targetManifestPath = path.join(targetPaths.packageDirectoryPath, 'manifest.json')
+    const targetItemPath = path.join(targetPaths.packageDirectoryPath, 'data', 'items.json')
+    const targetPreviousManifest = '{"id":"product_probe_pack","version":"previous"}\n'
+    const libraryManifest = '{"id":"a_product_probe_library","version":"1.0.0"}\n'
+    const libraryItems = '[{"id":"a_product_probe_library:library_token"}]\n'
+    const targetManifest = '{"id":"product_probe_pack","version":"1.0.0"}\n'
+    const targetItems = '[{"id":"product_probe_pack:linen_ribbon"}]\n'
+    const preparedFile = (filePath: string, contents: string) => ({
+      path: filePath,
+      contents,
+      sha256: sha256Utf8(contents),
+      bytes: contents.length
+    })
+    await mkdir(path.dirname(targetManifestPath), { recursive: true })
+    await writeFile(targetManifestPath, targetPreviousManifest, 'utf8')
+
+    const libraryWrite = await storage.write(libraryPackagePath, [
+      preparedFile('manifest.json', libraryManifest),
+      preparedFile('data/items.json', libraryItems)
+    ])
+    const targetWrite = await storage.write(targetPackagePath, [
+      preparedFile('manifest.json', targetManifest),
+      preparedFile('data/items.json', targetItems)
+    ])
+    const restoreResult = await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
+      packageId: targetPackageId,
+      writtenFiles: [
+        ...libraryWrite.report.writtenFiles,
+        ...targetWrite.report.writtenFiles
+      ],
+      storage,
+      allowPersistentRestoreProbe: true
+    })
+
+    expect(libraryWrite.report.status).toBe('written')
+    expect(targetWrite.report.status).toBe('written')
+    expect(await readFile(targetManifestPath, 'utf8')).toBe(targetPreviousManifest)
+    await expect(readFile(targetItemPath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+    await expect(readFile(libraryManifestPath, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' })
+    await expect(readdir(libraryPaths.packageDirectoryPath)).rejects.toMatchObject({ code: 'ENOENT' })
+    expect(restoreResult.status).toBe('restored')
+    expect(restoreResult.restoredFileCount).toBe(4)
+    expect(restoreResult.backupRestoredFileCount).toBe(1)
+    expect(restoreResult.removedCreatedFileCount).toBe(3)
+    expect(restoreResult.effects.packageFilesRestored).toBe(true)
+    expect(restoreResult.effects.rollbackExecuted).toBe(true)
+    expectJsonGraphFrozen(restoreResult)
+  }, 30_000)
+
   it('restores legacy package-id written file evidence when candidate package path is absent', async() => {
     const root = await createRoot()
     const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
