@@ -4815,6 +4815,7 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
       'runtimePublicationCommitted',
       'transactionCommitted',
       'startupPersistentStateWritten',
+      'realElectronSettingsLockfilePersistentWriterHostCalled',
       'realAppStartupHostCalled',
       'gameAppCreated',
       'piniaCreated',
@@ -5184,6 +5185,7 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
   }
   for (const effectName of [
     'packageFilesWritten',
+    'realElectronSettingsLockfilePersistentWriterHostCalled',
     'runtimeEnablementAllowed',
     'transactionLogPrepared',
     'transactionLogRead',
@@ -6213,6 +6215,12 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: Electron visible import should not write Web startup persistent state`)
     assert(visibleImport.electronStartupPersistentStateWriteStatus === 'written',
       `${scenario.name}: Electron visible import did not write Electron startup persistent state`)
+    assert(visibleImport.electronSettingsLockfileLifecycleStatus === 'ready',
+      `${scenario.name}: Electron visible import settings/mod-lock lifecycle was not ready`)
+    assert(visibleImport.electronSettingsLockfilePersistentWriterSourceStatus === 'written',
+      `${scenario.name}: Electron visible import settings/mod-lock persistent writer did not write`)
+    assert(visibleImport.electronPersistentSettingsLockfileWriteExecuted === true,
+      `${scenario.name}: Electron visible import did not execute persistent settings/mod-lock write`)
     assertVisibleImportPackageSelection(visibleImport, scenario, 'visible import')
     assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
       `${scenario.name}: visible import diagnostics count was invalid`)
@@ -6242,6 +6250,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       'transactionLogPrepared',
       'transactionLogRead',
       'startupPersistentStateWritten',
+      'realElectronSettingsLockfilePersistentWriterHostCalled',
       'realNormalStartupHostCalled',
       'realAppStartupHostCalled',
       'gameAppCreated',
@@ -6326,6 +6335,16 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: Web visible import did not write startup persistent state`)
     assert(visibleImport.electronStartupPersistentStateWriteStatus !== 'written',
       `${scenario.name}: Web visible import should not write Electron startup persistent state`)
+    assert(
+      visibleImport.electronSettingsLockfileLifecycleStatus === undefined
+        || visibleImport.electronSettingsLockfileLifecycleStatus === null,
+      `${scenario.name}: Web visible import should not expose Electron settings/mod-lock lifecycle`)
+    assert(
+      visibleImport.electronSettingsLockfilePersistentWriterSourceStatus === undefined
+        || visibleImport.electronSettingsLockfilePersistentWriterSourceStatus === null,
+      `${scenario.name}: Web visible import should not expose Electron settings/mod-lock writer status`)
+    assert(visibleImport.electronPersistentSettingsLockfileWriteExecuted === false,
+      `${scenario.name}: Web visible import should not execute Electron settings/mod-lock write`)
     assertVisibleImportPackageSelection(visibleImport, scenario, 'Web visible import')
     assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
       `${scenario.name}: Web visible import diagnostics count was invalid`)
@@ -6369,6 +6388,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     for (const effectName of [
       'savesWritten',
       'cacheWritten',
+      'realElectronSettingsLockfilePersistentWriterHostCalled',
       'rollbackExecuted',
       'diagnosticsWritten'
     ]) {
@@ -6395,6 +6415,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     for (const effectName of [
       'commandDispatched',
       'realWebPlatformWriterHostCalled',
+      'realElectronSettingsLockfilePersistentWriterHostCalled',
       'packageFilesWritten',
       'settingsWritten',
       'lockfileWritten',

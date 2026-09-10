@@ -4357,6 +4357,9 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     status: 'ready',
     reason: 'Electron ordinary install terminal continuation reached verified terminal handoff from visible renderer import',
     installCommandPostCommitAcknowledgement: installCommandPostCommitAcknowledgementResult,
+    ...(settingsLockfileLifecycleResult === undefined
+      ? {}
+      : { settingsLockfileLifecycle: settingsLockfileLifecycleResult }),
     installTransactionLogPrepared: installTransactionLogPreparedResult,
     installTransactionLogPreparedPersistentReadVerification:
       installTransactionLogPreparedPersistentReadVerificationResult,

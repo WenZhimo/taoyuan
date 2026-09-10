@@ -925,6 +925,85 @@ const createReadyElectronOrdinaryInstallTerminalContinuationResult = (
         lockfileWritten: true
       }
     },
+    settingsLockfileLifecycle: {
+      kind: 'third-party-install-persistent-staging-settings-lockfile-lifecycle-pipeline',
+      mode: 'default-disabled-install-persistent-staging-settings-lockfile-lifecycle-pipeline',
+      status: 'ready',
+      reason: 'Electron continuation wrote package files, settings, and mod-lock before runtime publication',
+      readOnly: false,
+      enabled: true,
+      appBootstrapContinuationAllowed: true,
+      commandContinuationAllowed: true,
+      uiIpcResultContinuationAllowed: true,
+      installPersistentStagingLifecyclePipelineStatus: 'ready',
+      settingsLockfilePersistentWriterSourceStatus: 'written',
+      requestedCommandId: 'install',
+      targetPackageId,
+      selectedPackageIds: handoff.selectedPackageIds,
+      blockedPackageIds: handoff.blockedPackageIds,
+      blockedCandidatePaths: Object.freeze([]),
+      loadOrder: handoff.loadOrder,
+      registryCount: handoff.registryCount,
+      entryCount: handoff.entryCount,
+      packageCount: handoff.packageCount,
+      candidateIdentity: handoff.candidateIdentity,
+      candidateHash: handoff.candidateIdentity?.candidateHash,
+      lockfileHash: handoff.lockfileHash,
+      persistentPackageWriteExecuted: true,
+      writtenFileCount: envelope.packageFilePayload.length,
+      backedUpFileCount: 0,
+      persistentSettingsLockfileWriteExecuted: true,
+      checks: [],
+      diagnostics: [],
+      effects: {
+        installPersistentStagingSettingsLockfileLifecyclePipelineCalled: true,
+        installPersistentStagingLifecyclePipelineCalled: true,
+        settingsLockfilePersistentWriterSourceCalled: true,
+        settingsLockfileCommitAcknowledged: true,
+        postCommitVerificationAcknowledged: true,
+        persistentReadProofAcknowledged: true,
+        appBootstrapContinuationAllowed: true,
+        commandContinuationAllowed: true,
+        uiIpcResultContinuationAllowed: true,
+        officialRegistryPublished: false,
+        thirdPartyRegistryPublished: false,
+        liveRegistryMutated: false,
+        liveRegistrySwapped: false,
+        previousRegistryReleased: false,
+        previousRegistryRestored: false,
+        candidateRegistryExposed: false,
+        runtimeEnablementAllowed: false,
+        modManagementUiMounted: false,
+        electronIpcExposed: false,
+        webFilePickerOpened: false,
+        androidFilePickerOpened: false,
+        transactionCommitted: false,
+        transactionLogPrepared: false,
+        runtimePublicationCommitted: false,
+        postCommitVerificationExecuted: false,
+        uiIpcResponseDelivered: false,
+        transactionLogRead: false,
+        packageStateRead: false,
+        settingsRead: false,
+        lockfileRead: false,
+        liveRegistryRead: false,
+        saveCacheIsolationChecked: false,
+        packageFilesWritten: true,
+        packageBackupsWritten: false,
+        packageFilesRestored: false,
+        lockfileWritten: true,
+        lockfileRestored: false,
+        settingsWritten: true,
+        settingsRestored: false,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false,
+        recoveryLogRead: false,
+        recoveryLogReplayed: false,
+        rollbackExecuted: false,
+        diagnosticsWritten: false
+      }
+    },
     installTransactionLogPrepared: {
       status: 'prepared',
       requestedCommandId: 'install',
@@ -1956,6 +2035,11 @@ describe('useWebFilePickerImportEntry', () => {
       expect(dispatchResult.transactionCommitted).toBe(true)
       expect(dispatchResult.writeExecuted).toBe(true)
       expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('written')
+      expect(dispatchResult.electronSettingsLockfileLifecycleStatus).toBe('ready')
+      expect(dispatchResult.electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterSourceStatus)
+        .toBe('written')
+      expect(dispatchResult.electronSettingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted)
+        .toBe(true)
       expect(dispatchResult.startupPersistentStateWritten).toBe(true)
       expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(true)
       expect(dispatchResult.runtimeEnablementAllowed).toBe(true)
@@ -2101,6 +2185,11 @@ describe('useWebFilePickerImportEntry', () => {
       expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
       expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).toBe('accepted')
       expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('written')
+      expect(dispatchResult.electronSettingsLockfileLifecycleStatus).toBe('ready')
+      expect(dispatchResult.electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterSourceStatus)
+        .toBe('written')
+      expect(dispatchResult.electronSettingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted)
+        .toBe(true)
       expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(true)
       expect(dispatchResult.runtimeEnablementAllowed).toBe(true)
       expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)?.name.fallback)

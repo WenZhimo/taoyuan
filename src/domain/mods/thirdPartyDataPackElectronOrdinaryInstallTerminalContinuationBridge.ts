@@ -18,6 +18,9 @@ import type {
   ThirdPartyDataPackInstallTransactionLogPreparedPersistentReadVerificationResult
 } from './thirdPartyDataPackInstallTransactionLogPreparedPersistentReadVerificationPipeline'
 import type {
+  ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult
+} from './thirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline'
+import type {
   ThirdPartyDataPackLockfileDraft
 } from './thirdPartyDataPackLockfileDraft'
 import type {
@@ -74,6 +77,8 @@ export interface ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationRe
   readonly reason: string
   readonly installCommandPostCommitAcknowledgement?:
     ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult
+  readonly settingsLockfileLifecycle?:
+    ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult
   readonly postCommitUiIpcDeliveryContinuation?:
     ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult
   readonly ordinaryInstallTransactionTerminalConnection?:
@@ -161,6 +166,10 @@ const safeResultFromRawMainProcessValue = (
   const installCommandPostCommitAcknowledgement = readOwnDataField(
     value,
     'installCommandPostCommitAcknowledgement'
+  )
+  const settingsLockfileLifecycle = readOwnDataField(
+    value,
+    'settingsLockfileLifecycle'
   )
   const postCommitUiIpcDeliveryContinuation = readOwnDataField(
     value,
@@ -254,6 +263,19 @@ const safeResultFromRawMainProcessValue = (
     installCommandPostCommitAcknowledgement !== null
     && typeof installCommandPostCommitAcknowledgement === 'object'
     && readOwnDataField(installCommandPostCommitAcknowledgement, 'status') === 'ready'
+  const hasSettingsLockfileLifecycle = settingsLockfileLifecycle !== undefined
+  const settingsLockfileLifecycleReady =
+    settingsLockfileLifecycle !== null
+    && typeof settingsLockfileLifecycle === 'object'
+    && readOwnDataField(settingsLockfileLifecycle, 'status') === 'ready'
+    && readOwnDataField(
+      settingsLockfileLifecycle,
+      'settingsLockfilePersistentWriterSourceStatus'
+    ) === 'written'
+    && readOwnDataField(settingsLockfileLifecycle, 'persistentPackageWriteExecuted') === true
+    && readOwnDataField(settingsLockfileLifecycle, 'persistentSettingsLockfileWriteExecuted') === true
+    && effectFlag(settingsLockfileLifecycle, 'settingsWritten')
+    && effectFlag(settingsLockfileLifecycle, 'lockfileWritten')
   const postCommitUiIpcDeliveryContinuationReady =
     hasStatus(postCommitUiIpcDeliveryContinuation, 'ready')
   const ordinaryInstallTransactionTerminalConnectionReady =
@@ -268,6 +290,7 @@ const safeResultFromRawMainProcessValue = (
     && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'rollbackRequired') === false
     && effectFlag(ordinaryInstallTransactionTerminalConnection, 'ordinaryInstallTransactionReady')
     && effectFlag(ordinaryInstallTransactionTerminalConnection, 'successOutcomeAccepted')
+    && (!hasSettingsLockfileLifecycle || settingsLockfileLifecycleReady)
     && installTransactionFinalizationReady
     && runtimePublicationContinuationReady
     && startupPersistentStateSnapshotWriteReady
@@ -305,6 +328,7 @@ const safeResultFromRawMainProcessValue = (
     && (
       hasInstallTransactionFinalization
       || hasRuntimePublicationContinuation
+      || hasSettingsLockfileLifecycle
       || hasStartupPersistentStateSnapshotWrite
     )
 
@@ -319,6 +343,7 @@ const safeResultFromRawMainProcessValue = (
     || typeof postCommitUiIpcDeliveryContinuation !== 'object'
     || ordinaryInstallTransactionTerminalConnection === null
     || typeof ordinaryInstallTransactionTerminalConnection !== 'object'
+    || (hasSettingsLockfileLifecycle && !settingsLockfileLifecycleReady)
     || (hasInstallTransactionFinalization && !installTransactionFinalizationReady)
     || (hasRuntimePublicationContinuation && !runtimePublicationContinuationReady)
     || (hasStartupPersistentStateSnapshotWrite && !startupPersistentStateSnapshotWriteReady)
@@ -337,6 +362,13 @@ const safeResultFromRawMainProcessValue = (
     reason,
     installCommandPostCommitAcknowledgement:
       installCommandPostCommitAcknowledgement as ThirdPartyDataPackInstallCommandPostCommitAcknowledgementSourceResult,
+    ...(hasSettingsLockfileLifecycle
+      ? {
+          settingsLockfileLifecycle:
+            settingsLockfileLifecycle as
+              ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult
+        }
+      : {}),
     postCommitUiIpcDeliveryContinuation:
       postCommitUiIpcDeliveryContinuation as ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult,
     ordinaryInstallTransactionTerminalConnection:

@@ -136,6 +136,9 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly ordinaryInstallTransactionTerminalConnectionStatus: string | null
   readonly ordinaryInstallTransactionOutcomeKind: string | null
   readonly webPlatformWriterHostConnectionStatus: string | null
+  readonly electronSettingsLockfileLifecycleStatus: string | null
+  readonly electronSettingsLockfilePersistentWriterSourceStatus: string | null
+  readonly electronPersistentSettingsLockfileWriteExecuted: boolean
   readonly installTransactionLogPreparedStatus: string | null
   readonly installTransactionLogPreparedStorageKind: string | null
   readonly installTransactionLogPreparedPersistentReadVerificationStatus: string | null
@@ -170,6 +173,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly effects: {
     readonly commandDispatched: boolean
     readonly realWebPlatformWriterHostCalled: boolean
+    readonly realElectronSettingsLockfilePersistentWriterHostCalled: boolean
     readonly packageFilesWritten: boolean
     readonly settingsWritten: boolean
     readonly lockfileWritten: boolean
@@ -582,6 +586,21 @@ const hasReadyVisibleImportDispatch = (
   const expectedPackageIds = expectedSelectedPackageIds(includeDependency)
   const appStartupHostEffects =
     dispatchResult?.runtimePublicationCommitAppStartupHostConnection?.effects
+  const electronSettingsLockfileLifecycleReady =
+    dispatchResult?.transactionCommandDispatcherHostKind !== 'renderer'
+    || (
+      dispatchResult.electronSettingsLockfileLifecycleStatus === 'ready'
+      && dispatchResult.electronSettingsLockfileLifecycle
+        ?.settingsLockfilePersistentWriterSourceStatus === 'written'
+      && dispatchResult.electronSettingsLockfileLifecycle
+        ?.persistentPackageWriteExecuted === true
+      && dispatchResult.electronSettingsLockfileLifecycle
+        ?.persistentSettingsLockfileWriteExecuted === true
+      && dispatchResult.electronSettingsLockfileLifecycle
+        ?.effects.settingsWritten === true
+      && dispatchResult.electronSettingsLockfileLifecycle
+        ?.effects.lockfileWritten === true
+    )
   const isEnable = execution.operation === 'enable'
   const isRollback = execution.operation === 'rollback'
   const isFailure = execution.operation === 'failure'
@@ -704,6 +723,7 @@ const hasReadyVisibleImportDispatch = (
     && dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === 'swapped'
     && dispatchResult.runtimePublicationCommitAppStartupReadinessStatus === 'ready'
     && dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus === 'accepted'
+    && electronSettingsLockfileLifecycleReady
     && dispatchResult.rendererLiveRegistrySwapApplied
     && dispatchResult.transactionCommitted
     && dispatchResult.startupPersistentStateWritten
@@ -1570,10 +1590,21 @@ export const runThirdPartyVisibleImportProductProbe = async(
     : 'blocked'
   const enableTerminal = execution.enableTransactionResult?.terminal ?? null
   const installCommandDispatched = dispatchResult?.commandDispatched === true
+  const electronSettingsLockfileLifecycle =
+    dispatchResult?.electronSettingsLockfileLifecycle ?? null
+  const realElectronSettingsLockfilePersistentWriterHostCalled =
+    dispatchResult?.transactionCommandDispatcherHostKind === 'renderer'
+    && dispatchResult.electronSettingsLockfileLifecycleStatus === 'ready'
+    && electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterSourceStatus === 'written'
+    && electronSettingsLockfileLifecycle?.persistentPackageWriteExecuted === true
+    && electronSettingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted === true
+    && electronSettingsLockfileLifecycle?.effects.settingsWritten === true
+    && electronSettingsLockfileLifecycle?.effects.lockfileWritten === true
   const effects: ThirdPartyVisibleImportProductProbeResult['effects'] = operation === 'enable'
     ? {
         commandDispatched: execution.managementCommandDispatched === true,
         realWebPlatformWriterHostCalled: execution.realWebPlatformWriterHostCalled === true,
+        realElectronSettingsLockfilePersistentWriterHostCalled: false,
         packageFilesWritten: false,
         settingsWritten: enableTerminal?.settingsWritten === true,
         lockfileWritten: enableTerminal?.lockfileWritten === true,
@@ -1602,6 +1633,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
         commandDispatched: installCommandDispatched,
         realWebPlatformWriterHostCalled:
           dispatchResult?.webPlatformWriterHostConnection?.effects.realWebPlatformWriterHostCalled === true,
+        realElectronSettingsLockfilePersistentWriterHostCalled,
         packageFilesWritten:
           dispatchResult?.postCommitUiIpcDeliveryContinuation?.persistentPackageWriteExecuted === true,
         settingsWritten:
@@ -1711,6 +1743,12 @@ export const runThirdPartyVisibleImportProductProbe = async(
       dispatchResult?.ordinaryInstallTransactionTerminalConnection?.outcomeKind ?? null,
     webPlatformWriterHostConnectionStatus:
       dispatchResult?.webPlatformWriterHostConnectionStatus ?? null,
+    electronSettingsLockfileLifecycleStatus:
+      dispatchResult?.electronSettingsLockfileLifecycleStatus ?? null,
+    electronSettingsLockfilePersistentWriterSourceStatus:
+      electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterSourceStatus ?? null,
+    electronPersistentSettingsLockfileWriteExecuted:
+      electronSettingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted === true,
     installTransactionLogPreparedStatus:
       dispatchResult?.installTransactionLogPreparedStatus ?? null,
     installTransactionLogPreparedStorageKind:
@@ -1849,6 +1887,9 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     ordinaryInstallTransactionTerminalConnectionStatus: null,
     ordinaryInstallTransactionOutcomeKind: null,
     webPlatformWriterHostConnectionStatus: null,
+    electronSettingsLockfileLifecycleStatus: null,
+    electronSettingsLockfilePersistentWriterSourceStatus: null,
+    electronPersistentSettingsLockfileWriteExecuted: false,
     installTransactionLogPreparedStatus: null,
     installTransactionLogPreparedStorageKind: null,
     installTransactionLogPreparedPersistentReadVerificationStatus: null,
@@ -1906,6 +1947,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     effects: {
       commandDispatched: execution.managementCommandDispatched === true,
       realWebPlatformWriterHostCalled: execution.realWebPlatformWriterHostCalled === true,
+      realElectronSettingsLockfilePersistentWriterHostCalled: false,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,
@@ -1998,6 +2040,9 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     ordinaryInstallTransactionTerminalConnectionStatus: null,
     ordinaryInstallTransactionOutcomeKind: null,
     webPlatformWriterHostConnectionStatus: null,
+    electronSettingsLockfileLifecycleStatus: null,
+    electronSettingsLockfilePersistentWriterSourceStatus: null,
+    electronPersistentSettingsLockfileWriteExecuted: false,
     installTransactionLogPreparedStatus: null,
     installTransactionLogPreparedStorageKind: null,
     installTransactionLogPreparedPersistentReadVerificationStatus: null,
@@ -2055,6 +2100,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     effects: {
       commandDispatched: execution.managementCommandDispatched === true,
       realWebPlatformWriterHostCalled: execution.realWebPlatformWriterHostCalled === true,
+      realElectronSettingsLockfilePersistentWriterHostCalled: false,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,

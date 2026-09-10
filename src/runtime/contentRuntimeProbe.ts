@@ -266,6 +266,9 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   runtimePublicationCommitAppStartupHostConnectionStatus?: string
   webStartupPersistentStateWriteStatus?: string
   electronStartupPersistentStateWriteStatus?: string
+  electronSettingsLockfileLifecycleStatus?: string
+  electronSettingsLockfilePersistentWriterSourceStatus?: string
+  electronPersistentSettingsLockfileWriteExecuted: boolean
   selectedPackageCount: number
   blockedPackageCount: number
   loadOrder: readonly string[]
@@ -288,6 +291,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   effects: {
     commandDispatched: boolean
     realWebPlatformWriterHostCalled: boolean
+    realElectronSettingsLockfilePersistentWriterHostCalled: boolean
     packageFilesWritten: boolean
     settingsWritten: boolean
     lockfileWritten: boolean
@@ -781,6 +785,7 @@ const defaultVisibleImportEffects =
   (): ThirdPartyVisibleImportRuntimeProbeSummary['effects'] => ({
     commandDispatched: false,
     realWebPlatformWriterHostCalled: false,
+    realElectronSettingsLockfilePersistentWriterHostCalled: false,
     packageFilesWritten: false,
     settingsWritten: false,
     lockfileWritten: false,
@@ -1161,6 +1166,7 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       contentAccessRecipeVisibleAfter: false,
       contentAccessShopOfferVisibleBefore: false,
       contentAccessShopOfferVisibleAfter: false,
+      electronPersistentSettingsLockfileWriteExecuted: false,
       effects: defaultVisibleImportEffects()
     }
   }
@@ -1297,6 +1303,12 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       readOwnStringField(result, 'webStartupPersistentStateWriteStatus'),
     electronStartupPersistentStateWriteStatus:
       readOwnStringField(result, 'electronStartupPersistentStateWriteStatus'),
+    electronSettingsLockfileLifecycleStatus:
+      readOwnStringField(result, 'electronSettingsLockfileLifecycleStatus'),
+    electronSettingsLockfilePersistentWriterSourceStatus:
+      readOwnStringField(result, 'electronSettingsLockfilePersistentWriterSourceStatus'),
+    electronPersistentSettingsLockfileWriteExecuted:
+      readOwnBooleanField(result, 'electronPersistentSettingsLockfileWriteExecuted') === true,
     selectedPackageIds,
     selectedPackageCount: selectedPackageIds.length || readOwnNumberField(result, 'selectedPackageCount') || 0,
     blockedPackageCount: readOwnNumberField(result, 'blockedPackageCount') ?? 0,
@@ -1397,6 +1409,11 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       commandDispatched: readOwnBooleanField(effects, 'commandDispatched') === true,
       realWebPlatformWriterHostCalled:
         readOwnBooleanField(effects, 'realWebPlatformWriterHostCalled') === true,
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        readOwnBooleanField(
+          effects,
+          'realElectronSettingsLockfilePersistentWriterHostCalled'
+        ) === true,
       packageFilesWritten: readOwnBooleanField(effects, 'packageFilesWritten') === true,
       settingsWritten: readOwnBooleanField(effects, 'settingsWritten') === true,
       lockfileWritten: readOwnBooleanField(effects, 'lockfileWritten') === true,

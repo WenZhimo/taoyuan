@@ -101,6 +101,9 @@ import type {
   ThirdPartyDataPackInstallPersistentStagingSettingsLockfileTransactionCommitConnectionSourceResult
 } from '@/domain/mods/thirdPartyDataPackInstallPersistentStagingSettingsLockfileTransactionCommitConnectionSource'
 import type {
+  ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult
+} from '@/domain/mods/thirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipeline'
+import type {
   ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult
 } from '@/domain/mods/thirdPartyDataPackOrdinaryInstallTransactionPipeline'
 import type {
@@ -456,6 +459,10 @@ export interface WebFilePickerSourceInstallCommandDispatchResult
     ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult | null
   readonly ordinaryInstallTransactionTerminalConnectionStatus:
     ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult['status'] | null
+  readonly electronSettingsLockfileLifecycle:
+    ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult | null
+  readonly electronSettingsLockfileLifecycleStatus:
+    ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult['status'] | null
   readonly installTransactionLogPrepared:
     ThirdPartyDataPackInstallTransactionLogPreparedPipelineResult | null
   readonly installTransactionLogPreparedStatus:
@@ -2619,6 +2626,8 @@ export const useWebFilePickerImportEntry = (
         ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult | null
       readonly ordinaryInstallTransactionTerminalConnection?:
         ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult | null
+      readonly electronSettingsLockfileLifecycle?:
+        ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult | null
       readonly installTransactionLogPrepared?:
         ThirdPartyDataPackInstallTransactionLogPreparedPipelineResult | null
       readonly installTransactionLogPreparedPersistentReadVerification?:
@@ -2649,6 +2658,8 @@ export const useWebFilePickerImportEntry = (
     const postCommitUiIpcDeliveryContinuation = overrides.postCommitUiIpcDeliveryContinuation ?? null
     const ordinaryInstallTransactionTerminalConnection =
       overrides.ordinaryInstallTransactionTerminalConnection ?? null
+    const electronSettingsLockfileLifecycle =
+      overrides.electronSettingsLockfileLifecycle ?? null
     const installTransactionLogPrepared =
       overrides.installTransactionLogPrepared ?? null
     const installTransactionLogPreparedPersistentReadVerification =
@@ -2710,6 +2721,9 @@ export const useWebFilePickerImportEntry = (
       ordinaryInstallTransactionTerminalConnection,
       ordinaryInstallTransactionTerminalConnectionStatus:
         ordinaryInstallTransactionTerminalConnection?.status ?? null,
+      electronSettingsLockfileLifecycle,
+      electronSettingsLockfileLifecycleStatus:
+        electronSettingsLockfileLifecycle?.status ?? null,
       installTransactionLogPrepared,
       installTransactionLogPreparedStatus:
         installTransactionLogPrepared?.status ?? null,
@@ -3031,6 +3045,8 @@ export const useWebFilePickerImportEntry = (
 
     let ordinaryInstallTransactionTerminalConnection:
       ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult | null = null
+    let electronSettingsLockfileLifecycle:
+      ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineResult | null = null
     let installTransactionLogPrepared:
       ThirdPartyDataPackInstallTransactionLogPreparedPipelineResult | null = null
     let installTransactionLogPreparedPersistentReadVerification:
@@ -3089,6 +3105,8 @@ export const useWebFilePickerImportEntry = (
         && continuation.ordinaryInstallTransactionTerminalConnection !== undefined
       ) {
         installCommandPostCommitAcknowledgement = continuation.installCommandPostCommitAcknowledgement
+        electronSettingsLockfileLifecycle =
+          continuation.settingsLockfileLifecycle ?? null
         postCommitUiIpcDeliveryContinuation = continuation.postCommitUiIpcDeliveryContinuation
         ordinaryInstallTransactionTerminalConnection =
           continuation.ordinaryInstallTransactionTerminalConnection
@@ -3407,6 +3425,7 @@ export const useWebFilePickerImportEntry = (
       installCommandPostCommitAcknowledgement,
       postCommitUiIpcDeliveryContinuation,
       ordinaryInstallTransactionTerminalConnection,
+      electronSettingsLockfileLifecycle,
       installTransactionLogPrepared,
       installTransactionLogPreparedPersistentReadVerification,
       installTransactionCommitFinalization,

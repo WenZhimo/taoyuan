@@ -330,6 +330,16 @@ describe('third-party Electron install command dispatch bridge', () => {
           status: 'ready',
           reason: 'safe runtime publication continuation',
           installCommandPostCommitAcknowledgement: { status: 'ready' },
+          settingsLockfileLifecycle: {
+            status: 'ready',
+            settingsLockfilePersistentWriterSourceStatus: 'written',
+            persistentPackageWriteExecuted: true,
+            persistentSettingsLockfileWriteExecuted: true,
+            effects: {
+              settingsWritten: true,
+              lockfileWritten: true
+            }
+          },
           postCommitUiIpcDeliveryContinuation: {
             status: 'ready',
             envelopeKind: 'success'
@@ -365,6 +375,9 @@ describe('third-party Electron install command dispatch bridge', () => {
     const result = await host.continueOrdinaryInstallTerminal({} as never)
 
     expect(result.status).toBe('ready')
+    expect(result.settingsLockfileLifecycle?.status).toBe('ready')
+    expect(result.settingsLockfileLifecycle?.settingsLockfilePersistentWriterSourceStatus).toBe('written')
+    expect(result.settingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted).toBe(true)
     expect(result.runtimePublicationCommitAfterPostCommitVerification?.status).toBe('accepted')
     expect(result.runtimePublicationCommitLiveRegistrySwapHostConnection?.status).toBe('swapped')
     expect(result.runtimePublicationCommitAppStartupReadiness?.status).toBe('ready')
@@ -373,6 +386,67 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(result.startupPersistentStateSnapshotWrite?.targetPackageId).toBe(packageId)
     expect(JSON.stringify(result)).not.toContain('candidateRegistrySet')
     expect(JSON.stringify(result)).not.toContain('liveRegistryReference')
+  })
+
+  it('blocks success terminal continuations without Electron settings/mod-lock write evidence', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'unsafe settings lifecycle write gap',
+          installCommandPostCommitAcknowledgement: { status: 'ready' },
+          settingsLockfileLifecycle: {
+            status: 'ready',
+            settingsLockfilePersistentWriterSourceStatus: 'written',
+            persistentPackageWriteExecuted: true,
+            persistentSettingsLockfileWriteExecuted: false,
+            effects: {
+              settingsWritten: true,
+              lockfileWritten: true
+            }
+          },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'success'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'success',
+            retryable: false,
+            rollbackRequired: false,
+            effects: {
+              ordinaryInstallTransactionReady: true,
+              successOutcomeAccepted: true
+            }
+          },
+          installTransactionLogPrepared: { status: 'prepared' },
+          installTransactionLogPreparedPersistentReadVerification: { status: 'verified' },
+          installTransactionCommitFinalization: { status: 'committed' },
+          runtimePublicationCommitAfterPostCommitVerification: { status: 'accepted' },
+          runtimePublicationCommitLiveRegistrySwapHostConnection: { status: 'swapped' },
+          runtimePublicationCommitAppStartupReadiness: { status: 'ready' },
+          runtimePublicationCommitAppStartupHostConnection: { status: 'accepted' },
+          startupPersistentStateSnapshotWrite: {
+            status: 'written',
+            storageKind: 'electron-program-directory-userdata-startup-persistent-state',
+            targetPackageId: packageId,
+            snapshotWritten: true
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('blocked')
+    expect(result.settingsLockfileLifecycle).toBeUndefined()
+    expect(result.postCommitUiIpcDeliveryContinuation).toBeUndefined()
+    expect(result.ordinaryInstallTransactionTerminalConnection).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('C:/Users')
+    expect(JSON.stringify(result)).not.toContain('LENOVO')
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
   })
 
   it('preserves rollback terminal results only when real recovery replay evidence is present', async() => {
