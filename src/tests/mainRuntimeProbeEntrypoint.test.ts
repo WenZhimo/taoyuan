@@ -653,4 +653,36 @@ describe('main runtime probe entrypoint', () => {
       })
     )
   })
+
+  it('routes Web visible archive enable write-failure probes as blocked archive management runs', async() => {
+    const visibleImportResult = {
+      status: 'blocked',
+      operation: 'enable',
+      archiveImportButtonClicked: true
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleEnableProbe=1&taoyuanThirdPartyVisibleEnableFailAfterModLockWrite=1&taoyuanThirdPartyVisibleArchiveImportProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'enable',
+        persistSource: false,
+        archiveImport: true,
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
 })
