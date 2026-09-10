@@ -2938,6 +2938,61 @@ describe('useWebFilePickerImportEntry', () => {
     expect(JSON.stringify(restoredSettingsLockfile)).not.toContain('LENOVO')
   })
 
+  it('clears initial Web install state when the writer fails after settings-lockfile write', async() => {
+    const packageId = requirePackageId('web_entry_initial_write_failure')
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const baseWebSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webSettingsLockfileStore = {
+      inspect: async() => await baseWebSettingsLockfileStore.inspect(),
+      read: async() => await baseWebSettingsLockfileStore.read(),
+      delete: async() => await baseWebSettingsLockfileStore.delete!(),
+      write: async(record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord) => {
+        const report = await baseWebSettingsLockfileStore.write(record)
+        if (record.requestedCommandId === 'install' && record.targetPackageId === packageId) {
+          throw new Error('initial writer failed after settings-lockfile write')
+        }
+        return report
+      }
+    }
+    const entry = useWebFilePickerImportEntry({
+      selectFiles: vi.fn(async() => createValidFiles(packageId, {
+        itemNameFallback: 'web entry initial write failure'
+      })),
+      persistenceStore: store,
+      webSettingsLockfileStore,
+      webInstallTransactionLogStore: createInMemoryWebInstallTransactionLogPreparedStore()
+    })
+
+    await entry.pickFiles()
+    const dispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      mountedAppStartupHostEvidence
+    })
+    const restoredSettingsLockfile = await webSettingsLockfileStore.read()
+    const restoredPersistedRecord = await store.get(WEB_FILE_PICKER_IMPORT_ENTRY_DEFAULT_IMPORT_ID)
+
+    expect(dispatchResult).toMatchObject({
+      transactionCommandDispatcherHostKind: 'web',
+      transactionCommandDispatcherSourceStatus: 'dispatched',
+      installCommandPostCommitAcknowledgementStatus: 'blocked',
+      webPlatformWriterHostConnectionStatus: 'blocked',
+      transactionCommitted: false,
+      writeExecuted: false,
+      startupPersistentStateWritten: false,
+      rendererLiveRegistrySwapApplied: false,
+      runtimeEnablementAllowed: false,
+      uiIpcResponseDelivered: false
+    })
+    expect(dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus).toBeNull()
+    expect(restoredSettingsLockfile.report.status).toBe('missing')
+    expect(restoredSettingsLockfile.record).toBeNull()
+    expect(restoredPersistedRecord).toBeNull()
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+    expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(restoredSettingsLockfile)).not.toContain('LENOVO')
+  })
+
   it('treats an empty selection as cancelled without creating a source', async() => {
     const entry = useWebFilePickerImportEntry({
       selectFiles: vi.fn(async() => [])

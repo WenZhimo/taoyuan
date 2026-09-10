@@ -1064,6 +1064,7 @@ const runMainMenuPanelImportProbe = async(
   const blocksRuntime =
     operation === 'rollback'
     || operation === 'failure'
+    || (operation === 'install' && options.expectBlocked === true)
     || (operation === 'upgrade' && options.expectBlocked === true)
   const probeWindow = window
   const fileInputProbe = installDefaultFileInputProbeSelector(
@@ -1123,6 +1124,8 @@ const runMainMenuPanelImportProbe = async(
         return (
           operation === 'rollback'
             ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
+          : operation === 'install' && options.expectBlocked === true
+            ? hasBlockedVisibleImportWebWriterPanelLabels(readyDispatchResult, labels)
           : operation === 'upgrade' && options.expectBlocked === true
             ? hasBlockedVisibleImportUpgradePanelLabels(readyDispatchResult, labels)
           : operation === 'failure'
@@ -1653,7 +1656,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
         ?? dispatchResult?.reason
         ?? 'visible import did not reach item, recipe, and shop offer visibility',
     entrypoint: execution.entrypoint,
-    ...(execution.operation === 'enable'
+    ...((execution.operation === 'install' && options.expectBlocked === true)
+      || execution.operation === 'enable'
       || execution.operation === 'upgrade'
       || execution.operation === 'rollback'
       || execution.operation === 'failure'

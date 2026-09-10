@@ -29,6 +29,7 @@ export type ThirdPartyDataPackWebSettingsLockfilePersistentWriterStoreOperation 
   | 'inspect'
   | 'read'
   | 'write'
+  | 'delete'
 
 export interface ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord {
   readonly recordId: typeof THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
@@ -92,6 +93,7 @@ export interface ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore {
   write(
     record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
   ): Promise<ThirdPartyDataPackWebSettingsLockfilePersistentWriterStoreReport>
+  delete?(): Promise<ThirdPartyDataPackWebSettingsLockfilePersistentWriterStoreReport>
 }
 
 export interface CreateThirdPartyDataPackWebSettingsLockfilePersistentWriterHostOptions {
@@ -752,6 +754,24 @@ export const createWebIndexedDbSettingsLockfilePersistentWriterStore = (
           error
         )
       }
+    },
+    async delete() {
+      try {
+        await withObjectStore('readwrite', async store => {
+          await requestToPromise(store.delete(THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID))
+        })
+        return storeReport({
+          status: 'missing',
+          operation: 'delete',
+          reason: 'web IndexedDB settings-lockfile record was deleted'
+        })
+      } catch (error) {
+        return storeErrorReport(
+          'delete',
+          'third-party.web-settings-lockfile-persistent-writer-store.delete',
+          error
+        )
+      }
     }
   }
 }
@@ -788,6 +808,14 @@ export const createInMemoryWebSettingsLockfilePersistentWriterStore =
           reason: 'in-memory web settings-lockfile record was written',
           record,
           written: true
+        })
+      },
+      async delete() {
+        record = null
+        return storeReport({
+          status: 'missing',
+          operation: 'delete',
+          reason: 'in-memory web settings-lockfile record was deleted'
         })
       }
     }

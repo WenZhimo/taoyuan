@@ -243,6 +243,12 @@ const createFakeIndexedDb = (): IDBFactory => {
               const request = requestSuccess(records.get(recordId))
               completeTransactionAfterRequestHandlers(transaction)
               return request
+            },
+            delete: (recordId: string) => {
+              records.delete(recordId)
+              const request = requestSuccess(undefined)
+              completeTransactionAfterRequestHandlers(transaction)
+              return request
             }
           })
         }
@@ -333,6 +339,14 @@ describe('Web settings-lockfile persistent writer host', () => {
     expect(JSON.stringify(result)).not.toContain('test-taoyuan-web-settings-lockfile')
     expect(JSON.stringify(result)).not.toContain('IDB')
     expectOnlySettingsAndLockfileWrites(result, true)
+
+    const deleteReport = await store.delete!()
+    const missingReadBack = await store.read()
+
+    expect(deleteReport.status).toBe('missing')
+    expect(deleteReport.operation).toBe('delete')
+    expect(missingReadBack.report.status).toBe('missing')
+    expect(missingReadBack.record).toBeNull()
   })
 
   it('blocks a mismatched lockfile draft before touching the Web store', async() => {

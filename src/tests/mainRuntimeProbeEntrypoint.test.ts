@@ -313,6 +313,36 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
+  it('routes Web visible initial install write-failure probes as blocked import runs', async() => {
+    const visibleImportResult = {
+      status: 'blocked',
+      operation: 'install'
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleImportProbe=1&taoyuanThirdPartyVisibleImportPersistSource=1&taoyuanThirdPartyVisibleInstallFailAfterModLockWrite=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'install',
+        persistSource: true,
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
+
   it('passes dependency ZIP archive import query wiring into the product probe', async() => {
     const visibleImportResult = {
       status: 'ready',

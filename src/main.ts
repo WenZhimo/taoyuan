@@ -66,6 +66,9 @@ const thirdPartyVisibleImportRollbackProbeRequested = runtimeProbeRequested
 const thirdPartyVisibleImportFailureProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportFailureProbe') === '1'
+const thirdPartyVisibleInstallFailAfterModLockWriteProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleInstallFailAfterModLockWrite') === '1'
 const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
@@ -200,7 +203,8 @@ void bootstrapApplication({
             persistSource: thirdPartyVisibleImportPersistSourceProbeRequested,
             ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),
             ...(thirdPartyVisibleArchiveImportProbeRequested ? { archiveImport: true } : {}),
-            ...(thirdPartyVisibleEnableExpectBlockedProbeRequested
+            ...(thirdPartyVisibleInstallFailAfterModLockWriteProbeRequested
+              || thirdPartyVisibleEnableExpectBlockedProbeRequested
               || thirdPartyVisibleEnableFailAfterModLockWriteProbeRequested
               || thirdPartyVisibleUpgradeExpectBlockedProbeRequested
               || thirdPartyVisibleUpgradeFailAfterModLockWriteProbeRequested

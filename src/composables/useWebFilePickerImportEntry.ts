@@ -3251,6 +3251,17 @@ export const useWebFilePickerImportEntry = (
             } catch {
               restoreFailures.push('settings-lockfile')
             }
+          } else if (webSettingsLockfileStore.delete !== undefined) {
+            try {
+              const deleteReport = await webSettingsLockfileStore.delete()
+              if (deleteReport.status !== 'missing') {
+                restoreFailures.push('settings-lockfile')
+              }
+            } catch {
+              restoreFailures.push('settings-lockfile')
+            }
+          } else {
+            restoreFailures.push('settings-lockfile')
           }
           const webImportPersistenceStore = options.persistenceStore ?? null
           if (webImportPersistenceStore !== null) {

@@ -1833,6 +1833,61 @@ describe('WebDataPackImportPreflightPanel', () => {
     }
   })
 
+  it('clears Web visible initial install when the probe fails after settings-lockfile write', async() => {
+    const packageId = 'web_panel_initial_write_failure_visible'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const restoreQuery = withWindowQuery(
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleImportProbe=1&taoyuanThirdPartyVisibleInstallFailAfterModLockWrite=1'
+    )
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles: vi.fn(async() => createValidFiles(packageId, {
+          itemNameFallback: 'web panel initial write rollback'
+        })),
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore: createInMemoryWebInstallTransactionLogPreparedStore()
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await vi.waitFor(() => {
+        expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('等待事务主机')
+      })
+
+      const readSettingsLockfile = await webSettingsLockfileStore.read()
+      const persistedRecord = await persistenceStore.get('latest-web-file-picker-import')
+      expect(wrapper.find(`[data-testid="web-mod-installed-row-${packageId}"]`).exists()).toBe(false)
+      expect(wrapper.get('[data-testid="web-mod-import-status"]').text()).toBe('已暂存')
+      expect(wrapper.get('[data-testid="web-mod-target-package"]').text()).toBe(packageId)
+      expect(wrapper.get('[data-testid="web-mod-dispatch-status"]').text()).toBe('dispatched')
+      expect(wrapper.get('[data-testid="web-mod-host-ack-status"]').text()).toBe('已确认（Web）')
+      expect(wrapper.get('[data-testid="web-mod-ui-ipc-delivery-status"]').text()).toBe('未运行')
+      expectRuntimeHandoffStatusLabels(wrapper, {
+        runtimePublication: '未运行',
+        liveRegistry: '未运行',
+        appStartup: '未运行'
+      })
+      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('未运行')
+      expect(readSettingsLockfile.report.status).toBe('missing')
+      expect(readSettingsLockfile.record).toBeNull()
+      expect(persistedRecord).toBeNull()
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+      expect(wrapper.text()).not.toContain('C:/Users')
+      expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+      restoreQuery()
+    }
+  })
+
   it('labels no-persistence path-free fallback acknowledgement as local preflight', async() => {
     const selectFiles = vi.fn(async() => createValidFiles('web_panel_local_fallback'))
     const wrapper = mount(WebDataPackImportPreflightPanel, {

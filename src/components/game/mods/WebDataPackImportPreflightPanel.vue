@@ -316,6 +316,9 @@
     if (typeof window === 'undefined') return null
     const search = new URLSearchParams(window.location.search)
     if (search.get('taoyuanContentProbe') !== '1') return null
+    if (search.get('taoyuanThirdPartyVisibleInstallFailAfterModLockWrite') === '1') {
+      return 'install'
+    }
     if (search.get('taoyuanThirdPartyVisibleUpgradeFailAfterModLockWrite') === '1') {
       return 'install'
     }
@@ -339,6 +342,7 @@
     return {
       inspect: async() => await store.inspect(),
       read: async() => await store.read(),
+      ...(store.delete === undefined ? {} : { delete: async() => await store.delete!() }),
       write: async record => {
         const report = await store.write(record)
         const failureCommand = visibleFailureCommandAfterSettingsLockfileWrite()
