@@ -221,6 +221,36 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
+  it('treats replacement write-failure query wiring as a blocked product probe', async() => {
+    const visibleImportResult = {
+      status: 'blocked',
+      operation: 'upgrade'
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleUpgradeProbe=1&taoyuanThirdPartyVisibleUpgradeFailAfterModLockWrite=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'upgrade',
+        persistSource: false,
+        expectBlocked: true
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
+
   it('passes blocked ZIP replacement query wiring into the product probe', async() => {
     const visibleImportResult = {
       status: 'blocked',

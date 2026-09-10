@@ -135,6 +135,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly postCommitUiIpcDeliveryContinuationStatus: string | null
   readonly ordinaryInstallTransactionTerminalConnectionStatus: string | null
   readonly ordinaryInstallTransactionOutcomeKind: string | null
+  readonly webPlatformWriterHostConnectionStatus: string | null
   readonly installTransactionLogPreparedStatus: string | null
   readonly installTransactionLogPreparedStorageKind: string | null
   readonly installTransactionLogPreparedPersistentReadVerificationStatus: string | null
@@ -867,6 +868,30 @@ const hasReadyVisibleImportRollbackPanelLabels = (
   && labels.appStartupStatus === '已阻断'
   && labels.startupPersistentStateStatus === '已阻断'
 
+const hasBlockedVisibleImportWebWriterPanelLabels = (
+  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
+  labels: ThirdPartyVisibleImportPanelStatusLabels
+): boolean =>
+  labels.importStatus === '已暂存'
+  && labels.targetPackage === dispatchResult.preflight?.targetPackageId
+  && labels.dispatchStatus === 'dispatched'
+  && labels.persistenceStatus === '已写入 IndexedDB'
+  && labels.hostAckStatus === '已确认（Web）'
+  && labels.installOutcomeStatus === '等待事务主机'
+  && labels.uiIpcDeliveryStatus === '未运行'
+  && labels.runtimePublicationStatus === '未运行'
+  && labels.liveRegistryStatus === '未运行'
+  && labels.appStartupStatus === '未运行'
+  && labels.startupPersistentStateStatus === '未运行'
+
+const hasBlockedVisibleImportUpgradePanelLabels = (
+  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
+  labels: ThirdPartyVisibleImportPanelStatusLabels
+): boolean =>
+  dispatchResult.webPlatformWriterHostConnectionStatus === 'blocked'
+    ? hasBlockedVisibleImportWebWriterPanelLabels(dispatchResult, labels)
+    : hasReadyVisibleImportRollbackPanelLabels(dispatchResult, labels)
+
 const hasReadyVisibleImportFailurePanelLabels = (
   dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
   labels: ThirdPartyVisibleImportPanelStatusLabels
@@ -1099,7 +1124,7 @@ const runMainMenuPanelImportProbe = async(
           operation === 'rollback'
             ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
           : operation === 'upgrade' && options.expectBlocked === true
-            ? hasReadyVisibleImportRollbackPanelLabels(readyDispatchResult, labels)
+            ? hasBlockedVisibleImportUpgradePanelLabels(readyDispatchResult, labels)
           : operation === 'failure'
             ? hasReadyVisibleImportFailurePanelLabels(readyDispatchResult, labels)
             : hasReadyVisibleImportPanelLabels(readyDispatchResult, labels)
@@ -1678,6 +1703,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
       dispatchResult?.ordinaryInstallTransactionTerminalConnectionStatus ?? null,
     ordinaryInstallTransactionOutcomeKind:
       dispatchResult?.ordinaryInstallTransactionTerminalConnection?.outcomeKind ?? null,
+    webPlatformWriterHostConnectionStatus:
+      dispatchResult?.webPlatformWriterHostConnectionStatus ?? null,
     installTransactionLogPreparedStatus:
       dispatchResult?.installTransactionLogPreparedStatus ?? null,
     installTransactionLogPreparedStorageKind:
@@ -1815,6 +1842,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     postCommitUiIpcDeliveryContinuationStatus: null,
     ordinaryInstallTransactionTerminalConnectionStatus: null,
     ordinaryInstallTransactionOutcomeKind: null,
+    webPlatformWriterHostConnectionStatus: null,
     installTransactionLogPreparedStatus: null,
     installTransactionLogPreparedStorageKind: null,
     installTransactionLogPreparedPersistentReadVerificationStatus: null,
@@ -1963,6 +1991,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     postCommitUiIpcDeliveryContinuationStatus: null,
     ordinaryInstallTransactionTerminalConnectionStatus: null,
     ordinaryInstallTransactionOutcomeKind: null,
+    webPlatformWriterHostConnectionStatus: null,
     installTransactionLogPreparedStatus: null,
     installTransactionLogPreparedStorageKind: null,
     installTransactionLogPreparedPersistentReadVerificationStatus: null,

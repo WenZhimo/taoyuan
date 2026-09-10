@@ -239,6 +239,66 @@ const webScenarios = [
     startupGateExpectedProductProbeVariant: 'v2'
   },
   {
+    name: 'visible-import-web-replace-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledReplacementSequence: true,
+    visibleUpgradeFailAfterModLockWrite: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
+    name: 'visible-import-web-dependency-replace-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledReplacementSequence: true,
+    visibleUpgradeFailAfterModLockWrite: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
+    name: 'visible-import-web-archive-replace-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledReplacementSequence: true,
+    visibleUpgradeFailAfterModLockWrite: true,
+    visibleArchiveImport: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
+    name: 'visible-import-web-archive-dependency-replace-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledReplacementSequence: true,
+    visibleUpgradeFailAfterModLockWrite: true,
+    visibleArchiveImport: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-disable-then-restart',
     fault: null,
     source: 'precompiled',
@@ -3254,8 +3314,9 @@ const assertVisibleImportRollbackProductProbe = (visibleImport, scenario, protoc
 }
 
 const assertVisibleImportBlockedUpgradeProductProbe = (visibleImport, scenario, protocol) => {
-  assert(protocol === 'file:',
-    `${scenario.name}: visible replacement write-failure rollback must run in Electron`)
+  const isAbsent = value => value === undefined || value === null
+  assert(protocol === 'file:' || protocol === 'http:',
+    `${scenario.name}: visible replacement write-failure rollback ran on an unsupported protocol`)
   assert(visibleImport.observed === true,
     `${scenario.name}: visible replacement write-failure rollback was not observed`)
   assert(visibleImport.status === 'blocked',
@@ -3272,7 +3333,35 @@ const assertVisibleImportBlockedUpgradeProductProbe = (visibleImport, scenario, 
     `${scenario.name}: visible replacement write-failure rollback archive button state was unexpected`)
   assert(visibleImport.defaultFileInputSelectorUsed === true,
     `${scenario.name}: visible replacement write-failure rollback did not use the default file input selector`)
-  assertVisibleImportRollbackPanelLabels(visibleImport, scenario)
+  if (protocol === 'http:') {
+    const labels = visibleImport.panelStatusLabels
+    assert(labels?.importStatus === '已暂存',
+      `${scenario.name}: Web replacement rollback panel did not show persisted import status`)
+    assert(labels.targetPackage === 'product_probe_pack',
+      `${scenario.name}: Web replacement rollback panel did not show the target package`)
+    assert(labels.preflightStatus === 'deferred',
+      `${scenario.name}: Web replacement rollback panel did not show deferred preflight status`)
+    assert(labels.dispatchStatus === 'dispatched',
+      `${scenario.name}: Web replacement rollback panel did not show dispatched command status`)
+    assert(labels.persistenceStatus === '已写入 IndexedDB',
+      `${scenario.name}: Web replacement rollback panel did not show IndexedDB persistence`)
+    assert(labels.hostAckStatus === '已确认（Web）',
+      `${scenario.name}: Web replacement rollback panel did not show Web host acknowledgement`)
+    assert(labels.installOutcomeStatus === '等待事务主机',
+      `${scenario.name}: Web replacement rollback panel did not show writer-host block`)
+    assert(labels.uiIpcDeliveryStatus === '未运行',
+      `${scenario.name}: Web replacement rollback unexpectedly delivered UI/IPC`)
+    assert(labels.runtimePublicationStatus === '未运行',
+      `${scenario.name}: Web replacement rollback unexpectedly published runtime content`)
+    assert(labels.liveRegistryStatus === '未运行',
+      `${scenario.name}: Web replacement rollback unexpectedly swapped live registry`)
+    assert(labels.appStartupStatus === '未运行',
+      `${scenario.name}: Web replacement rollback unexpectedly handed off app startup`)
+    assert(labels.startupPersistentStateStatus === '未运行',
+      `${scenario.name}: Web replacement rollback unexpectedly wrote startup state`)
+  } else {
+    assertVisibleImportRollbackPanelLabels(visibleImport, scenario)
+  }
   assert(visibleImport.targetPackageId === visibleProbePackageId,
     `${scenario.name}: visible replacement write-failure rollback reported the wrong package`)
   assert(visibleImport.itemId === visibleProbeItemId,
@@ -3297,38 +3386,72 @@ const assertVisibleImportBlockedUpgradeProductProbe = (visibleImport, scenario, 
     `${scenario.name}: visible replacement write-failure rollback dispatch preflight was not deferred`)
   assert(visibleImport.discoveryStatus === 'completed',
     `${scenario.name}: visible replacement write-failure rollback discovery was not completed`)
-  assert(visibleImport.transactionCommandDispatcherHostKind === 'renderer',
-    `${scenario.name}: visible replacement write-failure rollback did not use the renderer dispatcher host`)
+  const expectedDispatcherHostKind = protocol === 'http:' ? 'web' : 'renderer'
+  assert(visibleImport.transactionCommandDispatcherHostKind === expectedDispatcherHostKind,
+    `${scenario.name}: visible replacement write-failure rollback did not use the ${expectedDispatcherHostKind} dispatcher host`)
   assert(visibleImport.transactionCommandDispatcherSourceStatus === 'dispatched',
     `${scenario.name}: visible replacement write-failure rollback command was not dispatched`)
-  assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'ready',
-    `${scenario.name}: visible replacement write-failure rollback post-commit acknowledgement was not ready`)
-  assert(visibleImport.postCommitVerificationExecutorHostMode === 'electron-main-visible-import',
-    `${scenario.name}: visible replacement write-failure rollback did not use the Electron visible-import post-commit host`)
-  assert(visibleImport.postCommitUiIpcDeliveryContinuationStatus === 'ready',
-    `${scenario.name}: visible replacement write-failure rollback UI/IPC continuation was not ready`)
-  assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === 'ready',
-    `${scenario.name}: visible replacement write-failure rollback ordinary terminal was not ready`)
-  assert(visibleImport.ordinaryInstallTransactionOutcomeKind === 'rollback',
-    `${scenario.name}: visible replacement write-failure rollback ordinary terminal did not report rollback outcome`)
-  assert(visibleImport.installTransactionLogPreparedStatus === undefined,
-    `${scenario.name}: visible replacement write-failure rollback should not prepare the transaction log`)
-  assert(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus === undefined,
-    `${scenario.name}: visible replacement write-failure rollback should not read the transaction log`)
-  assert(visibleImport.installTransactionCommitFinalizationStatus === undefined,
-    `${scenario.name}: visible replacement write-failure rollback should not finalize the transaction`)
-  assert(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus === undefined,
-    `${scenario.name}: visible replacement write-failure rollback should not publish runtime content`)
-  assert(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === undefined,
-    `${scenario.name}: visible replacement write-failure rollback should not swap the live registry`)
-  assert(visibleImport.runtimePublicationCommitAppStartupReadinessStatus === undefined,
-    `${scenario.name}: visible replacement write-failure rollback should not prepare app-startup readiness`)
-  assert(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus === undefined,
-    `${scenario.name}: visible replacement write-failure rollback should not hand off to app startup`)
-  assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
-    `${scenario.name}: Electron replacement rollback should not write Web startup persistent state`)
-  assert(visibleImport.electronStartupPersistentStateWriteStatus === 'blocked',
-    `${scenario.name}: Electron replacement rollback did not report blocked startup persistence`)
+  if (protocol === 'http:') {
+    assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'blocked',
+      `${scenario.name}: Web replacement rollback acknowledgement was not blocked`)
+    assert(visibleImport.webPlatformWriterHostConnectionStatus === 'blocked',
+      `${scenario.name}: Web replacement rollback did not report blocked Web writer host`)
+    assert(isAbsent(visibleImport.postCommitVerificationExecutorHostMode),
+      `${scenario.name}: Web replacement rollback unexpectedly used a post-commit verification host`)
+    assert(isAbsent(visibleImport.postCommitUiIpcDeliveryContinuationStatus),
+      `${scenario.name}: Web replacement rollback unexpectedly continued to UI/IPC delivery`)
+    assert(isAbsent(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus),
+      `${scenario.name}: Web replacement rollback unexpectedly reached ordinary terminal`)
+    assert(isAbsent(visibleImport.ordinaryInstallTransactionOutcomeKind),
+      `${scenario.name}: Web replacement rollback unexpectedly reported ordinary terminal outcome`)
+    assert(isAbsent(visibleImport.installTransactionLogPreparedStatus),
+      `${scenario.name}: Web replacement rollback should not prepare the transaction log`)
+    assert(isAbsent(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus),
+      `${scenario.name}: Web replacement rollback should not read the transaction log`)
+    assert(isAbsent(visibleImport.installTransactionCommitFinalizationStatus),
+      `${scenario.name}: Web replacement rollback should not finalize the transaction`)
+    assert(isAbsent(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus),
+      `${scenario.name}: Web replacement rollback should not publish runtime content`)
+    assert(isAbsent(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus),
+      `${scenario.name}: Web replacement rollback should not swap the live registry`)
+    assert(isAbsent(visibleImport.runtimePublicationCommitAppStartupReadinessStatus),
+      `${scenario.name}: Web replacement rollback should not prepare app-startup readiness`)
+    assert(isAbsent(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus),
+      `${scenario.name}: Web replacement rollback should not hand off to app startup`)
+    assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
+      `${scenario.name}: Web replacement rollback should not write Web startup persistent state`)
+    assert(isAbsent(visibleImport.electronStartupPersistentStateWriteStatus),
+      `${scenario.name}: Web replacement rollback should not report Electron startup persistence`)
+  } else {
+    assert(visibleImport.installCommandPostCommitAcknowledgementStatus === 'ready',
+      `${scenario.name}: visible replacement write-failure rollback post-commit acknowledgement was not ready`)
+    assert(visibleImport.postCommitVerificationExecutorHostMode === 'electron-main-visible-import',
+      `${scenario.name}: visible replacement write-failure rollback did not use the Electron visible-import post-commit host`)
+    assert(visibleImport.postCommitUiIpcDeliveryContinuationStatus === 'ready',
+      `${scenario.name}: visible replacement write-failure rollback UI/IPC continuation was not ready`)
+    assert(visibleImport.ordinaryInstallTransactionTerminalConnectionStatus === 'ready',
+      `${scenario.name}: visible replacement write-failure rollback ordinary terminal was not ready`)
+    assert(visibleImport.ordinaryInstallTransactionOutcomeKind === 'rollback',
+      `${scenario.name}: visible replacement write-failure rollback ordinary terminal did not report rollback outcome`)
+    assert(visibleImport.installTransactionLogPreparedStatus === undefined,
+      `${scenario.name}: visible replacement write-failure rollback should not prepare the transaction log`)
+    assert(visibleImport.installTransactionLogPreparedPersistentReadVerificationStatus === undefined,
+      `${scenario.name}: visible replacement write-failure rollback should not read the transaction log`)
+    assert(visibleImport.installTransactionCommitFinalizationStatus === undefined,
+      `${scenario.name}: visible replacement write-failure rollback should not finalize the transaction`)
+    assert(visibleImport.runtimePublicationCommitAfterPostCommitVerificationStatus === undefined,
+      `${scenario.name}: visible replacement write-failure rollback should not publish runtime content`)
+    assert(visibleImport.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === undefined,
+      `${scenario.name}: visible replacement write-failure rollback should not swap the live registry`)
+    assert(visibleImport.runtimePublicationCommitAppStartupReadinessStatus === undefined,
+      `${scenario.name}: visible replacement write-failure rollback should not prepare app-startup readiness`)
+    assert(visibleImport.runtimePublicationCommitAppStartupHostConnectionStatus === undefined,
+      `${scenario.name}: visible replacement write-failure rollback should not hand off to app startup`)
+    assert(visibleImport.webStartupPersistentStateWriteStatus !== 'written',
+      `${scenario.name}: Electron replacement rollback should not write Web startup persistent state`)
+    assert(visibleImport.electronStartupPersistentStateWriteStatus === 'blocked',
+      `${scenario.name}: Electron replacement rollback did not report blocked startup persistence`)
+  }
   assertVisibleImportPackageSelection(visibleImport, scenario, 'visible replacement write-failure rollback')
   assert(Number.isSafeInteger(visibleImport.diagnosticsCount) && visibleImport.diagnosticsCount >= 0,
     `${scenario.name}: visible replacement write-failure rollback diagnostics count was invalid`)
@@ -3344,36 +3467,62 @@ const assertVisibleImportBlockedUpgradeProductProbe = (visibleImport, scenario, 
     `${scenario.name}: visible replacement write-failure rollback did not start from installed v1 shop offer visibility`)
   assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
     `${scenario.name}: visible replacement write-failure rollback incorrectly exposed v2 shop offer visibility`)
-  for (const effectName of [
-    'commandDispatched',
-    'uiIpcResponseDelivered',
-    'rollbackExecuted'
-  ]) {
+  const expectedTrueEffects = protocol === 'http:'
+    ? ['commandDispatched']
+    : ['commandDispatched', 'uiIpcResponseDelivered', 'rollbackExecuted']
+  for (const effectName of expectedTrueEffects) {
     assert(visibleImport.effects?.[effectName] === true,
       `${scenario.name}: visible replacement write-failure rollback effect ${effectName} was not true`)
   }
-  for (const effectName of [
-    'packageFilesWritten',
-    'settingsWritten',
-    'lockfileWritten',
-    'rendererLiveRegistrySwapped',
-    'runtimeEnablementAllowed',
-    'realRuntimePublicationCommitCalled',
-    'runtimePublicationCommitted',
-    'transactionCommitted',
-    'transactionLogPrepared',
-    'transactionLogRead',
-    'startupPersistentStateWritten',
-    'realNormalStartupHostCalled',
-    'realAppStartupHostCalled',
-    'gameAppCreated',
-    'piniaCreated',
-    'routerMounted',
-    'savesWritten',
-    'cacheWritten',
-    'transactionLogWritten',
-    'diagnosticsWritten'
-  ]) {
+  const expectedFalseEffects = protocol === 'http:'
+    ? [
+        'packageFilesWritten',
+        'settingsWritten',
+        'lockfileWritten',
+        'rendererLiveRegistrySwapped',
+        'runtimeEnablementAllowed',
+        'realWebPlatformWriterHostCalled',
+        'realRuntimePublicationCommitCalled',
+        'runtimePublicationCommitted',
+        'uiIpcResponseDelivered',
+        'transactionCommitted',
+        'transactionLogPrepared',
+        'transactionLogRead',
+        'startupPersistentStateWritten',
+        'realNormalStartupHostCalled',
+        'realAppStartupHostCalled',
+        'gameAppCreated',
+        'piniaCreated',
+        'routerMounted',
+        'savesWritten',
+        'cacheWritten',
+        'transactionLogWritten',
+        'rollbackExecuted',
+        'diagnosticsWritten'
+      ]
+    : [
+        'packageFilesWritten',
+        'settingsWritten',
+        'lockfileWritten',
+        'rendererLiveRegistrySwapped',
+        'runtimeEnablementAllowed',
+        'realRuntimePublicationCommitCalled',
+        'runtimePublicationCommitted',
+        'transactionCommitted',
+        'transactionLogPrepared',
+        'transactionLogRead',
+        'startupPersistentStateWritten',
+        'realNormalStartupHostCalled',
+        'realAppStartupHostCalled',
+        'gameAppCreated',
+        'piniaCreated',
+        'routerMounted',
+        'savesWritten',
+        'cacheWritten',
+        'transactionLogWritten',
+        'diagnosticsWritten'
+      ]
+  for (const effectName of expectedFalseEffects) {
     assert(visibleImport.effects?.[effectName] === false,
       `${scenario.name}: visible replacement write-failure rollback effect ${effectName} was not false`)
   }
@@ -6278,6 +6427,10 @@ const runWebProbe = async () => {
     if (scenario.visibleUpgrade) {
       url.searchParams.set('taoyuanThirdPartyVisibleUpgradeProbe', '1')
     }
+    if (scenario.visibleUpgrade && scenario.visibleUpgradeFailAfterModLockWrite) {
+      url.searchParams.set('taoyuanThirdPartyVisibleUpgradeExpectBlocked', '1')
+      url.searchParams.set('taoyuanThirdPartyVisibleUpgradeFailAfterModLockWrite', '1')
+    }
     if (scenario.visibleDependency) {
       url.searchParams.set('taoyuanThirdPartyVisibleDependencyProbe', '1')
     }
@@ -6323,6 +6476,7 @@ const runWebProbe = async () => {
           startupGateDisabled: false,
           visibleImportWebOrdinary: true,
           visibleUpgrade: false,
+          visibleUpgradeFailAfterModLockWrite: false,
           visibleProbeVariant: 'v1'
         }
         const installOutputPath = path.join(scenarioRoot, 'install-v1-report.json')
@@ -6361,6 +6515,33 @@ const runWebProbe = async () => {
         const upgradeEnvelope = readJson(upgradeOutputPath)
         assertRuntimeEnvelope(upgradeEnvelope, upgradeScenario, 'http:')
         assertWebProductSurface(upgradeEnvelope, upgradeScenario)
+
+        if (scenario.visibleUpgradeFailAfterModLockWrite) {
+          const restartScenario = {
+            ...upgradeScenario,
+            name: `${scenario.name}:restart-v1`,
+            visibleImportWebOrdinary: false,
+            visibleUpgrade: false,
+            visibleUpgradeFailAfterModLockWrite: false,
+            startupGateExpectedProductProbeVariant: 'v1'
+          }
+          const restartOutputPath = path.join(scenarioRoot, 'restart-v1-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: restartOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(restartScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const restartEnvelope = readJson(restartOutputPath)
+          assertRuntimeEnvelope(restartEnvelope, restartScenario, 'http:')
+          assertWebProductSurface(restartEnvelope, restartScenario)
+          reports.push({
+            scenario: scenario.name,
+            installRuntime: installEnvelope.runtime,
+            upgradeRuntime: upgradeEnvelope.runtime,
+            restartRuntime: restartEnvelope.runtime
+          })
+          continue
+        }
 
         const restartScenario = {
           ...upgradeScenario,

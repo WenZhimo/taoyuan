@@ -312,10 +312,13 @@
     }
 
   const visibleFailureCommandAfterSettingsLockfileWrite = ():
-    'disable' | 'enable' | 'uninstall' | null => {
+    'disable' | 'enable' | 'install' | 'uninstall' | null => {
     if (typeof window === 'undefined') return null
     const search = new URLSearchParams(window.location.search)
     if (search.get('taoyuanContentProbe') !== '1') return null
+    if (search.get('taoyuanThirdPartyVisibleUpgradeFailAfterModLockWrite') === '1') {
+      return 'install'
+    }
     if (search.get('taoyuanThirdPartyVisibleDisableFailAfterModLockWrite') === '1') {
       return 'disable'
     }
@@ -331,14 +334,14 @@
   const createVisibleManagementFailureProbeSettingsLockfileStore = (
     store: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null
   ): ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null => {
-    const failureCommand = visibleFailureCommandAfterSettingsLockfileWrite()
-    if (store === null || failureCommand === null) return store
+    if (store === null) return store
     let failureInjected = false
     return {
       inspect: async() => await store.inspect(),
       read: async() => await store.read(),
       write: async record => {
         const report = await store.write(record)
+        const failureCommand = visibleFailureCommandAfterSettingsLockfileWrite()
         if (!failureInjected && record.requestedCommandId === failureCommand && report.status === 'written') {
           failureInjected = true
           throw new Error(`Web visible ${failureCommand} probe failed after settings-lockfile write`)
@@ -678,6 +681,7 @@
         search.get('taoyuanThirdPartyVisibleImportProbe') === '1'
         || search.get('taoyuanThirdPartyVisibleImportRollbackProbe') === '1'
         || search.get('taoyuanThirdPartyVisibleImportFailureProbe') === '1'
+        || search.get('taoyuanThirdPartyVisibleUpgradeProbe') === '1'
       )
   }
 

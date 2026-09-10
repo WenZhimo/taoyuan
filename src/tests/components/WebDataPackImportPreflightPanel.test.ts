@@ -1748,6 +1748,91 @@ describe('WebDataPackImportPreflightPanel', () => {
     }
   })
 
+  it('rolls back Web visible replacement when the probe fails after settings-lockfile write', async() => {
+    const packageId = 'web_panel_replace_failure_visible'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const selectFiles = vi.fn()
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.0.0',
+        itemNameFallback: 'web panel replace rollback v1'
+      }))
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.1.0',
+        itemNameFallback: 'web panel replace rollback v2'
+      }))
+    let restoreQuery: (() => void) | null = null
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles,
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text())
+        .toContain('v1.0.0 · 已启用')
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe('web panel replace rollback v1')
+
+      restoreQuery = withWindowQuery(
+        '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleUpgradeProbe=1&taoyuanThirdPartyVisibleUpgradeFailAfterModLockWrite=1'
+      )
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+
+      const rowText = wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()
+      const readSettingsLockfile = await webSettingsLockfileStore.read()
+      const persistedRecord = await persistenceStore.get('latest-web-file-picker-import')
+      expect(selectFiles).toHaveBeenCalledTimes(2)
+      expect(rowText).toContain('v1.0.0 · 已启用')
+      expect(wrapper.get('[data-testid="web-mod-import-status"]').text()).toBe('已暂存')
+      expect(wrapper.get('[data-testid="web-mod-dispatch-status"]').text()).toBe('dispatched')
+      expect(wrapper.get('[data-testid="web-mod-host-ack-status"]').text()).toBe('已确认（Web）')
+      expect(wrapper.get('[data-testid="web-mod-install-outcome-status"]').text()).toBe('等待事务主机')
+      expect(wrapper.get('[data-testid="web-mod-ui-ipc-delivery-status"]').text()).toBe('未运行')
+      expectRuntimeHandoffStatusLabels(wrapper, {
+        runtimePublication: '未运行',
+        liveRegistry: '未运行',
+        appStartup: '未运行'
+      })
+      expect(wrapper.get('[data-testid="web-mod-startup-persistent-state-status"]').text()).toBe('未运行')
+      expect(readSettingsLockfile.record).toMatchObject({
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install',
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId]
+      })
+      expect(readSettingsLockfile.record?.lockfileDraft.packages).toHaveLength(1)
+      expect(readSettingsLockfile.record?.lockfileDraft.packages[0]).toMatchObject({
+        packageId,
+        version: '1.0.0'
+      })
+      expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+        .toBe('web panel replace rollback v1')
+      expect(JSON.stringify(persistedRecord)).toContain('web panel replace rollback v1')
+      expect(JSON.stringify(persistedRecord)).not.toContain('web panel replace rollback v2')
+      expect(wrapper.text()).not.toContain('C:/Users')
+      expect(wrapper.text()).not.toContain('LENOVO')
+    } finally {
+      wrapper.unmount()
+      restoreQuery?.()
+    }
+  })
+
   it('labels no-persistence path-free fallback acknowledgement as local preflight', async() => {
     const selectFiles = vi.fn(async() => createValidFiles('web_panel_local_fallback'))
     const wrapper = mount(WebDataPackImportPreflightPanel, {

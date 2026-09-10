@@ -1123,6 +1123,51 @@ describe('official content runtime report', () => {
     expect(JSON.stringify(summary)).not.toContain('document')
   })
 
+  it('summarizes Web visible import writer-host connection status', () => {
+    const summary = createThirdPartyVisibleImportRuntimeProbeSummary({
+      status: 'blocked',
+      operation: 'upgrade',
+      entrypoint: 'main-menu-panel',
+      mainMenuPanelOpened: true,
+      panelImportButtonClicked: true,
+      defaultFileInputSelectorUsed: true,
+      targetPackageId: 'product_probe_pack',
+      fileCount: 5,
+      pickStatus: 'persisted',
+      panelStatusLabels: {
+        importStatus: '已暂存',
+        targetPackage: 'product_probe_pack',
+        preflightStatus: 'deferred',
+        dispatchStatus: 'dispatched',
+        persistenceStatus: '已写入 IndexedDB',
+        hostAckStatus: '已确认（Web）',
+        installOutcomeStatus: '等待事务主机',
+        uiIpcDeliveryStatus: '未运行',
+        runtimePublicationStatus: '未运行',
+        liveRegistryStatus: '未运行',
+        appStartupStatus: '未运行',
+        startupPersistentStateStatus: '未运行'
+      },
+      transactionCommandDispatcherHostKind: 'web',
+      transactionCommandDispatcherSourceStatus: 'dispatched',
+      installCommandPostCommitAcknowledgementStatus: 'blocked',
+      webPlatformWriterHostConnectionStatus: 'blocked'
+    })
+
+    expect(summary).toMatchObject({
+      status: 'blocked',
+      operation: 'upgrade',
+      transactionCommandDispatcherHostKind: 'web',
+      transactionCommandDispatcherSourceStatus: 'dispatched',
+      installCommandPostCommitAcknowledgementStatus: 'blocked',
+      webPlatformWriterHostConnectionStatus: 'blocked',
+      panelStatusLabels: {
+        hostAckStatus: '已确认（Web）',
+        installOutcomeStatus: '等待事务主机'
+      }
+    })
+  })
+
   it('summarizes visible management renderer command delivery without exposing hosts', () => {
     let hostileGetterRead = false
     const probeResult = {

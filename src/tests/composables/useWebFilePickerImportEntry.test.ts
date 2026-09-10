@@ -46,7 +46,8 @@ import {
 import { createInMemoryWebIndexedDbImportPersistenceStore } from '@/domain/mods/webIndexedDbImportPersistence'
 import {
   createInMemoryWebSettingsLockfilePersistentWriterStore,
-  THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+  THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+  type ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
 } from '@/domain/mods/thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 import {
   createInMemoryWebInstallTransactionLogPreparedStore,
@@ -2846,6 +2847,95 @@ describe('useWebFilePickerImportEntry', () => {
     expect(JSON.stringify(replacementDispatchResult)).not.toContain('C:/Users')
     expect(JSON.stringify(replacementStartupSnapshot)).not.toContain('C:/Users')
     expect(JSON.stringify(replacementSettingsLockfile)).not.toContain('LENOVO')
+  })
+
+  it('restores previous Web install state when replacement writer fails after settings-lockfile write', async() => {
+    const packageId = requirePackageId('web_entry_replace_failure')
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const baseWebSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webSettingsLockfileStore = {
+      inspect: async() => await baseWebSettingsLockfileStore.inspect(),
+      read: async() => await baseWebSettingsLockfileStore.read(),
+      write: async(record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord) => {
+        const report = await baseWebSettingsLockfileStore.write(record)
+        if (record.lockfileDraft.packages.some(currentPackage =>
+          currentPackage.packageId === packageId && currentPackage.version === '1.1.0'
+        )) {
+          throw new Error('replacement writer failed after settings-lockfile write')
+        }
+        return report
+      }
+    }
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const selectFiles = vi.fn()
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.0.0',
+        itemNameFallback: 'web entry replace failure v1'
+      }))
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.1.0',
+        itemNameFallback: 'web entry replace failure v2'
+      }))
+    const entry = useWebFilePickerImportEntry({
+      selectFiles,
+      persistenceStore: store,
+      webSettingsLockfileStore,
+      webInstallTransactionLogStore
+    })
+
+    await entry.pickFiles()
+    const firstDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      mountedAppStartupHostEvidence
+    })
+    const firstPersistedRecord = await store.get(WEB_FILE_PICKER_IMPORT_ENTRY_DEFAULT_IMPORT_ID)
+    expect(firstDispatchResult.webPlatformWriterHostConnectionStatus).toBe('connected')
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+      .toBe('web entry replace failure v1')
+
+    await entry.pickFiles()
+    const replacementDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      mountedAppStartupHostEvidence
+    })
+    const restoredSettingsLockfile = await webSettingsLockfileStore.read()
+    const restoredPersistedRecord = await store.get(WEB_FILE_PICKER_IMPORT_ENTRY_DEFAULT_IMPORT_ID)
+
+    expect(selectFiles).toHaveBeenCalledTimes(2)
+    expect(replacementDispatchResult).toMatchObject({
+      transactionCommandDispatcherHostKind: 'web',
+      transactionCommandDispatcherSourceStatus: 'dispatched',
+      installCommandPostCommitAcknowledgementStatus: 'blocked',
+      webPlatformWriterHostConnectionStatus: 'blocked',
+      transactionCommitted: false,
+      writeExecuted: false,
+      startupPersistentStateWritten: false,
+      rendererLiveRegistrySwapApplied: false,
+      runtimeEnablementAllowed: false,
+      uiIpcResponseDelivered: false
+    })
+    expect(replacementDispatchResult.ordinaryInstallTransactionTerminalConnectionStatus).toBeNull()
+    expect(restoredSettingsLockfile.record).toMatchObject({
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      loadOrder: [packageId]
+    })
+    expect(restoredSettingsLockfile.record?.lockfileDraft.packages).toHaveLength(1)
+    expect(restoredSettingsLockfile.record?.lockfileDraft.packages[0]).toMatchObject({
+      packageId,
+      version: '1.0.0'
+    })
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+      .toBe('web entry replace failure v1')
+    expect(JSON.stringify(restoredPersistedRecord)).toBe(JSON.stringify(firstPersistedRecord))
+    expect(JSON.stringify(restoredPersistedRecord)).not.toContain('web entry replace failure v2')
+    expect(JSON.stringify(replacementDispatchResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(restoredSettingsLockfile)).not.toContain('LENOVO')
   })
 
   it('treats an empty selection as cancelled without creating a source', async() => {

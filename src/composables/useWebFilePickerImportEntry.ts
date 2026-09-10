@@ -2151,6 +2151,7 @@ export const useWebFilePickerImportEntry = (
   const status = ref<WebFilePickerImportEntryStatus>('idle')
   const lastSource = shallowRef<ContentPackageSource | null>(null)
   const lastRecord = shallowRef<WebIndexedDbImportRecord | null>(null)
+  const lastRecordBeforeCurrentImport = shallowRef<WebIndexedDbImportRecord | null>(null)
   const lastError = shallowRef<ContentPackageSourceError | null>(null)
   const lastEffects = shallowRef<WebFilePickerImportEntryEffects>(emptyEffects)
   const lastFileCount = ref(0)
@@ -2222,6 +2223,10 @@ export const useWebFilePickerImportEntry = (
     files: readonly WebFilePickerImportFile[]
   ): Promise<WebFilePickerImportEntryResult> => {
     await disposeLastSource()
+    lastRecordBeforeCurrentImport.value = options.persistenceStore === null
+      || options.persistenceStore === undefined
+      ? null
+      : await options.persistenceStore.get(toImportId(options.importId))
     lastRecord.value = null
     lastError.value = null
     lastEffects.value = emptyEffects
@@ -2276,6 +2281,10 @@ export const useWebFilePickerImportEntry = (
     files: readonly WebFilePickerImportFile[]
   ): Promise<WebFilePickerImportEntryResult> => {
     await disposeLastSource()
+    lastRecordBeforeCurrentImport.value = options.persistenceStore === null
+      || options.persistenceStore === undefined
+      ? null
+      : await options.persistenceStore.get(toImportId(options.importId))
     lastRecord.value = null
     lastError.value = null
     lastEffects.value = emptyEffects
@@ -3216,6 +3225,8 @@ export const useWebFilePickerImportEntry = (
         rendererOrdinaryInstallTerminalContinuationBlockedReason =
           'Web visible import ordinary continuation requires persisted package file payload'
       } else if (webSettingsLockfileStore !== null && webInstallTransactionLogStore !== null) {
+        const previousSettingsLockfileRecord =
+          (await webSettingsLockfileStore.read()).record
         try {
           webPlatformWriterHostConnection = await connectWebSettingsLockfileWriter({
             store: webSettingsLockfileStore,
@@ -3230,8 +3241,35 @@ export const useWebFilePickerImportEntry = (
           }
         }
         if (webPlatformWriterHostConnection.status !== 'connected') {
+          const restoreFailures: string[] = []
+          if (previousSettingsLockfileRecord !== null) {
+            try {
+              const restoreReport = await webSettingsLockfileStore.write(previousSettingsLockfileRecord)
+              if (restoreReport.status !== 'written') {
+                restoreFailures.push('settings-lockfile')
+              }
+            } catch {
+              restoreFailures.push('settings-lockfile')
+            }
+          }
+          const webImportPersistenceStore = options.persistenceStore ?? null
+          if (webImportPersistenceStore !== null) {
+            try {
+              const importId = toImportId(options.importId)
+              const previousImportRecord = lastRecordBeforeCurrentImport.value
+              if (previousImportRecord === null) {
+                await webImportPersistenceStore.delete(importId)
+              } else {
+                await webImportPersistenceStore.put(previousImportRecord)
+              }
+            } catch {
+              restoreFailures.push('web-import-source')
+            }
+          }
           rendererOrdinaryInstallTerminalContinuationBlockedReason =
-            webPlatformWriterHostConnection.reason
+            restoreFailures.length === 0
+              ? webPlatformWriterHostConnection.reason
+              : `${webPlatformWriterHostConnection.reason}; Web rollback restore failed for ${restoreFailures.join(', ')}`
         } else {
           installCommandPostCommitAcknowledgement =
             createWebInstallCommandPostCommitAcknowledgement(

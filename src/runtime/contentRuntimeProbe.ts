@@ -251,6 +251,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   transactionCommandDispatcherHostKind?: string
   transactionCommandDispatcherSourceStatus?: string
   installCommandPostCommitAcknowledgementStatus?: string
+  webPlatformWriterHostConnectionStatus?: string
   postCommitVerificationExecutorHostMode?: string
   postCommitUiIpcDeliveryContinuationStatus?: string
   ordinaryInstallTransactionTerminalConnectionStatus?: string
@@ -1266,6 +1267,8 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       readOwnStringField(result, 'transactionCommandDispatcherSourceStatus'),
     installCommandPostCommitAcknowledgementStatus:
       readOwnStringField(result, 'installCommandPostCommitAcknowledgementStatus'),
+    webPlatformWriterHostConnectionStatus:
+      readOwnStringField(result, 'webPlatformWriterHostConnectionStatus'),
     postCommitVerificationExecutorHostMode:
       readOwnStringField(result, 'postCommitVerificationExecutorHostMode'),
     postCommitUiIpcDeliveryContinuationStatus:
