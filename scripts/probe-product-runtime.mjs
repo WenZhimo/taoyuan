@@ -4676,6 +4676,8 @@ const assertVisibleManagementCommandDelivery = (
     || (operation === 'uninstall' && scenario.visibleUninstallFailAfterModLockWrite)
   )
   const expectRealWebPlatformWriterHostCalled = protocol === 'http:' && !writeFailureInjected
+  const expectRealElectronSettingsLockfilePersistentWriterHostCalled =
+    protocol === 'file:' && !writeFailureInjected
   assert(
     visibleImport.managementCommandHostKind === expectedVisibleManagementCommandHostKind(protocol),
     `${scenario.name}: visible ${operation} management command used the wrong host kind`
@@ -4695,6 +4697,11 @@ const assertVisibleManagementCommandDelivery = (
   assert(
     visibleImport.effects?.realWebPlatformWriterHostCalled === expectRealWebPlatformWriterHostCalled,
     `${scenario.name}: visible ${operation} real Web platform writer host evidence did not match the platform`
+  )
+  assert(
+    visibleImport.effects?.realElectronSettingsLockfilePersistentWriterHostCalled
+      === expectRealElectronSettingsLockfilePersistentWriterHostCalled,
+    `${scenario.name}: visible ${operation} real Electron settings/mod-lock writer host evidence did not match the platform`
   )
 }
 
@@ -5180,7 +5187,6 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
   }
   for (const effectName of [
     'packageFilesWritten',
-    'realElectronSettingsLockfilePersistentWriterHostCalled',
     'runtimeEnablementAllowed',
     'transactionLogPrepared',
     'transactionLogRead',

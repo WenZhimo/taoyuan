@@ -682,6 +682,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
       realWebPlatformWriterHostCalled: false,
+      realElectronSettingsLockfilePersistentWriterHostCalled: true,
       terminal: {
         status: 'ready',
         requestedCommandId: 'enable',
@@ -793,6 +794,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
       realWebPlatformWriterHostCalled: false,
+      realElectronSettingsLockfilePersistentWriterHostCalled: true,
       terminal: {
         status: 'ready',
         requestedCommandId: 'disable',
@@ -912,6 +914,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
       realWebPlatformWriterHostCalled: false,
+      realElectronSettingsLockfilePersistentWriterHostCalled: true,
       terminal: {
         status: 'ready',
         requestedCommandId: 'disable',
@@ -1229,6 +1232,7 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
       realWebPlatformWriterHostCalled: false,
+      realElectronSettingsLockfilePersistentWriterHostCalled: true,
       terminal: {
         status: 'ready',
         requestedCommandId: 'uninstall',

@@ -289,6 +289,7 @@ interface VisibleImportProbeExecution {
   readonly managementCommandDispatched?: boolean
   readonly managementUiIpcResponseDelivered?: boolean
   readonly realWebPlatformWriterHostCalled?: boolean
+  readonly realElectronSettingsLockfilePersistentWriterHostCalled?: boolean
   readonly defaultFileInputSelectorUsed: boolean
   readonly blockedReason?: string
 }
@@ -304,6 +305,7 @@ interface VisibleDisableProbeExecution {
   readonly managementCommandDispatched?: boolean
   readonly managementUiIpcResponseDelivered?: boolean
   readonly realWebPlatformWriterHostCalled?: boolean
+  readonly realElectronSettingsLockfilePersistentWriterHostCalled?: boolean
   readonly contentAccessItemVisibleBefore: boolean
   readonly contentAccessItemVisibleAfter: boolean
   readonly contentAccessRecipeVisibleBefore: boolean
@@ -326,6 +328,7 @@ interface VisibleUninstallProbeExecution {
   readonly managementCommandDispatched?: boolean
   readonly managementUiIpcResponseDelivered?: boolean
   readonly realWebPlatformWriterHostCalled?: boolean
+  readonly realElectronSettingsLockfilePersistentWriterHostCalled?: boolean
   readonly contentAccessItemVisibleBefore: boolean
   readonly contentAccessItemVisibleAfter: boolean
   readonly contentAccessRecipeVisibleBefore: boolean
@@ -1276,6 +1279,8 @@ const runMainMenuPanelEnableProbe = async(
         readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       realWebPlatformWriterHostCalled:
         readOwnBooleanField(transactionResult, 'realWebPlatformWriterHostCalled'),
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        readOwnBooleanField(transactionResult, 'realElectronSettingsLockfilePersistentWriterHostCalled'),
       fileCount: Number(readPanelText('web-mod-file-count') ?? 0),
       pickStatus: toPickStatus(stableLabel),
       panelStatusLabels,
@@ -1298,6 +1303,8 @@ const runMainMenuPanelEnableProbe = async(
         readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       realWebPlatformWriterHostCalled:
         readOwnBooleanField(transactionResult, 'realWebPlatformWriterHostCalled'),
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        readOwnBooleanField(transactionResult, 'realElectronSettingsLockfilePersistentWriterHostCalled'),
       fileCount: Number(readPanelText('web-mod-file-count') ?? 0),
       pickStatus: toPickStatus(readPanelText('web-mod-import-status')),
       panelStatusLabels: readVisibleImportPanelStatusLabels(),
@@ -1404,6 +1411,8 @@ const runMainMenuPanelDisableProbe = async(
         readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       realWebPlatformWriterHostCalled:
         readOwnBooleanField(transactionResult, 'realWebPlatformWriterHostCalled'),
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        readOwnBooleanField(transactionResult, 'realElectronSettingsLockfilePersistentWriterHostCalled'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter,
       contentAccessRecipeVisibleBefore,
@@ -1429,6 +1438,8 @@ const runMainMenuPanelDisableProbe = async(
         readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       realWebPlatformWriterHostCalled:
         readOwnBooleanField(transactionResult, 'realWebPlatformWriterHostCalled'),
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        readOwnBooleanField(transactionResult, 'realElectronSettingsLockfilePersistentWriterHostCalled'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter: getOfficialItemDef(itemId) !== undefined,
       contentAccessRecipeVisibleBefore,
@@ -1511,6 +1522,8 @@ const runMainMenuPanelUninstallProbe = async(
         readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       realWebPlatformWriterHostCalled:
         readOwnBooleanField(transactionResult, 'realWebPlatformWriterHostCalled'),
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        readOwnBooleanField(transactionResult, 'realElectronSettingsLockfilePersistentWriterHostCalled'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter,
       contentAccessRecipeVisibleBefore,
@@ -1536,6 +1549,8 @@ const runMainMenuPanelUninstallProbe = async(
         readOwnBooleanField(transactionResult, 'managementUiIpcResponseDelivered'),
       realWebPlatformWriterHostCalled:
         readOwnBooleanField(transactionResult, 'realWebPlatformWriterHostCalled'),
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        readOwnBooleanField(transactionResult, 'realElectronSettingsLockfilePersistentWriterHostCalled'),
       contentAccessItemVisibleBefore,
       contentAccessItemVisibleAfter: getOfficialItemDef(itemId) !== undefined,
       contentAccessRecipeVisibleBefore,
@@ -1604,7 +1619,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
     ? {
         commandDispatched: execution.managementCommandDispatched === true,
         realWebPlatformWriterHostCalled: execution.realWebPlatformWriterHostCalled === true,
-        realElectronSettingsLockfilePersistentWriterHostCalled: false,
+        realElectronSettingsLockfilePersistentWriterHostCalled:
+          execution.realElectronSettingsLockfilePersistentWriterHostCalled === true,
         packageFilesWritten: false,
         settingsWritten: enableTerminal?.settingsWritten === true,
         lockfileWritten: enableTerminal?.lockfileWritten === true,
@@ -1947,7 +1963,8 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     effects: {
       commandDispatched: execution.managementCommandDispatched === true,
       realWebPlatformWriterHostCalled: execution.realWebPlatformWriterHostCalled === true,
-      realElectronSettingsLockfilePersistentWriterHostCalled: false,
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        execution.realElectronSettingsLockfilePersistentWriterHostCalled === true,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,
@@ -2100,7 +2117,8 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     effects: {
       commandDispatched: execution.managementCommandDispatched === true,
       realWebPlatformWriterHostCalled: execution.realWebPlatformWriterHostCalled === true,
-      realElectronSettingsLockfilePersistentWriterHostCalled: false,
+      realElectronSettingsLockfilePersistentWriterHostCalled:
+        execution.realElectronSettingsLockfilePersistentWriterHostCalled === true,
       packageFilesWritten: false,
       settingsWritten: terminal?.settingsWritten === true,
       lockfileWritten: terminal?.lockfileWritten === true,

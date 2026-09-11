@@ -96,6 +96,7 @@ export interface WebInstalledDataPackManagementCommandDeliveryResult {
   readonly managementCommandDispatched: boolean
   readonly managementUiIpcResponseDelivered: boolean
   readonly realWebPlatformWriterHostCalled: boolean
+  readonly realElectronSettingsLockfilePersistentWriterHostCalled: boolean
 }
 
 export type WebInstalledDataPackManagementDisableResult =
@@ -423,6 +424,7 @@ export const useWebInstalledDataPackManagement = (
     let managementCommandDispatched = false
     let managementUiIpcResponseDelivered = false
     let realWebPlatformWriterHostCalled = false
+    let realElectronSettingsLockfilePersistentWriterHostCalled = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -497,6 +499,11 @@ export const useWebInstalledDataPackManagement = (
             if (electronResult.status !== 'written') {
               throw new Error('Electron disable persistent state write was blocked')
             }
+            realElectronSettingsLockfilePersistentWriterHostCalled =
+              electronResult.settingsWritten
+              && electronResult.lockfileWritten
+              && electronResult.startupStateWritten
+              && electronResult.packageFilesPreserved
             return {
               settingsWritten: electronResult.settingsWritten,
               lockfileWritten: electronResult.lockfileWritten,
@@ -548,7 +555,8 @@ export const useWebInstalledDataPackManagement = (
         managementCommandHostKind,
         managementCommandDispatched,
         managementUiIpcResponseDelivered,
-        realWebPlatformWriterHostCalled
+        realWebPlatformWriterHostCalled,
+        realElectronSettingsLockfilePersistentWriterHostCalled
       })
       lastResult.value = result
       reason.value = transaction.terminal.reason
@@ -586,6 +594,7 @@ export const useWebInstalledDataPackManagement = (
     let managementCommandDispatched = false
     let managementUiIpcResponseDelivered = false
     let realWebPlatformWriterHostCalled = false
+    let realElectronSettingsLockfilePersistentWriterHostCalled = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -659,6 +668,11 @@ export const useWebInstalledDataPackManagement = (
             if (electronResult.status !== 'written') {
               throw new Error('Electron uninstall persistent state write was blocked')
             }
+            realElectronSettingsLockfilePersistentWriterHostCalled =
+              electronResult.settingsWritten
+              && electronResult.lockfileWritten
+              && electronResult.startupStateWritten
+              && electronResult.packageFilesRemoved
             return {
               settingsWritten: electronResult.settingsWritten,
               lockfileWritten: electronResult.lockfileWritten,
@@ -727,7 +741,8 @@ export const useWebInstalledDataPackManagement = (
         managementCommandHostKind,
         managementCommandDispatched,
         managementUiIpcResponseDelivered,
-        realWebPlatformWriterHostCalled
+        realWebPlatformWriterHostCalled,
+        realElectronSettingsLockfilePersistentWriterHostCalled
       })
       lastUninstallResult.value = result
       reason.value = transaction.terminal.reason
@@ -764,6 +779,7 @@ export const useWebInstalledDataPackManagement = (
     let managementCommandDispatched = false
     let managementUiIpcResponseDelivered = false
     let realWebPlatformWriterHostCalled = false
+    let realElectronSettingsLockfilePersistentWriterHostCalled = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -855,6 +871,11 @@ export const useWebInstalledDataPackManagement = (
             if (electronResult.status !== 'written') {
               throw new Error('Electron enable persistent state write was blocked')
             }
+            realElectronSettingsLockfilePersistentWriterHostCalled =
+              electronResult.settingsWritten
+              && electronResult.lockfileWritten
+              && electronResult.startupStateWritten
+              && electronResult.packageFilesPreserved
             return {
               settingsWritten: electronResult.settingsWritten,
               lockfileWritten: electronResult.lockfileWritten,
@@ -909,7 +930,8 @@ export const useWebInstalledDataPackManagement = (
         managementCommandHostKind,
         managementCommandDispatched,
         managementUiIpcResponseDelivered,
-        realWebPlatformWriterHostCalled
+        realWebPlatformWriterHostCalled,
+        realElectronSettingsLockfilePersistentWriterHostCalled
       })
       lastEnableResult.value = result
       reason.value = transaction.terminal.reason
