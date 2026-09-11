@@ -213,6 +213,8 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly disableLockfileWritten?: boolean
   readonly disableStartupStateWritten?: boolean
   readonly disablePackageFilesPreserved?: boolean
+  readonly disableRealRuntimePublicationCommitCalled?: boolean
+  readonly disableRuntimePublicationCommitted?: boolean
   readonly disableRuntimePublicationExcluded?: boolean
   readonly disableLiveRegistrySwapped?: boolean
   readonly disableAppStartupHandoffAccepted?: boolean
@@ -1852,6 +1854,8 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     && terminal.lockfileWritten
     && terminal.startupStateWritten
     && terminal.packageFilesPreserved
+    && terminal.realRuntimePublicationCommitCalled
+    && terminal.runtimePublicationCommitted
     && terminal.runtimePublicationExcluded
     && terminal.liveRegistrySwapped
     && terminal.appStartupHandoffAccepted
@@ -1956,6 +1960,9 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     disableLockfileWritten: terminal?.lockfileWritten === true,
     disableStartupStateWritten: terminal?.startupStateWritten === true,
     disablePackageFilesPreserved: terminal?.packageFilesPreserved === true,
+    disableRealRuntimePublicationCommitCalled:
+      terminal?.realRuntimePublicationCommitCalled === true,
+    disableRuntimePublicationCommitted: terminal?.runtimePublicationCommitted === true,
     disableRuntimePublicationExcluded: terminal?.runtimePublicationExcluded === true,
     disableLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
     disableAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,

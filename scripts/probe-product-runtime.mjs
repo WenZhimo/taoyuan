@@ -5053,6 +5053,8 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
       'disableSettingsWritten',
       'disableLockfileWritten',
       'disableStartupStateWritten',
+      'disableRealRuntimePublicationCommitCalled',
+      'disableRuntimePublicationCommitted',
       'disableRuntimePublicationExcluded',
       'disableLiveRegistrySwapped',
       'disableAppStartupHandoffAccepted'
@@ -5122,6 +5124,8 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     'disableLockfileWritten',
     'disableStartupStateWritten',
     'disablePackageFilesPreserved',
+    'disableRealRuntimePublicationCommitCalled',
+    'disableRuntimePublicationCommitted',
     'disableRuntimePublicationExcluded',
     'disableLiveRegistrySwapped',
     'disableAppStartupHandoffAccepted'

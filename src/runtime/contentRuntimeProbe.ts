@@ -332,6 +332,8 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   disableLockfileWritten?: boolean
   disableStartupStateWritten?: boolean
   disablePackageFilesPreserved?: boolean
+  disableRealRuntimePublicationCommitCalled?: boolean
+  disableRuntimePublicationCommitted?: boolean
   disableRuntimePublicationExcluded?: boolean
   disableLiveRegistrySwapped?: boolean
   disableAppStartupHandoffAccepted?: boolean
@@ -1203,6 +1205,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const disableLockfileWritten = readOwnBooleanField(result, 'disableLockfileWritten')
   const disableStartupStateWritten = readOwnBooleanField(result, 'disableStartupStateWritten')
   const disablePackageFilesPreserved = readOwnBooleanField(result, 'disablePackageFilesPreserved')
+  const disableRealRuntimePublicationCommitCalled =
+    readOwnBooleanField(result, 'disableRealRuntimePublicationCommitCalled')
+  const disableRuntimePublicationCommitted =
+    readOwnBooleanField(result, 'disableRuntimePublicationCommitted')
   const disableRuntimePublicationExcluded = readOwnBooleanField(result, 'disableRuntimePublicationExcluded')
   const disableLiveRegistrySwapped = readOwnBooleanField(result, 'disableLiveRegistrySwapped')
   const disableAppStartupHandoffAccepted = readOwnBooleanField(result, 'disableAppStartupHandoffAccepted')
@@ -1368,6 +1374,12 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(disableLockfileWritten === undefined ? {} : { disableLockfileWritten }),
     ...(disableStartupStateWritten === undefined ? {} : { disableStartupStateWritten }),
     ...(disablePackageFilesPreserved === undefined ? {} : { disablePackageFilesPreserved }),
+    ...(disableRealRuntimePublicationCommitCalled === undefined
+      ? {}
+      : { disableRealRuntimePublicationCommitCalled }),
+    ...(disableRuntimePublicationCommitted === undefined
+      ? {}
+      : { disableRuntimePublicationCommitted }),
     ...(disableRuntimePublicationExcluded === undefined ? {} : { disableRuntimePublicationExcluded }),
     ...(disableLiveRegistrySwapped === undefined ? {} : { disableLiveRegistrySwapped }),
     ...(disableAppStartupHandoffAccepted === undefined ? {} : { disableAppStartupHandoffAccepted }),
