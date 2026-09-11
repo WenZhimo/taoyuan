@@ -230,6 +230,8 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly enableLockfileWritten?: boolean
   readonly enableStartupStateWritten?: boolean
   readonly enablePackageFilesPreserved?: boolean
+  readonly enableRealRuntimePublicationCommitCalled?: boolean
+  readonly enableRuntimePublicationCommitted?: boolean
   readonly enableRuntimePublicationIncluded?: boolean
   readonly enableLiveRegistrySwapped?: boolean
   readonly enableAppStartupHandoffAccepted?: boolean
@@ -245,6 +247,8 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly uninstallLockfileWritten?: boolean
   readonly uninstallStartupStateWritten?: boolean
   readonly uninstallPackageFilesRemoved?: boolean
+  readonly uninstallRealRuntimePublicationCommitCalled?: boolean
+  readonly uninstallRuntimePublicationCommitted?: boolean
   readonly uninstallRuntimePublicationExcluded?: boolean
   readonly uninstallLiveRegistrySwapped?: boolean
   readonly uninstallAppStartupHandoffAccepted?: boolean
@@ -636,6 +640,8 @@ const hasReadyVisibleImportDispatch = (
       && enableTerminal.lockfileWritten
       && enableTerminal.startupStateWritten
       && enableTerminal.packageFilesPreserved
+      && enableTerminal.realRuntimePublicationCommitCalled
+      && enableTerminal.runtimePublicationCommitted
       && enableTerminal.runtimePublicationIncluded
       && enableTerminal.liveRegistrySwapped
       && enableTerminal.appStartupHandoffAccepted
@@ -1830,6 +1836,10 @@ export const runThirdPartyVisibleImportProductProbe = async(
           enableLockfileWritten: enableTerminal?.lockfileWritten === true,
           enableStartupStateWritten: enableTerminal?.startupStateWritten === true,
           enablePackageFilesPreserved: enableTerminal?.packageFilesPreserved === true,
+          enableRealRuntimePublicationCommitCalled:
+            enableTerminal?.realRuntimePublicationCommitCalled === true,
+          enableRuntimePublicationCommitted:
+            enableTerminal?.runtimePublicationCommitted === true,
           enableRuntimePublicationIncluded: enableTerminal?.runtimePublicationIncluded === true,
           enableLiveRegistrySwapped: enableTerminal?.liveRegistrySwapped === true,
           enableAppStartupHandoffAccepted: enableTerminal?.appStartupHandoffAccepted === true
@@ -2013,6 +2023,8 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     && terminal.lockfileWritten
     && terminal.startupStateWritten
     && terminal.packageFilesRemoved
+    && terminal.realRuntimePublicationCommitCalled
+    && terminal.runtimePublicationCommitted
     && terminal.runtimePublicationExcluded
     && terminal.liveRegistrySwapped
     && terminal.appStartupHandoffAccepted
@@ -2117,6 +2129,9 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     uninstallLockfileWritten: terminal?.lockfileWritten === true,
     uninstallStartupStateWritten: terminal?.startupStateWritten === true,
     uninstallPackageFilesRemoved: terminal?.packageFilesRemoved === true,
+    uninstallRealRuntimePublicationCommitCalled:
+      terminal?.realRuntimePublicationCommitCalled === true,
+    uninstallRuntimePublicationCommitted: terminal?.runtimePublicationCommitted === true,
     uninstallRuntimePublicationExcluded: terminal?.runtimePublicationExcluded === true,
     uninstallLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
     uninstallAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,

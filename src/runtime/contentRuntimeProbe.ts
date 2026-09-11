@@ -349,6 +349,8 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   enableLockfileWritten?: boolean
   enableStartupStateWritten?: boolean
   enablePackageFilesPreserved?: boolean
+  enableRealRuntimePublicationCommitCalled?: boolean
+  enableRuntimePublicationCommitted?: boolean
   enableRuntimePublicationIncluded?: boolean
   enableLiveRegistrySwapped?: boolean
   enableAppStartupHandoffAccepted?: boolean
@@ -364,6 +366,8 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   uninstallLockfileWritten?: boolean
   uninstallStartupStateWritten?: boolean
   uninstallPackageFilesRemoved?: boolean
+  uninstallRealRuntimePublicationCommitCalled?: boolean
+  uninstallRuntimePublicationCommitted?: boolean
   uninstallRuntimePublicationExcluded?: boolean
   uninstallLiveRegistrySwapped?: boolean
   uninstallAppStartupHandoffAccepted?: boolean
@@ -1224,6 +1228,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const enableLockfileWritten = readOwnBooleanField(result, 'enableLockfileWritten')
   const enableStartupStateWritten = readOwnBooleanField(result, 'enableStartupStateWritten')
   const enablePackageFilesPreserved = readOwnBooleanField(result, 'enablePackageFilesPreserved')
+  const enableRealRuntimePublicationCommitCalled =
+    readOwnBooleanField(result, 'enableRealRuntimePublicationCommitCalled')
+  const enableRuntimePublicationCommitted =
+    readOwnBooleanField(result, 'enableRuntimePublicationCommitted')
   const enableRuntimePublicationIncluded = readOwnBooleanField(result, 'enableRuntimePublicationIncluded')
   const enableLiveRegistrySwapped = readOwnBooleanField(result, 'enableLiveRegistrySwapped')
   const enableAppStartupHandoffAccepted = readOwnBooleanField(result, 'enableAppStartupHandoffAccepted')
@@ -1239,6 +1247,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const uninstallLockfileWritten = readOwnBooleanField(result, 'uninstallLockfileWritten')
   const uninstallStartupStateWritten = readOwnBooleanField(result, 'uninstallStartupStateWritten')
   const uninstallPackageFilesRemoved = readOwnBooleanField(result, 'uninstallPackageFilesRemoved')
+  const uninstallRealRuntimePublicationCommitCalled =
+    readOwnBooleanField(result, 'uninstallRealRuntimePublicationCommitCalled')
+  const uninstallRuntimePublicationCommitted =
+    readOwnBooleanField(result, 'uninstallRuntimePublicationCommitted')
   const uninstallRuntimePublicationExcluded = readOwnBooleanField(result, 'uninstallRuntimePublicationExcluded')
   const uninstallLiveRegistrySwapped = readOwnBooleanField(result, 'uninstallLiveRegistrySwapped')
   const uninstallAppStartupHandoffAccepted = readOwnBooleanField(result, 'uninstallAppStartupHandoffAccepted')
@@ -1397,6 +1409,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(enableLockfileWritten === undefined ? {} : { enableLockfileWritten }),
     ...(enableStartupStateWritten === undefined ? {} : { enableStartupStateWritten }),
     ...(enablePackageFilesPreserved === undefined ? {} : { enablePackageFilesPreserved }),
+    ...(enableRealRuntimePublicationCommitCalled === undefined
+      ? {}
+      : { enableRealRuntimePublicationCommitCalled }),
+    ...(enableRuntimePublicationCommitted === undefined ? {} : { enableRuntimePublicationCommitted }),
     ...(enableRuntimePublicationIncluded === undefined ? {} : { enableRuntimePublicationIncluded }),
     ...(enableLiveRegistrySwapped === undefined ? {} : { enableLiveRegistrySwapped }),
     ...(enableAppStartupHandoffAccepted === undefined ? {} : { enableAppStartupHandoffAccepted }),
@@ -1414,6 +1430,12 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(uninstallLockfileWritten === undefined ? {} : { uninstallLockfileWritten }),
     ...(uninstallStartupStateWritten === undefined ? {} : { uninstallStartupStateWritten }),
     ...(uninstallPackageFilesRemoved === undefined ? {} : { uninstallPackageFilesRemoved }),
+    ...(uninstallRealRuntimePublicationCommitCalled === undefined
+      ? {}
+      : { uninstallRealRuntimePublicationCommitCalled }),
+    ...(uninstallRuntimePublicationCommitted === undefined
+      ? {}
+      : { uninstallRuntimePublicationCommitted }),
     ...(uninstallRuntimePublicationExcluded === undefined ? {} : { uninstallRuntimePublicationExcluded }),
     ...(uninstallLiveRegistrySwapped === undefined ? {} : { uninstallLiveRegistrySwapped }),
     ...(uninstallAppStartupHandoffAccepted === undefined ? {} : { uninstallAppStartupHandoffAccepted }),

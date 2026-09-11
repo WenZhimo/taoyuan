@@ -1299,6 +1299,109 @@ describe('official content runtime report', () => {
     expect(JSON.stringify(summary)).not.toContain('document')
   })
 
+  it('preserves visible management runtime publication commit evidence per operation', () => {
+    const commonEffects = {
+      commandDispatched: true,
+      realWebPlatformWriterHostCalled: true,
+      realElectronSettingsLockfilePersistentWriterHostCalled: false,
+      packageFilesWritten: false,
+      settingsWritten: true,
+      lockfileWritten: true,
+      rendererLiveRegistrySwapped: true,
+      realRuntimePublicationCommitCalled: true,
+      runtimePublicationCommitted: true,
+      uiIpcResponseDelivered: true,
+      transactionCommitted: true,
+      transactionLogPrepared: false,
+      transactionLogRead: false,
+      startupPersistentStateWritten: true,
+      realNormalStartupHostCalled: false,
+      realAppStartupHostCalled: true,
+      gameAppCreated: true,
+      piniaCreated: true,
+      routerMounted: true,
+      savesWritten: false,
+      cacheWritten: false,
+      transactionLogWritten: false,
+      rollbackExecuted: false,
+      diagnosticsWritten: false
+    }
+    const commonProbe = {
+      status: 'ready',
+      entrypoint: 'main-menu-panel',
+      mainMenuPanelOpened: true,
+      panelImportButtonClicked: false,
+      defaultFileInputSelectorUsed: false,
+      targetPackageId: 'product_probe_pack',
+      itemId: 'product_probe_pack:linen_ribbon',
+      recipeId: 'product_probe_pack:linen_ribbon_snack',
+      shopOfferId: 'product_probe_pack:shop/wanwupu/linen_ribbon/0',
+      fileCount: 0,
+      pickStatus: 'not-run',
+      panelStatusLabels: {
+        installedManagementStatus: '已就绪'
+      },
+      selectedPackageCount: 0,
+      blockedPackageCount: 0,
+      loadOrderCount: 0,
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 1,
+      diagnosticsCount: 0,
+      contentAccessItemVisibleBefore: true,
+      contentAccessItemVisibleAfter: false,
+      contentAccessRecipeVisibleBefore: true,
+      contentAccessRecipeVisibleAfter: false,
+      contentAccessShopOfferVisibleBefore: true,
+      contentAccessShopOfferVisibleAfter: false
+    }
+
+    expect(createThirdPartyVisibleImportRuntimeProbeSummary({
+      ...commonProbe,
+      operation: 'enable',
+      enableTerminalStatus: 'ready',
+      enableRealRuntimePublicationCommitCalled: true,
+      enableRuntimePublicationCommitted: true,
+      enableRuntimePublicationIncluded: true,
+      effects: {
+        ...commonEffects,
+        runtimeEnablementAllowed: true
+      }
+    })).toMatchObject({
+      operation: 'enable',
+      enableRealRuntimePublicationCommitCalled: true,
+      enableRuntimePublicationCommitted: true,
+      enableRuntimePublicationIncluded: true,
+      effects: {
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true,
+        runtimeEnablementAllowed: true
+      }
+    })
+    expect(createThirdPartyVisibleImportRuntimeProbeSummary({
+      ...commonProbe,
+      operation: 'uninstall',
+      uninstallTerminalStatus: 'ready',
+      uninstallRealRuntimePublicationCommitCalled: true,
+      uninstallRuntimePublicationCommitted: true,
+      uninstallRuntimePublicationExcluded: true,
+      effects: {
+        ...commonEffects,
+        runtimeEnablementAllowed: false
+      }
+    })).toMatchObject({
+      operation: 'uninstall',
+      uninstallRealRuntimePublicationCommitCalled: true,
+      uninstallRuntimePublicationCommitted: true,
+      uninstallRuntimePublicationExcluded: true,
+      effects: {
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true,
+        runtimeEnablementAllowed: false
+      }
+    })
+  })
+
   it('summarizes the probe-only Electron install command dispatch bridge from preload', async () => {
     const dispatchThirdPartyDataPackInstallCommand = vi.fn(envelope =>
       acknowledgeThirdPartyDataPackElectronInstallCommandDispatchIpcEnvelope(envelope))

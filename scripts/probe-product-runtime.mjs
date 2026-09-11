@@ -4797,6 +4797,8 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
       'enableSettingsWritten',
       'enableLockfileWritten',
       'enableStartupStateWritten',
+      'enableRealRuntimePublicationCommitCalled',
+      'enableRuntimePublicationCommitted',
       'enableRuntimePublicationIncluded',
       'enableLiveRegistrySwapped',
       'enableAppStartupHandoffAccepted'
@@ -4909,6 +4911,8 @@ const assertVisibleEnableProductProbe = (visibleImport, scenario, protocol) => {
     'enableLockfileWritten',
     'enableStartupStateWritten',
     'enablePackageFilesPreserved',
+    'enableRealRuntimePublicationCommitCalled',
+    'enableRuntimePublicationCommitted',
     'enableRuntimePublicationIncluded',
     'enableLiveRegistrySwapped',
     'enableAppStartupHandoffAccepted'
@@ -5261,6 +5265,8 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
       'uninstallLockfileWritten',
       'uninstallStartupStateWritten',
       'uninstallPackageFilesRemoved',
+      'uninstallRealRuntimePublicationCommitCalled',
+      'uninstallRuntimePublicationCommitted',
       'uninstallRuntimePublicationExcluded',
       'uninstallLiveRegistrySwapped',
       'uninstallAppStartupHandoffAccepted'
@@ -5328,6 +5334,8 @@ const assertVisibleUninstallProductProbe = (visibleImport, scenario, protocol) =
     'uninstallLockfileWritten',
     'uninstallStartupStateWritten',
     'uninstallPackageFilesRemoved',
+    'uninstallRealRuntimePublicationCommitCalled',
+    'uninstallRuntimePublicationCommitted',
     'uninstallRuntimePublicationExcluded',
     'uninstallLiveRegistrySwapped',
     'uninstallAppStartupHandoffAccepted'
