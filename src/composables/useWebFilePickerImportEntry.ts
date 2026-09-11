@@ -194,6 +194,25 @@ import {
   ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationBlockedError,
   type ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult
 } from '@/domain/mods/thirdPartyDataPackPostCommitUiIpcDeliveryContinuationSource'
+import {
+  createThirdPartyDataPackPostCommitUiIpcDeliveryContinuationPipeline
+} from '@/domain/mods/thirdPartyDataPackPostCommitUiIpcDeliveryContinuationPipeline'
+import type {
+  ThirdPartyDataPackPostCommitPersistentReadWriteConnectionHostEnvelope,
+  ThirdPartyDataPackPostCommitPersistentReadWriteConnectionHostEffectSummary,
+  ThirdPartyDataPackPostCommitPersistentReadWriteConnectionHostResult
+} from '@/domain/mods/thirdPartyDataPackPostCommitPersistentReadWriteConnectionSource'
+import type {
+  ThirdPartyDataPackPostCommitVerificationUiIpcOutcomeHandoffEffectSummary,
+  ThirdPartyDataPackPostCommitVerificationUiIpcOutcomeHandoffResult
+} from '@/domain/mods/thirdPartyDataPackPostCommitVerificationUiIpcOutcomeHandoff'
+import type {
+  ThirdPartyDataPackUiIpcResultEnvelopeSummary
+} from '@/domain/mods/thirdPartyDataPackUiIpcResultEnvelopeContract'
+import type {
+  ThirdPartyDataPackUiIpcResultNormalizationEffectSummary,
+  ThirdPartyDataPackUiIpcResultNormalizationPreflightResult
+} from '@/domain/mods/thirdPartyDataPackUiIpcResultNormalizationPreflight'
 import type {
   ThirdPartyDataPackSettingsLockfileCommitSourceResult,
   ThirdPartyDataPackSettingsLockfileCommitSourceEffectSummary
@@ -345,6 +364,8 @@ export interface UseWebFilePickerImportEntryOptions {
     WebFilePickerPostCommitUiIpcDeliveryContinuationReader
   readonly webSettingsLockfileStore?: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null
   readonly webInstallTransactionLogStore?: ThirdPartyDataPackWebInstallTransactionLogPreparedStore | null
+  readonly webInstallResponseDeliveryTarget?: EventTarget | null
+  readonly webInstallResponseDeliveryEventName?: string
   readonly startupPersistentStateStore?: WebIndexedDbImportPersistenceStore | null
   readonly mountedAppStartupHostEvidence?: WebFilePickerMountedAppStartupHostEvidence
 }
@@ -402,6 +423,8 @@ export interface WebFilePickerSourceInstallCommandDispatchOptions
     WebFilePickerPostCommitUiIpcDeliveryContinuationReader
   readonly webSettingsLockfileStore?: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore | null
   readonly webInstallTransactionLogStore?: ThirdPartyDataPackWebInstallTransactionLogPreparedStore | null
+  readonly webInstallResponseDeliveryTarget?: EventTarget | null
+  readonly webInstallResponseDeliveryEventName?: string
   readonly startupPersistentStateStore?: WebIndexedDbImportPersistenceStore | null
   readonly mountedAppStartupHostEvidence?: WebFilePickerMountedAppStartupHostEvidence
 }
@@ -1101,66 +1124,164 @@ const createWebContinuationSummary = (source: {
   diagnosticCount: 0
 })
 
-const webPathFreePostCommitContinuationEffects = () => Object.freeze({
-  postCommitUiIpcDeliveryContinuationSourceCalled: true,
-  postCommitPersistentReadWriteConnectionSourceCalled: true,
-  uiIpcResponseDeliveryAcknowledgementConvergenceSourceCalled: true,
-  postCommitPersistentReadWriteConnectionAcknowledged: true,
-  uiIpcDeliveryAcknowledgementConverged: true,
-  commandContinuationAllowed: true,
-  uiIpcResultContinuationAllowed: true,
-  startupGateContinuationAllowed: true,
-  officialRegistryPublished: false,
-  thirdPartyRegistryPublished: false,
-  liveRegistryMutated: false,
-  liveRegistrySwapped: false,
-  previousRegistryReleased: false,
-  previousRegistryRestored: false,
-  candidateRegistryExposed: false,
-  runtimeEnablementAllowed: false,
-  modManagementUiMounted: false,
-  launcherAppMounted: false,
-  gameAppCreated: false,
-  piniaCreated: false,
-  routerMounted: false,
-  electronIpcExposed: false,
-  webFilePickerOpened: false,
-  androidFilePickerOpened: false,
-  commandDispatcherCalled: false,
-  commandDispatched: false,
-  atomicCommitExecutorCalled: false,
-  transactionCommitted: false,
-  transactionLogPrepared: false,
-  runtimePublicationCommitted: false,
-  postCommitVerificationExecutorCalled: false,
-  postCommitVerificationExecuted: false,
-  transactionLogRead: false,
-  packageStateRead: false,
-  settingsRead: false,
-  lockfileRead: false,
-  liveRegistryRead: false,
-  saveRead: false,
-  saveCacheIsolationChecked: false,
-  successEnvelopeDelivered: true,
-  failureEnvelopeDelivered: false,
-  retryStateDelivered: false,
-  rollbackStateDelivered: false,
-  uiIpcResponseDelivered: true,
-  packageFilesWritten: true,
-  packageBackupsWritten: false,
-  packageFilesRestored: false,
-  lockfileWritten: true,
-  lockfileRestored: false,
-  settingsWritten: true,
-  settingsRestored: false,
-  savesWritten: false,
-  cacheWritten: false,
-  transactionLogWritten: false,
-  recoveryLogRead: false,
-  recoveryLogReplayed: false,
-  rollbackExecuted: false,
-  diagnosticsWritten: false
-})
+const webPostCommitPersistentReadWriteHostEffects =
+  (): ThirdPartyDataPackPostCommitPersistentReadWriteConnectionHostEffectSummary =>
+    Object.freeze({
+      postCommitPersistentReadWriteConnectionHostCalled: true,
+      postCommitPersistentReadWriteConnectionHostAccepted: true,
+      transactionCommitted: false,
+      transactionLogPrepared: false,
+      runtimePublicationCommitted: false,
+      postCommitVerificationExecuted: false,
+      uiIpcResponseDelivered: false,
+      transactionLogRead: false,
+      packageStateRead: false,
+      settingsRead: false,
+      lockfileRead: false,
+      liveRegistryRead: false,
+      saveCacheIsolationChecked: false,
+      packageFilesWritten: false,
+      packageBackupsWritten: false,
+      packageFilesRestored: false,
+      lockfileWritten: false,
+      lockfileRestored: false,
+      settingsWritten: false,
+      settingsRestored: false,
+      savesWritten: false,
+      cacheWritten: false,
+      transactionLogWritten: false,
+      recoveryLogRead: false,
+      recoveryLogReplayed: false,
+      rollbackExecuted: false,
+      diagnosticsWritten: false
+    })
+
+const createWebPostCommitPersistentReadWriteHostResult = (
+  envelope: ThirdPartyDataPackPostCommitPersistentReadWriteConnectionHostEnvelope
+): ThirdPartyDataPackPostCommitPersistentReadWriteConnectionHostResult =>
+  Object.freeze({
+    status: 'accepted',
+    requestedCommandId: envelope.requestedCommandId,
+    targetPackageId: envelope.targetPackageId,
+    selectedPackageIds: envelope.selectedPackageIds,
+    blockedPackageIds: envelope.blockedPackageIds,
+    loadOrder: envelope.loadOrder,
+    registryCount: envelope.registryCount,
+    entryCount: envelope.entryCount,
+    packageCount: envelope.packageCount,
+    candidateHash: envelope.candidateIdentity.candidateHash,
+    lockfileHash: envelope.lockfileHash,
+    persistentPackageWriteExecuted: envelope.persistentPackageWriteExecuted,
+    persistentSettingsLockfileWriteExecuted: envelope.persistentSettingsLockfileWriteExecuted,
+    writtenFileCount: envelope.writtenFileCount,
+    backedUpFileCount: envelope.backedUpFileCount,
+    transactionCommitConnectionAcknowledged: envelope.transactionCommitConnectionAcknowledged,
+    diagnostics: Object.freeze([]),
+    effects: webPostCommitPersistentReadWriteHostEffects()
+  })
+
+const webUiIpcResultNormalizationEffects =
+  (): ThirdPartyDataPackUiIpcResultNormalizationEffectSummary =>
+    Object.freeze({
+      officialRegistryPublished: false,
+      thirdPartyRegistryPublished: false,
+      liveRegistryMutated: false,
+      liveRegistrySwapped: false,
+      previousRegistryReleased: false,
+      previousRegistryRestored: false,
+      candidateRegistryExposed: false,
+      runtimeEnablementAllowed: false,
+      modManagementUiMounted: false,
+      electronIpcExposed: false,
+      webFilePickerOpened: false,
+      androidFilePickerOpened: false,
+      commandDispatcherCalled: false,
+      commandDispatched: false,
+      atomicCommitExecutorCalled: false,
+      transactionCommitted: false,
+      transactionLogPrepared: false,
+      runtimePublicationCommitted: false,
+      postCommitVerificationExecutorCalled: false,
+      postCommitVerificationExecuted: false,
+      transactionLogRead: false,
+      packageStateRead: false,
+      settingsRead: false,
+      lockfileRead: false,
+      liveRegistryRead: false,
+      saveCacheIsolationChecked: false,
+      successEnvelopeDelivered: false,
+      failureEnvelopeDelivered: false,
+      retryStateDelivered: false,
+      rollbackStateDelivered: false,
+      uiIpcResponseDelivered: false,
+      packageFilesWritten: false,
+      packageBackupsWritten: false,
+      packageFilesRestored: false,
+      lockfileWritten: false,
+      lockfileRestored: false,
+      settingsWritten: false,
+      settingsRestored: false,
+      savesWritten: false,
+      cacheWritten: false,
+      transactionLogWritten: false,
+      recoveryLogRead: false,
+      recoveryLogReplayed: false,
+      rollbackExecuted: false,
+      diagnosticsWritten: false
+    })
+
+const webPostCommitVerificationUiIpcOutcomeHandoffEffects =
+  (): ThirdPartyDataPackPostCommitVerificationUiIpcOutcomeHandoffEffectSummary =>
+    Object.freeze({
+      officialRegistryPublished: false,
+      thirdPartyRegistryPublished: false,
+      liveRegistryMutated: false,
+      liveRegistrySwapped: false,
+      previousRegistryReleased: false,
+      previousRegistryRestored: false,
+      candidateRegistryExposed: false,
+      runtimeEnablementAllowed: false,
+      modManagementUiMounted: false,
+      electronIpcExposed: false,
+      webFilePickerOpened: false,
+      androidFilePickerOpened: false,
+      commandDispatcherCalled: false,
+      commandDispatched: false,
+      atomicCommitExecutorCalled: false,
+      transactionCommitted: false,
+      transactionLogPrepared: false,
+      runtimePublicationCommitted: false,
+      postCommitVerificationExecutorCalled: false,
+      postCommitVerificationExecuted: false,
+      transactionLogRead: false,
+      packageStateRead: false,
+      settingsRead: false,
+      lockfileRead: false,
+      liveRegistryRead: false,
+      saveCacheIsolationChecked: false,
+      successEnvelopeDelivered: false,
+      failureEnvelopeDelivered: false,
+      retryStateDelivered: false,
+      rollbackStateDelivered: false,
+      uiIpcResponseDelivered: false,
+      packageFilesWritten: false,
+      packageBackupsWritten: false,
+      packageFilesRestored: false,
+      lockfileWritten: false,
+      lockfileRestored: false,
+      settingsWritten: false,
+      settingsRestored: false,
+      savesWritten: false,
+      cacheWritten: false,
+      transactionLogWritten: false,
+      recoveryLogRead: false,
+      recoveryLogReplayed: false,
+      rollbackExecuted: false,
+      diagnosticsWritten: false,
+      atomicCommitOutcomeConsumed: true,
+      postCommitVerificationOutcomeConsumed: true,
+      uiIpcOutcomePrepared: true
+    })
 
 const createWebInstallCommandPostCommitAcknowledgement = (
   transactionCommandDispatcherSource: ThirdPartyDataPackTransactionCommandDispatcherSourceResult,
@@ -1389,62 +1510,154 @@ const createWebInstallTransactionCommitFinalization = async(
   return await pipeline()
 }
 
-const createWebPostCommitUiIpcDeliveryContinuation = (
-  finalization: ThirdPartyDataPackInstallTransactionCommitFinalizationResult
-) => Object.freeze({
-  kind: 'third-party-post-commit-ui-ipc-delivery-continuation-source',
-  mode: 'default-disabled-post-commit-ui-ipc-delivery-continuation-source',
-  status: 'ready',
-  reason: 'Web visible import delivered post-commit UI acknowledgement from persisted ordinary continuation',
-  readOnly: false,
-  enabled: true,
-  sourceCalled: true,
-  postCommitPersistentReadWriteConnectionStatus: 'accepted',
-  uiIpcResponseDeliveryAcknowledgementConvergenceStatus: 'ready',
-  selectedPlatform: 'web',
-  requestedCommandId: 'install',
-  targetPackageId: finalization.targetPackageId,
-  selectedPackageIds: finalization.selectedPackageIds,
-  blockedPackageIds: finalization.blockedPackageIds,
-  blockedCandidateCount: 0,
-  loadOrder: finalization.loadOrder,
-  registryCount: finalization.registryCount,
-  entryCount: finalization.entryCount,
-  packageCount: finalization.packageCount,
-  candidateIdentity: finalization.candidateIdentity,
-  candidateHash: finalization.candidateHash,
-  lockfileHash: finalization.lockfileHash,
-  envelopeKind: 'success',
-  messageKey: 'mods.ui.ipc.result.install.success',
-  deliverySummary: createWebContinuationSummary({
+const createWebUiIpcResultNormalizationPreflight = (
+  finalization: ThirdPartyDataPackInstallTransactionCommitFinalizationResult,
+  mountInput: ThirdPartyDataPackMountInputResult
+): ThirdPartyDataPackUiIpcResultNormalizationPreflightResult =>
+  Object.freeze({
+    status: 'deferred',
+    atomicTransactionCommitExecutorPreflightStatus: 'deferred',
+    postCommitVerificationExecutorPreflightStatus: 'deferred',
+    reason: 'Web visible import finalized the install transaction before real renderer response delivery',
+    requestedCommandId: 'install',
+    targetPackageId: finalization.targetPackageId,
+    diagnostics: Object.freeze([]),
     selectedPackageIds: finalization.selectedPackageIds,
     blockedPackageIds: finalization.blockedPackageIds,
+    blockedCandidateCount: mountInput.blockedCandidatePaths.length,
+    loadOrder: finalization.loadOrder,
+    registryCount: finalization.registryCount,
+    entryCount: finalization.entryCount,
+    packageCount: finalization.packageCount,
+    candidateIdentity: finalization.candidateIdentity,
+    lockfileHash: finalization.lockfileHash,
+    uiIpcResultNormalizationPreflight: 'deferred',
+    readOnly: true,
+    successEnvelopeAllowed: false,
+    failureEnvelopeAllowed: false,
+    retryStateAllowed: false,
+    rollbackStateAllowed: false,
+    uiIpcResponseDeliveryAllowed: false,
+    commandDispatchAllowed: false,
+    transactionCommitAllowed: false,
+    postCommitVerificationAllowed: false,
+    runtimeEnablementAllowed: false,
+    writeAllowed: false,
+    rollbackRecoveryAllowed: false,
+    resultChecks: Object.freeze([]),
+    resultStages: Object.freeze([]),
+    resultRequirements: Object.freeze([]),
+    resultOutcomeStates: Object.freeze([]),
+    effects: webUiIpcResultNormalizationEffects()
+  })
+
+const createWebPostCommitVerificationUiIpcOutcomeHandoff = (
+  finalization: ThirdPartyDataPackInstallTransactionCommitFinalizationResult,
+  mountInput: ThirdPartyDataPackMountInputResult
+): ThirdPartyDataPackPostCommitVerificationUiIpcOutcomeHandoffResult => {
+  const summary: ThirdPartyDataPackUiIpcResultEnvelopeSummary = createWebContinuationSummary({
+    selectedPackageIds: finalization.selectedPackageIds,
+    blockedPackageIds: finalization.blockedPackageIds,
+    blockedCandidatePaths: mountInput.blockedCandidatePaths,
     loadOrder: finalization.loadOrder,
     registryCount: finalization.registryCount,
     entryCount: finalization.entryCount,
     packageCount: finalization.packageCount
-  }),
-  acknowledgement: {
-    status: 'acknowledged',
+  })
+
+  return Object.freeze({
+    status: 'ready',
+    resultNormalizationPreflightStatus: 'deferred',
+    atomicCommitOutcomeContractStatus: 'ready',
+    postCommitVerificationExecutorAdapterStatus: 'executed',
+    reason: 'Web visible import prepared success UI/IPC outcome for real renderer response delivery',
+    postCommitVerificationUiIpcOutcomeHandoff: 'ready',
+    readOnly: true,
+    uiIpcOutcomePrepared: true,
+    uiIpcResponseDeliveryAllowed: false,
+    commandDispatchAllowed: false,
+    atomicCommitExecutionAllowed: false,
+    transactionCommitAllowed: false,
+    runtimePublicationCommitAllowed: false,
+    postCommitVerificationAllowed: false,
+    runtimeEnablementAllowed: false,
+    writeAllowed: false,
+    rollbackRecoveryAllowed: false,
+    requestedCommandId: 'install',
+    targetPackageId: finalization.targetPackageId,
+    outcomeKind: 'success',
+    messageKey: 'mods.ui.ipc.result.install.success',
+    selectedPackageIds: finalization.selectedPackageIds,
+    blockedPackageIds: finalization.blockedPackageIds,
+    blockedCandidateCount: mountInput.blockedCandidatePaths.length,
+    loadOrder: finalization.loadOrder,
+    registryCount: finalization.registryCount,
+    entryCount: finalization.entryCount,
+    packageCount: finalization.packageCount,
+    candidateIdentity: finalization.candidateIdentity,
+    lockfileHash: finalization.lockfileHash,
+    checks: Object.freeze([]),
+    diagnostics: Object.freeze([]),
+    summary,
+    outcome: Object.freeze({
+      kind: 'success',
+      settled: true,
+      packageId: finalization.targetPackageId,
+      candidateIdentity: finalization.candidateIdentity,
+      lockfileHash: finalization.lockfileHash,
+      diagnostics: Object.freeze([]),
+      messageKey: 'mods.ui.ipc.result.install.success',
+      recovery: 'none',
+      retryable: false,
+      rollbackRequired: false
+    }),
+    effects: webPostCommitVerificationUiIpcOutcomeHandoffEffects()
+  })
+}
+
+const createWebPostCommitUiIpcDeliveryContinuation = async(
+  options: {
+    readonly finalization: ThirdPartyDataPackInstallTransactionCommitFinalizationResult
+    readonly mountInput: ThirdPartyDataPackMountInputResult
+    readonly targetPackageId: PackageId
+    readonly packageFilePayload: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[]
+    readonly webPlatformWriterHostConnection: ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult
+    readonly responseDeliveryTarget: EventTarget | null
+    readonly responseDeliveryEventName?: string
+  }
+): Promise<ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult> => {
+  const pipeline = createThirdPartyDataPackPostCommitUiIpcDeliveryContinuationPipeline({
+    enabled: true,
+    readTransactionCommitConnectionSource: async() => createWebInstallTransactionCommitConnection({
+      mountInput: options.mountInput,
+      targetPackageId: options.targetPackageId,
+      packageFilePayload: options.packageFilePayload,
+      webPlatformWriterHostConnection: options.webPlatformWriterHostConnection
+    }),
+    acknowledgePostCommitPersistentReadWrite: async envelope =>
+      createWebPostCommitPersistentReadWriteHostResult(envelope),
+    useRendererUiIpcResponseDeliveryBridge: true,
     platform: 'web',
-    packageId: finalization.targetPackageId,
-    envelopeKind: 'success',
-    messageKey: 'mods.ui.ipc.result.install.success'
-  },
-  persistentPackageWriteExecuted: true,
-  persistentSettingsLockfileWriteExecuted: true,
-  writtenFileCount: finalization.packageCount + 1,
-  backedUpFileCount: 0,
-  transactionCommitConnectionAcknowledged: true,
-  postCommitPersistentReadWriteConnectionAcknowledged: true,
-  uiIpcDeliveryAcknowledged: true,
-  commandContinuationAllowed: true,
-  uiIpcResultContinuationAllowed: true,
-  startupGateContinuationAllowed: true,
-  checks: Object.freeze([]),
-  diagnostics: Object.freeze([]),
-  effects: webPathFreePostCommitContinuationEffects()
-}) as ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult
+    runtimeHost: options.responseDeliveryTarget,
+    webEventName: options.responseDeliveryEventName,
+    readResultNormalizationPreflight: async() =>
+      createWebUiIpcResultNormalizationPreflight(options.finalization, options.mountInput),
+    readPostCommitVerificationUiIpcOutcomeHandoff: async() =>
+      createWebPostCommitVerificationUiIpcOutcomeHandoff(options.finalization, options.mountInput),
+    expectedPackageId: options.targetPackageId,
+    expectedEnvelopeKind: 'success',
+    expectedMessageKey: 'mods.ui.ipc.result.install.success'
+  })
+
+  try {
+    return await pipeline()
+  } catch (error) {
+    if (error instanceof ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationBlockedError) {
+      return error.result
+    }
+    throw error
+  }
+}
 
 const createWebOrdinaryInstallTransactionTerminalConnection = (
   postCommitUiIpcDeliveryContinuation: ThirdPartyDataPackPostCommitUiIpcDeliveryContinuationSourceResult
@@ -3073,6 +3286,18 @@ export const useWebFilePickerImportEntry = (
     let rendererOrdinaryInstallTerminalContinuationBlockedReason: string | undefined
     const mountedAppStartupHostEvidence =
       dispatchOptions.mountedAppStartupHostEvidence ?? options.mountedAppStartupHostEvidence
+    const readWebInstallResponseDeliveryTarget = (): EventTarget | null => {
+      if (dispatchOptions.webInstallResponseDeliveryTarget !== undefined) {
+        return dispatchOptions.webInstallResponseDeliveryTarget
+      }
+      if (options.webInstallResponseDeliveryTarget !== undefined) {
+        return options.webInstallResponseDeliveryTarget
+      }
+      return typeof window === 'undefined' ? null : window
+    }
+    const webInstallResponseDeliveryEventName =
+      dispatchOptions.webInstallResponseDeliveryEventName
+        ?? options.webInstallResponseDeliveryEventName
     const rendererOrdinaryInstallTerminalContinuationHost =
       dispatcherHost.kind === 'renderer'
         ? createRendererOrdinaryInstallTerminalContinuationHost(resolveRendererRuntimeHost())
@@ -3336,56 +3561,69 @@ export const useWebFilePickerImportEntry = (
 
           if (installTransactionCommitFinalization?.status === 'committed') {
             postCommitUiIpcDeliveryContinuation =
-              createWebPostCommitUiIpcDeliveryContinuation(installTransactionCommitFinalization)
-            ordinaryInstallTransactionTerminalConnection =
-              createWebOrdinaryInstallTransactionTerminalConnection(postCommitUiIpcDeliveryContinuation)
+              await createWebPostCommitUiIpcDeliveryContinuation({
+                finalization: installTransactionCommitFinalization,
+                mountInput,
+                targetPackageId,
+                packageFilePayload,
+                webPlatformWriterHostConnection,
+                responseDeliveryTarget: readWebInstallResponseDeliveryTarget(),
+                responseDeliveryEventName: webInstallResponseDeliveryEventName
+              })
+            if (postCommitUiIpcDeliveryContinuation.status !== 'ready') {
+              rendererOrdinaryInstallTerminalContinuationBlockedReason =
+                postCommitUiIpcDeliveryContinuation.reason
+            } else {
+              ordinaryInstallTransactionTerminalConnection =
+                createWebOrdinaryInstallTransactionTerminalConnection(postCommitUiIpcDeliveryContinuation)
 
-            const runtimePublicationContinuation =
-              await createWebRuntimePublicationContinuationResults({
-                officialRegistrySet: dispatchOptions.officialRegistrySet,
-                mountInput,
-                runtimePublicationPreflight,
-                transactionPreCommitPlan,
-                liveRegistrySwapProtection: targetedLiveRegistrySwapProtection,
-                publicationRollbackRecovery,
-                runtimePublicationCommitAdapter,
-                installTransactionCommitFinalization,
-                targetPackageId,
-                mountedAppStartupHostEvidence
-              })
-            runtimePublicationCommitAfterPostCommitVerification =
-              runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification
-            runtimePublicationCommitLiveRegistrySwapHostConnection =
-              runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection
-            runtimePublicationCommitAppStartupReadiness =
-              runtimePublicationContinuation.runtimePublicationCommitAppStartupReadiness
-            runtimePublicationCommitAppStartupHostConnection =
-              runtimePublicationContinuation.runtimePublicationCommitAppStartupHostConnection
-            rendererLiveRegistrySwapApplied =
-              await applySharedRendererLiveRegistrySwapFromVerifiedContinuation({
-                platform: 'web',
-                targetPackageId,
-                mountInput,
-                runtimePublicationCommitAdapter,
-                runtimePublicationCommitAfterPostCommitVerification,
-                runtimePublicationCommitLiveRegistrySwapHostConnection,
-                runtimePublicationCommitAppStartupReadiness,
-                runtimePublicationCommitAppStartupHostConnection
-              })
-            webStartupPersistentStateWriteStatus =
-              await persistWebStartupPersistentStateSnapshot({
-                store: resolveWebStartupPersistentStateStore(
-                  dispatchOptions.startupPersistentStateStore,
-                  options.startupPersistentStateStore,
-                  options.persistenceStore
-                ),
-                targetPackageId,
-                mountInput,
-                installTransactionCommitFinalization,
-                runtimePublicationCommitLiveRegistrySwapHostConnection,
-                runtimePublicationCommitAppStartupHostConnection,
-                rendererLiveRegistrySwapApplied
-              })
+              const runtimePublicationContinuation =
+                await createWebRuntimePublicationContinuationResults({
+                  officialRegistrySet: dispatchOptions.officialRegistrySet,
+                  mountInput,
+                  runtimePublicationPreflight,
+                  transactionPreCommitPlan,
+                  liveRegistrySwapProtection: targetedLiveRegistrySwapProtection,
+                  publicationRollbackRecovery,
+                  runtimePublicationCommitAdapter,
+                  installTransactionCommitFinalization,
+                  targetPackageId,
+                  mountedAppStartupHostEvidence
+                })
+              runtimePublicationCommitAfterPostCommitVerification =
+                runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification
+              runtimePublicationCommitLiveRegistrySwapHostConnection =
+                runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection
+              runtimePublicationCommitAppStartupReadiness =
+                runtimePublicationContinuation.runtimePublicationCommitAppStartupReadiness
+              runtimePublicationCommitAppStartupHostConnection =
+                runtimePublicationContinuation.runtimePublicationCommitAppStartupHostConnection
+              rendererLiveRegistrySwapApplied =
+                await applySharedRendererLiveRegistrySwapFromVerifiedContinuation({
+                  platform: 'web',
+                  targetPackageId,
+                  mountInput,
+                  runtimePublicationCommitAdapter,
+                  runtimePublicationCommitAfterPostCommitVerification,
+                  runtimePublicationCommitLiveRegistrySwapHostConnection,
+                  runtimePublicationCommitAppStartupReadiness,
+                  runtimePublicationCommitAppStartupHostConnection
+                })
+              webStartupPersistentStateWriteStatus =
+                await persistWebStartupPersistentStateSnapshot({
+                  store: resolveWebStartupPersistentStateStore(
+                    dispatchOptions.startupPersistentStateStore,
+                    options.startupPersistentStateStore,
+                    options.persistenceStore
+                  ),
+                  targetPackageId,
+                  mountInput,
+                  installTransactionCommitFinalization,
+                  runtimePublicationCommitLiveRegistrySwapHostConnection,
+                  runtimePublicationCommitAppStartupHostConnection,
+                  rendererLiveRegistrySwapApplied
+                })
+            }
           } else if (installTransactionCommitFinalization !== null) {
             rendererOrdinaryInstallTerminalContinuationBlockedReason =
               installTransactionCommitFinalization.reason

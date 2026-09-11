@@ -2157,6 +2157,13 @@ describe('WebDataPackImportPreflightPanel', () => {
     try {
       await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
       await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+      expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['install'])
+      expect(responseDeliveryEvents[0]?.detail.envelope).toMatchObject({
+        kind: 'success',
+        commandId: 'install',
+        packageId,
+        messageKey: 'mods.ui.ipc.result.install.success'
+      })
 
       const disableButton = wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`)
       expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
@@ -2177,8 +2184,8 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
-      expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['disable'])
-      expect(responseDeliveryEvents[0]?.detail.envelope).toMatchObject({
+      expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['install', 'disable'])
+      expect(responseDeliveryEvents[1]?.detail.envelope).toMatchObject({
         kind: 'success',
         commandId: 'disable',
         packageId,
@@ -2203,8 +2210,8 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('handoff 已接受')
       expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId))
-        .toEqual(['disable', 'enable'])
-      expect(responseDeliveryEvents[1]?.detail.envelope).toMatchObject({
+        .toEqual(['install', 'disable', 'enable'])
+      expect(responseDeliveryEvents[2]?.detail.envelope).toMatchObject({
         kind: 'success',
         commandId: 'enable',
         packageId,

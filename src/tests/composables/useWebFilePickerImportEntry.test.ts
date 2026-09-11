@@ -43,6 +43,10 @@ import {
   WEB_FILE_PICKER_IMPORT_ARCHIVE_ACCEPT,
   type WebFilePickerImportFile
 } from '@/domain/mods/webFilePickerImportSource'
+import {
+  thirdPartyDataPackWebResponseDeliveryEventName,
+  type ThirdPartyDataPackWebDomResponseDeliveryEvent
+} from '@/domain/mods/thirdPartyDataPackWebDomResponseDeliveryBridge'
 import { createInMemoryWebIndexedDbImportPersistenceStore } from '@/domain/mods/webIndexedDbImportPersistence'
 import {
   createInMemoryWebSettingsLockfilePersistentWriterStore,
@@ -248,6 +252,14 @@ const mountedAppStartupHostEvidence = Object.freeze({
   piniaCreated: true,
   routerMounted: true
 } as const)
+const createWebInstallResponseEventCollector = () => {
+  const target = new EventTarget()
+  const events: ThirdPartyDataPackWebDomResponseDeliveryEvent[] = []
+  target.addEventListener(thirdPartyDataPackWebResponseDeliveryEventName, event => {
+    events.push(event as ThirdPartyDataPackWebDomResponseDeliveryEvent)
+  })
+  return { target, events }
+}
 const commandIds: readonly ThirdPartyDataPackModManagementCommandId[] = [
   'install',
   'enable',
@@ -2570,12 +2582,14 @@ describe('useWebFilePickerImportEntry', () => {
     const store = createInMemoryWebIndexedDbImportPersistenceStore()
     const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const responseDelivery = createWebInstallResponseEventCollector()
     const selectFiles = vi.fn(async() => createValidFiles(webEntryPackageId))
     const entry = useWebFilePickerImportEntry({
       selectFiles,
       persistenceStore: store,
       webSettingsLockfileStore,
-      webInstallTransactionLogStore
+      webInstallTransactionLogStore,
+      webInstallResponseDeliveryTarget: responseDelivery.target
     })
 
     await entry.pickFiles()
@@ -2646,6 +2660,35 @@ describe('useWebFilePickerImportEntry', () => {
     expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.selectedPlatform).toBe('web')
     expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.persistentPackageWriteExecuted).toBe(true)
     expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.persistentSettingsLockfileWriteExecuted).toBe(true)
+    expect(responseDelivery.events).toHaveLength(1)
+    expect(responseDelivery.events[0]!.detail).toMatchObject({
+      formatVersion: 1,
+      channel: 'web-ui-response-event-sink',
+      envelope: {
+        formatVersion: 1,
+        kind: 'success',
+        commandId: 'install',
+        packageId: webEntryPackageId,
+        messageKey: 'mods.ui.ipc.result.install.success',
+        recovery: 'none',
+        retryable: false,
+        rollbackRequired: false,
+        summary: {
+          selectedPackageCount: 1,
+          blockedPackageCount: 0,
+          blockedCandidateCount: 0,
+          loadOrderCount: 1,
+          registryCount: dispatchResult.preflight!.registryCount,
+          entryCount: dispatchResult.preflight!.entryCount,
+          packageCount: 1,
+          diagnosticCount: 0
+        }
+      }
+    })
+    expect(responseDelivery.events[0]!.detail.envelope.candidateHash)
+      .toBe(dispatchResult.postCommitUiIpcDeliveryContinuation?.candidateHash)
+    expect(responseDelivery.events[0]!.detail.envelope.lockfileHash)
+      .toBe(dispatchResult.postCommitUiIpcDeliveryContinuation?.lockfileHash)
     expect(dispatchResult.webPlatformWriterHostConnection?.reason).toBe(
       'third-party Web platform writer host connection accepted verified Web persistent store evidence'
     )
@@ -2741,6 +2784,72 @@ describe('useWebFilePickerImportEntry', () => {
       .toBe(true)
     expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)?.name.fallback)
       .toBe(`${webEntryPackageId}:linen_ribbon`)
+    expect(entry.runtimeBoundaryClosed.value).toBe(true)
+    expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
+  })
+
+  it('blocks Web ordinary install continuation when no response delivery sink is available', async() => {
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const entry = useWebFilePickerImportEntry({
+      selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId)),
+      persistenceStore: store,
+      webSettingsLockfileStore,
+      webInstallTransactionLogStore,
+      webInstallResponseDeliveryTarget: null
+    })
+
+    await entry.pickFiles()
+    await entry.reset()
+    await entry.restorePersistedImport()
+    const dispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+      mountedAppStartupHostEvidence
+    })
+    const readSettingsLockfile = await webSettingsLockfileStore.read()
+
+    expect(dispatchResult).toMatchObject({
+      transactionCommandDispatcherHostKind: 'web',
+      transactionCommandDispatcherSourceStatus: 'dispatched',
+      installCommandPostCommitAcknowledgementStatus: 'ready',
+      installTransactionLogPreparedStatus: 'prepared',
+      installTransactionLogPreparedPersistentReadVerificationStatus: 'verified',
+      installTransactionCommitFinalizationStatus: 'committed',
+      postCommitUiIpcDeliveryContinuationStatus: 'blocked',
+      ordinaryInstallTransactionTerminalConnectionStatus: null,
+      runtimePublicationCommitAfterPostCommitVerificationStatus: null,
+      runtimePublicationCommitLiveRegistrySwapHostConnectionStatus: null,
+      runtimePublicationCommitAppStartupReadinessStatus: null,
+      runtimePublicationCommitAppStartupHostConnectionStatus: null,
+      webPlatformWriterHostConnectionStatus: 'connected',
+      webStartupPersistentStateWriteStatus: null,
+      commandDispatched: true,
+      transactionCommitted: true,
+      writeExecuted: true,
+      startupPersistentStateWritten: false,
+      rendererLiveRegistrySwapApplied: false,
+      runtimeEnablementAllowed: false,
+      uiIpcResponseDelivered: false
+    })
+    expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.effects.uiIpcResponseDelivered)
+      .toBe(false)
+    expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.effects.successEnvelopeDelivered)
+      .toBe(false)
+    expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.uiIpcDeliveryAcknowledged)
+      .toBe(false)
+    expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.commandContinuationAllowed)
+      .toBe(false)
+    expect(dispatchResult.postCommitUiIpcDeliveryContinuation?.startupGateContinuationAllowed)
+      .toBe(false)
+    expect(readSettingsLockfile.record).toMatchObject({
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      targetPackageId: webEntryPackageId,
+      selectedPackageIds: [webEntryPackageId],
+      loadOrder: [webEntryPackageId]
+    })
     expect(entry.runtimeBoundaryClosed.value).toBe(true)
     expect(JSON.stringify(dispatchResult)).not.toContain('C:/Users')
     expect(JSON.stringify(dispatchResult)).not.toContain('LENOVO')
