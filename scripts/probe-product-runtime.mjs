@@ -144,6 +144,23 @@ const webScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'visible-import-web-archive-dependency-then-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledStartupPersistentState: true,
+    visibleDependency: true,
+    visibleArchiveImport: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateSelectedPackageCount: 2,
+    startupGateLoadOrderCount: 2,
+    startupGateEntryCount: 4246,
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v1'
+  },
+  {
     name: 'visible-import-web-archive-disable-then-restart',
     fault: null,
     source: 'precompiled',
