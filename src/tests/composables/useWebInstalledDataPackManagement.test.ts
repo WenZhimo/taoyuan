@@ -634,6 +634,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsWritten: true,
       lockfileWritten: true,
       startupStateWritten: true,
+      managementUiIpcResponseDelivered: true,
       diagnostics: []
     }))
 
@@ -1252,6 +1253,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsWritten: true,
       lockfileWritten: true,
       startupStateWritten: true,
+      managementUiIpcResponseDelivered: true,
       diagnostics: []
     }))
 

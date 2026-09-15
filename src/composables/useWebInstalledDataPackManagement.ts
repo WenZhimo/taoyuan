@@ -667,9 +667,12 @@ export const useWebInstalledDataPackManagement = (
               record: uninstallRecord,
               startupSnapshot: createElectronUninstallStartupSnapshot(state)
             })
-            managementUiIpcResponseDelivered = true
+            managementUiIpcResponseDelivered = electronResult.managementUiIpcResponseDelivered === true
             if (electronResult.status !== 'written') {
               throw new Error('Electron uninstall persistent state write was blocked')
+            }
+            if (!managementUiIpcResponseDelivered) {
+              throw new Error('Electron uninstall management UI/IPC response delivery was blocked')
             }
             realElectronSettingsLockfilePersistentWriterHostCalled =
               electronResult.settingsWritten
@@ -870,9 +873,12 @@ export const useWebInstalledDataPackManagement = (
               record: enableRecord,
               startupSnapshot: createElectronEnableStartupSnapshot(state)
             })
-            managementUiIpcResponseDelivered = true
+            managementUiIpcResponseDelivered = electronResult.managementUiIpcResponseDelivered === true
             if (electronResult.status !== 'written') {
               throw new Error('Electron enable persistent state write was blocked')
+            }
+            if (!managementUiIpcResponseDelivered) {
+              throw new Error('Electron enable management UI/IPC response delivery was blocked')
             }
             realElectronSettingsLockfilePersistentWriterHostCalled =
               electronResult.settingsWritten

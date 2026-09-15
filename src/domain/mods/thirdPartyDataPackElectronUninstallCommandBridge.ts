@@ -35,6 +35,7 @@ export interface ThirdPartyDataPackElectronUninstallCommandResult {
   readonly settingsWritten: boolean
   readonly lockfileWritten: boolean
   readonly startupStateWritten: boolean
+  readonly managementUiIpcResponseDelivered: boolean
   readonly diagnostics: readonly ThirdPartyDataPackElectronUninstallCommandDiagnostic[]
 }
 
@@ -104,7 +105,8 @@ const diagnostic = (stage: string, packageId?: PackageId): ThirdPartyDataPackEle
 
 const blockedResult = (
   targetPackageId?: PackageId,
-  stage = 'third-party.electron-uninstall-command.invalid-envelope'
+  stage = 'third-party.electron-uninstall-command.invalid-envelope',
+  managementUiIpcResponseDelivered = true
 ): ThirdPartyDataPackElectronUninstallCommandResult => Object.freeze({
   status: 'blocked' as const,
   requestedCommandId: 'uninstall' as const,
@@ -116,6 +118,7 @@ const blockedResult = (
   settingsWritten: false,
   lockfileWritten: false,
   startupStateWritten: false,
+  managementUiIpcResponseDelivered,
   diagnostics: Object.freeze([diagnostic(stage, targetPackageId)])
 })
 
@@ -179,6 +182,7 @@ const writtenResult = (
   settingsWritten: true,
   lockfileWritten: true,
   startupStateWritten: true,
+  managementUiIpcResponseDelivered: true,
   diagnostics: Object.freeze([])
 })
 
@@ -283,10 +287,27 @@ export const createThirdPartyDataPackElectronUninstallCommandRendererHost = (
     envelope: ThirdPartyDataPackElectronUninstallCommandEnvelope
   ): Promise<ThirdPartyDataPackElectronUninstallCommandResult> => {
     const result = await bridge.invoke(thirdPartyDataPackElectronUninstallCommandIpcChannel, envelope)
-    if (result !== null && typeof result === 'object' && readOwnStringField(result, 'status') === 'written') {
+    if (
+      result !== null
+      && typeof result === 'object'
+      && readOwnStringField(result, 'status') === 'written'
+      && readOwnDataField(result, 'managementUiIpcResponseDelivered') === true
+    ) {
       return writtenResult(envelope)
     }
-    return blockedResult(envelope.targetPackageId, 'third-party.electron-uninstall-command.main-process-blocked')
+    if (
+      result !== null
+      && typeof result === 'object'
+      && readOwnStringField(result, 'status') === 'blocked'
+      && readOwnDataField(result, 'managementUiIpcResponseDelivered') === true
+    ) {
+      return blockedResult(envelope.targetPackageId, 'third-party.electron-uninstall-command.main-process-blocked')
+    }
+    return blockedResult(
+      envelope.targetPackageId,
+      'third-party.electron-uninstall-command.main-process-blocked',
+      false
+    )
   }
 })
 

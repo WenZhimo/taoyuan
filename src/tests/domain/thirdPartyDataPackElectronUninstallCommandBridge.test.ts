@@ -232,6 +232,7 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
     expect(result.lockfileWritten).toBe(true)
     expect(result.startupStateWritten).toBe(true)
     expect(result.packageFilesRemoved).toBe(true)
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(writeUninstalledState).toHaveBeenCalledOnce()
     expect(writeUninstalledState).toHaveBeenCalledWith(envelope)
   })
@@ -326,6 +327,7 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
     const result = await mainHandler(envelope)
 
     expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics[0]?.stage).toBe(
       'third-party.electron-uninstall-command.current-state-mismatch'
     )
@@ -348,6 +350,7 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
     const result = await mainHandler(envelope)
 
     expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics[0]?.stage).toBe(
       'third-party.electron-uninstall-command.current-state-mismatch'
     )
@@ -387,7 +390,39 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
     expect(result.status).toBe('written')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.packageFilesRemoved).toBe(true)
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics).toEqual([])
+  })
+
+  it('blocks renderer status-only responses without explicit management UI/IPC delivery evidence', async() => {
+    const envelope = createEnvelope()
+    const rendererHost = createThirdPartyDataPackElectronUninstallCommandRendererHost({
+      invoke: vi.fn(async(channel, payload) => {
+        expect(channel).toBe(thirdPartyDataPackElectronUninstallCommandIpcChannel)
+        expect(payload).toBe(envelope)
+        return {
+          status: 'written',
+          requestedCommandId: 'uninstall',
+          targetPackageId: packageId,
+          selectedPackageIds: [],
+          blockedPackageIds: [],
+          loadOrder: [],
+          packageFilesRemoved: true,
+          settingsWritten: true,
+          lockfileWritten: true,
+          startupStateWritten: true,
+          diagnostics: []
+        }
+      })
+    })
+
+    const result = await rendererHost.uninstall(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(false)
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-uninstall-command.main-process-blocked'
+    )
   })
 
   it('blocks malformed renderer envelopes before writing uninstalled state', async() => {
@@ -402,6 +437,7 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
     })
 
     expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics[0]?.stage).toBe('third-party.electron-uninstall-command.invalid-envelope')
     expect(writeUninstalledState).not.toHaveBeenCalled()
   })

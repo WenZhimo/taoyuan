@@ -34,6 +34,7 @@ export interface ThirdPartyDataPackElectronEnableCommandResult {
   readonly settingsWritten: boolean
   readonly lockfileWritten: boolean
   readonly startupStateWritten: boolean
+  readonly managementUiIpcResponseDelivered: boolean
   readonly diagnostics: readonly ThirdPartyDataPackElectronEnableCommandDiagnostic[]
 }
 
@@ -110,7 +111,8 @@ const diagnostic = (stage: string, packageId?: PackageId): ThirdPartyDataPackEle
 
 const blockedResult = (
   targetPackageId?: PackageId,
-  stage = 'third-party.electron-enable-command.invalid-envelope'
+  stage = 'third-party.electron-enable-command.invalid-envelope',
+  managementUiIpcResponseDelivered = true
 ): ThirdPartyDataPackElectronEnableCommandResult => Object.freeze({
   status: 'blocked' as const,
   requestedCommandId: 'enable' as const,
@@ -122,6 +124,7 @@ const blockedResult = (
   settingsWritten: false,
   lockfileWritten: false,
   startupStateWritten: false,
+  managementUiIpcResponseDelivered,
   diagnostics: Object.freeze([diagnostic(stage, targetPackageId)])
 })
 
@@ -204,6 +207,7 @@ const writtenResult = (
   settingsWritten: true,
   lockfileWritten: true,
   startupStateWritten: true,
+  managementUiIpcResponseDelivered: true,
   diagnostics: Object.freeze([])
 })
 
@@ -248,10 +252,27 @@ export const createThirdPartyDataPackElectronEnableCommandRendererHost = (
     envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
   ): Promise<ThirdPartyDataPackElectronEnableCommandResult> => {
     const result = await bridge.invoke(thirdPartyDataPackElectronEnableCommandIpcChannel, envelope)
-    if (result !== null && typeof result === 'object' && readOwnStringField(result, 'status') === 'written') {
+    if (
+      result !== null
+      && typeof result === 'object'
+      && readOwnStringField(result, 'status') === 'written'
+      && readOwnDataField(result, 'managementUiIpcResponseDelivered') === true
+    ) {
       return writtenResult(envelope)
     }
-    return blockedResult(envelope.targetPackageId, 'third-party.electron-enable-command.main-process-blocked')
+    if (
+      result !== null
+      && typeof result === 'object'
+      && readOwnStringField(result, 'status') === 'blocked'
+      && readOwnDataField(result, 'managementUiIpcResponseDelivered') === true
+    ) {
+      return blockedResult(envelope.targetPackageId, 'third-party.electron-enable-command.main-process-blocked')
+    }
+    return blockedResult(
+      envelope.targetPackageId,
+      'third-party.electron-enable-command.main-process-blocked',
+      false
+    )
   }
 })
 
