@@ -321,6 +321,30 @@ describe('useWebInstalledDataPackManagement', () => {
       messageKey: 'mods.ui.ipc.result.disable.success'
     })
 
+    const restartedManagement = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore,
+      installedPackageStore,
+      startupPersistentStateStore,
+      mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target
+    })
+    await restartedManagement.refresh()
+    expect(restartedManagement.status.value).toBe('ready')
+    expect(restartedManagement.rows.value).toEqual([{
+      packageId,
+      version: '1.0.0',
+      status: 'disabled'
+    }])
+    expect(restartedManagement.currentRecord.value).toMatchObject({
+      requestedCommandId: 'disable',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [packageId],
+      loadOrder: []
+    })
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+
     const uninstallResult = await management.uninstall(packageId)
     await nextTick()
 

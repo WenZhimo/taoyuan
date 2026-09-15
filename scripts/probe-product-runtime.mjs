@@ -1678,6 +1678,21 @@ const electronScenarios = [
     startupGateEntryCount: 4242
   },
   {
+    name: 'visible-import-disable-then-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-then-restart',
+    cacheSeed: 'valid',
+    visibleImportInstalledDisableSequence: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
+  {
     name: 'visible-import-dependency-disable-initial-import',
     fault: null,
     source: 'disk-cache',
@@ -8902,6 +8917,80 @@ const runPackagedScenario = async (scenario, isolated) => {
   return { scenario: scenario.name, runtime: productReport.runtime, electron: productReport.electron }
 }
 
+const runPackagedVisibleDisableSequence = async (scenario, isolated) => {
+  const dataRoot = scenario.dataRoot ?? scenario.name
+  const installScenario = {
+    ...scenario,
+    name: `${scenario.name}-install`,
+    dataRoot,
+    startupGateReady: false,
+    startupPersistentStateReady: false,
+    startupPersistentStateUseInstalledState: false,
+    startupGateDefaultInstalledState: false,
+    startupGateDisabled: false,
+    startupGateUninstalled: false,
+    visibleImportInstalledDisableSequence: false,
+    visibleImportRendererLiveRegistry: true,
+    visibleDisable: false,
+    visibleEnable: false,
+    visibleUninstall: false,
+    visibleDisableFailAfterModLockWrite: false
+  }
+  const disableScenario = {
+    ...scenario,
+    name: `${scenario.name}-disable`,
+    dataRoot,
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: false,
+    startupGateDisabled: false,
+    startupGateUninstalled: false,
+    startupGateRealRuntimePublicationCommit: true,
+    startupGateRegistryCount: 54,
+    startupGateSelectedPackageCount: expectedVisibleProbeSelectedPackageIds(scenario).length,
+    startupGateLoadOrderCount: expectedVisibleProbeLoadOrder(scenario).length,
+    startupGateEntryCount: expectedVisibleProbeEntryCount(scenario),
+    startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
+    startupGateExpectedProductProbeVariant:
+      scenario.startupGateExpectedProductProbeVariant ?? 'v1',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    visibleImportInstalledDisableSequence: false,
+    visibleImportRendererLiveRegistry: false,
+    visibleDisable: true,
+    visibleEnable: false,
+    visibleUninstall: false
+  }
+  const restartScenario = withDefaultInstalledStateStartup({
+    ...scenario,
+    name: `${scenario.name}-restart`,
+    dataRoot,
+    startupGateDisabled: true,
+    startupGateUninstalled: false,
+    startupGateEntryCount: 4242,
+    startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
+    visibleImportInstalledDisableSequence: false,
+    visibleImportRendererLiveRegistry: false,
+    visibleDisable: false,
+    visibleEnable: false,
+    visibleUninstall: false,
+    visibleDisableFailAfterModLockWrite: false
+  })
+
+  const install = await runPackagedScenario(installScenario, isolated)
+  const disable = await runPackagedScenario(disableScenario, isolated)
+  const restart = await runPackagedScenario(restartScenario, isolated)
+  return {
+    scenario: scenario.name,
+    installRuntime: install.runtime,
+    disableRuntime: disable.runtime,
+    restartRuntime: restart.runtime,
+    installElectron: install.electron,
+    disableElectron: disable.electron,
+    restartElectron: restart.electron
+  }
+}
+
 const runElectronProbe = async () => {
   assert(fs.existsSync(packagedExecutable),
     'Electron product is missing; run pnpm build:electron')
@@ -8912,6 +9001,10 @@ const runElectronProbe = async () => {
   assert(fs.existsSync(formalUserData), 'Packaged app did not create program-local userdata')
   const formalFingerprint = directoryFingerprint(formalUserData)
   for (const scenario of electronScenarios.slice(1)) {
+    if (scenario.visibleImportInstalledDisableSequence) {
+      reports.push(await runPackagedVisibleDisableSequence(scenario, scenario.isolated !== false))
+      continue
+    }
     reports.push(await runPackagedScenario(scenario, scenario.isolated !== false))
   }
   assert(
