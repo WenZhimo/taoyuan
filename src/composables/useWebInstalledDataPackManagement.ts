@@ -495,9 +495,12 @@ export const useWebInstalledDataPackManagement = (
               record: disableRecord,
               startupSnapshot: createElectronDisableStartupSnapshot(state)
             })
-            managementUiIpcResponseDelivered = true
+            managementUiIpcResponseDelivered = electronResult.managementUiIpcResponseDelivered === true
             if (electronResult.status !== 'written') {
               throw new Error('Electron disable persistent state write was blocked')
+            }
+            if (!managementUiIpcResponseDelivered) {
+              throw new Error('Electron disable management UI/IPC response delivery was blocked')
             }
             realElectronSettingsLockfilePersistentWriterHostCalled =
               electronResult.settingsWritten

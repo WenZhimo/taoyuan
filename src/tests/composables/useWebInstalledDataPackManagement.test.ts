@@ -751,6 +751,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsWritten: true,
       lockfileWritten: true,
       startupStateWritten: true,
+      managementUiIpcResponseDelivered: true,
       diagnostics: []
     }))
 
@@ -828,6 +829,72 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(JSON.stringify(result)).not.toContain('LENOVO')
   })
 
+  it('does not infer Electron disable management UI/IPC delivery from a written status alone', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const installedDraft = createInstalledDraft()
+    const readElectronInstalledState = vi.fn(async(): Promise<ThirdPartyDataPackElectronInstalledStateReadResult> => ({
+      status: 'ready' as const,
+      record: {
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'install' as const,
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId],
+        candidateHash: installedDraft.candidateIdentity.candidateHash,
+        lockfileHash: installedDraft.lockfileHash,
+        lockfileDraft: installedDraft
+      },
+      packageFilesPreserved: true
+    }))
+    const electronDisableCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
+    ) => ({
+      status: 'written' as const,
+      requestedCommandId: 'disable' as const,
+      targetPackageId: envelope.targetPackageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [envelope.targetPackageId],
+      loadOrder: [],
+      packageFilesPreserved: true,
+      settingsWritten: true,
+      lockfileWritten: true,
+      startupStateWritten: true,
+      managementUiIpcResponseDelivered: false,
+      diagnostics: []
+    }))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore: null,
+      installedPackageStore: null,
+      startupPersistentStateStore: null,
+      mountedAppStartupEvidence,
+      readElectronInstalledState,
+      electronDisableCommand
+    })
+    await management.refresh()
+
+    const result = await management.disable(packageId)
+
+    expect(result).toMatchObject({
+      managementCommandHostKind: 'electron-renderer',
+      managementCommandDispatched: true,
+      managementUiIpcResponseDelivered: false,
+      terminal: {
+        status: 'blocked',
+        requestedCommandId: 'disable',
+        runtimePublicationCommitted: false,
+        liveRegistrySwapped: false,
+        appStartupHandoffAccepted: false,
+        reason: 'disable transaction persistent state write failed before runtime publication'
+      }
+    })
+    expect(management.status.value).toBe('blocked')
+  })
+
   it('routes dependency disable persistence through the Electron renderer command host', async() => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     officialRegistrySet.freezeEntries()
@@ -865,6 +932,7 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsWritten: true,
       lockfileWritten: true,
       startupStateWritten: true,
+      managementUiIpcResponseDelivered: true,
       diagnostics: []
     }))
 

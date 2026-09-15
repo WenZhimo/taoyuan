@@ -2020,7 +2020,8 @@ describe('WebDataPackImportPreflightPanel', () => {
       packageFilesPreserved: true
     }))
     const disableThirdPartyDataPack = vi.fn(async(_envelope: unknown) => ({
-      status: 'written' as const
+      status: 'written' as const,
+      managementUiIpcResponseDelivered: true
     }))
     const disablePanelResultEvent = vi.fn()
     const restoreElectronApi = withWindowElectronApi({

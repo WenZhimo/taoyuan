@@ -134,6 +134,7 @@ describe('third-party data-pack Electron disable command bridge', () => {
     expect(result.settingsWritten).toBe(true)
     expect(result.lockfileWritten).toBe(true)
     expect(result.startupStateWritten).toBe(true)
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(writeDisabledState).toHaveBeenCalledOnce()
     expect(writeDisabledState).toHaveBeenCalledWith(envelope)
   })
@@ -179,6 +180,7 @@ describe('third-party data-pack Electron disable command bridge', () => {
     const result = await mainHandler(envelope)
 
     expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics[0]?.stage).toBe(
       'third-party.electron-disable-command.current-state-mismatch'
     )
@@ -217,7 +219,39 @@ describe('third-party data-pack Electron disable command bridge', () => {
     expect(result.status).toBe('written')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.packageFilesPreserved).toBe(true)
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics).toEqual([])
+  })
+
+  it('blocks renderer status-only responses without explicit management UI/IPC delivery evidence', async() => {
+    const envelope = createEnvelope()
+    const rendererHost = createThirdPartyDataPackElectronDisableCommandRendererHost({
+      invoke: vi.fn(async(channel, payload) => {
+        expect(channel).toBe(thirdPartyDataPackElectronDisableCommandIpcChannel)
+        expect(payload).toBe(envelope)
+        return {
+          status: 'written',
+          requestedCommandId: 'disable',
+          targetPackageId: packageId,
+          selectedPackageIds: [],
+          blockedPackageIds: [packageId],
+          loadOrder: [],
+          packageFilesPreserved: true,
+          settingsWritten: true,
+          lockfileWritten: true,
+          startupStateWritten: true,
+          diagnostics: []
+        }
+      })
+    })
+
+    const result = await rendererHost.disable(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(false)
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-disable-command.main-process-blocked'
+    )
   })
 
   it('blocks malformed renderer envelopes before writing disabled state', async() => {
@@ -232,6 +266,7 @@ describe('third-party data-pack Electron disable command bridge', () => {
     })
 
     expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics[0]?.stage).toBe('third-party.electron-disable-command.invalid-envelope')
     expect(writeDisabledState).not.toHaveBeenCalled()
   })
