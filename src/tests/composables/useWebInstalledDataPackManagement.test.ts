@@ -616,6 +616,33 @@ describe('useWebInstalledDataPackManagement', () => {
         'mods.ui.ipc.result.disable.success',
         'mods.ui.ipc.result.enable.success'
       ])
+
+    const restartedManagement = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore,
+      installedPackageStore,
+      startupPersistentStateStore,
+      mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target,
+      readEnableMountInput: async(targetPackageId) =>
+        targetPackageId === packageId ? enabledMountInput : null
+    })
+    await restartedManagement.refresh()
+    expect(restartedManagement.status.value).toBe('ready')
+    expect(restartedManagement.rows.value).toEqual([{
+      packageId,
+      version: '1.0.0',
+      status: 'enabled'
+    }])
+    expect(restartedManagement.currentRecord.value).toMatchObject({
+      requestedCommandId: 'enable',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      loadOrder: [packageId]
+    })
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+      .toBe('Web Management Linen Ribbon')
   })
 
   it('routes dependency enable persistence through the Electron renderer command host', async() => {
