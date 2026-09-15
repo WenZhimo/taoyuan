@@ -7,7 +7,8 @@ const visibleDataPackOperationProbeParams = Object.freeze([
   'taoyuanThirdPartyVisibleDisableProbe',
   'taoyuanThirdPartyVisibleUninstallProbe',
   'taoyuanThirdPartyVisibleEnableProbe',
-  'taoyuanThirdPartyVisibleUpgradeProbe'
+  'taoyuanThirdPartyVisibleUpgradeProbe',
+  'taoyuanThirdPartyVisibleDisabledUpgradeProbe'
 ])
 
 const isVisibleDataPackOperationRequested = searchParams =>

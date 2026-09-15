@@ -58,11 +58,19 @@ import {
   buildThirdPartyDataPackMountInput,
   type ThirdPartyDataPackMountInputResult
 } from '@/domain/mods/thirdPartyDataPackMountInput'
+import {
+  buildThirdPartyDataPackDisableState,
+  createThirdPartyDataPackDisablePersistentRecord,
+  createThirdPartyDataPackDisableStartupPersistentStateSnapshot,
+  executeThirdPartyDataPackDisableTransaction,
+  type ThirdPartyDataPackDisableTransactionTerminal
+} from '@/domain/mods/thirdPartyDataPackDisableTransaction'
 import type {
   ThirdPartyDataPackLockfileDraft
 } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 import {
-  sha256Utf8
+  sha256Utf8,
+  utf8ByteLength
 } from '@/domain/mods/hash'
 import type {
   ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile
@@ -226,6 +234,8 @@ import {
 } from '@/domain/mods/thirdPartyDataPackWebPlatformWriterHostConnectionSource'
 import {
   createWebIndexedDbSettingsLockfilePersistentWriterStore,
+  THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+  type ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord,
   type ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
 } from '@/domain/mods/thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 import {
@@ -516,6 +526,7 @@ export interface WebFilePickerSourceInstallCommandDispatchResult
     ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult | null
   readonly runtimePublicationCommitAppStartupHostConnectionStatus:
     ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult['status'] | null
+  readonly disabledReplacementTerminal: ThirdPartyDataPackDisableTransactionTerminal | null
   readonly webPlatformWriterHostConnection:
     ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult | null
   readonly webPlatformWriterHostConnectionStatus:
@@ -2168,6 +2179,167 @@ const persistWebStartupPersistentStateSnapshot = async(options: {
   }
 }
 
+const createWebDisabledReplacementRecord = (
+  state: ReturnType<typeof buildThirdPartyDataPackDisableState>
+): ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord =>
+  ({
+    ...createThirdPartyDataPackDisablePersistentRecord(
+      THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      state
+    ),
+    recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+  }) as ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+
+const createWebDisabledReplacementStartupRecord = (
+  state: ReturnType<typeof buildThirdPartyDataPackDisableState>
+): WebIndexedDbImportRecord => {
+  const snapshot = createThirdPartyDataPackDisableStartupPersistentStateSnapshot(
+    state,
+    'web-startup-persistent-state-snapshot'
+  )
+  const text = `${JSON.stringify(snapshot, null, 2)}\n`
+  return createDefaultWebIndexedDbImportRecord([
+    {
+      path: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
+      text,
+      sizeBytes: utf8ByteLength(text)
+    }
+  ], THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID)
+}
+
+const shouldPreserveDisabledReplacement = (
+  previousRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord | null,
+  mountInput: ThirdPartyDataPackMountInputResult,
+  targetPackageId: PackageId
+): boolean => previousRecord?.requestedCommandId === 'disable'
+  && previousRecord.targetPackageId === targetPackageId
+  && previousRecord.blockedPackageIds.length === 1
+  && previousRecord.blockedPackageIds[0] === targetPackageId
+  && previousRecord.lockfileDraft.packages.some(currentPackage =>
+    currentPackage.packageId === targetPackageId
+  )
+  && mountInput.lockfileDraft?.packages.some(currentPackage =>
+    currentPackage.packageId === targetPackageId
+  ) === true
+
+const restoreWebDisabledReplacementPreviousState = async(options: {
+  readonly settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
+  readonly importPersistenceStore: WebIndexedDbImportPersistenceStore | null
+  readonly startupStore: WebIndexedDbImportPersistenceStore | null
+  readonly importId: string
+  readonly previousSettingsLockfileRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+  readonly previousImportRecord: WebIndexedDbImportRecord | null
+  readonly previousStartupRecord: WebIndexedDbImportRecord | null
+}): Promise<readonly string[]> => {
+  const failures: string[] = []
+  try {
+    const restoreReport = await options.settingsLockfileStore.write(
+      options.previousSettingsLockfileRecord
+    )
+    if (restoreReport.status !== 'written') failures.push('settings-lockfile')
+  } catch {
+    failures.push('settings-lockfile')
+  }
+  if (options.importPersistenceStore !== null) {
+    try {
+      if (options.previousImportRecord === null) {
+        await options.importPersistenceStore.delete(options.importId)
+      } else {
+        await options.importPersistenceStore.put(options.previousImportRecord)
+      }
+    } catch {
+      failures.push('web-import-source')
+    }
+  }
+  if (options.startupStore !== null) {
+    try {
+      if (options.previousStartupRecord === null) {
+        await options.startupStore.delete(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID)
+      } else {
+        await options.startupStore.put(options.previousStartupRecord)
+      }
+    } catch {
+      failures.push('startup-persistent-state')
+    }
+  }
+  return Object.freeze(failures)
+}
+
+const persistWebDisabledReplacementState = async(options: {
+  readonly officialRegistrySet: RegistrySet
+  readonly settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
+  readonly importPersistenceStore: WebIndexedDbImportPersistenceStore | null
+  readonly startupStore: WebIndexedDbImportPersistenceStore | null
+  readonly importId: string
+  readonly previousSettingsLockfileRecord: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+  readonly previousImportRecord: WebIndexedDbImportRecord | null
+  readonly previousStartupRecord: WebIndexedDbImportRecord | null
+  readonly mountInput: ThirdPartyDataPackMountInputResult
+  readonly targetPackageId: PackageId
+}): Promise<{
+  readonly status: 'written' | 'blocked'
+  readonly reason: string
+  readonly state: ReturnType<typeof buildThirdPartyDataPackDisableState>
+  readonly record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
+}> => {
+  const state = buildThirdPartyDataPackDisableState({
+    officialRegistrySet: options.officialRegistrySet,
+    installedDraft: options.mountInput.lockfileDraft!,
+    targetPackageId: options.targetPackageId
+  })
+  const record = createWebDisabledReplacementRecord(state)
+  const startupRecord = createWebDisabledReplacementStartupRecord(state)
+  const blocked = async(reason: string) => {
+    const restoreFailures = await restoreWebDisabledReplacementPreviousState({
+      settingsLockfileStore: options.settingsLockfileStore,
+      importPersistenceStore: options.importPersistenceStore,
+      startupStore: options.startupStore,
+      importId: options.importId,
+      previousSettingsLockfileRecord: options.previousSettingsLockfileRecord,
+      previousImportRecord: options.previousImportRecord,
+      previousStartupRecord: options.previousStartupRecord
+    })
+    return Object.freeze({
+      status: 'blocked' as const,
+      reason: restoreFailures.length === 0
+        ? reason
+        : `${reason}; Web disabled replacement rollback restore failed for ${restoreFailures.join(', ')}`,
+      state,
+      record
+    })
+  }
+
+  if (options.startupStore === null) {
+    return await blocked('Web disabled replacement requires startup persistent state storage')
+  }
+
+  try {
+    const writeReport = await options.settingsLockfileStore.write(record)
+    if (writeReport.status !== 'written') {
+      return await blocked('Web disabled replacement settings-lockfile write was blocked')
+    }
+    await options.startupStore.put(startupRecord)
+    const readBack = await options.settingsLockfileStore.read()
+    const startupReadBack = await options.startupStore.get(
+      THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID
+    )
+    if (
+      JSON.stringify(readBack.record) !== JSON.stringify(record)
+      || JSON.stringify(startupReadBack) !== JSON.stringify(startupRecord)
+    ) {
+      return await blocked('Web disabled replacement persistent state verification did not match')
+    }
+    return Object.freeze({
+      status: 'written' as const,
+      reason: 'Web visible import replaced a disabled package and preserved disabled runtime state',
+      state,
+      record
+    })
+  } catch {
+    return await blocked('Web disabled replacement persistent state write failed')
+  }
+}
+
 const resolveInstallCommandDispatcherHost = (
   dispatchOptionHost?: WebFilePickerInstallCommandDispatcherHost,
   entryOptionHost?: WebFilePickerInstallCommandDispatcherHost,
@@ -2855,6 +3027,7 @@ export const useWebFilePickerImportEntry = (
         ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult | null
       readonly runtimePublicationCommitAppStartupHostConnection?:
         ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult | null
+      readonly disabledReplacementTerminal?: ThirdPartyDataPackDisableTransactionTerminal | null
       readonly webPlatformWriterHostConnection?:
         ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult | null
       readonly webStartupPersistentStateWriteStatus?: WebFilePickerStartupPersistentStateWriteStatus | null
@@ -2887,6 +3060,8 @@ export const useWebFilePickerImportEntry = (
       overrides.runtimePublicationCommitAppStartupReadiness ?? null
     const runtimePublicationCommitAppStartupHostConnection =
       overrides.runtimePublicationCommitAppStartupHostConnection ?? null
+    const disabledReplacementTerminal =
+      overrides.disabledReplacementTerminal ?? null
     const webPlatformWriterHostConnection = overrides.webPlatformWriterHostConnection ?? null
     const webStartupPersistentStateWriteStatus =
       overrides.webStartupPersistentStateWriteStatus ?? null
@@ -2960,6 +3135,7 @@ export const useWebFilePickerImportEntry = (
       runtimePublicationCommitAppStartupHostConnection,
       runtimePublicationCommitAppStartupHostConnectionStatus:
         runtimePublicationCommitAppStartupHostConnection?.status ?? null,
+      disabledReplacementTerminal,
       webPlatformWriterHostConnection,
       webPlatformWriterHostConnectionStatus: webPlatformWriterHostConnection?.status ?? null,
       webStartupPersistentStateWriteStatus,
@@ -3282,8 +3458,10 @@ export const useWebFilePickerImportEntry = (
       WebFilePickerStartupPersistentStateWriteStatus | null = null
     let electronStartupPersistentStateWriteStatus:
       WebFilePickerStartupPersistentStateWriteStatus | null = null
+    let disabledReplacementTerminal: ThirdPartyDataPackDisableTransactionTerminal | null = null
     let rendererLiveRegistrySwapApplied = false
     let rendererOrdinaryInstallTerminalContinuationBlockedReason: string | undefined
+    let finalPreflightResult = preflightResult
     const mountedAppStartupHostEvidence =
       dispatchOptions.mountedAppStartupHostEvidence ?? options.mountedAppStartupHostEvidence
     const readWebInstallResponseDeliveryTarget = (): EventTarget | null => {
@@ -3351,6 +3529,27 @@ export const useWebFilePickerImportEntry = (
           continuation.runtimePublicationCommitAppStartupHostConnection ?? null
         runtimePublicationCommitAppStartupHostConnection =
           continuationRuntimePublicationCommitAppStartupHostConnection
+        disabledReplacementTerminal = continuation.disabledReplacementTerminal ?? null
+        if (disabledReplacementTerminal?.status === 'ready') {
+          finalPreflightResult = Object.freeze({
+            ...preflightResult,
+            reason: disabledReplacementTerminal.reason,
+            selectedPackageIds: Object.freeze([...disabledReplacementTerminal.selectedPackageIds]),
+            loadOrder: Object.freeze([...disabledReplacementTerminal.loadOrder]),
+            preflight: preflightResult.preflight === null
+              ? null
+              : Object.freeze({
+                  ...preflightResult.preflight,
+                  reason: disabledReplacementTerminal.reason,
+                  selectedPackageIds: Object.freeze([...disabledReplacementTerminal.selectedPackageIds]),
+                  blockedPackageIds: Object.freeze([...disabledReplacementTerminal.blockedPackageIds]),
+                  loadOrder: Object.freeze([...disabledReplacementTerminal.loadOrder]),
+                  registryCount: disabledReplacementTerminal.registryCount,
+                  entryCount: disabledReplacementTerminal.entryCount,
+                  packageCount: disabledReplacementTerminal.packageCount
+                })
+          })
+        }
         const electronRuntimeContinuationMatchesRendererCandidate =
           runtimeContinuationMatchesRendererCandidate({
             platform: 'electron',
@@ -3366,7 +3565,8 @@ export const useWebFilePickerImportEntry = (
         const electronOrdinaryTerminalSucceeded =
           ordinaryInstallTransactionTerminalSucceeded(ordinaryInstallTransactionTerminalConnection)
         const electronRuntimeContinuationEligible =
-          electronRuntimeContinuationMatchesRendererCandidate
+          disabledReplacementTerminal === null
+          && electronRuntimeContinuationMatchesRendererCandidate
           && electronOrdinaryTerminalSucceeded
         if (electronRuntimeContinuationMatchesRendererCandidate && !electronOrdinaryTerminalSucceeded) {
           rendererOrdinaryInstallTerminalContinuationBlockedReason =
@@ -3425,7 +3625,12 @@ export const useWebFilePickerImportEntry = (
           continuation.startupPersistentStateSnapshotWrite?.status === 'written'
         electronStartupPersistentStateWriteStatus =
           electronStartupPersistentStateSnapshotWritten
-            ? (rendererLiveRegistrySwapApplied ? 'written' : 'blocked')
+            ? (
+                rendererLiveRegistrySwapApplied
+                || disabledReplacementTerminal?.status === 'ready'
+                  ? 'written'
+                  : 'blocked'
+              )
             : electronOrdinaryTerminalSucceeded
               ? null
               : 'blocked'
@@ -3470,6 +3675,102 @@ export const useWebFilePickerImportEntry = (
       } else if (webSettingsLockfileStore !== null && webInstallTransactionLogStore !== null) {
         const previousSettingsLockfileRecord =
           (await webSettingsLockfileStore.read()).record
+        if (
+          previousSettingsLockfileRecord !== null
+          && shouldPreserveDisabledReplacement(
+            previousSettingsLockfileRecord,
+            mountInput,
+            targetPackageId
+          )
+        ) {
+          const startupStore = resolveWebStartupPersistentStateStore(
+            dispatchOptions.startupPersistentStateStore,
+            options.startupPersistentStateStore,
+            options.persistenceStore
+          )
+          const disabledReplacement = await persistWebDisabledReplacementState({
+            officialRegistrySet: dispatchOptions.officialRegistrySet,
+            settingsLockfileStore: webSettingsLockfileStore,
+            importPersistenceStore: options.persistenceStore ?? null,
+            startupStore,
+            importId: toImportId(options.importId),
+            previousSettingsLockfileRecord,
+            previousImportRecord: lastRecordBeforeCurrentImport.value,
+            previousStartupRecord: startupStore === null
+              ? null
+              : await startupStore.get(THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID),
+            mountInput,
+            targetPackageId
+          })
+          const disabledReplacementTransaction =
+            await executeThirdPartyDataPackDisableTransaction({
+              state: disabledReplacement.state,
+              candidateRegistrySet: dispatchOptions.officialRegistrySet,
+              liveRegistryReference: getLiveContentRegistryReference(),
+              writePersistentState: async() => ({
+                settingsWritten: disabledReplacement.status === 'written',
+                lockfileWritten: disabledReplacement.status === 'written',
+                startupStateWritten: disabledReplacement.status === 'written',
+                packageFilesPreserved: true
+              }),
+              acknowledgeAppStartupHandoff: async() =>
+                mountedAppStartupHostEvidence ?? false
+            })
+          disabledReplacementTerminal = disabledReplacementTransaction.terminal
+          rendererLiveRegistrySwapApplied =
+            disabledReplacementTerminal.status === 'ready'
+            && disabledReplacementTerminal.liveRegistrySwapped
+          const disabledPreflightResult: WebFilePickerSourceInstallCommandPreflightResult =
+            Object.freeze({
+              ...preflightResult,
+              reason: disabledReplacementTerminal.reason,
+              selectedPackageIds: disabledReplacement.state.selectedPackageIds,
+              loadOrder: disabledReplacement.state.loadOrder,
+              preflight: preflightResult.preflight === null
+                ? null
+                : Object.freeze({
+                    ...preflightResult.preflight,
+                    reason: disabledReplacementTerminal.reason,
+                    selectedPackageIds: disabledReplacement.state.selectedPackageIds,
+                    blockedPackageIds: disabledReplacement.state.blockedPackageIds,
+                    loadOrder: disabledReplacement.state.loadOrder,
+                    registryCount: disabledReplacement.state.registryCount,
+                    entryCount: disabledReplacement.state.entryCount,
+                    packageCount: disabledReplacement.state.packageCount
+                  })
+            })
+          const result = extendDispatchResult(disabledPreflightResult, {
+            reason: disabledReplacementTerminal.reason,
+            installTransactionDispatchPlan,
+            postCommitVerificationPlan,
+            transactionCommandDispatcherHandoff,
+            transactionCommandDispatcherSource,
+            atomicTransactionCommitExecutorSource,
+            postCommitVerificationReadAcknowledgementSource,
+            installCommandPostCommitAcknowledgement,
+            postCommitUiIpcDeliveryContinuation,
+            ordinaryInstallTransactionTerminalConnection,
+            electronSettingsLockfileLifecycle,
+            installTransactionLogPrepared,
+            installTransactionLogPreparedPersistentReadVerification,
+            installTransactionCommitFinalization,
+            runtimePublicationCommitAfterPostCommitVerification,
+            runtimePublicationCommitLiveRegistrySwapHostConnection,
+            runtimePublicationCommitAppStartupReadiness,
+            runtimePublicationCommitAppStartupHostConnection,
+            disabledReplacementTerminal,
+            webPlatformWriterHostConnection,
+            webStartupPersistentStateWriteStatus:
+              disabledReplacementTerminal.startupStateWritten ? 'written' : 'blocked',
+            electronStartupPersistentStateWriteStatus,
+            rendererLiveRegistrySwapApplied,
+            transactionCommandDispatcherHostKind: dispatcherHost.kind
+          })
+          lastInstallCommandPreflight.value = result
+          lastSourceInstallCommandPreflight.value = disabledPreflightResult
+          lastSourceInstallCommandDispatch.value = result
+          return result
+        }
         try {
           webPlatformWriterHostConnection = await connectWebSettingsLockfileWriter({
             store: webSettingsLockfileStore,
@@ -3652,7 +3953,7 @@ export const useWebFilePickerImportEntry = (
       }
     }
 
-    const result = extendDispatchResult(preflightResult, {
+    const result = extendDispatchResult(finalPreflightResult, {
       reason: rendererOrdinaryInstallTerminalContinuationBlockedReason,
       installTransactionDispatchPlan,
       postCommitVerificationPlan,
@@ -3671,6 +3972,7 @@ export const useWebFilePickerImportEntry = (
       runtimePublicationCommitLiveRegistrySwapHostConnection,
       runtimePublicationCommitAppStartupReadiness,
       runtimePublicationCommitAppStartupHostConnection,
+      disabledReplacementTerminal,
       webPlatformWriterHostConnection,
       webStartupPersistentStateWriteStatus,
       electronStartupPersistentStateWriteStatus,
@@ -3678,7 +3980,7 @@ export const useWebFilePickerImportEntry = (
       transactionCommandDispatcherHostKind: dispatcherHost.kind
     })
     lastInstallCommandPreflight.value = result
-    lastSourceInstallCommandPreflight.value = preflightResult
+    lastSourceInstallCommandPreflight.value = finalPreflightResult
     lastSourceInstallCommandDispatch.value = result
     return result
   }

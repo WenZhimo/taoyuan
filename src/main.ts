@@ -99,6 +99,9 @@ const thirdPartyVisibleEnableFailAfterModLockWriteProbeRequested = runtimeProbeR
 const thirdPartyVisibleUpgradeProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleUpgradeProbe') === '1'
+const thirdPartyVisibleDisabledUpgradeProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleDisabledUpgradeProbe') === '1'
 const thirdPartyVisibleUpgradeExpectBlockedProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleUpgradeExpectBlocked') === '1'
@@ -116,6 +119,7 @@ const thirdPartyVisibleOperationProbeRequested =
   || thirdPartyVisibleUninstallProbeRequested
   || thirdPartyVisibleEnableProbeRequested
   || thirdPartyVisibleUpgradeProbeRequested
+  || thirdPartyVisibleDisabledUpgradeProbeRequested
 const thirdPartyVisibleImportPersistSourceProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleImportPersistSource') === '1'
@@ -182,6 +186,7 @@ void bootstrapApplication({
         thirdPartyVisibleImportProbeRequested
         || thirdPartyVisibleEnableProbeRequested
         || thirdPartyVisibleUpgradeProbeRequested
+        || thirdPartyVisibleDisabledUpgradeProbeRequested
         || thirdPartyVisibleImportRollbackProbeRequested
         || thirdPartyVisibleImportFailureProbeRequested
       ) {
@@ -199,6 +204,8 @@ void bootstrapApplication({
                 ? 'rollback'
               : thirdPartyVisibleUpgradeProbeRequested
                 ? 'upgrade'
+              : thirdPartyVisibleDisabledUpgradeProbeRequested
+                ? 'disabled-upgrade'
                 : 'install',
             persistSource: thirdPartyVisibleImportPersistSourceProbeRequested,
             ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),

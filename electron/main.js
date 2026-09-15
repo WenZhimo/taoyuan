@@ -130,6 +130,11 @@ import {
   buildThirdPartyDataPackMountInput
 } from '../src/domain/mods/thirdPartyDataPackMountInput'
 import {
+  buildThirdPartyDataPackDisableState,
+  createThirdPartyDataPackDisableStartupPersistentStateSnapshot,
+  executeThirdPartyDataPackDisableTransaction
+} from '../src/domain/mods/thirdPartyDataPackDisableTransaction'
+import {
   createThirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline
 } from '../src/domain/mods/thirdPartyDataPackOrdinaryInstallTransactionTerminalConnectionPipeline'
 import {
@@ -233,6 +238,8 @@ const runtimeProbeVisibleEnableFailAfterModLockWrite =
   && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ENABLE_FAIL_AFTER_MOD_LOCK_WRITE === '1'
 const runtimeProbeVisibleUpgrade =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_UPGRADE === '1'
+const runtimeProbeVisibleDisabledUpgrade =
+  process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLED_UPGRADE === '1'
 const runtimeProbeVisibleUpgradeFailAfterModLockWrite =
   runtimeProbeEnabled
   && runtimeProbeVisibleUpgrade
@@ -250,6 +257,7 @@ const runtimeProbeVisibleDataPackOperation =
   || runtimeProbeVisibleDisable
   || runtimeProbeVisibleEnable
   || runtimeProbeVisibleUpgrade
+  || runtimeProbeVisibleDisabledUpgrade
   || runtimeProbeVisibleUninstall
 const runtimeProbeRendererUiIpcProductSurfaceExpected =
   !runtimeProbeVisibleDataPackOperation
@@ -1782,6 +1790,31 @@ const enabledUninstallTargetStackMatches = (draft, targetPackageId) => {
   const expectedActivePackageIds = new Set([...dependencyIds, targetPackageId])
   return packageIdsMatchSet(draft.selectedPackageIds, expectedActivePackageIds)
     && packageIdsMatchSet(draft.loadOrder, expectedActivePackageIds)
+}
+
+const disabledReplacementTargetMatchesPreviousState = (
+  previousInstalledState,
+  nextDraft,
+  targetPackageId
+) => {
+  const previousRecord = previousInstalledState?.record
+  return previousInstalledState?.status === 'ready'
+    && previousInstalledState.packageFilesPreserved === true
+    && previousRecord?.requestedCommandId === 'disable'
+    && previousRecord.targetPackageId === targetPackageId
+    && stringListsMatch(previousRecord.selectedPackageIds, [])
+    && stringListsMatch(previousRecord.blockedPackageIds, [targetPackageId])
+    && stringListsMatch(previousRecord.loadOrder, [])
+    && Array.isArray(previousRecord.lockfileDraft?.packages)
+    && previousRecord.lockfileDraft.packages.some(currentPackage =>
+      currentPackage.packageId === targetPackageId
+    )
+    && Array.isArray(nextDraft?.packages)
+    && nextDraft.packages.some(currentPackage =>
+      currentPackage.packageId === targetPackageId
+    )
+    && Array.isArray(nextDraft.selectedPackageIds)
+    && nextDraft.selectedPackageIds.includes(targetPackageId)
 }
 
 const readElectronInstalledState = async () => {
@@ -3439,6 +3472,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
       'Electron ordinary install terminal continuation requires a target package in the lockfile draft'
     )
   }
+  const previousInstalledState = await readElectronInstalledState().catch(() => null)
 
   let installCommandPostCommitAcknowledgement
   let packageFilePersistentStaging
@@ -4294,6 +4328,122 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
         ...ordinaryInstallTransactionTerminalConnection.diagnostics
       ]
     )
+  }
+
+  if (
+    disabledReplacementTargetMatchesPreviousState(
+      previousInstalledState,
+      lockfileDraft,
+      targetPackageId
+    )
+  ) {
+    try {
+      const disabledReplacementContext = await createRuntimePublicationContinuationContext(
+        packageFilePayload,
+        lockfileDraft,
+        runtimePublicationCommitAdapter,
+        targetPackageId
+      )
+      if (
+        disabledReplacementContext === undefined
+        || !disabledReplacementContext.runtimePublicationCommitAdapter.selectedPackageIds.includes(targetPackageId)
+        || installTransactionCommitFinalizationResult.targetPackageId !== targetPackageId
+      ) {
+        return createBlockedOrdinaryInstallTerminalContinuationResult(
+          'Electron disabled replacement could not rebuild a matching runtime exclusion context from package payload'
+        )
+      }
+
+      const disabledState = buildThirdPartyDataPackDisableState({
+        officialRegistrySet: disabledReplacementContext.officialRegistrySet,
+        installedDraft: lockfileDraft,
+        targetPackageId
+      })
+      const disabledTransaction = await executeThirdPartyDataPackDisableTransaction({
+        state: disabledState,
+        candidateRegistrySet: disabledReplacementContext.officialRegistrySet,
+        liveRegistryReference: createThirdPartyDataPackInMemoryLiveRegistryReference(
+          disabledReplacementContext.officialRegistrySet
+        ),
+        writePersistentState: async(record, state) => {
+          const writeResult = await writeElectronDisabledState({
+            requestedCommandId: 'disable',
+            targetPackageId: state.targetPackageId,
+            selectedPackageIds: [],
+            blockedPackageIds: [state.targetPackageId],
+            loadOrder: [],
+            packageFilesPreserved: true,
+            record,
+            startupSnapshot: createThirdPartyDataPackDisableStartupPersistentStateSnapshot(
+              state,
+              'electron-startup-persistent-state-snapshot'
+            )
+          })
+          return {
+            ...writeResult,
+            packageFilesPreserved: true
+          }
+        },
+        acknowledgeAppStartupHandoff: async() => true
+      })
+      const disabledInstalledState = await readElectronInstalledState()
+      if (
+        disabledTransaction.terminal.status !== 'ready'
+        || disabledTransaction.terminal.runtimePublicationExcluded !== true
+        || disabledTransaction.terminal.liveRegistrySwapped !== true
+        || disabledTransaction.terminal.appStartupHandoffAccepted !== true
+        || disabledInstalledState.status !== 'ready'
+        || disabledInstalledState.record?.requestedCommandId !== 'disable'
+        || disabledInstalledState.record.targetPackageId !== targetPackageId
+        || !stringListsMatch(disabledInstalledState.record.selectedPackageIds, [])
+        || !stringListsMatch(disabledInstalledState.record.blockedPackageIds, [targetPackageId])
+        || !stringListsMatch(disabledInstalledState.record.loadOrder, [])
+        || disabledInstalledState.record.lockfileHash !== disabledState.lockfileHash
+        || disabledInstalledState.packageFilesPreserved !== true
+      ) {
+        return createBlockedOrdinaryInstallTerminalContinuationResult(
+          'Electron disabled replacement did not persist verified disabled runtime state after install transaction'
+        )
+      }
+
+      const startupPersistentStateSnapshotWrite = {
+        status: 'written',
+        storageKind: 'electron-program-directory-userdata-startup-persistent-state',
+        targetPackageId,
+        snapshotWritten: true
+      }
+
+      return {
+        status: 'ready',
+        reason: 'Electron visible renderer replacement preserved disabled runtime state after verified install terminal',
+        installCommandPostCommitAcknowledgement: installCommandPostCommitAcknowledgementResult,
+        ...(settingsLockfileLifecycleResult === undefined
+          ? {}
+          : { settingsLockfileLifecycle: settingsLockfileLifecycleResult }),
+        installTransactionLogPrepared: installTransactionLogPreparedResult,
+        installTransactionLogPreparedPersistentReadVerification:
+          installTransactionLogPreparedPersistentReadVerificationResult,
+        installTransactionCommitFinalization: installTransactionCommitFinalizationResult,
+        postCommitUiIpcDeliveryContinuation: postCommitUiIpcDeliveryContinuationResult,
+        ordinaryInstallTransactionTerminalConnection,
+        disabledReplacementTerminal: disabledTransaction.terminal,
+        startupPersistentStateSnapshotWrite,
+        diagnostics: [
+          ...installCommandPostCommitAcknowledgementResult.diagnostics,
+          ...installTransactionLogPreparedResult.diagnostics,
+          ...installTransactionLogPreparedPersistentReadVerificationResult.diagnostics,
+          ...installTransactionCommitFinalizationResult.diagnostics,
+          ...postCommitUiIpcDeliveryContinuationResult.diagnostics,
+          ...ordinaryInstallTransactionTerminalConnection.diagnostics,
+          ...(disabledTransaction.runtimePublicationCommit?.diagnostics ?? []),
+          ...(disabledTransaction.liveRegistrySwap?.diagnostics ?? [])
+        ]
+      }
+    } catch {
+      return createBlockedOrdinaryInstallTerminalContinuationResult(
+        'Electron disabled replacement failed while preserving disabled runtime state'
+      )
+    }
   }
 
   let runtimePublicationContinuation
@@ -5484,6 +5634,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleUpgrade
             ? { taoyuanThirdPartyVisibleUpgradeProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleDisabledUpgrade
+            ? { taoyuanThirdPartyVisibleDisabledUpgradeProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleUpgradeFailAfterModLockWrite
             ? { taoyuanThirdPartyVisibleUpgradeExpectBlocked: '1' }

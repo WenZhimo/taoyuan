@@ -313,6 +313,36 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
+  it('routes disabled replacement query wiring into the product probe', async() => {
+    const visibleImportResult = {
+      status: 'ready',
+      operation: 'disabled-upgrade'
+    }
+    mocks.runThirdPartyVisibleImportProductProbe.mockResolvedValueOnce(visibleImportResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisabledUpgradeProbe=1&taoyuanThirdPartyVisibleArchiveImportProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleImportProductProbe).toHaveBeenCalledWith({
+        entrypoint: 'main-menu-panel',
+        operation: 'disabled-upgrade',
+        persistSource: false,
+        archiveImport: true
+      })
+    })
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
+
   it('routes Web visible initial install write-failure probes as blocked import runs', async() => {
     const visibleImportResult = {
       status: 'blocked',

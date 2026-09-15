@@ -388,6 +388,222 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(JSON.stringify(result)).not.toContain('liveRegistryReference')
   })
 
+  it('preserves safe disabled replacement terminal results without runtime continuation fields', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'safe disabled replacement continuation',
+          installCommandPostCommitAcknowledgement: { status: 'ready' },
+          settingsLockfileLifecycle: {
+            status: 'ready',
+            settingsLockfilePersistentWriterSourceStatus: 'written',
+            persistentPackageWriteExecuted: true,
+            persistentSettingsLockfileWriteExecuted: true,
+            effects: {
+              settingsWritten: true,
+              lockfileWritten: true
+            }
+          },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'success'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'success',
+            retryable: false,
+            rollbackRequired: false,
+            effects: {
+              ordinaryInstallTransactionReady: true,
+              successOutcomeAccepted: true
+            }
+          },
+          installTransactionLogPrepared: { status: 'prepared' },
+          installTransactionLogPreparedPersistentReadVerification: { status: 'verified' },
+          installTransactionCommitFinalization: { status: 'committed' },
+          disabledReplacementTerminal: {
+            status: 'ready',
+            requestedCommandId: 'disable',
+            targetPackageId: packageId,
+            selectedPackageIds: [],
+            blockedPackageIds: [packageId],
+            loadOrder: [],
+            registryCount: 1,
+            entryCount: 4242,
+            packageCount: 1,
+            settingsWritten: true,
+            lockfileWritten: true,
+            startupStateWritten: true,
+            packageFilesPreserved: true,
+            runtimePublicationExcluded: true,
+            realRuntimePublicationCommitCalled: true,
+            runtimePublicationCommitted: true,
+            liveRegistrySwapped: true,
+            appStartupHandoffAccepted: true,
+            realAppStartupHostCalled: false,
+            gameAppCreated: false,
+            piniaCreated: false,
+            routerMounted: false,
+            reason: 'disable transaction committed and handed off to the mounted application'
+          },
+          startupPersistentStateSnapshotWrite: {
+            status: 'written',
+            storageKind: 'electron-program-directory-userdata-startup-persistent-state',
+            targetPackageId: packageId,
+            snapshotWritten: true
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('ready')
+    expect(result.disabledReplacementTerminal?.status).toBe('ready')
+    expect(result.disabledReplacementTerminal?.requestedCommandId).toBe('disable')
+    expect(result.disabledReplacementTerminal?.selectedPackageIds).toEqual([])
+    expect(result.disabledReplacementTerminal?.blockedPackageIds).toEqual([packageId])
+    expect(result.disabledReplacementTerminal?.runtimePublicationExcluded).toBe(true)
+    expect(result.disabledReplacementTerminal?.liveRegistrySwapped).toBe(true)
+    expect(result.disabledReplacementTerminal?.appStartupHandoffAccepted).toBe(true)
+    expect(result.runtimePublicationCommitAfterPostCommitVerification).toBeUndefined()
+    expect(result.runtimePublicationCommitLiveRegistrySwapHostConnection).toBeUndefined()
+    expect(result.runtimePublicationCommitAppStartupReadiness).toBeUndefined()
+    expect(result.runtimePublicationCommitAppStartupHostConnection).toBeUndefined()
+    expect(result.startupPersistentStateSnapshotWrite?.status).toBe('written')
+    expect(JSON.stringify(result)).not.toContain('candidateRegistrySet')
+    expect(JSON.stringify(result)).not.toContain('liveRegistryReference')
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
+  })
+
+  it('blocks disabled replacement continuations without startup snapshot evidence', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'missing disabled replacement startup state',
+          installCommandPostCommitAcknowledgement: { status: 'ready' },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'success'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'success',
+            retryable: false,
+            rollbackRequired: false,
+            effects: {
+              ordinaryInstallTransactionReady: true,
+              successOutcomeAccepted: true
+            }
+          },
+          installTransactionLogPrepared: { status: 'prepared' },
+          installTransactionLogPreparedPersistentReadVerification: { status: 'verified' },
+          installTransactionCommitFinalization: { status: 'committed' },
+          disabledReplacementTerminal: {
+            status: 'ready',
+            requestedCommandId: 'disable',
+            targetPackageId: packageId,
+            selectedPackageIds: [],
+            blockedPackageIds: [packageId],
+            loadOrder: [],
+            registryCount: 1,
+            entryCount: 4242,
+            packageCount: 1,
+            settingsWritten: true,
+            lockfileWritten: true,
+            startupStateWritten: true,
+            packageFilesPreserved: true,
+            runtimePublicationExcluded: true,
+            realRuntimePublicationCommitCalled: true,
+            runtimePublicationCommitted: true,
+            liveRegistrySwapped: true,
+            appStartupHandoffAccepted: true,
+            reason: 'disable transaction committed and handed off to the mounted application'
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('blocked')
+    expect(result.disabledReplacementTerminal).toBeUndefined()
+    expect(result.startupPersistentStateSnapshotWrite).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
+  })
+
+  it('blocks disabled replacement continuations that also expose runtime continuation fields', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'mixed disabled replacement continuation',
+          installCommandPostCommitAcknowledgement: { status: 'ready' },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'success'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'success',
+            retryable: false,
+            rollbackRequired: false,
+            effects: {
+              ordinaryInstallTransactionReady: true,
+              successOutcomeAccepted: true
+            }
+          },
+          installTransactionLogPrepared: { status: 'prepared' },
+          installTransactionLogPreparedPersistentReadVerification: { status: 'verified' },
+          installTransactionCommitFinalization: { status: 'committed' },
+          runtimePublicationCommitAfterPostCommitVerification: { status: 'accepted' },
+          disabledReplacementTerminal: {
+            status: 'ready',
+            requestedCommandId: 'disable',
+            targetPackageId: packageId,
+            selectedPackageIds: [],
+            blockedPackageIds: [packageId],
+            loadOrder: [],
+            registryCount: 1,
+            entryCount: 4242,
+            packageCount: 1,
+            settingsWritten: true,
+            lockfileWritten: true,
+            startupStateWritten: true,
+            packageFilesPreserved: true,
+            runtimePublicationExcluded: true,
+            realRuntimePublicationCommitCalled: true,
+            runtimePublicationCommitted: true,
+            liveRegistrySwapped: true,
+            appStartupHandoffAccepted: true,
+            reason: 'disable transaction committed and handed off to the mounted application'
+          },
+          startupPersistentStateSnapshotWrite: {
+            status: 'written',
+            storageKind: 'electron-program-directory-userdata-startup-persistent-state',
+            targetPackageId: packageId,
+            snapshotWritten: true
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('blocked')
+    expect(result.disabledReplacementTerminal).toBeUndefined()
+    expect(result.runtimePublicationCommitAfterPostCommitVerification).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
+  })
+
   it('blocks success terminal continuations without Electron settings/mod-lock write evidence', async() => {
     const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
       invoke: channel => {

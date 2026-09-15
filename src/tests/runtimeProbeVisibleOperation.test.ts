@@ -21,7 +21,8 @@ describe('runtime probe visible operation detection', () => {
     'taoyuanThirdPartyVisibleDisableProbe',
     'taoyuanThirdPartyVisibleUninstallProbe',
     'taoyuanThirdPartyVisibleEnableProbe',
-    'taoyuanThirdPartyVisibleUpgradeProbe'
+    'taoyuanThirdPartyVisibleUpgradeProbe',
+    'taoyuanThirdPartyVisibleDisabledUpgradeProbe'
   ])('treats %s as a visible data-pack operation', paramName => {
     expect(
       isVisibleDataPackOperationRequested(new URLSearchParams([[paramName, '1']]))
@@ -46,6 +47,9 @@ describe('runtime probe visible operation detection', () => {
     expect(isVisibleDataPackOperationRequested(params)).toBe(true)
     expect(visibleDataPackOperationProbeParams).toContain(
       'taoyuanThirdPartyVisibleUpgradeProbe'
+    )
+    expect(visibleDataPackOperationProbeParams).toContain(
+      'taoyuanThirdPartyVisibleDisabledUpgradeProbe'
     )
   })
 })

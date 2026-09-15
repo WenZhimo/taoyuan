@@ -39,7 +39,13 @@ export const visibleEnablePanelProbeResultEventName =
 
 type VisibleImportProductProbeEntrypoint = 'composable' | 'main-menu-panel'
 type VisibleImportProductProbePackageVariant = 'v1' | 'v2'
-type VisibleImportProductProbeOperation = 'install' | 'enable' | 'upgrade' | 'rollback' | 'failure'
+type VisibleImportProductProbeOperation =
+  | 'install'
+  | 'enable'
+  | 'upgrade'
+  | 'disabled-upgrade'
+  | 'rollback'
+  | 'failure'
 type VisibleManagementCommandHostKind = 'web-indexeddb' | 'electron-renderer'
 
 const visibleImportProductProbeFixtures = {
@@ -69,7 +75,7 @@ const expectedShopOfferName = visibleImportProductProbeFixtures.v1.shopOfferName
 const packageVariantForOperation = (
   operation: VisibleImportProductProbeOperation | undefined
 ): VisibleImportProductProbePackageVariant =>
-  operation === 'upgrade' ? 'v2' : 'v1'
+  operation === 'upgrade' || operation === 'disabled-upgrade' ? 'v2' : 'v1'
 
 const expectedSelectedPackageIds = (includeDependency: boolean): readonly PackageId[] =>
   includeDependency ? [dependencyPackageId, packageId] : [packageId]
@@ -197,7 +203,8 @@ export interface ThirdPartyVisibleImportProductProbeResult {
     readonly rollbackExecuted: boolean
     readonly diagnosticsWritten: false
   }
-  readonly operation?: 'install' | 'disable' | 'enable' | 'upgrade' | 'uninstall' | 'rollback' | 'failure'
+  readonly operation?:
+    'install' | 'disable' | 'enable' | 'upgrade' | 'disabled-upgrade' | 'uninstall' | 'rollback' | 'failure'
   readonly disableButtonClicked?: boolean
   readonly enableButtonClicked?: boolean
   readonly uninstallButtonClicked?: boolean
@@ -613,6 +620,7 @@ const hasReadyVisibleImportDispatch = (
   const isEnable = execution.operation === 'enable'
   const isRollback = execution.operation === 'rollback'
   const isFailure = execution.operation === 'failure'
+  const isDisabledUpgrade = execution.operation === 'disabled-upgrade'
   const isBlockedUpgrade = execution.operation === 'upgrade'
     && dispatchResult?.ordinaryInstallTransactionTerminalConnection?.outcomeKind === 'rollback'
   const interactionReady = isEnable
@@ -625,6 +633,8 @@ const hasReadyVisibleImportDispatch = (
         ? hasReadyVisibleImportRollbackPanelLabels(dispatchResult, execution.panelStatusLabels)
       : isFailure
         ? hasReadyVisibleImportFailurePanelLabels(dispatchResult, execution.panelStatusLabels)
+      : isDisabledUpgrade
+        ? hasReadyVisibleDisabledReplacementPanelLabels(dispatchResult, execution.panelStatusLabels)
       : hasReadyVisibleImportPanelLabels(dispatchResult, execution.panelStatusLabels)
     )
   if (isEnable) {
@@ -681,6 +691,65 @@ const hasReadyVisibleImportDispatch = (
       && !contentAccessItemVisibleAfter
       && !contentAccessRecipeVisibleAfter
       && !contentAccessShopOfferVisibleAfter
+  }
+  if (isDisabledUpgrade) {
+    const disabledTerminal = dispatchResult?.disabledReplacementTerminal ?? null
+    const rendererInstallBoundaryReady = dispatchResult?.transactionCommandDispatcherHostKind !== 'renderer'
+      || (
+        dispatchResult.electronSettingsLockfileLifecycleStatus === 'ready'
+        && dispatchResult.installTransactionLogPreparedStatus === 'prepared'
+        && dispatchResult.installTransactionLogPreparedPersistentReadVerificationStatus === 'verified'
+        && dispatchResult.installTransactionCommitFinalizationStatus === 'committed'
+        && dispatchResult.postCommitUiIpcDeliveryContinuationStatus === 'ready'
+        && dispatchResult.ordinaryInstallTransactionTerminalConnectionStatus === 'ready'
+        && dispatchResult.ordinaryInstallTransactionTerminalConnection?.outcomeKind === 'success'
+      )
+    return dispatchResult !== null
+      && disabledTerminal !== null
+      && execution.entrypoint === 'main-menu-panel'
+      && execution.mainMenuPanelOpened
+      && interactionReady
+      && (
+        dispatchResult.transactionCommandDispatcherHostKind === 'renderer'
+        || dispatchResult.transactionCommandDispatcherHostKind === 'web'
+      )
+      && dispatchResult.transactionCommandDispatcherSourceStatus === 'dispatched'
+      && rendererInstallBoundaryReady
+      && disabledTerminal.status === 'ready'
+      && disabledTerminal.targetPackageId === packageId
+      && disabledTerminal.selectedPackageIds.length === 0
+      && disabledTerminal.blockedPackageIds.length === 1
+      && disabledTerminal.blockedPackageIds[0] === packageId
+      && disabledTerminal.loadOrder.length === 0
+      && disabledTerminal.packageCount === expectedPackageIds.length
+      && disabledTerminal.settingsWritten
+      && disabledTerminal.lockfileWritten
+      && disabledTerminal.startupStateWritten
+      && disabledTerminal.packageFilesPreserved
+      && disabledTerminal.runtimePublicationExcluded
+      && disabledTerminal.realRuntimePublicationCommitCalled
+      && disabledTerminal.runtimePublicationCommitted
+      && disabledTerminal.liveRegistrySwapped
+      && disabledTerminal.appStartupHandoffAccepted
+      && dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus === null
+      && dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus === null
+      && dispatchResult.runtimePublicationCommitAppStartupReadinessStatus === null
+      && dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus === null
+      && dispatchResult.selectedPackageIds.length === 0
+      && dispatchResult.loadOrder.length === 0
+      && dispatchResult.preflight?.blockedPackageIds.length === 1
+      && dispatchResult.preflight.blockedPackageIds[0] === packageId
+      && dispatchResult.preflight.packageCount === expectedPackageIds.length
+      && dispatchResult.startupPersistentStateWritten
+      && !dispatchResult.runtimeEnablementAllowed
+      && dispatchResult.uiIpcResponseDelivered === (
+        dispatchResult.transactionCommandDispatcherHostKind === 'renderer'
+      )
+      && panelLabelsReady
+      && !contentAccessItemVisibleAfter
+      && !contentAccessRecipeVisibleAfter
+      && !contentAccessShopOfferVisibleAfter
+      && (!includeDependency || !contentAccessDependencyItemVisibleAfter)
   }
   if (isRollback) {
     return dispatchResult !== null
@@ -881,6 +950,22 @@ const hasReadyVisibleImportPanelLabels = (
   && labels.runtimePublicationStatus === '已确认'
   && labels.liveRegistryStatus === '已切换'
   && labels.appStartupStatus === '已接入已挂载应用'
+  && labels.startupPersistentStateStatus === '已写入'
+
+const hasReadyVisibleDisabledReplacementPanelLabels = (
+  dispatchResult: WebFilePickerSourceInstallCommandDispatchResult,
+  labels: ThirdPartyVisibleImportPanelStatusLabels
+): boolean =>
+  labels.importStatus === '已暂存'
+  && labels.targetPackage === dispatchResult.preflight?.targetPackageId
+  && labels.dispatchStatus === 'dispatched'
+  && labels.persistenceStatus === '已写入 IndexedDB'
+  && labels.hostAckStatus === expectedPanelHostAckStatus(dispatchResult)
+  && labels.installOutcomeStatus === '提交后校验已确认'
+  && labels.uiIpcDeliveryStatus === expectedPanelUiIpcDeliveryStatus(dispatchResult)
+  && labels.runtimePublicationStatus === '已排除'
+  && labels.liveRegistryStatus === '已切换'
+  && (labels.appStartupStatus === '已接受' || labels.appStartupStatus === '已接入已挂载应用')
   && labels.startupPersistentStateStatus === '已写入'
 
 const hasReadyVisibleImportRollbackPanelLabels = (
@@ -1095,6 +1180,7 @@ const runMainMenuPanelImportProbe = async(
   const blocksRuntime =
     operation === 'rollback'
     || operation === 'failure'
+    || operation === 'disabled-upgrade'
     || (operation === 'install' && options.expectBlocked === true)
     || (operation === 'upgrade' && options.expectBlocked === true)
   const probeWindow = window
@@ -1163,6 +1249,8 @@ const runMainMenuPanelImportProbe = async(
             ? hasBlockedVisibleImportUpgradePanelLabels(readyDispatchResult, labels)
           : operation === 'failure'
             ? hasReadyVisibleImportFailurePanelLabels(readyDispatchResult, labels)
+          : operation === 'disabled-upgrade'
+            ? hasReadyVisibleDisabledReplacementPanelLabels(readyDispatchResult, labels)
             : hasReadyVisibleImportPanelLabels(readyDispatchResult, labels)
         )
           ? labels
@@ -1613,6 +1701,7 @@ export const runThirdPartyVisibleImportProductProbe = async(
     : 'blocked'
   const enableTerminal = execution.enableTransactionResult?.terminal ?? null
   const installCommandDispatched = dispatchResult?.commandDispatched === true
+  const disabledReplacementTerminal = dispatchResult?.disabledReplacementTerminal ?? null
   const electronSettingsLockfileLifecycle =
     dispatchResult?.electronSettingsLockfileLifecycle ?? null
   const realElectronSettingsLockfilePersistentWriterHostCalled =
@@ -1653,6 +1742,48 @@ export const runThirdPartyVisibleImportProductProbe = async(
         rollbackExecuted: false,
         diagnosticsWritten: false
       }
+    : operation === 'disabled-upgrade'
+      ? {
+          commandDispatched: installCommandDispatched,
+          realWebPlatformWriterHostCalled:
+            disabledReplacementTerminal?.status === 'ready'
+            && dispatchResult?.transactionCommandDispatcherHostKind === 'web',
+          realElectronSettingsLockfilePersistentWriterHostCalled,
+          packageFilesWritten:
+            disabledReplacementTerminal?.packageFilesPreserved === true
+            && (
+              dispatchResult?.effects.indexedDbImportPersisted === true
+              || dispatchResult?.postCommitUiIpcDeliveryContinuation
+                ?.persistentPackageWriteExecuted === true
+            ),
+          settingsWritten: disabledReplacementTerminal?.settingsWritten === true,
+          lockfileWritten: disabledReplacementTerminal?.lockfileWritten === true,
+          rendererLiveRegistrySwapped: disabledReplacementTerminal?.liveRegistrySwapped === true,
+          runtimeEnablementAllowed: false,
+          realRuntimePublicationCommitCalled:
+            disabledReplacementTerminal?.realRuntimePublicationCommitCalled === true,
+          runtimePublicationCommitted:
+            disabledReplacementTerminal?.runtimePublicationCommitted === true,
+          uiIpcResponseDelivered: disabledReplacementTerminal?.status === 'ready',
+          transactionCommitted: disabledReplacementTerminal?.status === 'ready',
+          transactionLogPrepared:
+            dispatchResult?.installTransactionLogPrepared?.effects.transactionLogPrepared === true,
+          transactionLogRead:
+            dispatchResult?.installTransactionLogPreparedPersistentReadVerification?.effects.transactionLogRead === true,
+          startupPersistentStateWritten: dispatchResult?.startupPersistentStateWritten === true,
+          realNormalStartupHostCalled: false,
+          realAppStartupHostCalled:
+            disabledReplacementTerminal?.realAppStartupHostCalled === true,
+          gameAppCreated: disabledReplacementTerminal?.gameAppCreated === true,
+          piniaCreated: disabledReplacementTerminal?.piniaCreated === true,
+          routerMounted: disabledReplacementTerminal?.routerMounted === true,
+          savesWritten: false,
+          cacheWritten: false,
+          transactionLogWritten:
+            dispatchResult?.installTransactionCommitFinalization?.effects.transactionLogWritten === true,
+          rollbackExecuted: false,
+          diagnosticsWritten: false
+        }
     : {
         commandDispatched: installCommandDispatched,
         realWebPlatformWriterHostCalled:
@@ -1708,19 +1839,15 @@ export const runThirdPartyVisibleImportProductProbe = async(
         ? 'visible MainMenu panel reached rollback terminal without runtime publication or startup persistence'
         : operation === 'failure'
           ? 'visible MainMenu panel reached retryable failure terminal without runtime publication or startup persistence'
+        : operation === 'disabled-upgrade'
+          ? 'visible MainMenu panel replaced a disabled package and preserved runtime exclusion through startup handoff'
         : 'visible MainMenu panel reached ordinary terminal runtime publication and item, recipe, and shop offer visibility'
       : execution.blockedReason
         ?? enableTerminal?.reason
         ?? dispatchResult?.reason
         ?? 'visible import did not reach item, recipe, and shop offer visibility',
     entrypoint: execution.entrypoint,
-    ...((execution.operation === 'install' && options.expectBlocked === true)
-      || execution.operation === 'enable'
-      || execution.operation === 'upgrade'
-      || execution.operation === 'rollback'
-      || execution.operation === 'failure'
-      ? { operation: execution.operation }
-      : {}),
+    operation,
     mainMenuPanelOpened: execution.mainMenuPanelOpened,
     panelImportButtonClicked: execution.panelImportButtonClicked,
     ...(execution.archiveImportButtonClicked === undefined
@@ -1793,15 +1920,44 @@ export const runThirdPartyVisibleImportProductProbe = async(
       dispatchResult?.webStartupPersistentStateWriteStatus ?? null,
     electronStartupPersistentStateWriteStatus:
       dispatchResult?.electronStartupPersistentStateWriteStatus ?? null,
-    selectedPackageIds: enableTerminal?.selectedPackageIds ?? dispatchResult?.selectedPackageIds ?? Object.freeze([]),
-    selectedPackageCount: enableTerminal?.selectedPackageIds.length ?? dispatchResult?.selectedPackageIds.length ?? 0,
-    blockedPackageCount: enableTerminal?.blockedPackageIds.length ?? dispatchResult?.preflight?.blockedPackageIds.length ?? 0,
-    loadOrder: enableTerminal?.loadOrder ?? dispatchResult?.loadOrder ?? Object.freeze([]),
-    loadOrderCount: enableTerminal?.loadOrder.length ?? dispatchResult?.loadOrder.length ?? 0,
+    selectedPackageIds:
+      enableTerminal?.selectedPackageIds
+      ?? disabledReplacementTerminal?.selectedPackageIds
+      ?? dispatchResult?.selectedPackageIds
+      ?? Object.freeze([]),
+    selectedPackageCount:
+      enableTerminal?.selectedPackageIds.length
+      ?? disabledReplacementTerminal?.selectedPackageIds.length
+      ?? dispatchResult?.selectedPackageIds.length
+      ?? 0,
+    blockedPackageCount:
+      enableTerminal?.blockedPackageIds.length
+      ?? disabledReplacementTerminal?.blockedPackageIds.length
+      ?? dispatchResult?.preflight?.blockedPackageIds.length
+      ?? 0,
+    loadOrder:
+      enableTerminal?.loadOrder
+      ?? disabledReplacementTerminal?.loadOrder
+      ?? dispatchResult?.loadOrder
+      ?? Object.freeze([]),
+    loadOrderCount:
+      enableTerminal?.loadOrder.length
+      ?? disabledReplacementTerminal?.loadOrder.length
+      ?? dispatchResult?.loadOrder.length
+      ?? 0,
     expectedPackageVersion: fixture.version,
-    registryCount: enableTerminal?.registryCount ?? dispatchResult?.preflight?.registryCount,
-    entryCount: enableTerminal?.entryCount ?? dispatchResult?.preflight?.entryCount,
-    packageCount: enableTerminal?.packageCount ?? dispatchResult?.preflight?.packageCount,
+    registryCount:
+      enableTerminal?.registryCount
+      ?? disabledReplacementTerminal?.registryCount
+      ?? dispatchResult?.preflight?.registryCount,
+    entryCount:
+      enableTerminal?.entryCount
+      ?? disabledReplacementTerminal?.entryCount
+      ?? dispatchResult?.preflight?.entryCount,
+    packageCount:
+      enableTerminal?.packageCount
+      ?? disabledReplacementTerminal?.packageCount
+      ?? dispatchResult?.preflight?.packageCount,
     diagnosticsCount: operation === 'enable'
       ? execution.enableTransactionResult === undefined || enableTerminal?.status === 'blocked' ? 1 : 0
       : diagnosticsCountFor(dispatchResult),

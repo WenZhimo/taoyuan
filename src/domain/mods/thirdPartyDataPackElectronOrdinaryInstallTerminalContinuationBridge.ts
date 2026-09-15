@@ -47,6 +47,9 @@ import type {
 import type {
   ThirdPartyDataPackTransactionCommandDispatcherHandoffResult
 } from './thirdPartyDataPackTransactionCommandDispatcherHandoff'
+import type {
+  ThirdPartyDataPackDisableTransactionTerminal
+} from './thirdPartyDataPackDisableTransaction'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -96,6 +99,7 @@ export interface ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationRe
     ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult
   readonly runtimePublicationCommitAppStartupHostConnection?:
     ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+  readonly disabledReplacementTerminal?: ThirdPartyDataPackDisableTransactionTerminal
   readonly startupPersistentStateSnapshotWrite?:
     ThirdPartyDataPackElectronStartupPersistentStateSnapshotWriteResult
   readonly diagnostics: readonly unknown[]
@@ -156,6 +160,14 @@ const effectFlag = (
     && readOwnDataField(effects, fieldName) === true
 }
 
+const stringListMatches = (
+  value: unknown,
+  expectedValues: readonly string[]
+): boolean =>
+  Array.isArray(value)
+  && value.length === expectedValues.length
+  && value.every((currentValue, index) => currentValue === expectedValues[index])
+
 const safeResultFromRawMainProcessValue = (
   value: unknown
 ): ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult => {
@@ -207,6 +219,10 @@ const safeResultFromRawMainProcessValue = (
     value,
     'runtimePublicationCommitAppStartupHostConnection'
   )
+  const disabledReplacementTerminal = readOwnDataField(
+    value,
+    'disabledReplacementTerminal'
+  )
   const startupPersistentStateSnapshotWrite = readOwnDataField(
     value,
     'startupPersistentStateSnapshotWrite'
@@ -247,6 +263,39 @@ const safeResultFromRawMainProcessValue = (
     && runtimePublicationCommitAppStartupHostConnection !== null
     && typeof runtimePublicationCommitAppStartupHostConnection === 'object'
     && readOwnDataField(runtimePublicationCommitAppStartupHostConnection, 'status') === 'accepted'
+  const hasDisabledReplacementTerminal =
+    disabledReplacementTerminal !== undefined
+  const disabledReplacementTargetPackageId = readOwnDataField(
+    disabledReplacementTerminal,
+    'targetPackageId'
+  )
+  const disabledReplacementTerminalReady =
+    disabledReplacementTerminal !== null
+    && typeof disabledReplacementTerminal === 'object'
+    && readOwnDataField(disabledReplacementTerminal, 'status') === 'ready'
+    && readOwnDataField(disabledReplacementTerminal, 'requestedCommandId') === 'disable'
+    && isPackageId(disabledReplacementTargetPackageId)
+    && stringListMatches(
+      readOwnDataField(disabledReplacementTerminal, 'selectedPackageIds'),
+      []
+    )
+    && stringListMatches(
+      readOwnDataField(disabledReplacementTerminal, 'blockedPackageIds'),
+      [disabledReplacementTargetPackageId]
+    )
+    && stringListMatches(
+      readOwnDataField(disabledReplacementTerminal, 'loadOrder'),
+      []
+    )
+    && readOwnDataField(disabledReplacementTerminal, 'settingsWritten') === true
+    && readOwnDataField(disabledReplacementTerminal, 'lockfileWritten') === true
+    && readOwnDataField(disabledReplacementTerminal, 'startupStateWritten') === true
+    && readOwnDataField(disabledReplacementTerminal, 'packageFilesPreserved') === true
+    && readOwnDataField(disabledReplacementTerminal, 'runtimePublicationExcluded') === true
+    && readOwnDataField(disabledReplacementTerminal, 'realRuntimePublicationCommitCalled') === true
+    && readOwnDataField(disabledReplacementTerminal, 'runtimePublicationCommitted') === true
+    && readOwnDataField(disabledReplacementTerminal, 'liveRegistrySwapped') === true
+    && readOwnDataField(disabledReplacementTerminal, 'appStartupHandoffAccepted') === true
   const hasStartupPersistentStateSnapshotWrite =
     startupPersistentStateSnapshotWrite !== undefined
   const startupPersistentStateSnapshotWriteReady =
@@ -280,7 +329,7 @@ const safeResultFromRawMainProcessValue = (
     hasStatus(postCommitUiIpcDeliveryContinuation, 'ready')
   const ordinaryInstallTransactionTerminalConnectionReady =
     hasStatus(ordinaryInstallTransactionTerminalConnection, 'ready')
-  const successTerminalReady =
+  const runtimePublicationSuccessTerminalReady =
     installCommandPostCommitAcknowledgementReady
     && postCommitUiIpcDeliveryContinuationReady
     && ordinaryInstallTransactionTerminalConnectionReady
@@ -294,6 +343,23 @@ const safeResultFromRawMainProcessValue = (
     && installTransactionFinalizationReady
     && runtimePublicationContinuationReady
     && startupPersistentStateSnapshotWriteReady
+  const disabledReplacementSuccessTerminalReady =
+    installCommandPostCommitAcknowledgementReady
+    && postCommitUiIpcDeliveryContinuationReady
+    && ordinaryInstallTransactionTerminalConnectionReady
+    && readOwnDataField(postCommitUiIpcDeliveryContinuation, 'envelopeKind') === 'success'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'outcomeKind') === 'success'
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'retryable') === false
+    && readOwnDataField(ordinaryInstallTransactionTerminalConnection, 'rollbackRequired') === false
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'ordinaryInstallTransactionReady')
+    && effectFlag(ordinaryInstallTransactionTerminalConnection, 'successOutcomeAccepted')
+    && (!hasSettingsLockfileLifecycle || settingsLockfileLifecycleReady)
+    && installTransactionFinalizationReady
+    && !hasRuntimePublicationContinuation
+    && disabledReplacementTerminalReady
+    && startupPersistentStateSnapshotWriteReady
+  const successTerminalReady =
+    runtimePublicationSuccessTerminalReady || disabledReplacementSuccessTerminalReady
   const retryableFailureTerminalReady =
     (
       hasStatus(installCommandPostCommitAcknowledgement, 'ready')
@@ -330,6 +396,7 @@ const safeResultFromRawMainProcessValue = (
       || hasRuntimePublicationContinuation
       || hasSettingsLockfileLifecycle
       || hasStartupPersistentStateSnapshotWrite
+      || hasDisabledReplacementTerminal
     )
 
   if (
@@ -346,6 +413,8 @@ const safeResultFromRawMainProcessValue = (
     || (hasSettingsLockfileLifecycle && !settingsLockfileLifecycleReady)
     || (hasInstallTransactionFinalization && !installTransactionFinalizationReady)
     || (hasRuntimePublicationContinuation && !runtimePublicationContinuationReady)
+    || (hasDisabledReplacementTerminal && !disabledReplacementTerminalReady)
+    || (hasDisabledReplacementTerminal && hasRuntimePublicationContinuation)
     || (hasStartupPersistentStateSnapshotWrite && !startupPersistentStateSnapshotWriteReady)
     || serialized === undefined
     || serialized.includes('C:/Users')
@@ -398,6 +467,12 @@ const safeResultFromRawMainProcessValue = (
           runtimePublicationCommitAppStartupHostConnection:
             runtimePublicationCommitAppStartupHostConnection as
               ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+        }
+      : {}),
+    ...(hasDisabledReplacementTerminal
+      ? {
+          disabledReplacementTerminal:
+            disabledReplacementTerminal as ThirdPartyDataPackDisableTransactionTerminal
         }
       : {}),
     ...(hasStartupPersistentStateSnapshotWrite

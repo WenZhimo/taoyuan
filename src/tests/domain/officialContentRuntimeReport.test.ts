@@ -1402,6 +1402,79 @@ describe('official content runtime report', () => {
     })
   })
 
+  it('preserves visible disabled replacement operation in runtime probe summaries', () => {
+    const summary = createThirdPartyVisibleImportRuntimeProbeSummary({
+      status: 'ready',
+      operation: 'disabled-upgrade',
+      reason: 'visible MainMenu panel replaced a disabled package and preserved runtime exclusion',
+      entrypoint: 'main-menu-panel',
+      mainMenuPanelOpened: true,
+      panelImportButtonClicked: true,
+      archiveImportButtonClicked: false,
+      defaultFileInputSelectorUsed: true,
+      targetPackageId: 'product_probe_pack',
+      selectedPackageIds: [],
+      fileCount: 5,
+      pickStatus: 'persisted',
+      panelStatusLabels: {
+        importStatus: '已暂存',
+        targetPackage: 'product_probe_pack',
+        runtimePublicationStatus: '已排除',
+        liveRegistryStatus: '已切换',
+        appStartupStatus: '已接入已挂载应用'
+      },
+      blockedPackageCount: 1,
+      loadOrder: [],
+      expectedPackageVersion: '1.1.0',
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 1,
+      effects: {
+        commandDispatched: true,
+        realWebPlatformWriterHostCalled: true,
+        realElectronSettingsLockfilePersistentWriterHostCalled: false,
+        packageFilesWritten: true,
+        settingsWritten: true,
+        lockfileWritten: true,
+        rendererLiveRegistrySwapped: true,
+        runtimeEnablementAllowed: false,
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true,
+        uiIpcResponseDelivered: true,
+        transactionCommitted: true,
+        transactionLogPrepared: false,
+        transactionLogRead: false,
+        startupPersistentStateWritten: true,
+        realNormalStartupHostCalled: false,
+        realAppStartupHostCalled: true,
+        gameAppCreated: true,
+        piniaCreated: true,
+        routerMounted: true,
+        savesWritten: false,
+        cacheWritten: false,
+        transactionLogWritten: false,
+        rollbackExecuted: false,
+        diagnosticsWritten: false
+      }
+    })
+
+    expect(summary).toMatchObject({
+      observed: true,
+      status: 'ready',
+      operation: 'disabled-upgrade',
+      expectedPackageVersion: '1.1.0',
+      selectedPackageIds: [],
+      blockedPackageCount: 1,
+      loadOrder: [],
+      effects: {
+        runtimeEnablementAllowed: false,
+        realRuntimePublicationCommitCalled: true,
+        runtimePublicationCommitted: true,
+        realAppStartupHostCalled: true
+      }
+    })
+  })
+
   it('summarizes the probe-only Electron install command dispatch bridge from preload', async () => {
     const dispatchThirdPartyDataPackInstallCommand = vi.fn(envelope =>
       acknowledgeThirdPartyDataPackElectronInstallCommandDispatchIpcEnvelope(envelope))

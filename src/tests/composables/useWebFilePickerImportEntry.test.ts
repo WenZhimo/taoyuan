@@ -9,7 +9,10 @@ import type { Sha256Hash } from '@/domain/mods/hash'
 import { requirePackageId, type PackageId } from '@/domain/mods/ids'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import { getOfficialItemDef } from '@/domain/mods/contentAccess'
-import { resetLiveContentRegistryForTests } from '@/domain/mods/liveContentRegistry'
+import {
+  publishOfficialContentRegistrySet,
+  resetLiveContentRegistryForTests
+} from '@/domain/mods/liveContentRegistry'
 import { discoverThirdPartyDataPacks } from '@/domain/mods/thirdPartyDataPackDiscovery'
 import type {
   ThirdPartyDataPackModManagementCommandId,
@@ -70,6 +73,7 @@ import {
   type WebFilePickerPostCommitVerificationExecutorAdapterReader,
   useWebFilePickerImportEntry
 } from '@/composables/useWebFilePickerImportEntry'
+import { useWebInstalledDataPackManagement } from '@/composables/useWebInstalledDataPackManagement'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
 type JsonObject = Record<string, unknown>
@@ -3044,6 +3048,113 @@ describe('useWebFilePickerImportEntry', () => {
     })
     expect(JSON.stringify(replacementDispatchResult)).not.toContain('C:/Users')
     expect(JSON.stringify(replacementStartupSnapshot)).not.toContain('C:/Users')
+    expect(JSON.stringify(replacementSettingsLockfile)).not.toContain('LENOVO')
+  })
+
+  it('keeps a disabled same-package Web replacement disabled after restart', async() => {
+    const packageId = requirePackageId('web_entry_replace_disabled')
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const responseDelivery = createWebInstallResponseEventCollector()
+    const selectFiles = vi.fn()
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.0.0',
+        itemNameFallback: 'web entry replace disabled v1'
+      }))
+      .mockResolvedValueOnce(createValidFiles(packageId, {
+        version: '1.1.0',
+        itemNameFallback: 'web entry replace disabled v2'
+      }))
+    const entry = useWebFilePickerImportEntry({
+      selectFiles,
+      persistenceStore: store,
+      webSettingsLockfileStore,
+      webInstallTransactionLogStore
+    })
+
+    await entry.pickFiles()
+    const firstDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet,
+      mountedAppStartupHostEvidence
+    })
+    expect(firstDispatchResult.runtimeEnablementAllowed).toBe(true)
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)?.name.fallback)
+      .toBe('web entry replace disabled v1')
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore: webSettingsLockfileStore,
+      installedPackageStore: store,
+      startupPersistentStateStore: store,
+      installedImportId: WEB_FILE_PICKER_IMPORT_ENTRY_DEFAULT_IMPORT_ID,
+      mountedAppStartupEvidence: () => mountedAppStartupHostEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target
+    })
+    await management.refresh()
+    const disableResult = await management.disable(packageId)
+    expect(disableResult?.terminal.status).toBe('ready')
+    expect(disableResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+
+    await entry.pickFiles()
+    const replacementDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet,
+      mountedAppStartupHostEvidence
+    })
+    const replacementSettingsLockfile = await webSettingsLockfileStore.read()
+    const replacementStartupSnapshot = await readThirdPartyDataPackWebStartupPersistentStateSnapshot({
+      store,
+      settingsLockfileStore: webSettingsLockfileStore,
+      request: {
+        formatVersion: 1,
+        commandId: 'disable',
+        packageId,
+        candidateIdentity: replacementSettingsLockfile.record!.lockfileDraft.candidateIdentity,
+        lockfileHash: replacementSettingsLockfile.record!.lockfileHash,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        blockedCandidateCount: 0,
+        loadOrder: [],
+        registryCount: 54,
+        entryCount: 4242,
+        packageCount: 1,
+        requiredSourceIds: [],
+        deferredStageIds: []
+      }
+    })
+
+    expect(selectFiles).toHaveBeenCalledTimes(2)
+    expect(replacementDispatchResult.runtimeEnablementAllowed).toBe(false)
+    expect(replacementSettingsLockfile.record).toMatchObject({
+      requestedCommandId: 'disable',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [packageId],
+      loadOrder: []
+    })
+    expect(replacementSettingsLockfile.record?.lockfileDraft.packages).toHaveLength(1)
+    expect(replacementSettingsLockfile.record?.lockfileDraft.packages[0]).toMatchObject({
+      packageId,
+      version: '1.1.0'
+    })
+    expect(replacementStartupSnapshot.report.status).toBe('loaded')
+    expect(replacementStartupSnapshot.snapshot).toMatchObject({
+      packageId,
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    })
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+    expect(JSON.stringify(replacementDispatchResult)).not.toContain('C:/Users')
     expect(JSON.stringify(replacementSettingsLockfile)).not.toContain('LENOVO')
   })
 

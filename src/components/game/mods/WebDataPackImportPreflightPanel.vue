@@ -570,7 +570,11 @@
     const terminal = lastDispatch.value?.ordinaryInstallTransactionTerminalConnection
     return terminal?.status === 'ready' && !terminalOutcomeSucceeded.value
   })
+  const disabledReplacementTerminal = computed(() =>
+    lastDispatch.value?.disabledReplacementTerminal ?? null
+  )
   const installOutcomeStatusLabel = computed(() => {
+    if (disabledReplacementTerminal.value?.status === 'ready') return '提交后校验已确认'
     const terminal = lastDispatch.value?.ordinaryInstallTransactionTerminalConnection
     if (terminal?.status === 'ready') {
       if (terminal.outcomeKind === 'failure') return terminal.retryable ? '安装失败，可重试' : '安装失败'
@@ -591,6 +595,12 @@
     return '已阻断'
   })
   const uiIpcDeliveryStatusLabel = computed(() => {
+    if (disabledReplacementTerminal.value?.status === 'ready') {
+      const hostKind = lastDispatch.value?.transactionCommandDispatcherHostKind
+      if (hostKind === 'renderer') return '已送达（Electron）'
+      if (hostKind === 'web') return '已送达（Web）'
+      return '已送达'
+    }
     const continuation = lastDispatch.value?.postCommitUiIpcDeliveryContinuation
     if (continuation === null || continuation === undefined) {
       const acknowledgement = lastDispatch.value?.installCommandPostCommitAcknowledgement
@@ -606,6 +616,13 @@
     return '已阻断'
   })
   const runtimePublicationStatusLabel = computed(() => {
+    const disabledTerminal = disabledReplacementTerminal.value
+    if (disabledTerminal?.status === 'ready') {
+      return disabledTerminal.runtimePublicationExcluded
+        && disabledTerminal.runtimePublicationCommitted
+        ? '已排除'
+        : '已阻断'
+    }
     if (terminalOutcomeBlocksRuntime.value) return '已阻断'
     const status = lastDispatch.value?.runtimePublicationCommitAfterPostCommitVerificationStatus
     if (status === 'accepted') return '已确认'
@@ -614,6 +631,10 @@
     return '未运行'
   })
   const liveRegistryStatusLabel = computed(() => {
+    const disabledTerminal = disabledReplacementTerminal.value
+    if (disabledTerminal?.status === 'ready') {
+      return disabledTerminal.liveRegistrySwapped ? '已切换' : '已阻断'
+    }
     if (terminalOutcomeBlocksRuntime.value) return '已阻断'
     const status = lastDispatch.value?.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus
     if (status === 'swapped') return '已切换'
@@ -622,6 +643,18 @@
     return '未运行'
   })
   const appStartupStatusLabel = computed(() => {
+    const disabledTerminal = disabledReplacementTerminal.value
+    if (disabledTerminal?.status === 'ready') {
+      if (
+        disabledTerminal.realAppStartupHostCalled
+        && disabledTerminal.gameAppCreated
+        && disabledTerminal.piniaCreated
+        && disabledTerminal.routerMounted
+      ) {
+        return '已接入已挂载应用'
+      }
+      return disabledTerminal.appStartupHandoffAccepted ? '已接受' : '已阻断'
+    }
     if (terminalOutcomeBlocksRuntime.value) return '已阻断'
     const readinessStatus = lastDispatch.value?.runtimePublicationCommitAppStartupReadinessStatus
     const hostStatus = lastDispatch.value?.runtimePublicationCommitAppStartupHostConnectionStatus
