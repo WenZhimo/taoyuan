@@ -358,14 +358,21 @@ const cloneEnvelope = (
   if (envelope === undefined || envelope === null || typeof envelope !== 'object') return undefined
   const formatVersion = readOwnNumberField(envelope, 'formatVersion')
   const kind = readOwnStringField(envelope, 'kind')
-  const commandId = readOwnStringField(envelope, 'commandId')
+  const commandId = readThirdPartyDataPackEnabledRuntimeCommandId(
+    readOwnStringField(envelope, 'commandId')
+  )
+  const requestedCommandId = readThirdPartyDataPackEnabledRuntimeCommandId(
+    fallback.requestedCommandId
+  )
   const packageId = readOwnStringField(envelope, 'packageId')
   const messageKey = readOwnStringField(envelope, 'messageKey')
   const recovery = readOwnDataField(envelope, 'recovery')
   if (
     formatVersion !== 1
     || !outcomeKinds.has(kind as ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind)
-    || commandId !== 'install'
+    || commandId === undefined
+    || requestedCommandId === undefined
+    || commandId !== requestedCommandId
     || packageId === undefined
     || messageKey === undefined
     || !diagnosticRecoveries.has(recovery as ModDiagnosticRecovery)
@@ -376,7 +383,7 @@ const cloneEnvelope = (
   return Object.freeze({
     formatVersion: 1,
     kind: kind as ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind,
-    commandId: 'install',
+    commandId,
     packageId: packageId as PackageId,
     candidateHash: readOwnStringField(envelope, 'candidateHash') as Sha256Hash | undefined,
     lockfileHash: readOwnStringField(envelope, 'lockfileHash') as Sha256Hash | undefined,
@@ -529,7 +536,7 @@ const buildChecks = (
   check(
     'path-free-delivery-envelope-present',
     deliveryEnvelope !== undefined ? 'satisfied' : 'blocked',
-    'Startup gate handoff can only reference a cloned path-free install delivery envelope.'
+    'Startup gate handoff can only reference a cloned path-free enabled-runtime delivery envelope.'
   ),
   check(
     'platform-split-prepared',
@@ -544,7 +551,7 @@ const buildChecks = (
   check(
     'target-package-selected',
     targetPackageSelected(source, deliveryEnvelope) ? 'satisfied' : 'blocked',
-    'The delivery envelope, target package and selected package list must describe the same install target.'
+    'The delivery envelope, target package and selected package list must describe the same enabled runtime target.'
   ),
   check(
     'no-response-delivery-effects',

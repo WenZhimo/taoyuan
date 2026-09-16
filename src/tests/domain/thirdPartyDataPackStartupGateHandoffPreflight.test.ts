@@ -357,6 +357,31 @@ describe('third-party startup gate handoff preflight', () => {
     expectJsonGraphFrozen(result)
   })
 
+  it('preserves enable command identity through startup handoff preflight', () => {
+    const result = buildThirdPartyDataPackStartupGateHandoffPreflight({
+      responseDeliveryOrchestrationHandoff: createSource({
+        requestedCommandId: 'enable',
+        messageKey: 'mods.ui.ipc.result.enable.success',
+        deliveryEnvelope: {
+          ...createSource().deliveryEnvelope!,
+          commandId: 'enable',
+          messageKey: 'mods.ui.ipc.result.enable.success'
+        }
+      })
+    })
+
+    expect(result.status).toBe('deferred')
+    expect(result.startupGateHandoffPrepared).toBe(true)
+    expect(result.requestedCommandId).toBe('enable')
+    expect(result.messageKey).toBe('mods.ui.ipc.result.enable.success')
+    expect(result.deliveryEnvelope?.commandId).toBe('enable')
+    expect(result.deliveryEnvelope?.messageKey)
+      .toBe('mods.ui.ipc.result.enable.success')
+    expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
+    expectNoStartupEffects(result, true)
+    expectJsonGraphFrozen(result)
+  })
+
   it('skips or blocks when response delivery orchestration has no startup-ready state', () => {
     const skipped = buildThirdPartyDataPackStartupGateHandoffPreflight({
       responseDeliveryOrchestrationHandoff: createSource({
@@ -445,6 +470,17 @@ describe('third-party startup gate handoff preflight', () => {
           selectedPackageIds: [blockedPackageId]
         }),
         blockedCheckId: 'target-package-selected'
+      },
+      {
+        label: 'command identity drift',
+        source: createSource({
+          requestedCommandId: 'enable',
+          deliveryEnvelope: {
+            ...createSource().deliveryEnvelope!,
+            commandId: 'install'
+          }
+        }),
+        blockedCheckId: 'path-free-delivery-envelope-present'
       },
       {
         label: 'response already delivered',

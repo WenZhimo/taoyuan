@@ -42,6 +42,11 @@ import {
   createThirdPartyDataPackDisableStartupPersistentStateSnapshot
 } from '@/domain/mods/thirdPartyDataPackDisableTransaction'
 import {
+  buildThirdPartyDataPackEnableState,
+  createThirdPartyDataPackEnablePersistentRecord,
+  createThirdPartyDataPackEnableStartupPersistentStateSnapshot
+} from '@/domain/mods/thirdPartyDataPackEnableTransaction'
+import {
   buildThirdPartyDataPackUninstallState,
   createThirdPartyDataPackUninstallPersistentRecord,
   createThirdPartyDataPackUninstallStartupPersistentStateSnapshot
@@ -544,6 +549,50 @@ const seedWebDisabledState = async(
     }
   ], THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))
   return disableState
+}
+
+const seedWebEnabledStateFromDisabled = async(
+  store: WebIndexedDbImportPersistenceStore,
+  settingsLockfileStore: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore,
+  packageId: PackageId,
+  disabledDraft: ReturnType<typeof buildThirdPartyDataPackDisableState>['lockfileDraft'],
+  officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+) => {
+  const enabledMountInput = await buildWebMountInput(store, officialRegistrySet)
+  expect(enabledMountInput.status, JSON.stringify(enabledMountInput.diagnostics, null, 2))
+    .toBe('ready')
+  expect(enabledMountInput.lockfileDraft).toBeDefined()
+  const enableState = buildThirdPartyDataPackEnableState({
+    disabledDraft,
+    enabledMountInput,
+    targetPackageId: packageId
+  })
+  await settingsLockfileStore.write({
+    ...createThirdPartyDataPackEnablePersistentRecord(
+      THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      enableState
+    ),
+    recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
+  })
+  const startupSnapshotText = `${JSON.stringify(
+    createThirdPartyDataPackEnableStartupPersistentStateSnapshot(
+      enableState,
+      'web-startup-persistent-state-snapshot'
+    ),
+    null,
+    2
+  )}\n`
+  await store.put(createDefaultWebIndexedDbImportRecord([
+    {
+      path: THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_FILE_PATH,
+      text: startupSnapshotText,
+      sizeBytes: startupSnapshotText.length
+    }
+  ], THIRD_PARTY_DATA_PACK_WEB_STARTUP_PERSISTENT_STATE_IMPORT_ID))
+  return {
+    enableState,
+    mountInput: enabledMountInput
+  }
 }
 
 interface ElectronStartupPersistentStateRequest {
@@ -1326,6 +1375,51 @@ describe('third-party installed-state startup gate bootstrap source', () => {
       .toBe('web-indexeddb-startup-persistent-state')
     expect(result.startupPersistentStateInjectedSourceHostMode)
       .toBe('web-indexeddb-startup-persistent-state')
+    expect(result.appStartupHostConnectionSourceStatus).toBe('accepted')
+    expect(result.effects.startupStateSnapshotAccepted).toBe(true)
+    expect(result.effects.thirdPartyRegistryPublished).toBe(true)
+    expect(result.effects.liveRegistrySwapped).toBe(true)
+    expect(result.effects.runtimeEnablementAllowed).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expectStartupPackContentVisible(packageId)
+    expect(JSON.stringify(result)).not.toContain('indexedDb')
+    expect(JSON.stringify(result)).not.toContain('window')
+    expect(JSON.stringify(result)).not.toContain('startup-persistent-state-snapshot.json')
+  })
+
+  it('restores a Web re-enabled package through ordinary app-startup handoff', async() => {
+    const packageId = 'web_reenabled_startup_pack' as PackageId
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const disableState = await seedWebDisabledState(
+      store,
+      settingsLockfileStore,
+      packageId,
+      officialRegistrySet
+    )
+    const { mountInput } = await seedWebEnabledStateFromDisabled(
+      store,
+      settingsLockfileStore,
+      packageId,
+      disableState.lockfileDraft,
+      officialRegistrySet
+    )
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('ready')
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.selectedPackageIds).toEqual([packageId])
+    expect(result.blockedPackageIds).toEqual([])
+    expect(result.loadOrder).toEqual([packageId])
+    expect(result.lockfileHash).toBe(mountInput.lockfileHash)
+    expect(result.startupPersistentStateSourceStatus).toBe('ready')
     expect(result.appStartupHostConnectionSourceStatus).toBe('accepted')
     expect(result.effects.startupStateSnapshotAccepted).toBe(true)
     expect(result.effects.thirdPartyRegistryPublished).toBe(true)

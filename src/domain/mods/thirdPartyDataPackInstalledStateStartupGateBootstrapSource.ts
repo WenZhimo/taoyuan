@@ -1347,7 +1347,7 @@ const createStartupGateHandoffPreflight = (
     deliveryEnvelope: Object.freeze({
       formatVersion: 1,
       kind: 'success',
-      commandId: 'install',
+      commandId: context.requestedCommandId,
       packageId: targetPackageId,
       candidateHash: context.mountInput.candidateIdentity!.candidateHash,
       lockfileHash: context.mountInput.lockfileHash!,

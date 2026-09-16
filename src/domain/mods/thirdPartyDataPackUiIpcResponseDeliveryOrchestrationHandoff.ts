@@ -25,6 +25,9 @@ import {
   type ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
 import type {
+  ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
+import type {
   ThirdPartyDataPackUiIpcResultNormalizationPreflightResult
 } from './thirdPartyDataPackUiIpcResultNormalizationPreflight'
 
@@ -167,7 +170,7 @@ export interface ThirdPartyDataPackUiIpcResponseDeliveryOrchestrationHandoffResu
   readonly runtimeEnablementAllowed: false
   readonly writeAllowed: false
   readonly rollbackRecoveryAllowed: false
-  readonly requestedCommandId?: 'install'
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly envelopeKind?: ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind
   readonly messageKey?: string
