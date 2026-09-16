@@ -243,6 +243,19 @@ const webScenarios = [
     startupGateExpectedProductProbeVariant: 'v2'
   },
   {
+    name: 'visible-import-web-dependency-disabled-replace-then-restart',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportInstalledDisabledReplacementSequence: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'web-indexeddb',
+    startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGatePackageCount: 2,
+    startupGateExpectedProductProbeVariant: 'v2'
+  },
+  {
     name: 'visible-import-web-dependency-replace-then-restart',
     fault: null,
     source: 'precompiled',
@@ -1720,6 +1733,24 @@ const electronScenarios = [
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack',
+    startupGateExpectedProductProbeVariant: 'v2'
+  },
+  {
+    name: 'visible-import-dependency-disabled-replace-then-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-dependency-disabled-replace-then-restart',
+    cacheSeed: 'valid',
+    visibleImportInstalledDisabledReplacementSequence: true,
+    visibleDependency: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGatePackageCount: 2,
     startupGateExpectedProductProbeVariant: 'v2'
   },
   {
@@ -4323,6 +4354,18 @@ const assertVisibleImportDisabledReplacementProductProbe = (visibleImport, scena
     `${scenario.name}: disabled replacement shop offer was visible before import`)
   assert(visibleImport.contentAccessShopOfferVisibleAfter === false,
     `${scenario.name}: disabled replacement shop offer became visible after import`)
+  if (scenario.visibleDependency) {
+    assert(visibleImport.dependencyPackageId === visibleProbeDependencyPackageId,
+      `${scenario.name}: visible disabled replacement dependency package id mismatch`)
+    assert(visibleImport.dependencyItemId === visibleProbeDependencyItemId,
+      `${scenario.name}: visible disabled replacement dependency item id mismatch`)
+    assert(visibleImport.dependencyItemNameFallback === undefined,
+      `${scenario.name}: visible disabled replacement published dependency item fallback`)
+    assert(visibleImport.contentAccessDependencyItemVisibleBefore === false,
+      `${scenario.name}: dependency item was visible before disabled replacement`)
+    assert(visibleImport.contentAccessDependencyItemVisibleAfter === false,
+      `${scenario.name}: dependency item became visible after disabled replacement`)
+  }
   for (const effectName of [
     'commandDispatched',
     'packageFilesWritten',
@@ -8697,9 +8740,20 @@ const runPackagedScenario = async (scenario, isolated) => {
     if (scenario.visibleDependency) {
       assert(preservedDependencyPackageBefore !== null && preservedDependencyPackageBefore.length > 0,
         `${scenario.name}: disabled dependency package files were not present before restart validation`)
-      assert(JSON.stringify(directoryFingerprint(preservedDependencyPackageRoot))
-        === JSON.stringify(preservedDependencyPackageBefore),
-      `${scenario.name}: disabled dependency package files were not preserved across the startup boundary`)
+      if (scenario.visibleDisabledUpgrade) {
+        assert(
+          preservedDependencyPackageContentBefore !== null
+            && preservedDependencyPackageContentBefore.length > 0,
+          `${scenario.name}: disabled replacement dependency package contents were not present before import`
+        )
+        assert(JSON.stringify(activePackageContentFingerprint(preservedDependencyPackageRoot))
+          === JSON.stringify(preservedDependencyPackageContentBefore),
+        `${scenario.name}: disabled replacement changed preserved dependency package contents`)
+      } else {
+        assert(JSON.stringify(directoryFingerprint(preservedDependencyPackageRoot))
+          === JSON.stringify(preservedDependencyPackageBefore),
+        `${scenario.name}: disabled dependency package files were not preserved across the startup boundary`)
+      }
     }
     const disabledLockfile = readJson(lockfilePath)
     assert(disabledLockfile.selectedPackageIds?.length === 0,

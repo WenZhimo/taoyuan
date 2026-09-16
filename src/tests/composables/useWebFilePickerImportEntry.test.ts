@@ -158,20 +158,36 @@ const createValidFiles = (
 const dependencyPackageId = requirePackageId('a_library')
 const dependentAppPackageId = requirePackageId('z_app')
 
-const createValidDependencyFiles = (): readonly WebFilePickerImportFile[] => [
-  createFile('a-library/manifest.json', toJson(createManifest(dependencyPackageId))),
+const createValidDependencyFiles = (
+  options: {
+    readonly dependencyVersion?: string
+    readonly appVersion?: string
+    readonly dependencyItemNameFallback?: string
+    readonly appItemNameFallback?: string
+  } = {}
+): readonly WebFilePickerImportFile[] => [
+  createFile('a-library/manifest.json', toJson(createManifest(
+    dependencyPackageId,
+    options.dependencyVersion ?? '1.0.0'
+  ))),
   createFile('a-library/locales/zh-CN.json', '{}\n'),
   createFile('a-library/data/items.json', toJson([
-    createItem(`${dependencyPackageId}:linen_ribbon`, 'Library Ribbon')
+    createItem(
+      `${dependencyPackageId}:linen_ribbon`,
+      options.dependencyItemNameFallback ?? 'Library Ribbon'
+    )
   ])),
   createFile('z-app/manifest.json', toJson(createManifest(
     dependentAppPackageId,
-    '1.0.0',
-    [{ id: dependencyPackageId, version: '1.0.0' }]
+    options.appVersion ?? '1.0.0',
+    [{ id: dependencyPackageId, version: options.dependencyVersion ?? '1.0.0' }]
   ))),
   createFile('z-app/locales/zh-CN.json', '{}\n'),
   createFile('z-app/data/items.json', toJson([
-    createItem(`${dependentAppPackageId}:linen_ribbon`, 'App Ribbon')
+    createItem(
+      `${dependentAppPackageId}:linen_ribbon`,
+      options.appItemNameFallback ?? 'App Ribbon'
+    )
   ]))
 ]
 
@@ -3154,6 +3170,123 @@ describe('useWebFilePickerImportEntry', () => {
       saveCacheIsolated: true
     })
     expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+    expect(JSON.stringify(replacementDispatchResult)).not.toContain('C:/Users')
+    expect(JSON.stringify(replacementSettingsLockfile)).not.toContain('LENOVO')
+  })
+
+  it('keeps a disabled dependency-stack Web replacement disabled after restart', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const responseDelivery = createWebInstallResponseEventCollector()
+    const selectFiles = vi.fn()
+      .mockResolvedValueOnce(createValidDependencyFiles({
+        appVersion: '1.0.0',
+        appItemNameFallback: 'App Ribbon v1'
+      }))
+      .mockResolvedValueOnce(createValidDependencyFiles({
+        appVersion: '1.1.0',
+        appItemNameFallback: 'App Ribbon v2'
+      }))
+    const entry = useWebFilePickerImportEntry({
+      selectFiles,
+      persistenceStore: store,
+      webSettingsLockfileStore,
+      webInstallTransactionLogStore
+    })
+
+    await entry.pickFiles()
+    const firstDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet,
+      mountedAppStartupHostEvidence
+    })
+    expect(firstDispatchResult.preflight?.targetPackageId).toBe(dependentAppPackageId)
+    expect(firstDispatchResult.selectedPackageIds).toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(getOfficialItemDef(`${dependencyPackageId}:linen_ribbon`)?.name.fallback)
+      .toBe('Library Ribbon')
+    expect(getOfficialItemDef(`${dependentAppPackageId}:linen_ribbon`)?.name.fallback)
+      .toBe('App Ribbon v1')
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore: webSettingsLockfileStore,
+      installedPackageStore: store,
+      startupPersistentStateStore: store,
+      installedImportId: WEB_FILE_PICKER_IMPORT_ENTRY_DEFAULT_IMPORT_ID,
+      mountedAppStartupEvidence: () => mountedAppStartupHostEvidence,
+      webManagementResponseDeliveryTarget: responseDelivery.target
+    })
+    await management.refresh()
+    const disableResult = await management.disable(dependentAppPackageId)
+    expect(disableResult?.terminal.status).toBe('ready')
+    expect(disableResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(getOfficialItemDef(`${dependencyPackageId}:linen_ribbon`)).toBeUndefined()
+    expect(getOfficialItemDef(`${dependentAppPackageId}:linen_ribbon`)).toBeUndefined()
+
+    await entry.pickFiles()
+    const replacementDispatchResult = await entry.dispatchInstallCommandFromSource({
+      confirmed: true,
+      officialRegistrySet,
+      mountedAppStartupHostEvidence
+    })
+    const replacementSettingsLockfile = await webSettingsLockfileStore.read()
+    const replacementStartupSnapshot = await readThirdPartyDataPackWebStartupPersistentStateSnapshot({
+      store,
+      settingsLockfileStore: webSettingsLockfileStore,
+      request: {
+        formatVersion: 1,
+        commandId: 'disable',
+        packageId: dependentAppPackageId,
+        candidateIdentity: replacementSettingsLockfile.record!.lockfileDraft.candidateIdentity,
+        lockfileHash: replacementSettingsLockfile.record!.lockfileHash,
+        selectedPackageIds: [],
+        blockedPackageIds: [dependentAppPackageId],
+        blockedCandidateCount: 0,
+        loadOrder: [],
+        registryCount: 54,
+        entryCount: 4242,
+        packageCount: 2,
+        requiredSourceIds: [],
+        deferredStageIds: []
+      }
+    })
+
+    expect(selectFiles).toHaveBeenCalledTimes(2)
+    expect(replacementDispatchResult.runtimeEnablementAllowed).toBe(false)
+    expect(replacementSettingsLockfile.record).toMatchObject({
+      requestedCommandId: 'disable',
+      targetPackageId: dependentAppPackageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [dependentAppPackageId],
+      loadOrder: []
+    })
+    expect(replacementSettingsLockfile.record?.lockfileDraft.packages.map(pkg => pkg.packageId))
+      .toEqual([dependencyPackageId, dependentAppPackageId])
+    expect(replacementSettingsLockfile.record?.lockfileDraft.packages[0]).toMatchObject({
+      packageId: dependencyPackageId,
+      version: '1.0.0'
+    })
+    expect(replacementSettingsLockfile.record?.lockfileDraft.packages[1]).toMatchObject({
+      packageId: dependentAppPackageId,
+      version: '1.1.0',
+      resolvedDependencies: [dependencyPackageId]
+    })
+    expect(replacementStartupSnapshot.report.status).toBe('loaded')
+    expect(replacementStartupSnapshot.snapshot).toMatchObject({
+      packageId: dependentAppPackageId,
+      transactionLogCommitted: true,
+      packageStateMatched: true,
+      settingsStateMatched: true,
+      modLockStateMatched: true,
+      liveRegistryMatched: true,
+      saveCacheIsolated: true
+    })
+    expect(getOfficialItemDef(`${dependencyPackageId}:linen_ribbon`)).toBeUndefined()
+    expect(getOfficialItemDef(`${dependentAppPackageId}:linen_ribbon`)).toBeUndefined()
     expect(JSON.stringify(replacementDispatchResult)).not.toContain('C:/Users')
     expect(JSON.stringify(replacementSettingsLockfile)).not.toContain('LENOVO')
   })

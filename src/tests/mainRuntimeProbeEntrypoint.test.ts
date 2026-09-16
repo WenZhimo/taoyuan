@@ -313,7 +313,7 @@ describe('main runtime probe entrypoint', () => {
     )
   })
 
-  it('routes disabled replacement query wiring into the product probe', async() => {
+  it('routes disabled dependency replacement query wiring into the product probe', async() => {
     const visibleImportResult = {
       status: 'ready',
       operation: 'disabled-upgrade'
@@ -322,7 +322,7 @@ describe('main runtime probe entrypoint', () => {
     window.history.replaceState(
       null,
       '',
-      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisabledUpgradeProbe=1&taoyuanThirdPartyVisibleArchiveImportProbe=1'
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisabledUpgradeProbe=1&taoyuanThirdPartyVisibleArchiveImportProbe=1&taoyuanThirdPartyVisibleDependencyProbe=1'
     )
 
     await import('@/main')
@@ -332,7 +332,8 @@ describe('main runtime probe entrypoint', () => {
         entrypoint: 'main-menu-panel',
         operation: 'disabled-upgrade',
         persistSource: false,
-        archiveImport: true
+        archiveImport: true,
+        includeDependency: true
       })
     })
     expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
