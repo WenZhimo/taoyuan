@@ -78,32 +78,35 @@
           </div>
         </div>
         <p v-if="lastDisableResult" data-testid="web-mod-disable-result" class="text-muted mt-2">
-          禁用事务：{{ lastDisableResult.terminal.status === 'ready' ? '已完成' : '已阻断' }} ·
+          禁用事务：{{ managementTransactionStatusLabel(lastDisableResult) }} ·
           settings {{ lastDisableResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
           mod-lock {{ lastDisableResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
           startup {{ lastDisableResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
+          UI/IPC {{ lastDisableResult.managementUiIpcResponseDelivered ? '已送达' : '未送达' }} ·
           runtime commit {{ lastDisableResult.terminal.runtimePublicationCommitted ? '已确认' : '未确认' }} ·
           runtime {{ lastDisableResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
           live registry {{ lastDisableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastDisableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
         </p>
         <p v-if="lastEnableResult" data-testid="web-mod-enable-result" class="text-muted mt-2">
-          启用事务：{{ lastEnableResult.terminal.status === 'ready' ? '已完成' : '已阻断' }} ·
+          启用事务：{{ managementTransactionStatusLabel(lastEnableResult) }} ·
           settings {{ lastEnableResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
           mod-lock {{ lastEnableResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
           startup {{ lastEnableResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
           package {{ lastEnableResult.terminal.packageFilesPreserved ? '已保留' : '未保留' }} ·
+          UI/IPC {{ lastEnableResult.managementUiIpcResponseDelivered ? '已送达' : '未送达' }} ·
           runtime commit {{ lastEnableResult.terminal.runtimePublicationCommitted ? '已确认' : '未确认' }} ·
           runtime {{ lastEnableResult.terminal.runtimePublicationIncluded ? '已包含' : '未包含' }} ·
           live registry {{ lastEnableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastEnableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
         </p>
         <p v-if="lastUninstallResult" data-testid="web-mod-uninstall-result" class="text-muted mt-2">
-          卸载事务：{{ lastUninstallResult.terminal.status === 'ready' ? '已完成' : '已阻断' }} ·
+          卸载事务：{{ managementTransactionStatusLabel(lastUninstallResult) }} ·
           settings {{ lastUninstallResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
           mod-lock {{ lastUninstallResult.terminal.lockfileWritten ? '已写入' : '未写入' }} ·
           startup {{ lastUninstallResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
           package {{ lastUninstallResult.terminal.packageFilesRemoved ? '已删除' : '未删除' }} ·
+          UI/IPC {{ lastUninstallResult.managementUiIpcResponseDelivered ? '已送达' : '未送达' }} ·
           runtime commit {{ lastUninstallResult.terminal.runtimePublicationCommitted ? '已确认' : '未确认' }} ·
           runtime {{ lastUninstallResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
           live registry {{ lastUninstallResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
@@ -514,6 +517,15 @@
   const installedManagementReason = computed(() =>
     installedManagement.reason.value || ''
   )
+  const managementTransactionStatusLabel = (
+    result: {
+      readonly terminal: { readonly status: 'ready' | 'blocked' }
+      readonly managementUiIpcResponseDelivered: boolean
+    }
+  ): string =>
+    result.terminal.status === 'ready' && result.managementUiIpcResponseDelivered
+      ? '已完成'
+      : '已阻断'
   const canManageInstalledPackage = (packageId: string): boolean =>
     installedManagement.canManagePackage(packageId as PackageId)
   const isPreparing = ref(false)

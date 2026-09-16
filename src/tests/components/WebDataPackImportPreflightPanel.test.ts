@@ -2181,6 +2181,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('settings 已写入')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('mod-lock 已写入')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('startup 已写入')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('UI/IPC 已送达')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime commit 已确认')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
@@ -2206,6 +2207,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('mod-lock 已写入')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('startup 已写入')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('package 已保留')
+      expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('UI/IPC 已送达')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime commit 已确认')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('runtime 已包含')
       expect(wrapper.get('[data-testid="web-mod-enable-result"]').text()).toContain('live registry 已切换')
@@ -2236,6 +2238,64 @@ describe('WebDataPackImportPreflightPanel', () => {
         thirdPartyDataPackWebResponseDeliveryEventName,
         collectResponseDeliveryEvent
       )
+    }
+  })
+
+  it('shows blocked Web management result when UI/IPC delivery is rejected', async() => {
+    const packageId = 'web_panel_disable_delivery_rejected'
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    publishMountedAppStartupHostEvidence()
+    const persistenceStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
+    const rejectDisableResponseDelivery = (event: Event) => {
+      const deliveryEvent = event as ThirdPartyDataPackWebDomResponseDeliveryEvent
+      if (deliveryEvent.detail.envelope.commandId === 'disable') {
+        event.preventDefault()
+      }
+    }
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        selectFiles: vi.fn(async() => createValidFiles(packageId)),
+        officialRegistrySet,
+        persistenceStore,
+        webSettingsLockfileStore,
+        webInstallTransactionLogStore
+      }
+    })
+
+    try {
+      await wrapper.findAll('button').find(button => button.text().includes('选择数据包目录'))!.trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-import-status"]').text())
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+      window.addEventListener(thirdPartyDataPackWebResponseDeliveryEventName, rejectDisableResponseDelivery)
+
+      await wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="web-mod-installed-management-status"]').text())
+
+      expect(wrapper.get('[data-testid="web-mod-installed-management-status"]').text()).toBe('已阻断')
+      expect(wrapper.get('[data-testid="web-mod-installed-management-reason"]').text())
+        .toBe('Web disable management UI/IPC response delivery was blocked')
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已禁用')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('禁用事务：已阻断')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('UI/IPC 未送达')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime commit 已确认')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
+      expect((await webSettingsLockfileStore.read()).record).toMatchObject({
+        recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: []
+      })
+    } finally {
+      window.removeEventListener(thirdPartyDataPackWebResponseDeliveryEventName, rejectDisableResponseDelivery)
+      wrapper.unmount()
     }
   })
 
