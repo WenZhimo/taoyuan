@@ -34,6 +34,7 @@ export type ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionCh
   | 'app-startup-readiness-ready'
   | 'app-startup-host-accepted'
   | 'install-target-consistent'
+  | 'command-identity-consistent'
   | 'candidate-identity-consistent'
   | 'lockfile-hash-consistent'
   | 'package-summary-consistent'
@@ -57,6 +58,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnect
 
 export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionEnvelope {
   readonly platform: ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPlatform
+  readonly requestedCommandId: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -98,6 +100,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnect
 export interface ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionHostResult {
   readonly status: 'accepted' | 'blocked'
   readonly platform?: ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPlatform
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
   readonly blockedPackageIds?: readonly PackageId[]
@@ -471,6 +474,7 @@ const safeReadyAppStartupReadiness = (
   && readOwnBooleanField(result, 'normalStartupContinuationAllowed') === true
   && readOwnBooleanField(result, 'commandContinuationAllowed') === true
   && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
+  && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(result, 'requestedCommandId')) !== undefined
   && readOwnStringField(result, 'targetPackageId') !== undefined
   && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
     readOwnStringField(result, 'targetPackageId') as PackageId
@@ -510,6 +514,8 @@ const safeAcceptedHostResult = (
   const hostCandidateIdentity = cloneCandidateIdentity(readOwnDataField(hostResult, 'candidateIdentity'))
   return readOwnStringField(hostResult, 'status') === 'accepted'
     && readOwnStringField(hostResult, 'platform') === platform
+    && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(hostResult, 'requestedCommandId'))
+      === readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(readinessResult, 'requestedCommandId'))
     && readOwnStringField(hostResult, 'targetPackageId') === readOwnStringField(readinessResult, 'targetPackageId')
     && arraysEqual(
       clonePackageIds(readOwnDataField(hostResult, 'selectedPackageIds')),
@@ -638,6 +644,11 @@ const skippedChecks = (
       'Install target consistency is skipped until both sources are available.'
     ),
     createCheck(
+      'command-identity-consistent',
+      status,
+      'Runtime command identity consistency is skipped until both sources are available.'
+    ),
+    createCheck(
       'candidate-identity-consistent',
       status,
       'Candidate identity consistency is skipped until both sources are available.'
@@ -683,6 +694,11 @@ const pendingHostChecks = (
       'install-target-consistent',
       'skipped',
       'Install target consistency is skipped until host acknowledgement is available.'
+    ),
+    createCheck(
+      'command-identity-consistent',
+      'skipped',
+      'Runtime command identity consistency is skipped until host acknowledgement is available.'
     ),
     createCheck(
       'candidate-identity-consistent',
@@ -752,6 +768,14 @@ const createChecks = (
         ? 'satisfied'
         : 'blocked',
       'App startup readiness and host acknowledgement must target the same package.'
+    ),
+    createCheck(
+      'command-identity-consistent',
+      readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(readinessResult, 'requestedCommandId'))
+        === readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(hostResult, 'requestedCommandId'))
+        ? 'satisfied'
+        : 'blocked',
+      'App startup readiness and host acknowledgement must agree on install/enable command identity.'
     ),
     createCheck(
       'candidate-identity-consistent',
@@ -828,6 +852,9 @@ const buildEnvelope = (
   ) as ThirdPartyCandidateIdentitySummary
   return deepFreezeObjectGraph({
     platform,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(readinessResult, 'requestedCommandId')
+    ) as ThirdPartyDataPackEnabledRuntimeCommandId,
     targetPackageId: readOwnStringField(readinessResult, 'targetPackageId') as PackageId,
     selectedPackageIds: clonePackageIds(readOwnDataField(readinessResult, 'selectedPackageIds')),
     blockedPackageIds: clonePackageIds(readOwnDataField(readinessResult, 'blockedPackageIds')),

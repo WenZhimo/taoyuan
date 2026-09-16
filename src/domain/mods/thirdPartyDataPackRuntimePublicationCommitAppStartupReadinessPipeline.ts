@@ -38,6 +38,7 @@ export type ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessCheckId
   | 'live-registry-swap-after-commit-swapped'
   | 'normal-startup-app-factory-binding-after-commit-ready'
   | 'install-target-consistent'
+  | 'command-identity-consistent'
   | 'candidate-identity-consistent'
   | 'lockfile-hash-consistent'
   | 'package-summary-consistent'
@@ -355,6 +356,7 @@ const safeSwappedLiveRegistry = (
 ): boolean => readOwnStringField(result, 'status') === 'swapped'
   && readOwnBooleanField(result, 'appBootstrapContinuationAllowed') === true
   && readOwnBooleanField(result, 'commandContinuationAllowed') === true
+  && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(result, 'requestedCommandId')) !== undefined
   && readOwnStringField(result, 'targetPackageId') !== undefined
   && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
     readOwnStringField(result, 'targetPackageId') as PackageId
@@ -386,6 +388,7 @@ const safeReadyNormalStartup = (
   && readOwnBooleanField(result, 'normalStartupContinuationAllowed') === true
   && readOwnBooleanField(result, 'commandContinuationAllowed') === true
   && readOwnBooleanField(result, 'uiIpcResultContinuationAllowed') === true
+  && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(result, 'requestedCommandId')) !== undefined
   && readOwnStringField(result, 'targetPackageId') !== undefined
   && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
     readOwnStringField(result, 'targetPackageId') as PackageId
@@ -510,6 +513,11 @@ const skippedChecks = (
       'Install target consistency is skipped until both startup prerequisites are available.'
     ),
     createCheck(
+      'command-identity-consistent',
+      status,
+      'Runtime command identity consistency is skipped until both startup prerequisites are available.'
+    ),
+    createCheck(
       'candidate-identity-consistent',
       status,
       'Candidate identity consistency is skipped until both startup prerequisites are available.'
@@ -563,6 +571,16 @@ const createChecks = (
         ? 'satisfied'
         : 'blocked',
       'Live registry swap and normal startup must target the same package.'
+    ),
+    createCheck(
+      'command-identity-consistent',
+      readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(liveSwapResult, 'requestedCommandId'))
+        === readThirdPartyDataPackEnabledRuntimeCommandId(
+          readOwnStringField(normalStartupResult, 'requestedCommandId')
+        )
+        ? 'satisfied'
+        : 'blocked',
+      'Live registry swap and normal startup must agree on install/enable command identity.'
     ),
     createCheck(
       'candidate-identity-consistent',

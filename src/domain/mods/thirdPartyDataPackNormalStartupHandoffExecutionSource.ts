@@ -11,6 +11,10 @@ import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -29,6 +33,7 @@ export type ThirdPartyDataPackNormalStartupHandoffHostStatus =
   | 'blocked'
 
 export interface ThirdPartyDataPackNormalStartupHandoffHostEnvelope {
+  readonly requestedCommandId: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -69,6 +74,7 @@ export interface ThirdPartyDataPackNormalStartupHandoffHostEffectSummary {
 
 export interface ThirdPartyDataPackNormalStartupHandoffHostResult {
   readonly status: ThirdPartyDataPackNormalStartupHandoffHostStatus
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
   readonly blockedPackageIds?: readonly PackageId[]
@@ -124,6 +130,7 @@ export interface ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult {
   readonly normalStartupContinuationAllowed: boolean
   readonly startupGateBootstrapSourceStatus?: ThirdPartyDataPackStartupGateBootstrapSourceResult['status']
   readonly normalStartupHandoffHostStatus?: ThirdPartyDataPackNormalStartupHandoffHostStatus
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -509,10 +516,14 @@ const safeReadySource = (
   source: ThirdPartyDataPackStartupGateBootstrapSourceResult
 ): boolean => {
   const targetPackageId = readOwnStringField(source, 'targetPackageId')
+  const requestedCommandId = readThirdPartyDataPackEnabledRuntimeCommandId(
+    readOwnStringField(source, 'requestedCommandId')
+  )
   const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(source, 'loadOrder'))
   const proofs = clonePersistentStateProofs(readOwnDataField(source, 'persistentStateProofs'))
   return readOwnStringField(source, 'status') === 'ready'
+    && requestedCommandId !== undefined
     && targetPackageId !== undefined
     && selectedPackageIds.includes(targetPackageId as PackageId)
     && loadOrder.length === selectedPackageIds.length
@@ -558,6 +569,8 @@ const safeAcceptedHostResult = (
   source: ThirdPartyDataPackStartupGateBootstrapSourceResult,
   hostResult: ThirdPartyDataPackNormalStartupHandoffHostResult
 ): boolean => readOwnStringField(hostResult, 'status') === 'accepted'
+  && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(hostResult, 'requestedCommandId'))
+    === readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(source, 'requestedCommandId'))
   && readOwnStringField(hostResult, 'targetPackageId') === readOwnStringField(source, 'targetPackageId')
   && arraysEqual(
     clonePackageIds(readOwnDataField(hostResult, 'selectedPackageIds')),
@@ -680,6 +693,9 @@ const baseResult = (
     normalStartupHandoffHostStatus: readOwnStringField(options.hostResult, 'status') as
       | ThirdPartyDataPackNormalStartupHandoffHostStatus
       | undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.source, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,
@@ -699,6 +715,9 @@ const baseResult = (
 const buildHostEnvelope = (
   source: ThirdPartyDataPackStartupGateBootstrapSourceResult
 ): ThirdPartyDataPackNormalStartupHandoffHostEnvelope => deepFreezeObjectGraph({
+  requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+    readOwnStringField(source, 'requestedCommandId')
+  ) as ThirdPartyDataPackEnabledRuntimeCommandId,
   targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId,
   selectedPackageIds: clonePackageIds(readOwnDataField(source, 'selectedPackageIds')),
   blockedPackageIds: clonePackageIds(readOwnDataField(source, 'blockedPackageIds')),

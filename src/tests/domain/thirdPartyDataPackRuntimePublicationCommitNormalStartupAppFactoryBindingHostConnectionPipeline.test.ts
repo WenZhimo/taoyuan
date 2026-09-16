@@ -172,6 +172,7 @@ const createReadyNormalStartup = (
   normalStartupContinuationAllowed: true,
   startupGateBootstrapSourceStatus: 'ready',
   normalStartupHandoffHostStatus: 'accepted',
+  requestedCommandId: 'install',
   targetPackageId: packageId,
   selectedPackageIds: [packageId],
   blockedPackageIds: [],
@@ -287,11 +288,15 @@ describe('third-party runtime publication commit normal startup app-factory bind
     const calls: string[] = []
     const readRuntimePublicationCommitAfterPostCommitVerification = vi.fn(async() => {
       calls.push('runtime-publication-commit-after-post-commit')
-      return createAcceptedCommit()
+      return createAcceptedCommit({
+        requestedCommandId: 'enable'
+      })
     })
     const readRuntimePublicationNormalStartupAppFactoryBindingHostConnection = vi.fn(async() => {
       calls.push('normal-startup-app-factory-binding')
-      return createReadyNormalStartup()
+      return createReadyNormalStartup({
+        requestedCommandId: 'enable'
+      })
     })
     const pipeline =
       createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline({
@@ -310,6 +315,7 @@ describe('third-party runtime publication commit normal startup app-factory bind
     expect(result.runtimePublicationCommitAfterPostCommitVerificationStatus).toBe('accepted')
     expect(result.normalStartupAppFactoryBindingHostConnectionStatus).toBe('ready')
     expect(result.normalStartupHandoffHostStatus).toBe('accepted')
+    expect(result.requestedCommandId).toBe('enable')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.blockedPackageIds).toEqual([])
@@ -322,6 +328,40 @@ describe('third-party runtime publication commit normal startup app-factory bind
     expect(result.lockfileHash).toBe(lockfileHash)
     expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
     expectNoRealStartupOrWrites(result, true)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('blocks command identity drift after accepted runtime publication commit', async() => {
+    const pipeline =
+      createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline({
+        enabled: true,
+        readRuntimePublicationCommitAfterPostCommitVerification: async() => createAcceptedCommit({
+          requestedCommandId: 'enable'
+        }),
+        readRuntimePublicationNormalStartupAppFactoryBindingHostConnection: async() => createReadyNormalStartup({
+          requestedCommandId: 'install'
+        })
+      })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('blocked')
+    expect(result.normalStartupAppFactoryBindingHostConnectionStatus).toBe('ready')
+    expect(result.requestedCommandId).toBe('enable')
+    expect(result.checks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'command-identity-consistent',
+        status: 'blocked'
+      })
+    ]))
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        stage: 'third-party.runtime-publication-commit-normal-startup-app-factory-binding.summary-mismatch',
+        packageId
+      })
+    ]))
+    expectNoRealStartupOrWrites(result, false)
     expectPathFree(result)
     expectJsonGraphFrozen(result)
   })

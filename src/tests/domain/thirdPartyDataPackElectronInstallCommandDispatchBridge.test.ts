@@ -299,6 +299,16 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitHost')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline')
+    const ordinaryNormalStartupSource = mainSource.slice(
+      mainSource.indexOf('const createOrdinaryInstallTerminalReadyNormalStartupSource'),
+      mainSource.indexOf('const createOrdinaryInstallTerminalAcceptedAppStartupHostResult')
+    )
+    expect(ordinaryNormalStartupSource).toContain('requestedCommandId: source.requestedCommandId')
+    const ordinaryAppStartupHostResultSource = mainSource.slice(
+      mainSource.indexOf('const createOrdinaryInstallTerminalAcceptedAppStartupHostResult'),
+      mainSource.indexOf('const createRuntimePublicationContinuationResults')
+    )
+    expect(ordinaryAppStartupHostResultSource).toContain('requestedCommandId: envelope.requestedCommandId')
     const runtimeContinuationSource = mainSource.slice(
       mainSource.indexOf('const createRuntimePublicationContinuationContext'),
       mainSource.indexOf('const createRealRecoveryLogReplayRestoreSourceResult')
@@ -357,10 +367,22 @@ describe('third-party Electron install command dispatch bridge', () => {
           installTransactionLogPrepared: { status: 'prepared' },
           installTransactionLogPreparedPersistentReadVerification: { status: 'verified' },
           installTransactionCommitFinalization: { status: 'committed' },
-          runtimePublicationCommitAfterPostCommitVerification: { status: 'accepted' },
-          runtimePublicationCommitLiveRegistrySwapHostConnection: { status: 'swapped' },
-          runtimePublicationCommitAppStartupReadiness: { status: 'ready' },
-          runtimePublicationCommitAppStartupHostConnection: { status: 'accepted' },
+          runtimePublicationCommitAfterPostCommitVerification: {
+            status: 'accepted',
+            requestedCommandId: 'install'
+          },
+          runtimePublicationCommitLiveRegistrySwapHostConnection: {
+            status: 'swapped',
+            requestedCommandId: 'install'
+          },
+          runtimePublicationCommitAppStartupReadiness: {
+            status: 'ready',
+            requestedCommandId: 'install'
+          },
+          runtimePublicationCommitAppStartupHostConnection: {
+            status: 'accepted',
+            requestedCommandId: 'install'
+          },
           startupPersistentStateSnapshotWrite: {
             status: 'written',
             storageKind: 'electron-program-directory-userdata-startup-persistent-state',
@@ -382,10 +404,83 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(result.runtimePublicationCommitLiveRegistrySwapHostConnection?.status).toBe('swapped')
     expect(result.runtimePublicationCommitAppStartupReadiness?.status).toBe('ready')
     expect(result.runtimePublicationCommitAppStartupHostConnection?.status).toBe('accepted')
+    expect(result.runtimePublicationCommitAfterPostCommitVerification?.requestedCommandId).toBe('install')
+    expect(result.runtimePublicationCommitLiveRegistrySwapHostConnection?.requestedCommandId).toBe('install')
+    expect(result.runtimePublicationCommitAppStartupReadiness?.requestedCommandId).toBe('install')
+    expect(result.runtimePublicationCommitAppStartupHostConnection?.requestedCommandId).toBe('install')
     expect(result.startupPersistentStateSnapshotWrite?.status).toBe('written')
     expect(result.startupPersistentStateSnapshotWrite?.targetPackageId).toBe(packageId)
     expect(JSON.stringify(result)).not.toContain('candidateRegistrySet')
     expect(JSON.stringify(result)).not.toContain('liveRegistryReference')
+  })
+
+  it('blocks runtime publication continuations that lose command identity in Electron main', async() => {
+    const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
+      invoke: channel => {
+        expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
+        return {
+          status: 'ready',
+          reason: 'runtime publication continuation lost command identity',
+          installCommandPostCommitAcknowledgement: { status: 'ready' },
+          settingsLockfileLifecycle: {
+            status: 'ready',
+            settingsLockfilePersistentWriterSourceStatus: 'written',
+            persistentPackageWriteExecuted: true,
+            persistentSettingsLockfileWriteExecuted: true,
+            effects: {
+              settingsWritten: true,
+              lockfileWritten: true
+            }
+          },
+          postCommitUiIpcDeliveryContinuation: {
+            status: 'ready',
+            envelopeKind: 'success'
+          },
+          ordinaryInstallTransactionTerminalConnection: {
+            status: 'ready',
+            outcomeKind: 'success',
+            retryable: false,
+            rollbackRequired: false,
+            effects: {
+              ordinaryInstallTransactionReady: true,
+              successOutcomeAccepted: true
+            }
+          },
+          installTransactionLogPrepared: { status: 'prepared' },
+          installTransactionLogPreparedPersistentReadVerification: { status: 'verified' },
+          installTransactionCommitFinalization: { status: 'committed' },
+          runtimePublicationCommitAfterPostCommitVerification: {
+            status: 'accepted',
+            requestedCommandId: 'install'
+          },
+          runtimePublicationCommitLiveRegistrySwapHostConnection: {
+            status: 'swapped',
+            requestedCommandId: 'install'
+          },
+          runtimePublicationCommitAppStartupReadiness: {
+            status: 'ready',
+            requestedCommandId: 'install'
+          },
+          runtimePublicationCommitAppStartupHostConnection: {
+            status: 'accepted'
+          },
+          startupPersistentStateSnapshotWrite: {
+            status: 'written',
+            storageKind: 'electron-program-directory-userdata-startup-persistent-state',
+            targetPackageId: packageId,
+            snapshotWritten: true
+          },
+          diagnostics: []
+        }
+      }
+    })
+
+    const result = await host.continueOrdinaryInstallTerminal({} as never)
+
+    expect(result.status).toBe('blocked')
+    expect(result.runtimePublicationCommitAfterPostCommitVerification).toBeUndefined()
+    expect(result.runtimePublicationCommitAppStartupHostConnection).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
   })
 
   it('preserves safe disabled replacement terminal results without runtime continuation fields', async() => {

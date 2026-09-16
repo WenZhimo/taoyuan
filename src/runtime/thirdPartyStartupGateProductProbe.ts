@@ -1487,6 +1487,7 @@ const createAcceptedAppFactoryBindingHostResult = (
   envelope: ThirdPartyDataPackAppFactoryBindingHostEnvelope
 ): ThirdPartyDataPackAppFactoryBindingHostResult => ({
   status: 'accepted',
+  requestedCommandId: envelope.requestedCommandId,
   platform: envelope.platform,
   startupGateDecision: envelope.startupGateDecision,
   targetPackageId: envelope.targetPackageId,
@@ -1531,6 +1532,7 @@ const createAcceptedNormalStartupHandoffHostResult = (
   options: { readonly realNormalStartupHostCalled?: boolean } = {}
 ): ThirdPartyDataPackNormalStartupHandoffHostResult => ({
   status: 'accepted',
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,

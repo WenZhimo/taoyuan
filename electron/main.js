@@ -3260,6 +3260,7 @@ const createOrdinaryInstallTerminalReadyNormalStartupSource = (source, targetPac
   normalStartupContinuationAllowed: true,
   startupGateBootstrapSourceStatus: 'ready',
   normalStartupHandoffHostStatus: 'accepted',
+  requestedCommandId: source.requestedCommandId,
   targetPackageId,
   selectedPackageIds: source.selectedPackageIds,
   blockedPackageIds: source.blockedPackageIds,
@@ -3295,6 +3296,7 @@ const createOrdinaryInstallTerminalReadyNormalStartupSource = (source, targetPac
 const createOrdinaryInstallTerminalAcceptedAppStartupHostResult = envelope => ({
   status: 'accepted',
   platform: envelope.platform,
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,

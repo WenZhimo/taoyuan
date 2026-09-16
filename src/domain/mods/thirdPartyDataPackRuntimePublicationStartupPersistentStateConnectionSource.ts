@@ -380,6 +380,7 @@ const safeReadyStartupStateSource = (
   const proofs = clonePersistentStateProofs(readOwnDataField(source, 'persistentStateProofs'))
   return readOwnStringField(source, 'status') === 'ready'
     && readOwnBooleanField(source, 'normalStartupContinuationAllowed') === true
+    && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(source, 'requestedCommandId')) !== undefined
     && targetPackageId !== undefined
     && selectedPackageIds.includes(targetPackageId as PackageId)
     && loadOrder.length === selectedPackageIds.length
@@ -455,6 +456,8 @@ const runtimePublicationMatchesStartupState = (
   const runtimeCandidateIdentity = readOwnDataField(runtimeSource, 'candidateIdentity')
   const startupProofs = clonePersistentStateProofs(readOwnDataField(startupSource, 'persistentStateProofs'))
   return readOwnStringField(startupSource, 'targetPackageId') === readOwnStringField(runtimeSource, 'targetPackageId')
+    && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(startupSource, 'requestedCommandId'))
+      === readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(runtimeSource, 'requestedCommandId'))
     && arraysEqual(
       clonePackageIds(readOwnDataField(startupSource, 'selectedPackageIds')),
       clonePackageIds(readOwnDataField(runtimeSource, 'selectedPackageIds'))

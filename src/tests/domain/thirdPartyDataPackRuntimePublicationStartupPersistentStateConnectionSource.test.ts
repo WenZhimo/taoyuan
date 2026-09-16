@@ -306,6 +306,7 @@ describe('third-party runtime publication startup persistent-state connection so
       'runtime-live-registry-swap'
     ])
     expect(result.targetPackageId).toBe(packageId)
+    expect(result.requestedCommandId).toBe('install')
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.loadOrder).toEqual([packageId])
     expect(result.candidateHash).toBe(candidateHash)
@@ -322,6 +323,41 @@ describe('third-party runtime publication startup persistent-state connection so
     expect('liveRegistryReference' in result).toBe(false)
     expectNoRuntimeOrWriteEffects(result, true)
     expectJsonGraphFrozen(result)
+  })
+
+  it('blocks startup and runtime publication command identity mismatch', async() => {
+    const source = createThirdPartyDataPackRuntimePublicationStartupPersistentStateConnectionSource({
+      enabled: true,
+      readStartupGatePersistentStateSource: async() => createStartupSource({
+        requestedCommandId: 'enable'
+      }),
+      readRuntimePublicationLiveRegistrySwap: async() => createRuntimeSwapSource({
+        requestedCommandId: 'install'
+      })
+    })
+
+    await expect(source()).rejects.toBeInstanceOf(
+      ThirdPartyDataPackRuntimePublicationStartupPersistentStateConnectionBlockedError
+    )
+
+    try {
+      await source()
+    } catch (error) {
+      expect(error).toBeInstanceOf(
+        ThirdPartyDataPackRuntimePublicationStartupPersistentStateConnectionBlockedError
+      )
+      const result = (error as ThirdPartyDataPackRuntimePublicationStartupPersistentStateConnectionBlockedError).result
+      expect(result.status).toBe('blocked')
+      expect(result.requestedCommandId).toBe('enable')
+      expect(result.diagnostics).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          stage: 'third-party.runtime-publication-startup-state-connection.summary-mismatch',
+          packageId
+        })
+      ]))
+      expectNoRuntimeOrWriteEffects(result, false)
+      expectJsonGraphFrozen(result)
+    }
   })
 
   it('preserves skipped startup when runtime publication is also skipped', async() => {

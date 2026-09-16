@@ -296,6 +296,7 @@ const createAcceptedNormalStartupHandoffHostResult = (
   overrides: Partial<ThirdPartyDataPackNormalStartupHandoffHostResult> = {}
 ): ThirdPartyDataPackNormalStartupHandoffHostResult => ({
   status: 'accepted',
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,

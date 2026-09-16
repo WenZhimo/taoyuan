@@ -986,6 +986,13 @@ type SharedRendererRuntimePublicationContinuationSummary =
   | ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult
   | ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
 
+const enabledRuntimePublicationCommandId = (
+  source: { readonly requestedCommandId?: unknown } | null | undefined
+): 'install' | 'enable' | undefined => source?.requestedCommandId === 'install'
+  || source?.requestedCommandId === 'enable'
+    ? source.requestedCommandId
+    : undefined
+
 const runtimePublicationSummaryMatchesRendererCandidate = (options: {
   readonly targetPackageId: PackageId
   readonly mountInput: ThirdPartyDataPackMountInputResult
@@ -993,8 +1000,10 @@ const runtimePublicationSummaryMatchesRendererCandidate = (options: {
   readonly summary: SharedRendererRuntimePublicationContinuationSummary | null
 }): boolean => {
   const summary = options.summary
+  const requestedCommandId = enabledRuntimePublicationCommandId(options.runtimePublicationCommitAdapter)
   return summary !== null
-    && summary.requestedCommandId === 'install'
+    && requestedCommandId !== undefined
+    && enabledRuntimePublicationCommandId(summary) === requestedCommandId
     && summary.targetPackageId === options.targetPackageId
     && packageIdListsEqual(summary.selectedPackageIds, options.mountInput.selectedPackageIds)
     && packageIdListsEqual(summary.blockedPackageIds, options.mountInput.blockedPackageIds)
@@ -1082,8 +1091,10 @@ const applySharedRendererLiveRegistrySwapFromVerifiedContinuation = async(option
     ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult | null
 }): Promise<boolean> => {
   const liveSwap = options.runtimePublicationCommitLiveRegistrySwapHostConnection
+  const requestedCommandId = enabledRuntimePublicationCommandId(options.runtimePublicationCommitAdapter)
   if (
-    options.mountInput.candidateRegistrySet === undefined
+    requestedCommandId === undefined
+    || options.mountInput.candidateRegistrySet === undefined
     || options.mountInput.candidateIdentity === undefined
     || options.mountInput.lockfileHash === undefined
     || liveSwap === null
@@ -1098,7 +1109,7 @@ const applySharedRendererLiveRegistrySwapFromVerifiedContinuation = async(option
     candidateIdentity: options.mountInput.candidateIdentity
   })
   const result = await host.executeLiveRegistrySwap({
-    requestedCommandId: 'install',
+    requestedCommandId,
     targetPackageId: options.targetPackageId,
     selectedPackageIds: liveSwap.selectedPackageIds,
     blockedPackageIds: liveSwap.blockedPackageIds,
@@ -1900,6 +1911,7 @@ const createRendererReadyNormalStartupSource = (
   normalStartupContinuationAllowed: true,
   startupGateBootstrapSourceStatus: 'ready',
   normalStartupHandoffHostStatus: 'accepted',
+  requestedCommandId: enabledRuntimePublicationCommandId(source),
   targetPackageId,
   selectedPackageIds: source.selectedPackageIds,
   blockedPackageIds: source.blockedPackageIds,
@@ -1958,6 +1970,7 @@ const createWebAcceptedAppStartupHostResult = (
 ) => Object.freeze({
   status: 'accepted',
   platform: envelope.platform,
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,

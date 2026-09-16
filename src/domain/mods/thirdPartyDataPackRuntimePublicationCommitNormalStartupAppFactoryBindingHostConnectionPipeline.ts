@@ -37,6 +37,7 @@ export type ThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBin
   | 'runtime-publication-commit-after-post-commit-accepted'
   | 'normal-startup-app-factory-binding-ready'
   | 'install-target-consistent'
+  | 'command-identity-consistent'
   | 'lockfile-hash-consistent'
   | 'package-summary-consistent'
   | 'contained-effects-intact'
@@ -397,6 +398,7 @@ const safeReadyNormalStartup = (
   result: ThirdPartyDataPackNormalStartupHandoffExecutionSourceResult
 ): boolean => readOwnStringField(result, 'status') === 'ready'
   && readOwnBooleanField(result, 'normalStartupContinuationAllowed') === true
+  && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(result, 'requestedCommandId')) !== undefined
   && readOwnStringField(result, 'targetPackageId') !== undefined
   && clonePackageIds(readOwnDataField(result, 'selectedPackageIds')).includes(
     readOwnStringField(result, 'targetPackageId') as PackageId
@@ -514,6 +516,11 @@ const skippedChecks = (
       'Install target consistency is skipped until both sources are available.'
     ),
     createCheck(
+      'command-identity-consistent',
+      status,
+      'Runtime command identity consistency is skipped until both sources are available.'
+    ),
+    createCheck(
       'lockfile-hash-consistent',
       status,
       'Lockfile hash consistency is skipped until both sources are available.'
@@ -558,6 +565,14 @@ const createChecks = (
         ? 'satisfied'
         : 'blocked',
       'Runtime publication commit and normal startup must target the same package.'
+    ),
+    createCheck(
+      'command-identity-consistent',
+      readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(commitResult, 'requestedCommandId'))
+        === readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(startupResult, 'requestedCommandId'))
+        ? 'satisfied'
+        : 'blocked',
+      'Runtime publication commit and normal startup must agree on install/enable command identity.'
     ),
     createCheck(
       'lockfile-hash-consistent',

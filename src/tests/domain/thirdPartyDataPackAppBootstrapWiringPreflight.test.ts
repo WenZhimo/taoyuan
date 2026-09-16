@@ -259,6 +259,19 @@ describe('third-party app bootstrap wiring preflight', () => {
     expectJsonGraphFrozen(result)
   })
 
+  it('preserves a re-enable command through app bootstrap wiring preflight', () => {
+    const result = buildThirdPartyDataPackAppBootstrapWiringPreflight({
+      normalStartupGatePreflight: createReadyNormalStartupGate('web', {
+        requestedCommandId: 'enable'
+      })
+    })
+
+    expect(result.status).toBe('deferred')
+    expect(result.requestedCommandId).toBe('enable')
+    expect(result.targetPackageId).toBe(packageId)
+    expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
+  })
+
   it('accepts Web and Android normal startup gates as app bootstrap wiring inputs', () => {
     const web = buildThirdPartyDataPackAppBootstrapWiringPreflight({
       normalStartupGatePreflight: createReadyNormalStartupGate('web')

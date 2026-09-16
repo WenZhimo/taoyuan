@@ -46,6 +46,7 @@ const createEnvelope = (
 ): ThirdPartyDataPackAppFactoryBindingHostEnvelope => Object.freeze({
   platform: 'electron',
   startupGateDecision: 'ready-for-launcher-boundary',
+  requestedCommandId: 'install',
   targetPackageId: packageId,
   selectedPackageIds: Object.freeze([packageId]),
   blockedPackageIds: Object.freeze([]),
@@ -154,7 +155,8 @@ describe('third-party app factory binding host', () => {
   it('records a path-free factory binding acknowledgement without creating app factories', async() => {
     const host = createThirdPartyDataPackAppFactoryBindingHost({
       expectedPlatform: 'electron',
-      expectedPackageId: packageId
+      expectedPackageId: packageId,
+      expectedCommandId: 'install'
     })
 
     const result = await host.acknowledgeAppFactoryBinding(createEnvelope())
@@ -163,6 +165,7 @@ describe('third-party app factory binding host', () => {
     expect(Object.isFrozen(host)).toBe(true)
     expect(result.status).toBe('accepted')
     expect(result.platform).toBe('electron')
+    expect(result.requestedCommandId).toBe('install')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.loadOrder).toEqual([packageId])
@@ -178,6 +181,7 @@ describe('third-party app factory binding host', () => {
       sequence: 1,
       platform: 'electron',
       startupGateDecision: 'ready-for-launcher-boundary',
+      requestedCommandId: 'install',
       targetPackageId: packageId,
       selectedPackageIds: [packageId],
       blockedPackageIds: [],
@@ -203,7 +207,8 @@ describe('third-party app factory binding host', () => {
   it('returns an acknowledgement accepted by the existing app factory binding source', async() => {
     const host = createThirdPartyDataPackAppFactoryBindingHost({
       expectedPlatform: 'electron',
-      expectedPackageId: packageId
+      expectedPackageId: packageId,
+      expectedCommandId: 'install'
     })
     const source = createThirdPartyDataPackAppFactoryBindingSource({
       enabled: true,
@@ -222,6 +227,7 @@ describe('third-party app factory binding host', () => {
     expect(result.effects.gameAppFactoryCalled).toBe(false)
     expect(host.getLastBindingRecord()).toMatchObject({
       sequence: 1,
+      requestedCommandId: 'install',
       targetPackageId: packageId,
       candidateHash,
       lockfileHash
@@ -232,7 +238,8 @@ describe('third-party app factory binding host', () => {
 
   it('rejects unfrozen, unsafe or mismatched envelopes without storing records', async() => {
     const host = createThirdPartyDataPackAppFactoryBindingHost({
-      expectedPackageId: packageId
+      expectedPackageId: packageId,
+      expectedCommandId: 'install'
     })
     const unfrozenEnvelope = {
       ...createEnvelope()
@@ -247,12 +254,16 @@ describe('third-party app factory binding host', () => {
       selectedPackageIds: [alternatePackageId],
       loadOrder: [alternatePackageId]
     })
+    const mismatchedCommandEnvelope = createEnvelope({
+      requestedCommandId: 'enable'
+    })
 
     const unfrozenResult = await host.acknowledgeAppFactoryBinding(unfrozenEnvelope)
     const unsafeResult = await host.acknowledgeAppFactoryBinding(unsafeEnvelope)
     const mismatchedResult = await host.acknowledgeAppFactoryBinding(mismatchedEnvelope)
+    const mismatchedCommandResult = await host.acknowledgeAppFactoryBinding(mismatchedCommandEnvelope)
 
-    for (const result of [unfrozenResult, unsafeResult, mismatchedResult]) {
+    for (const result of [unfrozenResult, unsafeResult, mismatchedResult, mismatchedCommandResult]) {
       expect(result.status).toBe('blocked')
       expectNoFactoryOrRuntimeEffects(result, false)
       expectJsonGraphFrozen(result)

@@ -151,6 +151,7 @@ const createAcceptedHostResult = (
 ): ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionHostResult => ({
   status: 'accepted',
   platform: envelope.platform,
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,
@@ -290,7 +291,9 @@ describe('third-party runtime publication commit app startup host connection pip
     const calls: string[] = []
     const readRuntimePublicationCommitAppStartupReadiness = vi.fn(async() => {
       calls.push('app-startup-readiness')
-      return createReadyReadiness()
+      return createReadyReadiness({
+        requestedCommandId: 'enable'
+      })
     })
     const acknowledgeAppStartupHostWiring = vi.fn(async(
       envelope: ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionEnvelope
@@ -298,6 +301,7 @@ describe('third-party runtime publication commit app startup host connection pip
       calls.push('app-startup-host')
       expect(Object.isFrozen(envelope)).toBe(true)
       expect(envelope.platform).toBe('electron')
+      expect(envelope.requestedCommandId).toBe('enable')
       expect(envelope.targetPackageId).toBe(packageId)
       expect(envelope.selectedPackageIds).toEqual([packageId])
       expect(envelope.blockedPackageIds).toEqual([])
@@ -329,6 +333,7 @@ describe('third-party runtime publication commit app startup host connection pip
     expect(result.status).toBe('accepted')
     expect(result.appStartupReadinessStatus).toBe('ready')
     expect(result.appStartupHostStatus).toBe('accepted')
+    expect(result.requestedCommandId).toBe('enable')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.blockedPackageIds).toEqual([])
@@ -341,6 +346,44 @@ describe('third-party runtime publication commit app startup host connection pip
     expect(result.lockfileHash).toBe(lockfileHash)
     expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
     expectNoRealStartupOrPersistentWrites(result, true, true)
+    expectPathFree(result)
+    expectJsonGraphFrozen(result)
+  })
+
+  it('blocks app-startup host command identity drift', async() => {
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline({
+      enabled: true,
+      platform: 'electron',
+      readRuntimePublicationCommitAppStartupReadiness: async() => createReadyReadiness({
+        requestedCommandId: 'enable'
+      }),
+      acknowledgeAppStartupHostWiring: async(envelope) => createAcceptedHostResult(envelope, {
+        requestedCommandId: 'install'
+      })
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('blocked')
+    expect(result.appStartupHostStatus).toBe('accepted')
+    expect(result.requestedCommandId).toBe('enable')
+    expect(result.checks).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'app-startup-host-accepted',
+        status: 'blocked'
+      }),
+      expect.objectContaining({
+        id: 'command-identity-consistent',
+        status: 'blocked'
+      })
+    ]))
+    expect(result.diagnostics).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        stage: 'third-party.runtime-publication-commit-app-startup-host.summary-mismatch',
+        packageId
+      })
+    ]))
+    expectNoRealStartupOrPersistentWrites(result, true, false, true, true)
     expectPathFree(result)
     expectJsonGraphFrozen(result)
   })

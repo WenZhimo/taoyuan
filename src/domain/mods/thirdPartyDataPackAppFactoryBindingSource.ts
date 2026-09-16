@@ -11,6 +11,10 @@ import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -31,6 +35,7 @@ export type ThirdPartyDataPackAppFactoryBindingHostStatus =
 export interface ThirdPartyDataPackAppFactoryBindingHostEnvelope {
   readonly platform: ThirdPartyDataPackLauncherBoundaryPlatform
   readonly startupGateDecision: ThirdPartyDataPackNormalStartupGateDecision
+  readonly requestedCommandId: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -72,6 +77,7 @@ export interface ThirdPartyDataPackAppFactoryBindingHostResult {
   readonly status: ThirdPartyDataPackAppFactoryBindingHostStatus
   readonly platform?: ThirdPartyDataPackLauncherBoundaryPlatform
   readonly startupGateDecision?: ThirdPartyDataPackNormalStartupGateDecision
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
   readonly blockedPackageIds?: readonly PackageId[]
@@ -129,6 +135,7 @@ export interface ThirdPartyDataPackAppFactoryBindingSourceResult {
   readonly appFactoryBindingHostStatus?: ThirdPartyDataPackAppFactoryBindingHostStatus
   readonly platform?: ThirdPartyDataPackLauncherBoundaryPlatform
   readonly startupGateDecision?: ThirdPartyDataPackNormalStartupGateDecision
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -523,6 +530,9 @@ const safeDeferredSource = (
   const selectedPackageIds = clonePackageIds(readOwnDataField(source, 'selectedPackageIds'))
   const loadOrder = clonePackageIds(readOwnDataField(source, 'loadOrder'))
   const targetPackageId = readOwnStringField(source, 'targetPackageId')
+  const requestedCommandId = readThirdPartyDataPackEnabledRuntimeCommandId(
+    readOwnStringField(source, 'requestedCommandId')
+  )
   const proofs = clonePersistentStateProofs(readOwnDataField(source, 'persistentStateProofs'))
   return readOwnStringField(source, 'status') === 'deferred'
     && readOwnStringField(source, 'appFactoryBindingPreflight') === 'deferred'
@@ -536,6 +546,7 @@ const safeDeferredSource = (
     && readOwnBooleanField(source, 'appFactoryBindingPreflightPrepared') === true
     && readOwnBooleanField(source, 'launcherAppFactoryBindingReportPrepared') === true
     && readOwnBooleanField(source, 'gameAppFactoryBindingReportPrepared') === true
+    && requestedCommandId !== undefined
     && targetPackageId !== undefined
     && selectedPackageIds.includes(targetPackageId as PackageId)
     && loadOrder.length === selectedPackageIds.length
@@ -584,6 +595,8 @@ const safeAcceptedHostResult = (
 ): boolean => readOwnStringField(hostResult, 'status') === 'accepted'
   && readOwnStringField(hostResult, 'platform') === readOwnStringField(source, 'platform')
   && readOwnStringField(hostResult, 'startupGateDecision') === readOwnStringField(source, 'startupGateDecision')
+  && readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(hostResult, 'requestedCommandId'))
+    === readThirdPartyDataPackEnabledRuntimeCommandId(readOwnStringField(source, 'requestedCommandId'))
   && readOwnStringField(hostResult, 'targetPackageId') === readOwnStringField(source, 'targetPackageId')
   && arraysEqual(
     clonePackageIds(readOwnDataField(hostResult, 'selectedPackageIds')),
@@ -667,6 +680,9 @@ const baseResult = (
     startupGateDecision: readOwnStringField(options.source, 'startupGateDecision') as
       | ThirdPartyDataPackNormalStartupGateDecision
       | undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(options.source, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(options.source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,
@@ -690,6 +706,9 @@ const buildAppFactoryBindingHostEnvelope = (
   platform: readOwnStringField(source, 'platform') as ThirdPartyDataPackLauncherBoundaryPlatform,
   startupGateDecision: readOwnStringField(source, 'startupGateDecision') as
     ThirdPartyDataPackNormalStartupGateDecision,
+  requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+    readOwnStringField(source, 'requestedCommandId')
+  ) as ThirdPartyDataPackEnabledRuntimeCommandId,
   targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId,
   selectedPackageIds: clonePackageIds(readOwnDataField(source, 'selectedPackageIds')),
   blockedPackageIds: clonePackageIds(readOwnDataField(source, 'blockedPackageIds')),

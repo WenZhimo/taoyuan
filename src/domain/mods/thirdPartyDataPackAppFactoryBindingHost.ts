@@ -10,6 +10,10 @@ import type {
   ThirdPartyDataPackNormalStartupGateDecision,
   ThirdPartyDataPackNormalStartupGatePersistentStateProofs
 } from './thirdPartyDataPackNormalStartupGatePreflight'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 export const THIRD_PARTY_DATA_PACK_APP_FACTORY_BINDING_HOST_KIND =
   'third-party-app-factory-binding-host'
@@ -18,6 +22,7 @@ export interface ThirdPartyDataPackAppFactoryBindingHostRecord {
   readonly sequence: number
   readonly platform: ThirdPartyDataPackLauncherBoundaryPlatform
   readonly startupGateDecision: ThirdPartyDataPackNormalStartupGateDecision
+  readonly requestedCommandId: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -36,6 +41,7 @@ export interface CreateThirdPartyDataPackAppFactoryBindingHostOptions {
   readonly expectedPlatform?: ThirdPartyDataPackLauncherBoundaryPlatform
   readonly expectedPackageId?: PackageId
   readonly expectedStartupGateDecision?: ThirdPartyDataPackNormalStartupGateDecision
+  readonly expectedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
 }
 
 export interface ThirdPartyDataPackAppFactoryBindingHost {
@@ -287,6 +293,9 @@ const envelopeAccepted = (
   const startupGateDecision = readOwnStringField(envelope, 'startupGateDecision') as
     | ThirdPartyDataPackNormalStartupGateDecision
     | undefined
+  const requestedCommandId = readThirdPartyDataPackEnabledRuntimeCommandId(
+    readOwnStringField(envelope, 'requestedCommandId')
+  )
   const targetPackageId = readOwnStringField(envelope, 'targetPackageId') as PackageId | undefined
   const selectedPackageIds = clonePackageIds(readOwnDataField(envelope, 'selectedPackageIds'))
   const blockedPackageIds = clonePackageIds(readOwnDataField(envelope, 'blockedPackageIds'))
@@ -302,6 +311,7 @@ const envelopeAccepted = (
     && platform !== undefined
     && validPlatforms.has(platform)
     && startupGateDecision === 'ready-for-launcher-boundary'
+    && requestedCommandId !== undefined
     && targetPackageId !== undefined
     && selectedPackageIds.includes(targetPackageId)
     && arraysEqual(loadOrder, selectedPackageIds)
@@ -321,6 +331,7 @@ const envelopeAccepted = (
       options.expectedStartupGateDecision === undefined
       || startupGateDecision === options.expectedStartupGateDecision
     )
+    && (options.expectedCommandId === undefined || requestedCommandId === options.expectedCommandId)
 }
 
 const buildHostResult = (
@@ -340,6 +351,9 @@ const buildHostResult = (
     startupGateDecision: readOwnStringField(envelope, 'startupGateDecision') as
       | ThirdPartyDataPackNormalStartupGateDecision
       | undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(envelope, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(envelope, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds: clonePackageIds(readOwnDataField(envelope, 'selectedPackageIds')),
     blockedPackageIds: clonePackageIds(readOwnDataField(envelope, 'blockedPackageIds')),
@@ -362,6 +376,7 @@ const createRecord = (
   sequence,
   platform: envelope.platform,
   startupGateDecision: envelope.startupGateDecision,
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: clonePackageIds(envelope.selectedPackageIds),
   blockedPackageIds: clonePackageIds(envelope.blockedPackageIds),

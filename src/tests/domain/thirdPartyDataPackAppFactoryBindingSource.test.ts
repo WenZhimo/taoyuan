@@ -115,6 +115,7 @@ const createAcceptedHostResult = (
   status: 'accepted',
   platform: envelope.platform,
   startupGateDecision: envelope.startupGateDecision,
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,
@@ -238,13 +239,16 @@ describe('third-party app factory binding source', () => {
   })
 
   it('accepts a deferred preflight through an injected path-free factory binding host acknowledgement', async() => {
-    const readAppFactoryBindingPreflight = vi.fn(async() => createDeferredAppFactoryBindingPreflight())
+    const readAppFactoryBindingPreflight = vi.fn(async() => createDeferredAppFactoryBindingPreflight({
+      requestedCommandId: 'enable'
+    }))
     const acknowledgeAppFactoryBinding = vi.fn(async(
       envelope: ThirdPartyDataPackAppFactoryBindingHostEnvelope
     ) => {
       expect(Object.isFrozen(envelope)).toBe(true)
       expect(envelope.platform).toBe('electron')
       expect(envelope.startupGateDecision).toBe('ready-for-launcher-boundary')
+      expect(envelope.requestedCommandId).toBe('enable')
       expect(envelope.targetPackageId).toBe(packageId)
       expect(envelope.selectedPackageIds).toEqual([packageId])
       expect(envelope.loadOrder).toEqual([packageId])
@@ -274,6 +278,7 @@ describe('third-party app factory binding source', () => {
     expect(result.appFactoryBindingHostStatus).toBe('accepted')
     expect(result.platform).toBe('electron')
     expect(result.startupGateDecision).toBe('ready-for-launcher-boundary')
+    expect(result.requestedCommandId).toBe('enable')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.blockedPackageIds).toEqual([])
@@ -292,6 +297,38 @@ describe('third-party app factory binding source', () => {
     expect('router' in result).toBe(false)
     expectNoRuntimeOrWriteEffects(result, true, true)
     expectJsonGraphFrozen(result)
+  })
+
+  it('blocks factory binding host command identity drift', async() => {
+    const source = createThirdPartyDataPackAppFactoryBindingSource({
+      enabled: true,
+      readAppFactoryBindingPreflight: async() => createDeferredAppFactoryBindingPreflight({
+        requestedCommandId: 'enable'
+      }),
+      acknowledgeAppFactoryBinding: async(envelope) => createAcceptedHostResult(envelope, {
+        requestedCommandId: 'install'
+      })
+    })
+
+    await expect(source()).rejects.toBeInstanceOf(ThirdPartyDataPackAppFactoryBindingBlockedError)
+
+    try {
+      await source()
+    } catch (error) {
+      expect(error).toBeInstanceOf(ThirdPartyDataPackAppFactoryBindingBlockedError)
+      const result = (error as ThirdPartyDataPackAppFactoryBindingBlockedError).result
+      expect(result.status).toBe('blocked')
+      expect(result.appFactoryBindingHostStatus).toBe('accepted')
+      expect(result.requestedCommandId).toBe('enable')
+      expect(result.diagnostics).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          stage: 'third-party.app-factory-binding-source.binding-host-blocked',
+          packageId
+        })
+      ]))
+      expectNoRuntimeOrWriteEffects(result, false, true)
+      expectJsonGraphFrozen(result)
+    }
   })
 
   it('blocks deferred factory binding preflight results before any app factory can run', async() => {

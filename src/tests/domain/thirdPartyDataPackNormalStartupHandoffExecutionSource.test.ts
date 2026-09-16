@@ -88,6 +88,7 @@ const createStartupGateBootstrapSource = (
   appBootstrapContinuationAllowed: true,
   startupPersistentStateSourceStatus: 'ready',
   appFactoryBindingSourceStatus: 'ready',
+  requestedCommandId: 'install',
   targetPackageId: packageId,
   selectedPackageIds: [packageId],
   blockedPackageIds: [],
@@ -128,6 +129,7 @@ const createAcceptedHostResult = (
   overrides: Partial<ThirdPartyDataPackNormalStartupHandoffHostResult> = {}
 ): ThirdPartyDataPackNormalStartupHandoffHostResult => ({
   status: 'accepted',
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,
@@ -250,11 +252,14 @@ describe('third-party normal startup handoff execution source', () => {
   })
 
   it('accepts a ready startup bootstrap through an injected path-free handoff acknowledgement', async() => {
-    const readStartupGateBootstrapSource = vi.fn(async() => createStartupGateBootstrapSource())
+    const readStartupGateBootstrapSource = vi.fn(async() => createStartupGateBootstrapSource({
+      requestedCommandId: 'enable'
+    }))
     const acknowledgeNormalStartupHandoff = vi.fn(async(
       envelope: ThirdPartyDataPackNormalStartupHandoffHostEnvelope
     ) => {
       expect(Object.isFrozen(envelope)).toBe(true)
+      expect(envelope.requestedCommandId).toBe('enable')
       expect(envelope.targetPackageId).toBe(packageId)
       expect(envelope.selectedPackageIds).toEqual([packageId])
       expect(envelope.loadOrder).toEqual([packageId])
@@ -281,6 +286,7 @@ describe('third-party normal startup handoff execution source', () => {
     expect(acknowledgeNormalStartupHandoff).toHaveBeenCalledOnce()
     expect(result.startupGateBootstrapSourceStatus).toBe('ready')
     expect(result.normalStartupHandoffHostStatus).toBe('accepted')
+    expect(result.requestedCommandId).toBe('enable')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.blockedPackageIds).toEqual([])
@@ -299,6 +305,38 @@ describe('third-party normal startup handoff execution source', () => {
     expect('router' in result).toBe(false)
     expectNoRuntimeOrWriteEffects(result, true, true)
     expectJsonGraphFrozen(result)
+  })
+
+  it('blocks normal startup handoff host command identity drift', async() => {
+    const source = createThirdPartyDataPackNormalStartupHandoffExecutionSource({
+      enabled: true,
+      readStartupGateBootstrapSource: async() => createStartupGateBootstrapSource({
+        requestedCommandId: 'enable'
+      }),
+      acknowledgeNormalStartupHandoff: async(envelope) => createAcceptedHostResult(envelope, {
+        requestedCommandId: 'install'
+      })
+    })
+
+    await expect(source()).rejects.toBeInstanceOf(ThirdPartyDataPackNormalStartupHandoffExecutionBlockedError)
+
+    try {
+      await source()
+    } catch (error) {
+      expect(error).toBeInstanceOf(ThirdPartyDataPackNormalStartupHandoffExecutionBlockedError)
+      const result = (error as ThirdPartyDataPackNormalStartupHandoffExecutionBlockedError).result
+      expect(result.status).toBe('blocked')
+      expect(result.normalStartupHandoffHostStatus).toBe('accepted')
+      expect(result.requestedCommandId).toBe('enable')
+      expect(result.diagnostics).toEqual(expect.arrayContaining([
+        expect.objectContaining({
+          stage: 'third-party.normal-startup-handoff-execution-source.handoff-host-blocked',
+          packageId
+        })
+      ]))
+      expectNoRuntimeOrWriteEffects(result, false, true)
+      expectJsonGraphFrozen(result)
+    }
   })
 
   it('accepts a ready startup bootstrap through a real path-free handoff acknowledgement', async() => {

@@ -50,6 +50,9 @@ import type {
 import type {
   ThirdPartyDataPackDisableTransactionTerminal
 } from './thirdPartyDataPackDisableTransaction'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -149,6 +152,13 @@ const hasStatus = (
   value !== null
   && typeof value === 'object'
   && readOwnDataField(value, 'status') === expectedStatus
+
+const readRuntimePublicationCommandId = (value: unknown) => {
+  const requestedCommandId = readOwnDataField(value, 'requestedCommandId')
+  return typeof requestedCommandId === 'string'
+    ? readThirdPartyDataPackEnabledRuntimeCommandId(requestedCommandId)
+    : undefined
+}
 
 const effectFlag = (
   value: unknown,
@@ -250,8 +260,17 @@ const safeResultFromRawMainProcessValue = (
     || runtimePublicationCommitLiveRegistrySwapHostConnection !== undefined
     || runtimePublicationCommitAppStartupReadiness !== undefined
     || runtimePublicationCommitAppStartupHostConnection !== undefined
+  const runtimePublicationContinuationCommandId =
+    readRuntimePublicationCommandId(runtimePublicationCommitAfterPostCommitVerification)
   const runtimePublicationContinuationReady =
-    runtimePublicationCommitAfterPostCommitVerification !== null
+    runtimePublicationContinuationCommandId !== undefined
+    && runtimePublicationContinuationCommandId
+      === readRuntimePublicationCommandId(runtimePublicationCommitLiveRegistrySwapHostConnection)
+    && runtimePublicationContinuationCommandId
+      === readRuntimePublicationCommandId(runtimePublicationCommitAppStartupReadiness)
+    && runtimePublicationContinuationCommandId
+      === readRuntimePublicationCommandId(runtimePublicationCommitAppStartupHostConnection)
+    && runtimePublicationCommitAfterPostCommitVerification !== null
     && typeof runtimePublicationCommitAfterPostCommitVerification === 'object'
     && readOwnDataField(runtimePublicationCommitAfterPostCommitVerification, 'status') === 'accepted'
     && runtimePublicationCommitLiveRegistrySwapHostConnection !== null

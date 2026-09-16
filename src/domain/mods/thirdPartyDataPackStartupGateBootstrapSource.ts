@@ -16,6 +16,10 @@ import type {
   ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic,
   ThirdPartyDataPackUiIpcResultEnvelopeSummary
 } from './thirdPartyDataPackUiIpcResultEnvelopeContract'
+import {
+  readThirdPartyDataPackEnabledRuntimeCommandId,
+  type ThirdPartyDataPackEnabledRuntimeCommandId
+} from './thirdPartyDataPackRuntimeCommandState'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -82,6 +86,7 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceResult {
   readonly appFactoryBindingSourceStatus?: ThirdPartyDataPackAppFactoryBindingSourceResult['status']
   readonly appStartupHostConnectionSourceStatus?:
     ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult['status']
+  readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
   readonly blockedPackageIds: readonly PackageId[]
@@ -662,6 +667,9 @@ const baseResult = (
     appStartupHostConnectionSourceStatus: readOwnStringField(options.appStartupHostConnectionSource, 'status') as
       | ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult['status']
       | undefined,
+    requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
+      readOwnStringField(summarySource, 'requestedCommandId')
+    ),
     targetPackageId: readOwnStringField(summarySource, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,
     blockedPackageIds,

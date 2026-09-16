@@ -157,6 +157,7 @@ const createAcceptedHostAcknowledgement = (
 ): ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionHostResult => ({
   status: 'accepted',
   platform: envelope.platform,
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,

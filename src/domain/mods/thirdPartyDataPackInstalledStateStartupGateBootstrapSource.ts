@@ -834,6 +834,22 @@ const withEnabledCommandId = (
 > => Object.freeze({
   ...runtimeContext,
   requestedCommandId,
+  runtimePublicationPreflight: Object.freeze({
+    ...runtimeContext.runtimePublicationPreflight,
+    requestedCommandId
+  }),
+  transactionPreCommitPlan: Object.freeze({
+    ...runtimeContext.transactionPreCommitPlan,
+    requestedCommandId
+  }),
+  liveRegistrySwapProtection: Object.freeze({
+    ...runtimeContext.liveRegistrySwapProtection,
+    requestedCommandId
+  }),
+  publicationRollbackRecovery: Object.freeze({
+    ...runtimeContext.publicationRollbackRecovery,
+    requestedCommandId
+  }),
   runtimePublicationCommitAdapter: Object.freeze({
     ...runtimeContext.runtimePublicationCommitAdapter,
     requestedCommandId
@@ -1772,6 +1788,7 @@ const createAcceptedAppFactoryBindingHostResult = (
   envelope: ThirdPartyDataPackAppFactoryBindingHostEnvelope
 ): ThirdPartyDataPackAppFactoryBindingHostResult => Object.freeze({
   status: 'accepted',
+  requestedCommandId: envelope.requestedCommandId,
   platform: envelope.platform,
   startupGateDecision: envelope.startupGateDecision,
   targetPackageId: envelope.targetPackageId,
@@ -1815,6 +1832,7 @@ const createAcceptedNormalStartupHandoffHostResult = (
   envelope: ThirdPartyDataPackNormalStartupHandoffHostEnvelope
 ): ThirdPartyDataPackNormalStartupHandoffHostResult => Object.freeze({
   status: 'accepted',
+  requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: envelope.selectedPackageIds,
   blockedPackageIds: envelope.blockedPackageIds,
