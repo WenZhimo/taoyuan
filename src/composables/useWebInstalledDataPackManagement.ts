@@ -346,6 +346,18 @@ const withManagementCommandDelivery = <Result extends object>(
     ...delivery
   })
 
+const webManagementDeliveryBlockedReason = (
+  commandId: 'disable' | 'enable' | 'uninstall'
+): string => `Web ${commandId} management UI/IPC response delivery was blocked`
+
+const isMissingRequiredWebManagementDelivery = (
+  hostKind: WebInstalledDataPackManagementCommandHostKind,
+  terminalStatus: 'ready' | 'blocked',
+  delivered: boolean
+): boolean => hostKind === 'web-indexeddb'
+  && terminalStatus === 'ready'
+  && !delivered
+
 export const useWebInstalledDataPackManagement = (
   options: UseWebInstalledDataPackManagementOptions
 ) => {
@@ -563,13 +575,19 @@ export const useWebInstalledDataPackManagement = (
       })
       lastResult.value = result
       reason.value = transaction.terminal.reason
-      if (transaction.terminal.status === 'ready') {
+      const deliveryBlocked = isMissingRequiredWebManagementDelivery(
+        managementCommandHostKind,
+        transaction.terminal.status,
+        managementUiIpcResponseDelivered
+      )
+      if (transaction.terminal.status === 'ready' && !deliveryBlocked) {
         currentRecord.value = disableRecord
         rows.value = readPackageRows(disableRecord)
         status.value = 'ready'
       } else {
         await refresh()
         status.value = 'blocked'
+        if (deliveryBlocked) reason.value = webManagementDeliveryBlockedReason('disable')
       }
       return result
     } catch (error) {
@@ -752,13 +770,19 @@ export const useWebInstalledDataPackManagement = (
       })
       lastUninstallResult.value = result
       reason.value = transaction.terminal.reason
-      if (transaction.terminal.status === 'ready') {
+      const deliveryBlocked = isMissingRequiredWebManagementDelivery(
+        managementCommandHostKind,
+        transaction.terminal.status,
+        managementUiIpcResponseDelivered
+      )
+      if (transaction.terminal.status === 'ready' && !deliveryBlocked) {
         currentRecord.value = uninstallRecord
         rows.value = readPackageRows(uninstallRecord)
         status.value = 'ready'
       } else {
         await refresh()
         status.value = 'blocked'
+        if (deliveryBlocked) reason.value = webManagementDeliveryBlockedReason('uninstall')
       }
       return result
     } catch (error) {
@@ -944,13 +968,19 @@ export const useWebInstalledDataPackManagement = (
       })
       lastEnableResult.value = result
       reason.value = transaction.terminal.reason
-      if (transaction.terminal.status === 'ready') {
+      const deliveryBlocked = isMissingRequiredWebManagementDelivery(
+        managementCommandHostKind,
+        transaction.terminal.status,
+        managementUiIpcResponseDelivered
+      )
+      if (transaction.terminal.status === 'ready' && !deliveryBlocked) {
         currentRecord.value = enableRecord
         rows.value = readPackageRows(enableRecord)
         status.value = 'ready'
       } else {
         await refresh()
         status.value = 'blocked'
+        if (deliveryBlocked) reason.value = webManagementDeliveryBlockedReason('enable')
       }
       return result
     } catch (error) {

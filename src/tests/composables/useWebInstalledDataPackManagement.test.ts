@@ -645,6 +645,107 @@ describe('useWebInstalledDataPackManagement', () => {
       .toBe('Web Management Linen Ribbon')
   })
 
+  it('does not mark Web management operations ready when UI/IPC delivery is unavailable', async() => {
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    officialRegistrySet.freezeEntries()
+    publishOfficialContentRegistrySet(officialRegistrySet)
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
+    const enabledMountInput = await createEnabledMountInput(officialRegistrySet)
+    expect(enabledMountInput.status).toBe('ready')
+    const installedDraft = enabledMountInput.lockfileDraft!
+    await settingsLockfileStore.write({
+      recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
+      requestedCommandId: 'install',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      loadOrder: [packageId],
+      candidateHash: installedDraft.candidateIdentity.candidateHash,
+      lockfileHash: installedDraft.lockfileHash,
+      lockfileDraft: installedDraft
+    })
+    await installedPackageStore.put(createDefaultWebIndexedDbImportRecord(
+      createInstalledPackageFiles(),
+      THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
+    ))
+
+    const management = useWebInstalledDataPackManagement({
+      officialRegistrySet,
+      settingsLockfileStore,
+      installedPackageStore,
+      startupPersistentStateStore,
+      mountedAppStartupEvidence,
+      webManagementResponseDeliveryTarget: null,
+      readEnableMountInput: async(targetPackageId) =>
+        targetPackageId === packageId ? enabledMountInput : null
+    })
+    await management.refresh()
+
+    const disableResult = await management.disable(packageId)
+    await nextTick()
+
+    expect(disableResult?.terminal.status).toBe('ready')
+    expect(disableResult?.managementUiIpcResponseDelivered).toBe(false)
+    expect(disableResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(disableResult?.terminal.runtimePublicationCommitted).toBe(true)
+    expect(management.status.value).toBe('blocked')
+    expect(management.reason.value).toBe('Web disable management UI/IPC response delivery was blocked')
+    expect(management.rows.value).toEqual([{
+      packageId,
+      version: '1.0.0',
+      status: 'disabled'
+    }])
+    expect((await settingsLockfileStore.read()).record).toMatchObject({
+      requestedCommandId: 'disable',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [packageId],
+      loadOrder: []
+    })
+
+    const enableResult = await management.enable(packageId)
+    await nextTick()
+
+    expect(enableResult?.terminal.status).toBe('ready')
+    expect(enableResult?.managementUiIpcResponseDelivered).toBe(false)
+    expect(enableResult?.terminal.runtimePublicationIncluded).toBe(true)
+    expect(enableResult?.terminal.runtimePublicationCommitted).toBe(true)
+    expect(management.status.value).toBe('blocked')
+    expect(management.reason.value).toBe('Web enable management UI/IPC response delivery was blocked')
+    expect(management.rows.value).toEqual([{
+      packageId,
+      version: '1.0.0',
+      status: 'enabled'
+    }])
+    expect((await settingsLockfileStore.read()).record).toMatchObject({
+      requestedCommandId: 'enable',
+      targetPackageId: packageId,
+      selectedPackageIds: [packageId],
+      blockedPackageIds: [],
+      loadOrder: [packageId]
+    })
+
+    const uninstallResult = await management.uninstall(packageId)
+    await nextTick()
+
+    expect(uninstallResult?.terminal.status).toBe('ready')
+    expect(uninstallResult?.managementUiIpcResponseDelivered).toBe(false)
+    expect(uninstallResult?.terminal.runtimePublicationExcluded).toBe(true)
+    expect(uninstallResult?.terminal.runtimePublicationCommitted).toBe(true)
+    expect(management.status.value).toBe('blocked')
+    expect(management.reason.value).toBe('Web uninstall management UI/IPC response delivery was blocked')
+    expect(management.rows.value).toEqual([])
+    expect((await settingsLockfileStore.read()).record).toMatchObject({
+      requestedCommandId: 'uninstall',
+      targetPackageId: packageId,
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: []
+    })
+  })
+
   it('routes dependency enable persistence through the Electron renderer command host', async() => {
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
     officialRegistrySet.freezeEntries()
