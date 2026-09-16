@@ -6,6 +6,7 @@ import {
   reportApplicationStartupFailure
 } from '@/bootstrap'
 import {
+  acknowledgeThirdPartyDataPackMountedAppStartupHostConnection,
   getThirdPartyDataPackMountedAppStartupHostEvidence,
   publishThirdPartyDataPackMountedAppStartupHostEvidence,
   resetThirdPartyDataPackMountedAppStartupHostEvidenceForTests
@@ -392,6 +393,136 @@ describe('bootstrapApplication', () => {
       'mount',
       'app-startup-host',
       'after-mount'
+    ])
+  })
+
+  it('acknowledges a disabled installed package startup gate only after the app has mounted', async () => {
+    const events: string[] = []
+    const app = { id: 'app' }
+    const pinia = { id: 'pinia' }
+    const router = { id: 'router' }
+    const startupGateResult = {
+      status: 'skipped',
+      enabled: true,
+      appBootstrapContinuationAllowed: true,
+      appStartupHostConnectionSourceStatus: 'accepted',
+      targetPackageId: 'product_probe_pack',
+      selectedPackageIds: [],
+      blockedPackageIds: ['product_probe_pack'],
+      loadOrder: [],
+      registryCount: 54,
+      entryCount: 4242,
+      packageCount: 1,
+      effects: {
+        appStartupHostConnectionSourceCalled: true,
+        appStartupHostConnectionAccepted: true,
+        startupPersistentStateSourceCalled: true,
+        startupStateSnapshotAccepted: true,
+        thirdPartyRegistryPublished: false,
+        liveRegistrySwapped: false,
+        runtimeEnablementAllowed: false,
+        realRuntimePublicationCommitCalled: false,
+        runtimePublicationCommitted: false
+      }
+    }
+
+    const result = await bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async () => {
+        events.push('official-content')
+        return { id: 'registry-set' }
+      }),
+      publishRuntimeContentRegistry: vi.fn(async () => {
+        events.push('publish-runtime-registry')
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn(async () => {
+        events.push('third-party-startup-gate')
+        return startupGateResult
+      }),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return app
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return pinia
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => {
+        events.push('get-router')
+        return router
+      }),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async () => {
+        events.push('read-save')
+        events.push('mount')
+      }),
+      acknowledgeThirdPartyAppStartupHost: vi.fn(options => {
+        events.push('app-startup-host')
+        publishThirdPartyDataPackMountedAppStartupHostEvidence(options.evidence)
+        return acknowledgeThirdPartyDataPackMountedAppStartupHostConnection(options)
+      })
+    })
+
+    expect(result).toEqual({
+      app,
+      pinia,
+      router,
+      thirdPartyStartupGateResult: startupGateResult,
+      thirdPartyAppStartupHostResult: expect.objectContaining({
+        status: 'accepted',
+        enabled: true,
+        targetPackageId: 'product_probe_pack',
+        selectedPackageIds: [],
+        blockedPackageIds: ['product_probe_pack'],
+        loadOrder: [],
+        registryCount: 54,
+        entryCount: 4242,
+        packageCount: 1,
+        lockfileHashPresent: false,
+        effects: expect.objectContaining({
+          realAppStartupHostCalled: true,
+          appStartupHostConnectionAccepted: true,
+          gameAppCreated: true,
+          piniaCreated: true,
+          routerMounted: true,
+          thirdPartyRegistryPublished: false,
+          liveRegistrySwapped: false,
+          runtimeEnablementAllowed: false,
+          realRuntimePublicationCommitCalled: false,
+          runtimePublicationCommitted: false,
+          packageFilesWritten: false,
+          lockfileWritten: false,
+          settingsWritten: false,
+          savesWritten: false,
+          cacheWritten: false,
+          transactionLogWritten: false
+        })
+      })
+    })
+    expect(getThirdPartyDataPackMountedAppStartupHostEvidence()).toEqual({
+      officialContentBootstrapped: true,
+      runtimeContentRegistryPublished: true,
+      thirdPartyStartupGateCompleted: true,
+      thirdPartyStartupGateAllowed: true,
+      gameAppCreated: true,
+      piniaCreated: true,
+      routerInstalled: true,
+      routerMounted: true
+    })
+    expect(events).toEqual([
+      'official-content',
+      'publish-runtime-registry',
+      'third-party-startup-gate',
+      'create-app',
+      'create-pinia',
+      'configure-pinia',
+      'install-pinia',
+      'get-router',
+      'install-router',
+      'read-save',
+      'mount',
+      'app-startup-host'
     ])
   })
 
