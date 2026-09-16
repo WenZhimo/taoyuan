@@ -1217,6 +1217,51 @@ describe('third-party installed-state startup gate bootstrap source', () => {
     expect(getOfficialItemDef(`${targetPackageId}:linen_ribbon`)).toBeUndefined()
   })
 
+  it('blocks Electron partial uninstall startup when the startup snapshot is not settled', async() => {
+    const dependencyPackageId = 'a_electron_uninstall_unsettled_library' as PackageId
+    const targetPackageId = 'z_electron_uninstall_unsettled_app' as PackageId
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const mountInput = await seedWebInstalledStateWithDependency(
+      store,
+      targetPackageId,
+      dependencyPackageId,
+      settingsLockfileStore,
+      officialRegistrySet
+    )
+    const disableState = buildThirdPartyDataPackDisableState({
+      officialRegistrySet,
+      installedDraft: mountInput.lockfileDraft!,
+      targetPackageId
+    })
+    const uninstallState = buildThirdPartyDataPackUninstallState({
+      officialRegistrySet,
+      installedDraft: disableState.lockfileDraft,
+      targetPackageId
+    })
+    const uninstallRecord = createThirdPartyDataPackUninstallPersistentRecord(
+      'active',
+      uninstallState
+    )
+    const runtimeHost = createElectronRuntimeHost(dependencyPackageId, {
+      readInstalledState: async() => ({
+        status: 'ready',
+        record: uninstallRecord,
+        packageFilesPreserved: true
+      })
+    })
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost
+    })
+
+    await expect(source()).rejects.toThrow(
+      'Electron installed state uninstall startup snapshot does not match removed package state'
+    )
+    expect(getOfficialItemDef(`${dependencyPackageId}:library_token`)).toBeUndefined()
+    expect(getOfficialItemDef(`${targetPackageId}:linen_ribbon`)).toBeUndefined()
+  })
+
   it('skips app-startup handoff when Electron mods root does not exist', async() => {
     const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
       runtimeHost: createElectronRuntimeHost('electron_missing_root' as PackageId, {

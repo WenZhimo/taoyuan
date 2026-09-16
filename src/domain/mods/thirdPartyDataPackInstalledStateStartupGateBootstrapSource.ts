@@ -1084,8 +1084,15 @@ const readElectronUninstalledState = async(
   if (!webUninstallRecordMatchesRemovedState(record)) {
     throw new Error('Electron installed state uninstall record does not match removed package state')
   }
-  const snapshot = await host.read(buildUninstallStartupStateRequest(record))
-  if (!startupSnapshotMatchesUninstallRecord(snapshot, record)) return null
+  let snapshot: ThirdPartyDataPackStartupGatePersistentStateSnapshotSource
+  try {
+    snapshot = await host.read(buildUninstallStartupStateRequest(record))
+  } catch {
+    throw new Error('Electron installed state uninstall startup snapshot could not be read during startup')
+  }
+  if (!startupSnapshotMatchesUninstallRecord(snapshot, record)) {
+    throw new Error('Electron installed state uninstall startup snapshot does not match removed package state')
+  }
   return {
     kind: 'uninstalled',
     sourceKind: 'electron-program-directory-userdata',
