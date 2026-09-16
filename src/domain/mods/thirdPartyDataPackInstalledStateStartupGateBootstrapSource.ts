@@ -753,6 +753,25 @@ const packageIdsEqual = (
   right: readonly PackageId[]
 ): boolean => left.length === right.length && left.every((value, index) => value === right[index])
 
+const disabledRecordMatchesRuntimeContext = (
+  runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
+  record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord,
+  state: ThirdPartyDataPackDisableState
+): boolean => record.targetPackageId === state.targetPackageId
+  && record.candidateHash === state.candidateIdentity.candidateHash
+  && record.lockfileHash === state.lockfileHash
+  && packageIdsEqual(record.selectedPackageIds, [])
+  && packageIdsEqual(record.blockedPackageIds, [state.targetPackageId])
+  && packageIdsEqual(record.loadOrder, [])
+  && record.lockfileDraft.candidateIdentity.candidateHash === state.candidateIdentity.candidateHash
+  && record.lockfileDraft.lockfileHash === state.lockfileHash
+  && packageIdsEqual(record.lockfileDraft.selectedPackageIds, [])
+  && packageIdsEqual(record.lockfileDraft.loadOrder, [])
+  && record.lockfileDraft.packages.length === runtimeContext.mountInput.lockfileDraft?.packages.length
+  && record.lockfileDraft.packages.some(
+    currentPackage => currentPackage.packageId === state.targetPackageId
+  )
+
 const enabledRecordMatchesRuntimeContext = (
   runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
   record: ThirdPartyDataPackWebSettingsLockfilePersistentWriterRecord
@@ -793,10 +812,11 @@ const readWebEnabledCommandId = async(
 
 const readElectronEnabledCommandId = async(
   runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
-  host: ReturnType<typeof createThirdPartyDataPackElectronInstalledStateRendererHost> | undefined
+  host: ReturnType<typeof createThirdPartyDataPackElectronInstalledStateRendererHost> | undefined,
+  installedState?: ThirdPartyDataPackElectronInstalledStateReadResult
 ): Promise<ThirdPartyDataPackEnabledRuntimeCommandId> => {
-  if (host === undefined) return 'install'
-  const installedState = await host.read()
+  if (host === undefined && installedState === undefined) return 'install'
+  installedState ??= await host!.read()
   if (installedState.status === 'missing') return 'install'
   if (installedState.status === 'blocked') {
     throw new Error(installedState.reason ?? 'Electron installed state could not be read during startup')
@@ -878,8 +898,52 @@ const buildDisableStateForPackage = (
 
 const readElectronDisabledState = async(
   runtimeContext: Awaited<ReturnType<typeof buildInstalledStateRuntimeContext>>,
-  host: ReturnType<typeof createThirdPartyDataPackElectronStartupPersistentStateReadHost>
+  host: ReturnType<typeof createThirdPartyDataPackElectronStartupPersistentStateReadHost>,
+  installedState?: ThirdPartyDataPackElectronInstalledStateReadResult
 ): Promise<DisabledInstalledState | null> => {
+  if (installedState?.status === 'blocked') {
+    throw new Error(installedState.reason ?? 'Electron installed state could not be read during startup')
+  }
+  const record = installedState?.status === 'ready' ? installedState.record : null
+  if (record?.requestedCommandId === 'disable') {
+    if (installedState?.packageFilesPreserved !== true) {
+      throw new Error('Electron installed state disable record has missing package files')
+    }
+    const state = buildDisableStateForPackage(runtimeContext, record.targetPackageId)
+    if (!disabledRecordMatchesRuntimeContext(runtimeContext, record, state)) {
+      throw new Error('Electron installed state disable record does not match the installed package source')
+    }
+    let snapshot: ThirdPartyDataPackStartupGatePersistentStateSnapshotSource
+    try {
+      snapshot = await host.read(buildDisableStartupStateRequest(state))
+    } catch {
+      throw new Error('Electron installed state disable startup snapshot could not be read during startup')
+    }
+    if (!startupSnapshotMatchesDisableState(snapshot, state)) {
+      throw new Error('Electron installed state disable startup snapshot does not match the installed package source')
+    }
+    return {
+      kind: 'disabled',
+      sourceKind: 'electron-program-directory-userdata',
+      targetPackageId: state.targetPackageId,
+      packageCount: state.packageCount,
+      startupPersistentStateSourceStatus: 'ready',
+      startupPersistentStateSourceHostMode:
+        'electron-program-directory-startup-persistent-state',
+      startupPersistentStateInjectedSourceHostMode:
+        'electron-program-directory-startup-persistent-state',
+      appStartupHostConnectionSourceStatus: 'accepted',
+      persistentStateProofs: {
+        transactionLogCommitted: true,
+        packageStateMatched: true,
+        settingsStateMatched: true,
+        modLockStateMatched: true,
+        liveRegistryMatched: true,
+        saveCacheIsolated: true
+      }
+    }
+  }
+
   for (const targetPackageId of runtimeContext.mountInput.selectedPackageIds) {
     const state = buildDisableStateForPackage(runtimeContext, targetPackageId)
     let snapshot: ThirdPartyDataPackStartupGatePersistentStateSnapshotSource
@@ -1365,15 +1429,19 @@ const createElectronStartupPersistentState = async(
 const createInstalledStateContext = async(
   resolvedSource: ResolvedInstalledStateSource
 ): Promise<InstalledStateContextResult | null> => {
+  const electronInstalledState = resolvedSource.sourceKind === 'electron-program-directory-userdata'
+    && resolvedSource.electronInstalledStateHost !== undefined
+    ? await resolvedSource.electronInstalledStateHost.read()
+    : undefined
   const uninstalledState = resolvedSource.sourceKind === 'web-indexeddb'
     ? await readWebUninstalledState(
         resolvedSource.webSettingsLockfileStore!,
         resolvedSource.webStartupPersistentStateHost!
       )
-    : resolvedSource.electronInstalledStateHost === undefined
+    : electronInstalledState === undefined
       ? null
       : await readElectronUninstalledState(
-          await resolvedSource.electronInstalledStateHost.read(),
+          electronInstalledState,
           resolvedSource.electronStartupPersistentStateHost!
         )
   if (uninstalledState !== null) return uninstalledState
@@ -1393,10 +1461,10 @@ const createInstalledStateContext = async(
           resolvedSource.webSettingsLockfileStore!,
           resolvedSource.webStartupPersistentStateHost!
         )
-      : resolvedSource.electronInstalledStateHost === undefined
+      : electronInstalledState === undefined
         ? null
         : await readElectronUninstalledState(
-            await resolvedSource.electronInstalledStateHost.read(),
+            electronInstalledState,
             resolvedSource.electronStartupPersistentStateHost!
           )
   }
@@ -1409,7 +1477,8 @@ const createInstalledStateContext = async(
       )
     : await readElectronDisabledState(
         runtimeContext,
-        resolvedSource.electronStartupPersistentStateHost!
+        resolvedSource.electronStartupPersistentStateHost!,
+        electronInstalledState
       )
   if (disabledState !== null) {
     return Object.freeze({
@@ -1424,7 +1493,8 @@ const createInstalledStateContext = async(
       )
     : await readElectronEnabledCommandId(
         runtimeContext,
-        resolvedSource.electronInstalledStateHost
+        resolvedSource.electronInstalledStateHost,
+        electronInstalledState
       )
   const enabledRuntimeContext = withEnabledCommandId(runtimeContext, requestedCommandId)
   const startupState = resolvedSource.sourceKind === 'web-indexeddb'

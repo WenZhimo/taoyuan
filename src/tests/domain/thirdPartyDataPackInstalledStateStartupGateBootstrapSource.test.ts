@@ -856,6 +856,43 @@ describe('third-party installed-state startup gate bootstrap source', () => {
     expect(JSON.stringify(result)).not.toContain('C:/Users')
   })
 
+  it('blocks Electron disabled startup when the disabled startup snapshot is not settled', async() => {
+    const packageId = 'electron_disabled_startup_unsettled' as PackageId
+    const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const mountInput = await seedWebInstalledState(
+      store,
+      packageId,
+      officialRegistrySet,
+      settingsLockfileStore
+    )
+    const disableState = buildThirdPartyDataPackDisableState({
+      officialRegistrySet,
+      installedDraft: mountInput.lockfileDraft!,
+      targetPackageId: packageId
+    })
+    const disableRecord = createThirdPartyDataPackDisablePersistentRecord(
+      'active',
+      disableState
+    )
+    const runtimeHost = createElectronRuntimeHost(packageId, {
+      readInstalledState: async() => ({
+        status: 'ready',
+        record: disableRecord,
+        packageFilesPreserved: true
+      })
+    })
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost
+    })
+
+    await expect(source()).rejects.toThrow(
+      'Electron installed state disable startup snapshot does not match the installed package source'
+    )
+    expect(getOfficialItemDef(`${packageId}:linen_ribbon`)).toBeUndefined()
+  })
+
   it('preserves Web uninstalled state through an official-only startup snapshot', async() => {
     const packageId = 'web_uninstalled_startup_pack' as PackageId
     const officialRegistrySet = buildOfficialRegistrySetFromStaticData()
