@@ -137,6 +137,25 @@ const webScenarios = [
     visibleDependency: true
   },
   {
+    name: 'visible-import-web-archive-install-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportWebOrdinary: true,
+    visibleInstallFailAfterModLockWrite: true,
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-web-archive-dependency-install-write-failure-rollback',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    visibleImportWebOrdinary: true,
+    visibleInstallFailAfterModLockWrite: true,
+    visibleDependency: true,
+    visibleArchiveImport: true
+  },
+  {
     name: 'visible-import-web-archive-installed-startup-persistent-state',
     fault: null,
     source: 'precompiled',
@@ -918,6 +937,59 @@ const electronScenarios = [
     cacheWriteStatus: 'not-needed',
     dataRoot: 'visible-import-dependency-install-write-failure',
     cacheSeed: 'valid'
+  },
+  {
+    name: 'visible-import-archive-install-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-install-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleInstallFailAfterModLockWrite: true,
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-archive-install-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-install-write-failure',
+    cacheSeed: 'valid',
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-archive-dependency-install-write-failure-rollback',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-dependency-install-write-failure',
+    cacheSeed: 'valid',
+    visibleImportRendererLiveRegistry: true,
+    visibleInstallFailAfterModLockWrite: true,
+    visibleDependency: true,
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-archive-dependency-install-write-failure-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-dependency-install-write-failure',
+    cacheSeed: 'valid',
+    visibleArchiveImport: true
   },
   {
     name: 'visible-import-archive-renderer-live-registry',
