@@ -84,6 +84,7 @@
           startup {{ lastDisableResult.terminal.startupStateWritten ? '已写入' : '未写入' }} ·
           UI/IPC {{ lastDisableResult.managementUiIpcResponseDelivered ? '已送达' : '未送达' }} ·
           runtime commit {{ lastDisableResult.terminal.runtimePublicationCommitted ? '已确认' : '未确认' }} ·
+          runtime host {{ managementRuntimePublicationHostModeLabel(lastDisableResult) }} ·
           runtime {{ lastDisableResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
           live registry {{ lastDisableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
           handoff {{ lastDisableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
@@ -253,6 +254,9 @@
   import type {
     ThirdPartyDataPackEnableTransactionResult
   } from '@/domain/mods/thirdPartyDataPackEnableTransaction'
+  import type {
+    ThirdPartyDataPackRuntimePublicationCommitHostMode
+  } from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
   import type { PackageId } from '@/domain/mods/ids'
   import {
     useWebInstalledDataPackManagement,
@@ -526,6 +530,24 @@
     result.terminal.status === 'ready' && result.managementUiIpcResponseDelivered
       ? '已完成'
       : '已阻断'
+  const managementRuntimePublicationHostModeLabel = (
+    result: {
+      readonly runtimePublicationCommitHostMode:
+        ThirdPartyDataPackRuntimePublicationCommitHostMode | null
+      readonly injectedRuntimePublicationHostMode: 'injected-test-only' | null
+    }
+  ): string => {
+    if (result.runtimePublicationCommitHostMode === 'real-in-memory-runtime-publication-commit-host') {
+      return '真实主机'
+    }
+    if (
+      result.runtimePublicationCommitHostMode === 'injected-test-only'
+      || result.injectedRuntimePublicationHostMode === 'injected-test-only'
+    ) {
+      return '注入测试'
+    }
+    return '未确认'
+  }
   const canManageInstalledPackage = (packageId: string): boolean =>
     installedManagement.canManagePackage(packageId as PackageId)
   const isPreparing = ref(false)

@@ -68,6 +68,9 @@ import {
 import type {
   ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement
 } from '@/domain/mods/thirdPartyDataPackRuntimeCommandState'
+import type {
+  ThirdPartyDataPackRuntimePublicationCommitHostMode
+} from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
 import {
   deliverThirdPartyDataPackWebManagementUiIpcResponse,
   type ThirdPartyDataPackManagementUiIpcTerminal
@@ -95,6 +98,8 @@ export interface WebInstalledDataPackManagementCommandDeliveryResult {
   readonly managementCommandHostKind: WebInstalledDataPackManagementCommandHostKind
   readonly managementCommandDispatched: boolean
   readonly managementUiIpcResponseDelivered: boolean
+  readonly runtimePublicationCommitHostMode: ThirdPartyDataPackRuntimePublicationCommitHostMode | null
+  readonly injectedRuntimePublicationHostMode: 'injected-test-only' | null
   readonly realWebPlatformWriterHostCalled: boolean
   readonly realElectronSettingsLockfilePersistentWriterHostCalled: boolean
 }
@@ -337,14 +342,46 @@ const buildRemainingInstalledPackageRecord = (
   })
 }
 
+const isRuntimePublicationCommitHostMode = (
+  value: unknown
+): value is ThirdPartyDataPackRuntimePublicationCommitHostMode =>
+  value === 'real-in-memory-runtime-publication-commit-host'
+  || value === 'injected-test-only'
+
+const readManagementRuntimePublicationCommitHostMode = (
+  result: object
+): ThirdPartyDataPackRuntimePublicationCommitHostMode | null => {
+  const runtimePublicationCommit = 'runtimePublicationCommit' in result
+    ? result.runtimePublicationCommit
+    : undefined
+  if (
+    runtimePublicationCommit === null
+    || typeof runtimePublicationCommit !== 'object'
+    || !('runtimePublicationCommitHostMode' in runtimePublicationCommit)
+  ) {
+    return null
+  }
+  const mode = runtimePublicationCommit.runtimePublicationCommitHostMode
+  return isRuntimePublicationCommitHostMode(mode) ? mode : null
+}
+
 const withManagementCommandDelivery = <Result extends object>(
   result: Result,
-  delivery: WebInstalledDataPackManagementCommandDeliveryResult
+  delivery: Omit<
+    WebInstalledDataPackManagementCommandDeliveryResult,
+    'runtimePublicationCommitHostMode' | 'injectedRuntimePublicationHostMode'
+  >
 ): Result & WebInstalledDataPackManagementCommandDeliveryResult =>
-  Object.freeze({
-    ...result,
-    ...delivery
-  })
+  {
+    const runtimePublicationCommitHostMode = readManagementRuntimePublicationCommitHostMode(result)
+    return Object.freeze({
+      ...result,
+      ...delivery,
+      runtimePublicationCommitHostMode,
+      injectedRuntimePublicationHostMode:
+        runtimePublicationCommitHostMode === 'injected-test-only' ? 'injected-test-only' : null
+    })
+  }
 
 const webManagementDeliveryBlockedReason = (
   commandId: 'disable' | 'enable' | 'uninstall'

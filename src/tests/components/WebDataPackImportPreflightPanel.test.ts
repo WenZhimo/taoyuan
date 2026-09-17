@@ -2096,6 +2096,8 @@ describe('WebDataPackImportPreflightPanel', () => {
         managementCommandHostKind: 'electron-renderer',
         managementCommandDispatched: true,
         managementUiIpcResponseDelivered: true,
+        runtimePublicationCommitHostMode: 'real-in-memory-runtime-publication-commit-host',
+        injectedRuntimePublicationHostMode: null,
         terminal: {
           status: 'ready',
           requestedCommandId: 'disable',
@@ -2117,6 +2119,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已禁用')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('禁用事务：已完成')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime commit 已确认')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime host 真实主机')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
       expect(JSON.stringify(disableThirdPartyDataPack.mock.calls[0]?.[0])).not.toContain('C:/Users')
       expect(JSON.stringify(panelResult)).not.toContain('C:/Users')
@@ -2183,6 +2186,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('startup 已写入')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('UI/IPC 已送达')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime commit 已确认')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime host 真实主机')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
@@ -2282,6 +2286,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('禁用事务：已阻断')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('UI/IPC 未送达')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime commit 已确认')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime host 真实主机')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')

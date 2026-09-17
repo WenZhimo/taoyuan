@@ -295,6 +295,9 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(result?.terminal.runtimePublicationExcluded).toBe(true)
     expect(result?.terminal.realRuntimePublicationCommitCalled).toBe(true)
     expect(result?.terminal.runtimePublicationCommitted).toBe(true)
+    expect(result?.runtimePublicationCommitHostMode)
+      .toBe('real-in-memory-runtime-publication-commit-host')
+    expect(result?.injectedRuntimePublicationHostMode).toBeNull()
     expect(result?.terminal.liveRegistrySwapped).toBe(true)
     expect(result?.terminal.appStartupHandoffAccepted).toBe(true)
     expect(result?.terminal.realAppStartupHostCalled).toBe(true)
@@ -690,6 +693,9 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(disableResult?.managementUiIpcResponseDelivered).toBe(false)
     expect(disableResult?.terminal.runtimePublicationExcluded).toBe(true)
     expect(disableResult?.terminal.runtimePublicationCommitted).toBe(true)
+    expect(disableResult?.runtimePublicationCommitHostMode)
+      .toBe('real-in-memory-runtime-publication-commit-host')
+    expect(disableResult?.injectedRuntimePublicationHostMode).toBeNull()
     expect(management.status.value).toBe('blocked')
     expect(management.reason.value).toBe('Web disable management UI/IPC response delivery was blocked')
     expect(management.rows.value).toEqual([{
@@ -834,6 +840,8 @@ describe('useWebInstalledDataPackManagement', () => {
       managementCommandHostKind: 'electron-renderer',
       managementCommandDispatched: true,
       managementUiIpcResponseDelivered: true,
+      runtimePublicationCommitHostMode: 'real-in-memory-runtime-publication-commit-host',
+      injectedRuntimePublicationHostMode: null,
       realWebPlatformWriterHostCalled: false,
       realElectronSettingsLockfilePersistentWriterHostCalled: true,
       terminal: {

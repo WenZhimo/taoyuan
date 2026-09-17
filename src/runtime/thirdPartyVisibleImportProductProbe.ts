@@ -10,6 +10,9 @@ import type { ThirdPartyDataPackEnableTransactionResult } from '@/domain/mods/th
 import type {
   ThirdPartyDataPackUninstallTransactionResult
 } from '@/domain/mods/thirdPartyDataPackUninstallTransaction'
+import type {
+  ThirdPartyDataPackRuntimePublicationCommitHostMode
+} from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
 import { CURRENT_GAME_VERSION } from '@/domain/mods/officialContentVersions'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import type { WebFilePickerImportFile } from '@/domain/mods/webFilePickerImportSource'
@@ -86,6 +89,24 @@ const packageIdListMatches = (
 ): boolean =>
   actual.length === expected.length
   && actual.every((packageId, index) => packageId === expected[index])
+
+type RuntimePublicationCommitHostModeCarrier = {
+  readonly runtimePublicationCommit?: {
+    readonly runtimePublicationCommitHostMode?: ThirdPartyDataPackRuntimePublicationCommitHostMode
+  }
+}
+
+const readRuntimePublicationCommitHostMode = (
+  result: RuntimePublicationCommitHostModeCarrier | null | undefined
+): ThirdPartyDataPackRuntimePublicationCommitHostMode | null =>
+  result?.runtimePublicationCommit?.runtimePublicationCommitHostMode ?? null
+
+const readInjectedRuntimePublicationHostMode = (
+  result: RuntimePublicationCommitHostModeCarrier | null | undefined
+): 'injected-test-only' | null =>
+  readRuntimePublicationCommitHostMode(result) === 'injected-test-only'
+    ? 'injected-test-only'
+    : null
 
 export interface RunThirdPartyVisibleImportProductProbeOptions {
   readonly persistSource?: boolean
@@ -222,6 +243,9 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly disablePackageFilesPreserved?: boolean
   readonly disableRealRuntimePublicationCommitCalled?: boolean
   readonly disableRuntimePublicationCommitted?: boolean
+  readonly disableRuntimePublicationCommitHostMode?:
+    ThirdPartyDataPackRuntimePublicationCommitHostMode | null
+  readonly disableInjectedRuntimePublicationHostMode?: 'injected-test-only' | null
   readonly disableRuntimePublicationExcluded?: boolean
   readonly disableLiveRegistrySwapped?: boolean
   readonly disableAppStartupHandoffAccepted?: boolean
@@ -2010,6 +2034,10 @@ export const runThirdPartyVisibleDisableProductProbe = async(
 ): Promise<ThirdPartyVisibleImportProductProbeResult> => {
   const execution = await runMainMenuPanelDisableProbe(options)
   const terminal = execution.transactionResult?.terminal ?? null
+  const disableRuntimePublicationCommitHostMode =
+    readRuntimePublicationCommitHostMode(execution.transactionResult)
+  const disableInjectedRuntimePublicationHostMode =
+    readInjectedRuntimePublicationHostMode(execution.transactionResult)
   const ready = terminal?.status === 'ready'
     && terminal.targetPackageId === execution.targetPackageId
     && terminal.selectedPackageIds.length === 0
@@ -2022,6 +2050,8 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     && terminal.packageFilesPreserved
     && terminal.realRuntimePublicationCommitCalled
     && terminal.runtimePublicationCommitted
+    && disableRuntimePublicationCommitHostMode === 'real-in-memory-runtime-publication-commit-host'
+    && disableInjectedRuntimePublicationHostMode === null
     && terminal.runtimePublicationExcluded
     && terminal.liveRegistrySwapped
     && terminal.appStartupHandoffAccepted
@@ -2129,6 +2159,8 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     disableRealRuntimePublicationCommitCalled:
       terminal?.realRuntimePublicationCommitCalled === true,
     disableRuntimePublicationCommitted: terminal?.runtimePublicationCommitted === true,
+    disableRuntimePublicationCommitHostMode,
+    disableInjectedRuntimePublicationHostMode,
     disableRuntimePublicationExcluded: terminal?.runtimePublicationExcluded === true,
     disableLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
     disableAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,

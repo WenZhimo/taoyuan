@@ -8,6 +8,9 @@ import {
   getOfficialShopOfferDefs
 } from '@/domain/mods/contentAccess'
 import { isPackageId } from '@/domain/mods/ids'
+import type {
+  ThirdPartyDataPackRuntimePublicationCommitHostMode
+} from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
 
 const productProbePackageId = 'product_probe_pack'
 const productProbeItemId = `${productProbePackageId}:linen_ribbon`
@@ -224,6 +227,9 @@ type ThirdPartyVisibleManagementCommandHostKind =
   | 'web-indexeddb'
   | 'electron-renderer'
 
+type ThirdPartyRuntimePublicationCommitHostMode =
+  ThirdPartyDataPackRuntimePublicationCommitHostMode
+
 export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   schemaVersion: 1
   observed: boolean
@@ -338,6 +344,8 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   disablePackageFilesPreserved?: boolean
   disableRealRuntimePublicationCommitCalled?: boolean
   disableRuntimePublicationCommitted?: boolean
+  disableRuntimePublicationCommitHostMode?: ThirdPartyRuntimePublicationCommitHostMode
+  disableInjectedRuntimePublicationHostMode?: 'injected-test-only'
   disableRuntimePublicationExcluded?: boolean
   disableLiveRegistrySwapped?: boolean
   disableAppStartupHandoffAccepted?: boolean
@@ -501,6 +509,17 @@ const readStartupPersistentStateSourceHostMode = (
   return mode === 'injected-test-only'
     || mode === 'web-indexeddb-startup-persistent-state'
     || mode === 'electron-program-directory-startup-persistent-state'
+    ? mode
+    : undefined
+}
+
+const readRuntimePublicationCommitHostMode = (
+  value: unknown,
+  fieldName: string
+): ThirdPartyRuntimePublicationCommitHostMode | undefined => {
+  const mode = readOwnStringField(value, fieldName)
+  return mode === 'real-in-memory-runtime-publication-commit-host'
+    || mode === 'injected-test-only'
     ? mode
     : undefined
 }
@@ -1243,6 +1262,10 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     readOwnBooleanField(result, 'disableRealRuntimePublicationCommitCalled')
   const disableRuntimePublicationCommitted =
     readOwnBooleanField(result, 'disableRuntimePublicationCommitted')
+  const disableRuntimePublicationCommitHostMode =
+    readRuntimePublicationCommitHostMode(result, 'disableRuntimePublicationCommitHostMode')
+  const disableInjectedRuntimePublicationHostMode =
+    readRuntimePublicationCommitHostMode(result, 'disableInjectedRuntimePublicationHostMode')
   const disableRuntimePublicationExcluded = readOwnBooleanField(result, 'disableRuntimePublicationExcluded')
   const disableLiveRegistrySwapped = readOwnBooleanField(result, 'disableLiveRegistrySwapped')
   const disableAppStartupHandoffAccepted = readOwnBooleanField(result, 'disableAppStartupHandoffAccepted')
@@ -1423,6 +1446,12 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(disableRuntimePublicationCommitted === undefined
       ? {}
       : { disableRuntimePublicationCommitted }),
+    ...(disableRuntimePublicationCommitHostMode === undefined
+      ? {}
+      : { disableRuntimePublicationCommitHostMode }),
+    ...(disableInjectedRuntimePublicationHostMode === 'injected-test-only'
+      ? { disableInjectedRuntimePublicationHostMode }
+      : {}),
     ...(disableRuntimePublicationExcluded === undefined ? {} : { disableRuntimePublicationExcluded }),
     ...(disableLiveRegistrySwapped === undefined ? {} : { disableLiveRegistrySwapped }),
     ...(disableAppStartupHandoffAccepted === undefined ? {} : { disableAppStartupHandoffAccepted }),

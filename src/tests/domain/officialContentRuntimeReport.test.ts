@@ -1211,6 +1211,7 @@ describe('official content runtime report', () => {
 
   it('summarizes visible management renderer command delivery without exposing hosts', () => {
     let hostileGetterRead = false
+    let hostileInjectedGetterRead = false
     const probeResult = {
       status: 'ready',
       operation: 'disable',
@@ -1255,6 +1256,7 @@ describe('official content runtime report', () => {
       disablePackageFilesPreserved: true,
       disableRealRuntimePublicationCommitCalled: true,
       disableRuntimePublicationCommitted: true,
+      disableRuntimePublicationCommitHostMode: 'real-in-memory-runtime-publication-commit-host',
       disableRuntimePublicationExcluded: true,
       disableLiveRegistrySwapped: true,
       disableAppStartupHandoffAccepted: true,
@@ -1291,6 +1293,13 @@ describe('official content runtime report', () => {
         throw new Error('C:\\secret\\management-host')
       }
     })
+    Object.defineProperty(probeResult, 'disableInjectedRuntimePublicationHostMode', {
+      enumerable: true,
+      get() {
+        hostileInjectedGetterRead = true
+        throw new Error('C:\\secret\\injected-runtime-publication-host')
+      }
+    })
 
     const summary = createThirdPartyVisibleImportRuntimeProbeSummary(probeResult)
 
@@ -1316,6 +1325,7 @@ describe('official content runtime report', () => {
       disableStartupStateWritten: true,
       disableRealRuntimePublicationCommitCalled: true,
       disableRuntimePublicationCommitted: true,
+      disableRuntimePublicationCommitHostMode: 'real-in-memory-runtime-publication-commit-host',
       disableRuntimePublicationExcluded: true,
       disableLiveRegistrySwapped: true,
       disableAppStartupHandoffAccepted: true,
@@ -1334,6 +1344,8 @@ describe('official content runtime report', () => {
       }
     })
     expect(hostileGetterRead).toBe(false)
+    expect(hostileInjectedGetterRead).toBe(false)
+    expect('disableInjectedRuntimePublicationHostMode' in summary).toBe(false)
     expect(JSON.stringify(summary)).not.toContain('C:\\secret')
     expect(JSON.stringify(summary)).not.toContain('electronAPI')
     expect(JSON.stringify(summary)).not.toContain('window')

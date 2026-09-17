@@ -47,6 +47,7 @@ const visibleProbeShopOfferId = `${visibleProbePackageId}:shop/wanwupu/linen_rib
 const visibleProbeDependencyPackageId = 'a_product_probe_library'
 const visibleProbeDependencyItemId = `${visibleProbeDependencyPackageId}:library_token`
 const visibleProbeDependencyItemNameFallback = 'Product Probe Library Token'
+const realRuntimePublicationCommitHostMode = 'real-in-memory-runtime-publication-commit-host'
 const visibleProbePackageFixtures = {
   v1: {
     version: '1.0.0',
@@ -5456,6 +5457,16 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
       assert(visibleImport[fieldName] === false,
         `${scenario.name}: visible disable failure field ${fieldName} was not false`)
     }
+    assert(
+      visibleImport.disableRuntimePublicationCommitHostMode === null
+      || visibleImport.disableRuntimePublicationCommitHostMode === undefined,
+      `${scenario.name}: visible disable failure surfaced a runtime publication commit host mode`
+    )
+    assert(
+      visibleImport.disableInjectedRuntimePublicationHostMode === null
+      || visibleImport.disableInjectedRuntimePublicationHostMode === undefined,
+      `${scenario.name}: visible disable failure surfaced an injected runtime publication host mode`
+    )
     assert(visibleImport.disablePackageFilesPreserved === true,
       `${scenario.name}: visible disable failure did not preserve package files`)
     assert(visibleImport.diagnosticsCount === 1,
@@ -5527,6 +5538,15 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     assert(visibleImport[fieldName] === true,
       `${scenario.name}: visible disable probe field ${fieldName} was not true`)
   }
+  assert(
+    visibleImport.disableRuntimePublicationCommitHostMode === realRuntimePublicationCommitHostMode,
+    `${scenario.name}: visible disable probe did not use the real runtime publication commit host`
+  )
+  assert(
+    visibleImport.disableInjectedRuntimePublicationHostMode === null
+    || visibleImport.disableInjectedRuntimePublicationHostMode === undefined,
+    `${scenario.name}: visible disable probe leaked injected runtime publication host evidence`
+  )
   assert(visibleImport.contentAccessItemVisibleBefore === true,
     `${scenario.name}: disabled package item was not visible before disable`)
   assert(visibleImport.contentAccessItemVisibleAfter === false,
@@ -5560,6 +5580,7 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     'mod-lock 已写入',
     'startup 已写入',
     'runtime commit 已确认',
+    'runtime host 真实主机',
     'runtime 已排除',
     'live registry 已切换',
     'handoff 已接受'
