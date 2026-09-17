@@ -186,6 +186,7 @@ const createAcceptedRuntimeCommit = (
   appBootstrapContinuationAllowed: true,
   commandContinuationAllowed: true,
   runtimePublicationCommitHostStatus: 'accepted',
+  runtimePublicationCommitHostMode: 'injected-test-only',
   injectedRuntimePublicationHostMode: 'injected-test-only',
   requestedCommandId: 'install',
   targetPackageId: packageId,
@@ -321,6 +322,7 @@ describe('third-party runtime publication commit after post-commit verification 
     expect(result.postCommitVerificationAfterInstallTransactionCommitStatus).toBe('ready')
     expect(result.runtimePublicationCommitStatus).toBe('accepted')
     expect(result.runtimePublicationCommitHostStatus).toBe('accepted')
+    expect(result.runtimePublicationCommitHostMode).toBe('injected-test-only')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.candidateIdentity?.candidateHash).toBe(candidateIdentity.candidateHash)
@@ -341,7 +343,10 @@ describe('third-party runtime publication commit after post-commit verification 
       enabled: true,
       readPostCommitVerificationAfterInstallTransactionCommit: async() => createReadyPostCommit(),
       readRuntimePublicationCommit: async() => createAcceptedRuntimeCommit({
+        runtimePublicationCommitHostMode: 'real-in-memory-runtime-publication-commit-host',
+        injectedRuntimePublicationHostMode: undefined,
         effects: runtimeCommitEffects({
+          injectedRuntimePublicationCommitHostCalled: false,
           realRuntimePublicationCommitCalled: true,
           runtimePublicationCommitted: true
         })
@@ -351,6 +356,7 @@ describe('third-party runtime publication commit after post-commit verification 
     const result = await pipeline()
 
     expect(result.status).toBe('accepted')
+    expect(result.runtimePublicationCommitHostMode).toBe('real-in-memory-runtime-publication-commit-host')
     expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
     expect(result.effects.runtimePublicationCommitted).toBe(true)
     expect(result.effects.liveRegistrySwapped).toBe(false)

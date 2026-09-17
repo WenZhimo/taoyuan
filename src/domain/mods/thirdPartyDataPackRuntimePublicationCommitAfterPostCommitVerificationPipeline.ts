@@ -13,6 +13,7 @@ import {
 } from './thirdPartyDataPackRuntimePublicationCommitPipeline'
 import {
   ThirdPartyDataPackRuntimePublicationCommitBlockedError,
+  type ThirdPartyDataPackRuntimePublicationCommitHostMode,
   type ThirdPartyDataPackRuntimePublicationCommitHostStatus,
   type ThirdPartyDataPackRuntimePublicationCommitSourceResult
 } from './thirdPartyDataPackRuntimePublicationCommitSource'
@@ -131,6 +132,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerifi
     ThirdPartyDataPackPostCommitVerificationAfterInstallTransactionCommitPipelineResult['status']
   readonly runtimePublicationCommitStatus?: ThirdPartyDataPackRuntimePublicationCommitSourceResult['status']
   readonly runtimePublicationCommitHostStatus?: ThirdPartyDataPackRuntimePublicationCommitHostStatus
+  readonly runtimePublicationCommitHostMode?: ThirdPartyDataPackRuntimePublicationCommitHostMode
   readonly requestedCommandId?: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
@@ -408,6 +410,25 @@ const pathFreeRuntimeCommit = (
   runtimeCommit: ThirdPartyDataPackRuntimePublicationCommitSourceResult
 ): boolean => forbiddenRuntimeCommitFields.every(fieldName => !hasOwnEnumerableField(runtimeCommit, fieldName))
 
+const runtimePublicationCommitHostModes = new Set<ThirdPartyDataPackRuntimePublicationCommitHostMode>([
+  'injected-test-only',
+  'real-in-memory-runtime-publication-commit-host'
+])
+
+const readRuntimePublicationCommitHostMode = (
+  runtimeCommit: ThirdPartyDataPackRuntimePublicationCommitSourceResult
+): ThirdPartyDataPackRuntimePublicationCommitHostMode | undefined => {
+  const hostMode = readOwnStringField(runtimeCommit, 'runtimePublicationCommitHostMode')
+  if (hostMode !== undefined) {
+    return runtimePublicationCommitHostModes.has(hostMode as ThirdPartyDataPackRuntimePublicationCommitHostMode)
+      ? hostMode as ThirdPartyDataPackRuntimePublicationCommitHostMode
+      : undefined
+  }
+  return readOwnStringField(runtimeCommit, 'injectedRuntimePublicationHostMode') === 'injected-test-only'
+    ? 'injected-test-only'
+    : undefined
+}
+
 const safeReadyPostCommit = (
   postCommit: ThirdPartyDataPackPostCommitVerificationAfterInstallTransactionCommitPipelineResult
 ): boolean => readOwnStringField(postCommit, 'status') === 'ready'
@@ -448,23 +469,31 @@ const safeAcceptedRuntimeCommit = (
     readOwnBooleanField(effects, 'realRuntimePublicationCommitCalled') === true
   const runtimePublicationCommitted =
     readOwnBooleanField(effects, 'runtimePublicationCommitted') === true
+  const hostMode = readRuntimePublicationCommitHostMode(runtimeCommit)
+  const injectedRuntimePublicationCommitHostCalled =
+    readOwnBooleanField(effects, 'injectedRuntimePublicationCommitHostCalled') === true
   const optionalRealRuntimePublicationCommitKeys = realRuntimePublicationCommitCalled
     ? [
         'realRuntimePublicationCommitCalled',
         'runtimePublicationCommitted'
       ]
     : []
+  const injectedRuntimePublicationCommitHostKeys = hostMode === 'injected-test-only'
+    ? ['injectedRuntimePublicationCommitHostCalled']
+    : []
   return readOwnStringField(runtimeCommit, 'status') === 'accepted'
     && readOwnBooleanField(runtimeCommit, 'appBootstrapContinuationAllowed') === true
     && readOwnBooleanField(runtimeCommit, 'commandContinuationAllowed') === true
     && readOwnStringField(runtimeCommit, 'runtimePublicationCommitHostStatus') === 'accepted'
+    && hostMode !== undefined
     && cloneCandidateIdentity(readOwnDataField(runtimeCommit, 'candidateIdentity')) !== undefined
     && readOwnStringField(runtimeCommit, 'lockfileHash') !== undefined
     && realRuntimePublicationCommitCalled === runtimePublicationCommitted
+    && injectedRuntimePublicationCommitHostCalled === (hostMode === 'injected-test-only')
     && everyOwnDataBooleanFalseExcept(effects, [
       'runtimePublicationCommitSourceCalled',
       'runtimePublicationCommitAdapterSourceCalled',
-      'injectedRuntimePublicationCommitHostCalled',
+      ...injectedRuntimePublicationCommitHostKeys,
       'runtimePublicationCommitHostCalled',
       'runtimePublicationCommitHostAccepted',
       'appBootstrapContinuationAllowed',
@@ -744,6 +773,9 @@ const baseResult = (
     runtimePublicationCommitHostStatus: readOwnStringField(options.runtimeCommit, 'runtimePublicationCommitHostStatus') as
       | ThirdPartyDataPackRuntimePublicationCommitHostStatus
       | undefined,
+    runtimePublicationCommitHostMode: options.runtimeCommit === undefined
+      ? undefined
+      : readRuntimePublicationCommitHostMode(options.runtimeCommit),
     requestedCommandId: readThirdPartyDataPackEnabledRuntimeCommandId(
       readOwnStringField(options.postCommit, 'requestedCommandId')
     ),

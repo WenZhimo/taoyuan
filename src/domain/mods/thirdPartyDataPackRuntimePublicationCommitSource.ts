@@ -32,6 +32,10 @@ export type ThirdPartyDataPackRuntimePublicationCommitHostStatus =
   | 'accepted'
   | 'blocked'
 
+export type ThirdPartyDataPackRuntimePublicationCommitHostMode =
+  | 'injected-test-only'
+  | 'real-in-memory-runtime-publication-commit-host'
+
 export interface ThirdPartyDataPackRuntimePublicationCommitSourceStageSummary {
   readonly id: ThirdPartyDataPackRuntimePublicationCommitStageId
   readonly status: 'satisfied' | 'deferred' | 'skipped' | 'blocked'
@@ -140,6 +144,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitHostEffectSummary {
 
 export interface ThirdPartyDataPackRuntimePublicationCommitHostResult {
   readonly status: ThirdPartyDataPackRuntimePublicationCommitHostStatus
+  readonly runtimePublicationCommitHostMode?: ThirdPartyDataPackRuntimePublicationCommitHostMode
   readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
@@ -167,6 +172,7 @@ export interface ThirdPartyDataPackRuntimePublicationCommitSourceResult {
   readonly appBootstrapContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
   readonly runtimePublicationCommitHostStatus?: ThirdPartyDataPackRuntimePublicationCommitHostStatus
+  readonly runtimePublicationCommitHostMode?: ThirdPartyDataPackRuntimePublicationCommitHostMode
   readonly injectedRuntimePublicationHostMode?: 'injected-test-only'
   readonly requestedCommandId?: ThirdPartyDataPackRuntimeCommandId
   readonly targetPackageId?: PackageId
@@ -588,6 +594,22 @@ const pathFreeRuntimePublicationCommitHostResult = (
   hostResult: ThirdPartyDataPackRuntimePublicationCommitHostResult
 ): boolean => forbiddenRuntimePublicationCommitHostFields.every(fieldName => !hasOwnEnumerableField(hostResult, fieldName))
 
+const runtimePublicationCommitHostModes = new Set<ThirdPartyDataPackRuntimePublicationCommitHostMode>([
+  'injected-test-only',
+  'real-in-memory-runtime-publication-commit-host'
+])
+
+const runtimePublicationCommitHostMode = (
+  hostResult?: ThirdPartyDataPackRuntimePublicationCommitHostResult
+): ThirdPartyDataPackRuntimePublicationCommitHostMode | undefined => {
+  if (hostResult === undefined) return undefined
+  const mode = readOwnStringField(hostResult, 'runtimePublicationCommitHostMode')
+  if (mode === undefined) return 'injected-test-only'
+  return runtimePublicationCommitHostModes.has(mode as ThirdPartyDataPackRuntimePublicationCommitHostMode)
+    ? mode as ThirdPartyDataPackRuntimePublicationCommitHostMode
+    : undefined
+}
+
 const arraysEqual = (left: readonly string[], right: readonly string[]): boolean =>
   left.length === right.length && left.every((value, index) => value === right[index])
 
@@ -645,8 +667,10 @@ const safeAcceptedHostResult = (
     readOwnBooleanField(hostEffects, 'realRuntimePublicationCommitCalled') === true
   const runtimePublicationCommitted =
     readOwnBooleanField(hostEffects, 'runtimePublicationCommitted') === true
+  const hostMode = runtimePublicationCommitHostMode(hostResult)
   return candidateIdentity !== undefined
     && readOwnStringField(hostResult, 'status') === 'accepted'
+    && hostMode !== undefined
     && requestedCommandId !== undefined
     && readOwnStringField(hostResult, 'targetPackageId') === expectedTargetPackageId
     && runtimeCommandTargetMatchesPackageState(
@@ -703,6 +727,7 @@ const effectSummary = (
   hostResult?: ThirdPartyDataPackRuntimePublicationCommitHostResult
 ): ThirdPartyDataPackRuntimePublicationCommitSourceEffectSummary => {
   const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
+  const hostMode = runtimePublicationCommitHostMode(hostResult)
   const realRuntimePublicationCommit =
     hostAccepted
     && readOwnBooleanField(hostEffects, 'realRuntimePublicationCommitCalled') === true
@@ -710,7 +735,7 @@ const effectSummary = (
   return Object.freeze({
     runtimePublicationCommitSourceCalled: true,
     runtimePublicationCommitAdapterSourceCalled: sourceCalled,
-    injectedRuntimePublicationCommitHostCalled: hostCalled,
+    injectedRuntimePublicationCommitHostCalled: hostCalled && hostMode === 'injected-test-only',
     runtimePublicationCommitHostCalled: hostCalled,
     runtimePublicationCommitHostAccepted: hostAccepted,
     appBootstrapContinuationAllowed: continuationAllowed,
@@ -779,6 +804,7 @@ const baseResult = (
   const hostStatus = readOwnStringField(options.hostResult, 'status') as
     | ThirdPartyDataPackRuntimePublicationCommitHostStatus
     | undefined
+  const hostMode = runtimePublicationCommitHostMode(options.hostResult)
 
   return deepFreezeObjectGraph({
     kind: THIRD_PARTY_DATA_PACK_RUNTIME_PUBLICATION_COMMIT_SOURCE_KIND,
@@ -791,7 +817,10 @@ const baseResult = (
     appBootstrapContinuationAllowed: continuationAllowed,
     commandContinuationAllowed: continuationAllowed,
     runtimePublicationCommitHostStatus: hostStatus,
-    injectedRuntimePublicationHostMode: options.hostResult === undefined ? undefined : 'injected-test-only',
+    runtimePublicationCommitHostMode: hostMode,
+    injectedRuntimePublicationHostMode: hostMode === 'injected-test-only'
+      ? 'injected-test-only'
+      : undefined,
     requestedCommandId,
     targetPackageId,
     runtimePublicationCommitAdapterStatus: readOwnStringField(options.source, 'status') as
@@ -975,9 +1004,12 @@ const evaluateRuntimePublicationCommitSource = async(
 
     const hostDiagnostics = safeDiagnostics(readOwnDataField(hostResult, 'diagnostics') as readonly unknown[] | undefined)
     if (safeAcceptedHostResult(source, hostResult)) {
+      const hostMode = runtimePublicationCommitHostMode(hostResult)
       return baseResult({
         status: 'accepted',
-        reason: 'runtime publication commit source accepted an injected path-free host acknowledgement',
+        reason: hostMode === 'real-in-memory-runtime-publication-commit-host'
+          ? 'runtime publication commit source accepted a real in-memory host acknowledgement'
+          : 'runtime publication commit source accepted an injected path-free host acknowledgement',
         enabled: true,
         sourceCalled: true,
         source,

@@ -164,6 +164,7 @@ const buildHostResult = (
   }
 ): ThirdPartyDataPackRuntimePublicationCommitHostResult => deepFreezeObjectGraph({
   status: options.status,
+  runtimePublicationCommitHostMode: 'real-in-memory-runtime-publication-commit-host',
   requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: clonePackageIds(envelope.selectedPackageIds),
