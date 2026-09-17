@@ -6393,6 +6393,22 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
         ? 'install-transaction-commit-finalization'
         : 'synthetic-success-handoff'
     ), `${scenario.name}: renderer UI/IPC delivery used the wrong input source`)
+    const expectsInstallTransactionCommitFinalizationInput =
+      expectedRendererPlatform === 'electron' && !!scenario.rendererUiIpcInstallResult
+    assert(
+      thirdPartyRendererUiIpc.installTransactionCommitFinalizationInputObserved
+        === expectsInstallTransactionCommitFinalizationInput,
+      `${scenario.name}: renderer UI/IPC finalization input observation mismatch`
+    )
+    assert(
+      thirdPartyRendererUiIpc.installTransactionCommitFinalizationInputAccepted
+        === expectsInstallTransactionCommitFinalizationInput,
+      `${scenario.name}: renderer UI/IPC finalization input acceptance mismatch`
+    )
+    if (expectsInstallTransactionCommitFinalizationInput) {
+      assert(thirdPartyRendererUiIpc.installTransactionCommitFinalizationInputStatus === 'committed',
+        `${scenario.name}: renderer UI/IPC finalization input status was not committed`)
+    }
     assert(thirdPartyRendererUiIpc.selectedPlatform === expectedRendererPlatform,
       `${scenario.name}: renderer UI/IPC delivery did not use the ${expectedRendererPlatform} bridge`)
     assert(thirdPartyRendererUiIpc.targetPackageId === 'product_probe_pack',
@@ -6455,6 +6471,10 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: inactive renderer UI/IPC summary consumed an acknowledgement`)
     assert(thirdPartyRendererUiIpc.webDomResponseEventObserved === false,
       `${scenario.name}: inactive renderer UI/IPC summary observed a DOM response event`)
+    assert(thirdPartyRendererUiIpc.installTransactionCommitFinalizationInputObserved === false,
+      `${scenario.name}: inactive renderer UI/IPC observed finalization input`)
+    assert(thirdPartyRendererUiIpc.installTransactionCommitFinalizationInputAccepted === false,
+      `${scenario.name}: inactive renderer UI/IPC accepted finalization input`)
     for (const effectName of [
       'uiIpcResponseDelivered',
       'electronIpcResponseSent',

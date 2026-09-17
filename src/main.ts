@@ -285,6 +285,15 @@ void bootstrapApplication({
       thirdPartyRendererUiIpcProductProbeResult?.responseDeliveryResult,
     thirdPartyRendererUiIpcDeliveryInputSource:
       thirdPartyRendererUiIpcProductProbeResult?.deliveryInputSource,
+    thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputObserved:
+      thirdPartyRendererUiIpcProductProbeResult
+        ?.installTransactionCommitFinalizationInputObserved,
+    thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputAccepted:
+      thirdPartyRendererUiIpcProductProbeResult
+        ?.installTransactionCommitFinalizationInputAccepted,
+    thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputStatus:
+      thirdPartyRendererUiIpcProductProbeResult
+        ?.installTransactionCommitFinalizationInputStatus,
     thirdPartyRendererUiIpcWebEventObserved:
       thirdPartyRendererUiIpcProductProbeResult?.webDomResponseEventObserved,
     thirdPartyElectronInstallCommandDispatchResult:

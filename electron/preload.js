@@ -30,6 +30,9 @@ const continueThirdPartyDataPackOrdinaryInstallTerminal = envelope =>
 const readThirdPartyDataPackStartupPersistentState = request =>
   ipcRenderer.invoke('third-party-data-pack-startup-persistent-state-read', request)
 
+const readThirdPartyDataPackInstallTransactionCommitFinalizationProbe = () =>
+  ipcRenderer.invoke('third-party-data-pack-install-transaction-commit-finalization-probe-read')
+
 contextBridge.exposeInMainWorld('electronAPI', {
   // 获取设置
   getSettings: () => ipcRenderer.invoke('get-settings'),
@@ -78,5 +81,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   continueThirdPartyDataPackOrdinaryInstallTerminal,
 
   // Startup persistent state reads are restricted to the program-local userdata snapshot.
-  readThirdPartyDataPackStartupPersistentState
+  readThirdPartyDataPackStartupPersistentState,
+
+  // Product probe reads the main-process install finalization report without exposing paths.
+  readThirdPartyDataPackInstallTransactionCommitFinalizationProbe
 })

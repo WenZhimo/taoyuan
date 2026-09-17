@@ -4862,12 +4862,17 @@ const createInstallTransactionCommitFinalizationProbeReport = async () => {
     preparedTransactionLogStatus: preparedTransactionLog.status,
     preparedReadVerificationStatus: preparedReadVerification.status,
     targetPackageId: finalization.targetPackageId ?? null,
+    selectedPackageIds: finalization.selectedPackageIds,
+    blockedPackageIds: finalization.blockedPackageIds,
+    loadOrder: finalization.loadOrder,
     selectedPackageCount: finalization.selectedPackageIds.length,
     blockedPackageCount: finalization.blockedPackageIds.length,
     loadOrderCount: finalization.loadOrder.length,
     registryCount: finalization.registryCount,
     entryCount: finalization.entryCount,
     packageCount: finalization.packageCount,
+    candidateIdentity: finalization.candidateIdentity ?? null,
+    lockfileHash: finalization.lockfileHash ?? null,
     candidateHashPresent: typeof finalization.candidateHash === 'string',
     lockfileHashPresent: typeof finalization.lockfileHash === 'string',
     transactionId: finalization.transactionId ?? null,
@@ -4914,6 +4919,17 @@ const createInstallTransactionCommitFinalizationProbeReport = async () => {
   }
 }
 
+let installTransactionCommitFinalizationProbeReportPromise = null
+
+const readInstallTransactionCommitFinalizationProbeReportOnce = () => {
+  installTransactionCommitFinalizationProbeReportPromise ??=
+    createInstallTransactionCommitFinalizationProbeReport().catch(error => {
+      installTransactionCommitFinalizationProbeReportPromise = null
+      throw error
+    })
+  return installTransactionCommitFinalizationProbeReportPromise
+}
+
 const createPostCommitUiIpcDeliveryContinuationTerminalEvidence = (
   draft,
   installTransactionCommitFinalizationProbe,
@@ -4935,6 +4951,9 @@ const createPostCommitUiIpcDeliveryContinuationTerminalEvidence = (
   const rendererUiIpcReady = rendererUiIpc?.observed === true
     && rendererUiIpc.status === 'ready'
     && rendererUiIpc.deliveryInputSource === 'install-transaction-commit-finalization'
+    && rendererUiIpc.installTransactionCommitFinalizationInputObserved === true
+    && rendererUiIpc.installTransactionCommitFinalizationInputAccepted === true
+    && rendererUiIpc.installTransactionCommitFinalizationInputStatus === 'committed'
     && rendererUiIpc.selectedPlatform === 'electron'
     && rendererUiIpc.targetPackageId === syntheticPackageId
     && rendererUiIpc.envelopeKind === 'success'
@@ -5785,6 +5804,9 @@ ipcMain.handle(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcC
 ipcMain.handle(thirdPartyDataPackElectronStartupPersistentStateReadIpcChannel, (_event, request) =>
   thirdPartyDataPackStartupPersistentStateReadHandler(request))
 
+ipcMain.handle('third-party-data-pack-install-transaction-commit-finalization-probe-read', () =>
+  readInstallTransactionCommitFinalizationProbeReportOnce())
+
 ipcMain.on('startup-failure', (_event, message) => {
   if (typeof message !== 'string') return
   appendStartupLog(`[taoyuan-core] ${message.slice(0, 100_000)}`)
@@ -5823,7 +5845,7 @@ ipcMain.on('content-runtime-probe', (_event, report) => {
       thirdPartyDataPackInstallCommandDispatchIpcProof
     )
     const installTransactionCommitFinalizationProbe =
-      await createInstallTransactionCommitFinalizationProbeReport()
+      await readInstallTransactionCommitFinalizationProbeReportOnce()
     const ordinaryInstallTerminalConnectionProbe =
       await createOrdinaryInstallTerminalConnectionProbeReport(
         installTransactionCommitFinalizationProbe,

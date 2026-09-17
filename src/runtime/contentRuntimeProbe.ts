@@ -128,6 +128,9 @@ export interface ThirdPartyRendererUiIpcRuntimeProbeSummary {
   observed: boolean
   status?: 'ready' | 'skipped' | 'blocked' | 'unknown'
   deliveryInputSource?: 'synthetic-success-handoff' | 'install-transaction-commit-finalization'
+  installTransactionCommitFinalizationInputObserved: boolean
+  installTransactionCommitFinalizationInputAccepted: boolean
+  installTransactionCommitFinalizationInputStatus?: string
   selectedPlatform?: 'electron' | 'web' | 'android'
   targetPackageId?: string
   envelopeKind?: 'success' | 'failure' | 'retry' | 'rollback'
@@ -397,6 +400,9 @@ export interface ContentRuntimeProbeOptions {
   readonly thirdPartyRendererUiIpcResult?: unknown
   readonly thirdPartyRendererUiIpcDeliveryInputSource?:
     ThirdPartyRendererUiIpcRuntimeProbeSummary['deliveryInputSource']
+  readonly thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputObserved?: boolean
+  readonly thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputAccepted?: boolean
+  readonly thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputStatus?: string
   readonly thirdPartyRendererUiIpcWebEventObserved?: boolean
   readonly thirdPartyElectronInstallCommandDispatchResult?: unknown
   readonly thirdPartyVisibleImportResult?: unknown
@@ -1026,12 +1032,28 @@ export const createThirdPartyAppStartupHostRuntimeProbeSummary = (
 export const createThirdPartyRendererUiIpcRuntimeProbeSummary = (
   result: unknown,
   deliveryInputSource?: ThirdPartyRendererUiIpcRuntimeProbeSummary['deliveryInputSource'],
+  installTransactionCommitFinalizationInputOrWebEventObserved?: {
+    readonly observed?: boolean
+    readonly accepted?: boolean
+    readonly status?: string
+  } | boolean,
   webDomResponseEventObserved = false
 ): ThirdPartyRendererUiIpcRuntimeProbeSummary => {
+  const installTransactionCommitFinalizationInput =
+    typeof installTransactionCommitFinalizationInputOrWebEventObserved === 'object'
+      ? installTransactionCommitFinalizationInputOrWebEventObserved
+      : undefined
+  const effectiveWebDomResponseEventObserved =
+    typeof installTransactionCommitFinalizationInputOrWebEventObserved === 'boolean'
+      ? installTransactionCommitFinalizationInputOrWebEventObserved
+      : webDomResponseEventObserved
+
   if (result === undefined || result === null || typeof result !== 'object') {
     return {
       schemaVersion: 1,
       observed: false,
+      installTransactionCommitFinalizationInputObserved: false,
+      installTransactionCommitFinalizationInputAccepted: false,
       selectedPackageCount: 0,
       blockedPackageCount: 0,
       loadOrderCount: 0,
@@ -1050,6 +1072,13 @@ export const createThirdPartyRendererUiIpcRuntimeProbeSummary = (
     observed: true,
     status: readRendererUiIpcStatus(result),
     ...(deliveryInputSource !== undefined ? { deliveryInputSource } : {}),
+    installTransactionCommitFinalizationInputObserved:
+      installTransactionCommitFinalizationInput?.observed === true,
+    installTransactionCommitFinalizationInputAccepted:
+      installTransactionCommitFinalizationInput?.accepted === true,
+    ...(installTransactionCommitFinalizationInput?.status !== undefined
+      ? { installTransactionCommitFinalizationInputStatus: installTransactionCommitFinalizationInput.status }
+      : {}),
     selectedPlatform: readRendererUiIpcPlatform(result),
     ...(targetPackageId !== undefined && isPackageId(targetPackageId)
       ? { targetPackageId }
@@ -1066,7 +1095,7 @@ export const createThirdPartyRendererUiIpcRuntimeProbeSummary = (
     platformResponseDelivered: readOwnBooleanField(result, 'platformResponseDelivered') === true,
     deliveryAcknowledgementConsumed:
       readOwnBooleanField(result, 'deliveryAcknowledgementConsumed') === true,
-    webDomResponseEventObserved,
+    webDomResponseEventObserved: effectiveWebDomResponseEventObserved,
     effects: {
       uiIpcResponseDelivered: readOwnBooleanField(effects, 'uiIpcResponseDelivered') === true,
       electronIpcResponseSent: readOwnBooleanField(effects, 'electronIpcResponseSent') === true,
@@ -1503,6 +1532,14 @@ export const publishContentRuntimeProbe = (
     thirdPartyRendererUiIpc: createThirdPartyRendererUiIpcRuntimeProbeSummary(
       options.thirdPartyRendererUiIpcResult,
       options.thirdPartyRendererUiIpcDeliveryInputSource,
+      {
+        observed:
+          options.thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputObserved,
+        accepted:
+          options.thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputAccepted,
+        status:
+          options.thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputStatus
+      },
       options.thirdPartyRendererUiIpcWebEventObserved === true
     ),
     thirdPartyElectronInstallCommandDispatch:

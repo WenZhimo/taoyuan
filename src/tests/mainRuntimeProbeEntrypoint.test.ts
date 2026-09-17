@@ -43,6 +43,8 @@ const mocks = vi.hoisted(() => {
     runThirdPartyRendererUiIpcProductProbe: vi.fn(async() => ({
       deliveryInputSource: 'synthetic-success-handoff',
       responseDeliveryResult: { status: 'ready' },
+      installTransactionCommitFinalizationInputObserved: false,
+      installTransactionCommitFinalizationInputAccepted: false,
       webDomResponseEventObserved: true
     })),
     runThirdPartyVisibleDisableProductProbe: vi.fn(async() => ({ status: 'ready' })),
@@ -747,6 +749,42 @@ describe('main runtime probe entrypoint', () => {
     expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
       expect.objectContaining({
         thirdPartyVisibleImportResult: visibleImportResult
+      })
+    )
+  })
+
+  it('publishes renderer install finalization input evidence for install-result query wiring', async() => {
+    const rendererUiIpcResult = {
+      deliveryInputSource: 'install-transaction-commit-finalization',
+      responseDeliveryResult: { status: 'ready' },
+      installTransactionCommitFinalizationInputObserved: true,
+      installTransactionCommitFinalizationInputAccepted: true,
+      installTransactionCommitFinalizationInputStatus: 'committed',
+      webDomResponseEventObserved: true
+    }
+    mocks.runThirdPartyRendererUiIpcProductProbe.mockResolvedValueOnce(rendererUiIpcResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyRendererUiIpcInstallResultProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyRendererUiIpcProductProbe).toHaveBeenCalledWith(
+        window,
+        { deliveryInputSource: 'install-transaction-commit-finalization' }
+      )
+    })
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyRendererUiIpcResult: rendererUiIpcResult.responseDeliveryResult,
+        thirdPartyRendererUiIpcDeliveryInputSource: 'install-transaction-commit-finalization',
+        thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputObserved: true,
+        thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputAccepted: true,
+        thirdPartyRendererUiIpcInstallTransactionCommitFinalizationInputStatus: 'committed',
+        thirdPartyRendererUiIpcWebEventObserved: true
       })
     )
   })

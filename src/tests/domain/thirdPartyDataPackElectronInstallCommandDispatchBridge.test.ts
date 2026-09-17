@@ -284,12 +284,22 @@ describe('third-party Electron install command dispatch bridge', () => {
       "ipcRenderer.invoke('third-party-data-pack-startup-persistent-state-read', request)"
     )
     expect(preloadSource).toContain('readThirdPartyDataPackStartupPersistentState')
+    expect(preloadSource).toContain(
+      "ipcRenderer.invoke('third-party-data-pack-install-transaction-commit-finalization-probe-read')"
+    )
+    expect(preloadSource).toContain(
+      'readThirdPartyDataPackInstallTransactionCommitFinalizationProbe'
+    )
     expect(mainSource).toContain('thirdPartyDataPackElectronInstallCommandDispatchIpcChannel')
     expect(mainSource).toContain('thirdPartyDataPackInstallCommandDispatchHandler(envelope)')
     expect(mainSource).toContain('thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel')
     expect(mainSource).toContain('continueOrdinaryInstallTerminalFromRenderer(envelope)')
     expect(mainSource).toContain('thirdPartyDataPackElectronStartupPersistentStateReadIpcChannel')
     expect(mainSource).toContain('thirdPartyDataPackStartupPersistentStateReadHandler(request)')
+    expect(mainSource).toContain(
+      "ipcMain.handle('third-party-data-pack-install-transaction-commit-finalization-probe-read'"
+    )
+    expect(mainSource).toContain('readInstallTransactionCommitFinalizationProbeReportOnce()')
     expect(mainSource).toContain('createMemoryContentPackageSource')
     expect(mainSource).toContain('discoverThirdPartyDataPacks')
     expect(mainSource).toContain('buildThirdPartyDataPackMountInput')

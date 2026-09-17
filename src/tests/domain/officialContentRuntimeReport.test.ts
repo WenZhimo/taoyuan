@@ -187,6 +187,8 @@ describe('official content runtime report', () => {
       thirdPartyRendererUiIpc: {
         schemaVersion: 1,
         observed: false,
+        installTransactionCommitFinalizationInputObserved: false,
+        installTransactionCommitFinalizationInputAccepted: false,
         selectedPackageCount: 0,
         blockedPackageCount: 0,
         loadOrderCount: 0,
@@ -625,6 +627,8 @@ describe('official content runtime report', () => {
       observed: true,
       status: 'ready',
       deliveryInputSource: 'synthetic-success-handoff',
+      installTransactionCommitFinalizationInputObserved: false,
+      installTransactionCommitFinalizationInputAccepted: false,
       selectedPlatform: 'web',
       targetPackageId: 'product_probe_pack',
       envelopeKind: 'success',
@@ -693,6 +697,8 @@ describe('official content runtime report', () => {
       observed: true,
       status: 'ready',
       deliveryInputSource: 'synthetic-success-handoff',
+      installTransactionCommitFinalizationInputObserved: false,
+      installTransactionCommitFinalizationInputAccepted: false,
       selectedPlatform: 'electron',
       targetPackageId: 'product_probe_pack',
       envelopeKind: 'success',
@@ -737,14 +743,37 @@ describe('official content runtime report', () => {
         deliverThirdPartyDataPackResponse: (
           envelope: ThirdPartyDataPackUiIpcResultEnvelope
         ) => unknown
+        readThirdPartyDataPackInstallTransactionCommitFinalizationProbe: () => Promise<unknown>
       }
     }
+    const readThirdPartyDataPackInstallTransactionCommitFinalizationProbe = vi.fn(async() => ({
+      status: 'committed',
+      targetPackageId: 'product_probe_pack',
+      selectedPackageIds: ['product_probe_pack'],
+      blockedPackageIds: [],
+      loadOrder: ['product_probe_pack'],
+      registryCount: 55,
+      entryCount: 4243,
+      packageCount: 1,
+      candidateIdentity: {
+        formatVersion: 1,
+        contentHash: `sha256:${'a'.repeat(64)}`,
+        snapshotHash: `sha256:${'b'.repeat(64)}`,
+        candidateHash: `sha256:${'c'.repeat(64)}`
+      },
+      lockfileHash: `sha256:${'d'.repeat(64)}`,
+      transactionCommitConnectionAcknowledged: true,
+      persistentPackageWriteExecuted: true,
+      persistentSettingsLockfileWriteExecuted: true
+    }))
     Object.defineProperty(runtimeHost, 'electronAPI', {
       configurable: true,
+      enumerable: true,
       value: {
         deliverThirdPartyDataPackResponse: (
           envelope: ThirdPartyDataPackUiIpcResultEnvelope
-        ) => acknowledgeThirdPartyDataPackElectronResponseDeliveryIpcEnvelope(envelope)
+        ) => acknowledgeThirdPartyDataPackElectronResponseDeliveryIpcEnvelope(envelope),
+        readThirdPartyDataPackInstallTransactionCommitFinalizationProbe
       }
     })
 
@@ -754,13 +783,25 @@ describe('official content runtime report', () => {
     const summary = createThirdPartyRendererUiIpcRuntimeProbeSummary(
       probe.responseDeliveryResult,
       probe.deliveryInputSource,
+      {
+        observed: probe.installTransactionCommitFinalizationInputObserved,
+        accepted: probe.installTransactionCommitFinalizationInputAccepted,
+        status: probe.installTransactionCommitFinalizationInputStatus
+      },
       probe.webDomResponseEventObserved
     )
 
+    expect(readThirdPartyDataPackInstallTransactionCommitFinalizationProbe).toHaveBeenCalledOnce()
+    expect(probe.installTransactionCommitFinalizationInputObserved).toBe(true)
+    expect(probe.installTransactionCommitFinalizationInputAccepted).toBe(true)
+    expect(probe.installTransactionCommitFinalizationInputStatus).toBe('committed')
     expect(summary).toMatchObject({
       observed: true,
       status: 'ready',
       deliveryInputSource: 'install-transaction-commit-finalization',
+      installTransactionCommitFinalizationInputObserved: true,
+      installTransactionCommitFinalizationInputAccepted: true,
+      installTransactionCommitFinalizationInputStatus: 'committed',
       selectedPlatform: 'electron',
       envelopeKind: 'success',
       messageKey: 'mods.ui.ipc.result.install.success',
