@@ -17,6 +17,9 @@ import { createSerializableRegistrySnapshot } from '@/domain/mods/registry'
 import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
 import type { PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
+import {
+  THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+} from '@/domain/mods/thirdPartyDataPackElectronManagementPersistentWriterHost'
 import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
@@ -118,7 +121,9 @@ describe('third-party data-pack Electron disable command bridge', () => {
     const writeDisabledState = vi.fn(async() => ({
       settingsWritten: true as const,
       lockfileWritten: true as const,
-      startupStateWritten: true as const
+      startupStateWritten: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronDisableCommandMainHandler({
       writeDisabledState
@@ -146,7 +151,9 @@ describe('third-party data-pack Electron disable command bridge', () => {
     const writeDisabledState = vi.fn(async() => ({
       settingsWritten: true as const,
       lockfileWritten: true as const,
-      startupStateWritten: true as const
+      startupStateWritten: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronDisableCommandMainHandler({
       readCurrentInstalledState,
@@ -204,7 +211,9 @@ describe('third-party data-pack Electron disable command bridge', () => {
       writeDisabledState: vi.fn(async() => ({
         settingsWritten: true as const,
         lockfileWritten: true as const,
-        startupStateWritten: true as const
+        startupStateWritten: true as const,
+        settingsLockfilePersistentWriterHostMode:
+          THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
       }))
     })
     const rendererHost = createThirdPartyDataPackElectronDisableCommandRendererHost({
@@ -221,6 +230,53 @@ describe('third-party data-pack Electron disable command bridge', () => {
     expect(result.packageFilesPreserved).toBe(true)
     expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics).toEqual([])
+  })
+
+  it('blocks a complete disable write without real program-directory writer-host evidence', async() => {
+    const envelope = createEnvelope()
+    const mainHandler = createThirdPartyDataPackElectronDisableCommandMainHandler({
+      writeDisabledState: vi.fn(async() => ({
+        settingsWritten: true as const,
+        lockfileWritten: true as const,
+        startupStateWritten: true as const,
+        settingsLockfilePersistentWriterHostMode: 'injected-test-only' as const
+      }))
+    })
+
+    const result = await mainHandler(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-disable-command.partial-write'
+    )
+  })
+
+  it('blocks renderer disable responses that omit real program-directory writer-host evidence', async() => {
+    const envelope = createEnvelope()
+    const rendererHost = createThirdPartyDataPackElectronDisableCommandRendererHost({
+      invoke: vi.fn(async() => ({
+        status: 'written',
+        requestedCommandId: 'disable',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [packageId],
+        loadOrder: [],
+        packageFilesPreserved: true,
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        managementUiIpcResponseDelivered: true,
+        diagnostics: []
+      }))
+    })
+
+    const result = await rendererHost.disable(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(false)
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-disable-command.main-process-blocked'
+    )
   })
 
   it('blocks renderer status-only responses without explicit management UI/IPC delivery evidence', async() => {

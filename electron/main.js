@@ -41,6 +41,9 @@ import {
   thirdPartyDataPackElectronDisableCommandIpcChannel
 } from '../src/domain/mods/thirdPartyDataPackElectronDisableCommandBridge'
 import {
+  createThirdPartyDataPackElectronManagementPersistentWriterHost
+} from '../src/domain/mods/thirdPartyDataPackElectronManagementPersistentWriterHost'
+import {
   createThirdPartyDataPackElectronEnableCommandMainHandler,
   thirdPartyDataPackElectronEnableCommandIpcChannel
 } from '../src/domain/mods/thirdPartyDataPackElectronEnableCommandBridge'
@@ -1341,40 +1344,57 @@ const writeElectronDisabledState = async envelope => {
   let modLockWritten = false
 
   try {
-    const lockfileResult = await createModLockProbe().write(draft)
-    if (lockfileResult.report.status !== 'written') {
-      throw new Error('Electron disable mod-lock write was blocked')
-    }
-    modLockWritten = true
-    if (runtimeProbeVisibleDisableFailAfterModLockWrite) {
-      throw new Error('Electron disable runtime probe failed after mod-lock write')
-    }
-
-    let currentSettings = {}
-    try {
-      currentSettings = settingsPrevious.exists ? JSON.parse(settingsPrevious.contents) : {}
-    } catch {
-      currentSettings = {}
-    }
-    writeJsonFileAtomically(settingsPath, {
-      ...currentSettings,
-      thirdPartyDataPacks: {
-        commandId: 'disable',
-        targetPackageId: envelope.targetPackageId,
-        candidateHash: record.candidateHash,
-        lockfileHash: record.lockfileHash,
-        selectedPackageIds: [],
-        blockedPackageIds: [envelope.targetPackageId],
-        loadOrder: []
+    const writerHost = createThirdPartyDataPackElectronManagementPersistentWriterHost({
+      writeModLock: async() => {
+        const lockfileResult = await createModLockProbe().write(draft)
+        if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
+        modLockWritten = true
+        if (runtimeProbeVisibleDisableFailAfterModLockWrite) {
+          throw new Error('Electron disable runtime probe failed after mod-lock write')
+        }
+        return { status: 'written' }
+      },
+      writeSettings: async currentRecord => {
+        let currentSettings = {}
+        try {
+          currentSettings = settingsPrevious.exists ? JSON.parse(settingsPrevious.contents) : {}
+        } catch {
+          currentSettings = {}
+        }
+        writeJsonFileAtomically(settingsPath, {
+          ...currentSettings,
+          thirdPartyDataPacks: {
+            commandId: 'disable',
+            targetPackageId: envelope.targetPackageId,
+            candidateHash: currentRecord.candidateHash,
+            lockfileHash: currentRecord.lockfileHash,
+            selectedPackageIds: [],
+            blockedPackageIds: [envelope.targetPackageId],
+            loadOrder: []
+          }
+        })
+        return { status: 'written' }
+      },
+      writeStartupState: async snapshot => {
+        writeJsonFileAtomically(startupPaths.snapshotFilePath, snapshot)
+        return { status: 'written' }
       }
     })
-
-    writeJsonFileAtomically(startupPaths.snapshotFilePath, envelope.startupSnapshot)
-
+    const writerResult = await writerHost({
+      requestedCommandId: 'disable',
+      targetPackageId: envelope.targetPackageId,
+      record,
+      startupSnapshot: envelope.startupSnapshot
+    })
+    if (writerResult.status !== 'written') {
+      throw new Error(`Electron disable persistent writer blocked: ${writerResult.diagnostics.join(', ')}`)
+    }
     return {
-      settingsWritten: true,
-      lockfileWritten: true,
-      startupStateWritten: true
+      settingsWritten: writerResult.settingsWritten,
+      lockfileWritten: writerResult.lockfileWritten,
+      startupStateWritten: writerResult.startupStateWritten,
+      settingsLockfilePersistentWriterHostMode:
+        writerResult.settingsLockfilePersistentWriterHostMode
     }
   } catch (error) {
     try {

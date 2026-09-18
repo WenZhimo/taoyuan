@@ -39,6 +39,9 @@ import {
   THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID
 } from '@/domain/mods/thirdPartyDataPackWebSettingsLockfilePersistentWriterHost'
 import {
+  THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+} from '@/domain/mods/thirdPartyDataPackElectronManagementPersistentWriterHost'
+import {
   createInMemoryWebInstallTransactionLogPreparedStore
 } from '@/domain/mods/thirdPartyDataPackWebInstallTransactionLogPreparedStorageHost'
 import {
@@ -2021,6 +2024,8 @@ describe('WebDataPackImportPreflightPanel', () => {
     }))
     const disableThirdPartyDataPack = vi.fn(async(_envelope: unknown) => ({
       status: 'written' as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE,
       managementUiIpcResponseDelivered: true
     }))
     const disablePanelResultEvent = vi.fn()

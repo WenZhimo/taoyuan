@@ -39,6 +39,9 @@ import {
   type ThirdPartyDataPackElectronDisableCommandResult
 } from '@/domain/mods/thirdPartyDataPackElectronDisableCommandBridge'
 import {
+  THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+} from '@/domain/mods/thirdPartyDataPackElectronManagementPersistentWriterHost'
+import {
   type ThirdPartyDataPackElectronUninstallCommandEnvelope,
   type ThirdPartyDataPackElectronUninstallCommandResult
 } from '@/domain/mods/thirdPartyDataPackElectronUninstallCommandBridge'
@@ -551,10 +554,18 @@ export const useWebInstalledDataPackManagement = (
             if (!managementUiIpcResponseDelivered) {
               throw new Error('Electron disable management UI/IPC response delivery was blocked')
             }
+            if (
+              electronResult.settingsLockfilePersistentWriterHostMode !==
+              THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+            ) {
+              throw new Error('Electron disable settings-lockfile persistent writer host was not real')
+            }
             realElectronSettingsLockfilePersistentWriterHostCalled =
               electronResult.settingsWritten
               && electronResult.lockfileWritten
               && electronResult.startupStateWritten
+              && electronResult.settingsLockfilePersistentWriterHostMode ===
+                THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
               && electronResult.packageFilesPreserved
             return {
               settingsWritten: electronResult.settingsWritten,

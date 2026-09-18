@@ -6,6 +6,12 @@ import type {
 import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from './thirdPartyDataPackElectronInstalledStateBridge'
+import {
+  THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+} from './thirdPartyDataPackElectronManagementPersistentWriterHost'
+import type {
+  ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
+} from './thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -34,6 +40,8 @@ export interface ThirdPartyDataPackElectronDisableCommandResult {
   readonly settingsWritten: boolean
   readonly lockfileWritten: boolean
   readonly startupStateWritten: boolean
+  readonly settingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   readonly managementUiIpcResponseDelivered: boolean
   readonly diagnostics: readonly ThirdPartyDataPackElectronDisableCommandDiagnostic[]
 }
@@ -64,6 +72,8 @@ export interface CreateThirdPartyDataPackElectronDisableCommandMainHandlerOption
     readonly settingsWritten: true
     readonly lockfileWritten: true
     readonly startupStateWritten: true
+    readonly settingsLockfilePersistentWriterHostMode:
+      ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   }>
 }
 
@@ -148,7 +158,9 @@ const isValidEnvelope = (value: unknown): value is ThirdPartyDataPackElectronDis
 }
 
 const writtenResult = (
-  envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
+  envelope: ThirdPartyDataPackElectronDisableCommandEnvelope,
+  settingsLockfilePersistentWriterHostMode:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
 ): ThirdPartyDataPackElectronDisableCommandResult => Object.freeze({
   status: 'written',
   requestedCommandId: 'disable',
@@ -160,6 +172,7 @@ const writtenResult = (
   settingsWritten: true,
   lockfileWritten: true,
   startupStateWritten: true,
+  settingsLockfilePersistentWriterHostMode,
   managementUiIpcResponseDelivered: true,
   diagnostics: Object.freeze([])
 })
@@ -218,9 +231,14 @@ export const createThirdPartyDataPackElectronDisableCommandRendererHost = (
       result !== null
       && typeof result === 'object'
       && readOwnStringField(result, 'status') === 'written'
+      && readOwnStringField(result, 'settingsLockfilePersistentWriterHostMode') ===
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
       && readOwnDataField(result, 'managementUiIpcResponseDelivered') === true
     ) {
-      return writtenResult(envelope)
+      return writtenResult(
+        envelope,
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+      )
     }
     if (
       result !== null
@@ -263,10 +281,15 @@ export const createThirdPartyDataPackElectronDisableCommandMainHandler = (
       writeResult.settingsWritten !== true
       || writeResult.lockfileWritten !== true
       || writeResult.startupStateWritten !== true
+      || writeResult.settingsLockfilePersistentWriterHostMode !==
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     ) {
       return blockedResult(value.targetPackageId, 'third-party.electron-disable-command.partial-write')
     }
-    return writtenResult(value)
+    return writtenResult(
+      value,
+      THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+    )
   } catch {
     return blockedResult(value.targetPackageId, 'third-party.electron-disable-command.write-failed')
   }
