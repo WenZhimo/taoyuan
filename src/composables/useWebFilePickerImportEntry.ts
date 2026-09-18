@@ -1070,6 +1070,29 @@ const runtimeContinuationMatchesRendererCandidate = (options: {
     })
 }
 
+const runtimePublicationCommitAndLiveRegistryMatchRendererCandidate = (options: {
+  readonly targetPackageId: PackageId
+  readonly mountInput: ThirdPartyDataPackMountInputResult
+  readonly runtimePublicationCommitAdapter: ThirdPartyDataPackRuntimePublicationCommitAdapterResult
+  readonly runtimePublicationCommitAfterPostCommitVerification:
+    ThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipelineResult | null
+  readonly runtimePublicationCommitLiveRegistrySwapHostConnection:
+    ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipelineResult | null
+}): boolean => options.runtimePublicationCommitAfterPostCommitVerification?.status === 'accepted'
+  && options.runtimePublicationCommitLiveRegistrySwapHostConnection?.status === 'swapped'
+  && runtimePublicationSummaryMatchesRendererCandidate({
+    targetPackageId: options.targetPackageId,
+    mountInput: options.mountInput,
+    runtimePublicationCommitAdapter: options.runtimePublicationCommitAdapter,
+    summary: options.runtimePublicationCommitAfterPostCommitVerification
+  })
+  && runtimePublicationSummaryMatchesRendererCandidate({
+    targetPackageId: options.targetPackageId,
+    mountInput: options.mountInput,
+    runtimePublicationCommitAdapter: options.runtimePublicationCommitAdapter,
+    summary: options.runtimePublicationCommitLiveRegistrySwapHostConnection
+  })
+
 const ordinaryInstallTransactionTerminalSucceeded = (
   terminal: ThirdPartyDataPackOrdinaryInstallTransactionPipelineResult | null
 ): boolean => terminal?.status === 'ready'
@@ -3563,25 +3586,24 @@ export const useWebFilePickerImportEntry = (
                 })
           })
         }
-        const electronRuntimeContinuationMatchesRendererCandidate =
-          runtimeContinuationMatchesRendererCandidate({
-            platform: 'electron',
+        const electronRuntimePublicationCommitAndLiveRegistryMatchRendererCandidate =
+          runtimePublicationCommitAndLiveRegistryMatchRendererCandidate({
             targetPackageId,
             mountInput,
             runtimePublicationCommitAdapter,
             runtimePublicationCommitAfterPostCommitVerification,
-            runtimePublicationCommitLiveRegistrySwapHostConnection,
-            runtimePublicationCommitAppStartupReadiness,
-            runtimePublicationCommitAppStartupHostConnection:
-              continuationRuntimePublicationCommitAppStartupHostConnection
+            runtimePublicationCommitLiveRegistrySwapHostConnection
           })
         const electronOrdinaryTerminalSucceeded =
           ordinaryInstallTransactionTerminalSucceeded(ordinaryInstallTransactionTerminalConnection)
         const electronRuntimeContinuationEligible =
           disabledReplacementTerminal === null
-          && electronRuntimeContinuationMatchesRendererCandidate
+          && electronRuntimePublicationCommitAndLiveRegistryMatchRendererCandidate
           && electronOrdinaryTerminalSucceeded
-        if (electronRuntimeContinuationMatchesRendererCandidate && !electronOrdinaryTerminalSucceeded) {
+        if (
+          electronRuntimePublicationCommitAndLiveRegistryMatchRendererCandidate
+          && !electronOrdinaryTerminalSucceeded
+        ) {
           rendererOrdinaryInstallTerminalContinuationBlockedReason =
             ordinaryInstallTransactionTerminalConnection.reason
         }

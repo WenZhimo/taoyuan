@@ -308,17 +308,9 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(mainSource).toContain('buildThirdPartyDataPackRuntimePublicationCommitAdapter')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitHost')
     expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline')
-    expect(mainSource).toContain('createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline')
-    const ordinaryNormalStartupSource = mainSource.slice(
-      mainSource.indexOf('const createOrdinaryInstallTerminalReadyNormalStartupSource'),
-      mainSource.indexOf('const createOrdinaryInstallTerminalAcceptedAppStartupHostResult')
-    )
-    expect(ordinaryNormalStartupSource).toContain('requestedCommandId: source.requestedCommandId')
-    const ordinaryAppStartupHostResultSource = mainSource.slice(
-      mainSource.indexOf('const createOrdinaryInstallTerminalAcceptedAppStartupHostResult'),
-      mainSource.indexOf('const createRuntimePublicationContinuationResults')
-    )
-    expect(ordinaryAppStartupHostResultSource).toContain('requestedCommandId: envelope.requestedCommandId')
+    expect(mainSource).not.toContain('createOrdinaryInstallTerminalReadyNormalStartupSource')
+    expect(mainSource).not.toContain('createOrdinaryInstallTerminalAcceptedAppStartupHostResult')
+    expect(mainSource).not.toContain('createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline')
     const runtimeContinuationSource = mainSource.slice(
       mainSource.indexOf('const createRuntimePublicationContinuationContext'),
       mainSource.indexOf('const createRealRecoveryLogReplayRestoreSourceResult')
@@ -342,7 +334,7 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(mainSource).not.toContain('third-party-data-pack-install-command-dispatch-write')
   })
 
-  it('preserves safe runtime publication continuation results from Electron main', async() => {
+  it('preserves commit and live-registry results for renderer-owned startup handoff', async() => {
     const host = createThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationHost({
       invoke: channel => {
         expect(channel).toBe(thirdPartyDataPackElectronOrdinaryInstallTerminalContinuationIpcChannel)
@@ -385,14 +377,6 @@ describe('third-party Electron install command dispatch bridge', () => {
             status: 'swapped',
             requestedCommandId: 'install'
           },
-          runtimePublicationCommitAppStartupReadiness: {
-            status: 'ready',
-            requestedCommandId: 'install'
-          },
-          runtimePublicationCommitAppStartupHostConnection: {
-            status: 'accepted',
-            requestedCommandId: 'install'
-          },
           startupPersistentStateSnapshotWrite: {
             status: 'written',
             storageKind: 'electron-program-directory-userdata-startup-persistent-state',
@@ -412,12 +396,10 @@ describe('third-party Electron install command dispatch bridge', () => {
     expect(result.settingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted).toBe(true)
     expect(result.runtimePublicationCommitAfterPostCommitVerification?.status).toBe('accepted')
     expect(result.runtimePublicationCommitLiveRegistrySwapHostConnection?.status).toBe('swapped')
-    expect(result.runtimePublicationCommitAppStartupReadiness?.status).toBe('ready')
-    expect(result.runtimePublicationCommitAppStartupHostConnection?.status).toBe('accepted')
+    expect(result.runtimePublicationCommitAppStartupReadiness).toBeUndefined()
+    expect(result.runtimePublicationCommitAppStartupHostConnection).toBeUndefined()
     expect(result.runtimePublicationCommitAfterPostCommitVerification?.requestedCommandId).toBe('install')
     expect(result.runtimePublicationCommitLiveRegistrySwapHostConnection?.requestedCommandId).toBe('install')
-    expect(result.runtimePublicationCommitAppStartupReadiness?.requestedCommandId).toBe('install')
-    expect(result.runtimePublicationCommitAppStartupHostConnection?.requestedCommandId).toBe('install')
     expect(result.startupPersistentStateSnapshotWrite?.status).toBe('written')
     expect(result.startupPersistentStateSnapshotWrite?.targetPackageId).toBe(packageId)
     expect(JSON.stringify(result)).not.toContain('candidateRegistrySet')

@@ -87,17 +87,8 @@ import {
   createThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline
 } from '../src/domain/mods/thirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline'
 import {
-  createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline
-} from '../src/domain/mods/thirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline'
-import {
-  createThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline
-} from '../src/domain/mods/thirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline'
-import {
   createThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline
 } from '../src/domain/mods/thirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipeline'
-import {
-  createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline
-} from '../src/domain/mods/thirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline'
 import {
   buildThirdPartyDataPackRuntimePublicationCommitAdapter
 } from '../src/domain/mods/thirdPartyDataPackRuntimePublicationCommitAdapter'
@@ -3309,92 +3300,6 @@ const createOrdinaryInstallTerminalPostCommitAfterInstallTransactionCommitResult
   }
 })
 
-const createOrdinaryInstallTerminalReadyNormalStartupSource = (source, targetPackageId) => ({
-  kind: 'third-party-normal-startup-handoff-execution-source',
-  mode: 'default-disabled-normal-startup-handoff-execution-source',
-  status: 'ready',
-  reason: 'Electron visible import normal startup handoff accepted runtime publication continuation',
-  readOnly: true,
-  enabled: true,
-  sourceCalled: true,
-  normalStartupContinuationAllowed: true,
-  startupGateBootstrapSourceStatus: 'ready',
-  normalStartupHandoffHostStatus: 'accepted',
-  requestedCommandId: source.requestedCommandId,
-  targetPackageId,
-  selectedPackageIds: source.selectedPackageIds,
-  blockedPackageIds: source.blockedPackageIds,
-  blockedCandidateCount: source.blockedCandidatePaths.length,
-  loadOrder: source.loadOrder,
-  registryCount: source.registryCount,
-  entryCount: source.entryCount,
-  packageCount: source.packageCount,
-  lockfileHash: source.lockfileHash,
-  persistentStateProofs: {
-    transactionLogCommitted: true,
-    packageStateMatched: true,
-    settingsStateMatched: true,
-    modLockStateMatched: true,
-    liveRegistryMatched: true,
-    saveCacheIsolated: true
-  },
-  diagnostics: [],
-  summary: createOrdinaryInstallTerminalUiIpcSummary({
-    ...source,
-    targetPackageId
-  }),
-  effects: {
-    normalStartupHandoffExecutionSourceCalled: true,
-    startupGateBootstrapSourceCalled: true,
-    injectedNormalStartupHandoffHostCalled: true,
-    normalStartupHandoffHostCalled: true,
-    normalStartupHandoffHostAccepted: true,
-    normalStartupContinuationAllowed: true
-  }
-})
-
-const createOrdinaryInstallTerminalAcceptedAppStartupHostResult = envelope => ({
-  status: 'accepted',
-  platform: envelope.platform,
-  requestedCommandId: envelope.requestedCommandId,
-  targetPackageId: envelope.targetPackageId,
-  selectedPackageIds: envelope.selectedPackageIds,
-  blockedPackageIds: envelope.blockedPackageIds,
-  loadOrder: envelope.loadOrder,
-  registryCount: envelope.registryCount,
-  entryCount: envelope.entryCount,
-  packageCount: envelope.packageCount,
-  candidateIdentity: envelope.candidateIdentity,
-  candidateHash: envelope.candidateHash,
-  lockfileHash: envelope.lockfileHash,
-  appStartupReadinessAccepted: true,
-  diagnostics: [],
-  effects: {
-    appStartupHostCalled: true,
-    appStartupHostAccepted: true,
-    realAppStartupHostCalled: false,
-    launcherAppFactoryCalled: false,
-    gameAppFactoryCalled: false,
-    launcherAppCreated: false,
-    gameAppCreated: false,
-    piniaCreated: false,
-    routerMounted: false,
-    saveRead: false,
-    uiIpcResponseDelivered: false,
-    commandDispatched: false,
-    transactionCommitted: false,
-    runtimePublicationCommitted: false,
-    packageFilesWritten: false,
-    lockfileWritten: false,
-    settingsWritten: false,
-    savesWritten: false,
-    cacheWritten: false,
-    transactionLogWritten: false,
-    rollbackExecuted: false,
-    diagnosticsWritten: false
-  }
-})
-
 const createRuntimePublicationContinuationResults = async(
   context,
   installTransactionCommitFinalization
@@ -3454,40 +3359,10 @@ const createRuntimePublicationContinuationResults = async(
       readRuntimePublicationCommitAfterPostCommitVerification,
       readRuntimePublicationLiveRegistrySwapHostConnection
     })()
-  const runtimePublicationCommitNormalStartupAppFactoryBindingHostConnection =
-    await createThirdPartyDataPackRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnectionPipeline({
-      enabled: true,
-      readRuntimePublicationCommitAfterPostCommitVerification,
-      readRuntimePublicationNormalStartupAppFactoryBindingHostConnection: async() =>
-        createOrdinaryInstallTerminalReadyNormalStartupSource(
-          source,
-          installTransactionCommitFinalization.targetPackageId
-        )
-    })()
-  const runtimePublicationCommitAppStartupReadiness =
-    await createThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipeline({
-      enabled: true,
-      readRuntimePublicationCommitLiveRegistrySwapHostConnection: async() =>
-        runtimePublicationCommitLiveRegistrySwapHostConnection,
-      readRuntimePublicationCommitNormalStartupAppFactoryBindingHostConnection: async() =>
-        runtimePublicationCommitNormalStartupAppFactoryBindingHostConnection
-    })()
-  const runtimePublicationCommitAppStartupHostConnection =
-    await createThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipeline({
-      enabled: true,
-      platform: 'electron',
-      readRuntimePublicationCommitAppStartupReadiness: async() =>
-        runtimePublicationCommitAppStartupReadiness,
-      acknowledgeAppStartupHostWiring: async envelope =>
-        createOrdinaryInstallTerminalAcceptedAppStartupHostResult(envelope)
-    })()
-
   return {
     runtimePublicationCommitAfterPostCommitVerification:
       await readRuntimePublicationCommitAfterPostCommitVerification(),
-    runtimePublicationCommitLiveRegistrySwapHostConnection,
-    runtimePublicationCommitAppStartupReadiness,
-    runtimePublicationCommitAppStartupHostConnection
+    runtimePublicationCommitLiveRegistrySwapHostConnection
   }
 }
 
@@ -4541,16 +4416,12 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   if (
     runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification.status !== 'accepted'
     || runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection.status !== 'swapped'
-    || runtimePublicationContinuation.runtimePublicationCommitAppStartupReadiness.status !== 'ready'
-    || runtimePublicationContinuation.runtimePublicationCommitAppStartupHostConnection.status !== 'accepted'
   ) {
     return createBlockedOrdinaryInstallTerminalContinuationResult(
-      'Electron ordinary install terminal continuation did not reach runtime publication startup handoff',
+      'Electron ordinary install terminal continuation did not reach runtime publication live-registry handoff',
       [
         ...runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification.diagnostics,
-        ...runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection.diagnostics,
-        ...runtimePublicationContinuation.runtimePublicationCommitAppStartupReadiness.diagnostics,
-        ...runtimePublicationContinuation.runtimePublicationCommitAppStartupHostConnection.diagnostics
+        ...runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection.diagnostics
       ]
     )
   }
@@ -4590,9 +4461,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
       ...postCommitUiIpcDeliveryContinuationResult.diagnostics,
       ...ordinaryInstallTransactionTerminalConnection.diagnostics,
       ...runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification.diagnostics,
-      ...runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection.diagnostics,
-      ...runtimePublicationContinuation.runtimePublicationCommitAppStartupReadiness.diagnostics,
-      ...runtimePublicationContinuation.runtimePublicationCommitAppStartupHostConnection.diagnostics
+      ...runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection.diagnostics
     ]
   }
 }

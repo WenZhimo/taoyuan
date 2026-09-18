@@ -260,28 +260,36 @@ const safeResultFromRawMainProcessValue = (
     || runtimePublicationCommitLiveRegistrySwapHostConnection !== undefined
     || runtimePublicationCommitAppStartupReadiness !== undefined
     || runtimePublicationCommitAppStartupHostConnection !== undefined
+  const hasRuntimePublicationStartupContinuation =
+    runtimePublicationCommitAppStartupReadiness !== undefined
+    || runtimePublicationCommitAppStartupHostConnection !== undefined
   const runtimePublicationContinuationCommandId =
     readRuntimePublicationCommandId(runtimePublicationCommitAfterPostCommitVerification)
   const runtimePublicationContinuationReady =
     runtimePublicationContinuationCommandId !== undefined
     && runtimePublicationContinuationCommandId
       === readRuntimePublicationCommandId(runtimePublicationCommitLiveRegistrySwapHostConnection)
-    && runtimePublicationContinuationCommandId
-      === readRuntimePublicationCommandId(runtimePublicationCommitAppStartupReadiness)
-    && runtimePublicationContinuationCommandId
-      === readRuntimePublicationCommandId(runtimePublicationCommitAppStartupHostConnection)
     && runtimePublicationCommitAfterPostCommitVerification !== null
     && typeof runtimePublicationCommitAfterPostCommitVerification === 'object'
     && readOwnDataField(runtimePublicationCommitAfterPostCommitVerification, 'status') === 'accepted'
     && runtimePublicationCommitLiveRegistrySwapHostConnection !== null
     && typeof runtimePublicationCommitLiveRegistrySwapHostConnection === 'object'
     && readOwnDataField(runtimePublicationCommitLiveRegistrySwapHostConnection, 'status') === 'swapped'
-    && runtimePublicationCommitAppStartupReadiness !== null
-    && typeof runtimePublicationCommitAppStartupReadiness === 'object'
-    && readOwnDataField(runtimePublicationCommitAppStartupReadiness, 'status') === 'ready'
-    && runtimePublicationCommitAppStartupHostConnection !== null
-    && typeof runtimePublicationCommitAppStartupHostConnection === 'object'
-    && readOwnDataField(runtimePublicationCommitAppStartupHostConnection, 'status') === 'accepted'
+    && (
+      !hasRuntimePublicationStartupContinuation
+      || (
+        runtimePublicationCommitAppStartupReadiness !== null
+        && typeof runtimePublicationCommitAppStartupReadiness === 'object'
+        && readOwnDataField(runtimePublicationCommitAppStartupReadiness, 'status') === 'ready'
+        && runtimePublicationContinuationCommandId
+          === readRuntimePublicationCommandId(runtimePublicationCommitAppStartupReadiness)
+        && runtimePublicationCommitAppStartupHostConnection !== null
+        && typeof runtimePublicationCommitAppStartupHostConnection === 'object'
+        && readOwnDataField(runtimePublicationCommitAppStartupHostConnection, 'status') === 'accepted'
+        && runtimePublicationContinuationCommandId
+          === readRuntimePublicationCommandId(runtimePublicationCommitAppStartupHostConnection)
+      )
+    )
   const hasDisabledReplacementTerminal =
     disabledReplacementTerminal !== undefined
   const disabledReplacementTargetPackageId = readOwnDataField(
@@ -480,12 +488,20 @@ const safeResultFromRawMainProcessValue = (
           runtimePublicationCommitLiveRegistrySwapHostConnection:
             runtimePublicationCommitLiveRegistrySwapHostConnection as
               ThirdPartyDataPackRuntimePublicationCommitLiveRegistrySwapHostConnectionPipelineResult,
-          runtimePublicationCommitAppStartupReadiness:
-            runtimePublicationCommitAppStartupReadiness as
-              ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult,
-          runtimePublicationCommitAppStartupHostConnection:
-            runtimePublicationCommitAppStartupHostConnection as
-              ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+          ...(runtimePublicationCommitAppStartupReadiness === undefined
+            ? {}
+            : {
+                runtimePublicationCommitAppStartupReadiness:
+                  runtimePublicationCommitAppStartupReadiness as
+                    ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult
+              }),
+          ...(runtimePublicationCommitAppStartupHostConnection === undefined
+            ? {}
+            : {
+                runtimePublicationCommitAppStartupHostConnection:
+                  runtimePublicationCommitAppStartupHostConnection as
+                    ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult
+              })
         }
       : {}),
     ...(hasDisabledReplacementTerminal

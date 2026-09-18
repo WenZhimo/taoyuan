@@ -1468,7 +1468,15 @@ const electronContinuationMismatchCases: readonly {
           ready.runtimePublicationCommitLiveRegistrySwapHostConnection!
         )
     } as ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult)
-  },
+  }
+]
+
+const electronStartupContinuationMismatchCases: readonly {
+  readonly name: string
+  readonly mutate: (
+    ready: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult
+  ) => ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationResult
+}[] = [
   {
     name: 'app startup readiness summary',
     mutate: ready => ({
@@ -2276,6 +2284,84 @@ describe('useWebFilePickerImportEntry', () => {
       }
     }
   )
+
+  it.each(electronStartupContinuationMismatchCases)(
+    'rebuilds renderer-owned startup handoff when Electron main returns a stale $name',
+    async({ mutate }) => {
+      const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
+        envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+      ) => createDispatchedHostResult(envelope))
+      const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
+        envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+      ) => mutate(createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope)))
+      const restoreElectronApi = withWindowElectronApi({
+        dispatchThirdPartyDataPackInstallCommand,
+        continueThirdPartyDataPackOrdinaryInstallTerminal
+      })
+      const entry = useWebFilePickerImportEntry({
+        selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId))
+      })
+
+      try {
+        await entry.pickFiles()
+        const dispatchResult = await entry.dispatchInstallCommandFromSource({
+          confirmed: true,
+          officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+          mountedAppStartupHostEvidence
+        })
+
+        expect(dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus).toBe('accepted')
+        expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
+        expect(dispatchResult.runtimePublicationCommitAppStartupReadinessStatus).toBe('ready')
+        expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).toBe('accepted')
+        expect(dispatchResult.runtimePublicationCommitAppStartupHostConnection?.candidateHash)
+          .toBe(dispatchResult.runtimePublicationCommitAfterPostCommitVerification?.candidateHash)
+        expect(dispatchResult.runtimePublicationCommitAppStartupHostConnection?.effects.realAppStartupHostCalled)
+          .toBe(true)
+        expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(true)
+        expect(dispatchResult.runtimeEnablementAllowed).toBe(true)
+        expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('written')
+        expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)?.name.fallback)
+          .toBe(`${webEntryPackageId}:linen_ribbon`)
+      } finally {
+        restoreElectronApi()
+      }
+    }
+  )
+
+  it('does not accept Electron startup handoff without mounted renderer app evidence', async() => {
+    const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
+      envelope: ThirdPartyDataPackTransactionCommandDispatcherHostEnvelope
+    ) => createDispatchedHostResult(envelope))
+    const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
+      envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
+    ) => createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope))
+    const restoreElectronApi = withWindowElectronApi({
+      dispatchThirdPartyDataPackInstallCommand,
+      continueThirdPartyDataPackOrdinaryInstallTerminal
+    })
+    const entry = useWebFilePickerImportEntry({
+      selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId))
+    })
+
+    try {
+      await entry.pickFiles()
+      const dispatchResult = await entry.dispatchInstallCommandFromSource({
+        confirmed: true,
+        officialRegistrySet: buildOfficialRegistrySetFromStaticData()
+      })
+
+      expect(dispatchResult.runtimePublicationCommitAfterPostCommitVerificationStatus).toBe('accepted')
+      expect(dispatchResult.runtimePublicationCommitLiveRegistrySwapHostConnectionStatus).toBe('swapped')
+      expect(dispatchResult.runtimePublicationCommitAppStartupHostConnectionStatus).not.toBe('accepted')
+      expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(false)
+      expect(dispatchResult.runtimeEnablementAllowed).toBe(false)
+      expect(dispatchResult.electronStartupPersistentStateWriteStatus).toBe('blocked')
+      expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)).toBeUndefined()
+    } finally {
+      restoreElectronApi()
+    }
+  })
 
   it('does not publish renderer live content when Electron continuation reports rollback terminal outcome', async() => {
     const dispatchThirdPartyDataPackInstallCommand = vi.fn(async(
