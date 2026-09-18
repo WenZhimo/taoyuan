@@ -19,12 +19,25 @@ const MODS_DIRECTORY_NAME = 'mods'
 const TEMP_FILE_PREFIX = `.${THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_FILE_NAME}.tmp-`
 const PACKAGE_WRITE_TEMP_FILE_PREFIX = '.taoyuan-package-file-write-probe.tmp-'
 const sha256Pattern = /^sha256:[0-9a-f]{64}$/
+const crashRecoveryOperations = new Set<ThirdPartyDataPackElectronInstallCrashRecoveryOperation>([
+  'install',
+  'disable',
+  'enable',
+  'uninstall'
+])
 
 export interface ThirdPartyDataPackElectronInstallCrashRecoveryTarget {
   readonly relativePath: string
 }
 
+export type ThirdPartyDataPackElectronInstallCrashRecoveryOperation =
+  | 'install'
+  | 'disable'
+  | 'enable'
+  | 'uninstall'
+
 export interface ThirdPartyDataPackElectronInstallCrashRecoveryPrepareInput {
+  readonly operation?: ThirdPartyDataPackElectronInstallCrashRecoveryOperation
   readonly targetPackageId: PackageId
   readonly candidateHash: Sha256Hash
   readonly lockfileHash: Sha256Hash
@@ -43,7 +56,7 @@ export interface ThirdPartyDataPackElectronInstallCrashRecoveryEntry {
   readonly formatVersion: 1
   readonly kind: typeof THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_KIND
   readonly transactionId: string
-  readonly operation: 'install'
+  readonly operation: ThirdPartyDataPackElectronInstallCrashRecoveryOperation
   readonly createdAtIso: string
   readonly targetPackageId: PackageId
   readonly candidateHash: Sha256Hash
@@ -57,6 +70,7 @@ export interface ThirdPartyDataPackElectronInstallCrashRecoveryPrepareResult {
   readonly storageKind: typeof THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_STORAGE_KIND
   readonly transactionId?: string
   readonly entryHash?: Sha256Hash
+  readonly operation?: ThirdPartyDataPackElectronInstallCrashRecoveryOperation
   readonly targetCount: number
   readonly effects: {
     readonly recoveryLogWritten: boolean
@@ -75,6 +89,7 @@ export interface ThirdPartyDataPackElectronInstallCrashRecoveryReplayResult {
   readonly storageKind: typeof THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_STORAGE_KIND
   readonly transactionId?: string
   readonly entryHash?: Sha256Hash
+  readonly operation?: ThirdPartyDataPackElectronInstallCrashRecoveryOperation
   readonly restoredFileCount: number
   readonly removedCreatedFileCount: number
   readonly effects: {
@@ -94,6 +109,7 @@ export interface ThirdPartyDataPackElectronInstallCrashRecoverySettleResult {
   readonly storageKind: typeof THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_STORAGE_KIND
   readonly transactionId?: string
   readonly entryHash?: Sha256Hash
+  readonly operation?: ThirdPartyDataPackElectronInstallCrashRecoveryOperation
   readonly effects: {
     readonly recoveryLogCleared: boolean
   }
@@ -210,7 +226,7 @@ const parseEntry = (text: string): ThirdPartyDataPackElectronInstallCrashRecover
   if (
     entry.formatVersion !== 1
     || entry.kind !== THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_KIND
-    || entry.operation !== 'install'
+    || !crashRecoveryOperations.has(entry.operation)
     || typeof entry.transactionId !== 'string'
     || entry.transactionId.length === 0
     || typeof entry.createdAtIso !== 'string'
@@ -351,6 +367,7 @@ const createPrepareResult = (
   storageKind: THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_STORAGE_KIND,
   transactionId: entry?.transactionId,
   entryHash: entry?.entryHash,
+  operation: entry?.operation,
   targetCount,
   effects: Object.freeze({
     recoveryLogWritten: status === 'prepared',
@@ -380,6 +397,7 @@ const createReplayResult = (
     storageKind: THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_STORAGE_KIND,
     transactionId: options.entry?.transactionId,
     entryHash: options.entry?.entryHash,
+    operation: options.entry?.operation,
     restoredFileCount: options.restoredFileCount ?? 0,
     removedCreatedFileCount: options.removedCreatedFileCount ?? 0,
     effects: Object.freeze({
@@ -446,7 +464,7 @@ export const createThirdPartyDataPackElectronInstallCrashRecoveryHost = (
           formatVersion: 1,
           kind: THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_KIND,
           transactionId: input.transactionId ?? randomUUID(),
-          operation: 'install',
+          operation: input.operation ?? 'install',
           createdAtIso: input.createdAtIso ?? new Date().toISOString(),
           targetPackageId: input.targetPackageId,
           candidateHash: input.candidateHash,
@@ -512,6 +530,7 @@ export const createThirdPartyDataPackElectronInstallCrashRecoveryHost = (
             storageKind: THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_STORAGE_KIND,
             transactionId: entry?.transactionId,
             entryHash: entry?.entryHash,
+            operation: entry?.operation,
             effects: Object.freeze({ recoveryLogCleared: false })
           })
         }
@@ -521,6 +540,7 @@ export const createThirdPartyDataPackElectronInstallCrashRecoveryHost = (
           storageKind: THIRD_PARTY_DATA_PACK_ELECTRON_INSTALL_CRASH_RECOVERY_STORAGE_KIND,
           transactionId: entry.transactionId,
           entryHash: entry.entryHash,
+          operation: entry.operation,
           effects: Object.freeze({ recoveryLogCleared: true })
         })
       } catch {

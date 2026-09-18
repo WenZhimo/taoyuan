@@ -926,6 +926,54 @@ const electronScenarios = [
     cacheSeed: 'valid'
   },
   {
+    name: 'visible-import-disable-interruption-recovery',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-interruption-recovery',
+    cacheSeed: 'valid',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    visibleManagementInterruptionOperation: 'disable'
+  },
+  {
+    name: 'visible-import-enable-interruption-recovery',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-enable-interruption-recovery',
+    cacheSeed: 'valid',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    visibleManagementInterruptionOperation: 'enable'
+  },
+  {
+    name: 'visible-import-uninstall-interruption-recovery',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-uninstall-interruption-recovery',
+    cacheSeed: 'valid',
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    visibleManagementInterruptionOperation: 'uninstall'
+  },
+  {
     name: 'visible-import-dependency-install-write-failure-rollback',
     fault: null,
     source: 'disk-cache',
@@ -8695,6 +8743,9 @@ const runPackagedScenario = async (scenario, isolated) => {
     ...(scenario.visibleDisableFailAfterModLockWrite
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE_FAIL_AFTER_MOD_LOCK_WRITE: '1' }
       : {}),
+    ...(scenario.visibleManagementInterruptionOperation
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_MANAGEMENT_INTERRUPT_AFTER_MOD_LOCK_WRITE: '1' }
+      : {}),
     ...(scenario.visibleUninstall
       && !scenario.visibleUninstallFailAfterModLockWrite
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_UNINSTALL: '1' }
@@ -8714,6 +8765,11 @@ const runPackagedScenario = async (scenario, isolated) => {
       : {}),
     ...(isolated ? { PORTABLE_EXECUTABLE_DIR: scenarioRoot } : {})
   })
+  if (scenario.visibleManagementInterruptionOperation) {
+    assert(!fs.existsSync(outputPath),
+      `${scenario.name}: interrupted management operation unexpectedly produced a completed runtime report`)
+    return { scenario: scenario.name, interrupted: true }
+  }
   const productReport = readJson(outputPath)
   assert(productReport?.target === 'electron', `${scenario.name}: wrong Electron target`)
   assertRuntimeEnvelope(productReport.runtime, scenario, 'file:')
@@ -8856,6 +8912,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     && !scenario.visibleEnable
     && !scenario.visibleUninstall
     && !scenario.visibleDisableFailAfterModLockWrite
+    && !scenario.installCrashRecoveryRestart
   ) {
     assert(preservedPackageBefore !== null && preservedPackageBefore.length > 0,
       `${scenario.name}: disabled package files were not present before restart validation`)
@@ -9794,6 +9851,154 @@ const runPackagedVisibleInstallCrashRecoverySequence = async (scenario, isolated
   }
 }
 
+const runPackagedVisibleManagementCrashRecoverySequence = async (scenario, isolated) => {
+  assert(isolated, `${scenario.name}: management crash recovery probe must use an isolated directory`)
+  const operation = scenario.visibleManagementInterruptionOperation
+  assert(
+    operation === 'disable' || operation === 'enable' || operation === 'uninstall',
+    `${scenario.name}: management crash recovery probe has an unsupported operation`
+  )
+  const dataRoot = scenario.dataRoot ?? scenario.name
+  const baseScenario = {
+    ...scenario,
+    visibleManagementInterruptionOperation: undefined,
+    dataRoot
+  }
+  const install = await runPackagedScenario({
+    ...baseScenario,
+    name: `${scenario.name}-install`,
+    startupGateReady: false,
+    startupPersistentStateReady: false,
+    startupPersistentStateUseInstalledState: false,
+    startupGateDefaultInstalledState: false,
+    startupGateDisabled: false,
+    startupGateUninstalled: false,
+    visibleImportRendererLiveRegistry: true,
+    visibleDisable: false,
+    visibleEnable: false,
+    visibleUninstall: false
+  }, true)
+
+  let disabled = null
+  if (operation !== 'disable') {
+    disabled = await runPackagedScenario({
+      ...baseScenario,
+      name: `${scenario.name}-disable`,
+      startupGateReady: true,
+      startupPersistentStateReady: true,
+      startupPersistentStateUseInstalledState: true,
+      startupGateDefaultInstalledState: false,
+      startupGateDisabled: false,
+      startupGateUninstalled: false,
+      startupGateRealRuntimePublicationCommit: true,
+      startupGateRegistryCount: 54,
+      startupGateSelectedPackageCount: expectedVisibleProbeSelectedPackageIds(scenario).length,
+      startupGateLoadOrderCount: expectedVisibleProbeLoadOrder(scenario).length,
+      startupGateEntryCount: expectedVisibleProbeEntryCount(scenario),
+      startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
+      startupPersistentStateExpectsResponseDeliveryHandoff: false,
+      visibleImportRendererLiveRegistry: false,
+      visibleDisable: true,
+      visibleEnable: false,
+      visibleUninstall: false
+    }, true)
+  }
+
+  const scenarioRoot = path.join(runRoot, `electron-${dataRoot}`)
+  const userDataPath = path.join(scenarioRoot, 'userdata')
+  const packageRoot = path.join(scenarioRoot, 'mods', 'product-probe-pack')
+  const before = {
+    settings: fileContentFingerprint(path.join(userDataPath, 'settings.json')),
+    modLock: fileContentFingerprint(modLockFilePath(userDataPath)),
+    startup: fileContentFingerprint(path.join(
+      userDataPath,
+      'mod-startup-state',
+      'startup-persistent-state-snapshot.json'
+    )),
+    package: directoryContentFingerprint(packageRoot)
+  }
+  const interrupted = await runPackagedScenario({
+    ...baseScenario,
+    name: `${scenario.name}-interrupt-${operation}`,
+    startupGateReady: true,
+    startupPersistentStateReady: true,
+    startupPersistentStateUseInstalledState: true,
+    startupGateDefaultInstalledState: false,
+    startupGateDisabled: operation !== 'disable',
+    startupGateUninstalled: false,
+    startupGateRealRuntimePublicationCommit: true,
+    startupGateRegistryCount: 54,
+    startupGateSelectedPackageCount: expectedVisibleProbeSelectedPackageIds(scenario).length,
+    startupGateLoadOrderCount: expectedVisibleProbeLoadOrder(scenario).length,
+    startupGateEntryCount: operation === 'disable'
+      ? expectedVisibleProbeEntryCount(scenario)
+      : 4242,
+    startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    visibleImportRendererLiveRegistry: false,
+    visibleDisable: operation === 'disable',
+    visibleEnable: operation === 'enable',
+    visibleUninstall: operation === 'uninstall',
+    visibleManagementInterruptionOperation: operation
+  }, true)
+  assert(interrupted.interrupted === true,
+    `${scenario.name}: management interruption did not stop before producing a report`)
+
+  const restart = await runPackagedScenario({
+    ...withDefaultInstalledStateStartup({
+      ...baseScenario,
+      name: `${scenario.name}-restart`,
+      installCrashRecoveryRestart: true,
+      startupGateDisabled: operation !== 'disable',
+      startupGateUninstalled: false,
+      startupGateEntryCount: operation === 'disable'
+        ? expectedVisibleProbeEntryCount(scenario)
+        : 4242,
+      startupGatePackageCount: expectedVisibleProbePackageCount(scenario),
+      visibleImportRendererLiveRegistry: false,
+      visibleDisable: false,
+      visibleEnable: false,
+      visibleUninstall: false
+    })
+  }, true)
+  const recovery = restart.electron?.installCrashRecoveryStartup
+  assert(recovery?.status === 'recovered',
+    `${scenario.name}: restart did not replay the interrupted ${operation} recovery log`)
+  assert(recovery.operation === operation,
+    `${scenario.name}: restart recovery reported ${recovery.operation} instead of ${operation}`)
+  assert(recovery.effects?.recoveryLogRead === true,
+    `${scenario.name}: restart did not read the interrupted ${operation} recovery log`)
+  assert(recovery.effects?.recoveryLogReplayed === true,
+    `${scenario.name}: restart did not replay the interrupted ${operation} recovery log`)
+  assert(recovery.effects?.rollbackExecuted === true,
+    `${scenario.name}: restart did not execute the interrupted ${operation} rollback`)
+  assert(JSON.stringify(fileContentFingerprint(path.join(userDataPath, 'settings.json'))) === JSON.stringify(before.settings),
+    `${scenario.name}: recovery did not restore settings after interrupted ${operation}`)
+  assert(JSON.stringify(fileContentFingerprint(modLockFilePath(userDataPath))) === JSON.stringify(before.modLock),
+    `${scenario.name}: recovery did not restore mod-lock after interrupted ${operation}`)
+  assert(JSON.stringify(fileContentFingerprint(path.join(
+    userDataPath,
+    'mod-startup-state',
+    'startup-persistent-state-snapshot.json'
+  ))) === JSON.stringify(before.startup),
+  `${scenario.name}: recovery did not restore startup state after interrupted ${operation}`)
+  assert(JSON.stringify(directoryContentFingerprint(packageRoot)) === JSON.stringify(before.package),
+    `${scenario.name}: recovery did not restore package files after interrupted ${operation}`)
+  assert(!fs.existsSync(path.join(userDataPath, 'mod-transactions', 'install-recovery.json')),
+    `${scenario.name}: management recovery log remained after restart recovery`)
+
+  return {
+    scenario: scenario.name,
+    operation,
+    installRuntime: install.runtime,
+    ...(disabled === null ? {} : { disabledRuntime: disabled.runtime }),
+    restartRuntime: restart.runtime,
+    installElectron: install.electron,
+    ...(disabled === null ? {} : { disabledElectron: disabled.electron }),
+    restartElectron: restart.electron
+  }
+}
+
 const runElectronProbe = async () => {
   assert(fs.existsSync(packagedExecutable),
     'Electron product is missing; run pnpm build:electron')
@@ -9818,6 +10023,13 @@ const runElectronProbe = async () => {
     }
     if (scenario.name === 'visible-import-install-interruption-recovery') {
       reports.push(await runPackagedVisibleInstallCrashRecoverySequence(
+        scenario,
+        scenario.isolated !== false
+      ))
+      continue
+    }
+    if (scenario.visibleManagementInterruptionOperation) {
+      reports.push(await runPackagedVisibleManagementCrashRecoverySequence(
         scenario,
         scenario.isolated !== false
       ))

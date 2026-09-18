@@ -95,6 +95,7 @@ describe('third-party Electron install crash recovery host', () => {
 
     expect(recovered.status).toBe('recovered')
     expect(recovered.transactionId).toBe('interrupted-install')
+    expect(recovered.operation).toBe('install')
     expect(recovered.restoredFileCount).toBe(2)
     expect(recovered.removedCreatedFileCount).toBe(3)
     expect(recovered.effects).toMatchObject({
@@ -146,9 +147,45 @@ describe('third-party Electron install crash recovery host', () => {
 
     const settled = await host.settle('completed-install', prepared.entryHash!)
     expect(settled.status).toBe('settled')
+    expect(settled.operation).toBe('install')
     expect(settled.effects.recoveryLogCleared).toBe(true)
     expect((await host.replay()).status).toBe('clean')
   })
+
+  it.each(['disable', 'enable', 'uninstall'] as const)(
+    'replays an interrupted %s lifecycle write from the same recovery boundary',
+    async(operation) => {
+      const root = await createRoot()
+      const previousSettings = `{"operation":"before-${operation}"}\n`
+      await writeText(root, 'userdata/settings.json', previousSettings)
+      const host = createThirdPartyDataPackElectronInstallCrashRecoveryHost({
+        programDirectoryPath: root
+      })
+      const prepared = await host.prepare({
+        operation,
+        targetPackageId: testPackageId,
+        candidateHash: testHash('a'),
+        lockfileHash: testHash('b'),
+        transactionId: `interrupted-${operation}`,
+        targets: [{ relativePath: 'userdata/settings.json' }]
+      })
+      expect(prepared).toMatchObject({
+        status: 'prepared',
+        operation,
+        transactionId: `interrupted-${operation}`
+      })
+
+      await writeText(root, 'userdata/settings.json', `{"operation":"partial-${operation}"}\n`)
+      const recovered = await host.replay()
+
+      expect(recovered).toMatchObject({
+        status: 'recovered',
+        operation,
+        transactionId: `interrupted-${operation}`
+      })
+      expect(await readOptionalText(root, 'userdata/settings.json')).toBe(previousSettings)
+    }
+  )
 
   it('blocks unsafe targets and corrupt recovery entries without touching files', async() => {
     const root = await createRoot()

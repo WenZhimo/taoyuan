@@ -217,6 +217,9 @@ const runtimeProbeVisibleInstallInterruptAfterModLockWrite =
   runtimeProbeEnabled
   && runtimeProbeVisibleImport
   && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_INSTALL_INTERRUPT_AFTER_MOD_LOCK_WRITE === '1'
+const runtimeProbeVisibleManagementInterruptAfterModLockWrite =
+  runtimeProbeEnabled
+  && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_MANAGEMENT_INTERRUPT_AFTER_MOD_LOCK_WRITE === '1'
 const runtimeProbeVisibleImportRollback =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_ROLLBACK === '1'
 const runtimeProbeVisibleImportFailure =
@@ -1325,7 +1328,84 @@ const rollbackModLockFile = async (filePath, previous, blockedMessage) => {
   restoreOptionalFile(filePath, previous)
 }
 
-const writeElectronDisabledState = async envelope => {
+const lifecyclePersistentStateCrashRecoveryTargets = () => [
+  { relativePath: 'userdata/settings.json' },
+  { relativePath: 'userdata/mod-lock.json' },
+  { relativePath: 'userdata/mod-startup-state/startup-persistent-state-snapshot.json' }
+]
+
+const packageCrashRecoveryTargetPaths = (programDirectoryPath, packages) =>
+  packages.flatMap(currentPackage => {
+    const candidatePath = currentPackage.source?.candidatePath
+    if (typeof candidatePath !== 'string') return []
+    const packageRootPath = path.join(programDirectoryPath, 'mods', candidatePath)
+    const existingTargets = fs.existsSync(packageRootPath)
+      ? fs.readdirSync(packageRootPath, { recursive: true, withFileTypes: true })
+        .filter(entry => entry.isFile())
+        .map(entry => {
+          const relativePath = path.relative(
+            packageRootPath,
+            path.join(entry.parentPath, entry.name)
+          ).split(path.sep).join('/')
+          return `mods/${candidatePath}/${relativePath}`
+        })
+      : []
+    return [
+      `mods/${candidatePath}/manifest.json`,
+      ...(currentPackage.contentFiles ?? []).map(file => `mods/${candidatePath}/${file.path}`),
+      ...existingTargets
+    ]
+  })
+
+const prepareElectronLifecycleCrashRecovery = async({
+  operation,
+  targetPackageId,
+  candidateHash,
+  lockfileHash,
+  packageTargets = []
+}) => {
+  const prepared = await thirdPartyDataPackInstallCrashRecoveryHost.prepare({
+    operation,
+    targetPackageId,
+    candidateHash,
+    lockfileHash,
+    targets: [
+      ...lifecyclePersistentStateCrashRecoveryTargets(),
+      ...packageTargets.map(relativePath => ({ relativePath }))
+    ]
+  })
+  if (prepared.status !== 'prepared') {
+    throw new Error(`Electron ${operation} crash recovery could not be prepared`)
+  }
+  return prepared
+}
+
+const settleElectronLifecycleCrashRecovery = async prepared => {
+  const settled = await thirdPartyDataPackInstallCrashRecoveryHost.settle(
+    prepared.transactionId,
+    prepared.entryHash
+  )
+  if (
+    settled.status !== 'settled'
+    || settled.operation !== prepared.operation
+  ) {
+    throw new Error(`Electron ${prepared.operation} crash recovery could not be settled`)
+  }
+}
+
+const replayElectronLifecycleCrashRecovery = async prepared => {
+  const recovered = await thirdPartyDataPackInstallCrashRecoveryHost.replay()
+  if (
+    recovered.status !== 'recovered'
+    || recovered.operation !== prepared.operation
+    || recovered.transactionId !== prepared.transactionId
+    || recovered.entryHash !== prepared.entryHash
+  ) {
+    throw new Error(`Electron ${prepared.operation} crash recovery could not be replayed`)
+  }
+}
+
+const writeElectronDisabledState = async(envelope, options = {}) => {
   const record = envelope.record
   const draft = record.lockfileDraft
   if (
@@ -1344,6 +1424,14 @@ const writeElectronDisabledState = async envelope => {
   const settingsPrevious = readOptionalFile(settingsPath)
   const modLockPrevious = readOptionalFile(startupPaths.modLockFilePath)
   const startupPrevious = readOptionalFile(startupPaths.snapshotFilePath)
+  const crashRecoveryPrepared = options.useExistingCrashRecovery === true
+    ? null
+    : await prepareElectronLifecycleCrashRecovery({
+      operation: 'disable',
+      targetPackageId: envelope.targetPackageId,
+      candidateHash: draft.candidateIdentity.candidateHash,
+      lockfileHash: draft.lockfileHash
+    })
   let modLockWritten = false
 
   try {
@@ -1352,6 +1440,9 @@ const writeElectronDisabledState = async envelope => {
         const lockfileResult = await createModLockProbe().write(draft)
         if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
         modLockWritten = true
+        if (runtimeProbeVisibleManagementInterruptAfterModLockWrite) {
+          process.exit(0)
+        }
         if (runtimeProbeVisibleDisableFailAfterModLockWrite) {
           throw new Error('Electron disable runtime probe failed after mod-lock write')
         }
@@ -1392,6 +1483,9 @@ const writeElectronDisabledState = async envelope => {
     if (writerResult.status !== 'written') {
       throw new Error(`Electron disable persistent writer blocked: ${writerResult.diagnostics.join(', ')}`)
     }
+    if (crashRecoveryPrepared !== null) {
+      await settleElectronLifecycleCrashRecovery(crashRecoveryPrepared)
+    }
     return {
       settingsWritten: writerResult.settingsWritten,
       lockfileWritten: writerResult.lockfileWritten,
@@ -1401,14 +1495,18 @@ const writeElectronDisabledState = async envelope => {
     }
   } catch (error) {
     try {
-      restoreOptionalFile(startupPaths.snapshotFilePath, startupPrevious)
-      restoreOptionalFile(settingsPath, settingsPrevious)
-      if (modLockWritten) {
-        await rollbackModLockFile(
-          startupPaths.modLockFilePath,
-          modLockPrevious,
-          'Electron disable rollback of mod-lock was blocked'
-        )
+      if (crashRecoveryPrepared !== null) {
+        await replayElectronLifecycleCrashRecovery(crashRecoveryPrepared)
+      } else {
+        restoreOptionalFile(startupPaths.snapshotFilePath, startupPrevious)
+        restoreOptionalFile(settingsPath, settingsPrevious)
+        if (modLockWritten) {
+          await rollbackModLockFile(
+            startupPaths.modLockFilePath,
+            modLockPrevious,
+            'Electron disable rollback of mod-lock was blocked'
+          )
+        }
       }
     } catch {
       // The IPC terminal remains blocked; the next startup will revalidate all three files.
@@ -1560,27 +1658,24 @@ const writeElectronUninstalledState = async envelope => {
 
   const modsPath = getExecutableModsPath()
   const packageRootPath = assertSafePackageRemovalPlan(modsPath, targetPackage)
-  const backupParentPath = path.join(startupPaths.userDataPath, 'mod-uninstall-backups')
-  fs.mkdirSync(backupParentPath, { recursive: true })
-  const safeBackupName = envelope.targetPackageId.replace(/[^A-Za-z0-9._-]/g, '_')
-  const backupRootPath = fs.mkdtempSync(path.join(backupParentPath, `${safeBackupName}-`))
-  const backupPackageRootPath = path.join(backupRootPath, 'package')
-  let packageFilesRemoved = false
-  let modLockWritten = false
+  const crashRecoveryPrepared = await prepareElectronLifecycleCrashRecovery({
+    operation: 'uninstall',
+    targetPackageId: envelope.targetPackageId,
+    candidateHash: previousDraft.candidateIdentity.candidateHash,
+    lockfileHash: previousDraft.lockfileHash,
+    packageTargets: packageCrashRecoveryTargetPaths(programDirectoryPath, [targetPackage])
+  })
 
   try {
-    fs.cpSync(packageRootPath, backupPackageRootPath, {
-      recursive: true,
-      errorOnExist: true
-    })
     fs.rmSync(packageRootPath, { recursive: true, force: true })
-    packageFilesRemoved = true
 
     const writerHost = createThirdPartyDataPackElectronManagementPersistentWriterHost({
       writeModLock: async currentDraft => {
         const lockfileResult = await createModLockProbe().write(currentDraft)
         if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
-        modLockWritten = true
+        if (runtimeProbeVisibleManagementInterruptAfterModLockWrite) {
+          process.exit(0)
+        }
         if (runtimeProbeVisibleUninstallFailAfterModLockWrite) {
           throw new Error('Electron uninstall runtime probe failed after mod-lock write')
         }
@@ -1615,7 +1710,7 @@ const writeElectronUninstalledState = async envelope => {
     if (writerResult.status !== 'written') {
       throw new Error(`Electron uninstall persistent writer blocked: ${writerResult.diagnostics.join(', ')}`)
     }
-    fs.rmSync(backupRootPath, { recursive: true, force: true })
+    await settleElectronLifecycleCrashRecovery(crashRecoveryPrepared)
 
     return {
       settingsWritten: writerResult.settingsWritten,
@@ -1627,23 +1722,9 @@ const writeElectronUninstalledState = async envelope => {
     }
   } catch (error) {
     try {
-      restoreOptionalFile(startupPaths.snapshotFilePath, startupPrevious)
-      restoreOptionalFile(settingsPath, settingsPrevious)
-      if (modLockWritten) {
-        await rollbackModLockFile(
-          startupPaths.modLockFilePath,
-          modLockPrevious,
-          'Electron uninstall rollback of mod-lock was blocked'
-        )
-      }
-      if (packageFilesRemoved) {
-        fs.rmSync(packageRootPath, { recursive: true, force: true })
-        fs.cpSync(backupPackageRootPath, packageRootPath, { recursive: true })
-      }
+      await replayElectronLifecycleCrashRecovery(crashRecoveryPrepared)
     } catch {
       // The IPC terminal remains blocked; the next startup will revalidate all files.
-    } finally {
-      fs.rmSync(backupRootPath, { recursive: true, force: true })
     }
     throw error
   }
@@ -1737,14 +1818,21 @@ const writeElectronEnabledState = async envelope => {
     }
     assertSafePackagePreservationPlan(modsPath, packageRecord)
   }
-  let modLockWritten = false
+  const crashRecoveryPrepared = await prepareElectronLifecycleCrashRecovery({
+    operation: 'enable',
+    targetPackageId: envelope.targetPackageId,
+    candidateHash: draft.candidateIdentity.candidateHash,
+    lockfileHash: draft.lockfileHash
+  })
 
   try {
     const writerHost = createThirdPartyDataPackElectronManagementPersistentWriterHost({
       writeModLock: async currentDraft => {
         const lockfileResult = await createModLockProbe().write(currentDraft)
         if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
-        modLockWritten = true
+        if (runtimeProbeVisibleManagementInterruptAfterModLockWrite) {
+          process.exit(0)
+        }
         if (runtimeProbeVisibleEnableFailAfterModLockWrite) {
           throw new Error('Electron enable runtime probe failed after mod-lock write')
         }
@@ -1779,6 +1867,7 @@ const writeElectronEnabledState = async envelope => {
     if (writerResult.status !== 'written') {
       throw new Error(`Electron enable persistent writer blocked: ${writerResult.diagnostics.join(', ')}`)
     }
+    await settleElectronLifecycleCrashRecovery(crashRecoveryPrepared)
 
     return {
       settingsWritten: writerResult.settingsWritten,
@@ -1789,15 +1878,7 @@ const writeElectronEnabledState = async envelope => {
     }
   } catch (error) {
     try {
-      restoreOptionalFile(startupPaths.snapshotFilePath, startupPrevious)
-      restoreOptionalFile(settingsPath, settingsPrevious)
-      if (modLockWritten) {
-        await rollbackModLockFile(
-          startupPaths.modLockFilePath,
-          modLockPrevious,
-          'Electron enable rollback of mod-lock was blocked'
-        )
-      }
+      await replayElectronLifecycleCrashRecovery(crashRecoveryPrepared)
     } catch {
       // The IPC terminal remains blocked; the next startup will revalidate all three files.
     }
@@ -3380,33 +3461,13 @@ const createRuntimePublicationContinuationResults = async(
 
 const ordinaryInstallCrashRecoveryTargets = (programDirectoryPath, lockfileDraft) => {
   const selectedPackageIds = new Set(lockfileDraft.selectedPackageIds)
-  const packageTargets = lockfileDraft.packages
+  const packageTargets = packageCrashRecoveryTargetPaths(
+    programDirectoryPath,
+    lockfileDraft.packages
     .filter(currentPackage => selectedPackageIds.has(currentPackage.packageId))
-    .flatMap(currentPackage => {
-      const candidatePath = currentPackage.source?.candidatePath
-      if (typeof candidatePath !== 'string') return []
-      const packageRootPath = path.join(programDirectoryPath, 'mods', candidatePath)
-      const existingTargets = fs.existsSync(packageRootPath)
-        ? fs.readdirSync(packageRootPath, { recursive: true, withFileTypes: true })
-          .filter(entry => entry.isFile())
-          .map(entry => {
-            const relativePath = path.relative(
-              packageRootPath,
-              path.join(entry.parentPath, entry.name)
-            ).split(path.sep).join('/')
-            return `mods/${candidatePath}/${relativePath}`
-          })
-        : []
-      return [
-        `mods/${candidatePath}/manifest.json`,
-        ...currentPackage.contentFiles.map(file => `mods/${candidatePath}/${file.path}`),
-        ...existingTargets
-      ]
-    })
+  )
   return [
-    { relativePath: 'userdata/settings.json' },
-    { relativePath: 'userdata/mod-lock.json' },
-    { relativePath: 'userdata/mod-startup-state/startup-persistent-state-snapshot.json' },
+    ...lifecyclePersistentStateCrashRecoveryTargets(),
     ...packageTargets.map(relativePath => ({ relativePath }))
   ]
 }
@@ -4233,6 +4294,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   }
 
   const installCrashRecoveryPrepared = await thirdPartyDataPackInstallCrashRecoveryHost.prepare({
+    operation: 'install',
     targetPackageId,
     candidateHash: lockfileDraft.candidateIdentity.candidateHash,
     lockfileHash: lockfileDraft.lockfileHash,
@@ -4387,7 +4449,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
               state,
               'electron-startup-persistent-state-snapshot'
             )
-          })
+          }, { useExistingCrashRecovery: true })
           return {
             ...writeResult,
             packageFilesPreserved: true
