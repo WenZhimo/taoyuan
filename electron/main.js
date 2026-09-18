@@ -63,6 +63,9 @@ import {
   createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipeline
 } from '../src/domain/mods/thirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipeline'
 import {
+  createThirdPartyDataPackElectronInstallCrashRecoveryHost
+} from '../src/domain/mods/thirdPartyDataPackElectronInstallCrashRecoveryHost'
+import {
   createThirdPartyDataPackInstallCommandLifecyclePipeline
 } from '../src/domain/mods/thirdPartyDataPackInstallCommandLifecyclePipeline'
 import {
@@ -210,6 +213,10 @@ const runtimeProbeVisibleInstallFailAfterModLockWrite =
   runtimeProbeEnabled
   && runtimeProbeVisibleImport
   && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_INSTALL_FAIL_AFTER_MOD_LOCK_WRITE === '1'
+const runtimeProbeVisibleInstallInterruptAfterModLockWrite =
+  runtimeProbeEnabled
+  && runtimeProbeVisibleImport
+  && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_INSTALL_INTERRUPT_AFTER_MOD_LOCK_WRITE === '1'
 const runtimeProbeVisibleImportRollback =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT_ROLLBACK === '1'
 const runtimeProbeVisibleImportFailure =
@@ -320,6 +327,11 @@ const thirdPartyDataPackStartupPersistentStateReadHandler =
       programDirectoryPath: () => process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
     })
   )
+const thirdPartyDataPackInstallCrashRecoveryHost =
+  createThirdPartyDataPackElectronInstallCrashRecoveryHost({
+    programDirectoryPath: () => getExecutableDirectoryPath()
+  })
+let thirdPartyDataPackInstallCrashRecoveryStartupResult = null
 let thirdPartyDataPackInstallCommandDispatchIpcProof = null
 const thirdPartyDataPackInstallCommandDispatchHandler =
   createThirdPartyDataPackElectronInstallCommandDispatchMainHandler({
@@ -3366,6 +3378,39 @@ const createRuntimePublicationContinuationResults = async(
   }
 }
 
+const ordinaryInstallCrashRecoveryTargets = (programDirectoryPath, lockfileDraft) => {
+  const selectedPackageIds = new Set(lockfileDraft.selectedPackageIds)
+  const packageTargets = lockfileDraft.packages
+    .filter(currentPackage => selectedPackageIds.has(currentPackage.packageId))
+    .flatMap(currentPackage => {
+      const candidatePath = currentPackage.source?.candidatePath
+      if (typeof candidatePath !== 'string') return []
+      const packageRootPath = path.join(programDirectoryPath, 'mods', candidatePath)
+      const existingTargets = fs.existsSync(packageRootPath)
+        ? fs.readdirSync(packageRootPath, { recursive: true, withFileTypes: true })
+          .filter(entry => entry.isFile())
+          .map(entry => {
+            const relativePath = path.relative(
+              packageRootPath,
+              path.join(entry.parentPath, entry.name)
+            ).split(path.sep).join('/')
+            return `mods/${candidatePath}/${relativePath}`
+          })
+        : []
+      return [
+        `mods/${candidatePath}/manifest.json`,
+        ...currentPackage.contentFiles.map(file => `mods/${candidatePath}/${file.path}`),
+        ...existingTargets
+      ]
+    })
+  return [
+    { relativePath: 'userdata/settings.json' },
+    { relativePath: 'userdata/mod-lock.json' },
+    { relativePath: 'userdata/mod-startup-state/startup-persistent-state-snapshot.json' },
+    ...packageTargets.map(relativePath => ({ relativePath }))
+  ]
+}
+
 const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   if (!envelope || typeof envelope !== 'object') {
     return createBlockedOrdinaryInstallTerminalContinuationResult(
@@ -3423,7 +3468,6 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   let installTransactionCommitFinalization
   let postCommitUiIpcDeliveryContinuation
   const programDirectoryPath = process.env.PORTABLE_EXECUTABLE_DIR || path.dirname(process.execPath)
-
   const readSettingsLockfileCommitSource = async() =>
     createOrdinaryInstallTerminalSettingsLockfileCommitSourceResult(lockfileDraft, targetPackageId)
 
@@ -3514,6 +3558,9 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   const readSettingsLockfileLifecyclePipeline = async() => {
     settingsLockfileLifecycle ??= settingsLockfileLifecyclePipeline()
     settingsLockfileLifecycleResult = await settingsLockfileLifecycle
+    if (runtimeProbeVisibleInstallInterruptAfterModLockWrite) {
+      process.exit(0)
+    }
     return settingsLockfileLifecycleResult
   }
 
@@ -4185,6 +4232,29 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     }
   }
 
+  const installCrashRecoveryPrepared = await thirdPartyDataPackInstallCrashRecoveryHost.prepare({
+    targetPackageId,
+    candidateHash: lockfileDraft.candidateIdentity.candidateHash,
+    lockfileHash: lockfileDraft.lockfileHash,
+    targets: ordinaryInstallCrashRecoveryTargets(programDirectoryPath, lockfileDraft)
+  })
+  if (installCrashRecoveryPrepared.status !== 'prepared') {
+    return createBlockedOrdinaryInstallTerminalContinuationResult(
+      'Electron ordinary install terminal continuation could not prepare crash recovery before persistent writes'
+    )
+  }
+
+  const settleInstallCrashRecovery = async() => {
+    const settled = await thirdPartyDataPackInstallCrashRecoveryHost.settle(
+      installCrashRecoveryPrepared.transactionId,
+      installCrashRecoveryPrepared.entryHash
+    )
+    if (settled.status !== 'settled') {
+      throw new Error('Electron ordinary install crash recovery log could not be settled')
+    }
+    return settled
+  }
+
   const installTransactionLogPreparedResult =
     await readInstallTransactionLogPrepared()
   const installTransactionLogPreparedPersistentReadVerificationResult =
@@ -4345,6 +4415,14 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
         )
       }
 
+      try {
+        await settleInstallCrashRecovery()
+      } catch {
+        return createBlockedOrdinaryInstallTerminalContinuationResult(
+          'Electron disabled replacement could not settle crash recovery after persistent verification'
+        )
+      }
+
       const startupPersistentStateSnapshotWrite = {
         status: 'written',
         storageKind: 'electron-program-directory-userdata-startup-persistent-state',
@@ -4435,6 +4513,14 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
   } catch {
     return createBlockedOrdinaryInstallTerminalContinuationResult(
       'Electron ordinary install terminal continuation could not persist startup state snapshot under program-directory userdata'
+    )
+  }
+
+  try {
+    await settleInstallCrashRecovery()
+  } catch {
+    return createBlockedOrdinaryInstallTerminalContinuationResult(
+      'Electron ordinary install terminal continuation could not settle crash recovery after persistent verification'
     )
   }
 
@@ -5809,6 +5895,7 @@ ipcMain.on('content-runtime-probe', (_event, report) => {
         settingsLockfileWriterProbe,
         packageFilePersistentStagingProbe,
         packageFileRestoreProbe,
+        installCrashRecoveryStartup: thirdPartyDataPackInstallCrashRecoveryStartupResult,
         installCommandLifecycleProbe,
         installTransactionCommitFinalizationProbe,
         ordinaryInstallTerminalConnectionProbe
@@ -5820,7 +5907,18 @@ ipcMain.on('content-runtime-probe', (_event, report) => {
   })
 })
 
-app.whenReady().then(() => {
+app.whenReady().then(async() => {
+  try {
+    thirdPartyDataPackInstallCrashRecoveryStartupResult =
+      await thirdPartyDataPackInstallCrashRecoveryHost.replay()
+    if (thirdPartyDataPackInstallCrashRecoveryStartupResult.status === 'blocked') {
+      throw new Error('Electron install crash recovery could not settle before app startup')
+    }
+  } catch (error) {
+    console.error('Electron install crash recovery failed before app startup:', error)
+    writeRuntimeProbeFailure('install-crash-recovery-failed')
+    return
+  }
   createWindow()
 
   if (runtimeProbeEnabled) {

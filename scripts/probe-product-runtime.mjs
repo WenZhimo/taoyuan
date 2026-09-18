@@ -915,6 +915,17 @@ const electronScenarios = [
     cacheSeed: 'valid'
   },
   {
+    name: 'visible-import-install-interruption-recovery',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-install-interruption-recovery',
+    cacheSeed: 'valid'
+  },
+  {
     name: 'visible-import-dependency-install-write-failure-rollback',
     fault: null,
     source: 'disk-cache',
@@ -8835,8 +8846,10 @@ const runPackagedScenario = async (scenario, isolated) => {
         `${scenario.name}: settings file leaked an absolute path`)
     }
   } else {
-    assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
-      `${scenario.name}: mod-lock file changed during inspect-only probe`)
+    if (!scenario.installCrashRecoveryRestart) {
+      assert(JSON.stringify(fileFingerprint(lockfilePath)) === JSON.stringify(lockfileBefore),
+        `${scenario.name}: mod-lock file changed during inspect-only probe`)
+    }
   }
   if (
     (scenario.visibleDisable || scenario.visibleDisabledUpgrade || scenario.startupGateDisabled)
@@ -9708,6 +9721,79 @@ const runPackagedVisibleDisableEnableSequence = async (scenario, isolated) => {
   }
 }
 
+const runPackagedVisibleInstallCrashRecoverySequence = async (scenario, isolated) => {
+  assert(isolated, `${scenario.name}: crash recovery probe must use an isolated directory`)
+  const dataRoot = scenario.dataRoot ?? scenario.name
+  const scenarioRoot = path.join(runRoot, `electron-${dataRoot}`)
+  const userDataPath = path.join(scenarioRoot, 'userdata')
+  const cacheSeedRoot = path.join(scenarioRoot, 'userdata')
+  fs.mkdirSync(scenarioRoot, { recursive: true })
+  seedElectronCache(cacheSeedRoot, 'valid')
+  writeModLockProtectionSentinels(scenarioRoot, userDataPath)
+  const packageFileProtection = writePackageFileProtectionSentinels(scenarioRoot)
+  const settingsBefore = fileContentFingerprint(path.join(userDataPath, 'settings.json'))
+  const interruptedOutputPath = path.join(runRoot, 'electron-reports', `${scenario.name}-interrupted.json`)
+
+  await runProcess(packagedExecutable, [], {
+    TAOYUAN_RUNTIME_PROBE_OUTPUT: interruptedOutputPath,
+    TAOYUAN_RUNTIME_PROBE_AUTO_EXIT: '1',
+    TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT: '1',
+    TAOYUAN_RUNTIME_PROBE_VISIBLE_INSTALL_INTERRUPT_AFTER_MOD_LOCK_WRITE: '1',
+    PORTABLE_EXECUTABLE_DIR: scenarioRoot
+  })
+  assert(!fs.existsSync(interruptedOutputPath),
+    `${scenario.name}: interrupted install unexpectedly produced a completed runtime report`)
+
+  const restartScenario = {
+    ...scenario,
+    name: `${scenario.name}-restart`,
+    installCrashRecoveryRestart: true,
+    dataRoot,
+    visibleImportRendererLiveRegistry: false,
+    startupGateReady: false,
+    startupPersistentStateReady: false,
+    startupPersistentStateUseInstalledState: false,
+    startupGateDefaultInstalledState: false,
+    startupGateDisabled: false,
+    startupGateUninstalled: false,
+    visibleImportRendererLiveRegistry: false
+  }
+  const restart = await runPackagedScenario(restartScenario, true)
+  const recovery = restart.electron?.installCrashRecoveryStartup
+  assert(recovery?.status === 'recovered',
+    `${scenario.name}: restart did not replay the interrupted install recovery log`)
+  assert(recovery.effects?.recoveryLogRead === true,
+    `${scenario.name}: restart did not read the interrupted install recovery log`)
+  assert(recovery.effects?.recoveryLogReplayed === true,
+    `${scenario.name}: restart did not replay the interrupted install recovery log`)
+  assert(recovery.effects?.rollbackExecuted === true,
+    `${scenario.name}: restart did not settle the interrupted install rollback`)
+  assert(!fs.existsSync(installTransactionPreparedLogPath(userDataPath)),
+    `${scenario.name}: prepared transaction log unexpectedly remained after recovery`)
+  assert(!fs.existsSync(path.join(userDataPath, 'mod-transactions', 'install-recovery.json')),
+    `${scenario.name}: crash recovery log remained after restart recovery`)
+  assert(JSON.stringify(fileContentFingerprint(path.join(
+    scenarioRoot,
+    'mods/product-probe-pack/manifest.json'
+  ))) === JSON.stringify(packageFileProtection.beforeManifest),
+  `${scenario.name}: restart recovery did not restore the previous package manifest`)
+  assert(fileContentFingerprint(path.join(
+    scenarioRoot,
+    'mods/product-probe-pack/data/items.json'
+  )).exists === false,
+  `${scenario.name}: restart recovery left a package content file created before interruption`)
+  assert(fileContentFingerprint(modLockFilePath(userDataPath)).exists === false,
+    `${scenario.name}: restart recovery left a partially written mod-lock`)
+  assert(JSON.stringify(fileContentFingerprint(path.join(userDataPath, 'settings.json')))
+    === JSON.stringify(settingsBefore),
+  `${scenario.name}: restart recovery did not restore the previous settings file`)
+  return {
+    scenario: scenario.name,
+    restartRuntime: restart.runtime,
+    restartElectron: restart.electron
+  }
+}
+
 const runElectronProbe = async () => {
   assert(fs.existsSync(packagedExecutable),
     'Electron product is missing; run pnpm build:electron')
@@ -9728,6 +9814,13 @@ const runElectronProbe = async () => {
     }
     if (scenario.visibleImportInstalledDisableSequence) {
       reports.push(await runPackagedVisibleDisableSequence(scenario, scenario.isolated !== false))
+      continue
+    }
+    if (scenario.name === 'visible-import-install-interruption-recovery') {
+      reports.push(await runPackagedVisibleInstallCrashRecoverySequence(
+        scenario,
+        scenario.isolated !== false
+      ))
       continue
     }
     reports.push(await runPackagedScenario(scenario, scenario.isolated !== false))
