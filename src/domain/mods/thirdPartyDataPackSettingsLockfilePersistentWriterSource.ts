@@ -31,6 +31,10 @@ export type ThirdPartyDataPackSettingsLockfilePersistentWriterHostStatus =
   | 'written'
   | 'blocked'
 
+export type ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode =
+  | 'injected-test-only'
+  | 'real-electron-program-directory-settings-lockfile-writer-host'
+
 export interface ThirdPartyDataPackSettingsLockfilePersistentWriterHostEnvelope {
   readonly requestedCommandId: 'install'
   readonly targetPackageId: PackageId
@@ -72,6 +76,8 @@ export interface ThirdPartyDataPackSettingsLockfilePersistentWriterHostEffectSum
 
 export interface ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult {
   readonly status: ThirdPartyDataPackSettingsLockfilePersistentWriterHostStatus
+  readonly settingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   readonly requestedCommandId?: 'install'
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds?: readonly PackageId[]
@@ -98,7 +104,7 @@ export interface ThirdPartyDataPackSettingsLockfilePersistentWriterSourceEffectS
   readonly injectedSettingsLockfilePersistentWriterHostCalled: boolean
   readonly settingsLockfilePersistentWriterHostCalled: boolean
   readonly settingsLockfilePersistentWriterHostWritten: boolean
-  readonly realSettingsLockfilePersistentWriterHostCalled: false
+  readonly realSettingsLockfilePersistentWriterHostCalled: boolean
   readonly appBootstrapContinuationAllowed: boolean
   readonly commandContinuationAllowed: boolean
   readonly officialRegistryPublished: false
@@ -161,6 +167,9 @@ export interface ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult 
   readonly packageFileStagingHostStatus?: ThirdPartyDataPackPackageFileStagingHostStatus
   readonly settingsLockfileCommitHostStatus?: ThirdPartyDataPackSettingsLockfileCommitHostStatus
   readonly settingsLockfilePersistentWriterHostStatus?: ThirdPartyDataPackSettingsLockfilePersistentWriterHostStatus
+  readonly settingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
+  readonly injectedSettingsLockfilePersistentWriterHostMode?: 'injected-test-only'
   readonly requestedCommandId?: 'install'
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
@@ -555,6 +564,25 @@ const pathFreePersistentWriterHostResult = (
   hostResult: ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult
 ): boolean => forbiddenPersistentWriterHostFields.every(fieldName => !hasOwnEnumerableField(hostResult, fieldName))
 
+const settingsLockfilePersistentWriterHostModes =
+  new Set<ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode>([
+    'injected-test-only',
+    'real-electron-program-directory-settings-lockfile-writer-host'
+  ])
+
+const readSettingsLockfilePersistentWriterHostMode = (
+  hostResult: ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult | undefined
+): ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode | undefined => {
+  if (hostResult === undefined) return undefined
+  const hostMode = readOwnStringField(hostResult, 'settingsLockfilePersistentWriterHostMode')
+  if (hostMode === undefined) return 'injected-test-only'
+  return settingsLockfilePersistentWriterHostModes.has(
+    hostMode as ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
+  )
+    ? hostMode as ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
+    : undefined
+}
+
 const arraysEqual = (left: readonly string[], right: readonly string[]): boolean =>
   left.length === right.length && left.every((value, index) => value === right[index])
 
@@ -617,6 +645,7 @@ const safeWrittenHostResult = (
     && readOwnStringField(hostResult, 'transactionLogWriteProbeStatus') === writeEvidence.transactionLogWriteProbeStatus
     && readOwnBooleanField(hostResult, 'modLockPersistentWriteExecuted') === writeEvidence.modLockPersistentWriteExecuted
     && readOwnBooleanField(hostResult, 'transactionLogPersistentWriteExecuted') === writeEvidence.transactionLogPersistentWriteExecuted
+    && readSettingsLockfilePersistentWriterHostMode(hostResult) !== undefined
     && hostEffectsContained(readOwnDataField(hostResult, 'effects') as object | undefined)
     && pathFreePersistentWriterHostResult(hostResult)
 }
@@ -652,16 +681,20 @@ const effectSummary = (
   persistentWriteAccepted: boolean
 ): ThirdPartyDataPackSettingsLockfilePersistentWriterSourceEffectSummary => {
   const hostEffects = readOwnDataField(hostResult, 'effects') as object | undefined
+  const hostMode = readSettingsLockfilePersistentWriterHostMode(hostResult)
+  const hostCalled =
+    readOwnBooleanField(hostEffects, 'settingsLockfilePersistentWriterHostCalled') ?? false
   return Object.freeze({
     settingsLockfilePersistentWriterSourceCalled: true,
     settingsLockfileCommitSourceCalled: sourceCalled,
     injectedSettingsLockfilePersistentWriterHostCalled:
-      readOwnBooleanField(hostEffects, 'settingsLockfilePersistentWriterHostCalled') ?? false,
-    settingsLockfilePersistentWriterHostCalled:
-      readOwnBooleanField(hostEffects, 'settingsLockfilePersistentWriterHostCalled') ?? false,
+      hostCalled && hostMode === 'injected-test-only',
+    settingsLockfilePersistentWriterHostCalled: hostCalled,
     settingsLockfilePersistentWriterHostWritten:
       readOwnBooleanField(hostEffects, 'settingsLockfilePersistentWriterHostWritten') ?? false,
-    realSettingsLockfilePersistentWriterHostCalled: false,
+    realSettingsLockfilePersistentWriterHostCalled:
+      hostCalled
+      && hostMode === 'real-electron-program-directory-settings-lockfile-writer-host',
     appBootstrapContinuationAllowed: continuationAllowed,
     commandContinuationAllowed: continuationAllowed,
     officialRegistryPublished: false,
@@ -741,6 +774,12 @@ const baseResult = (
     settingsLockfilePersistentWriterHostStatus: readOwnStringField(options.hostResult, 'status') as
       | ThirdPartyDataPackSettingsLockfilePersistentWriterHostStatus
       | undefined,
+    settingsLockfilePersistentWriterHostMode:
+      readSettingsLockfilePersistentWriterHostMode(options.hostResult),
+    injectedSettingsLockfilePersistentWriterHostMode:
+      readSettingsLockfilePersistentWriterHostMode(options.hostResult) === 'injected-test-only'
+        ? 'injected-test-only'
+        : undefined,
     requestedCommandId: readOwnStringField(options.source, 'requestedCommandId') === 'install'
       ? 'install' as const
       : undefined,
@@ -863,9 +902,12 @@ const evaluateSettingsLockfilePersistentWriterSource = async(
 
       const hostDiagnostics = safeDiagnostics(readOwnDataField(hostResult, 'diagnostics') as readonly unknown[] | undefined)
       if (safeWrittenHostResult(source, hostResult)) {
+        const hostMode = readSettingsLockfilePersistentWriterHostMode(hostResult)
         return baseResult({
           status: 'written',
-          reason: 'third-party settings-lockfile persistent writer source accepted an injected contained writer result',
+          reason: hostMode === 'real-electron-program-directory-settings-lockfile-writer-host'
+            ? 'third-party settings-lockfile persistent writer source accepted a real Electron program-directory writer result'
+            : 'third-party settings-lockfile persistent writer source accepted an injected contained writer result',
           enabled: true,
           sourceCalled: true,
           source,

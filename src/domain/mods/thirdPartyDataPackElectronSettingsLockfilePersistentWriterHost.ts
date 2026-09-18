@@ -7,6 +7,7 @@ import type {
   ThirdPartyDataPackModLockStorageReport
 } from './thirdPartyDataPackModLockStorage'
 import type {
+  ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode,
   ThirdPartyDataPackSettingsLockfilePersistentWriterHostEnvelope,
   ThirdPartyDataPackSettingsLockfilePersistentWriterHostEffectSummary,
   ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult
@@ -59,6 +60,7 @@ export interface ThirdPartyDataPackElectronSettingsLockfilePersistentWriterSetti
 
 export interface CreateThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostOptions {
   readonly modLockStorage: ThirdPartyDataPackModLockStorageAdapter
+  readonly hostMode?: ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   readonly readLockfileDraft: () => Awaitable<ThirdPartyDataPackLockfileDraft>
   readonly writeSettings: (
     envelope: ThirdPartyDataPackElectronSettingsLockfilePersistentWriterSettingsEnvelope
@@ -283,9 +285,11 @@ const hostEffects = (
 const hostResult = (
   envelope: ThirdPartyDataPackSettingsLockfilePersistentWriterHostEnvelope,
   status: 'written' | 'blocked',
-  diagnostics: readonly SafeDiagnostic[]
+  diagnostics: readonly SafeDiagnostic[],
+  hostMode: ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
 ): ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult => deepFreezeObjectGraph({
   status,
+  settingsLockfilePersistentWriterHostMode: hostMode,
   requestedCommandId: envelope.requestedCommandId,
   targetPackageId: envelope.targetPackageId,
   selectedPackageIds: [...envelope.selectedPackageIds],
@@ -393,6 +397,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
 ): ((
   envelope: ThirdPartyDataPackSettingsLockfilePersistentWriterHostEnvelope
 ) => Promise<ThirdPartyDataPackSettingsLockfilePersistentWriterHostResult>) => async envelope => {
+  const hostMode = options.hostMode ?? 'injected-test-only'
   const packageId = envelope.targetPackageId
   let draft: ThirdPartyDataPackLockfileDraft
   try {
@@ -403,7 +408,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.lockfile-draft-failed',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   if (!draftMatchesEnvelope(envelope, draft)) {
@@ -412,7 +417,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.lockfile-draft-mismatch',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   let inspectReport: ThirdPartyDataPackModLockStorageReport
@@ -424,7 +429,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.mod-lock-inspect-threw',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   if (!storageInspectContained(inspectReport)) {
@@ -438,7 +443,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.mod-lock-inspect-blocked',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   const settingsRequest = settingsEnvelope(envelope)
@@ -451,7 +456,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.settings-write-threw',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   const settingsDiagnostics = safeDiagnostics(
@@ -466,7 +471,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.settings-write-blocked',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   let storageWriteReport: ThirdPartyDataPackModLockStorageReport
@@ -479,7 +484,7 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.mod-lock-write-threw',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   const storageDiagnostics = safeDiagnostics(
@@ -495,11 +500,11 @@ export const createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHos
         'third-party.electron-settings-lockfile-persistent-writer-host.mod-lock-write-blocked',
         packageId
       )
-    ])
+    ], hostMode)
   }
 
   return hostResult(envelope, 'written', [
     ...settingsDiagnostics,
     ...storageDiagnostics
-  ])
+  ], hostMode)
 }

@@ -507,6 +507,7 @@ const createSettingsWriterResult = (
   packageFileStagingHostStatus: 'accepted',
   settingsLockfileCommitHostStatus: 'accepted',
   settingsLockfilePersistentWriterHostStatus: 'written',
+  settingsLockfilePersistentWriterHostMode: 'injected-test-only',
   requestedCommandId: 'install',
   targetPackageId: packageId,
   selectedPackageIds: [packageId],
@@ -607,6 +608,7 @@ describe('third-party install persistent staging settings-lockfile lifecycle pip
     expect(result.readOnly).toBe(false)
     expect(result.installPersistentStagingLifecyclePipelineStatus).toBe('ready')
     expect(result.settingsLockfilePersistentWriterSourceStatus).toBe('written')
+    expect(result.settingsLockfilePersistentWriterHostMode).toBe('injected-test-only')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.candidateHash).toBe(candidateIdentity.candidateHash)

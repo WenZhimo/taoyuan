@@ -4377,6 +4377,9 @@ const assertVisibleImportDisabledReplacementProductProbe = (visibleImport, scena
       `${scenario.name}: Electron disabled replacement settings/mod-lock lifecycle was not ready`)
     assert(visibleImport.electronSettingsLockfilePersistentWriterSourceStatus === 'written',
       `${scenario.name}: Electron disabled replacement settings/mod-lock writer did not write`)
+    assert(visibleImport.electronSettingsLockfilePersistentWriterHostMode
+      === 'real-electron-program-directory-settings-lockfile-writer-host',
+    `${scenario.name}: Electron disabled replacement did not report the real settings/mod-lock writer host`)
   } else {
     assert(visibleImport.webStartupPersistentStateWriteStatus === 'written',
       `${scenario.name}: Web disabled replacement did not write startup state`)
@@ -6665,6 +6668,9 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
       `${scenario.name}: Electron visible import settings/mod-lock lifecycle was not ready`)
     assert(visibleImport.electronSettingsLockfilePersistentWriterSourceStatus === 'written',
       `${scenario.name}: Electron visible import settings/mod-lock persistent writer did not write`)
+    assert(visibleImport.electronSettingsLockfilePersistentWriterHostMode
+      === 'real-electron-program-directory-settings-lockfile-writer-host',
+    `${scenario.name}: Electron visible import did not report the real settings/mod-lock writer host`)
     assert(visibleImport.electronPersistentSettingsLockfileWriteExecuted === true,
       `${scenario.name}: Electron visible import did not execute persistent settings/mod-lock write`)
     assertVisibleImportPackageSelection(visibleImport, scenario, 'visible import')
@@ -7067,6 +7073,9 @@ const assertElectronSettingsLockfileWriterProbe = (probe, scenario, isolated) =>
     `${scenario.name}: install persistent staging lifecycle was not ready`)
   assert(probe.settingsLockfilePersistentWriterSourceStatus === 'written',
     `${scenario.name}: settings-lockfile persistent writer source was not written`)
+  assert(probe.settingsLockfilePersistentWriterHostMode
+    === 'real-electron-program-directory-settings-lockfile-writer-host',
+  `${scenario.name}: settings-lockfile writer did not report the real Electron program-directory host`)
   assert(probe.targetPackageId === 'product_probe_pack',
     `${scenario.name}: settings-lockfile writer reported the wrong package`)
   assert(probe.selectedPackageCount === 1,

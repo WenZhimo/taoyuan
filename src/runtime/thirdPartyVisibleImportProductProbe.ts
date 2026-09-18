@@ -13,6 +13,9 @@ import type {
 import type {
   ThirdPartyDataPackRuntimePublicationCommitHostMode
 } from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
+import type {
+  ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
+} from '@/domain/mods/thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 import { CURRENT_GAME_VERSION } from '@/domain/mods/officialContentVersions'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
 import type { WebFilePickerImportFile } from '@/domain/mods/webFilePickerImportSource'
@@ -165,6 +168,8 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly webPlatformWriterHostConnectionStatus: string | null
   readonly electronSettingsLockfileLifecycleStatus: string | null
   readonly electronSettingsLockfilePersistentWriterSourceStatus: string | null
+  readonly electronSettingsLockfilePersistentWriterHostMode:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode | null
   readonly electronPersistentSettingsLockfileWriteExecuted: boolean
   readonly installTransactionLogPreparedStatus: string | null
   readonly installTransactionLogPreparedStorageKind: string | null
@@ -636,6 +641,9 @@ const hasReadyVisibleImportDispatch = (
         ?.persistentPackageWriteExecuted === true
       && dispatchResult.electronSettingsLockfileLifecycle
         ?.persistentSettingsLockfileWriteExecuted === true
+      && dispatchResult.electronSettingsLockfileLifecycle
+        ?.settingsLockfilePersistentWriterHostMode
+        === 'real-electron-program-directory-settings-lockfile-writer-host'
       && dispatchResult.electronSettingsLockfileLifecycle
         ?.effects.settingsWritten === true
       && dispatchResult.electronSettingsLockfileLifecycle
@@ -1732,6 +1740,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
     dispatchResult?.transactionCommandDispatcherHostKind === 'renderer'
     && dispatchResult.electronSettingsLockfileLifecycleStatus === 'ready'
     && electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterSourceStatus === 'written'
+    && electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterHostMode
+      === 'real-electron-program-directory-settings-lockfile-writer-host'
     && electronSettingsLockfileLifecycle?.persistentPackageWriteExecuted === true
     && electronSettingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted === true
     && electronSettingsLockfileLifecycle?.effects.settingsWritten === true
@@ -1922,6 +1932,8 @@ export const runThirdPartyVisibleImportProductProbe = async(
       dispatchResult?.electronSettingsLockfileLifecycleStatus ?? null,
     electronSettingsLockfilePersistentWriterSourceStatus:
       electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterSourceStatus ?? null,
+    electronSettingsLockfilePersistentWriterHostMode:
+      electronSettingsLockfileLifecycle?.settingsLockfilePersistentWriterHostMode ?? null,
     electronPersistentSettingsLockfileWriteExecuted:
       electronSettingsLockfileLifecycle?.persistentSettingsLockfileWriteExecuted === true,
     installTransactionLogPreparedStatus:
@@ -2105,6 +2117,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     webPlatformWriterHostConnectionStatus: null,
     electronSettingsLockfileLifecycleStatus: null,
     electronSettingsLockfilePersistentWriterSourceStatus: null,
+    electronSettingsLockfilePersistentWriterHostMode: null,
     electronPersistentSettingsLockfileWriteExecuted: false,
     installTransactionLogPreparedStatus: null,
     installTransactionLogPreparedStorageKind: null,
@@ -2266,6 +2279,7 @@ export const runThirdPartyVisibleUninstallProductProbe = async(
     webPlatformWriterHostConnectionStatus: null,
     electronSettingsLockfileLifecycleStatus: null,
     electronSettingsLockfilePersistentWriterSourceStatus: null,
+    electronSettingsLockfilePersistentWriterHostMode: null,
     electronPersistentSettingsLockfileWriteExecuted: false,
     installTransactionLogPreparedStatus: null,
     installTransactionLogPreparedStorageKind: null,

@@ -628,6 +628,8 @@ describe('third-party Electron settings-lockfile persistent writer host connecti
     const pipeline = createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipeline({
       enabled: true,
       programDirectoryPath: root,
+      settingsLockfilePersistentWriterHostMode:
+        'real-electron-program-directory-settings-lockfile-writer-host',
       readInstallPersistentStagingLifecyclePipeline: async() => {
         calls.push('install-persistent-staging-lifecycle')
         return createStagingLifecycleResult(draft)
@@ -655,6 +657,8 @@ describe('third-party Electron settings-lockfile persistent writer host connecti
     expect(result.status).toBe('ready')
     expect(result.installPersistentStagingLifecyclePipelineStatus).toBe('ready')
     expect(result.settingsLockfilePersistentWriterSourceStatus).toBe('written')
+    expect(result.settingsLockfilePersistentWriterHostMode)
+      .toBe('real-electron-program-directory-settings-lockfile-writer-host')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.candidateHash).toBe(draft.candidateIdentity.candidateHash)
     expect(result.candidateIdentity?.candidateHash).toBe(draft.candidateIdentity.candidateHash)

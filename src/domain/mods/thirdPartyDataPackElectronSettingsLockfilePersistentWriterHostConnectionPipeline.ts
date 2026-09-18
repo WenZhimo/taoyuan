@@ -13,12 +13,15 @@ import {
 } from './thirdPartyDataPackModLockStorage'
 import {
   createThirdPartyDataPackSettingsLockfilePersistentWriterSource,
-  type CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions
+  type CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions,
+  type ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
 } from './thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
 export interface CreateThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipelineOptions {
   readonly enabled?: boolean
   readonly programDirectoryPath?: string
+  readonly settingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   readonly modLockStorage?: ThirdPartyDataPackModLockStorageAdapter
   readonly readInstallPersistentStagingLifecyclePipeline?:
     CreateThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifecyclePipelineOptions[
@@ -61,6 +64,7 @@ const createElectronSettingsLockfileWriter = (
 
   return createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHost({
     modLockStorage,
+    hostMode: options.settingsLockfilePersistentWriterHostMode,
     readLockfileDraft: options.readLockfileDraft,
     writeSettings: options.writeSettings
   })

@@ -2220,6 +2220,8 @@ const createSettingsLockfileWriterProbeReport = async () => {
   const pipeline = createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipeline({
     enabled: true,
     programDirectoryPath: process.env.PORTABLE_EXECUTABLE_DIR,
+    settingsLockfilePersistentWriterHostMode:
+      'real-electron-program-directory-settings-lockfile-writer-host',
     readInstallPersistentStagingLifecyclePipeline: async() =>
       createSyntheticInstallPersistentStagingLifecycleResult(draft),
     readSettingsLockfileCommitSource: async() =>
@@ -2244,6 +2246,8 @@ const createSettingsLockfileWriterProbeReport = async () => {
       result.installPersistentStagingLifecyclePipelineStatus ?? null,
     settingsLockfilePersistentWriterSourceStatus:
       result.settingsLockfilePersistentWriterSourceStatus ?? null,
+    settingsLockfilePersistentWriterHostMode:
+      result.settingsLockfilePersistentWriterHostMode ?? null,
     targetPackageId: result.targetPackageId ?? null,
     selectedPackageCount: result.selectedPackageIds.length,
     blockedPackageCount: result.blockedPackageIds.length,
@@ -3567,6 +3571,8 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipeline({
       enabled: true,
       programDirectoryPath,
+      settingsLockfilePersistentWriterHostMode:
+        'real-electron-program-directory-settings-lockfile-writer-host',
       readPackageFilePersistentStagingPipeline,
       readInstallCommandLifecyclePipeline,
       readSettingsLockfileCommitSource,
@@ -4808,6 +4814,8 @@ const createInstallTransactionCommitFinalizationProbeReport = async () => {
     createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipeline({
       enabled: true,
       programDirectoryPath,
+      settingsLockfilePersistentWriterHostMode:
+        'real-electron-program-directory-settings-lockfile-writer-host',
       readInstallPersistentStagingLifecyclePipeline: async() =>
         createSyntheticInstallPersistentStagingLifecycleResult(draft, packageResult),
       readSettingsLockfileCommitSource: async() =>

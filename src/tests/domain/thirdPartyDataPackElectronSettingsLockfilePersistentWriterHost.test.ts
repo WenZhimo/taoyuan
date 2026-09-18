@@ -329,6 +329,7 @@ describe('Electron settings-lockfile persistent writer host adapter', () => {
     const storage = createThirdPartyDataPackModLockStorageAdapter({ programDirectoryPath: root })
     const host = createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHost({
       modLockStorage: storage,
+      hostMode: 'real-electron-program-directory-settings-lockfile-writer-host',
       readLockfileDraft: async() => draft,
       writeSettings: createAtomicSettingsWriter(root)
     })
@@ -344,8 +345,11 @@ describe('Electron settings-lockfile persistent writer host adapter', () => {
 
     expect(result.status).toBe('written')
     expect(result.settingsLockfilePersistentWriterHostStatus).toBe('written')
+    expect(result.settingsLockfilePersistentWriterHostMode)
+      .toBe('real-electron-program-directory-settings-lockfile-writer-host')
     expect(result.effects.settingsLockfilePersistentWriterHostWritten).toBe(true)
-    expect(result.effects.realSettingsLockfilePersistentWriterHostCalled).toBe(false)
+    expect(result.effects.realSettingsLockfilePersistentWriterHostCalled).toBe(true)
+    expect(result.effects.injectedSettingsLockfilePersistentWriterHostCalled).toBe(false)
     expectOnlySettingsAndLockfileWrites(result, true)
     expect(readBack.draft).toEqual(draft)
     expect(readBack.report.paths?.filePath).toBe(path.join(userData, THIRD_PARTY_DATA_PACK_MOD_LOCK_FILE_NAME))

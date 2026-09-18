@@ -13,6 +13,7 @@ import {
   createThirdPartyDataPackSettingsLockfilePersistentWriterSource,
   ThirdPartyDataPackSettingsLockfilePersistentWriterBlockedError,
   type CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions,
+  type ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode,
   type ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult
 } from './thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
@@ -120,6 +121,8 @@ export interface ThirdPartyDataPackInstallPersistentStagingSettingsLockfileLifec
     ThirdPartyDataPackInstallPersistentStagingLifecyclePipelineResult['status']
   readonly settingsLockfilePersistentWriterSourceStatus?:
     ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult['status']
+  readonly settingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   readonly requestedCommandId?: 'install'
   readonly targetPackageId?: PackageId
   readonly selectedPackageIds: readonly PackageId[]
@@ -737,6 +740,10 @@ const baseResult = (
     settingsLockfilePersistentWriterSourceStatus: readOwnStringField(options.settingsWriter, 'status') as
       | ThirdPartyDataPackSettingsLockfilePersistentWriterSourceResult['status']
       | undefined,
+    settingsLockfilePersistentWriterHostMode: readOwnStringField(
+      options.settingsWriter,
+      'settingsLockfilePersistentWriterHostMode'
+    ) as ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode | undefined,
     requestedCommandId: readOwnStringField(source, 'requestedCommandId') === 'install' ? 'install' as const : undefined,
     targetPackageId: readOwnStringField(source, 'targetPackageId') as PackageId | undefined,
     selectedPackageIds,

@@ -11,6 +11,9 @@ import { isPackageId } from '@/domain/mods/ids'
 import type {
   ThirdPartyDataPackRuntimePublicationCommitHostMode
 } from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
+import type {
+  ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
+} from '@/domain/mods/thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
 const productProbePackageId = 'product_probe_pack'
 const productProbeItemId = `${productProbePackageId}:linen_ribbon`
@@ -277,6 +280,8 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   electronStartupPersistentStateWriteStatus?: string
   electronSettingsLockfileLifecycleStatus?: string
   electronSettingsLockfilePersistentWriterSourceStatus?: string
+  electronSettingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   electronPersistentSettingsLockfileWriteExecuted: boolean
   selectedPackageCount: number
   blockedPackageCount: number
@@ -1378,6 +1383,9 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       readOwnStringField(result, 'electronSettingsLockfileLifecycleStatus'),
     electronSettingsLockfilePersistentWriterSourceStatus:
       readOwnStringField(result, 'electronSettingsLockfilePersistentWriterSourceStatus'),
+    electronSettingsLockfilePersistentWriterHostMode:
+      readOwnStringField(result, 'electronSettingsLockfilePersistentWriterHostMode') as
+        ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode | undefined,
     electronPersistentSettingsLockfileWriteExecuted:
       readOwnBooleanField(result, 'electronPersistentSettingsLockfileWriteExecuted') === true,
     selectedPackageIds,

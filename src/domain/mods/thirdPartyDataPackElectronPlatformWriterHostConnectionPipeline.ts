@@ -19,7 +19,8 @@ import {
 } from './thirdPartyDataPackPlatformWriterConnectionPreflight'
 import {
   createThirdPartyDataPackSettingsLockfilePersistentWriterSource,
-  type CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions
+  type CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions,
+  type ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
 } from './thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
 export interface CreateThirdPartyDataPackElectronPlatformWriterHostConnectionPipelineOptions {
@@ -29,6 +30,8 @@ export interface CreateThirdPartyDataPackElectronPlatformWriterHostConnectionPip
   readonly writeSettingsLockfile?:
     CreateThirdPartyDataPackSettingsLockfilePersistentWriterSourceOptions['writeSettingsLockfile']
   readonly programDirectoryPath?: string
+  readonly settingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   readonly modLockStorage?: ThirdPartyDataPackModLockStorageAdapter
   readonly readLockfileDraft?:
     CreateThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostOptions['readLockfileDraft']
@@ -61,6 +64,7 @@ const createElectronSettingsLockfileWriter = (
 
   return createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHost({
     modLockStorage,
+    hostMode: options.settingsLockfilePersistentWriterHostMode,
     readLockfileDraft: options.readLockfileDraft,
     writeSettings: options.writeSettings
   })

@@ -381,6 +381,7 @@ describe('third-party settings-lockfile persistent writer source', () => {
     expect(result.readOnly).toBe(false)
     expect(result.commandContinuationAllowed).toBe(true)
     expect(result.settingsLockfilePersistentWriterHostStatus).toBe('written')
+    expect(result.settingsLockfilePersistentWriterHostMode).toBe('injected-test-only')
     expect(result.selectedPackageIds).toEqual([packageId])
     expect(result.lockfileHash).toBe(lockfileHash)
     expect(writeSettingsLockfile).toHaveBeenCalledOnce()
