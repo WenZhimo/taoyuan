@@ -740,11 +740,19 @@ export const useWebInstalledDataPackManagement = (
             if (!managementUiIpcResponseDelivered) {
               throw new Error('Electron uninstall management UI/IPC response delivery was blocked')
             }
+            if (
+              electronResult.settingsLockfilePersistentWriterHostMode !==
+              THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+            ) {
+              throw new Error('Electron uninstall settings-lockfile persistent writer host was not real')
+            }
             realElectronSettingsLockfilePersistentWriterHostCalled =
               electronResult.settingsWritten
               && electronResult.lockfileWritten
               && electronResult.startupStateWritten
               && electronResult.packageFilesRemoved
+              && electronResult.settingsLockfilePersistentWriterHostMode ===
+                THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
             return {
               settingsWritten: electronResult.settingsWritten,
               lockfileWritten: electronResult.lockfileWritten,
@@ -952,11 +960,19 @@ export const useWebInstalledDataPackManagement = (
             if (!managementUiIpcResponseDelivered) {
               throw new Error('Electron enable management UI/IPC response delivery was blocked')
             }
+            if (
+              electronResult.settingsLockfilePersistentWriterHostMode !==
+              THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+            ) {
+              throw new Error('Electron enable settings-lockfile persistent writer host was not real')
+            }
             realElectronSettingsLockfilePersistentWriterHostCalled =
               electronResult.settingsWritten
               && electronResult.lockfileWritten
               && electronResult.startupStateWritten
               && electronResult.packageFilesPreserved
+              && electronResult.settingsLockfilePersistentWriterHostMode ===
+                THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
             return {
               settingsWritten: electronResult.settingsWritten,
               lockfileWritten: electronResult.lockfileWritten,

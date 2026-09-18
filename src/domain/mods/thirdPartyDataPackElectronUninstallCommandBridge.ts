@@ -7,6 +7,12 @@ import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from './thirdPartyDataPackElectronInstalledStateBridge'
 import type { ThirdPartyDataPackLockfileDraft } from './thirdPartyDataPackLockfileDraft'
+import {
+  THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+} from './thirdPartyDataPackElectronManagementPersistentWriterHost'
+import type {
+  ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
+} from './thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -35,6 +41,8 @@ export interface ThirdPartyDataPackElectronUninstallCommandResult {
   readonly settingsWritten: boolean
   readonly lockfileWritten: boolean
   readonly startupStateWritten: boolean
+  readonly settingsLockfilePersistentWriterHostMode?:
+    ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   readonly managementUiIpcResponseDelivered: boolean
   readonly diagnostics: readonly ThirdPartyDataPackElectronUninstallCommandDiagnostic[]
 }
@@ -66,6 +74,8 @@ export interface CreateThirdPartyDataPackElectronUninstallCommandMainHandlerOpti
     readonly lockfileWritten: true
     readonly startupStateWritten: true
     readonly packageFilesRemoved: true
+    readonly settingsLockfilePersistentWriterHostMode:
+      ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
   }>
 }
 
@@ -182,6 +192,8 @@ const writtenResult = (
   settingsWritten: true,
   lockfileWritten: true,
   startupStateWritten: true,
+  settingsLockfilePersistentWriterHostMode:
+    THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE,
   managementUiIpcResponseDelivered: true,
   diagnostics: Object.freeze([])
 })
@@ -291,6 +303,8 @@ export const createThirdPartyDataPackElectronUninstallCommandRendererHost = (
       result !== null
       && typeof result === 'object'
       && readOwnStringField(result, 'status') === 'written'
+      && readOwnStringField(result, 'settingsLockfilePersistentWriterHostMode') ===
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
       && readOwnDataField(result, 'managementUiIpcResponseDelivered') === true
     ) {
       return writtenResult(envelope)
@@ -337,6 +351,8 @@ export const createThirdPartyDataPackElectronUninstallCommandMainHandler = (
       || writeResult.lockfileWritten !== true
       || writeResult.startupStateWritten !== true
       || writeResult.packageFilesRemoved !== true
+      || writeResult.settingsLockfilePersistentWriterHostMode !==
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     ) {
       return blockedResult(value.targetPackageId, 'third-party.electron-uninstall-command.partial-write')
     }

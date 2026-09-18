@@ -1573,36 +1573,54 @@ const writeElectronUninstalledState = async envelope => {
     fs.rmSync(packageRootPath, { recursive: true, force: true })
     packageFilesRemoved = true
 
-    const lockfileResult = await createModLockProbe().write(draft)
-    if (lockfileResult.report.status !== 'written') {
-      throw new Error('Electron uninstall mod-lock write was blocked')
-    }
-    modLockWritten = true
-    if (runtimeProbeVisibleUninstallFailAfterModLockWrite) {
-      throw new Error('Electron uninstall runtime probe failed after mod-lock write')
-    }
-
-    writeJsonFileAtomically(settingsPath, {
-      ...currentSettings,
-      thirdPartyDataPacks: {
-        commandId: 'uninstall',
-        targetPackageId: envelope.targetPackageId,
-        candidateHash: record.candidateHash,
-        lockfileHash: record.lockfileHash,
-        selectedPackageIds: [],
-        blockedPackageIds: [],
-        loadOrder: []
+    const writerHost = createThirdPartyDataPackElectronManagementPersistentWriterHost({
+      writeModLock: async currentDraft => {
+        const lockfileResult = await createModLockProbe().write(currentDraft)
+        if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
+        modLockWritten = true
+        if (runtimeProbeVisibleUninstallFailAfterModLockWrite) {
+          throw new Error('Electron uninstall runtime probe failed after mod-lock write')
+        }
+        return { status: 'written' }
+      },
+      writeSettings: async currentRecord => {
+        writeJsonFileAtomically(settingsPath, {
+          ...currentSettings,
+          thirdPartyDataPacks: {
+            commandId: 'uninstall',
+            targetPackageId: envelope.targetPackageId,
+            candidateHash: currentRecord.candidateHash,
+            lockfileHash: currentRecord.lockfileHash,
+            selectedPackageIds: [],
+            blockedPackageIds: [],
+            loadOrder: []
+          }
+        })
+        return { status: 'written' }
+      },
+      writeStartupState: async snapshot => {
+        writeJsonFileAtomically(startupPaths.snapshotFilePath, snapshot)
+        return { status: 'written' }
       }
     })
-
-    writeJsonFileAtomically(startupPaths.snapshotFilePath, envelope.startupSnapshot)
+    const writerResult = await writerHost({
+      requestedCommandId: 'uninstall',
+      targetPackageId: envelope.targetPackageId,
+      record,
+      startupSnapshot: envelope.startupSnapshot
+    })
+    if (writerResult.status !== 'written') {
+      throw new Error(`Electron uninstall persistent writer blocked: ${writerResult.diagnostics.join(', ')}`)
+    }
     fs.rmSync(backupRootPath, { recursive: true, force: true })
 
     return {
-      settingsWritten: true,
-      lockfileWritten: true,
-      startupStateWritten: true,
-      packageFilesRemoved: true
+      settingsWritten: writerResult.settingsWritten,
+      lockfileWritten: writerResult.lockfileWritten,
+      startupStateWritten: writerResult.startupStateWritten,
+      packageFilesRemoved: true,
+      settingsLockfilePersistentWriterHostMode:
+        writerResult.settingsLockfilePersistentWriterHostMode
     }
   } catch (error) {
     try {
@@ -1719,34 +1737,52 @@ const writeElectronEnabledState = async envelope => {
   let modLockWritten = false
 
   try {
-    const lockfileResult = await createModLockProbe().write(draft)
-    if (lockfileResult.report.status !== 'written') {
-      throw new Error('Electron enable mod-lock write was blocked')
-    }
-    modLockWritten = true
-    if (runtimeProbeVisibleEnableFailAfterModLockWrite) {
-      throw new Error('Electron enable runtime probe failed after mod-lock write')
-    }
-
-    writeJsonFileAtomically(settingsPath, {
-      ...currentSettings,
-      thirdPartyDataPacks: {
-        commandId: 'enable',
-        targetPackageId: envelope.targetPackageId,
-        candidateHash: record.candidateHash,
-        lockfileHash: record.lockfileHash,
-        selectedPackageIds: [...envelope.selectedPackageIds],
-        blockedPackageIds: [],
-        loadOrder: [...envelope.loadOrder]
+    const writerHost = createThirdPartyDataPackElectronManagementPersistentWriterHost({
+      writeModLock: async currentDraft => {
+        const lockfileResult = await createModLockProbe().write(currentDraft)
+        if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
+        modLockWritten = true
+        if (runtimeProbeVisibleEnableFailAfterModLockWrite) {
+          throw new Error('Electron enable runtime probe failed after mod-lock write')
+        }
+        return { status: 'written' }
+      },
+      writeSettings: async currentRecord => {
+        writeJsonFileAtomically(settingsPath, {
+          ...currentSettings,
+          thirdPartyDataPacks: {
+            commandId: 'enable',
+            targetPackageId: envelope.targetPackageId,
+            candidateHash: currentRecord.candidateHash,
+            lockfileHash: currentRecord.lockfileHash,
+            selectedPackageIds: [...envelope.selectedPackageIds],
+            blockedPackageIds: [],
+            loadOrder: [...envelope.loadOrder]
+          }
+        })
+        return { status: 'written' }
+      },
+      writeStartupState: async snapshot => {
+        writeJsonFileAtomically(startupPaths.snapshotFilePath, snapshot)
+        return { status: 'written' }
       }
     })
-
-    writeJsonFileAtomically(startupPaths.snapshotFilePath, envelope.startupSnapshot)
+    const writerResult = await writerHost({
+      requestedCommandId: 'enable',
+      targetPackageId: envelope.targetPackageId,
+      record,
+      startupSnapshot: envelope.startupSnapshot
+    })
+    if (writerResult.status !== 'written') {
+      throw new Error(`Electron enable persistent writer blocked: ${writerResult.diagnostics.join(', ')}`)
+    }
 
     return {
-      settingsWritten: true,
-      lockfileWritten: true,
-      startupStateWritten: true
+      settingsWritten: writerResult.settingsWritten,
+      lockfileWritten: writerResult.lockfileWritten,
+      startupStateWritten: writerResult.startupStateWritten,
+      settingsLockfilePersistentWriterHostMode:
+        writerResult.settingsLockfilePersistentWriterHostMode
     }
   } catch (error) {
     try {

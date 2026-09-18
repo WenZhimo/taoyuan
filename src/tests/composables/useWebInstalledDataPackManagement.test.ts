@@ -1422,6 +1422,8 @@ describe('useWebInstalledDataPackManagement', () => {
       settingsWritten: true,
       lockfileWritten: true,
       startupStateWritten: true,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE,
       managementUiIpcResponseDelivered: true,
       diagnostics: []
     }))

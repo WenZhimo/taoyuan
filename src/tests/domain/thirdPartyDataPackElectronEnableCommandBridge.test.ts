@@ -28,6 +28,9 @@ import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDa
 import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
+import {
+  THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+} from '@/domain/mods/thirdPartyDataPackElectronManagementPersistentWriterHost'
 
 type JsonObject = Record<string, unknown>
 
@@ -180,7 +183,9 @@ describe('third-party data-pack Electron enable command bridge', () => {
     const writeEnabledState = vi.fn(async() => ({
       settingsWritten: true as const,
       lockfileWritten: true as const,
-      startupStateWritten: true as const
+      startupStateWritten: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronEnableCommandMainHandler({
       writeEnabledState
@@ -209,7 +214,9 @@ describe('third-party data-pack Electron enable command bridge', () => {
     const writeEnabledState = vi.fn(async() => ({
       settingsWritten: true as const,
       lockfileWritten: true as const,
-      startupStateWritten: true as const
+      startupStateWritten: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronEnableCommandMainHandler({
       readCurrentInstalledState,
@@ -255,7 +262,9 @@ describe('third-party data-pack Electron enable command bridge', () => {
     const writeEnabledState = vi.fn(async() => ({
       settingsWritten: true as const,
       lockfileWritten: true as const,
-      startupStateWritten: true as const
+      startupStateWritten: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronEnableCommandMainHandler({
       writeEnabledState
@@ -292,7 +301,9 @@ describe('third-party data-pack Electron enable command bridge', () => {
       writeEnabledState: vi.fn(async() => ({
         settingsWritten: true as const,
         lockfileWritten: true as const,
-        startupStateWritten: true as const
+        startupStateWritten: true as const,
+        settingsLockfilePersistentWriterHostMode:
+          THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
       }))
     })
     const rendererHost = createThirdPartyDataPackElectronEnableCommandRendererHost({
@@ -309,6 +320,34 @@ describe('third-party data-pack Electron enable command bridge', () => {
     expect(result.packageFilesPreserved).toBe(true)
     expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics).toEqual([])
+  })
+
+  it('blocks written renderer responses without real persistent writer host evidence', async() => {
+    const envelope = await createEnvelope()
+    const rendererHost = createThirdPartyDataPackElectronEnableCommandRendererHost({
+      invoke: vi.fn(async() => ({
+        status: 'written',
+        requestedCommandId: 'enable',
+        targetPackageId: packageId,
+        selectedPackageIds: [packageId],
+        blockedPackageIds: [],
+        loadOrder: [packageId],
+        packageFilesPreserved: true,
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        managementUiIpcResponseDelivered: true,
+        diagnostics: []
+      }))
+    })
+
+    const result = await rendererHost.enable(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(false)
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-enable-command.main-process-blocked'
+    )
   })
 
   it('blocks renderer status-only responses without explicit management UI/IPC delivery evidence', async() => {

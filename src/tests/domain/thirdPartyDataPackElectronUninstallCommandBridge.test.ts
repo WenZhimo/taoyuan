@@ -20,6 +20,9 @@ import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDa
 import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
+import {
+  THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
+} from '@/domain/mods/thirdPartyDataPackElectronManagementPersistentWriterHost'
 import committedMetadata from '@/generated/mods/official-precompiled-metadata.json'
 
 const packageId = 'electron_uninstall_bridge_test_pack' as PackageId
@@ -215,7 +218,9 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
       settingsWritten: true as const,
       lockfileWritten: true as const,
       startupStateWritten: true as const,
-      packageFilesRemoved: true as const
+      packageFilesRemoved: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronUninstallCommandMainHandler({
       writeUninstalledState
@@ -246,7 +251,9 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
       settingsWritten: true as const,
       lockfileWritten: true as const,
       startupStateWritten: true as const,
-      packageFilesRemoved: true as const
+      packageFilesRemoved: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronUninstallCommandMainHandler({
       readCurrentInstalledState,
@@ -268,7 +275,9 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
       settingsWritten: true as const,
       lockfileWritten: true as const,
       startupStateWritten: true as const,
-      packageFilesRemoved: true as const
+      packageFilesRemoved: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronUninstallCommandMainHandler({
       readCurrentInstalledState: vi.fn(async() =>
@@ -289,7 +298,9 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
       settingsWritten: true as const,
       lockfileWritten: true as const,
       startupStateWritten: true as const,
-      packageFilesRemoved: true as const
+      packageFilesRemoved: true as const,
+      settingsLockfilePersistentWriterHostMode:
+        THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
     }))
     const mainHandler = createThirdPartyDataPackElectronUninstallCommandMainHandler({
       readCurrentInstalledState: vi.fn(async() =>
@@ -375,7 +386,9 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
         settingsWritten: true as const,
         lockfileWritten: true as const,
         startupStateWritten: true as const,
-        packageFilesRemoved: true as const
+        packageFilesRemoved: true as const,
+        settingsLockfilePersistentWriterHostMode:
+          THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
       }))
     })
     const rendererHost = createThirdPartyDataPackElectronUninstallCommandRendererHost({
@@ -392,6 +405,34 @@ describe('third-party data-pack Electron uninstall command bridge', () => {
     expect(result.packageFilesRemoved).toBe(true)
     expect(result.managementUiIpcResponseDelivered).toBe(true)
     expect(result.diagnostics).toEqual([])
+  })
+
+  it('blocks written renderer responses without real persistent writer host evidence', async() => {
+    const envelope = createEnvelope()
+    const rendererHost = createThirdPartyDataPackElectronUninstallCommandRendererHost({
+      invoke: vi.fn(async() => ({
+        status: 'written',
+        requestedCommandId: 'uninstall',
+        targetPackageId: packageId,
+        selectedPackageIds: [],
+        blockedPackageIds: [],
+        loadOrder: [],
+        packageFilesRemoved: true,
+        settingsWritten: true,
+        lockfileWritten: true,
+        startupStateWritten: true,
+        managementUiIpcResponseDelivered: true,
+        diagnostics: []
+      }))
+    })
+
+    const result = await rendererHost.uninstall(envelope)
+
+    expect(result.status).toBe('blocked')
+    expect(result.managementUiIpcResponseDelivered).toBe(false)
+    expect(result.diagnostics[0]?.stage).toBe(
+      'third-party.electron-uninstall-command.main-process-blocked'
+    )
   })
 
   it('blocks renderer status-only responses without explicit management UI/IPC delivery evidence', async() => {

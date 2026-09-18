@@ -2,6 +2,14 @@ import type {
   ThirdPartyDataPackDisablePersistentRecord,
   ThirdPartyDataPackDisableStartupPersistentStateSnapshot
 } from './thirdPartyDataPackDisableTransaction'
+import type {
+  ThirdPartyDataPackEnablePersistentRecord,
+  ThirdPartyDataPackEnableStartupPersistentStateSnapshot
+} from './thirdPartyDataPackEnableTransaction'
+import type {
+  ThirdPartyDataPackUninstallPersistentRecord,
+  ThirdPartyDataPackUninstallStartupPersistentStateSnapshot
+} from './thirdPartyDataPackUninstallTransaction'
 import type { ThirdPartyDataPackLockfileDraft } from './thirdPartyDataPackLockfileDraft'
 import type { PackageId } from './ids'
 
@@ -14,10 +22,16 @@ export type ThirdPartyDataPackElectronManagementPersistentWriterHostMode =
   typeof THIRD_PARTY_DATA_PACK_ELECTRON_MANAGEMENT_SETTINGS_LOCKFILE_PERSISTENT_WRITER_HOST_MODE
 
 export interface ThirdPartyDataPackElectronManagementPersistentWriterHostEnvelope {
-  readonly requestedCommandId: 'disable'
+  readonly requestedCommandId: 'disable' | 'enable' | 'uninstall'
   readonly targetPackageId: PackageId
-  readonly record: ThirdPartyDataPackDisablePersistentRecord
-  readonly startupSnapshot: ThirdPartyDataPackDisableStartupPersistentStateSnapshot
+  readonly record:
+    | ThirdPartyDataPackDisablePersistentRecord
+    | ThirdPartyDataPackEnablePersistentRecord
+    | ThirdPartyDataPackUninstallPersistentRecord
+  readonly startupSnapshot:
+    | ThirdPartyDataPackDisableStartupPersistentStateSnapshot
+    | ThirdPartyDataPackEnableStartupPersistentStateSnapshot
+    | ThirdPartyDataPackUninstallStartupPersistentStateSnapshot
 }
 
 export interface ThirdPartyDataPackElectronManagementPersistentWriterHostResult {
@@ -35,10 +49,10 @@ export interface CreateThirdPartyDataPackElectronManagementPersistentWriterHostO
     draft: ThirdPartyDataPackLockfileDraft
   ) => Awaitable<{ readonly status: 'written' | 'blocked' }>
   readonly writeSettings: (
-    record: ThirdPartyDataPackDisablePersistentRecord
+    record: ThirdPartyDataPackElectronManagementPersistentWriterHostEnvelope['record']
   ) => Awaitable<{ readonly status: 'written' | 'blocked' }>
   readonly writeStartupState: (
-    snapshot: ThirdPartyDataPackDisableStartupPersistentStateSnapshot
+    snapshot: ThirdPartyDataPackElectronManagementPersistentWriterHostEnvelope['startupSnapshot']
   ) => Awaitable<{ readonly status: 'written' | 'blocked' }>
 }
 
