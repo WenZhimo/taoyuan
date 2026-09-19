@@ -9,6 +9,17 @@ import {
   readOfficialRegistryCacheFile,
   writeOfficialRegistryCacheFile
 } from '../src/domain/mods/officialRegistryCacheFile'
+import {
+  getThirdPartyDataPackCandidateRegistryCacheFilePaths,
+  readThirdPartyDataPackCandidateRegistryCacheFile,
+  writeThirdPartyDataPackCandidateRegistryCacheFile
+} from '../src/domain/mods/thirdPartyDataPackCandidateRegistryCacheFile'
+import {
+  createThirdPartyDataPackElectronCandidateRegistryCacheReadMainHandler,
+  createThirdPartyDataPackElectronCandidateRegistryCacheWriteMainHandler,
+  thirdPartyDataPackCandidateRegistryCacheReadIpcChannel,
+  thirdPartyDataPackCandidateRegistryCacheWriteIpcChannel
+} from '../src/domain/mods/thirdPartyDataPackElectronCandidateRegistryCacheBridge'
 import { createElectronThirdPartyDataPackModLockStorageProbe } from '../src/domain/mods/electronModLockStorageProbe'
 import {
   createElectronReadonlyDirectoryNodeHost,
@@ -5838,6 +5849,38 @@ ipcMain.handle('official-registry-cache-write', async (_event, contents) => {
     officialCacheMetadata
   )
   return { status: 'written' }
+})
+
+const readThirdPartyCandidateRegistryCache =
+  createThirdPartyDataPackElectronCandidateRegistryCacheReadMainHandler({
+    read: environmentHash => readThirdPartyDataPackCandidateRegistryCacheFile(
+      getThirdPartyDataPackCandidateRegistryCacheFilePaths(
+        getExecutableUserDataPath(),
+        environmentHash
+      )
+    )
+  })
+const writeThirdPartyCandidateRegistryCache =
+  createThirdPartyDataPackElectronCandidateRegistryCacheWriteMainHandler({
+    write: (environmentHash, contents) => writeThirdPartyDataPackCandidateRegistryCacheFile(
+      getThirdPartyDataPackCandidateRegistryCacheFilePaths(
+        getExecutableUserDataPath(),
+        environmentHash
+      ),
+      contents
+    )
+  })
+
+ipcMain.handle(thirdPartyDataPackCandidateRegistryCacheReadIpcChannel, async (event, environmentHash) => {
+  if (!isOfficialRegistryDiskCacheAvailable()) return null
+  return await readThirdPartyCandidateRegistryCache(event, environmentHash)
+})
+
+ipcMain.handle(thirdPartyDataPackCandidateRegistryCacheWriteIpcChannel, async (event, environmentHash, contents) => {
+  if (!isOfficialRegistryDiskCacheAvailable()) {
+    throw new Error('Third-party candidate registry cache is unavailable outside executable userdata')
+  }
+  return await writeThirdPartyCandidateRegistryCache(event, environmentHash, contents)
 })
 
 ipcMain.handle('electron-readonly-directory-source-get-entry', async (_event, sourcePath) =>

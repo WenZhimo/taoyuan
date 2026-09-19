@@ -79,6 +79,13 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceResult {
   readonly appBootstrapWiringSourceStatus?: ThirdPartyDataPackAppBootstrapWiringPreflightResult['status']
   readonly startupPersistentStateSourceStatus?: ThirdPartyDataPackStartupGatePersistentStateSourceResult['status']
   readonly startupPersistentStateSourceKind?: 'web-indexeddb' | 'electron-program-directory-userdata'
+  readonly candidateRegistryCacheStatus?:
+    | 'not-configured'
+    | 'miss'
+    | 'hit'
+    | 'invalid'
+    | 'written'
+    | 'write-failed'
   readonly startupPersistentStateSourceHostMode?:
     ThirdPartyDataPackStartupGatePersistentStateSourceResult['startupPersistentStateSourceHostMode']
   readonly startupPersistentStateInjectedSourceHostMode?:

@@ -143,6 +143,25 @@ import {
   restoreWebIndexedDbImportSource,
   type WebIndexedDbImportPersistenceStore
 } from './webIndexedDbImportPersistence'
+import {
+  createCachedThirdPartyCandidateRegistrySnapshotResult,
+  createCachedThirdPartyDataPackLockfileDraftResult,
+  createThirdPartyDataPackCandidateRegistryCacheEnvironmentHash,
+  createThirdPartyDataPackCandidateRegistryCacheText,
+  parseThirdPartyDataPackCandidateRegistryCacheText,
+  type ThirdPartyDataPackCandidateRegistryCacheStore
+} from './thirdPartyDataPackCandidateRegistryCache'
+import {
+  createThirdPartyDataPackWebCandidateRegistryCacheStore
+} from './thirdPartyDataPackWebCandidateRegistryCacheStore'
+import {
+  createThirdPartyDataPackElectronCandidateRegistryCacheRendererStore
+} from './thirdPartyDataPackElectronCandidateRegistryCacheBridge'
+import { selectThirdPartyDataPacks } from './thirdPartyDataPackSelection'
+import {
+  validateThirdPartyDataPackLockfileDraft,
+  type ThirdPartyDataPackLockfileDraft
+} from './thirdPartyDataPackLockfileDraft'
 
 type Awaitable<T> = T | Promise<T>
 
@@ -159,6 +178,13 @@ const productProbeRecipeLocalId = 'linen_ribbon_snack'
 const productProbeShopOfferLocalId = 'shop/wanwupu/linen_ribbon/0'
 
 type InstalledStateSourceKind = 'web-indexeddb' | 'electron-program-directory-userdata'
+type CandidateRegistryCacheStatus =
+  | 'not-configured'
+  | 'miss'
+  | 'hit'
+  | 'invalid'
+  | 'written'
+  | 'write-failed'
 
 interface InstalledStateContext {
   readonly kind: 'enabled'
@@ -176,6 +202,7 @@ interface InstalledStateContext {
   readonly requestedCommandId: ThirdPartyDataPackEnabledRuntimeCommandId
   readonly launcherBoundaryPreflight: ThirdPartyDataPackLauncherBoundaryPreflightResult
   readonly startupPersistentStateSource: ThirdPartyDataPackStartupGatePersistentStateSourceResult
+  readonly candidateRegistryCacheStatus: CandidateRegistryCacheStatus
   readonly summary: ThirdPartyDataPackUiIpcResultEnvelopeSummary
 }
 
@@ -190,6 +217,7 @@ interface DisabledInstalledState {
   readonly startupPersistentStateInjectedSourceHostMode:
     NonNullable<ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode']>
   readonly appStartupHostConnectionSourceStatus: 'accepted'
+  readonly candidateRegistryCacheStatus: CandidateRegistryCacheStatus
   readonly persistentStateProofs: {
     readonly transactionLogCommitted: true
     readonly packageStateMatched: true
@@ -246,6 +274,7 @@ interface ResolvedInstalledStateSource {
   readonly electronInstalledStateHost?: ReturnType<
     typeof createThirdPartyDataPackElectronInstalledStateRendererHost
   >
+  readonly candidateRegistryCache?: ThirdPartyDataPackCandidateRegistryCacheStore
 }
 
 export interface CreateThirdPartyDataPackInstalledStateStartupGateBootstrapSourceOptions {
@@ -255,6 +284,7 @@ export interface CreateThirdPartyDataPackInstalledStateStartupGateBootstrapSourc
   readonly webStore?: WebIndexedDbImportPersistenceStore
   readonly webSettingsLockfileStore?: ThirdPartyDataPackWebSettingsLockfilePersistentWriterStore
   readonly webImportId?: string
+  readonly candidateRegistryCache?: ThirdPartyDataPackCandidateRegistryCacheStore
 }
 
 const emptySummary = (): ThirdPartyDataPackUiIpcResultEnvelopeSummary => Object.freeze({
@@ -504,6 +534,24 @@ const createElectronInstalledStateHostFromRuntimeHost = (
   })
 }
 
+const createElectronCandidateRegistryCacheFromRuntimeHost = (
+  runtimeHost: unknown
+): ThirdPartyDataPackCandidateRegistryCacheStore | null => {
+  const electronApi = readOwnDataField(runtimeHost, 'electronAPI')
+  const readCache = readOwnDataField(electronApi, 'readThirdPartyDataPackCandidateRegistryCache')
+  const writeCache = readOwnDataField(electronApi, 'writeThirdPartyDataPackCandidateRegistryCache')
+  if (typeof readCache !== 'function' || typeof writeCache !== 'function') return null
+
+  return createThirdPartyDataPackElectronCandidateRegistryCacheRendererStore({
+    invoke: async(channel, ...args) => {
+      if (channel === 'third-party-data-pack-candidate-registry-cache-read') {
+        return await (readCache as (...values: unknown[]) => unknown).apply(electronApi, [...args])
+      }
+      return await (writeCache as (...values: unknown[]) => unknown).apply(electronApi, [...args])
+    }
+  })
+}
+
 const electronInstalledStateSourceRootExists = async(
   source: ContentPackageSource
 ): Promise<boolean> => (await source.getEntry('')) !== null
@@ -530,6 +578,17 @@ const createWebSettingsLockfileStore = (
   }
 }
 
+const createWebCandidateRegistryCache = (
+  options: CreateThirdPartyDataPackInstalledStateStartupGateBootstrapSourceOptions
+): ThirdPartyDataPackCandidateRegistryCacheStore | null => {
+  if (options.candidateRegistryCache !== undefined) return options.candidateRegistryCache
+  try {
+    return createThirdPartyDataPackWebCandidateRegistryCacheStore()
+  } catch {
+    return null
+  }
+}
+
 const resolveInstalledStateSource = async(
   options: CreateThirdPartyDataPackInstalledStateStartupGateBootstrapSourceOptions,
   runtimeHost: unknown = resolveRuntimeHost(options)
@@ -547,11 +606,16 @@ const resolveInstalledStateSource = async(
     if (!await electronInstalledStateSourceRootExists(source)) {
       return null
     }
+    const candidateRegistryCache = options.candidateRegistryCache
+      ?? createElectronCandidateRegistryCacheFromRuntimeHost(runtimeHost)
     return Object.freeze({
       sourceKind: 'electron-program-directory-userdata' as const,
       source,
       electronStartupPersistentStateHost,
-      ...(electronInstalledStateHost === null ? {} : { electronInstalledStateHost })
+      ...(electronInstalledStateHost === null ? {} : { electronInstalledStateHost }),
+      ...(candidateRegistryCache === null || candidateRegistryCache === undefined
+        ? {}
+        : { candidateRegistryCache })
     })
   }
 
@@ -564,11 +628,15 @@ const resolveInstalledStateSource = async(
   if (source === null) return null
   const webSettingsLockfileStore = createWebSettingsLockfileStore(options)
   if (webSettingsLockfileStore === null) return null
+  const candidateRegistryCache = createWebCandidateRegistryCache(options)
   return Object.freeze({
     sourceKind: 'web-indexeddb' as const,
     source,
     webStore,
     webSettingsLockfileStore,
+    ...(candidateRegistryCache === null
+      ? {}
+      : { candidateRegistryCache }),
     webStartupPersistentStateHost: createThirdPartyDataPackWebStartupPersistentStateSourceHost({
       store: webStore,
       settingsLockfileStore: webSettingsLockfileStore
@@ -605,7 +673,11 @@ const resolveInstalledStateTargetPackageId = (
 
 const buildInstalledStateRuntimeContext = async(
   sourceKind: InstalledStateSourceKind,
-  source: ContentPackageSource
+  source: ContentPackageSource,
+  options: {
+    readonly candidateRegistryCache?: ThirdPartyDataPackCandidateRegistryCacheStore
+    readonly persistedLockfileDraft?: ThirdPartyDataPackLockfileDraft
+  } = {}
 ): Promise<Omit<
   InstalledStateContext,
   | 'kind'
@@ -620,9 +692,74 @@ const buildInstalledStateRuntimeContext = async(
     source.identity.rootPath,
     createDiscoveryFileSystemFromContentPackageSource(source)
   )
+  const selectionReport = selectThirdPartyDataPacks(discoveryReport)
+  let candidateRegistryCacheStatus: CandidateRegistryCacheStatus =
+    options.candidateRegistryCache === undefined ? 'not-configured' : 'miss'
+  let invalidCandidateRegistryCacheObserved = false
+  let cachedCandidateSnapshot: ReturnType<typeof createCachedThirdPartyCandidateRegistrySnapshotResult> | undefined
+  let cachedLockfileDraft: ReturnType<typeof createCachedThirdPartyDataPackLockfileDraftResult> | undefined
+  let cachedLockfileValidation: ReturnType<typeof validateThirdPartyDataPackLockfileDraft> | undefined
+
+  if (options.candidateRegistryCache !== undefined && options.persistedLockfileDraft !== undefined) {
+    try {
+      const environmentHash = createThirdPartyDataPackCandidateRegistryCacheEnvironmentHash(
+        options.persistedLockfileDraft
+      )
+      const contents = await options.candidateRegistryCache.read(environmentHash)
+      if (contents !== null) {
+        const restored = parseThirdPartyDataPackCandidateRegistryCacheText(contents)
+        if (
+          restored.envelope.environmentHash !== environmentHash
+          || restored.envelope.lockfileDraft.lockfileHash !== options.persistedLockfileDraft.lockfileHash
+        ) {
+          candidateRegistryCacheStatus = 'invalid'
+          invalidCandidateRegistryCacheObserved = true
+        } else {
+          const candidateSnapshot = createCachedThirdPartyCandidateRegistrySnapshotResult({
+            restored,
+            officialRegistrySet,
+            discoveryReport,
+            selectionReport
+          })
+          const lockfileDraft = createCachedThirdPartyDataPackLockfileDraftResult(
+            restored.envelope.lockfileDraft
+          )
+          const lockfileValidation = validateThirdPartyDataPackLockfileDraft({
+            discoveryReport,
+            selectionReport,
+            candidateSnapshot,
+            draft: lockfileDraft.draft
+          })
+          if (lockfileValidation.status === 'valid') {
+            cachedCandidateSnapshot = candidateSnapshot
+            cachedLockfileDraft = lockfileDraft
+            cachedLockfileValidation = lockfileValidation
+            candidateRegistryCacheStatus = 'hit'
+          } else {
+            candidateRegistryCacheStatus = 'invalid'
+            invalidCandidateRegistryCacheObserved = true
+          }
+        }
+      }
+    } catch {
+      candidateRegistryCacheStatus = 'invalid'
+      invalidCandidateRegistryCacheObserved = true
+    }
+  }
+
   const mountInput = buildThirdPartyDataPackMountInput({
     officialRegistrySet,
-    discoveryReport
+    discoveryReport,
+    selectionReport,
+    ...(cachedCandidateSnapshot === undefined
+      || cachedLockfileDraft === undefined
+      || cachedLockfileValidation === undefined
+      ? {}
+      : {
+          candidateSnapshot: cachedCandidateSnapshot,
+          lockfileDraftResult: cachedLockfileDraft,
+          lockfileValidationResult: cachedLockfileValidation
+        })
   })
   if (mountInput.status !== 'ready') {
     throw new Error('third-party installed state startup source has no selected package')
@@ -683,6 +820,29 @@ const buildInstalledStateRuntimeContext = async(
     targetPackageId
   })
 
+  if (
+    candidateRegistryCacheStatus !== 'hit'
+    && options.candidateRegistryCache !== undefined
+    && mountInput.candidateSnapshot !== undefined
+    && mountInput.lockfileDraft !== undefined
+  ) {
+    try {
+      const environmentHash = createThirdPartyDataPackCandidateRegistryCacheEnvironmentHash(
+        mountInput.lockfileDraft
+      )
+      await options.candidateRegistryCache.write(
+        environmentHash,
+        createThirdPartyDataPackCandidateRegistryCacheText(
+          mountInput.candidateSnapshot,
+          mountInput.lockfileDraft
+        )
+      )
+      candidateRegistryCacheStatus = invalidCandidateRegistryCacheObserved ? 'invalid' : 'written'
+    } catch {
+      candidateRegistryCacheStatus = 'write-failed'
+    }
+  }
+
   return Object.freeze({
     targetPackageId,
     officialRegistrySet,
@@ -693,6 +853,7 @@ const buildInstalledStateRuntimeContext = async(
     liveRegistrySwapProtection: targetedLiveRegistrySwapProtection,
     publicationRollbackRecovery,
     runtimePublicationCommitAdapter: targetedRuntimePublicationCommitAdapter,
+    candidateRegistryCacheStatus,
     summary: Object.freeze({
       selectedPackageCount: mountInput.selectedPackageIds.length,
       blockedPackageCount: mountInput.blockedPackageIds.length,
@@ -949,6 +1110,7 @@ const readElectronDisabledState = async(
       startupPersistentStateInjectedSourceHostMode:
         'electron-program-directory-startup-persistent-state',
       appStartupHostConnectionSourceStatus: 'accepted',
+      candidateRegistryCacheStatus: runtimeContext.candidateRegistryCacheStatus,
       persistentStateProofs: {
         transactionLogCommitted: true,
         packageStateMatched: true,
@@ -980,6 +1142,7 @@ const readElectronDisabledState = async(
         startupPersistentStateInjectedSourceHostMode:
           'electron-program-directory-startup-persistent-state',
         appStartupHostConnectionSourceStatus: 'accepted',
+        candidateRegistryCacheStatus: runtimeContext.candidateRegistryCacheStatus,
         persistentStateProofs: {
           transactionLogCommitted: true,
           packageStateMatched: true,
@@ -1032,6 +1195,7 @@ const readWebDisabledState = async(
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupPersistentStateInjectedSourceHostMode: 'web-indexeddb-startup-persistent-state',
     appStartupHostConnectionSourceStatus: 'accepted',
+    candidateRegistryCacheStatus: runtimeContext.candidateRegistryCacheStatus,
     persistentStateProofs: {
       transactionLogCommitted: true,
       packageStateMatched: true,
@@ -1469,9 +1633,26 @@ const createInstalledStateContext = async(
         )
   if (uninstalledState !== null) return uninstalledState
 
+  let persistedLockfileDraft: ThirdPartyDataPackLockfileDraft | undefined
+  if (resolvedSource.sourceKind === 'web-indexeddb') {
+    const readResult = await resolvedSource.webSettingsLockfileStore!.read()
+    if (readResult.report.status === 'failed') {
+      throw new Error('Web installed state settings-lockfile could not be read during startup')
+    }
+    persistedLockfileDraft = readResult.record?.lockfileDraft
+  } else {
+    persistedLockfileDraft = electronInstalledState?.record?.lockfileDraft
+  }
+
   const runtimeContext = await buildInstalledStateRuntimeContext(
     resolvedSource.sourceKind,
-    resolvedSource.source
+    resolvedSource.source,
+    {
+      ...(resolvedSource.candidateRegistryCache === undefined
+        ? {}
+        : { candidateRegistryCache: resolvedSource.candidateRegistryCache }),
+      ...(persistedLockfileDraft === undefined ? {} : { persistedLockfileDraft })
+    }
   ).catch(error => {
     if (error instanceof Error && error.message.includes('has no selected package')) {
       return null
@@ -1564,6 +1745,7 @@ const disabledInstalledStateResult = (
   startupPersistentStateSourceHostMode: state.startupPersistentStateSourceHostMode,
   startupPersistentStateInjectedSourceHostMode: state.startupPersistentStateInjectedSourceHostMode,
   appStartupHostConnectionSourceStatus: state.appStartupHostConnectionSourceStatus,
+  candidateRegistryCacheStatus: state.candidateRegistryCacheStatus,
   persistentStateProofs: state.persistentStateProofs,
   diagnostics: Object.freeze([]),
   summary: Object.freeze({
@@ -1981,6 +2163,7 @@ export const createThirdPartyDataPackInstalledStateStartupGateBootstrapSource = 
     ...(context.startupPersistentStateSource.persistentStateProofs === undefined
       ? {}
       : { persistentStateProofs: context.startupPersistentStateSource.persistentStateProofs }),
+    candidateRegistryCacheStatus: context.candidateRegistryCacheStatus,
     effects: Object.freeze({
       ...result.effects,
       startupPersistentStateSourceCalled:

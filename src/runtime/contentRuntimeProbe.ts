@@ -31,6 +31,13 @@ export interface ThirdPartyStartupGateRuntimeProbeSummary {
   appBootstrapContinuationAllowed?: boolean
   appStartupHostConnectionSourceStatus?: string
   startupPersistentStateSourceStatus?: string
+  candidateRegistryCacheStatus?:
+    | 'not-configured'
+    | 'miss'
+    | 'hit'
+    | 'invalid'
+    | 'written'
+    | 'write-failed'
   startupPersistentStateSourceKind?: 'web-indexeddb' | 'electron-program-directory-userdata'
   startupPersistentStateSourceHostMode?: ThirdPartyStartupPersistentStateSourceHostMode
   startupPersistentStateInjectedSourceHostMode?: ThirdPartyStartupPersistentStateSourceHostMode
@@ -577,6 +584,20 @@ const readStartupGateStatus = (
     : 'unknown'
 }
 
+const readCandidateRegistryCacheStatus = (
+  result: unknown
+): ThirdPartyStartupGateRuntimeProbeSummary['candidateRegistryCacheStatus'] => {
+  const status = readOwnStringField(result, 'candidateRegistryCacheStatus')
+  return status === 'not-configured'
+    || status === 'miss'
+    || status === 'hit'
+    || status === 'invalid'
+    || status === 'written'
+    || status === 'write-failed'
+    ? status
+    : undefined
+}
+
 const readAppStartupHostStatus = (
   result: unknown
 ): ThirdPartyAppStartupHostRuntimeProbeSummary['status'] => {
@@ -890,6 +911,7 @@ export const createThirdPartyStartupGateRuntimeProbeSummary = (
     readOwnBooleanField(effects, 'startupPersistentStateSourceCalled') === true
   const startupStateSnapshotAccepted =
     readOwnBooleanField(effects, 'startupStateSnapshotAccepted') === true
+  const candidateRegistryCacheStatus = readCandidateRegistryCacheStatus(result)
   return {
     schemaVersion: 1,
     observed: true,
@@ -899,6 +921,9 @@ export const createThirdPartyStartupGateRuntimeProbeSummary = (
     appBootstrapContinuationAllowed: readOwnBooleanField(result, 'appBootstrapContinuationAllowed'),
     appStartupHostConnectionSourceStatus: readOwnStringField(result, 'appStartupHostConnectionSourceStatus'),
     startupPersistentStateSourceStatus: readOwnStringField(result, 'startupPersistentStateSourceStatus'),
+    ...(candidateRegistryCacheStatus === undefined
+      ? {}
+      : { candidateRegistryCacheStatus }),
     ...(startupPersistentStateSourceKind === 'web-indexeddb'
       || startupPersistentStateSourceKind === 'electron-program-directory-userdata'
       ? { startupPersistentStateSourceKind }

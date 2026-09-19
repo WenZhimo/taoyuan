@@ -162,6 +162,7 @@ const webScenarios = [
     source: 'precompiled',
     status: 'official-precompiled-hit',
     visibleImportInstalledStartupPersistentState: true,
+    candidateRegistryCacheSequence: true,
     visibleArchiveImport: true,
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack'
@@ -1075,6 +1076,66 @@ const electronScenarios = [
     dataRoot: 'visible-import-archive-renderer-live-registry',
     cacheSeed: 'valid',
     startupGateDefaultInstalledState: true,
+    candidateRegistryCacheSequence: true,
+    startupGateCandidateRegistryCacheStatus: 'written',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-archive-installed-startup-persistent-state-cache-hit',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-renderer-live-registry',
+    cacheSeed: 'valid',
+    startupGateDefaultInstalledState: true,
+    startupGateCandidateRegistryCacheStatus: 'hit',
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-archive-installed-startup-persistent-state-cache-corrupt-rebuild',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-renderer-live-registry',
+    cacheSeed: 'valid',
+    startupGateDefaultInstalledState: true,
+    startupGateCandidateRegistryCacheStatus: 'invalid',
+    candidateRegistryCacheCorruptBeforeRun: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack',
+    startupGateEntryCount: 4245,
+    visibleArchiveImport: true
+  },
+  {
+    name: 'visible-import-archive-installed-startup-persistent-state-cache-rebuilt-hit',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-archive-renderer-live-registry',
+    cacheSeed: 'valid',
+    startupGateDefaultInstalledState: true,
+    startupGateCandidateRegistryCacheStatus: 'hit',
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -6047,6 +6108,15 @@ const assertUninstalledStartupState = (startupGate, scenario) => {
   }
 }
 
+const assertCandidateRegistryCacheStatus = (startupGate, scenario) => {
+  if (scenario.startupGateCandidateRegistryCacheStatus === undefined) return
+  assert(
+    startupGate.candidateRegistryCacheStatus
+      === scenario.startupGateCandidateRegistryCacheStatus,
+    `${scenario.name}: candidate registry cache status mismatch`
+  )
+}
+
 const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   assert(envelope?.schemaVersion === 1, `${scenario.name}: invalid envelope version`)
   assert(envelope.ui?.locationProtocol === protocol, `${scenario.name}: wrong protocol`)
@@ -6057,6 +6127,7 @@ const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
     `${scenario.name}: missing third-party startup gate probe summary`)
   assert(thirdPartyStartupGate.observed === true,
     `${scenario.name}: third-party startup gate result was not handed to the runtime probe`)
+  assertCandidateRegistryCacheStatus(thirdPartyStartupGate, scenario)
   if (scenario.startupGateDisabled) {
     assertDisabledInstalledStartupState(thirdPartyStartupGate, scenario)
   } else if (scenario.startupGateUninstalled) {
@@ -8536,6 +8607,9 @@ const runWebProbe = async () => {
         const startupScenario = withDefaultInstalledStateStartup({
           ...scenario,
           name: `${scenario.name}:startup`,
+          ...(scenario.candidateRegistryCacheSequence
+            ? { startupGateCandidateRegistryCacheStatus: 'written' }
+            : {}),
           startupGateRealRuntimePublicationCommit: true,
           startupGateRegistryCount: scenario.startupGateRegistryCount ?? 54,
           startupGateEntryCount: scenario.startupGateEntryCount ?? 4245,
@@ -8552,6 +8626,29 @@ const runWebProbe = async () => {
         const startupEnvelope = readJson(startupOutputPath)
         assertRuntimeEnvelope(startupEnvelope, startupScenario, 'http:')
         assertWebProductSurface(startupEnvelope, startupScenario)
+        if (scenario.candidateRegistryCacheSequence) {
+          const cacheHitScenario = withDefaultInstalledStateStartup({
+            ...startupScenario,
+            name: `${scenario.name}:cache-hit`,
+            startupGateCandidateRegistryCacheStatus: 'hit'
+          })
+          const cacheHitOutputPath = path.join(scenarioRoot, 'cache-hit-report.json')
+          await runProcess(electronPath, [hostPath], {
+            TAOYUAN_RUNTIME_PROBE_OUTPUT: cacheHitOutputPath,
+            TAOYUAN_RUNTIME_PROBE_URL: buildWebScenarioUrl(cacheHitScenario).href,
+            TAOYUAN_RUNTIME_PROBE_USER_DATA: userData
+          })
+          const cacheHitEnvelope = readJson(cacheHitOutputPath)
+          assertRuntimeEnvelope(cacheHitEnvelope, cacheHitScenario, 'http:')
+          assertWebProductSurface(cacheHitEnvelope, cacheHitScenario)
+          reports.push({
+            scenario: scenario.name,
+            installRuntime: installEnvelope.runtime,
+            startupRuntime: startupEnvelope.runtime,
+            cacheHitRuntime: cacheHitEnvelope.runtime
+          })
+          continue
+        }
         reports.push({
           scenario: scenario.name,
           installRuntime: installEnvelope.runtime,
@@ -9999,6 +10096,23 @@ const runPackagedVisibleManagementCrashRecoverySequence = async (scenario, isola
   }
 }
 
+const corruptCandidateRegistryCacheBeforeScenario = scenario => {
+  const dataRoot = scenario.dataRoot ?? scenario.name
+  const userDataPath = path.join(runRoot, `electron-${dataRoot}`, 'userdata')
+  const cacheRoot = path.join(userDataPath, 'mod-cache')
+  const cacheDirectories = fs.existsSync(cacheRoot)
+    ? fs.readdirSync(cacheRoot, { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => path.join(cacheRoot, entry.name))
+    : []
+  const cacheFiles = cacheDirectories
+    .map(directory => path.join(directory, 'third-party-registry-cache-v1.json'))
+    .filter(filePath => fs.existsSync(filePath))
+  assert(cacheFiles.length === 1,
+    `${scenario.name}: expected exactly one candidate registry cache before corruption`)
+  fs.writeFileSync(cacheFiles[0], 'not-json\n', 'utf8')
+}
+
 const runElectronProbe = async () => {
   assert(fs.existsSync(packagedExecutable),
     'Electron product is missing; run pnpm build:electron')
@@ -10034,6 +10148,9 @@ const runElectronProbe = async () => {
         scenario.isolated !== false
       ))
       continue
+    }
+    if (scenario.candidateRegistryCacheCorruptBeforeRun) {
+      corruptCandidateRegistryCacheBeforeScenario(scenario)
     }
     reports.push(await runPackagedScenario(scenario, scenario.isolated !== false))
   }

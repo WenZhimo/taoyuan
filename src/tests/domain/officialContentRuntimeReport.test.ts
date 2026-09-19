@@ -611,6 +611,27 @@ describe('official content runtime report', () => {
     })
   })
 
+  it('exposes only the validated candidate registry cache status', () => {
+    const summary = createThirdPartyStartupGateRuntimeProbeSummary({
+      status: 'ready',
+      candidateRegistryCacheStatus: 'hit',
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      effects: {}
+    })
+
+    expect(summary.candidateRegistryCacheStatus).toBe('hit')
+    expect(createThirdPartyStartupGateRuntimeProbeSummary({
+      status: 'ready',
+      candidateRegistryCacheStatus: 'path-leak',
+      selectedPackageIds: [],
+      blockedPackageIds: [],
+      loadOrder: [],
+      effects: {}
+    }).candidateRegistryCacheStatus).toBeUndefined()
+  })
+
   it('summarizes the probe-only Web renderer UI/IPC delivery bridge without exposing hosts', async () => {
     const runtimeHost = new EventTarget()
 

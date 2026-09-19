@@ -70,6 +70,9 @@ import {
   restoreWebIndexedDbImportSource,
   type WebIndexedDbImportPersistenceStore
 } from '@/domain/mods/webIndexedDbImportPersistence'
+import {
+  createInMemoryThirdPartyDataPackCandidateRegistryCacheStore
+} from '@/domain/mods/thirdPartyDataPackCandidateRegistryCache'
 
 type JsonObject = Record<string, unknown>
 
@@ -1498,6 +1501,65 @@ describe('third-party installed-state startup gate bootstrap source', () => {
       productProbeRecipeNameFallback: 'product_probe_pack Startup Linen Ribbon Snack',
       productProbeShopOfferNameFallback: 'product_probe_pack Startup Linen Ribbon Stand'
     })
+  })
+
+  it('writes the candidate registry cache on the first startup and restores it on the next startup', async() => {
+    const packageId = 'web_candidate_cache_pack' as PackageId
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    const candidateRegistryCache = createInMemoryThirdPartyDataPackCandidateRegistryCacheStore()
+    const mountInput = await seedWebInstalledState(
+      store,
+      packageId,
+      buildOfficialRegistrySetFromStaticData(),
+      settingsLockfileStore
+    )
+
+    const createSource = () => createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore,
+      candidateRegistryCache
+    })
+
+    const firstResult = await createSource()()
+    expect(firstResult.status).toBe('ready')
+    expect(firstResult.candidateRegistryCacheStatus).toBe('written')
+
+    const secondResult = await createSource()()
+    expect(secondResult.status).toBe('ready')
+    expect(secondResult.candidateRegistryCacheStatus).toBe('hit')
+    expect(secondResult.lockfileHash).toBe(mountInput.lockfileHash)
+    expect(secondResult.effects.liveRegistrySwapped).toBe(true)
+  })
+
+  it('falls back to a complete candidate build when the persisted cache is corrupt', async() => {
+    const packageId = 'web_candidate_cache_corrupt' as PackageId
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    await seedWebInstalledState(
+      store,
+      packageId,
+      buildOfficialRegistrySetFromStaticData(),
+      settingsLockfileStore
+    )
+    const corruptingCache = {
+      read: vi.fn(async() => '{"cacheFormatVersion":1}'),
+      write: vi.fn(async() => undefined)
+    }
+    const source = createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore,
+      candidateRegistryCache: corruptingCache
+    })
+
+    const result = await source()
+
+    expect(result.status).toBe('ready')
+    expect(result.candidateRegistryCacheStatus).toBe('invalid')
+    expect(corruptingCache.read).toHaveBeenCalledOnce()
+    expect(corruptingCache.write).toHaveBeenCalledOnce()
   })
 
   it('reports dependency product probe fallback from the installed startup candidate', async() => {
