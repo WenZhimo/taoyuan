@@ -1327,6 +1327,22 @@ const electronScenarios = [
     startupGateEntryCount: 4245
   },
   {
+    name: 'visible-import-disable-then-restart',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'visible-import-disable-sequence',
+    cacheSeed: 'valid',
+    visibleImportInstalledDisableSequence: true,
+    startupPersistentStateSourceKind: 'electron-program-directory-userdata',
+    startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
+    startupPersistentStateExpectsResponseDeliveryHandoff: false,
+    startupGateTargetPackageId: 'product_probe_pack'
+  },
+  {
     name: 'visible-import-replacement-initial-import',
     fault: null,
     source: 'disk-cache',
