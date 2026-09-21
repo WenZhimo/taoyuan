@@ -1416,6 +1416,11 @@ const replayElectronLifecycleCrashRecovery = async prepared => {
   }
 }
 
+const interruptElectronRuntimeProbe = async() => {
+  app.exit(0)
+  await new Promise(() => {})
+}
+
 const writeElectronDisabledState = async(envelope, options = {}) => {
   const record = envelope.record
   const draft = record.lockfileDraft
@@ -1452,7 +1457,7 @@ const writeElectronDisabledState = async(envelope, options = {}) => {
         if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
         modLockWritten = true
         if (runtimeProbeVisibleManagementInterruptAfterModLockWrite) {
-          process.exit(0)
+          await interruptElectronRuntimeProbe()
         }
         if (runtimeProbeVisibleDisableFailAfterModLockWrite) {
           throw new Error('Electron disable runtime probe failed after mod-lock write')
@@ -1685,7 +1690,7 @@ const writeElectronUninstalledState = async envelope => {
         const lockfileResult = await createModLockProbe().write(currentDraft)
         if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
         if (runtimeProbeVisibleManagementInterruptAfterModLockWrite) {
-          process.exit(0)
+          await interruptElectronRuntimeProbe()
         }
         if (runtimeProbeVisibleUninstallFailAfterModLockWrite) {
           throw new Error('Electron uninstall runtime probe failed after mod-lock write')
@@ -1842,7 +1847,7 @@ const writeElectronEnabledState = async envelope => {
         const lockfileResult = await createModLockProbe().write(currentDraft)
         if (lockfileResult.report.status !== 'written') return { status: 'blocked' }
         if (runtimeProbeVisibleManagementInterruptAfterModLockWrite) {
-          process.exit(0)
+          await interruptElectronRuntimeProbe()
         }
         if (runtimeProbeVisibleEnableFailAfterModLockWrite) {
           throw new Error('Electron enable runtime probe failed after mod-lock write')

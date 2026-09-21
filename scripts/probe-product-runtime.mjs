@@ -10057,6 +10057,29 @@ const runPackagedVisibleManagementCrashRecoverySequence = async (scenario, isola
   assert(interrupted.interrupted === true,
     `${scenario.name}: management interruption did not stop before producing a report`)
 
+  const recoveryLogPath = path.join(
+    userDataPath,
+    'mod-transactions',
+    'install-recovery.json'
+  )
+  assert(fs.existsSync(recoveryLogPath),
+    `${scenario.name}: interrupted ${operation} did not leave a recovery log`)
+  const interruptedRecoveryLog = readJson(recoveryLogPath)
+  assert(interruptedRecoveryLog.operation === operation,
+    `${scenario.name}: interrupted ${operation} recovery log reported ${interruptedRecoveryLog.operation}`)
+  assert(interruptedRecoveryLog.targetPackageId === 'product_probe_pack',
+    `${scenario.name}: interrupted ${operation} recovery log reported the wrong target package`)
+  assert(JSON.stringify(fileContentFingerprint(path.join(userDataPath, 'settings.json'))) === JSON.stringify(before.settings),
+    `${scenario.name}: interrupted ${operation} changed settings before its fault boundary`)
+  assert(JSON.stringify(fileContentFingerprint(path.join(
+    userDataPath,
+    'mod-startup-state',
+    'startup-persistent-state-snapshot.json'
+  ))) === JSON.stringify(before.startup),
+  `${scenario.name}: interrupted ${operation} changed startup state before its fault boundary`)
+  assert(JSON.stringify(fileContentFingerprint(modLockFilePath(userDataPath))) !== JSON.stringify(before.modLock),
+    `${scenario.name}: interrupted ${operation} did not write mod-lock before its fault boundary`)
+
   const restart = await runPackagedScenario({
     ...withDefaultInstalledStateStartup({
       ...baseScenario,
