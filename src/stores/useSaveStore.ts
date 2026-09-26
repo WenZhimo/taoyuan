@@ -28,6 +28,13 @@ import { useFishPondStore } from './useFishPondStore'
 import { useTutorialStore } from './useTutorialStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
 import { encodeSaveData, normalizeSaveData } from '@/utils/saveCodec'
+import {
+  CURRENT_SAVE_FORMAT_VERSION,
+  checkSaveRootCompatibility,
+  createOfficialSaveContentEnvironment,
+  normalizeSaveContentEnvironment,
+  type SaveContentEnvironment
+} from '@/domain/save/saveContentEnvironment'
 
 export { parseSaveData } from '@/utils/saveCodec'
 
@@ -69,6 +76,7 @@ const createSlotInfo = (slot: number, data: Record<string, any>): SaveSlotInfo =
 export const useSaveStore = defineStore('save', () => {
   /** 当前活跃存档槽位，-1 表示未分配 */
   const activeSlot = ref(-1)
+  const contentEnvironment = ref<SaveContentEnvironment>(createOfficialSaveContentEnvironment())
   const operation = ref<SaveOperation | null>(null)
   const isBusy = computed(() => operation.value !== null)
   const operationLabel = computed(() => {
@@ -159,6 +167,8 @@ export const useSaveStore = defineStore('save', () => {
     const hiddenNpcStore = useHiddenNpcStore()
 
     return {
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: contentEnvironment.value,
       game: gameStore.serialize(),
       player: playerStore.serialize(),
       inventory: inventoryStore.serialize(),
@@ -189,6 +199,15 @@ export const useSaveStore = defineStore('save', () => {
     }
   }
 
+  const setContentEnvironment = (value: unknown): boolean => {
+    try {
+      contentEnvironment.value = normalizeSaveContentEnvironment(value)
+      return true
+    } catch {
+      return false
+    }
+  }
+
   /** 保存到指定槽位 */
   const saveToSlot = async (slot: number): Promise<boolean> => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
@@ -216,7 +235,10 @@ export const useSaveStore = defineStore('save', () => {
       if (!raw) return false
       const normalized = await normalizeSaveData(raw)
       if (!normalized) return false
-      const { data, encoded } = normalized
+      const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+      if (compatibility.status !== 'compatible' || !compatibility.migration) return false
+      const data = compatibility.migration.data
+      const encoded = await encodeSaveData(data)
 
       const gameStore = useGameStore()
       const playerStore = usePlayerStore()
@@ -313,14 +335,19 @@ export const useSaveStore = defineStore('save', () => {
     return runOperation('importing', async () => {
       const normalized = await normalizeSaveData(fileContent)
       if (!normalized) return false
-      localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, normalized.encoded)
-      writeSlotMetadata(slot, normalized.data)
+      const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+      if (compatibility.status !== 'compatible' || !compatibility.migration) return false
+      const data = compatibility.migration.data
+      const encoded = await encodeSaveData(data)
+      localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
+      writeSlotMetadata(slot, data)
       return true
     })
   }
 
   return {
     activeSlot,
+    contentEnvironment,
     operation,
     operationLabel,
     isBusy,
@@ -331,6 +358,7 @@ export const useSaveStore = defineStore('save', () => {
     loadFromSlot,
     deleteSlot,
     exportSave,
-    importSave
+    importSave,
+    setContentEnvironment
   }
 })

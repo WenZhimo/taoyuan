@@ -7,7 +7,8 @@ import { useInventoryStore } from '@/stores/useInventoryStore'
 import { useMiningStore } from '@/stores/useMiningStore'
 import { usePlayerStore } from '@/stores/usePlayerStore'
 import { useSaveStore } from '@/stores/useSaveStore'
-import { encodeSaveData } from '@/utils/saveCodec'
+import { encodeSaveData, parseSaveData } from '@/utils/saveCodec'
+import { createOfficialSaveContentEnvironment, createSaveContentEnvironment } from '@/domain/save/saveContentEnvironment'
 import legacySaveFixture from '../fixtures/saves/legacy-v1-baseline.json'
 
 const SAVE_KEY_PREFIX = 'taoyuanxiang_save_'
@@ -24,6 +25,12 @@ describe('legacy save baseline fixture', () => {
 
     const saveStore = useSaveStore()
     expect(await saveStore.loadFromSlot(0)).toBe(true)
+    const migrated = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}0`) ?? '')
+    expect(migrated?.saveFormatVersion).toBe(2)
+    expect(migrated?.contentEnvironment).toMatchObject({
+      formatVersion: 1,
+      environmentHash: expect.stringMatching(/^sha256:[0-9a-f]{64}$/)
+    })
 
     const gameStore = useGameStore()
     const playerStore = usePlayerStore()
@@ -51,5 +58,35 @@ describe('legacy save baseline fixture', () => {
     setActivePinia(createPinia())
     expect(await useSaveStore().loadFromSlot(0)).toBe(true)
     expect(useInventoryStore().getItemCount('cabbage')).toBe(45)
+  })
+
+  it('rejects a save from another content environment without rewriting the slot', async() => {
+    const official = createOfficialSaveContentEnvironment()
+    const alternate = createSaveContentEnvironment({
+      gameVersion: official.gameVersion,
+      engineApiVersion: official.engineApiVersion,
+      contentSchemaVersion: official.contentSchemaVersion,
+      loaderVersion: official.loaderVersion,
+      contentCompilerVersion: official.contentCompilerVersion,
+      schemaSetHash: official.schemaSetHash,
+      cacheFormatVersion: official.cacheFormatVersion,
+      trustPolicyVersion: official.trustPolicyVersion,
+      packages: official.packages.map(pkg => ({
+        ...pkg,
+        configurationHash: 'sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+      }))
+    })
+    const incompatible = {
+      ...legacySaveFixture,
+      saveFormatVersion: 2,
+      contentEnvironment: alternate
+    }
+    const encoded = await encodeSaveData(incompatible)
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, encoded)
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.loadFromSlot(0)).toBe(false)
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(encoded)
+    expect(useGameStore().isGameStarted).toBe(false)
   })
 })

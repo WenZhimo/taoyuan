@@ -8,7 +8,9 @@
 - 数据以 JSON 组装后使用 AES 加密，保存在浏览器 `localStorage`。
 - 导出文件扩展名为 `.tyx`，内容仍是同一段加密字符串。
 - 导入时先尝试解密和解析，失败则拒绝写入槽位。
-- 当前根对象没有统一的 `saveVersion`；兼容性主要由各 Store 的 `deserialize()` 和局部迁移函数承担。
+- 旧根对象没有统一的版本字段；从当前格式起使用 `saveFormatVersion: 2`。
+- `saveFormatVersion: 2` 的根对象必须包含 `contentEnvironment`，用于在进入游戏状态前校验当前 PC 内容环境。
+- 没有版本字段的旧档按官方内容环境迁移；第三方内容环境不允许通过旧档形状猜测或自动切换全局模组集。
 
 根对象当前包含：
 
@@ -19,6 +21,17 @@ animal, home, fishing, wallet, quest, shop, settings,
 warehouse, breeding, museum, guild, secretNote, hanhai,
 fishPond, tutorial, hiddenNpc, savedAt
 ```
+
+当前格式额外包含：
+
+```text
+saveFormatVersion, contentEnvironment
+```
+
+`contentEnvironment` 是版本化的纯数据身份，包含游戏版本、引擎 API、内容 Schema、加载器和编译器版本、Schema 集哈希、信任策略、
+按稳定加载序号排列的数据包身份（包 ID、版本、内容哈希、安装级配置哈希、依赖）以及环境哈希。环境哈希由这些字段的规范化结果计算，
+不能由导入文件自行声明。当前官方旧档迁移使用随包 `taoyuan-core` 身份；后续 PC 模组挂载器必须在启动完成后注入实际已发布环境，
+不得自动切换全局模组配置来满足某个存档。
 
 `game`、`player`、`inventory`、`farm` 当前直接加载；其余模块在根字段存在时才调用对应 `deserialize()`。
 
@@ -121,6 +134,14 @@ const currentValue = data.newField ?? data.oldField ?? DEFAULT_VALUE
 - 增加根级加载或 Store 反序列化测试。
 
 移除 Store 时不能直接删除根字段处理，应先让新版本安全忽略旧根字段。
+
+## 内容环境保护
+
+- 保存、槽位加载和文件导入都必须先迁移并校验根级 `saveFormatVersion` 与 `contentEnvironment`。
+- 旧档缺少版本和内容环境时，只能按官方环境迁移，并在成功加载后以当前格式写回；迁移失败不得覆盖原槽位。
+- 当前格式的环境字段缺失、结构非法、环境哈希不匹配或与当前已发布 PC 环境不一致时，必须在调用 Store `deserialize()` 之前拒绝加载。
+- 导入或加载被拒绝时不得写入目标槽位、更新槽位摘要或改变当前游戏状态。
+- 环境比较只用于存档保护，不得自动启用、禁用、安装或切换第三方数据包。
 
 ## ID 变更
 
