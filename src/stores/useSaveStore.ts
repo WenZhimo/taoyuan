@@ -38,6 +38,11 @@ import {
   getCurrentSaveContentEnvironment,
   setCurrentSaveContentEnvironment
 } from '@/domain/save/saveContentEnvironmentRuntime'
+import {
+  createEmptyPersistedPluginData,
+  normalizePersistedPluginData,
+  type PersistedPluginData
+} from '@/domain/save/savePluginData'
 
 export { parseSaveData } from '@/utils/saveCodec'
 
@@ -80,6 +85,7 @@ export const useSaveStore = defineStore('save', () => {
   /** 当前活跃存档槽位，-1 表示未分配 */
   const activeSlot = ref(-1)
   const contentEnvironment = ref<SaveContentEnvironment>(getCurrentSaveContentEnvironment())
+  const pluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const operation = ref<SaveOperation | null>(null)
   const isBusy = computed(() => operation.value !== null)
   const operationLabel = computed(() => {
@@ -138,6 +144,7 @@ export const useSaveStore = defineStore('save', () => {
   const assignNewSlot = (): number => {
     const empty = getSlots().find(slot => !slot.exists)
     activeSlot.value = empty?.slot ?? -1
+    if (activeSlot.value >= 0) pluginData.value = createEmptyPersistedPluginData()
     return activeSlot.value
   }
 
@@ -172,6 +179,7 @@ export const useSaveStore = defineStore('save', () => {
     return {
       saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
       contentEnvironment: contentEnvironment.value,
+      pluginData: normalizePersistedPluginData(pluginData.value),
       game: gameStore.serialize(),
       player: playerStore.serialize(),
       inventory: inventoryStore.serialize(),
@@ -297,6 +305,7 @@ export const useSaveStore = defineStore('save', () => {
       if (data.fishPond) fishPondStore.deserialize(data.fishPond)
       if (data.tutorial) tutorialStore.deserialize(data.tutorial)
       if (data.hiddenNpc) hiddenNpcStore.deserialize(data.hiddenNpc)
+      pluginData.value = data.pluginData
 
       if (encoded !== raw) localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
       writeSlotMetadata(slot, data)
@@ -352,6 +361,7 @@ export const useSaveStore = defineStore('save', () => {
   return {
     activeSlot,
     contentEnvironment,
+    pluginData,
     operation,
     operationLabel,
     isBusy,

@@ -11,6 +11,11 @@ import type { Sha256Hash } from '@/domain/mods/hash'
 import type { CacheEnvironmentIdentity, OfficialPrecompiledRegistryMetadata } from '@/domain/mods/precompiledRegistrySchema'
 import type { PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
+import {
+  normalizePersistedPluginData,
+  SavePluginDataError,
+  type PersistedPluginData
+} from './savePluginData'
 
 export const CURRENT_SAVE_FORMAT_VERSION = 2 as const
 export const SAVE_CONTENT_ENVIRONMENT_FORMAT_VERSION = 1 as const
@@ -43,6 +48,7 @@ export interface SaveRootMigrationResult {
   readonly status: SaveRootMigrationStatus
   readonly data: Record<string, any>
   readonly environment: SaveContentEnvironment
+  readonly pluginData: PersistedPluginData
 }
 
 export interface SaveRootCompatibilityResult {
@@ -210,6 +216,7 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
   }
 
   const version = value.saveFormatVersion
+  const pluginData = normalizePersistedPluginData(value.pluginData)
   if (version === undefined || version === 1) {
     const environment = createOfficialSaveContentEnvironment()
     return {
@@ -217,9 +224,11 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
       data: {
         ...value,
         saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
-        contentEnvironment: environment
+        contentEnvironment: environment,
+        pluginData
       },
-      environment
+      environment,
+      pluginData
     }
   }
 
@@ -248,9 +257,11 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
     data: {
       ...value,
       saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
-      contentEnvironment: environment
+      contentEnvironment: environment,
+      pluginData
     },
-    environment
+    environment,
+    pluginData
   }
 }
 
@@ -262,6 +273,9 @@ export const checkSaveRootCompatibility = (
   try {
     migration = migrateSaveRoot(value)
   } catch (error) {
+    if (error instanceof SavePluginDataError) {
+      return { status: 'invalid', diagnostics: error.diagnostics }
+    }
     if (error instanceof SaveContentEnvironmentError) {
       return { status: 'invalid', diagnostics: error.diagnostics }
     }

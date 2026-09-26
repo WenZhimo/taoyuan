@@ -25,7 +25,7 @@ fishPond, tutorial, hiddenNpc, savedAt
 当前格式额外包含：
 
 ```text
-saveFormatVersion, contentEnvironment
+saveFormatVersion, contentEnvironment, pluginData
 ```
 
 `contentEnvironment` 是版本化的纯数据身份，包含游戏版本、引擎 API、内容 Schema、加载器和编译器版本、Schema 集哈希、信任策略、
@@ -35,6 +35,10 @@ saveFormatVersion, contentEnvironment
 不得自动切换全局模组配置来满足某个存档。
 
 `game`、`player`、`inventory`、`farm` 当前直接加载；其余模块在根字段存在时才调用对应 `deserialize()`。
+`pluginData` 缺失时按空容器迁移；当前核心只校验每个按 `PackageId` 隔离的不透明 JSON 信封、UTF-8
+`payloadHash` 和信封字段，不解释、迁移或规范化插件负载。插件缺失或禁用时，成功加载后再次保存仍会逐字段
+保留原始 `payloadJson` 和匹配哈希。插件私有 Schema、连续迁移、所有权检查和配额属于阶段 8 的后续边界，
+不因本字段存在而宣称阶段 8 或完整模组系统完成。
 
 ## 兼容原则
 
