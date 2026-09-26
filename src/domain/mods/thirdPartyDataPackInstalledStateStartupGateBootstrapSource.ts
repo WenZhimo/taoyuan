@@ -18,6 +18,11 @@ import {
 import type { RegistrySet } from './registry'
 import type { ContentId, PackageId, RegistryTypeId } from './ids'
 import {
+  createOfficialSaveContentEnvironment,
+  createSaveContentEnvironmentFromLockfileDraft,
+  type SaveContentEnvironment
+} from '@/domain/save/saveContentEnvironment'
+import {
   buildOfficialRegistrySetFromStaticData
 } from './staticAdapters'
 import {
@@ -218,6 +223,7 @@ interface DisabledInstalledState {
     NonNullable<ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode']>
   readonly appStartupHostConnectionSourceStatus: 'accepted'
   readonly candidateRegistryCacheStatus: CandidateRegistryCacheStatus
+  readonly saveContentEnvironment: SaveContentEnvironment
   readonly persistentStateProofs: {
     readonly transactionLogCommitted: true
     readonly packageStateMatched: true
@@ -241,6 +247,7 @@ interface UninstalledInstalledState {
   readonly startupPersistentStateInjectedSourceHostMode:
     NonNullable<ThirdPartyDataPackStartupGatePersistentStateSourceResult['injectedSourceHostMode']>
   readonly appStartupHostConnectionSourceStatus: 'accepted'
+  readonly saveContentEnvironment: SaveContentEnvironment
   readonly persistentStateProofs: {
     readonly transactionLogCommitted: true
     readonly packageStateMatched: true
@@ -356,6 +363,7 @@ const skippedInstalledStateResult = (
   registryCount: 54,
   entryCount: 4242,
   packageCount: 0,
+  saveContentEnvironment: createOfficialSaveContentEnvironment(),
   diagnostics: Object.freeze([]),
   summary: emptySummary(),
   effects: noStartupGateEffects(options.sourceCalled)
@@ -1111,6 +1119,10 @@ const readElectronDisabledState = async(
         'electron-program-directory-startup-persistent-state',
       appStartupHostConnectionSourceStatus: 'accepted',
       candidateRegistryCacheStatus: runtimeContext.candidateRegistryCacheStatus,
+      saveContentEnvironment: createSaveContentEnvironmentFromLockfileDraft(
+        runtimeContext.mountInput.lockfileDraft!,
+        []
+      ),
       persistentStateProofs: {
         transactionLogCommitted: true,
         packageStateMatched: true,
@@ -1143,6 +1155,10 @@ const readElectronDisabledState = async(
           'electron-program-directory-startup-persistent-state',
         appStartupHostConnectionSourceStatus: 'accepted',
         candidateRegistryCacheStatus: runtimeContext.candidateRegistryCacheStatus,
+        saveContentEnvironment: createSaveContentEnvironmentFromLockfileDraft(
+          runtimeContext.mountInput.lockfileDraft!,
+          []
+        ),
         persistentStateProofs: {
           transactionLogCommitted: true,
           packageStateMatched: true,
@@ -1196,6 +1212,10 @@ const readWebDisabledState = async(
     startupPersistentStateInjectedSourceHostMode: 'web-indexeddb-startup-persistent-state',
     appStartupHostConnectionSourceStatus: 'accepted',
     candidateRegistryCacheStatus: runtimeContext.candidateRegistryCacheStatus,
+    saveContentEnvironment: createSaveContentEnvironmentFromLockfileDraft(
+      runtimeContext.mountInput.lockfileDraft!,
+      []
+    ),
     persistentStateProofs: {
       transactionLogCommitted: true,
       packageStateMatched: true,
@@ -1233,6 +1253,10 @@ const readWebUninstalledState = async(
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupPersistentStateInjectedSourceHostMode: 'web-indexeddb-startup-persistent-state',
     appStartupHostConnectionSourceStatus: 'accepted',
+    saveContentEnvironment: createSaveContentEnvironmentFromLockfileDraft(
+      record.lockfileDraft,
+      []
+    ),
     persistentStateProofs: {
       transactionLogCommitted: true,
       packageStateMatched: true,
@@ -1284,6 +1308,10 @@ const readElectronUninstalledState = async(
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateInjectedSourceHostMode: 'electron-program-directory-startup-persistent-state',
     appStartupHostConnectionSourceStatus: 'accepted',
+    saveContentEnvironment: createSaveContentEnvironmentFromLockfileDraft(
+      record.lockfileDraft,
+      []
+    ),
     persistentStateProofs: {
       transactionLogCommitted: true,
       packageStateMatched: true,
@@ -1741,6 +1769,7 @@ const disabledInstalledStateResult = (
   registryCount: 54,
   entryCount: 4242,
   packageCount: state.packageCount,
+  saveContentEnvironment: state.saveContentEnvironment,
   startupPersistentStateSourceStatus: state.startupPersistentStateSourceStatus,
   startupPersistentStateSourceHostMode: state.startupPersistentStateSourceHostMode,
   startupPersistentStateInjectedSourceHostMode: state.startupPersistentStateInjectedSourceHostMode,
@@ -1788,6 +1817,7 @@ const uninstalledInstalledStateResult = (
   registryCount: state.registryCount,
   entryCount: state.entryCount,
   packageCount: state.packageCount,
+  saveContentEnvironment: state.saveContentEnvironment,
   startupPersistentStateSourceStatus: state.startupPersistentStateSourceStatus,
   startupPersistentStateSourceHostMode: state.startupPersistentStateSourceHostMode,
   startupPersistentStateInjectedSourceHostMode: state.startupPersistentStateInjectedSourceHostMode,
@@ -2145,6 +2175,10 @@ export const createThirdPartyDataPackInstalledStateStartupGateBootstrapSource = 
   const result = await sharedRendererStartupGate()
   return Object.freeze({
     ...result,
+    saveContentEnvironment: createSaveContentEnvironmentFromLockfileDraft(
+      context.mountInput.lockfileDraft!,
+      context.mountInput.selectedPackageIds
+    ),
     startupPersistentStateSourceKind: context.sourceKind,
     startupPersistentStateSourceStatus: context.startupPersistentStateSource.status,
     ...(context.startupPersistentStateSource.startupPersistentStateSourceHostMode === undefined

@@ -15,6 +15,7 @@ export interface ApplicationBootstrapDependencies<
   acknowledgeThirdPartyAppStartupHost?: (
     options: ApplicationBootstrapThirdPartyAppStartupHostOptions
   ) => Awaitable<unknown>
+  onStartupGateAccepted?: (result: unknown) => Awaitable<unknown>
   createApp: () => Awaitable<AppInstance>
   createPinia: () => Awaitable<PiniaInstance>
   configurePinia: (pinia: PiniaInstance) => void
@@ -115,6 +116,7 @@ export const bootstrapApplication = async <
   }
   const thirdPartyStartupGateResult = await dependencies.bootstrapThirdPartyStartupGate?.()
   assertThirdPartyStartupGateAllowsApplicationBootstrap(thirdPartyStartupGateResult)
+  await dependencies.onStartupGateAccepted?.(thirdPartyStartupGateResult)
 
   const app = await dependencies.createApp()
   const pinia = await dependencies.createPinia()

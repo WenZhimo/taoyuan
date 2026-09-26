@@ -117,6 +117,63 @@ describe('bootstrapApplication', () => {
     ])
   })
 
+  it('publishes the accepted startup environment before creating application state', async() => {
+    const events: string[] = []
+    const app = { id: 'app' }
+    const pinia = { id: 'pinia' }
+    const router = { id: 'router' }
+    const startupGateResult = {
+      status: 'ready',
+      appBootstrapContinuationAllowed: true,
+      saveContentEnvironment: { environmentHash: 'sha256:published' }
+    }
+
+    await bootstrapApplication({
+      bootstrapOfficialContent: vi.fn(async() => {
+        events.push('official-content')
+      }),
+      bootstrapThirdPartyStartupGate: vi.fn(async() => {
+        events.push('third-party-startup-gate')
+        return startupGateResult
+      }),
+      onStartupGateAccepted: vi.fn(async result => {
+        events.push('publish-save-environment')
+        expect(result).toBe(startupGateResult)
+      }),
+      createApp: vi.fn(() => {
+        events.push('create-app')
+        return app
+      }),
+      createPinia: vi.fn(() => {
+        events.push('create-pinia')
+        return pinia
+      }),
+      configurePinia: vi.fn(() => events.push('configure-pinia')),
+      installPinia: vi.fn(() => events.push('install-pinia')),
+      getRouter: vi.fn(() => {
+        events.push('get-router')
+        return router
+      }),
+      installRouter: vi.fn(() => events.push('install-router')),
+      mount: vi.fn(async() => {
+        events.push('mount')
+      })
+    })
+
+    expect(events).toEqual([
+      'official-content',
+      'third-party-startup-gate',
+      'publish-save-environment',
+      'create-app',
+      'create-pinia',
+      'configure-pinia',
+      'install-pinia',
+      'get-router',
+      'install-router',
+      'mount'
+    ])
+  })
+
   it('publishes the official registry baseline before the third-party startup gate', async () => {
     const events: string[] = []
     const registrySet = { id: 'official-registry-set' }

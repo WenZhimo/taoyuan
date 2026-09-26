@@ -3,11 +3,15 @@ import {
   CURRENT_SAVE_FORMAT_VERSION,
   checkSaveRootCompatibility,
   createOfficialSaveContentEnvironment,
+  createSaveContentEnvironmentFromLockfileDraft,
   createSaveContentEnvironment,
   migrateSaveRoot,
   normalizeSaveContentEnvironment,
   SaveContentEnvironmentError
 } from '@/domain/save/saveContentEnvironment'
+import { hashCanonicalJson, type Sha256Hash } from '@/domain/mods/hash'
+import type { PackageId } from '@/domain/mods/ids'
+import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 
 const createLegacyRoot = () => ({
   game: { year: 2, season: 'summer', day: 4 },
@@ -37,6 +41,73 @@ const createAlternateEnvironment = () => {
   })
 }
 
+const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
+
+const createLockfileDraft = (): ThirdPartyDataPackLockfileDraft => {
+  const official = createOfficialSaveContentEnvironment()
+  const libraryPackageId = 'library_pack' as PackageId
+  const selectedPackageId = 'selected_pack' as PackageId
+  const body: Omit<ThirdPartyDataPackLockfileDraft, 'lockfileHash'> = {
+    formatVersion: 1,
+    kind: 'third-party-data-pack-lockfile-draft',
+    officialIdentity: {
+      artifactHash: testHash('a'),
+      contentHash: official.packages[0]!.contentHash as Sha256Hash,
+      schemaSetHash: official.schemaSetHash as Sha256Hash,
+      environmentHash: testHash('b'),
+      snapshotHash: testHash('c'),
+      registryCount: 54,
+      entryCount: 4242
+    },
+    candidateIdentity: {
+      formatVersion: 1,
+      contentHash: testHash('d'),
+      snapshotHash: testHash('e'),
+      candidateHash: testHash('f')
+    },
+    registryCount: 56,
+    entryCount: 4244,
+    selectedPackageIds: [libraryPackageId, selectedPackageId],
+    loadOrder: [libraryPackageId, selectedPackageId],
+    packages: [
+      {
+        packageId: libraryPackageId,
+        version: '1.0.0',
+        loadIndex: 0,
+        source: {
+          candidatePath: 'library-pack',
+          manifestPath: 'library-pack/manifest.json',
+          contentFiles: []
+        },
+        manifestHash: testHash('0'),
+        contentHash: testHash('1'),
+        configurationHash: testHash('2'),
+        resolvedDependencies: [],
+        contentFiles: []
+      },
+      {
+        packageId: selectedPackageId,
+        version: '2.0.0',
+        loadIndex: 1,
+        source: {
+          candidatePath: 'selected-pack',
+          manifestPath: 'selected-pack/manifest.json',
+          contentFiles: []
+        },
+        manifestHash: testHash('3'),
+        contentHash: testHash('4'),
+        configurationHash: testHash('5'),
+        resolvedDependencies: [libraryPackageId],
+        contentFiles: []
+      }
+    ]
+  }
+  return {
+    ...body,
+    lockfileHash: hashCanonicalJson(body) as Sha256Hash
+  }
+}
+
 describe('save content environment', () => {
   it('migrates a legacy root without mutating the input and writes the current root version', () => {
     const legacy = createLegacyRoot()
@@ -55,6 +126,39 @@ describe('save content environment', () => {
 
     const tampered = { ...environment, environmentHash: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }
     expect(() => normalizeSaveContentEnvironment(tampered)).toThrow(SaveContentEnvironmentError)
+  })
+
+  it('derives the save environment from the verified lockfile and selected package set', () => {
+    const draft = createLockfileDraft()
+    const before = structuredClone(draft)
+
+    const environment = createSaveContentEnvironmentFromLockfileDraft(
+      draft,
+      ['library_pack', 'selected_pack'] as PackageId[]
+    )
+
+    expect(environment.packages.map(pkg => pkg.id)).toEqual([
+      'taoyuan-core',
+      'library_pack',
+      'selected_pack'
+    ])
+    expect(environment.packages.map(pkg => pkg.loadIndex)).toEqual([0, 1, 2])
+    expect(environment.packages[2]).toMatchObject({
+      id: 'selected_pack',
+      version: '2.0.0',
+      resolvedDependencies: ['library_pack']
+    })
+    expect(environment.environmentHash).toMatch(/^sha256:[0-9a-f]{64}$/)
+    expect(draft).toEqual(before)
+  })
+
+  it('excludes packages that are not selected from the save environment', () => {
+    const environment = createSaveContentEnvironmentFromLockfileDraft(
+      createLockfileDraft(),
+      []
+    )
+
+    expect(environment.packages.map(pkg => pkg.id)).toEqual(['taoyuan-core'])
   })
 
   it('blocks a save from another package environment without changing the saved root', () => {

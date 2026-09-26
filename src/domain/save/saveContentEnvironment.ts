@@ -9,6 +9,8 @@ import {
 } from '@/domain/mods/officialPrecompiled'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import type { CacheEnvironmentIdentity, OfficialPrecompiledRegistryMetadata } from '@/domain/mods/precompiledRegistrySchema'
+import type { PackageId } from '@/domain/mods/ids'
+import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 
 export const CURRENT_SAVE_FORMAT_VERSION = 2 as const
 export const SAVE_CONTENT_ENVIRONMENT_FORMAT_VERSION = 1 as const
@@ -107,6 +109,32 @@ export const createOfficialSaveContentEnvironment = (): SaveContentEnvironment =
   createSaveContentEnvironment(
     createOfficialCacheEnvironmentIdentityFromContentHash(metadata.contentHash as Sha256Hash)
   )
+
+export const createSaveContentEnvironmentFromLockfileDraft = (
+  draft: ThirdPartyDataPackLockfileDraft,
+  selectedPackageIds: readonly PackageId[]
+): SaveContentEnvironment => {
+  const selected = new Set(selectedPackageIds)
+  const official = createOfficialCacheEnvironmentIdentityFromContentHash(
+    draft.officialIdentity.contentHash
+  )
+  return createSaveContentEnvironment({
+    ...official,
+    packages: [
+      official.packages[0]!,
+      ...draft.packages
+        .filter(pkg => selected.has(pkg.packageId))
+        .map(pkg => ({
+          id: pkg.packageId,
+          version: pkg.version,
+          contentHash: pkg.contentHash,
+          configurationHash: pkg.configurationHash,
+          loadIndex: pkg.loadIndex + 1,
+          resolvedDependencies: [...pkg.resolvedDependencies]
+        }))
+    ]
+  })
+}
 
 const readSaveEnvironmentIdentity = (value: SaveRootData): CacheEnvironmentIdentity => {
   for (const key of Object.keys(value)) {

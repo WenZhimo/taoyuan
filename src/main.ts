@@ -7,6 +7,7 @@ import {
 } from '@/bootstrap'
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
 import { publishOfficialContentRegistrySet } from '@/domain/mods/liveContentRegistry'
+import { setCurrentSaveContentEnvironment } from '@/domain/save/saveContentEnvironmentRuntime'
 import { refreshOfficialRegistryDiskCache } from '@/domain/mods/officialRegistryCacheRefresh'
 import {
   bootstrapInstalledStateThirdPartyDataPackStartupGate,
@@ -159,6 +160,15 @@ void bootstrapApplication({
   bootstrapOfficialContent,
   publishRuntimeContentRegistry: publishOfficialContentRegistrySet,
   bootstrapThirdPartyStartupGate,
+  onStartupGateAccepted: result => {
+    if (result === null || typeof result !== 'object') return
+    const descriptor = Reflect.getOwnPropertyDescriptor(result, 'saveContentEnvironment')
+    if (descriptor?.enumerable === true && 'value' in descriptor && descriptor.value !== undefined) {
+      if (!setCurrentSaveContentEnvironment(descriptor.value)) {
+        throw new Error('startup save content environment is invalid')
+      }
+    }
+  },
   acknowledgeThirdPartyAppStartupHost: options => {
     publishThirdPartyDataPackMountedAppStartupHostEvidence(options.evidence)
     return acknowledgeThirdPartyDataPackMountedAppStartupHostConnection(options)

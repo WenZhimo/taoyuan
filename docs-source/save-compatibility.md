@@ -30,7 +30,8 @@ saveFormatVersion, contentEnvironment
 
 `contentEnvironment` 是版本化的纯数据身份，包含游戏版本、引擎 API、内容 Schema、加载器和编译器版本、Schema 集哈希、信任策略、
 按稳定加载序号排列的数据包身份（包 ID、版本、内容哈希、安装级配置哈希、依赖）以及环境哈希。环境哈希由这些字段的规范化结果计算，
-不能由导入文件自行声明。当前官方旧档迁移使用随包 `taoyuan-core` 身份；后续 PC 模组挂载器必须在启动完成后注入实际已发布环境，
+不能由导入文件自行声明。当前官方旧档迁移使用随包 `taoyuan-core` 身份；PC Web/Electron 启动闸门在创建 App 和 Pinia
+之前发布实际已验证的环境身份，`useSaveStore` 从该快照初始化。无已启用第三方包时发布 official-only 环境，
 不得自动切换全局模组配置来满足某个存档。
 
 `game`、`player`、`inventory`、`farm` 当前直接加载；其余模块在根字段存在时才调用对应 `deserialize()`。

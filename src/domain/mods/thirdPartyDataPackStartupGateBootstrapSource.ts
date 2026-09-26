@@ -1,6 +1,7 @@
 import type { ModDiagnosticRecovery, ModDiagnosticSeverity } from './diagnostics'
 import type { Sha256Hash } from './hash'
 import type { PackageId } from './ids'
+import type { SaveContentEnvironment } from '@/domain/save/saveContentEnvironment'
 import type {
   ThirdPartyDataPackAppFactoryBindingSourceResult
 } from './thirdPartyDataPackAppFactoryBindingSource'
@@ -103,6 +104,7 @@ export interface ThirdPartyDataPackStartupGateBootstrapSourceResult {
   readonly entryCount: number
   readonly packageCount: number
   readonly lockfileHash?: Sha256Hash
+  readonly saveContentEnvironment?: SaveContentEnvironment
   readonly persistentStateProofs?: ThirdPartyDataPackStartupGatePersistentStateSourceProofs
   readonly diagnostics: readonly ThirdPartyDataPackUiIpcResultEnvelopeSafeDiagnostic[]
   readonly summary: ThirdPartyDataPackUiIpcResultEnvelopeSummary

@@ -31,10 +31,13 @@ import { encodeSaveData, normalizeSaveData } from '@/utils/saveCodec'
 import {
   CURRENT_SAVE_FORMAT_VERSION,
   checkSaveRootCompatibility,
-  createOfficialSaveContentEnvironment,
   normalizeSaveContentEnvironment,
   type SaveContentEnvironment
 } from '@/domain/save/saveContentEnvironment'
+import {
+  getCurrentSaveContentEnvironment,
+  setCurrentSaveContentEnvironment
+} from '@/domain/save/saveContentEnvironmentRuntime'
 
 export { parseSaveData } from '@/utils/saveCodec'
 
@@ -76,7 +79,7 @@ const createSlotInfo = (slot: number, data: Record<string, any>): SaveSlotInfo =
 export const useSaveStore = defineStore('save', () => {
   /** 当前活跃存档槽位，-1 表示未分配 */
   const activeSlot = ref(-1)
-  const contentEnvironment = ref<SaveContentEnvironment>(createOfficialSaveContentEnvironment())
+  const contentEnvironment = ref<SaveContentEnvironment>(getCurrentSaveContentEnvironment())
   const operation = ref<SaveOperation | null>(null)
   const isBusy = computed(() => operation.value !== null)
   const operationLabel = computed(() => {
@@ -202,6 +205,7 @@ export const useSaveStore = defineStore('save', () => {
   const setContentEnvironment = (value: unknown): boolean => {
     try {
       contentEnvironment.value = normalizeSaveContentEnvironment(value)
+      setCurrentSaveContentEnvironment(contentEnvironment.value)
       return true
     } catch {
       return false
