@@ -324,6 +324,7 @@ const createPackageStagingResult = (
   packageCount: draft.packages.length,
   candidateHash: draft.candidateIdentity.candidateHash,
   lockfileHash: draft.lockfileHash,
+  persistentWriteMode: 'ordinary-install',
   packageFileWriteProbe: 'written',
   writeProbeAllowed: true,
   persistentWriteExecuted: true,

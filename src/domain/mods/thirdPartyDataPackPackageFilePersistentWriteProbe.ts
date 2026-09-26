@@ -34,6 +34,7 @@ export type ThirdPartyDataPackPackageFilePersistentWriteProbeStatus =
   | 'skipped'
   | 'blocked'
   | 'failed'
+export type PersistentWriteMode = 'isolated-probe' | 'ordinary-install'
 export type ThirdPartyDataPackPackageFilePersistentWriteProbeCheckId =
   | 'install-staging-envelope-confirmed'
   | 'target-package-selected'
@@ -45,7 +46,7 @@ export type ThirdPartyDataPackPackageFilePersistentWriteProbeCheckId =
   | 'package-file-payload-hashes-valid'
   | 'manifest-hash-consistent'
   | 'content-file-entries-consistent'
-  | 'explicit-package-file-probe-authorized'
+  | 'explicit-package-file-persistence-authorized'
   | 'storage-write-contained'
 export type ThirdPartyDataPackPackageFilePersistentWriteProbeStorageStatus =
   | 'written'
@@ -243,6 +244,7 @@ export interface ThirdPartyDataPackPackageFilePersistentWriteProbeResult {
   readonly packageCount: number
   readonly candidateIdentity?: ThirdPartyCandidateIdentitySummary
   readonly lockfileHash?: Sha256Hash
+  readonly persistentWriteMode?: PersistentWriteMode
   readonly packageFileWriteProbe: 'deferred' | 'written'
   readonly writeProbeAllowed: boolean
   readonly persistentWriteExecuted: boolean
@@ -306,6 +308,7 @@ export interface RunThirdPartyDataPackPackageFilePersistentWriteProbeOptions {
   readonly draft: ThirdPartyDataPackLockfileDraft
   readonly files: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile[]
   readonly storage: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter
+  readonly persistentWriteMode?: PersistentWriteMode
   readonly allowPersistentWriteProbe?: boolean
 }
 
@@ -756,7 +759,7 @@ const buildWriteChecks = (
   envelope: ThirdPartyDataPackPackageFileStagingHostEnvelope,
   draft: ThirdPartyDataPackLockfileDraft,
   payload: PackageFilePayloadValidation,
-  allowPersistentWriteProbe: boolean,
+  persistentWriteMode: PersistentWriteMode | undefined,
   storageReport?: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageReport
 ): readonly ThirdPartyDataPackPackageFilePersistentWriteProbeCheck[] => {
   const packageDraft = packageForEnvelope(draft, envelope)
@@ -823,11 +826,11 @@ const buildWriteChecks = (
       'Content file payload entries must match the canonical entry hashes recorded in the lockfile draft package summary.'
     ),
     check(
-      'explicit-package-file-probe-authorized',
-      allowPersistentWriteProbe ? 'satisfied' : 'skipped',
-      allowPersistentWriteProbe
-        ? 'This call explicitly authorized an isolated package-file write probe.'
-        : 'Persistent package-file write probing was not explicitly authorized for this call.'
+      'explicit-package-file-persistence-authorized',
+      persistentWriteMode !== undefined ? 'satisfied' : 'skipped',
+      persistentWriteMode !== undefined
+        ? `This call explicitly authorized ${persistentWriteMode} package-file persistence.`
+        : 'Persistent package-file writing was not explicitly authorized for this call.'
     ),
     check(
       'storage-write-contained',
@@ -1279,6 +1282,7 @@ const baseResult = (
   writeChecks: readonly ThirdPartyDataPackPackageFilePersistentWriteProbeCheck[],
   diagnostics: readonly ModDiagnostic[],
   options: {
+    readonly persistentWriteMode?: PersistentWriteMode
     readonly storageReport?: ThirdPartyDataPackPackageFilePersistentWriteProbeStorageReport
     readonly packageFilesWritten?: boolean
   } = {}
@@ -1298,9 +1302,10 @@ const baseResult = (
     packageCount: envelope.packageCount,
     candidateIdentity: { ...envelope.candidateIdentity },
     lockfileHash: envelope.lockfileHash,
+    persistentWriteMode: options.persistentWriteMode,
     packageFileWriteProbe: options.packageFilesWritten ? 'written' : 'deferred',
     writeProbeAllowed: writeChecks.some(currentCheck =>
-      currentCheck.id === 'explicit-package-file-probe-authorized'
+      currentCheck.id === 'explicit-package-file-persistence-authorized'
       && currentCheck.status === 'satisfied'
     ),
     persistentWriteExecuted: options.packageFilesWritten ?? false,
@@ -1326,11 +1331,13 @@ export const runThirdPartyDataPackPackageFilePersistentWriteProbe = async(
   const packageDraft = packageForEnvelope(options.draft, envelope)
   const packagePath = packageStoragePathForDraft(packageDraft)
   const payload = validatePayload(packageDraft, options.files)
+  const persistentWriteMode = options.persistentWriteMode
+    ?? (options.allowPersistentWriteProbe === true ? 'isolated-probe' : undefined)
   const preWriteChecks = buildWriteChecks(
     envelope,
     options.draft,
     payload,
-    options.allowPersistentWriteProbe === true
+    persistentWriteMode
   )
   const preWriteBlockedDiagnostics = diagnosticsForBlockedChecks(preWriteChecks)
   if (preWriteBlockedDiagnostics.length > 0) {
@@ -1339,17 +1346,19 @@ export const runThirdPartyDataPackPackageFilePersistentWriteProbe = async(
       'package file write probe inputs are inconsistent',
       envelope,
       preWriteChecks,
-      preWriteBlockedDiagnostics
+      preWriteBlockedDiagnostics,
+      { persistentWriteMode }
     )
   }
 
-  if (options.allowPersistentWriteProbe !== true) {
+  if (persistentWriteMode === undefined) {
     return baseResult(
       'deferred',
-      'package file write probe is deferred until an isolated persistent write probe is explicitly authorized',
+      'package file persistence is deferred until an explicit persistent write mode is authorized',
       envelope,
       preWriteChecks,
-      []
+      [],
+      { persistentWriteMode }
     )
   }
 
@@ -1361,12 +1370,13 @@ export const runThirdPartyDataPackPackageFilePersistentWriteProbe = async(
       'failed',
       'package file storage adapter failed before returning a write report',
       envelope,
-      buildWriteChecks(envelope, options.draft, payload, true),
-      diagnosticsForStorageFailure()
+      buildWriteChecks(envelope, options.draft, payload, persistentWriteMode),
+      diagnosticsForStorageFailure(),
+      { persistentWriteMode }
     )
   }
 
-  const writeChecks = buildWriteChecks(envelope, options.draft, payload, true, storageReport)
+  const writeChecks = buildWriteChecks(envelope, options.draft, payload, persistentWriteMode, storageReport)
   const blockedDiagnostics = diagnosticsForBlockedChecks(writeChecks)
   if (storageReport.status !== 'written' || blockedDiagnostics.length > 0) {
     return baseResult(
@@ -1378,17 +1388,20 @@ export const runThirdPartyDataPackPackageFilePersistentWriteProbe = async(
         ...cloneDiagnostics(storageReport.diagnostics),
         ...blockedDiagnostics
       ],
-      { storageReport }
+      { persistentWriteMode, storageReport }
     )
   }
 
   return baseResult(
     'written',
-    'package file write probe completed an isolated package-file-only persistent write',
+    persistentWriteMode === 'ordinary-install'
+      ? 'ordinary install completed a contained package-file persistent write'
+      : 'isolated package-file persistent write probe completed a package-file-only write',
     envelope,
     writeChecks,
     cloneDiagnostics(storageReport.diagnostics),
     {
+      persistentWriteMode,
       storageReport,
       packageFilesWritten: true
     }

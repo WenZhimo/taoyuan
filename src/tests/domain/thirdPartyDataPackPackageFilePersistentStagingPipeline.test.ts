@@ -505,6 +505,7 @@ describe('third-party package file persistent staging pipeline', () => {
     expect(result.status).toBe('written')
     expect(result.packageFileStagingSourceStatus).toBe('accepted')
     expect(result.packageFilePersistentWriteProbeStatus).toBe('written')
+    expect(result.persistentWriteMode).toBe('isolated-probe')
     expect(result.targetPackageId).toBe(packageId)
     expect(result.candidateHash).toBe(draft.candidateIdentity.candidateHash)
     expect(result.lockfileHash).toBe(draft.lockfileHash)
@@ -579,6 +580,7 @@ describe('third-party package file persistent staging pipeline', () => {
     expect(result.status).toBe('written')
     expect(result.packageFileStagingSourceStatus).toBe('accepted')
     expect(result.packageFilePersistentWriteProbeStatus).toBe('written')
+    expect(result.persistentWriteMode).toBe('isolated-probe')
     expect(result.targetPackageId).toBe(targetPackageId)
     expect(result.selectedPackageIds).toEqual(selectedPackageIds)
     expect(result.loadOrder).toEqual(loadOrder)
@@ -649,6 +651,30 @@ describe('third-party package file persistent staging pipeline', () => {
     expect(JSON.stringify(result)).not.toContain('programDirectoryPath')
     expectJsonGraphFrozen(result)
   })
+
+  it('propagates the ordinary-install persistence mode through a real package-file write', async() => {
+    const root = await createRoot()
+    const draft = createDraft()
+    const pipeline = createThirdPartyDataPackPackageFilePersistentStagingPipeline({
+      enabled: true,
+      persistentWriteMode: 'ordinary-install',
+      readAtomicCommitPreflight: async() => createDeferredPreflight(draft),
+      readLockfileDraft: async() => draft,
+      readPackageFilePayload: async() => createFiles(),
+      storage: createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
+        programDirectoryPath: root
+      })
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('written')
+    expect(result.persistentWriteMode).toBe('ordinary-install')
+    expect(result.persistentWriteExecuted).toBe(true)
+    expect(result.writtenFileCount).toBe(2)
+    expect(result.effects.packageFilesWritten).toBe(true)
+    expectJsonGraphFrozen(result)
+  }, 30_000)
 
   it('blocks missing injected sources before reading package payloads or storage', async() => {
     const readAtomicCommitPreflight = vi.fn()

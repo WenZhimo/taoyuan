@@ -2446,11 +2446,12 @@ const createPackageFilePersistentStagingProbePipeline = (
   draft,
   storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
     programDirectoryPath: process.env.PORTABLE_EXECUTABLE_DIR
-  })
+  }),
+  persistentWriteMode = 'isolated-probe'
 ) =>
   createThirdPartyDataPackPackageFilePersistentStagingPipeline({
     enabled: true,
-    allowPersistentWriteProbe: true,
+    persistentWriteMode,
     readAtomicCommitPreflight: async() => createSyntheticAtomicCommitPreflightResult(draft),
     readLockfileDraft: async() => draft,
     readPackageFilePayload: async() => createSyntheticPackageFilePayload(),
@@ -2506,6 +2507,7 @@ const createPackageFilePersistentStagingProbeReport = async () => {
     commandContinuationAllowed: result.effects.commandContinuationAllowed,
     appBootstrapContinuationAllowed: result.effects.appBootstrapContinuationAllowed,
     packageFileWriteProbe: result.packageFileWriteProbe,
+    persistentWriteMode: result.persistentWriteMode ?? null,
     writeProbeAllowed: result.writeProbeAllowed,
     persistentWriteExecuted: result.persistentWriteExecuted,
     writtenFileCount: result.writtenFileCount,
@@ -3605,7 +3607,7 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     })
   const packageFilePersistentStagingPipeline = createThirdPartyDataPackPackageFilePersistentStagingPipeline({
     enabled: true,
-    allowPersistentWriteProbe: true,
+    persistentWriteMode: 'ordinary-install',
     readAtomicCommitPreflight: async() =>
       createOrdinaryInstallTerminalAtomicPreflightResult(lockfileDraft, targetPackageId),
     readLockfileDraft: async() => lockfileDraft,
@@ -4897,7 +4899,7 @@ const createInstallTransactionCommitFinalizationProbeReport = async () => {
 
   const programDirectoryPath = process.env.PORTABLE_EXECUTABLE_DIR
   const draft = createSyntheticModLockDraft()
-  const packagePipeline = createPackageFilePersistentStagingProbePipeline(draft)
+  const packagePipeline = createPackageFilePersistentStagingProbePipeline(draft, undefined, 'ordinary-install')
   const packageResult = await packagePipeline()
   const settingsLockfileLifecyclePipeline =
     createThirdPartyDataPackElectronSettingsLockfilePersistentWriterHostConnectionPipeline({
@@ -4954,6 +4956,7 @@ const createInstallTransactionCommitFinalizationProbeReport = async () => {
     status: finalization.status,
     operation: 'write-read-finalize',
     packageFilePersistentStagingStatus: packageResult.status,
+    persistentPackageWriteMode: packageResult.persistentWriteMode ?? null,
     settingsLockfileLifecycleStatus: settingsLockfileLifecycle.status,
     transactionCommitConnectionStatus: transactionCommitConnection.status,
     preparedTransactionLogStatus: preparedTransactionLog.status,
@@ -5247,7 +5250,7 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
     const storage = createThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter({
       programDirectoryPath: process.env.PORTABLE_EXECUTABLE_DIR
     })
-    const packagePipeline = createPackageFilePersistentStagingProbePipeline(rollbackDraft, storage)
+    const packagePipeline = createPackageFilePersistentStagingProbePipeline(rollbackDraft, storage, 'ordinary-install')
     const packageResult = await packagePipeline()
     const restoreResult = await runThirdPartyDataPackPackageFilePersistentRestoreProbe({
       packageId: rollbackDraft.selectedPackageIds[0],
@@ -5298,6 +5301,7 @@ const createOrdinaryInstallTerminalConnectionProbeReport = async (
       status: result.status,
       operation: 'terminal-from-product-package-restore-rollback',
       packageFilePersistentStagingStatus: packageResult.status,
+      persistentPackageWriteMode: packageResult.persistentWriteMode ?? null,
       packageFileRestoreStatus: restoreResult.status,
       recoveryLogReplayRestoreSourceStatus: recoveryLogReplayRestoreSource?.status ?? null,
       recoveryLogReplayRestoreHostStatus: recoveryLogReplayRestoreSource?.recoveryLogReplayRestoreHostStatus ?? null,

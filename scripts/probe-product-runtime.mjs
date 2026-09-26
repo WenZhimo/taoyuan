@@ -7321,6 +7321,8 @@ const assertElectronPackageFilePersistentStagingProbe = (probe, scenario, isolat
     `${scenario.name}: package file probe did not allow app bootstrap continuation`)
   assert(probe.packageFileWriteProbe === 'written',
     `${scenario.name}: package file probe did not report written probe state`)
+  assert(probe.persistentWriteMode === 'isolated-probe',
+    `${scenario.name}: package file probe did not report isolated-probe mode`)
   assert(probe.writeProbeAllowed === true,
     `${scenario.name}: package file probe was not explicitly authorized`)
   assert(probe.persistentWriteExecuted === true,
@@ -7489,6 +7491,8 @@ const assertElectronInstallTransactionCommitFinalizationProbe = (probe, scenario
     `${scenario.name}: install transaction commit finalization used the wrong operation`)
   assert(probe.packageFilePersistentStagingStatus === 'written',
     `${scenario.name}: package file staging did not write before transaction finalization`)
+  assert(probe.persistentPackageWriteMode === 'ordinary-install',
+    `${scenario.name}: transaction finalization did not use ordinary-install package persistence mode`)
   assert(probe.settingsLockfileLifecycleStatus === 'ready',
     `${scenario.name}: settings-lockfile lifecycle was not ready before transaction finalization`)
   assert(probe.transactionCommitConnectionStatus === 'accepted',
@@ -7745,6 +7749,8 @@ const assertElectronOrdinaryInstallTerminalConnectionProbe = (
       `${scenario.name}: ordinary install terminal rollback used the wrong operation`)
     assert(probe.packageFilePersistentStagingStatus === 'written',
       `${scenario.name}: rollback terminal package staging was not written before restore`)
+    assert(probe.persistentPackageWriteMode === 'ordinary-install',
+      `${scenario.name}: rollback terminal did not use ordinary-install package persistence mode`)
     assert(probe.packageFileRestoreStatus === 'restored',
       `${scenario.name}: rollback terminal package restore was not restored`)
     assert(probe.rollbackRecoveryExecutionStatus === 'executed',

@@ -144,6 +144,7 @@ const createStagingResult = (
   packageCount: 1,
   candidateHash: candidateIdentity.candidateHash,
   lockfileHash,
+  persistentWriteMode: 'ordinary-install',
   packageFileWriteProbe: 'written',
   writeProbeAllowed: true,
   persistentWriteExecuted: true,

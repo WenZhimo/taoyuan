@@ -10,6 +10,7 @@ import type {
 } from './thirdPartyDataPackLockfileDraft'
 import {
   runThirdPartyDataPackPackageFilePersistentWriteProbe,
+  type PersistentWriteMode,
   type ThirdPartyDataPackPackageFilePersistentWriteProbeInputFile,
   type ThirdPartyDataPackPackageFilePersistentWriteProbeResult,
   type ThirdPartyDataPackPackageFilePersistentWriteProbeStorageAdapter,
@@ -93,6 +94,7 @@ export interface ThirdPartyDataPackPackageFilePersistentStagingPipelineResult {
   readonly packageCount: number
   readonly candidateHash?: Sha256Hash
   readonly lockfileHash?: Sha256Hash
+  readonly persistentWriteMode?: PersistentWriteMode
   readonly packageFileWriteProbe: 'deferred' | 'written'
   readonly writeProbeAllowed: boolean
   readonly persistentWriteExecuted: boolean
@@ -105,6 +107,7 @@ export interface ThirdPartyDataPackPackageFilePersistentStagingPipelineResult {
 
 export interface CreateThirdPartyDataPackPackageFilePersistentStagingPipelineOptions {
   readonly enabled?: boolean
+  readonly persistentWriteMode?: PersistentWriteMode
   readonly allowPersistentWriteProbe?: boolean
   readonly readAtomicCommitPreflight?: () =>
     Awaitable<ThirdPartyDataPackAtomicTransactionCommitExecutorPreflightResult>
@@ -464,6 +467,7 @@ const baseResult = (
     packageCount: stagingResult?.packageCount ?? firstProbeResult?.packageCount ?? 0,
     candidateHash: stagingResult?.candidateIdentity?.candidateHash ?? firstProbeResult?.candidateIdentity?.candidateHash,
     lockfileHash: stagingResult?.lockfileHash ?? firstProbeResult?.lockfileHash,
+    persistentWriteMode: firstProbeResult?.persistentWriteMode,
     packageFileWriteProbe: aggregatePackageFileWriteProbe(probeResults),
     writeProbeAllowed: probeResults.some(result => result.writeProbeAllowed),
     persistentWriteExecuted: probeResults.length > 0 && probeResults.every(result => result.persistentWriteExecuted),
@@ -529,6 +533,8 @@ export const createThirdPartyDataPackPackageFilePersistentStagingPipeline = (
             draft,
             files,
             storage: options.storage!,
+            persistentWriteMode: options.persistentWriteMode
+              ?? (options.allowPersistentWriteProbe === true ? 'isolated-probe' : undefined),
             allowPersistentWriteProbe: options.allowPersistentWriteProbe === true
           }))
         }
@@ -561,7 +567,9 @@ export const createThirdPartyDataPackPackageFilePersistentStagingPipeline = (
     if (stagingResult.status === 'accepted' && probeResults?.every(result => result.status === 'written')) {
       return baseResult({
         status: 'written',
-        reason: 'package file staging source accepted persistent package-file write probe acknowledgements for selected packages',
+        reason: options.persistentWriteMode === 'ordinary-install'
+          ? 'package file staging source accepted ordinary-install package-file persistence for selected packages'
+          : 'package file staging source accepted isolated package-file persistence for selected packages',
         enabled: true,
         stagingResult,
         probeResults

@@ -269,9 +269,10 @@ describe('third-party package file persistent write probe', () => {
 
     expect(result.status).toBe('deferred')
     expect(result.reason).toBe(
-      'package file write probe is deferred until an isolated persistent write probe is explicitly authorized'
+      'package file persistence is deferred until an explicit persistent write mode is authorized'
     )
     expect(result.packageFileWriteProbe).toBe('deferred')
+    expect(result.persistentWriteMode).toBeUndefined()
     expect(result.writeProbeAllowed).toBe(false)
     expect(result.persistentWriteExecuted).toBe(false)
     expect(result.writtenFileCount).toBe(0)
@@ -286,7 +287,7 @@ describe('third-party package file persistent write probe', () => {
       { id: 'package-file-payload-hashes-valid', status: 'satisfied' },
       { id: 'manifest-hash-consistent', status: 'satisfied' },
       { id: 'content-file-entries-consistent', status: 'satisfied' },
-      { id: 'explicit-package-file-probe-authorized', status: 'skipped' },
+      { id: 'explicit-package-file-persistence-authorized', status: 'skipped' },
       { id: 'storage-write-contained', status: 'skipped' }
     ])
     expectOnlyPackageFileEffects(result, {
@@ -345,6 +346,7 @@ describe('third-party package file persistent write probe', () => {
     })
 
     expect(result.status).toBe('written')
+    expect(result.persistentWriteMode).toBe('isolated-probe')
     expect(result.packageFileWriteProbe).toBe('written')
     expect(result.writeProbeAllowed).toBe(true)
     expect(result.persistentWriteExecuted).toBe(true)

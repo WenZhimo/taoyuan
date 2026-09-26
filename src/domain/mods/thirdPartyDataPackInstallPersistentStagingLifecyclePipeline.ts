@@ -451,6 +451,7 @@ const safeSkippedStaging = (
 const safeWrittenStaging = (
   staging: ThirdPartyDataPackPackageFilePersistentStagingPipelineResult
 ): boolean => staging.status === 'written'
+  && staging.persistentWriteMode === 'ordinary-install'
   && staging.persistentWriteExecuted === true
   && staging.packageFileWriteProbe === 'written'
   && staging.writeProbeAllowed === true
