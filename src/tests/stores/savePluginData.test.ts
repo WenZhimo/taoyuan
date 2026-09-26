@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { createOfficialSaveContentEnvironment } from '@/domain/save/saveContentEnvironment'
 import { hashPayloadJson } from '@/domain/mods/hash'
+import { MAX_PLUGIN_DATA_GROWTH_BYTES } from '@/domain/save/savePluginData'
 import { useGameStore } from '@/stores/useGameStore'
 import { useSaveStore } from '@/stores/useSaveStore'
 import { encodeSaveData, parseSaveData } from '@/utils/saveCodec'
@@ -107,6 +108,71 @@ describe('save store plugin data persistence', () => {
     expect(await saveStore.saveToSlot(0)).toBe(false)
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
     expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(originalMetadata)
+  })
+
+  it('rejects a plugin data growth spike before replacing the saved slot', async() => {
+    const originalSlot = await encodeSaveData(createCurrentSave())
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, originalSlot)
+
+    const saveStore = useSaveStore()
+    Object.assign(saveStore, {
+      pluginData: {
+        [packageId]: {
+          ...pluginData[packageId],
+          payloadJson: JSON.stringify('a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1)),
+          payloadHash: hashPayloadJson(JSON.stringify('a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1)))
+        }
+      }
+    })
+
+    expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
+  })
+
+  it('allows saving a loaded plugin payload larger than one write growth quota to another slot', async() => {
+    const largePayloadJson = JSON.stringify('a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1))
+    const existing = await encodeSaveData(createCurrentSave({
+      pluginData: {
+        [packageId]: {
+          schemaVersion: '3',
+          encoding: 'json',
+          payloadJson: largePayloadJson,
+          payloadHash: hashPayloadJson(largePayloadJson)
+        }
+      }
+    }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, existing)
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.loadFromSlot(0)).toBe(true)
+    expect(await saveStore.saveToSlot(1)).toBe(true)
+    const copied = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}1`) ?? '')
+    expect((copied?.pluginData as typeof pluginData)[packageId]?.payloadJson).toBe(largePayloadJson)
+  }, 30_000)
+
+  it('does not overwrite an unreadable existing slot during save', async() => {
+    const unreadableSlot = 'not-a-save'
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, unreadableSlot)
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(unreadableSlot)
+  })
+
+  it('does not overwrite a slot from another content environment', async() => {
+    const current = createOfficialSaveContentEnvironment()
+    const incompatibleEnvironment = {
+      ...current,
+      environmentHash: hashPayloadJson('different environment')
+    }
+    const existing = await encodeSaveData(createCurrentSave({
+      contentEnvironment: incompatibleEnvironment
+    }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, existing)
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(existing)
   })
 
   it('clears plugin data when assigning a new empty slot', async() => {

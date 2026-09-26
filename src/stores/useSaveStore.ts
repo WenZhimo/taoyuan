@@ -86,6 +86,7 @@ export const useSaveStore = defineStore('save', () => {
   const activeSlot = ref(-1)
   const contentEnvironment = ref<SaveContentEnvironment>(getCurrentSaveContentEnvironment())
   const pluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
+  const persistedPluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const operation = ref<SaveOperation | null>(null)
   const isBusy = computed(() => operation.value !== null)
   const operationLabel = computed(() => {
@@ -113,6 +114,20 @@ export const useSaveStore = defineStore('save', () => {
 
   const writeSlotMetadata = (slot: number, data: Record<string, any>) => {
     localStorage.setItem(`${SAVE_META_KEY_PREFIX}${slot}`, JSON.stringify(createSlotInfo(slot, data)))
+  }
+
+  const readExistingPluginData = async (slot: number): Promise<PersistedPluginData | null> => {
+    const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slot}`)
+    if (!raw) return createEmptyPersistedPluginData()
+    const normalized = await normalizeSaveData(raw)
+    if (!normalized) return null
+    const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+    if (compatibility.status !== 'compatible') return null
+    try {
+      return normalizePersistedPluginData(normalized.data.pluginData)
+    } catch {
+      return null
+    }
   }
 
   /** 获取槽位摘要。完整存档不再在此处反复解密。 */
@@ -144,11 +159,16 @@ export const useSaveStore = defineStore('save', () => {
   const assignNewSlot = (): number => {
     const empty = getSlots().find(slot => !slot.exists)
     activeSlot.value = empty?.slot ?? -1
-    if (activeSlot.value >= 0) pluginData.value = createEmptyPersistedPluginData()
+    if (activeSlot.value >= 0) {
+      pluginData.value = createEmptyPersistedPluginData()
+      persistedPluginData.value = createEmptyPersistedPluginData()
+    }
     return activeSlot.value
   }
 
-  const buildSaveData = (): Record<string, unknown> => {
+  const buildSaveData = (
+    previousPluginData: PersistedPluginData = createEmptyPersistedPluginData()
+  ): Record<string, unknown> => {
     const gameStore = useGameStore()
     const playerStore = usePlayerStore()
     const inventoryStore = useInventoryStore()
@@ -179,7 +199,10 @@ export const useSaveStore = defineStore('save', () => {
     return {
       saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
       contentEnvironment: contentEnvironment.value,
-      pluginData: normalizePersistedPluginData(pluginData.value),
+      pluginData: normalizePersistedPluginData(pluginData.value, {
+        previous: previousPluginData,
+        enforceGrowth: true
+      }),
       game: gameStore.serialize(),
       player: playerStore.serialize(),
       inventory: inventoryStore.serialize(),
@@ -224,11 +247,14 @@ export const useSaveStore = defineStore('save', () => {
   const saveToSlot = async (slot: number): Promise<boolean> => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     return runOperation('saving', async () => {
-      const data = buildSaveData()
+      const previousPluginData = await readExistingPluginData(slot)
+      if (!previousPluginData) return false
+      const data = buildSaveData(persistedPluginData.value)
       const encoded = await encodeSaveData(data)
       localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
       writeSlotMetadata(slot, data)
       activeSlot.value = slot
+      persistedPluginData.value = data.pluginData as PersistedPluginData
       return true
     })
   }
@@ -250,6 +276,9 @@ export const useSaveStore = defineStore('save', () => {
       const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
       if (compatibility.status !== 'compatible' || !compatibility.migration) return false
       const data = compatibility.migration.data
+      const previousPluginData = await readExistingPluginData(slot)
+      if (!previousPluginData) return false
+      data.pluginData = normalizePersistedPluginData(data.pluginData)
       const encoded = await encodeSaveData(data)
 
       const gameStore = useGameStore()
@@ -306,6 +335,7 @@ export const useSaveStore = defineStore('save', () => {
       if (data.tutorial) tutorialStore.deserialize(data.tutorial)
       if (data.hiddenNpc) hiddenNpcStore.deserialize(data.hiddenNpc)
       pluginData.value = data.pluginData
+      persistedPluginData.value = data.pluginData
 
       if (encoded !== raw) localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
       writeSlotMetadata(slot, data)

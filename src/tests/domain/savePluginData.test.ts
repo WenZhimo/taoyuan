@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
   createEmptyPersistedPluginData,
+  MAX_PLUGIN_DATA_GROWTH_BYTES,
+  MAX_PLUGIN_DATA_JSON_DEPTH,
+  MAX_PLUGIN_DATA_JSON_NODES,
+  MAX_PLUGIN_DATA_TOTAL_BYTES,
+  MAX_PLUGIN_PAYLOAD_BYTES,
   normalizePersistedPluginData,
   SavePluginDataError
 } from '@/domain/save/savePluginData'
@@ -68,6 +73,54 @@ describe('persisted plugin data', () => {
       })
     }
   })
+
+  it('rejects payloads that exceed the per-plugin byte quota', () => {
+    const payloadJson = JSON.stringify('a'.repeat(MAX_PLUGIN_PAYLOAD_BYTES - 1))
+
+    expect(() => normalizePersistedPluginData({
+      [packageId]: createEnvelope(payloadJson)
+    })).toThrow(SavePluginDataError)
+  })
+
+  it('rejects payloads that exceed JSON depth and node quotas', () => {
+    let deepJson = '0'
+    for (let depth = 0; depth <= MAX_PLUGIN_DATA_JSON_DEPTH; depth += 1) {
+      deepJson = `[${deepJson}]`
+    }
+    expect(() => normalizePersistedPluginData({
+      [packageId]: createEnvelope(deepJson)
+    })).toThrow(SavePluginDataError)
+
+    const manyNodes = JSON.stringify(Array.from({ length: MAX_PLUGIN_DATA_JSON_NODES + 1 }, () => 0))
+    expect(() => normalizePersistedPluginData({
+      [packageId]: createEnvelope(manyNodes)
+    })).toThrow(SavePluginDataError)
+  })
+
+  it('rejects total plugin data and single-write growth overages', () => {
+    const payloadJson = JSON.stringify('a'.repeat(MAX_PLUGIN_PAYLOAD_BYTES - 2))
+    const totalOverage = Object.fromEntries(
+      Array.from({
+        length: Math.floor(MAX_PLUGIN_DATA_TOTAL_BYTES / MAX_PLUGIN_PAYLOAD_BYTES) + 1
+      }, (_, index) => [`pack_${index}`, createEnvelope(payloadJson)])
+    )
+    expect(() => normalizePersistedPluginData(totalOverage)).toThrow(SavePluginDataError)
+
+    const previous = normalizePersistedPluginData({
+      [packageId]: createEnvelope('""')
+    })
+    expect(() => normalizePersistedPluginData({
+      [packageId]: createEnvelope(JSON.stringify('a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1)))
+    }, { previous, enforceGrowth: true })).toThrow(SavePluginDataError)
+  }, 30_000)
+
+  it('allows importing an existing payload larger than the per-write growth quota', () => {
+    const payloadJson = JSON.stringify('a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1))
+
+    expect(normalizePersistedPluginData({
+      [packageId]: createEnvelope(payloadJson)
+    })[packageId]?.payloadJson).toBe(payloadJson)
+  }, 30_000)
 
   it('uses an empty immutable container when pluginData is absent', () => {
     const normalized = normalizePersistedPluginData(undefined)
