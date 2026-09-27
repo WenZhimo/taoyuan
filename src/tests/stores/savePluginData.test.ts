@@ -20,6 +20,12 @@ const pluginData = {
     payloadHash: hashPayloadJson(payloadJson)
   }
 }
+const packageSettings = {
+  [packageId]: {
+    schemaVersion: '1',
+    values: { [`${packageId}:feature_enabled`]: false }
+  }
+}
 
 const createCurrentSave = (overrides: Record<string, unknown> = {}) => ({
   ...legacySaveFixture,
@@ -35,16 +41,28 @@ describe('save store plugin data persistence', () => {
   })
 
   it('loads plugin data and writes each envelope back without rewriting its payload', async() => {
-    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, await encodeSaveData(createCurrentSave({ pluginData })))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, await encodeSaveData(createCurrentSave({ pluginData, packageSettings })))
 
     const saveStore = useSaveStore()
     expect(await saveStore.loadFromSlot(0)).toBe(true)
     expect(saveStore.pluginData).toEqual(pluginData)
+    expect(saveStore.packageSettings).toEqual(packageSettings)
     expect(await saveStore.saveToSlot(0)).toBe(true)
 
     const saved = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}0`) ?? '')
     expect(saved?.pluginData).toEqual(pluginData)
+    expect(saved?.packageSettings).toEqual(packageSettings)
     expect((saved?.pluginData as typeof pluginData)[packageId]?.payloadJson).toBe(payloadJson)
+  })
+
+  it('preserves an existing package setting when the current store has not loaded that package', async() => {
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, await encodeSaveData(createCurrentSave({ packageSettings })))
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.saveToSlot(0)).toBe(true)
+
+    const saved = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}0`) ?? '')
+    expect(saved?.packageSettings).toEqual(packageSettings)
   })
 
   it('rejects invalid plugin data before deserialization or slot writes', async() => {
@@ -66,6 +84,28 @@ describe('save store plugin data persistence', () => {
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(encoded)
     expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(metadata)
     expect(useGameStore().isGameStarted).toBe(false)
+  })
+
+  it('rejects invalid package settings before deserialization or slot writes', async() => {
+    const invalidSave = createCurrentSave({
+      packageSettings: {
+        [packageId]: {
+          schemaVersion: '1',
+          values: { enabled: true }
+        }
+      }
+    })
+    const encoded = await encodeSaveData(invalidSave)
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, encoded)
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.loadFromSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'loading',
+      reason: 'package-settings-invalid',
+      diagnostics: [expect.objectContaining({ code: 'SAVE-PACKAGE-SETTINGS-001' })]
+    })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(encoded)
   })
 
   it('rejects invalid plugin data during import without writing the target slot', async() => {

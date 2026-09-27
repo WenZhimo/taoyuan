@@ -45,6 +45,12 @@ import {
   SavePluginDataError,
   type PersistedPluginData
 } from '@/domain/save/savePluginData'
+import {
+  createEmptyPersistedPackageSettings,
+  normalizePersistedPackageSettings,
+  SavePackageSettingsError,
+  type PersistedPackageSettings
+} from '@/domain/save/savePackageSettings'
 import type { ModDiagnostic } from '@/domain/mods/diagnostics'
 
 export { parseSaveData } from '@/utils/saveCodec'
@@ -60,6 +66,7 @@ type SaveOperationFailureReason =
   | 'incompatible'
   | 'plugin-data-invalid'
   | 'plugin-data-quota'
+  | 'package-settings-invalid'
   | 'slot-protected'
   | 'storage'
 
@@ -104,6 +111,8 @@ export const useSaveStore = defineStore('save', () => {
   const contentEnvironment = ref<SaveContentEnvironment>(getCurrentSaveContentEnvironment())
   const pluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const persistedPluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
+  const packageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
+  const persistedPackageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
   const operation = ref<SaveOperation | null>(null)
   const lastOperationFailure = ref<SaveOperationFailure | null>(null)
   const isBusy = computed(() => operation.value !== null)
@@ -134,6 +143,10 @@ export const useSaveStore = defineStore('save', () => {
       message = nextOperation === 'importing'
         ? '插件私有数据完整性校验失败，导入已拒绝且目标槽位未写入。请保留原文件并检查对应数据包。'
         : '插件私有数据完整性校验失败，操作已拒绝且原存档未修改。请先导出备份，再检查对应数据包。'
+    } else if (reason === 'package-settings-invalid') {
+      message = nextOperation === 'importing'
+        ? '存档级数据包设置结构无效，导入已拒绝且目标槽位未写入。请保留原文件并检查对应数据包。'
+        : '存档级数据包设置结构无效，操作已拒绝且原存档未修改。请先导出备份，再检查对应数据包。'
     } else if (reason === 'slot-protected') {
       message = '目标槽位无法安全验证，保存已取消以避免覆盖原档。请先导出该槽位备份，或改用空槽。'
     } else if (reason === 'invalid') {
@@ -163,6 +176,9 @@ export const useSaveStore = defineStore('save', () => {
         : 'plugin-data-invalid'
       return failOperation(nextOperation, reason, error.diagnostics)
     }
+    if (error instanceof SavePackageSettingsError) {
+      return failOperation(nextOperation, 'package-settings-invalid', error.diagnostics)
+    }
     return failOperation(nextOperation, 'storage')
   }
 
@@ -176,6 +192,9 @@ export const useSaveStore = defineStore('save', () => {
     }
     if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-001')) {
       return 'plugin-data-invalid'
+    }
+    if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PACKAGE-SETTINGS-001')) {
+      return 'package-settings-invalid'
     }
     return 'invalid'
   }
@@ -215,6 +234,20 @@ export const useSaveStore = defineStore('save', () => {
     }
   }
 
+  const readExistingPackageSettings = async (slot: number): Promise<PersistedPackageSettings | null> => {
+    const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slot}`)
+    if (!raw) return createEmptyPersistedPackageSettings()
+    const normalized = await normalizeSaveData(raw)
+    if (!normalized) return null
+    const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+    if (compatibility.status !== 'compatible') return null
+    try {
+      return normalizePersistedPackageSettings(normalized.data.packageSettings)
+    } catch {
+      return null
+    }
+  }
+
   /** 获取槽位摘要。完整存档不再在此处反复解密。 */
   const getSlots = (): SaveSlotInfo[] => {
     const slots: SaveSlotInfo[] = []
@@ -247,12 +280,15 @@ export const useSaveStore = defineStore('save', () => {
     if (activeSlot.value >= 0) {
       pluginData.value = createEmptyPersistedPluginData()
       persistedPluginData.value = createEmptyPersistedPluginData()
+      packageSettings.value = createEmptyPersistedPackageSettings()
+      persistedPackageSettings.value = createEmptyPersistedPackageSettings()
     }
     return activeSlot.value
   }
 
   const buildSaveData = (
-    previousPluginData: PersistedPluginData = createEmptyPersistedPluginData()
+    previousPluginData: PersistedPluginData = createEmptyPersistedPluginData(),
+    previousPackageSettings: PersistedPackageSettings = createEmptyPersistedPackageSettings()
   ): Record<string, unknown> => {
     const gameStore = useGameStore()
     const playerStore = usePlayerStore()
@@ -287,6 +323,10 @@ export const useSaveStore = defineStore('save', () => {
       pluginData: normalizePersistedPluginData(pluginData.value, {
         previous: previousPluginData,
         enforceGrowth: true
+      }),
+      packageSettings: normalizePersistedPackageSettings({
+        ...previousPackageSettings,
+        ...packageSettings.value
       }),
       game: gameStore.serialize(),
       player: playerStore.serialize(),
@@ -333,13 +373,16 @@ export const useSaveStore = defineStore('save', () => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     return runOperation('saving', async () => {
       const previousPluginData = await readExistingPluginData(slot)
-      if (!previousPluginData) return failOperation('saving', 'slot-protected')
-      const data = buildSaveData(persistedPluginData.value)
+      const previousPackageSettings = await readExistingPackageSettings(slot)
+      if (!previousPluginData || !previousPackageSettings) return failOperation('saving', 'slot-protected')
+      const data = buildSaveData(persistedPluginData.value, previousPackageSettings)
       const encoded = await encodeSaveData(data)
       localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
       writeSlotMetadata(slot, data)
       activeSlot.value = slot
       persistedPluginData.value = data.pluginData as PersistedPluginData
+      persistedPackageSettings.value = data.packageSettings as PersistedPackageSettings
+      packageSettings.value = data.packageSettings as PersistedPackageSettings
       return true
     })
   }
@@ -370,6 +413,7 @@ export const useSaveStore = defineStore('save', () => {
       const previousPluginData = await readExistingPluginData(slot)
       if (!previousPluginData) return failOperation('loading', 'invalid')
       data.pluginData = normalizePersistedPluginData(data.pluginData)
+      data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
       const encoded = await encodeSaveData(data)
 
       const gameStore = useGameStore()
@@ -427,6 +471,8 @@ export const useSaveStore = defineStore('save', () => {
       if (data.hiddenNpc) hiddenNpcStore.deserialize(data.hiddenNpc)
       pluginData.value = data.pluginData
       persistedPluginData.value = data.pluginData
+      packageSettings.value = data.packageSettings
+      persistedPackageSettings.value = data.packageSettings
 
       if (encoded !== raw) localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
       writeSlotMetadata(slot, data)
@@ -478,6 +524,7 @@ export const useSaveStore = defineStore('save', () => {
         )
       }
       const data = compatibility.migration.data
+      data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
       const encoded = await encodeSaveData(data)
       localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
       writeSlotMetadata(slot, data)
@@ -489,6 +536,7 @@ export const useSaveStore = defineStore('save', () => {
     activeSlot,
     contentEnvironment,
     pluginData,
+    packageSettings,
     operation,
     operationLabel,
     lastOperationFailure,

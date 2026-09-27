@@ -16,8 +16,14 @@ import {
   SavePluginDataError,
   type PersistedPluginData
 } from './savePluginData'
+import {
+  createMissingPackageSettingsError,
+  normalizePersistedPackageSettings,
+  SavePackageSettingsError,
+  type PersistedPackageSettings
+} from './savePackageSettings'
 
-export const CURRENT_SAVE_FORMAT_VERSION = 2 as const
+export const CURRENT_SAVE_FORMAT_VERSION = 3 as const
 export const SAVE_CONTENT_ENVIRONMENT_FORMAT_VERSION = 1 as const
 
 export type SaveContentEnvironment = CacheEnvironmentIdentity & {
@@ -49,6 +55,7 @@ export interface SaveRootMigrationResult {
   readonly data: Record<string, any>
   readonly environment: SaveContentEnvironment
   readonly pluginData: PersistedPluginData
+  readonly packageSettings: PersistedPackageSettings
 }
 
 export interface SaveRootCompatibilityResult {
@@ -217,6 +224,7 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
 
   const version = value.saveFormatVersion
   const pluginData = normalizePersistedPluginData(value.pluginData)
+  const packageSettings = normalizePersistedPackageSettings(value.packageSettings)
   if (version === undefined || version === 1) {
     const environment = createOfficialSaveContentEnvironment()
     return {
@@ -225,10 +233,37 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
         ...value,
         saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
         contentEnvironment: environment,
-        pluginData
+        pluginData,
+        packageSettings
       },
       environment,
-      pluginData
+      pluginData,
+      packageSettings
+    }
+  }
+
+  if (version === 2) {
+    if (!('contentEnvironment' in value)) {
+      throw new SaveContentEnvironmentError(
+        'structure',
+        'Current save is missing content environment metadata',
+        [saveEnvironmentDiagnostic('save.root.content-environment', { reason: 'missing' })]
+      )
+    }
+
+    const environment = normalizeSaveContentEnvironment(value.contentEnvironment)
+    return {
+      status: 'legacy-migrated',
+      data: {
+        ...value,
+        saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+        contentEnvironment: environment,
+        pluginData,
+        packageSettings
+      },
+      environment,
+      pluginData,
+      packageSettings
     }
   }
 
@@ -251,6 +286,10 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
     )
   }
 
+  if (!('packageSettings' in value)) {
+    throw createMissingPackageSettingsError()
+  }
+
   const environment = normalizeSaveContentEnvironment(value.contentEnvironment)
   return {
     status: 'current',
@@ -258,10 +297,12 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
       ...value,
       saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
       contentEnvironment: environment,
-      pluginData
+      pluginData,
+      packageSettings
     },
     environment,
-    pluginData
+    pluginData,
+    packageSettings
   }
 }
 
@@ -274,6 +315,9 @@ export const checkSaveRootCompatibility = (
     migration = migrateSaveRoot(value)
   } catch (error) {
     if (error instanceof SavePluginDataError) {
+      return { status: 'invalid', diagnostics: error.diagnostics }
+    }
+    if (error instanceof SavePackageSettingsError) {
       return { status: 'invalid', diagnostics: error.diagnostics }
     }
     if (error instanceof SaveContentEnvironmentError) {

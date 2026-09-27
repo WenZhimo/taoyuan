@@ -8,8 +8,9 @@
 - 数据以 JSON 组装后使用 AES 加密，保存在浏览器 `localStorage`。
 - 导出文件扩展名为 `.tyx`，内容仍是同一段加密字符串。
 - 导入时先尝试解密和解析，失败则拒绝写入槽位。
-- 旧根对象没有统一的版本字段；从当前格式起使用 `saveFormatVersion: 2`。
-- `saveFormatVersion: 2` 的根对象必须包含 `contentEnvironment`，用于在进入游戏状态前校验当前 PC 内容环境。
+- 旧根对象没有统一的版本字段；从当前格式起使用 `saveFormatVersion: 3`。
+- `saveFormatVersion: 2` 的根对象会先经过 `v2 → v3` 迁移；`saveFormatVersion: 3` 的根对象必须包含
+  `contentEnvironment` 和 `packageSettings`，用于在进入游戏状态前校验当前 PC 内容环境并保留存档级数据包设置。
 - 没有版本字段的旧档按官方内容环境迁移；第三方内容环境不允许通过旧档形状猜测或自动切换全局模组集。
 
 根对象当前包含：
@@ -25,7 +26,7 @@ fishPond, tutorial, hiddenNpc, savedAt
 当前格式额外包含：
 
 ```text
-saveFormatVersion, contentEnvironment, pluginData
+saveFormatVersion, contentEnvironment, pluginData, packageSettings
 ```
 
 `contentEnvironment` 是版本化的纯数据身份，包含游戏版本、引擎 API、内容 Schema、加载器和编译器版本、Schema 集哈希、信任策略、
@@ -33,6 +34,10 @@ saveFormatVersion, contentEnvironment, pluginData
 不能由导入文件自行声明。当前官方旧档迁移使用随包 `taoyuan-core` 身份；PC Web/Electron 启动闸门在创建 App 和 Pinia
 之前发布实际已验证的环境身份，`useSaveStore` 从该快照初始化。无已启用第三方包时发布 official-only 环境，
 不得自动切换全局模组配置来满足某个存档。
+
+`packageSettings` 是按 `PackageId` 隔离的存档级设置容器。每个包的设置包含独立 `schemaVersion` 和按命名空间
+`NamespacedId` 索引的纯 JSON `values`。缺失包时核心不解释、不迁移、不删除该包的设置；加载后再次保存仍保留未知包设置。
+v1/v2 旧档缺少该容器时迁移为空对象；当前 v3 存档缺少或结构非法时，在反序列化前拒绝加载、导入或覆盖。
 
 `game`、`player`、`inventory`、`farm` 当前直接加载；其余模块在根字段存在时才调用对应 `deserialize()`。
 `pluginData` 缺失时按空容器迁移；当前核心只校验每个按 `PackageId` 隔离的不透明 JSON 信封、UTF-8

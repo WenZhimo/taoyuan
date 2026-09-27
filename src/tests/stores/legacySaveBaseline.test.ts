@@ -26,7 +26,8 @@ describe('legacy save baseline fixture', () => {
     const saveStore = useSaveStore()
     expect(await saveStore.loadFromSlot(0)).toBe(true)
     const migrated = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}0`) ?? '')
-    expect(migrated?.saveFormatVersion).toBe(2)
+    expect(migrated?.saveFormatVersion).toBe(3)
+    expect(migrated?.packageSettings).toEqual({})
     expect(migrated?.contentEnvironment).toMatchObject({
       formatVersion: 1,
       environmentHash: expect.stringMatching(/^sha256:[0-9a-f]{64}$/)

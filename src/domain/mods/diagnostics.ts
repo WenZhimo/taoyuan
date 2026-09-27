@@ -68,7 +68,8 @@ export const MOD_ERROR_REGISTRY = [
   { code: 'CACHE-RESTORE-001', ruleId: 'CACHE-RESTORE-001', meaning: '缓存无法恢复运行时注册表，已退回完整挂载', defaultSeverity: 'warning' },
   { code: 'SAVE-ENVIRONMENT-001', ruleId: 'SAVE-ENVIRONMENT-001', meaning: '存档内容环境与当前环境不兼容', defaultSeverity: 'error' },
   { code: 'SAVE-PLUGIN-DATA-001', ruleId: 'SAVE-PLUGIN-DATA-001', meaning: '插件私有负载哈希或 Schema 无效', defaultSeverity: 'error' },
-  { code: 'SAVE-PLUGIN-DATA-002', ruleId: 'SAVE-PLUGIN-DATA-002', meaning: '插件私有数据超过配额', defaultSeverity: 'error' }
+  { code: 'SAVE-PLUGIN-DATA-002', ruleId: 'SAVE-PLUGIN-DATA-002', meaning: '插件私有数据超过配额', defaultSeverity: 'error' },
+  { code: 'SAVE-PACKAGE-SETTINGS-001', ruleId: 'SAVE-PACKAGE-SETTINGS-001', meaning: '存档级数据包设置结构无效', defaultSeverity: 'error' }
 ] as const satisfies readonly ModErrorRegistration[]
 
 const registrationsByCode = new Map(MOD_ERROR_REGISTRY.map(registration => [registration.code, registration]))

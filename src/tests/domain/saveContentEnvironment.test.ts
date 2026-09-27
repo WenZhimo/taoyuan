@@ -117,7 +117,43 @@ describe('save content environment', () => {
     expect(result.status).toBe('legacy-migrated')
     expect(result.data.saveFormatVersion).toBe(CURRENT_SAVE_FORMAT_VERSION)
     expect(result.data.contentEnvironment).toEqual(createOfficialSaveContentEnvironment())
+    expect(result.data.packageSettings).toEqual({})
     expect(legacy).toEqual(before)
+  })
+
+  it('migrates a v2 root to the current root while preserving unknown package settings', () => {
+    const packageSettings = {
+      example_pack: {
+        schemaVersion: '1',
+        values: { 'example_pack:feature_enabled': false }
+      }
+    }
+    const root = {
+      ...createLegacyRoot(),
+      saveFormatVersion: 2,
+      contentEnvironment: createOfficialSaveContentEnvironment(),
+      packageSettings
+    }
+
+    const result = migrateSaveRoot(root)
+
+    expect(result.status).toBe('legacy-migrated')
+    expect(result.data.saveFormatVersion).toBe(CURRENT_SAVE_FORMAT_VERSION)
+    expect(result.packageSettings).toEqual(packageSettings)
+    expect(result.data.packageSettings).toEqual(packageSettings)
+    expect(root.packageSettings).toEqual(packageSettings)
+  })
+
+  it('rejects malformed package settings before compatibility can approve the root', () => {
+    const result = checkSaveRootCompatibility({
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: createOfficialSaveContentEnvironment(),
+      packageSettings: { example_pack: { schemaVersion: '1', values: { enabled: true } } }
+    }, createOfficialSaveContentEnvironment())
+
+    expect(result.status).toBe('invalid')
+    expect(result.diagnostics[0]?.code).toBe('SAVE-PACKAGE-SETTINGS-001')
   })
 
   it('accepts the current environment only when the identity hash is valid', () => {
@@ -167,7 +203,8 @@ describe('save content environment', () => {
     const root = {
       ...createLegacyRoot(),
       saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
-      contentEnvironment: alternate
+      contentEnvironment: alternate,
+      packageSettings: {}
     }
 
     const result = checkSaveRootCompatibility(root, current)
