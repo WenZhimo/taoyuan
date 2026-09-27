@@ -47,4 +47,35 @@ describe('InventoryView missing-content items', () => {
 
     wrapper.unmount()
   })
+
+  it('shows unknown equipment IDs in a read-only detail panel', async() => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const inventoryStore = useInventoryStore()
+    inventoryStore.deserialize({
+      ownedWeapons: [{ defId: 'missing_pack:ancient_blade', enchantmentIds: ['missing_pack:ancient_enchant'] }],
+      equippedWeaponIndex: 0
+    })
+
+    const wrapper = mount(InventoryView, {
+      global: {
+        plugins: [pinia],
+        stubs: { Transition: false }
+      }
+    })
+    const equipmentTab = wrapper.findAll('button').find(button => button.text() === '装备')
+    expect(equipmentTab).toBeTruthy()
+    await equipmentTab!.trigger('click')
+    await nextTick()
+
+    const weaponCell = wrapper.findAll('.cursor-pointer').find(node => node.text().includes('missing_pack:ancient_blade'))
+    expect(weaponCell).toBeTruthy()
+    await weaponCell!.trigger('click')
+    await nextTick()
+
+    expect(wrapper.text()).toContain('未知内容（missing_pack:ancient_blade）')
+    expect(wrapper.text()).toContain('未知内容（missing_pack:ancient_enchant）')
+    expect(wrapper.text()).toContain('数据已保留')
+    wrapper.unmount()
+  })
 })

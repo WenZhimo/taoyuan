@@ -67,6 +67,7 @@ import {
   migrateSavedShoes,
   migrateSavedTools,
   migrateSavedWeapons,
+  preserveEnchantmentIds,
   type SerializedInventoryMigrationState
 } from '@/domain/inventory/saveMigrations'
 import {
@@ -161,9 +162,56 @@ export const useInventoryStore = defineStore('inventory', () => {
   /** 缺失内容包时保留物品数据，但不允许玩家通过背包动作改变它。 */
   const isKnownItem = (itemId: string): boolean => Boolean(getItemById(itemId))
 
+  const getEquipmentInstance = (type: EnchantableEquipmentType, index: number): EnchantableEquipment | null => {
+    const collections = {
+      weapon: ownedWeapons.value,
+      ring: ownedRings.value,
+      hat: ownedHats.value,
+      shoe: ownedShoes.value
+    } satisfies Record<EnchantableEquipmentType, EnchantableEquipment[]>
+    return collections[type][index] ?? null
+  }
+
+  const getEquipmentTypeName = (type: EnchantableEquipmentType): string => {
+    return { weapon: '武器', ring: '戒指', hat: '帽子', shoe: '鞋子' }[type]
+  }
+
+  const getEquipmentDefinition = (type: EnchantableEquipmentType, defId: string) => {
+    if (type === 'weapon') return getWeaponById(defId)
+    if (type === 'ring') return getRingById(defId)
+    if (type === 'hat') return getHatById(defId)
+    return getShoeById(defId)
+  }
+
+  const getPreservedEquipmentEnchantmentIds = (equipment: EnchantableEquipment): string[] => {
+    return preserveEnchantmentIds(equipment.enchantmentIds && equipment.enchantmentIds.length > 0 ? equipment.enchantmentIds : equipment.enchantmentId)
+  }
+
+  const hasUnknownEquipmentDefinition = (type: EnchantableEquipmentType, index: number): boolean => {
+    const equipment = getEquipmentInstance(type, index)
+    return Boolean(equipment && !getEquipmentDefinition(type, equipment.defId))
+  }
+
+  const hasUnknownEquipmentData = (type: EnchantableEquipmentType, index: number): boolean => {
+    const equipment = getEquipmentInstance(type, index)
+    if (!equipment) return false
+    return hasUnknownEquipmentDefinition(type, index) || getPreservedEquipmentEnchantmentIds(equipment).some(id => !getEnchantmentById(id))
+  }
+
+  const unavailableEquipmentResult = (type: EnchantableEquipmentType): EnchantResult => ({
+    success: false,
+    message: `${getEquipmentTypeName(type)}内容包不可用，数据已保留。`
+  })
+
   /** 获取当前装备的武器 */
   const getEquippedWeapon = (): OwnedWeapon => {
-    return ownedWeapons.value[equippedWeaponIndex.value] ?? { defId: 'wooden_stick', enchantmentId: null, enchantmentIds: [] }
+    const equipped = ownedWeapons.value[equippedWeaponIndex.value]
+    if (equipped && !hasUnknownEquipmentDefinition('weapon', equippedWeaponIndex.value)) return equipped
+    return {
+      defId: 'wooden_stick',
+      enchantmentId: null,
+      enchantmentIds: []
+    }
   }
 
   /** 获取武器攻击力（含附魔加成） */
@@ -212,22 +260,9 @@ export const useInventoryStore = defineStore('inventory', () => {
   /** 装备武器（按索引） */
   const equipWeapon = (index: number): boolean => {
     if (index < 0 || index >= ownedWeapons.value.length) return false
+    if (hasUnknownEquipmentData('weapon', index)) return false
     equippedWeaponIndex.value = index
     return true
-  }
-
-  const getEquipmentInstance = (type: EnchantableEquipmentType, index: number): EnchantableEquipment | null => {
-    const collections = {
-      weapon: ownedWeapons.value,
-      ring: ownedRings.value,
-      hat: ownedHats.value,
-      shoe: ownedShoes.value
-    } satisfies Record<EnchantableEquipmentType, EnchantableEquipment[]>
-    return collections[type][index] ?? null
-  }
-
-  const getEquipmentTypeName = (type: EnchantableEquipmentType): string => {
-    return { weapon: '武器', ring: '戒指', hat: '帽子', shoe: '鞋子' }[type]
   }
 
   const getEquipmentBaseSellPrice = (type: EnchantableEquipmentType, equipment: EnchantableEquipment): number => {
@@ -241,7 +276,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   const setEquipmentEnchantments = (type: EnchantableEquipmentType, index: number, enchantmentIds: string[]): boolean => {
     const equipment = getEquipmentInstance(type, index)
-    if (!equipment) return false
+    if (!equipment || hasUnknownEquipmentData(type, index)) return false
     const normalized = normalizeEnchantmentIds(enchantmentIds)
     Object.assign(equipment, applyEquipmentEnchantments(equipment, normalized))
     return true
@@ -251,6 +286,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     const equipment = getEquipmentInstance(type, index)
     const typeName = getEquipmentTypeName(type)
     if (!equipment) return createRandomEnchantmentResult(typeName, { id: '', cost: 0 }, 0, false)
+    if (hasUnknownEquipmentData(type, index)) return unavailableEquipmentResult(type)
     const enchantmentId = rollWeightedEnchantment()
     const cost = getEnchantmentCost(enchantmentId)
     const enchant = getEnchantmentById(enchantmentId)
@@ -266,6 +302,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     const equipment = getEquipmentInstance(type, index)
     const typeName = getEquipmentTypeName(type)
     if (!equipment) return createDisenchantResult(typeName, [], 0, [], 0, false)
+    if (hasUnknownEquipmentData(type, index)) return unavailableEquipmentResult(type)
     const enchantmentIds = getWeaponEnchantmentIds(equipment)
     const price = getEquipmentBaseSellPrice(type, equipment)
     const enchantmentCosts = enchantmentIds.map(id => getEnchantmentCost(id))
@@ -281,6 +318,7 @@ export const useInventoryStore = defineStore('inventory', () => {
     const equipment = getEquipmentInstance(type, index)
     const typeName = getEquipmentTypeName(type)
     if (!equipment) return createCustomizeEnchantmentsResult(typeName, [], 0, 0, false)
+    if (hasUnknownEquipmentData(type, index)) return unavailableEquipmentResult(type)
     const normalized = normalizeEnchantmentIds(enchantmentIds)
     const cost = getCustomEnchantmentCost(normalized)
     const playerStore = usePlayerStore()
@@ -292,7 +330,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   const getEquipmentEnchantmentEffects = (type: EnchantableEquipmentType, equipment: EnchantableEquipment) => {
-    const ids = getWeaponEnchantmentIds(equipment)
+    const ids = getPreservedEquipmentEnchantmentIds(equipment).filter(id => getEnchantmentById(id))
     return getEnchantmentEffects(filterEquipmentEffectEnchantmentIds(type, ids))
   }
 
@@ -309,6 +347,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 卖出武器（不能卖装备中的武器，不能卖唯一武器） */
   const sellWeapon = (index: number): { success: boolean; message: string } => {
+    if (hasUnknownEquipmentData('weapon', index)) return { success: false, message: unavailableEquipmentResult('weapon').message }
     const sale = planWeaponSale(ownedWeapons.value, index, equippedWeaponIndex.value)
     if (!sale.success || !sale.sold) return { success: false, message: sale.message ?? '无效索引。' }
     const weapon = sale.sold
@@ -595,6 +634,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   /** 装备戒指到指定槽位（0 或 1），禁止两个槽位装备同defId戒指 */
   const equipRing = (ringIndex: number, slot: 0 | 1): boolean => {
     if (ringIndex < 0 || ringIndex >= ownedRings.value.length) return false
+    if (hasUnknownEquipmentData('ring', ringIndex)) return false
     const targetSlot = slot === 0 ? equippedRingSlot1 : equippedRingSlot2
     const otherSlot = slot === 0 ? equippedRingSlot2 : equippedRingSlot1
     // 已在目标槽位，无操作
@@ -628,6 +668,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 卖出戒指（自动卸下已装备的戒指） */
   const sellRing = (index: number): { success: boolean; message: string } => {
+    if (hasUnknownEquipmentData('ring', index)) return { success: false, message: unavailableEquipmentResult('ring').message }
     const sale = planRingSale(ownedRings.value, index, equippedRingSlot1.value, equippedRingSlot2.value)
     if (!sale.success || !sale.sold) return { success: false, message: sale.message ?? '无效索引。' }
     const ring = sale.sold
@@ -643,7 +684,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   const getRingBonusSource = (index: number): EquipmentBonusSource | null => {
     const ring = ownedRings.value[index]
-    if (!ring) return null
+    if (!ring || hasUnknownEquipmentDefinition('ring', index)) return null
     return {
       baseEffects: getRingById(ring.defId)?.effects ?? [],
       enchantmentEffects: getEquipmentEnchantmentEffects('ring', ring)
@@ -652,7 +693,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   const getHatBonusSource = (): EquipmentBonusSource | null => {
     const hat = ownedHats.value[equippedHatIndex.value]
-    if (!hat) return null
+    if (!hat || hasUnknownEquipmentDefinition('hat', equippedHatIndex.value)) return null
     return {
       baseEffects: getHatById(hat.defId)?.effects ?? [],
       enchantmentEffects: getEquipmentEnchantmentEffects('hat', hat)
@@ -661,21 +702,26 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   const getShoeBonusSource = (): EquipmentBonusSource | null => {
     const shoe = ownedShoes.value[equippedShoeIndex.value]
-    if (!shoe) return null
+    if (!shoe || hasUnknownEquipmentDefinition('shoe', equippedShoeIndex.value)) return null
     return {
       baseEffects: getShoeById(shoe.defId)?.effects ?? [],
       enchantmentEffects: getEquipmentEnchantmentEffects('shoe', shoe)
     }
   }
 
+  const getEquippedEquipmentDefId = (type: EnchantableEquipmentType, index: number): string | null => {
+    const equipment = getEquipmentInstance(type, index)
+    return equipment && !hasUnknownEquipmentDefinition(type, index) ? equipment.defId : null
+  }
+
   const getEquippedSetPieces = (): EquippedSetPieces => ({
-    weaponDefId: ownedWeapons.value[equippedWeaponIndex.value]?.defId ?? null,
+    weaponDefId: getEquippedEquipmentDefId('weapon', equippedWeaponIndex.value),
     ringDefIds: [
-      ownedRings.value[equippedRingSlot1.value]?.defId ?? null,
-      ownedRings.value[equippedRingSlot2.value]?.defId ?? null
+      getEquippedEquipmentDefId('ring', equippedRingSlot1.value),
+      getEquippedEquipmentDefId('ring', equippedRingSlot2.value)
     ],
-    hatDefId: ownedHats.value[equippedHatIndex.value]?.defId ?? null,
-    shoeDefId: ownedShoes.value[equippedShoeIndex.value]?.defId ?? null
+    hatDefId: getEquippedEquipmentDefId('hat', equippedHatIndex.value),
+    shoeDefId: getEquippedEquipmentDefId('shoe', equippedShoeIndex.value)
   })
 
   /** 查询某种装备效果的合计值（戒指+帽子+鞋子叠加） */
@@ -685,7 +731,9 @@ export const useInventoryStore = defineStore('inventory', () => {
       rings: [getRingBonusSource(equippedRingSlot1.value), getRingBonusSource(equippedRingSlot2.value)],
       hat: getHatBonusSource(),
       shoe: getShoeBonusSource(),
-      weaponEnchantmentEffects: weapon ? getEquipmentEnchantmentEffects('weapon', weapon) : [],
+      weaponEnchantmentEffects: weapon && !hasUnknownEquipmentDefinition('weapon', equippedWeaponIndex.value)
+        ? getEquipmentEnchantmentEffects('weapon', weapon)
+        : [],
       setBonuses: activeSetBonuses.value
     })
   }
@@ -750,6 +798,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   /** 装备帽子 */
   const equipHat = (index: number): boolean => {
     if (index < 0 || index >= ownedHats.value.length) return false
+    if (hasUnknownEquipmentData('hat', index)) return false
     equippedHatIndex.value = index
     return true
   }
@@ -763,6 +812,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 卖出帽子 */
   const sellHat = (index: number): { success: boolean; message: string } => {
+    if (hasUnknownEquipmentData('hat', index)) return { success: false, message: unavailableEquipmentResult('hat').message }
     const sale = planSingleSlotEquipmentSale(ownedHats.value, index, equippedHatIndex.value)
     if (!sale.success || !sale.sold) return { success: false, message: sale.message ?? '无效索引。' }
     const hat = sale.sold
@@ -815,6 +865,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   /** 装备鞋子 */
   const equipShoe = (index: number): boolean => {
     if (index < 0 || index >= ownedShoes.value.length) return false
+    if (hasUnknownEquipmentData('shoe', index)) return false
     equippedShoeIndex.value = index
     return true
   }
@@ -828,6 +879,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 卖出鞋子 */
   const sellShoe = (index: number): { success: boolean; message: string } => {
+    if (hasUnknownEquipmentData('shoe', index)) return { success: false, message: unavailableEquipmentResult('shoe').message }
     const sale = planSingleSlotEquipmentSale(ownedShoes.value, index, equippedShoeIndex.value)
     if (!sale.success || !sale.sold) return { success: false, message: sale.message ?? '无效索引。' }
     const shoe = sale.sold
@@ -985,23 +1037,23 @@ export const useInventoryStore = defineStore('inventory', () => {
     tempItems.value = migrateSavedInventoryItems(data.tempItems)
     tools.value = migrateSavedTools(data.tools)
 
-    const migratedWeapons = migrateSavedWeapons(data, normalizeEnchantmentIds)
+    const migratedWeapons = migrateSavedWeapons(data, preserveEnchantmentIds)
     ownedWeapons.value = migratedWeapons.ownedWeapons
-    equippedWeaponIndex.value = migratedWeapons.equippedWeaponIndex
+    equippedWeaponIndex.value = clampLoadedEquippedIndex(migratedWeapons.equippedWeaponIndex, ownedWeapons.value.length)
 
     pendingUpgrades.value = migratePendingToolUpgrades(data)
 
-    ownedRings.value = migrateSavedRings(data.ownedRings, normalizeEnchantmentIds)
+    ownedRings.value = migrateSavedRings(data.ownedRings, preserveEnchantmentIds)
     equippedRingSlot1.value = data.equippedRingSlot1 ?? -1
     equippedRingSlot2.value = data.equippedRingSlot2 ?? -1
     equippedRingSlot1.value = clampLoadedEquippedIndex(equippedRingSlot1.value, ownedRings.value.length)
     equippedRingSlot2.value = clampLoadedEquippedIndex(equippedRingSlot2.value, ownedRings.value.length)
 
-    ownedHats.value = migrateSavedHats(data.ownedHats, normalizeEnchantmentIds)
+    ownedHats.value = migrateSavedHats(data.ownedHats, preserveEnchantmentIds)
     equippedHatIndex.value = data.equippedHatIndex ?? -1
     equippedHatIndex.value = clampLoadedEquippedIndex(equippedHatIndex.value, ownedHats.value.length)
 
-    ownedShoes.value = migrateSavedShoes(data.ownedShoes, normalizeEnchantmentIds)
+    ownedShoes.value = migrateSavedShoes(data.ownedShoes, preserveEnchantmentIds)
     equippedShoeIndex.value = data.equippedShoeIndex ?? -1
     equippedShoeIndex.value = clampLoadedEquippedIndex(equippedShoeIndex.value, ownedShoes.value.length)
 
@@ -1054,6 +1106,8 @@ export const useInventoryStore = defineStore('inventory', () => {
     hasWeaponExact,
     equipWeapon,
     getEquipmentInstance,
+    hasUnknownEquipmentDefinition,
+    hasUnknownEquipmentData,
     setEquipmentEnchantments,
     randomlyEnchantEquipment,
     disenchantEquipment,

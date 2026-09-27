@@ -5,6 +5,13 @@ import { normalizeCompositionTags } from './itemStacks'
 
 export type EnchantmentNormalizer = (input: string | string[] | null | undefined) => string[]
 
+/** 保留缺失内容包中的附魔 ID，等待对应定义重新加载后恢复使用。 */
+export const preserveEnchantmentIds: EnchantmentNormalizer = input => {
+  if (!input) return []
+  const raw = Array.isArray(input) ? input : [input]
+  return raw.filter((id): id is string => typeof id === 'string' && id.length > 0)
+}
+
 export interface SerializedEnchantableEquipment {
   defId?: string
   enchantmentId?: string | null
@@ -102,14 +109,16 @@ export const normalizeSavedEquipmentList = <T extends SerializedEnchantableEquip
   normalizeEnchantmentIds: EnchantmentNormalizer,
   fallbackDefId?: string
 ): T[] => {
-  return (equipment ?? []).map(item => {
+  return (equipment ?? []).flatMap(item => {
+    const defId = typeof item.defId === 'string' && item.defId.length > 0 ? item.defId : fallbackDefId
+    if (!defId) return []
     const sourceIds = item.enchantmentIds && item.enchantmentIds.length > 0 ? item.enchantmentIds : item.enchantmentId
     const enchantmentIds = normalizeEnchantmentIds(sourceIds)
-    return {
-      defId: item.defId ?? fallbackDefId,
+    return [{
+      defId,
       enchantmentId: enchantmentIds[0] ?? null,
       enchantmentIds
-    } as T
+    } as T]
   })
 }
 
@@ -143,7 +152,7 @@ export const migratePendingToolUpgrades = (data: SerializedInventoryMigrationSta
 }
 
 export const clampLoadedEquippedIndex = (index: number, equipmentLength: number): number => {
-  return index >= equipmentLength ? -1 : index
+  return Number.isInteger(index) && index >= -1 && index < equipmentLength ? index : -1
 }
 
 export const migrateSavedRings = (

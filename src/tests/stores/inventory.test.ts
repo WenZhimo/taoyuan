@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { getCustomEnchantmentCost } from '@/data/weapons'
+import { getCustomEnchantmentCost, getWeaponById } from '@/data/weapons'
 import { MAX_STACK, useInventoryStore } from '@/stores/useInventoryStore'
 import { usePlayerStore } from '@/stores/usePlayerStore'
 
@@ -67,6 +67,88 @@ describe('inventory store item stacks', () => {
     expect(inventoryStore.discardTempItem(0)).toBe(false)
     expect(inventoryStore.serialize().items).toEqual([{ ...saved.items[0], compositionTags: [] }])
     expect(inventoryStore.serialize().tempItems).toEqual([{ ...saved.tempItems[0], compositionTags: [] }])
+  })
+
+  it('preserves missing-content equipment as read-only and excludes it from runtime effects', () => {
+    const inventoryStore = useInventoryStore()
+    inventoryStore.deserialize({
+      ownedWeapons: [{ defId: 'missing_pack:ancient_blade', enchantmentIds: ['missing_pack:ancient_enchant', 'sharp'] }],
+      equippedWeaponIndex: 0,
+      ownedRings: [{ defId: 'missing_pack:ancient_ring', enchantmentId: 'missing_pack:ancient_enchant' }],
+      equippedRingSlot1: 0,
+      ownedHats: [{ defId: 'missing_pack:ancient_hat' }],
+      equippedHatIndex: 0,
+      ownedShoes: [{ defId: 'missing_pack:ancient_shoes' }],
+      equippedShoeIndex: 0
+    })
+
+    expect(inventoryStore.ownedWeapons[0]).toEqual({
+      defId: 'missing_pack:ancient_blade',
+      enchantmentId: 'missing_pack:ancient_enchant',
+      enchantmentIds: ['missing_pack:ancient_enchant', 'sharp']
+    })
+    expect(inventoryStore.ownedRings[0]?.enchantmentIds).toEqual(['missing_pack:ancient_enchant'])
+    expect(inventoryStore.equippedWeaponIndex).toBe(0)
+    expect(inventoryStore.equippedRingSlot1).toBe(0)
+    expect(inventoryStore.equippedHatIndex).toBe(0)
+    expect(inventoryStore.equippedShoeIndex).toBe(0)
+    expect(inventoryStore.getWeaponAttack()).toBe(5)
+    expect(inventoryStore.getEquipmentBonus('attack_bonus')).toBe(0)
+    expect(inventoryStore.hasUnknownEquipmentData('weapon', 0)).toBe(true)
+    expect(inventoryStore.hasUnknownEquipmentData('ring', 0)).toBe(true)
+    expect(inventoryStore.equipWeapon(0)).toBe(false)
+    expect(inventoryStore.equipRing(0, 0)).toBe(false)
+    expect(inventoryStore.equipHat(0)).toBe(false)
+    expect(inventoryStore.equipShoe(0)).toBe(false)
+    expect(inventoryStore.sellWeapon(0).success).toBe(false)
+    expect(inventoryStore.sellRing(0).success).toBe(false)
+    expect(inventoryStore.sellHat(0).success).toBe(false)
+    expect(inventoryStore.sellShoe(0).success).toBe(false)
+    expect(inventoryStore.randomlyEnchantEquipment('weapon', 0).success).toBe(false)
+    expect(inventoryStore.disenchantEquipment('ring', 0).success).toBe(false)
+    expect(inventoryStore.customizeEquipmentEnchantments('hat', 0, ['sharp']).success).toBe(false)
+    expect(inventoryStore.serialize().ownedWeapons).toEqual(inventoryStore.ownedWeapons)
+    expect(inventoryStore.serialize()).toMatchObject({
+      equippedWeaponIndex: 0,
+      equippedRingSlot1: 0,
+      equippedHatIndex: 0,
+      equippedShoeIndex: 0
+    })
+  })
+
+  it('does not substitute another owned weapon when the equipped weapon is unavailable', () => {
+    const inventoryStore = useInventoryStore()
+    inventoryStore.deserialize({
+      ownedWeapons: [
+        { defId: 'missing_pack:ancient_blade' },
+        { defId: 'iron_blade' }
+      ],
+      equippedWeaponIndex: 0
+    })
+
+    expect(inventoryStore.getEquippedWeapon().defId).toBe('wooden_stick')
+    expect(inventoryStore.getWeaponAttack()).toBe(5)
+
+    inventoryStore.equippedWeaponIndex = 1
+    expect(inventoryStore.getEquippedWeapon().defId).toBe('iron_blade')
+    expect(inventoryStore.getWeaponAttack()).toBe(getWeaponById('iron_blade')!.attack)
+  })
+
+  it('keeps known equipment effects when an unknown enchantment is preserved', () => {
+    const inventoryStore = useInventoryStore()
+    inventoryStore.deserialize({
+      ownedWeapons: [{ defId: 'iron_blade', enchantmentIds: ['missing_pack:ancient_enchant', 'sharp'] }],
+      equippedWeaponIndex: 0,
+      ownedRings: [{ defId: 'quartz_ring', enchantmentIds: ['missing_pack:ancient_enchant', 'sharp'] }],
+      equippedRingSlot1: 0
+    })
+
+    expect(inventoryStore.hasUnknownEquipmentData('weapon', 0)).toBe(true)
+    expect(inventoryStore.hasUnknownEquipmentData('ring', 0)).toBe(true)
+    expect(inventoryStore.getWeaponAttack()).toBe(getWeaponById('iron_blade')!.attack + 3)
+    expect(inventoryStore.getEquipmentBonus('attack_bonus')).toBe(6)
+    expect(inventoryStore.setEquipmentEnchantments('ring', 0, ['sharp'])).toBe(false)
+    expect(inventoryStore.serialize().ownedRings?.[0]?.enchantmentIds).toEqual(['missing_pack:ancient_enchant', 'sharp'])
   })
 
   it('moves a temporary item into matching main stacks and removes it when fully moved', () => {
@@ -156,11 +238,11 @@ describe('inventory store item stacks', () => {
     inventoryStore.renameEquipmentPreset(presetId!, '   ')
     expect(inventoryStore.equipmentPresets[0]?.name).toBe('mining preset')
 
-    inventoryStore.addWeapon('rusty_sword')
+    inventoryStore.addWeapon('iron_blade')
     expect(inventoryStore.equipWeapon(1)).toBe(true)
     inventoryStore.saveCurrentToPreset(presetId!)
     expect(inventoryStore.equipmentPresets[0]).toMatchObject({
-      weaponDefId: 'rusty_sword',
+      weaponDefId: 'iron_blade',
       ringSlot1DefId: null,
       ringSlot2DefId: null,
       hatDefId: null,
@@ -176,18 +258,18 @@ describe('inventory store item stacks', () => {
   it('applies equipment presets while reporting missing equipment', () => {
     const inventoryStore = useInventoryStore()
 
-    inventoryStore.addWeapon('rusty_sword')
-    inventoryStore.addRing('ruby_ring')
-    inventoryStore.addRing('emerald_ring')
+    inventoryStore.addWeapon('iron_blade')
+    inventoryStore.addRing('quartz_ring')
+    inventoryStore.addRing('farmers_ring')
     inventoryStore.addHat('straw_hat')
     inventoryStore.addShoe('leather_boots')
     inventoryStore.equipmentPresets = [
       {
         id: 'legacy',
         name: 'legacy preset',
-        weaponDefId: 'rusty_sword',
-        ringSlot1DefId: 'ruby_ring',
-        ringSlot2DefId: 'ruby_ring',
+        weaponDefId: 'iron_blade',
+        ringSlot1DefId: 'quartz_ring',
+        ringSlot2DefId: 'quartz_ring',
         hatDefId: null,
         shoeDefId: 'missing_shoes'
       }
@@ -272,31 +354,31 @@ describe('inventory store item stacks', () => {
     expect(inventoryStore.equippedWeaponIndex).toBe(1)
     expect(playerStore.money).toBeGreaterThan(0)
 
-    inventoryStore.addRing('ruby_ring')
-    inventoryStore.addRing('emerald_ring')
-    inventoryStore.addRing('lucky_ring')
+    inventoryStore.addRing('jade_guard_ring')
+    inventoryStore.addRing('quartz_ring')
+    inventoryStore.addRing('farmers_ring')
     expect(inventoryStore.equipRing(0, 0)).toBe(true)
     expect(inventoryStore.equipRing(2, 1)).toBe(true)
 
     const moneyAfterWeaponSale = playerStore.money
     expect(inventoryStore.sellRing(1).success).toBe(true)
-    expect(inventoryStore.ownedRings.map(ring => ring.defId)).toEqual(['ruby_ring', 'lucky_ring'])
+    expect(inventoryStore.ownedRings.map(ring => ring.defId)).toEqual(['jade_guard_ring', 'farmers_ring'])
     expect(inventoryStore.equippedRingSlot1).toBe(0)
     expect(inventoryStore.equippedRingSlot2).toBe(1)
     expect(playerStore.money).toBeGreaterThanOrEqual(moneyAfterWeaponSale)
 
     inventoryStore.addHat('straw_hat')
-    inventoryStore.addHat('miner_hat')
+    inventoryStore.addHat('miner_helmet')
     expect(inventoryStore.equipHat(1)).toBe(true)
     expect(inventoryStore.sellHat(0).success).toBe(true)
-    expect(inventoryStore.ownedHats.map(hat => hat.defId)).toEqual(['miner_hat'])
+    expect(inventoryStore.ownedHats.map(hat => hat.defId)).toEqual(['miner_helmet'])
     expect(inventoryStore.equippedHatIndex).toBe(0)
 
     inventoryStore.addShoe('leather_boots')
-    inventoryStore.addShoe('travel_boots')
+    inventoryStore.addShoe('gale_boots')
     expect(inventoryStore.equipShoe(0)).toBe(true)
     expect(inventoryStore.sellShoe(0).success).toBe(true)
-    expect(inventoryStore.ownedShoes.map(shoe => shoe.defId)).toEqual(['travel_boots'])
+    expect(inventoryStore.ownedShoes.map(shoe => shoe.defId)).toEqual(['gale_boots'])
     expect(inventoryStore.equippedShoeIndex).toBe(-1)
   })
 

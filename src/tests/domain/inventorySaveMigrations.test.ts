@@ -11,7 +11,8 @@ import {
   migrateSavedShoes,
   migrateSavedTools,
   migrateSavedWeapons,
-  normalizeSavedEquipmentList
+  normalizeSavedEquipmentList,
+  preserveEnchantmentIds
 } from '@/domain/inventory/saveMigrations'
 
 const normalizeEnchantmentIds = (input: string | string[] | null | undefined): string[] => {
@@ -140,5 +141,28 @@ describe('inventory save migration rules', () => {
     expect(clampLoadedEquippedIndex(2, 2)).toBe(-1)
     expect(clampLoadedEquippedIndex(1, 2)).toBe(1)
     expect(clampLoadedEquippedIndex(-1, 0)).toBe(-1)
+    expect(clampLoadedEquippedIndex(-2, 2)).toBe(-1)
+    expect(clampLoadedEquippedIndex(0.5, 2)).toBe(-1)
+  })
+
+  it('preserves unknown equipment and enchantment IDs for PC recovery', () => {
+    const unknown = {
+      defId: 'missing_pack:ancient_blade',
+      enchantmentIds: ['missing_pack:ancient_enchant', 'sharp', '']
+    }
+
+    expect(migrateSavedWeapons({ ownedWeapons: [unknown], equippedWeaponIndex: 0 }, preserveEnchantmentIds)).toEqual({
+      ownedWeapons: [{
+        defId: 'missing_pack:ancient_blade',
+        enchantmentId: 'missing_pack:ancient_enchant',
+        enchantmentIds: ['missing_pack:ancient_enchant', 'sharp']
+      }],
+      equippedWeaponIndex: 0
+    })
+    expect(migrateSavedRings([unknown], preserveEnchantmentIds)).toEqual([{
+      defId: 'missing_pack:ancient_blade',
+      enchantmentId: 'missing_pack:ancient_enchant',
+      enchantmentIds: ['missing_pack:ancient_enchant', 'sharp']
+    }])
   })
 })

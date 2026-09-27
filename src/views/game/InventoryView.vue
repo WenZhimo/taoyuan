@@ -139,10 +139,12 @@
             @click="activeWeaponIdx = idx"
           >
             <span class="text-xs" :class="idx === inventoryStore.equippedWeaponIndex ? 'text-accent' : ''">
-              {{ getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}
+              {{ getEquipmentDisplayName('weapon', weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}
             </span>
             <span v-if="idx === inventoryStore.equippedWeaponIndex" class="text-xs text-accent">装备中</span>
-            <span v-else class="text-xs text-muted">{{ getWeaponSellPrice(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}文</span>
+            <span v-else class="text-xs text-muted">
+              {{ getEquipmentActionBlocked('weapon', idx) ? '不可用' : `${getWeaponSellPrice(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)}文` }}
+            </span>
           </div>
         </div>
       </div>
@@ -169,16 +171,17 @@
             >
               <div class="min-w-0">
                 <span class="text-xs" :class="inventoryStore.equippedHatIndex === idx ? 'text-accent' : ''">
-                  {{ getHatById(hat.defId)?.name ?? hat.defId }}
+                  {{ getEquipmentDisplayName('hat', hat.defId, hat.enchantmentIds ?? hat.enchantmentId) }}
                 </span>
-                <p class="text-[10px] text-muted truncate">{{ getHatById(hat.defId)?.description }}</p>
+                <p class="text-[10px] text-muted truncate">{{ getEquipmentDescription('hat', hat.defId) }}</p>
               </div>
               <Button
                 class="py-0 px-1.5 shrink-0 ml-2"
                 :class="inventoryStore.equippedHatIndex === idx ? '!bg-accent !text-bg' : ''"
+                :disabled="getEquipmentActionBlocked('hat', idx)"
                 @click.stop="handleToggleHat(idx)"
               >
-                {{ inventoryStore.equippedHatIndex === idx ? '卸下' : '装备' }}
+                {{ getEquipmentActionBlocked('hat', idx) ? '不可用' : inventoryStore.equippedHatIndex === idx ? '卸下' : '装备' }}
               </Button>
             </div>
           </div>
@@ -208,16 +211,17 @@
             >
               <div class="min-w-0">
                 <span class="text-xs" :class="inventoryStore.equippedShoeIndex === idx ? 'text-accent' : ''">
-                  {{ getShoeById(shoe.defId)?.name ?? shoe.defId }}
+                  {{ getEquipmentDisplayName('shoe', shoe.defId, shoe.enchantmentIds ?? shoe.enchantmentId) }}
                 </span>
-                <p class="text-[10px] text-muted truncate">{{ getShoeById(shoe.defId)?.description }}</p>
+                <p class="text-[10px] text-muted truncate">{{ getEquipmentDescription('shoe', shoe.defId) }}</p>
               </div>
               <Button
                 class="py-0 px-1.5 shrink-0 ml-2"
                 :class="inventoryStore.equippedShoeIndex === idx ? '!bg-accent !text-bg' : ''"
+                :disabled="getEquipmentActionBlocked('shoe', idx)"
                 @click.stop="handleToggleShoe(idx)"
               >
-                {{ inventoryStore.equippedShoeIndex === idx ? '卸下' : '装备' }}
+                {{ getEquipmentActionBlocked('shoe', idx) ? '不可用' : inventoryStore.equippedShoeIndex === idx ? '卸下' : '装备' }}
               </Button>
             </div>
           </div>
@@ -255,9 +259,9 @@
             >
               <div class="min-w-0">
                 <span class="text-xs" :class="isRingEquipped(idx) ? 'text-accent' : ''">
-                  {{ getRingById(ring.defId)?.name ?? ring.defId }}
+                  {{ getEquipmentDisplayName('ring', ring.defId, ring.enchantmentIds ?? ring.enchantmentId) }}
                 </span>
-                <p class="text-[10px] text-muted truncate">{{ getRingById(ring.defId)?.description }}</p>
+                <p class="text-[10px] text-muted truncate">{{ getEquipmentDescription('ring', ring.defId) }}</p>
               </div>
               <div class="flex space-x-1 shrink-0 ml-2">
                 <Button
@@ -269,10 +273,10 @@
                         ? 'opacity-30 cursor-not-allowed'
                         : ''
                   "
-                  :disabled="isRingBlockedForSlot(idx, 0)"
+                  :disabled="getEquipmentActionBlocked('ring', idx) || isRingBlockedForSlot(idx, 0)"
                   @click.stop="handleToggleRingSlot(idx, 0)"
                 >
-                  槽1
+                  {{ getEquipmentActionBlocked('ring', idx) ? '不可用' : '槽1' }}
                 </Button>
                 <Button
                   class="py-0 px-1.5"
@@ -283,10 +287,10 @@
                         ? 'opacity-30 cursor-not-allowed'
                         : ''
                   "
-                  :disabled="isRingBlockedForSlot(idx, 1)"
+                  :disabled="getEquipmentActionBlocked('ring', idx) || isRingBlockedForSlot(idx, 1)"
                   @click.stop="handleToggleRingSlot(idx, 1)"
                 >
-                  槽2
+                  {{ getEquipmentActionBlocked('ring', idx) ? '不可用' : '槽2' }}
                 </Button>
               </div>
             </div>
@@ -611,6 +615,26 @@
     <!-- 武器详情弹窗 -->
     <Transition name="panel-fade">
       <div
+        v-if="activeUnknownEquipment?.type === 'weapon'"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        @click.self="closeActiveUnknownEquipment"
+      >
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="closeActiveUnknownEquipment">
+            <X :size="14" />
+          </button>
+          <p class="text-sm text-danger mb-2">未知内容（{{ activeUnknownEquipment.defId }}）</p>
+          <p class="text-xs text-muted">当前内容包不可用，原始装备数据已保留。恢复对应内容包后可继续使用。</p>
+          <div v-if="activeUnknownEquipment.enchantmentIds.length > 0" class="border border-danger/20 rounded-xs p-2 mt-2">
+            <p class="text-xs text-muted mb-1">未知附魔</p>
+            <p class="text-xs text-danger">{{ formatUnknownEnchantmentIds(activeUnknownEquipment.enchantmentIds) }}</p>
+          </div>
+          <p class="text-[10px] text-muted mt-2">数据已保留，不支持装备、出售或修改附魔。</p>
+        </div>
+      </div>
+    </Transition>
+    <Transition name="panel-fade">
+      <div
         v-if="activeWeaponIdx !== null && activeWeaponDef"
         class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
         @click.self="activeWeaponIdx = null"
@@ -643,6 +667,10 @@
                 <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeWeaponEnchantments)">详情</Button>
               </div>
             </div>
+            <div v-if="activeWeaponUnknownEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
+              <span class="text-xs text-muted">未知附魔</span>
+              <span class="text-xs text-danger text-right">{{ formatUnknownEnchantmentIds(activeWeaponUnknownEnchantments) }}</span>
+            </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeWeaponPrice }}文</span>
@@ -656,8 +684,8 @@
               </span>
             </div>
             <div class="grid grid-cols-2 gap-1">
-              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">附魔</Button>
-              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeWeaponEnchantments.length === 0" @click="handleDisenchant">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" :disabled="activeWeaponHasUnknownData" @click="handleRandomEnchant">附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeWeaponHasUnknownData || activeWeaponEnchantments.length === 0" @click="handleDisenchant">
                 祛魔
               </Button>
             </div>
@@ -680,23 +708,23 @@
                     <span class="text-[10px] block truncate">{{ enchant.description }}</span>
                   </div>
                   <div class="flex items-center gap-1 shrink-0">
-                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeWeaponHasUnknownData || getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
                     <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
-                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeWeaponHasUnknownData" @click="incrementCustomEnchant(enchant.id)">+</Button>
                   </div>
                 </div>
               </div>
             </div>
-            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+            <Button class="w-full justify-center" :disabled="activeWeaponHasUnknownData || selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
               定制附魔
             </Button>
           </div>
           <div class="flex flex-col space-y-1.5">
-            <Button v-if="activeWeaponIdx !== inventoryStore.equippedWeaponIndex" class="w-full justify-center" @click="handleEquipWeapon">
+            <Button v-if="activeWeaponIdx !== inventoryStore.equippedWeaponIndex && !activeWeaponHasUnknownData" class="w-full justify-center" @click="handleEquipWeapon">
               装备
             </Button>
             <Button
-              v-if="activeWeaponIdx !== inventoryStore.equippedWeaponIndex && inventoryStore.ownedWeapons.length > 1"
+              v-if="activeWeaponIdx !== inventoryStore.equippedWeaponIndex && inventoryStore.ownedWeapons.length > 1 && !activeWeaponHasUnknownData"
               class="w-full justify-center text-danger border-danger/40"
               @click="handleSellWeapon"
             >
@@ -711,6 +739,26 @@
     </Transition>
 
     <!-- 戒指详情弹窗 -->
+    <Transition name="panel-fade">
+      <div
+        v-if="activeUnknownEquipment?.type === 'ring'"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        @click.self="closeActiveUnknownEquipment"
+      >
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="closeActiveUnknownEquipment">
+            <X :size="14" />
+          </button>
+          <p class="text-sm text-danger mb-2">未知内容（{{ activeUnknownEquipment.defId }}）</p>
+          <p class="text-xs text-muted">当前内容包不可用，原始装备数据已保留。恢复对应内容包后可继续使用。</p>
+          <div v-if="activeUnknownEquipment.enchantmentIds.length > 0" class="border border-danger/20 rounded-xs p-2 mt-2">
+            <p class="text-xs text-muted mb-1">未知附魔</p>
+            <p class="text-xs text-danger">{{ formatUnknownEnchantmentIds(activeUnknownEquipment.enchantmentIds) }}</p>
+          </div>
+          <p class="text-[10px] text-muted mt-2">数据已保留，不支持装备、出售或修改附魔。</p>
+        </div>
+      </div>
+    </Transition>
     <Transition name="panel-fade">
       <div
         v-if="activeRingIdx !== null && activeRingDef"
@@ -737,6 +785,10 @@
                 <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeRingEnchantments)">详情</Button>
               </div>
             </div>
+            <div v-if="activeRingUnknownEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
+              <span class="text-xs text-muted">未知附魔</span>
+              <span class="text-xs text-danger text-right">{{ formatUnknownEnchantmentIds(activeRingUnknownEnchantments) }}</span>
+            </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeRingDef.sellPrice }}文</span>
@@ -744,8 +796,8 @@
           </div>
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <div class="grid grid-cols-2 gap-1 mb-2">
-              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">随机附魔</Button>
-              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeRingEnchantments.length === 0" @click="handleDisenchant">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" :disabled="activeRingHasUnknownData" @click="handleRandomEnchant">随机附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeRingHasUnknownData || activeRingEnchantments.length === 0" @click="handleDisenchant">
                 祛魔
               </Button>
             </div>
@@ -763,14 +815,14 @@
                 <div class="flex items-center justify-between gap-2">
                   <span class="text-xs truncate">{{ enchant.name }}</span>
                   <div class="flex items-center gap-1 shrink-0">
-                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeRingHasUnknownData || getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
                     <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
-                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeRingHasUnknownData" @click="incrementCustomEnchant(enchant.id)">+</Button>
                   </div>
                 </div>
               </div>
             </div>
-            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+            <Button class="w-full justify-center" :disabled="activeRingHasUnknownData || selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
               定制附魔
             </Button>
           </div>
@@ -779,7 +831,7 @@
               <Button
                 class="flex-1 justify-center"
                 :class="activeRingIdx !== null && isRingBlockedForSlot(activeRingIdx, 0) ? 'opacity-30 cursor-not-allowed' : ''"
-                :disabled="activeRingIdx !== null && isRingBlockedForSlot(activeRingIdx, 0)"
+                :disabled="activeRingHasUnknownData || (activeRingIdx !== null && isRingBlockedForSlot(activeRingIdx, 0))"
                 @click="handleEquipRingFromPopup(0)"
               >
                 {{ inventoryStore.equippedRingSlot1 === activeRingIdx ? '卸下槽1' : '装备槽1' }}
@@ -787,13 +839,13 @@
               <Button
                 class="flex-1 justify-center"
                 :class="activeRingIdx !== null && isRingBlockedForSlot(activeRingIdx, 1) ? 'opacity-30 cursor-not-allowed' : ''"
-                :disabled="activeRingIdx !== null && isRingBlockedForSlot(activeRingIdx, 1)"
+                :disabled="activeRingHasUnknownData || (activeRingIdx !== null && isRingBlockedForSlot(activeRingIdx, 1))"
                 @click="handleEquipRingFromPopup(1)"
               >
                 {{ inventoryStore.equippedRingSlot2 === activeRingIdx ? '卸下槽2' : '装备槽2' }}
               </Button>
             </div>
-            <Button class="w-full justify-center text-danger border-danger/40" @click="handleSellRing">
+            <Button class="w-full justify-center text-danger border-danger/40" :disabled="activeRingHasUnknownData" @click="handleSellRing">
               卖出 · {{ activeRingDef.sellPrice }}文
             </Button>
           </div>
@@ -802,6 +854,26 @@
     </Transition>
 
     <!-- 帽子详情弹窗 -->
+    <Transition name="panel-fade">
+      <div
+        v-if="activeUnknownEquipment?.type === 'hat'"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        @click.self="closeActiveUnknownEquipment"
+      >
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="closeActiveUnknownEquipment">
+            <X :size="14" />
+          </button>
+          <p class="text-sm text-danger mb-2">未知内容（{{ activeUnknownEquipment.defId }}）</p>
+          <p class="text-xs text-muted">当前内容包不可用，原始装备数据已保留。恢复对应内容包后可继续使用。</p>
+          <div v-if="activeUnknownEquipment.enchantmentIds.length > 0" class="border border-danger/20 rounded-xs p-2 mt-2">
+            <p class="text-xs text-muted mb-1">未知附魔</p>
+            <p class="text-xs text-danger">{{ formatUnknownEnchantmentIds(activeUnknownEquipment.enchantmentIds) }}</p>
+          </div>
+          <p class="text-[10px] text-muted mt-2">数据已保留，不支持装备、出售或修改附魔。</p>
+        </div>
+      </div>
+    </Transition>
     <Transition name="panel-fade">
       <div
         v-if="activeHatIdx !== null && activeHatDef"
@@ -828,6 +900,10 @@
                 <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeHatEnchantments)">详情</Button>
               </div>
             </div>
+            <div v-if="activeHatUnknownEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
+              <span class="text-xs text-muted">未知附魔</span>
+              <span class="text-xs text-danger text-right">{{ formatUnknownEnchantmentIds(activeHatUnknownEnchantments) }}</span>
+            </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeHatDef.sellPrice }}文</span>
@@ -835,8 +911,8 @@
           </div>
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <div class="grid grid-cols-2 gap-1 mb-2">
-              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">随机附魔</Button>
-              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeHatEnchantments.length === 0" @click="handleDisenchant">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" :disabled="activeHatHasUnknownData" @click="handleRandomEnchant">随机附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeHatHasUnknownData || activeHatEnchantments.length === 0" @click="handleDisenchant">
                 祛魔
               </Button>
             </div>
@@ -854,22 +930,22 @@
                 <div class="flex items-center justify-between gap-2">
                   <span class="text-xs truncate">{{ enchant.name }}</span>
                   <div class="flex items-center gap-1 shrink-0">
-                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeHatHasUnknownData || getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
                     <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
-                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeHatHasUnknownData" @click="incrementCustomEnchant(enchant.id)">+</Button>
                   </div>
                 </div>
               </div>
             </div>
-            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+            <Button class="w-full justify-center" :disabled="activeHatHasUnknownData || selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
               定制附魔
             </Button>
           </div>
           <div class="flex flex-col space-y-1.5">
-            <Button class="w-full justify-center" @click="handleToggleHatFromPopup">
+            <Button class="w-full justify-center" :disabled="activeHatHasUnknownData" @click="handleToggleHatFromPopup">
               {{ inventoryStore.equippedHatIndex === activeHatIdx ? '卸下' : '装备' }}
             </Button>
-            <Button class="w-full justify-center text-danger border-danger/40" @click="handleSellHat">
+            <Button class="w-full justify-center text-danger border-danger/40" :disabled="activeHatHasUnknownData" @click="handleSellHat">
               卖出 · {{ activeHatDef.sellPrice }}文
             </Button>
           </div>
@@ -878,6 +954,26 @@
     </Transition>
 
     <!-- 鞋子详情弹窗 -->
+    <Transition name="panel-fade">
+      <div
+        v-if="activeUnknownEquipment?.type === 'shoe'"
+        class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4"
+        @click.self="closeActiveUnknownEquipment"
+      >
+        <div class="game-panel max-w-xs w-full relative">
+          <button class="absolute top-2 right-2 text-muted hover:text-text" @click="closeActiveUnknownEquipment">
+            <X :size="14" />
+          </button>
+          <p class="text-sm text-danger mb-2">未知内容（{{ activeUnknownEquipment.defId }}）</p>
+          <p class="text-xs text-muted">当前内容包不可用，原始装备数据已保留。恢复对应内容包后可继续使用。</p>
+          <div v-if="activeUnknownEquipment.enchantmentIds.length > 0" class="border border-danger/20 rounded-xs p-2 mt-2">
+            <p class="text-xs text-muted mb-1">未知附魔</p>
+            <p class="text-xs text-danger">{{ formatUnknownEnchantmentIds(activeUnknownEquipment.enchantmentIds) }}</p>
+          </div>
+          <p class="text-[10px] text-muted mt-2">数据已保留，不支持装备、出售或修改附魔。</p>
+        </div>
+      </div>
+    </Transition>
     <Transition name="panel-fade">
       <div
         v-if="activeShoeIdx !== null && activeShoeDef"
@@ -904,6 +1000,10 @@
                 <Button class="py-0 px-1 shrink-0" @click="openEnchantmentDetail(activeShoeEnchantments)">详情</Button>
               </div>
             </div>
+            <div v-if="activeShoeUnknownEnchantments.length > 0" class="flex items-start justify-between mt-0.5 gap-2">
+              <span class="text-xs text-muted">未知附魔</span>
+              <span class="text-xs text-danger text-right">{{ formatUnknownEnchantmentIds(activeShoeUnknownEnchantments) }}</span>
+            </div>
             <div class="flex items-center justify-between mt-0.5">
               <span class="text-xs text-muted">售价</span>
               <span class="text-xs text-accent">{{ activeShoeDef.sellPrice }}文</span>
@@ -911,8 +1011,8 @@
           </div>
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <div class="grid grid-cols-2 gap-1 mb-2">
-              <Button class="justify-center" :icon="Sparkles" :icon-size="12" @click="handleRandomEnchant">随机附魔</Button>
-              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeShoeEnchantments.length === 0" @click="handleDisenchant">
+              <Button class="justify-center" :icon="Sparkles" :icon-size="12" :disabled="activeShoeHasUnknownData" @click="handleRandomEnchant">随机附魔</Button>
+              <Button class="justify-center" :icon="Zap" :icon-size="12" :disabled="activeShoeHasUnknownData || activeShoeEnchantments.length === 0" @click="handleDisenchant">
                 祛魔
               </Button>
             </div>
@@ -930,22 +1030,22 @@
                 <div class="flex items-center justify-between gap-2">
                   <span class="text-xs truncate">{{ enchant.name }}</span>
                   <div class="flex items-center gap-1 shrink-0">
-                    <Button class="py-0 px-1.5" :disabled="getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeShoeHasUnknownData || getCustomEnchantCount(enchant.id) === 0" @click="decrementCustomEnchant(enchant.id)">-</Button>
                     <span class="text-xs w-5 text-center">{{ getCustomEnchantCount(enchant.id) }}</span>
-                    <Button class="py-0 px-1.5" @click="incrementCustomEnchant(enchant.id)">+</Button>
+                    <Button class="py-0 px-1.5" :disabled="activeShoeHasUnknownData" @click="incrementCustomEnchant(enchant.id)">+</Button>
                   </div>
                 </div>
               </div>
             </div>
-            <Button class="w-full justify-center" :disabled="selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
+            <Button class="w-full justify-center" :disabled="activeShoeHasUnknownData || selectedCustomEnchantments.length === 0" @click="handleCustomEnchant">
               定制附魔
             </Button>
           </div>
           <div class="flex flex-col space-y-1.5">
-            <Button class="w-full justify-center" @click="handleToggleShoeFromPopup">
+            <Button class="w-full justify-center" :disabled="activeShoeHasUnknownData" @click="handleToggleShoeFromPopup">
               {{ inventoryStore.equippedShoeIndex === activeShoeIdx ? '卸下' : '装备' }}
             </Button>
-            <Button class="w-full justify-center text-danger border-danger/40" @click="handleSellShoe">
+            <Button class="w-full justify-center text-danger border-danger/40" :disabled="activeShoeHasUnknownData" @click="handleSellShoe">
               卖出 · {{ activeShoeDef.sellPrice }}文
             </Button>
           </div>
@@ -997,7 +1097,7 @@
     getWeaponById,
     getWeaponDisplayName,
     getWeaponSellPrice,
-    getWeaponEnchantmentIds,
+    getEnchantmentById,
     getOwnedEquipmentEnchantments,
     getEnchantmentCost,
     getCustomEnchantmentCost,
@@ -1012,6 +1112,7 @@
   import { QUALITY_NAMES } from '@/composables/useFarmActions'
   import { addLog } from '@/composables/useGameLog'
   import { findQualityQuantity, groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
+  import { preserveEnchantmentIds } from '@/domain/inventory/saveMigrations'
   import type { EnchantmentDef, Quality, RingEffectType, ItemCategory } from '@/types'
 
   const inventoryStore = useInventoryStore()
@@ -1020,6 +1121,28 @@
   const gameStore = useGameStore()
   const cookingStore = useCookingStore()
   const settingsStore = useSettingsStore()
+
+  const getEquipmentDefinition = (type: EnchantableEquipmentType, defId: string) => {
+    if (type === 'weapon') return getWeaponById(defId)
+    if (type === 'ring') return getRingById(defId)
+    if (type === 'hat') return getHatById(defId)
+    return getShoeById(defId)
+  }
+
+  const getEquipmentDisplayName = (type: EnchantableEquipmentType, defId: string, enchantment: string | string[] | null | undefined): string => {
+    const definition = getEquipmentDefinition(type, defId)
+    if (!definition) return `未知内容（${defId}）`
+    if (type === 'weapon') return getWeaponDisplayName(defId, enchantment)
+    return definition.name
+  }
+
+  const getEquipmentDescription = (type: EnchantableEquipmentType, defId: string): string => {
+    return getEquipmentDefinition(type, defId)?.description ?? `当前内容包不可用，原始 ID：${defId}。数据已保留。`
+  }
+
+  const getEquipmentActionBlocked = (type: EnchantableEquipmentType, index: number): boolean => {
+    return inventoryStore.hasUnknownEquipmentData(type, index)
+  }
 
   // === 页签 ===
 
@@ -1275,7 +1398,20 @@
 
   const syncCustomEnchantments = (type: EnchantableEquipmentType, index: number) => {
     const equipment = inventoryStore.getEquipmentInstance(type, index)
-    selectedCustomEnchantments.value = equipment ? getWeaponEnchantmentIds(equipment) : []
+    selectedCustomEnchantments.value = equipment
+      ? preserveEnchantmentIds(equipment.enchantmentIds && equipment.enchantmentIds.length > 0 ? equipment.enchantmentIds : equipment.enchantmentId)
+      : []
+  }
+
+  const getUnknownEnchantmentIds = (type: EnchantableEquipmentType, index: number): string[] => {
+    const equipment = inventoryStore.getEquipmentInstance(type, index)
+    if (!equipment) return []
+    const ids = preserveEnchantmentIds(equipment.enchantmentIds && equipment.enchantmentIds.length > 0 ? equipment.enchantmentIds : equipment.enchantmentId)
+    return ids.filter(id => !getEnchantmentById(id))
+  }
+
+  const formatUnknownEnchantmentIds = (ids: readonly string[]): string => {
+    return ids.map(id => `未知内容（${id}）`).join('、')
   }
 
   const getCustomEnchantCount = (enchantmentId: string): number => {
@@ -1323,6 +1459,9 @@
     if (activeWeaponIdx.value === null) return []
     return getActiveEquipmentEnchantments('weapon', activeWeaponIdx.value)
   })
+
+  const activeWeaponUnknownEnchantments = computed(() => activeWeaponIdx.value === null ? [] : getUnknownEnchantmentIds('weapon', activeWeaponIdx.value))
+  const activeWeaponHasUnknownData = computed(() => activeWeaponIdx.value !== null && getEquipmentActionBlocked('weapon', activeWeaponIdx.value))
 
   const activeWeaponPrice = computed(() => {
     if (activeWeaponIdx.value === null) return 0
@@ -1390,6 +1529,9 @@
     return getActiveEquipmentEnchantments('ring', activeRingIdx.value)
   })
 
+  const activeRingUnknownEnchantments = computed(() => activeRingIdx.value === null ? [] : getUnknownEnchantmentIds('ring', activeRingIdx.value))
+  const activeRingHasUnknownData = computed(() => activeRingIdx.value !== null && getEquipmentActionBlocked('ring', activeRingIdx.value))
+
   watch(activeRingIdx, idx => {
     if (idx !== null) syncCustomEnchantments('ring', idx)
   })
@@ -1445,6 +1587,9 @@
     return getActiveEquipmentEnchantments('hat', activeHatIdx.value)
   })
 
+  const activeHatUnknownEnchantments = computed(() => activeHatIdx.value === null ? [] : getUnknownEnchantmentIds('hat', activeHatIdx.value))
+  const activeHatHasUnknownData = computed(() => activeHatIdx.value !== null && getEquipmentActionBlocked('hat', activeHatIdx.value))
+
   watch(activeHatIdx, idx => {
     if (idx !== null) syncCustomEnchantments('hat', idx)
   })
@@ -1493,6 +1638,35 @@
     if (activeShoeIdx.value === null) return []
     return getActiveEquipmentEnchantments('shoe', activeShoeIdx.value)
   })
+
+  const activeShoeUnknownEnchantments = computed(() => activeShoeIdx.value === null ? [] : getUnknownEnchantmentIds('shoe', activeShoeIdx.value))
+  const activeShoeHasUnknownData = computed(() => activeShoeIdx.value !== null && getEquipmentActionBlocked('shoe', activeShoeIdx.value))
+
+  const activeUnknownEquipment = computed(() => {
+    const targets: { type: EnchantableEquipmentType; index: number | null }[] = [
+      { type: 'weapon', index: activeWeaponIdx.value },
+      { type: 'ring', index: activeRingIdx.value },
+      { type: 'hat', index: activeHatIdx.value },
+      { type: 'shoe', index: activeShoeIdx.value }
+    ]
+    for (const target of targets) {
+      if (target.index === null) continue
+      const equipment = inventoryStore.getEquipmentInstance(target.type, target.index)
+      if (equipment && !getEquipmentDefinition(target.type, equipment.defId)) {
+        return { ...target, defId: equipment.defId, enchantmentIds: getUnknownEnchantmentIds(target.type, target.index) }
+      }
+    }
+    return null
+  })
+
+  const closeActiveUnknownEquipment = () => {
+    const target = activeUnknownEquipment.value
+    if (!target) return
+    if (target.type === 'weapon') activeWeaponIdx.value = null
+    if (target.type === 'ring') activeRingIdx.value = null
+    if (target.type === 'hat') activeHatIdx.value = null
+    if (target.type === 'shoe') activeShoeIdx.value = null
+  }
 
   watch(activeShoeIdx, idx => {
     if (idx !== null) syncCustomEnchantments('shoe', idx)

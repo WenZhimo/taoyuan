@@ -111,7 +111,7 @@ const currentValue = data.newField ?? data.oldField ?? DEFAULT_VALUE
 - 保留背包物品 ID、数量、品质、锁定状态和 `compositionTags`；旧存档缺少 `compositionTags` 时迁移为空数组，未知物品不再被过滤。PC 背包运行时对缺失内容包的物品显示“未知内容（原 ID）”占位，并阻止锁定修改、消费、出售、合成、仓库存取和丢弃；对应内容包恢复后由同一 ID 自动重新解析为正常定义。
 - 为旧存档补齐所有必需工具。
 - 将旧的单个 `weapon.tier` 映射到当前武器定义 ID。
-- 将单个 `enchantmentId` 规范化为 `enchantmentIds` 数组。
+- 将单个 `enchantmentId` 迁移为 `enchantmentIds` 数组；迁移只过滤明显非法的非字符串值，缺失内容包的未知装备 ID 和未知附魔 ID 原样保留。
 - 将旧的单个 `pendingUpgrade` 转为 `pendingUpgrades`。
 - 过滤无效或已完成的工具升级。
 - 补齐装备默认值并限制越界装备索引。
@@ -126,7 +126,7 @@ const currentValue = data.newField ?? data.oldField ?? DEFAULT_VALUE
 1. 检查根数据是否为对象。
 2. 读取简单标量并应用默认值/边界。
 3. 迁移数组和嵌套对象。
-4. 过滤未知 ID 或转换旧 ID。
+4. 过滤明显非法值或转换明确的旧 ID；对可能来自缺失内容包的未知持久化 ID 必须保留。
 5. 修复派生索引和当前选择。
 6. 最后一次性写入 Store 状态。
 

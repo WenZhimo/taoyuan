@@ -111,16 +111,22 @@
                 v-for="(weapon, index) in inventoryStore.ownedWeapons"
                 :key="index"
                 class="flex items-center justify-between border rounded-xs px-2 py-1.5 cursor-pointer hover:bg-accent/5 mr-1"
-                :class="index === inventoryStore.equippedWeaponIndex ? 'border-accent/30' : 'border-accent/10'"
+                :class="[
+                  index === inventoryStore.equippedWeaponIndex ? 'border-accent/30' : 'border-accent/10',
+                  inventoryStore.hasUnknownEquipmentData('weapon', index) ? 'cursor-not-allowed opacity-60' : ''
+                ]"
+                :aria-disabled="inventoryStore.hasUnknownEquipmentData('weapon', index)"
                 @click="handleEquipWeapon(index)"
               >
                 <div class="min-w-0">
                   <span class="text-xs" :class="index === inventoryStore.equippedWeaponIndex ? 'text-accent' : ''">
-                    {{ getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}
+                    {{ getEquipmentDisplayName('weapon', weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId) }}
                   </span>
                   <p class="text-[10px] text-muted truncate">
-                    攻{{ getWeaponStats(weapon).attack }} · 暴击{{ Math.round(getWeaponStats(weapon).critRate * 100) }}%
+                    <template v-if="inventoryStore.hasUnknownEquipmentDefinition('weapon', index)">当前内容包不可用，数据已保留</template>
+                    <template v-else>攻{{ getWeaponStats(weapon).attack }} · 暴击{{ Math.round(getWeaponStats(weapon).critRate * 100) }}%</template>
                     <template v-if="getEnchantNames(weapon)">· {{ getEnchantNames(weapon) }}</template>
+                    <template v-if="getUnknownEnchantmentLabel('weapon', index)">· {{ getUnknownEnchantmentLabel('weapon', index) }}</template>
                   </p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0 ml-1">
@@ -155,7 +161,11 @@
                   v-for="(ring, idx) in ownedRingList"
                   :key="idx"
                   class="flex items-center justify-between border rounded-xs px-2 py-1.5 cursor-pointer hover:bg-accent/5 mr-1"
-                  :class="isRingInCurrentSlot(idx) ? 'border-accent/30' : 'border-accent/10'"
+                  :class="[
+                    isRingInCurrentSlot(idx) ? 'border-accent/30' : 'border-accent/10',
+                    inventoryStore.hasUnknownEquipmentData('ring', idx) ? 'cursor-not-allowed opacity-60' : ''
+                  ]"
+                  :aria-disabled="inventoryStore.hasUnknownEquipmentData('ring', idx)"
                   @click="handleEquipRingFromPopup(idx)"
                 >
                   <div class="min-w-0">
@@ -188,7 +198,11 @@
                   v-for="hat in ownedHatList"
                   :key="hat.index"
                   class="flex items-center justify-between border rounded-xs px-2 py-1.5 cursor-pointer hover:bg-accent/5 mr-1"
-                  :class="hat.index === inventoryStore.equippedHatIndex ? 'border-accent/30' : 'border-accent/10'"
+                  :class="[
+                    hat.index === inventoryStore.equippedHatIndex ? 'border-accent/30' : 'border-accent/10',
+                    inventoryStore.hasUnknownEquipmentData('hat', hat.index) ? 'cursor-not-allowed opacity-60' : ''
+                  ]"
+                  :aria-disabled="inventoryStore.hasUnknownEquipmentData('hat', hat.index)"
                   @click="handleEquipHatFromPopup(hat.index)"
                 >
                   <div class="min-w-0">
@@ -218,7 +232,11 @@
                   v-for="shoe in ownedShoeList"
                   :key="shoe.index"
                   class="flex items-center justify-between border rounded-xs px-2 py-1.5 cursor-pointer hover:bg-accent/5 mr-1"
-                  :class="shoe.index === inventoryStore.equippedShoeIndex ? 'border-accent/30' : 'border-accent/10'"
+                  :class="[
+                    shoe.index === inventoryStore.equippedShoeIndex ? 'border-accent/30' : 'border-accent/10',
+                    inventoryStore.hasUnknownEquipmentData('shoe', shoe.index) ? 'cursor-not-allowed opacity-60' : ''
+                  ]"
+                  :aria-disabled="inventoryStore.hasUnknownEquipmentData('shoe', shoe.index)"
                   @click="handleEquipShoeFromPopup(shoe.index)"
                 >
                   <div class="min-w-0">
@@ -340,6 +358,7 @@
   import { getHatById } from '@/data/hats'
   import { getShoeById } from '@/data/shoes'
   import type { EquipmentEffectType } from '@/types'
+  import { preserveEnchantmentIds } from '@/domain/inventory/saveMigrations'
   import { getWalletItems } from '@/data/wallet'
   import { navigateToPanel } from '@/composables/useNavigation'
   import type { SkillType, SkillPerk5, SkillPerk10, ChildStage, OwnedWeapon } from '@/types'
@@ -365,12 +384,38 @@
       : []
   )
 
+  const getEquipmentDefinition = (type: 'weapon' | 'ring' | 'hat' | 'shoe', defId: string) => {
+    if (type === 'weapon') return getWeaponById(defId)
+    if (type === 'ring') return getRingById(defId)
+    if (type === 'hat') return getHatById(defId)
+    return getShoeById(defId)
+  }
+
+  const getEquipmentDisplayName = (type: 'weapon' | 'ring' | 'hat' | 'shoe', defId: string, enchantment?: string | string[] | null): string => {
+    const definition = getEquipmentDefinition(type, defId)
+    if (!definition) return `未知内容（${defId}）`
+    if (type === 'weapon') return getWeaponDisplayName(defId, enchantment)
+    return definition.name
+  }
+
+  const getUnknownEnchantmentIds = (type: 'weapon' | 'ring' | 'hat' | 'shoe', index: number): string[] => {
+    const equipment = inventoryStore.getEquipmentInstance(type, index)
+    if (!equipment) return []
+    const ids = preserveEnchantmentIds(equipment.enchantmentIds && equipment.enchantmentIds.length > 0 ? equipment.enchantmentIds : equipment.enchantmentId)
+    return ids.filter(id => !getEnchantmentById(id))
+  }
+
+  const getUnknownEnchantmentLabel = (type: 'weapon' | 'ring' | 'hat' | 'shoe', index: number): string => {
+    const ids = getUnknownEnchantmentIds(type, index)
+    return ids.length > 0 ? `未知附魔：${ids.join('、')}` : ''
+  }
+
   // === 武器 ===
 
   const equippedWeaponName = computed(() => {
     const weapon = inventoryStore.ownedWeapons[inventoryStore.equippedWeaponIndex]
     if (!weapon) return '无'
-    return getWeaponDisplayName(weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)
+    return getEquipmentDisplayName('weapon', weapon.defId, weapon.enchantmentIds ?? weapon.enchantmentId)
   })
 
   const getWeaponStats = (weapon: OwnedWeapon): { attack: number; critRate: number } => {
@@ -448,8 +493,11 @@
     if (index < 0 || index >= inventoryStore.ownedRings.length) return null
     const ring = inventoryStore.ownedRings[index]!
     const def = getRingById(ring.defId)
-    if (!def) return null
-    return { name: def.name, effectText: formatRingEffects(ring.defId) }
+    const unknownEnchantments = getUnknownEnchantmentLabel('ring', index)
+    return {
+      name: def?.name ?? getEquipmentDisplayName('ring', ring.defId),
+      effectText: [def ? formatRingEffects(ring.defId) : '当前内容包不可用，数据已保留', unknownEnchantments].filter(Boolean).join(' · ')
+    }
   }
 
   const equippedRing1 = computed(() => getRingInfo(inventoryStore.equippedRingSlot1))
@@ -458,8 +506,8 @@
   const ownedRingList = computed(() =>
     inventoryStore.ownedRings.map((ring, index) => ({
       index,
-      name: getRingById(ring.defId)?.name ?? ring.defId,
-      effectText: formatRingEffects(ring.defId)
+      name: getRingById(ring.defId)?.name ?? getEquipmentDisplayName('ring', ring.defId),
+      effectText: [getRingById(ring.defId) ? formatRingEffects(ring.defId) : '当前内容包不可用，数据已保留', getUnknownEnchantmentLabel('ring', index)].filter(Boolean).join(' · ')
     }))
   )
 
@@ -497,7 +545,7 @@
   const equippedHatName = computed(() => {
     const hat = inventoryStore.ownedHats[inventoryStore.equippedHatIndex]
     if (!hat) return null
-    return getHatById(hat.defId)?.name ?? null
+    return getEquipmentDisplayName('hat', hat.defId)
   })
 
   const formatEquipEffects = (effects: { type: EquipmentEffectType; value: number }[]): string => {
@@ -514,8 +562,8 @@
       const def = getHatById(hat.defId)
       return {
         index,
-        name: def?.name ?? hat.defId,
-        effectText: def ? formatEquipEffects(def.effects) : ''
+        name: def?.name ?? getEquipmentDisplayName('hat', hat.defId),
+        effectText: [def ? formatEquipEffects(def.effects) : '当前内容包不可用，数据已保留', getUnknownEnchantmentLabel('hat', index)].filter(Boolean).join(' · ')
       }
     })
   )
@@ -542,7 +590,7 @@
   const equippedShoeName = computed(() => {
     const shoe = inventoryStore.ownedShoes[inventoryStore.equippedShoeIndex]
     if (!shoe) return null
-    return getShoeById(shoe.defId)?.name ?? null
+    return getEquipmentDisplayName('shoe', shoe.defId)
   })
 
   const ownedShoeList = computed(() =>
@@ -550,8 +598,8 @@
       const def = getShoeById(shoe.defId)
       return {
         index,
-        name: def?.name ?? shoe.defId,
-        effectText: def ? formatEquipEffects(def.effects) : ''
+        name: def?.name ?? getEquipmentDisplayName('shoe', shoe.defId),
+        effectText: [def ? formatEquipEffects(def.effects) : '当前内容包不可用，数据已保留', getUnknownEnchantmentLabel('shoe', index)].filter(Boolean).join(' · ')
       }
     })
   )
