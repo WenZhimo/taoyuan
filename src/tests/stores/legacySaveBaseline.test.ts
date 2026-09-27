@@ -86,6 +86,12 @@ describe('legacy save baseline fixture', () => {
 
     const saveStore = useSaveStore()
     expect(await saveStore.loadFromSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'loading',
+      reason: 'incompatible',
+      diagnostics: [expect.objectContaining({ code: 'SAVE-ENVIRONMENT-001' })],
+      message: expect.stringContaining('原存档未修改')
+    })
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(encoded)
     expect(useGameStore().isGameStarted).toBe(false)
   })

@@ -469,7 +469,7 @@
       emit('close')
       showFloat(`已切换到存档 ${slot + 1}。`, 'success')
     } else {
-      showFloat('读取存档失败。', 'danger')
+      showFloat(saveStore.lastOperationFailure?.message ?? '读取存档失败，原存档未修改。', 'danger')
     }
   }
 
@@ -477,7 +477,11 @@
     if (await saveStore.autoSave()) {
       showFloat(`已保存到存档 ${saveStore.activeSlot + 1}。`, 'success')
     } else {
-      showFloat('当前没有活动存档，请先在存档管理中选择或创建存档。', 'danger')
+      showFloat(
+        saveStore.lastOperationFailure?.message
+          ?? '当前没有活动存档，请先在存档管理中选择或创建存档。',
+        'danger'
+      )
     }
   }
 

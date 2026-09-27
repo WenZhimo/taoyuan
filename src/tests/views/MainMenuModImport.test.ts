@@ -4,6 +4,8 @@ import { nextTick } from 'vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import MainMenu from '@/views/MainMenu.vue'
+import { showFloat } from '@/composables/useGameLog'
+import { useSaveStore } from '@/stores/useSaveStore'
 import {
   runThirdPartyRendererUiIpcProductProbe
 } from '@/runtime/thirdPartyRendererUiIpcProductProbe'
@@ -710,6 +712,25 @@ const mountMainMenu = async(options: {
 }
 
 describe('MainMenu Web data pack import entry', () => {
+  it('shows a safe recovery message when a save cannot be loaded', async() => {
+    const rawSave = 'not-a-save'
+    localStorage.setItem('taoyuanxiang_save_0', rawSave)
+    const wrapper = await mountMainMenu()
+    const saveStore = useSaveStore()
+
+    await wrapper.findAll('button').find(button => button.text().includes('存档 1'))!.trigger('click')
+    await vi.waitFor(() => {
+      expect(saveStore.lastOperationFailure).toMatchObject({ operation: 'loading', reason: 'invalid' })
+    })
+
+    expect(showFloat).toHaveBeenCalledWith(
+      expect.stringContaining('原存档未修改'),
+      'danger'
+    )
+    expect(localStorage.getItem('taoyuanxiang_save_0')).toBe(rawSave)
+    wrapper.unmount()
+  })
+
   it('opens the player-visible Web data pack preflight panel from the main menu', async() => {
     const wrapper = await mountMainMenu()
 

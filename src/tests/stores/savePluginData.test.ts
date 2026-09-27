@@ -85,6 +85,12 @@ describe('save store plugin data persistence', () => {
     localStorage.setItem(`${SAVE_META_KEY_PREFIX}1`, originalMetadata)
 
     expect(await saveStore.importSave(1, encoded)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'importing',
+      reason: 'plugin-data-invalid',
+      diagnostics: [expect.objectContaining({ code: 'SAVE-PLUGIN-DATA-001' })],
+      message: expect.stringContaining('目标槽位未写入')
+    })
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}1`)).toBe(originalSlot)
     expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}1`)).toBe(originalMetadata)
   })
@@ -106,6 +112,12 @@ describe('save store plugin data persistence', () => {
     })
 
     expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'saving',
+      reason: 'plugin-data-invalid',
+      diagnostics: [expect.objectContaining({ code: 'SAVE-PLUGIN-DATA-001' })],
+      message: expect.stringContaining('完整性校验失败')
+    })
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
     expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(originalMetadata)
   })
@@ -126,6 +138,12 @@ describe('save store plugin data persistence', () => {
     })
 
     expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'saving',
+      reason: 'plugin-data-quota',
+      diagnostics: [expect.objectContaining({ code: 'SAVE-PLUGIN-DATA-002' })],
+      message: expect.stringContaining('旧存档未覆盖')
+    })
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
   })
 
@@ -156,6 +174,11 @@ describe('save store plugin data persistence', () => {
 
     const saveStore = useSaveStore()
     expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'saving',
+      reason: 'slot-protected',
+      message: expect.stringContaining('避免覆盖原档')
+    })
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(unreadableSlot)
   })
 

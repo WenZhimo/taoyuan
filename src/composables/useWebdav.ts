@@ -373,8 +373,12 @@ export const useWebdav = () => {
       if (res.status < 200 || res.status >= 300) {
         return { success: false, message: `下载失败（${res.status}）。` }
       }
-      if (!(await useSaveStore().importSave(slot, res.data))) {
-        return { success: false, message: '云端存档数据无效或已损坏。' }
+      const saveStore = useSaveStore()
+      if (!(await saveStore.importSave(slot, res.data))) {
+        return {
+          success: false,
+          message: saveStore.lastOperationFailure?.message ?? '云端存档数据无效或已损坏，目标槽位未写入。'
+        }
       }
       pushTrace(`下载成功 slot=${slot}`)
       return { success: true, message: `存档 ${slot + 1} 已从云端下载。` }

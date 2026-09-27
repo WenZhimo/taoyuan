@@ -196,7 +196,7 @@
         emit('change')
         showFloat(`已导入到存档 ${emptySlot.slot + 1}。`, 'success')
       } else {
-        showFloat('存档文件无效或已损坏。', 'danger')
+        showFloat(saveStore.lastOperationFailure?.message ?? '存档文件无效或已损坏，目标槽位未写入。', 'danger')
       }
       input.value = ''
     }

@@ -32,7 +32,8 @@ import {
   CURRENT_SAVE_FORMAT_VERSION,
   checkSaveRootCompatibility,
   normalizeSaveContentEnvironment,
-  type SaveContentEnvironment
+  type SaveContentEnvironment,
+  type SaveRootCompatibilityStatus
 } from '@/domain/save/saveContentEnvironment'
 import {
   getCurrentSaveContentEnvironment,
@@ -41,8 +42,10 @@ import {
 import {
   createEmptyPersistedPluginData,
   normalizePersistedPluginData,
+  SavePluginDataError,
   type PersistedPluginData
 } from '@/domain/save/savePluginData'
+import type { ModDiagnostic } from '@/domain/mods/diagnostics'
 
 export { parseSaveData } from '@/utils/saveCodec'
 
@@ -52,6 +55,20 @@ const MAX_SLOTS = 3
 const SAVE_FILE_EXT = '.tyx'
 
 type SaveOperation = 'saving' | 'loading' | 'importing'
+type SaveOperationFailureReason =
+  | 'invalid'
+  | 'incompatible'
+  | 'plugin-data-invalid'
+  | 'plugin-data-quota'
+  | 'slot-protected'
+  | 'storage'
+
+export interface SaveOperationFailure {
+  readonly operation: SaveOperation
+  readonly reason: SaveOperationFailureReason
+  readonly diagnostics: readonly ModDiagnostic[]
+  readonly message: string
+}
 
 export interface SaveSlotInfo {
   slot: number
@@ -88,6 +105,7 @@ export const useSaveStore = defineStore('save', () => {
   const pluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const persistedPluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const operation = ref<SaveOperation | null>(null)
+  const lastOperationFailure = ref<SaveOperationFailure | null>(null)
   const isBusy = computed(() => operation.value !== null)
   const operationLabel = computed(() => {
     if (operation.value === 'saving') return '正在压缩并保存存档...'
@@ -96,17 +114,84 @@ export const useSaveStore = defineStore('save', () => {
     return ''
   })
 
+  const createOperationFailure = (
+    nextOperation: SaveOperation,
+    reason: SaveOperationFailureReason,
+    diagnostics: readonly ModDiagnostic[] = []
+  ): SaveOperationFailure => {
+    let message: string
+    if (reason === 'incompatible') {
+      message = nextOperation === 'importing'
+        ? '导入存档的内容环境与当前环境不匹配，目标槽位未写入。请切换到匹配的数据包状态后重试；原文件仍可保留备份。'
+        : '存档内容环境与当前环境不匹配，游戏未进入且原存档未修改。请切换到匹配的数据包状态后重试，或先导出备份。'
+    } else if (reason === 'plugin-data-quota') {
+      message = nextOperation === 'saving'
+        ? '插件私有数据超过保存配额，本次保存已拒绝，旧存档未覆盖。请先导出备份并检查对应数据包。'
+        : nextOperation === 'importing'
+          ? '插件私有数据超过导入配额，目标槽位未写入。请保留原文件并联系对应数据包维护者。'
+          : '插件私有数据超过加载配额，游戏未进入且原存档未修改。请保留原文件并联系对应数据包维护者。'
+    } else if (reason === 'plugin-data-invalid') {
+      message = nextOperation === 'importing'
+        ? '插件私有数据完整性校验失败，导入已拒绝且目标槽位未写入。请保留原文件并检查对应数据包。'
+        : '插件私有数据完整性校验失败，操作已拒绝且原存档未修改。请先导出备份，再检查对应数据包。'
+    } else if (reason === 'slot-protected') {
+      message = '目标槽位无法安全验证，保存已取消以避免覆盖原档。请先导出该槽位备份，或改用空槽。'
+    } else if (reason === 'invalid') {
+      message = nextOperation === 'importing'
+        ? '存档文件无法读取或不符合当前格式，目标槽位未写入。请保留原文件并检查文件完整性。'
+        : '存档无法读取或校验失败，游戏未进入且原存档未修改。请先从槽位菜单导出备份。'
+    } else {
+      message = '存档操作未能完成，写入状态未确认。请保留现有备份，检查存储空间后再试。'
+    }
+
+    return { operation: nextOperation, reason, diagnostics, message }
+  }
+
+  const failOperation = (
+    nextOperation: SaveOperation,
+    reason: SaveOperationFailureReason,
+    diagnostics: readonly ModDiagnostic[] = []
+  ): false => {
+    lastOperationFailure.value = createOperationFailure(nextOperation, reason, diagnostics)
+    return false
+  }
+
+  const classifyThrownFailure = (nextOperation: SaveOperation, error: unknown): false => {
+    if (error instanceof SavePluginDataError) {
+      const reason = error.diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-002')
+        ? 'plugin-data-quota'
+        : 'plugin-data-invalid'
+      return failOperation(nextOperation, reason, error.diagnostics)
+    }
+    return failOperation(nextOperation, 'storage')
+  }
+
+  const classifyCompatibilityFailure = (
+    status: SaveRootCompatibilityStatus,
+    diagnostics: readonly ModDiagnostic[]
+  ): SaveOperationFailureReason => {
+    if (status === 'incompatible') return 'incompatible'
+    if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-002')) {
+      return 'plugin-data-quota'
+    }
+    if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-001')) {
+      return 'plugin-data-invalid'
+    }
+    return 'invalid'
+  }
+
   const runOperation = async (
     nextOperation: SaveOperation,
     task: () => Promise<boolean>
   ): Promise<boolean> => {
     if (operation.value) return false
     operation.value = nextOperation
+    lastOperationFailure.value = null
     await yieldToUi()
     try {
       return await task()
-    } catch {
-      return false
+    } catch (error) {
+      return classifyThrownFailure(nextOperation, error)
     } finally {
       operation.value = null
     }
@@ -248,7 +333,7 @@ export const useSaveStore = defineStore('save', () => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     return runOperation('saving', async () => {
       const previousPluginData = await readExistingPluginData(slot)
-      if (!previousPluginData) return false
+      if (!previousPluginData) return failOperation('saving', 'slot-protected')
       const data = buildSaveData(persistedPluginData.value)
       const encoded = await encodeSaveData(data)
       localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
@@ -270,14 +355,20 @@ export const useSaveStore = defineStore('save', () => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     return runOperation('loading', async () => {
       const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slot}`)
-      if (!raw) return false
+      if (!raw) return failOperation('loading', 'invalid')
       const normalized = await normalizeSaveData(raw)
-      if (!normalized) return false
+      if (!normalized) return failOperation('loading', 'invalid')
       const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
-      if (compatibility.status !== 'compatible' || !compatibility.migration) return false
+      if (compatibility.status !== 'compatible' || !compatibility.migration) {
+        return failOperation(
+          'loading',
+          classifyCompatibilityFailure(compatibility.status, compatibility.diagnostics),
+          compatibility.diagnostics
+        )
+      }
       const data = compatibility.migration.data
       const previousPluginData = await readExistingPluginData(slot)
-      if (!previousPluginData) return false
+      if (!previousPluginData) return failOperation('loading', 'invalid')
       data.pluginData = normalizePersistedPluginData(data.pluginData)
       const encoded = await encodeSaveData(data)
 
@@ -377,9 +468,15 @@ export const useSaveStore = defineStore('save', () => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     return runOperation('importing', async () => {
       const normalized = await normalizeSaveData(fileContent)
-      if (!normalized) return false
+      if (!normalized) return failOperation('importing', 'invalid')
       const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
-      if (compatibility.status !== 'compatible' || !compatibility.migration) return false
+      if (compatibility.status !== 'compatible' || !compatibility.migration) {
+        return failOperation(
+          'importing',
+          classifyCompatibilityFailure(compatibility.status, compatibility.diagnostics),
+          compatibility.diagnostics
+        )
+      }
       const data = compatibility.migration.data
       const encoded = await encodeSaveData(data)
       localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
@@ -394,6 +491,7 @@ export const useSaveStore = defineStore('save', () => {
     pluginData,
     operation,
     operationLabel,
+    lastOperationFailure,
     isBusy,
     getSlots,
     assignNewSlot,
