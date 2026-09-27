@@ -33,7 +33,7 @@ describe('inventory save migration rules', () => {
       { itemId: 'missing_item', quantity: 1, quality: 'fine' as const }
     ]
 
-    const result = migrateSavedInventoryItems(saved, itemId => itemId === 'wood')
+    const result = migrateSavedInventoryItems(saved)
     result[0]!.quantity = 99
 
     expect(result).toEqual([

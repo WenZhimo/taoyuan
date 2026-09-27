@@ -49,6 +49,26 @@ describe('inventory store item stacks', () => {
     expect(averageAddMs).toBeLessThan(0.1)
   })
 
+  it('preserves missing-content items while rejecting destructive inventory actions', () => {
+    const inventoryStore = useInventoryStore()
+    const saved = {
+      items: [{ itemId: 'missing_pack:ancient_seed', quantity: 3, quality: 'fine' as const, locked: true }],
+      tempItems: [{ itemId: 'missing_pack:ancient_seed', quantity: 2, quality: 'normal' as const }]
+    }
+
+    inventoryStore.deserialize(saved)
+
+    expect(inventoryStore.items).toEqual([{ ...saved.items[0], compositionTags: [] }])
+    expect(inventoryStore.tempItems).toEqual([{ ...saved.tempItems[0], compositionTags: [] }])
+    expect(inventoryStore.removeItem('missing_pack:ancient_seed', 1, 'fine')).toBe(false)
+    expect(inventoryStore.takeItemStacks('missing_pack:ancient_seed', 1, 'fine')).toEqual([])
+    inventoryStore.toggleLock('missing_pack:ancient_seed', 'fine')
+    expect(inventoryStore.items[0]).toEqual({ ...saved.items[0], compositionTags: [] })
+    expect(inventoryStore.discardTempItem(0)).toBe(false)
+    expect(inventoryStore.serialize().items).toEqual([{ ...saved.items[0], compositionTags: [] }])
+    expect(inventoryStore.serialize().tempItems).toEqual([{ ...saved.tempItems[0], compositionTags: [] }])
+  })
+
   it('moves a temporary item into matching main stacks and removes it when fully moved', () => {
     const inventoryStore = useInventoryStore()
 

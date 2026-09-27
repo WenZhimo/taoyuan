@@ -158,6 +158,9 @@ export const useInventoryStore = defineStore('inventory', () => {
   /** 主背包+临时背包均满 */
   const isAllFull = computed(() => isFull.value && isTempFull.value)
 
+  /** 缺失内容包时保留物品数据，但不允许玩家通过背包动作改变它。 */
+  const isKnownItem = (itemId: string): boolean => Boolean(getItemById(itemId))
+
   /** 获取当前装备的武器 */
   const getEquippedWeapon = (): OwnedWeapon => {
     return ownedWeapons.value[equippedWeaponIndex.value] ?? { defId: 'wooden_stick', enchantmentId: null, enchantmentIds: [] }
@@ -361,6 +364,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 移除物品（支持跨栈删除）。quality 不传时优先消耗低品质 */
   const removeItem = (itemId: string, quantity: number = 1, quality?: Quality): boolean => {
+    if (!isKnownItem(itemId)) return false
     const result = removeItemFromStacks({ items: items.value, itemId, quantity, quality })
     if (!result.success) return false
     items.value = result.items
@@ -368,6 +372,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   const takeItemStacks = (itemId: string, quantity: number = 1, quality?: Quality): InventoryItem[] => {
+    if (!isKnownItem(itemId)) return []
     const result = removeItemFromStacks({ items: items.value, itemId, quantity, quality, trackRemoved: true })
     if (!result.success) return []
     items.value = result.items
@@ -451,6 +456,7 @@ export const useInventoryStore = defineStore('inventory', () => {
 
   /** 切换物品锁定状态 */
   const toggleLock = (itemId: string, quality: Quality) => {
+    if (!isKnownItem(itemId)) return
     const slot = items.value.find(i => i.itemId === itemId && i.quality === quality)
     if (slot) slot.locked = !slot.locked
   }
@@ -514,6 +520,7 @@ export const useInventoryStore = defineStore('inventory', () => {
   /** 丢弃临时背包中的物品 */
   const discardTempItem = (index: number): boolean => {
     if (index < 0 || index >= tempItems.value.length) return false
+    if (!isKnownItem(tempItems.value[index]!.itemId)) return false
     tempItems.value.splice(index, 1)
     return true
   }
@@ -973,11 +980,9 @@ export const useInventoryStore = defineStore('inventory', () => {
   }
 
   const deserialize = (data: SerializedInventoryMigrationState) => {
-    const isKnownItem = (itemId: string): boolean => Boolean(getItemById(itemId))
-
-    items.value = migrateSavedInventoryItems(data.items, isKnownItem)
+    items.value = migrateSavedInventoryItems(data.items)
     capacity.value = migrateSavedCapacity(data.capacity, INITIAL_CAPACITY)
-    tempItems.value = migrateSavedInventoryItems(data.tempItems, isKnownItem)
+    tempItems.value = migrateSavedInventoryItems(data.tempItems)
     tools.value = migrateSavedTools(data.tools)
 
     const migratedWeapons = migrateSavedWeapons(data, normalizeEnchantmentIds)

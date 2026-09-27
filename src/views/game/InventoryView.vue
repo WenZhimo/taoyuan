@@ -48,7 +48,7 @@
         >
           <Lock v-if="item.hasLockedItems" :size="10" class="absolute top-0.5 left-0.5 text-accent/60" />
           <div class="text-xs truncate text-accent">
-            {{ getItemById(item.itemId)?.name }}
+            {{ getItemDisplayName(item.itemId) }}
           </div>
           <QualityQuantityBreakdown
             class="justify-center mt-0.5"
@@ -90,7 +90,7 @@
             @click="openTempItemGroup(item.itemId)"
           >
             <div class="text-xs truncate text-accent">
-              {{ getItemById(item.itemId)?.name }}
+            {{ getItemDisplayName(item.itemId) }}
             </div>
             <QualityQuantityBreakdown
               class="justify-center mt-0.5"
@@ -423,11 +423,13 @@
               'text-accent': activeTempItem.quality === 'normal'
             }"
           >
-            {{ activeTempItemDef?.name }}
+            {{ getItemDisplayName(activeTempItem.itemId) }}
             <span class="text-xs text-danger ml-1">（临时）</span>
           </p>
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
-            <p class="text-xs text-muted">{{ activeTempItemDef?.description }}</p>
+            <p class="text-xs text-muted">
+              {{ activeTempItemDef?.description ?? unknownItemDescription(activeTempItem.itemId) }}
+            </p>
           </div>
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
             <div class="flex items-center justify-between">
@@ -466,7 +468,13 @@
             >
               放入背包
             </Button>
-            <Button class="w-full justify-center text-danger border-danger/40" @click="handleDiscardTemp">丢弃</Button>
+            <Button
+              class="w-full justify-center text-danger border-danger/40"
+              :disabled="!activeTempItemDef"
+              @click="handleDiscardTemp"
+            >
+              丢弃
+            </Button>
           </div>
         </div>
       </div>
@@ -489,11 +497,13 @@
               'text-accent': activeItem.quality === 'normal'
             }"
           >
-            {{ activeItemDef?.name }}
+            {{ getItemDisplayName(activeItem.itemId) }}
           </p>
 
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
-            <p class="text-xs text-muted">{{ activeItemDef?.description }}</p>
+            <p class="text-xs text-muted">
+              {{ activeItemDef?.description ?? unknownItemDescription(activeItem.itemId) }}
+            </p>
           </div>
 
           <div class="border border-accent/10 rounded-xs p-2 mb-2">
@@ -547,6 +557,7 @@
               class="w-full justify-center"
               :icon="activeItem.locked ? LockOpen : Lock"
               :icon-size="12"
+              :disabled="!activeItemDef"
               @click="inventoryStore.toggleLock(activeItem.itemId, activeItem.quality)"
             >
               {{ activeItem.locked ? '解锁' : '锁定' }}
@@ -570,7 +581,7 @@
               使用
             </Button>
             <!-- 丢弃 -->
-            <template v-if="!activeItem.locked">
+            <template v-if="activeItemDef && !activeItem.locked">
               <div v-if="discardMode" class="flex items-center space-x-1">
                 <input
                   v-model.number="discardQty"
@@ -1077,7 +1088,7 @@
     const allowed = new Set(settingsStore.inventoryFilter)
     return inventoryItemGroups.value.filter(item => {
       const def = getItemById(item.itemId)
-      return def && allowed.has(def.category)
+      return !def || allowed.has(def.category)
     })
   })
 
@@ -1518,6 +1529,14 @@
     return getItemById(activeTempItem.value.itemId) ?? null
   })
 
+  const getItemDisplayName = (itemId: string): string => {
+    return getItemById(itemId)?.name ?? `未知内容（${itemId}）`
+  }
+
+  const unknownItemDescription = (itemId: string): string => {
+    return `当前内容包不可用，原始 ID：${itemId}。数据已保留，恢复对应内容包后可继续使用。`
+  }
+
   const openTempItemQuality = (itemId: string, quality: Quality) => {
     const index = inventoryStore.tempItems.findIndex(item => item.itemId === itemId && item.quality === quality)
     activeTempIdx.value = index >= 0 ? index : null
@@ -1585,7 +1604,10 @@
 
   const activeItem = computed(() => {
     if (!activeItemKey.value) return null
-    const [itemId, quality] = activeItemKey.value.split(':')
+    const separatorIndex = activeItemKey.value.lastIndexOf(':')
+    if (separatorIndex < 0) return null
+    const itemId = activeItemKey.value.slice(0, separatorIndex)
+    const quality = activeItemKey.value.slice(separatorIndex + 1) as Quality
     return inventoryStore.items.find(i => i.itemId === itemId && i.quality === quality) ?? null
   })
 

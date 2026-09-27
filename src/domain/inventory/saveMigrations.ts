@@ -65,10 +65,8 @@ export const migrateSavedTools = (savedTools?: readonly Tool[]): Tool[] => {
 
 const QUALITY_VALUES = new Set(['normal', 'fine', 'excellent', 'supreme'])
 
-export const migrateSavedInventoryItems = (
-  savedItems: readonly InventoryItem[] | undefined,
-  _isKnownItem: (itemId: string) => boolean
-): InventoryItem[] => {
+/** 保留未知内容的持久字段，等待对应内容包重新加载后由运行时恢复定义。 */
+export const migrateSavedInventoryItems = (savedItems: readonly InventoryItem[] | undefined): InventoryItem[] => {
   return (savedItems ?? [])
     .filter(item =>
       typeof item.itemId === 'string' &&
