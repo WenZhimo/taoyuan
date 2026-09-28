@@ -216,8 +216,43 @@ export const useSaveStore = defineStore('save', () => {
     }
   }
 
-  const writeSlotMetadata = (slot: number, data: Record<string, any>) => {
-    localStorage.setItem(`${SAVE_META_KEY_PREFIX}${slot}`, JSON.stringify(createSlotInfo(slot, data)))
+  const restoreStoredValue = (key: string, value: string | null) => {
+    if (value === null) localStorage.removeItem(key)
+    else localStorage.setItem(key, value)
+  }
+
+  const persistSlot = (slot: number, encoded: string, data: Record<string, any>) => {
+    const saveKey = `${SAVE_KEY_PREFIX}${slot}`
+    const metadataKey = `${SAVE_META_KEY_PREFIX}${slot}`
+    const previousSave = localStorage.getItem(saveKey)
+    const previousMetadata = localStorage.getItem(metadataKey)
+    const metadata = JSON.stringify(createSlotInfo(slot, data))
+
+    try {
+      localStorage.setItem(saveKey, encoded)
+      localStorage.setItem(metadataKey, metadata)
+    } catch (error) {
+      let rollbackFailed = false
+      try {
+        restoreStoredValue(saveKey, previousSave)
+      } catch {
+        rollbackFailed = true
+      }
+      try {
+        restoreStoredValue(metadataKey, previousMetadata)
+      } catch {
+        rollbackFailed = true
+      }
+
+      if (
+        rollbackFailed ||
+        localStorage.getItem(saveKey) !== previousSave ||
+        localStorage.getItem(metadataKey) !== previousMetadata
+      ) {
+        throw new Error('save slot rollback failed')
+      }
+      throw error
+    }
   }
 
   const readExistingPluginData = async (slot: number): Promise<PersistedPluginData | null> => {
@@ -377,8 +412,7 @@ export const useSaveStore = defineStore('save', () => {
       if (!previousPluginData || !previousPackageSettings) return failOperation('saving', 'slot-protected')
       const data = buildSaveData(persistedPluginData.value, previousPackageSettings)
       const encoded = await encodeSaveData(data)
-      localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
-      writeSlotMetadata(slot, data)
+      persistSlot(slot, encoded, data)
       activeSlot.value = slot
       persistedPluginData.value = data.pluginData as PersistedPluginData
       persistedPackageSettings.value = data.packageSettings as PersistedPackageSettings
@@ -443,6 +477,8 @@ export const useSaveStore = defineStore('save', () => {
       const tutorialStore = useTutorialStore()
       const hiddenNpcStore = useHiddenNpcStore()
 
+      persistSlot(slot, encoded, data)
+
       gameStore.deserialize(data.game)
       playerStore.deserialize(data.player)
       inventoryStore.deserialize(data.inventory)
@@ -474,8 +510,6 @@ export const useSaveStore = defineStore('save', () => {
       packageSettings.value = data.packageSettings
       persistedPackageSettings.value = data.packageSettings
 
-      if (encoded !== raw) localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
-      writeSlotMetadata(slot, data)
       activeSlot.value = slot
       return true
     })
@@ -526,8 +560,7 @@ export const useSaveStore = defineStore('save', () => {
       const data = compatibility.migration.data
       data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
       const encoded = await encodeSaveData(data)
-      localStorage.setItem(`${SAVE_KEY_PREFIX}${slot}`, encoded)
-      writeSlotMetadata(slot, data)
+      persistSlot(slot, encoded, data)
       return true
     })
   }

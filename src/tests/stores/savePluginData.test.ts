@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { createOfficialSaveContentEnvironment } from '@/domain/save/saveContentEnvironment'
 import { hashPayloadJson } from '@/domain/mods/hash'
@@ -185,6 +185,116 @@ describe('save store plugin data persistence', () => {
       message: expect.stringContaining('旧存档未覆盖')
     })
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
+  })
+
+  it('rolls back both slot keys when the save body write fails', async() => {
+    const originalSlot = await encodeSaveData(createCurrentSave())
+    const originalMetadata = JSON.stringify({ slot: 0, exists: true, playerName: '原有摘要' })
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, originalSlot)
+    localStorage.setItem(`${SAVE_META_KEY_PREFIX}0`, originalMetadata)
+
+    let failed = false
+    const originalSetItem = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function(this: Storage, key, value) {
+      if (!failed && key === `${SAVE_KEY_PREFIX}0`) {
+        failed = true
+        throw new Error('simulated save body write failure')
+      }
+      originalSetItem.call(this, key, value)
+    })
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({ operation: 'saving', reason: 'storage' })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
+    expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(originalMetadata)
+  })
+
+  it('rolls back both slot keys when the save metadata write fails', async() => {
+    const originalSlot = await encodeSaveData(createCurrentSave())
+    const originalMetadata = JSON.stringify({ slot: 0, exists: true, playerName: '原有摘要' })
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, originalSlot)
+    localStorage.setItem(`${SAVE_META_KEY_PREFIX}0`, originalMetadata)
+
+    let failed = false
+    const originalSetItem = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function(this: Storage, key, value) {
+      if (!failed && key === `${SAVE_META_KEY_PREFIX}0`) {
+        failed = true
+        throw new Error('simulated save metadata write failure')
+      }
+      originalSetItem.call(this, key, value)
+    })
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({ operation: 'saving', reason: 'storage' })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
+    expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(originalMetadata)
+  })
+
+  it('rolls back an imported slot and keeps an absent summary absent', async() => {
+    const originalSlot = await encodeSaveData(createCurrentSave())
+    const importedSlot = await encodeSaveData(createCurrentSave({
+      game: { ...legacySaveFixture.game, year: 4 }
+    }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}1`, originalSlot)
+
+    let failed = false
+    const originalSetItem = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function(this: Storage, key, value) {
+      if (!failed && key === `${SAVE_META_KEY_PREFIX}1`) {
+        failed = true
+        throw new Error('simulated import metadata write failure')
+      }
+      originalSetItem.call(this, key, value)
+    })
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.importSave(1, importedSlot)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({ operation: 'importing', reason: 'storage' })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}1`)).toBe(originalSlot)
+    expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}1`)).toBeNull()
+  })
+
+  it('does not deserialize a migrated save when slot persistence fails', async() => {
+    const legacySlot = await encodeSaveData(legacySaveFixture)
+    const originalMetadata = JSON.stringify({ slot: 0, exists: true, playerName: '原有摘要' })
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, legacySlot)
+    localStorage.setItem(`${SAVE_META_KEY_PREFIX}0`, originalMetadata)
+
+    const gameStore = useGameStore()
+    gameStore.deserialize({ year: 9, season: 'winter', day: 17, currentLocation: 'mine' })
+    const before = {
+      year: gameStore.year,
+      season: gameStore.season,
+      day: gameStore.day,
+      currentLocation: gameStore.currentLocation,
+      isGameStarted: gameStore.isGameStarted
+    }
+
+    let failed = false
+    const originalSetItem = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function(this: Storage, key, value) {
+      if (!failed && key === `${SAVE_META_KEY_PREFIX}0`) {
+        failed = true
+        throw new Error('simulated migration metadata write failure')
+      }
+      originalSetItem.call(this, key, value)
+    })
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.loadFromSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({ operation: 'loading', reason: 'storage' })
+    expect({
+      year: gameStore.year,
+      season: gameStore.season,
+      day: gameStore.day,
+      currentLocation: gameStore.currentLocation,
+      isGameStarted: gameStore.isGameStarted
+    }).toEqual(before)
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(legacySlot)
+    expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(originalMetadata)
   })
 
   it('allows saving a loaded plugin payload larger than one write growth quota to another slot', async() => {
