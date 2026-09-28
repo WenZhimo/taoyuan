@@ -42,7 +42,10 @@ import {
 import {
   createEmptyPersistedPluginData,
   normalizePersistedPluginData,
+  replacePersistedPluginDataForOwner,
   SavePluginDataError,
+  type PluginSaveDataOwner,
+  type PersistedPluginDataEnvelope,
   type PersistedPluginData
 } from '@/domain/save/savePluginData'
 import {
@@ -66,6 +69,7 @@ type SaveOperationFailureReason =
   | 'incompatible'
   | 'plugin-data-invalid'
   | 'plugin-data-quota'
+  | 'plugin-data-migration'
   | 'package-settings-invalid'
   | 'slot-protected'
   | 'storage'
@@ -109,8 +113,9 @@ export const useSaveStore = defineStore('save', () => {
   /** 当前活跃存档槽位，-1 表示未分配 */
   const activeSlot = ref(-1)
   const contentEnvironment = ref<SaveContentEnvironment>(getCurrentSaveContentEnvironment())
-  const pluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
+  const pluginDataState = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const persistedPluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
+  const pluginDataOwners = new Map<string, PluginSaveDataOwner>()
   const packageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
   const persistedPackageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
   const operation = ref<SaveOperation | null>(null)
@@ -143,6 +148,10 @@ export const useSaveStore = defineStore('save', () => {
       message = nextOperation === 'importing'
         ? '插件私有数据完整性校验失败，导入已拒绝且目标槽位未写入。请保留原文件并检查对应数据包。'
         : '插件私有数据完整性校验失败，操作已拒绝且原存档未修改。请先导出备份，再检查对应数据包。'
+    } else if (reason === 'plugin-data-migration') {
+      message = nextOperation === 'importing'
+        ? '插件私有数据没有可验证的 Schema 迁移路径，导入已拒绝且目标槽位未写入。请保留原文件并检查对应数据包。'
+        : '插件私有数据没有可验证的 Schema 迁移路径，操作已拒绝且原存档未修改。请先导出备份，再检查对应数据包。'
     } else if (reason === 'package-settings-invalid') {
       message = nextOperation === 'importing'
         ? '存档级数据包设置结构无效，导入已拒绝且目标槽位未写入。请保留原文件并检查对应数据包。'
@@ -173,6 +182,8 @@ export const useSaveStore = defineStore('save', () => {
     if (error instanceof SavePluginDataError) {
       const reason = error.diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-002')
         ? 'plugin-data-quota'
+        : error.diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-003')
+          ? 'plugin-data-migration'
         : 'plugin-data-invalid'
       return failOperation(nextOperation, reason, error.diagnostics)
     }
@@ -189,6 +200,9 @@ export const useSaveStore = defineStore('save', () => {
     if (status === 'incompatible') return 'incompatible'
     if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-002')) {
       return 'plugin-data-quota'
+    }
+    if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-003')) {
+      return 'plugin-data-migration'
     }
     if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-001')) {
       return 'plugin-data-invalid'
@@ -218,6 +232,14 @@ export const useSaveStore = defineStore('save', () => {
       operation.value = null
     }
   }
+
+  const getPluginDataOwners = (): readonly PluginSaveDataOwner[] =>
+    Array.from(pluginDataOwners.values())
+
+  const checkCompatibility = (value: unknown) =>
+    checkSaveRootCompatibility(value, contentEnvironment.value, {
+      pluginDataOwners: getPluginDataOwners()
+    })
 
   const restoreStoredValue = (key: string, value: string | null) => {
     if (value === null) localStorage.removeItem(key)
@@ -263,10 +285,12 @@ export const useSaveStore = defineStore('save', () => {
     if (!raw) return createEmptyPersistedPluginData()
     const normalized = await normalizeSaveData(raw)
     if (!normalized) return null
-    const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+    const compatibility = checkCompatibility(normalized.data)
     if (!isLoadableCompatibility(compatibility.status)) return null
     try {
-      return normalizePersistedPluginData(normalized.data.pluginData)
+      return normalizePersistedPluginData(normalized.data.pluginData, {
+        owners: getPluginDataOwners()
+      })
     } catch {
       return null
     }
@@ -277,7 +301,7 @@ export const useSaveStore = defineStore('save', () => {
     if (!raw) return createEmptyPersistedPackageSettings()
     const normalized = await normalizeSaveData(raw)
     if (!normalized) return null
-    const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+    const compatibility = checkCompatibility(normalized.data)
     if (!isLoadableCompatibility(compatibility.status)) return null
     try {
       return normalizePersistedPackageSettings(normalized.data.packageSettings)
@@ -316,7 +340,7 @@ export const useSaveStore = defineStore('save', () => {
     const empty = getSlots().find(slot => !slot.exists)
     activeSlot.value = empty?.slot ?? -1
     if (activeSlot.value >= 0) {
-      pluginData.value = createEmptyPersistedPluginData()
+      pluginDataState.value = createEmptyPersistedPluginData()
       persistedPluginData.value = createEmptyPersistedPluginData()
       packageSettings.value = createEmptyPersistedPackageSettings()
       persistedPackageSettings.value = createEmptyPersistedPackageSettings()
@@ -358,9 +382,10 @@ export const useSaveStore = defineStore('save', () => {
     return {
       saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
       contentEnvironment: contentEnvironment.value,
-      pluginData: normalizePersistedPluginData(pluginData.value, {
+      pluginData: normalizePersistedPluginData(pluginDataState.value, {
         previous: previousPluginData,
-        enforceGrowth: true
+        enforceGrowth: true,
+        owners: getPluginDataOwners()
       }),
       packageSettings: normalizePersistedPackageSettings({
         ...previousPackageSettings,
@@ -406,6 +431,54 @@ export const useSaveStore = defineStore('save', () => {
     }
   }
 
+  const registerPluginSaveDataOwner = (owner: PluginSaveDataOwner): boolean => {
+    if (operation.value) return false
+    const existing = pluginDataOwners.get(owner.packageId)
+    if (existing && existing !== owner) return false
+    const nextOwners = existing
+      ? getPluginDataOwners()
+      : [...getPluginDataOwners(), owner]
+    try {
+      const nextPluginData = normalizePersistedPluginData(pluginDataState.value, {
+        owners: nextOwners
+      })
+      pluginDataOwners.set(owner.packageId, owner)
+      pluginDataState.value = nextPluginData
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  const unregisterPluginSaveDataOwner = (packageId: PluginSaveDataOwner['packageId']): boolean => {
+    if (operation.value) return false
+    return pluginDataOwners.delete(packageId)
+  }
+
+  const readPluginSaveData = (
+    owner: PluginSaveDataOwner
+  ): PersistedPluginDataEnvelope | undefined => {
+    if (pluginDataOwners.get(owner.packageId) !== owner) return undefined
+    return pluginDataState.value[owner.packageId]
+  }
+
+  const writePluginSaveData = (
+    owner: PluginSaveDataOwner,
+    payload: unknown
+  ): boolean => {
+    if (operation.value || pluginDataOwners.get(owner.packageId) !== owner) return false
+    try {
+      pluginDataState.value = replacePersistedPluginDataForOwner(
+        pluginDataState.value,
+        owner,
+        payload
+      )
+      return true
+    } catch {
+      return false
+    }
+  }
+
   /** 保存到指定槽位 */
   const saveToSlot = async (slot: number): Promise<boolean> => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
@@ -438,7 +511,7 @@ export const useSaveStore = defineStore('save', () => {
       if (!raw) return failOperation('loading', 'invalid')
       const normalized = await normalizeSaveData(raw)
       if (!normalized) return failOperation('loading', 'invalid')
-      const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+      const compatibility = checkCompatibility(normalized.data)
       if (!isLoadableCompatibility(compatibility.status) || !compatibility.migration) {
         return failOperation(
           'loading',
@@ -449,7 +522,9 @@ export const useSaveStore = defineStore('save', () => {
       const data = compatibility.migration.data
       const previousPluginData = await readExistingPluginData(slot)
       if (!previousPluginData) return failOperation('loading', 'invalid')
-      data.pluginData = normalizePersistedPluginData(data.pluginData)
+      data.pluginData = normalizePersistedPluginData(data.pluginData, {
+        owners: getPluginDataOwners()
+      })
       data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
       const encoded = await encodeSaveData(data)
 
@@ -508,7 +583,7 @@ export const useSaveStore = defineStore('save', () => {
       if (data.fishPond) fishPondStore.deserialize(data.fishPond)
       if (data.tutorial) tutorialStore.deserialize(data.tutorial)
       if (data.hiddenNpc) hiddenNpcStore.deserialize(data.hiddenNpc)
-      pluginData.value = data.pluginData
+      pluginDataState.value = data.pluginData
       persistedPluginData.value = data.pluginData
       packageSettings.value = data.packageSettings
       persistedPackageSettings.value = data.packageSettings
@@ -552,7 +627,7 @@ export const useSaveStore = defineStore('save', () => {
     return runOperation('importing', async () => {
       const normalized = await normalizeSaveData(fileContent)
       if (!normalized) return failOperation('importing', 'invalid')
-      const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
+      const compatibility = checkCompatibility(normalized.data)
       if (!isLoadableCompatibility(compatibility.status) || !compatibility.migration) {
         return failOperation(
           'importing',
@@ -561,6 +636,9 @@ export const useSaveStore = defineStore('save', () => {
         )
       }
       const data = compatibility.migration.data
+      data.pluginData = normalizePersistedPluginData(data.pluginData, {
+        owners: getPluginDataOwners()
+      })
       data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
       const encoded = await encodeSaveData(data)
       persistSlot(slot, encoded, data)
@@ -571,7 +649,10 @@ export const useSaveStore = defineStore('save', () => {
   return {
     activeSlot,
     contentEnvironment,
-    pluginData,
+    registerPluginSaveDataOwner,
+    unregisterPluginSaveDataOwner,
+    readPluginSaveData,
+    writePluginSaveData,
     packageSettings,
     operation,
     operationLabel,

@@ -69,6 +69,7 @@ export const MOD_ERROR_REGISTRY = [
   { code: 'SAVE-ENVIRONMENT-001', ruleId: 'SAVE-ENVIRONMENT-001', meaning: '存档内容环境与当前环境不兼容', defaultSeverity: 'error' },
   { code: 'SAVE-PLUGIN-DATA-001', ruleId: 'SAVE-PLUGIN-DATA-001', meaning: '插件私有负载哈希或 Schema 无效', defaultSeverity: 'error' },
   { code: 'SAVE-PLUGIN-DATA-002', ruleId: 'SAVE-PLUGIN-DATA-002', meaning: '插件私有数据超过配额', defaultSeverity: 'error' },
+  { code: 'SAVE-PLUGIN-DATA-003', ruleId: 'SAVE-PLUGIN-DATA-003', meaning: '插件私有 Schema 迁移路径或所有权无效', defaultSeverity: 'error' },
   { code: 'SAVE-PACKAGE-SETTINGS-001', ruleId: 'SAVE-PACKAGE-SETTINGS-001', meaning: '存档级数据包设置结构无效', defaultSeverity: 'error' }
 ] as const satisfies readonly ModErrorRegistration[]
 

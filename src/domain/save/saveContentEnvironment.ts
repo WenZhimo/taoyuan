@@ -15,6 +15,7 @@ import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDa
 import {
   normalizePersistedPluginData,
   SavePluginDataError,
+  type PluginSaveDataOwner,
   type PersistedPluginData
 } from './savePluginData'
 import {
@@ -63,6 +64,10 @@ export interface SaveRootCompatibilityResult {
   readonly status: SaveRootCompatibilityStatus
   readonly migration?: SaveRootMigrationResult
   readonly diagnostics: readonly ModDiagnostic[]
+}
+
+export interface SaveRootMigrationOptions {
+  readonly pluginDataOwners?: readonly PluginSaveDataOwner[]
 }
 
 type SaveRootData = Record<string, any>
@@ -260,7 +265,10 @@ export const normalizeSaveContentEnvironment = (value: unknown): SaveContentEnvi
   return createSaveContentEnvironment(identity)
 }
 
-export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
+export const migrateSaveRoot = (
+  value: unknown,
+  options: SaveRootMigrationOptions = {}
+): SaveRootMigrationResult => {
   if (!isRecord(value)) {
     throw new SaveContentEnvironmentError(
       'structure',
@@ -270,7 +278,9 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
   }
 
   const version = value.saveFormatVersion
-  const pluginData = normalizePersistedPluginData(value.pluginData)
+  const pluginData = normalizePersistedPluginData(value.pluginData, {
+    owners: options.pluginDataOwners
+  })
   const packageSettings = normalizePersistedPackageSettings(value.packageSettings)
   if (version === undefined || version === 1) {
     const environment = createOfficialSaveContentEnvironment()
@@ -355,11 +365,12 @@ export const migrateSaveRoot = (value: unknown): SaveRootMigrationResult => {
 
 export const checkSaveRootCompatibility = (
   value: unknown,
-  currentEnvironment: SaveContentEnvironment
+  currentEnvironment: SaveContentEnvironment,
+  options: SaveRootMigrationOptions = {}
 ): SaveRootCompatibilityResult => {
   let migration: SaveRootMigrationResult
   try {
-    migration = migrateSaveRoot(value)
+    migration = migrateSaveRoot(value, options)
   } catch (error) {
     if (error instanceof SavePluginDataError) {
       return { status: 'invalid', diagnostics: error.diagnostics }

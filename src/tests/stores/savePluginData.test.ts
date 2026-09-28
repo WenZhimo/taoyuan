@@ -2,7 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { createOfficialSaveContentEnvironment } from '@/domain/save/saveContentEnvironment'
 import { hashPayloadJson } from '@/domain/mods/hash'
-import { MAX_PLUGIN_DATA_GROWTH_BYTES } from '@/domain/save/savePluginData'
+import {
+  MAX_PLUGIN_DATA_GROWTH_BYTES,
+  type PluginSaveDataOwner
+} from '@/domain/save/savePluginData'
+import type { PackageId } from '@/domain/mods/ids'
 import { useGameStore } from '@/stores/useGameStore'
 import { useSaveStore } from '@/stores/useSaveStore'
 import { encodeSaveData, parseSaveData } from '@/utils/saveCodec'
@@ -11,6 +15,7 @@ import legacySaveFixture from '../fixtures/saves/legacy-v1-baseline.json'
 const SAVE_KEY_PREFIX = 'taoyuanxiang_save_'
 const SAVE_META_KEY_PREFIX = 'taoyuanxiang_save_meta_'
 const packageId = 'example_pack'
+const ownerPackageId = packageId as PackageId
 const payloadJson = '{"message":"原样保留","order":[2,1],"emoji":"😀"}'
 const pluginData = {
   [packageId]: {
@@ -45,7 +50,6 @@ describe('save store plugin data persistence', () => {
 
     const saveStore = useSaveStore()
     expect(await saveStore.loadFromSlot(0)).toBe(true)
-    expect(saveStore.pluginData).toEqual(pluginData)
     expect(saveStore.packageSettings).toEqual(packageSettings)
     expect(await saveStore.saveToSlot(0)).toBe(true)
 
@@ -53,6 +57,83 @@ describe('save store plugin data persistence', () => {
     expect(saved?.pluginData).toEqual(pluginData)
     expect(saved?.packageSettings).toEqual(packageSettings)
     expect((saved?.pluginData as typeof pluginData)[packageId]?.payloadJson).toBe(payloadJson)
+  })
+
+  it('migrates a registered plugin envelope before loading and writes the migrated root atomically', async() => {
+    const legacyPayloadJson = '{"count":1}'
+    const legacyPluginData = {
+      [packageId]: {
+        schemaVersion: '1',
+        encoding: 'json' as const,
+        payloadJson: legacyPayloadJson,
+        payloadHash: hashPayloadJson(legacyPayloadJson)
+      }
+    }
+    localStorage.setItem(
+      `${SAVE_KEY_PREFIX}0`,
+      await encodeSaveData(createCurrentSave({ pluginData: legacyPluginData }))
+    )
+
+    const owner: PluginSaveDataOwner = {
+      packageId: ownerPackageId,
+      schemaVersion: '2',
+      validate: payload => {
+        if (
+          payload === null ||
+          typeof payload !== 'object' ||
+          (payload as { migrated?: unknown }).migrated !== true
+        ) throw new Error('migration marker missing')
+      },
+      migrations: [{
+        fromSchemaVersion: '1',
+        toSchemaVersion: '2',
+        migrate: payload => ({
+          ...(payload as Record<string, unknown>),
+          migrated: true
+        })
+      }]
+    }
+    const saveStore = useSaveStore()
+    expect(saveStore.registerPluginSaveDataOwner(owner)).toBe(true)
+    expect(await saveStore.loadFromSlot(0)).toBe(true)
+    expect(saveStore.readPluginSaveData(owner)).toMatchObject({ schemaVersion: '2' })
+
+    const saved = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}0`) ?? '')
+    expect((saved?.pluginData as Record<string, { schemaVersion: string }>)[packageId]?.schemaVersion).toBe('2')
+    expect(JSON.parse((saved?.pluginData as typeof legacyPluginData)[packageId]!.payloadJson)).toEqual({
+      count: 1,
+      migrated: true
+    })
+  })
+
+  it('rejects a registered plugin without a migration path and preserves the old slot', async() => {
+    const legacyPayloadJson = '{"count":1}'
+    const legacySlot = await encodeSaveData(createCurrentSave({
+      pluginData: {
+        [packageId]: {
+          schemaVersion: '1',
+          encoding: 'json' as const,
+          payloadJson: legacyPayloadJson,
+          payloadHash: hashPayloadJson(legacyPayloadJson)
+        }
+      }
+    }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, legacySlot)
+
+    const owner: PluginSaveDataOwner = {
+      packageId: ownerPackageId,
+      schemaVersion: '2',
+      validate: () => undefined
+    }
+    const saveStore = useSaveStore()
+    expect(saveStore.registerPluginSaveDataOwner(owner)).toBe(true)
+    expect(await saveStore.loadFromSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'loading',
+      reason: 'plugin-data-migration',
+      diagnostics: [expect.objectContaining({ code: 'SAVE-PLUGIN-DATA-003' })]
+    })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(legacySlot)
   })
 
   it('preserves an existing package setting when the current store has not loaded that package', async() => {
@@ -135,29 +216,20 @@ describe('save store plugin data persistence', () => {
     expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}1`)).toBe(originalMetadata)
   })
 
-  it('rejects an invalid in-memory envelope before replacing a saved slot', async() => {
+  it('rejects an invalid owner write before replacing a saved slot', async() => {
     const originalSlot = await encodeSaveData(createCurrentSave())
     const originalMetadata = JSON.stringify({ slot: 0, exists: true, playerName: '不可覆盖' })
     localStorage.setItem(`${SAVE_KEY_PREFIX}0`, originalSlot)
     localStorage.setItem(`${SAVE_META_KEY_PREFIX}0`, originalMetadata)
 
     const saveStore = useSaveStore()
-    Object.assign(saveStore, {
-      pluginData: {
-        [packageId]: {
-          ...pluginData[packageId],
-          payloadHash: hashPayloadJson('{}')
-        }
-      }
-    })
-
-    expect(await saveStore.saveToSlot(0)).toBe(false)
-    expect(saveStore.lastOperationFailure).toMatchObject({
-      operation: 'saving',
-      reason: 'plugin-data-invalid',
-      diagnostics: [expect.objectContaining({ code: 'SAVE-PLUGIN-DATA-001' })],
-      message: expect.stringContaining('完整性校验失败')
-    })
+    const owner: PluginSaveDataOwner = {
+      packageId: ownerPackageId,
+      schemaVersion: '3',
+      validate: () => false
+    }
+    expect(saveStore.registerPluginSaveDataOwner(owner)).toBe(true)
+    expect(saveStore.writePluginSaveData(owner, { rejected: true })).toBe(false)
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(originalSlot)
     expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(originalMetadata)
   })
@@ -167,15 +239,13 @@ describe('save store plugin data persistence', () => {
     localStorage.setItem(`${SAVE_KEY_PREFIX}0`, originalSlot)
 
     const saveStore = useSaveStore()
-    Object.assign(saveStore, {
-      pluginData: {
-        [packageId]: {
-          ...pluginData[packageId],
-          payloadJson: JSON.stringify('a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1)),
-          payloadHash: hashPayloadJson(JSON.stringify('a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1)))
-        }
-      }
-    })
+    const owner: PluginSaveDataOwner = {
+      packageId: ownerPackageId,
+      schemaVersion: '3',
+      validate: () => undefined
+    }
+    expect(saveStore.registerPluginSaveDataOwner(owner)).toBe(true)
+    expect(saveStore.writePluginSaveData(owner, 'a'.repeat(MAX_PLUGIN_DATA_GROWTH_BYTES + 1))).toBe(true)
 
     expect(await saveStore.saveToSlot(0)).toBe(false)
     expect(saveStore.lastOperationFailure).toMatchObject({
@@ -354,6 +424,8 @@ describe('save store plugin data persistence', () => {
     const saveStore = useSaveStore()
     expect(await saveStore.loadFromSlot(0)).toBe(true)
     expect(saveStore.assignNewSlot()).toBe(1)
-    expect(saveStore.pluginData).toEqual({})
+    expect(await saveStore.saveToSlot(1)).toBe(true)
+    const saved = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}1`) ?? '')
+    expect(saved?.pluginData).toEqual({})
   })
 })
