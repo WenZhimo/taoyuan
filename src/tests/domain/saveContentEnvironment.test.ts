@@ -41,6 +41,21 @@ const createAlternateEnvironment = () => {
   })
 }
 
+const createOfficialVersionEnvironment = (gameVersion: string) => {
+  const official = createOfficialSaveContentEnvironment()
+  return createSaveContentEnvironment({
+    engineApiVersion: official.engineApiVersion,
+    contentSchemaVersion: official.contentSchemaVersion,
+    loaderVersion: official.loaderVersion,
+    contentCompilerVersion: official.contentCompilerVersion,
+    schemaSetHash: official.schemaSetHash,
+    cacheFormatVersion: official.cacheFormatVersion,
+    trustPolicyVersion: official.trustPolicyVersion,
+    gameVersion,
+    packages: official.packages.map(pkg => ({ ...pkg, version: gameVersion }))
+  })
+}
+
 const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
 const createLockfileDraft = (): ThirdPartyDataPackLockfileDraft => {
@@ -213,6 +228,44 @@ describe('save content environment', () => {
     expect(result.migration?.data.contentEnvironment).toEqual(alternate)
     expect(root.contentEnvironment).toEqual(alternate)
     expect(result.diagnostics[0]?.code).toBe('SAVE-ENVIRONMENT-001')
+  })
+
+  it('allows an official-only forward migration when content identity is unchanged', () => {
+    const savedEnvironment = createOfficialVersionEnvironment('2.3.0')
+    const currentEnvironment = createOfficialVersionEnvironment('2.4.0')
+    const root = {
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: savedEnvironment,
+      packageSettings: {}
+    }
+
+    const result = checkSaveRootCompatibility(root, currentEnvironment)
+
+    expect(result.status).toBe('migratable')
+    expect(result.migration?.environment).toEqual(currentEnvironment)
+    expect(result.migration?.data.contentEnvironment).toEqual(currentEnvironment)
+    expect(root.contentEnvironment).toEqual(savedEnvironment)
+    expect(result.diagnostics[0]).toMatchObject({
+      code: 'SAVE-ENVIRONMENT-001',
+      details: expect.objectContaining({ reason: 'official-version-forward-migration' })
+    })
+  })
+
+  it('rejects an official downgrade instead of opening it as writable', () => {
+    const savedEnvironment = createOfficialVersionEnvironment('2.4.0')
+    const currentEnvironment = createOfficialVersionEnvironment('2.3.0')
+    const result = checkSaveRootCompatibility({
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: savedEnvironment,
+      packageSettings: {}
+    }, currentEnvironment)
+
+    expect(result.status).toBe('incompatible')
+    expect(result.diagnostics[0]).toMatchObject({
+      details: expect.objectContaining({ reason: 'environment-mismatch' })
+    })
   })
 
   it('rejects an unsupported current root instead of treating it as legacy', () => {

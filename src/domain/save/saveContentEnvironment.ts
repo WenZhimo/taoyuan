@@ -6,6 +6,7 @@ import {
 } from '@/domain/mods/environmentHash'
 import {
   createOfficialCacheEnvironmentIdentityFromContentHash,
+  OFFICIAL_PACKAGE_ID
 } from '@/domain/mods/officialPrecompiled'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import type { CacheEnvironmentIdentity, OfficialPrecompiledRegistryMetadata } from '@/domain/mods/precompiledRegistrySchema'
@@ -32,7 +33,7 @@ export type SaveContentEnvironment = CacheEnvironmentIdentity & {
 }
 
 export type SaveRootMigrationStatus = 'legacy-migrated' | 'current'
-export type SaveRootCompatibilityStatus = 'compatible' | 'incompatible' | 'invalid'
+export type SaveRootCompatibilityStatus = 'compatible' | 'migratable' | 'incompatible' | 'invalid'
 
 export class SaveContentEnvironmentError extends Error {
   readonly kind: 'format' | 'structure' | 'hash'
@@ -105,6 +106,52 @@ const freezeEnvironment = (environment: SaveContentEnvironment): SaveContentEnvi
   for (const pkg of environment.packages) Object.freeze(pkg.resolvedDependencies)
   Object.freeze(environment.packages)
   return Object.freeze(environment)
+}
+
+const parseSemVer = (value: string): readonly [number, number, number] | null => {
+  const match = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.exec(value)
+  if (!match) return null
+  return [Number(match[1]), Number(match[2]), Number(match[3])]
+}
+
+const compareSemVer = (
+  left: readonly [number, number, number],
+  right: readonly [number, number, number]
+): number =>
+  left[0] - right[0] || left[1] - right[1] || left[2] - right[2]
+
+const sameStringList = (left: readonly string[], right: readonly string[]): boolean =>
+  left.length === right.length && left.every((value, index) => value === right[index])
+
+const canMigrateOfficialVersion = (
+  saved: SaveContentEnvironment,
+  current: SaveContentEnvironment
+): boolean => {
+  if (saved.packages.length !== 1 || current.packages.length !== 1) return false
+
+  const savedPackage = saved.packages[0]!
+  const currentPackage = current.packages[0]!
+  if (
+    savedPackage.id !== OFFICIAL_PACKAGE_ID ||
+    currentPackage.id !== OFFICIAL_PACKAGE_ID ||
+    savedPackage.contentHash !== currentPackage.contentHash ||
+    savedPackage.configurationHash !== currentPackage.configurationHash ||
+    savedPackage.loadIndex !== currentPackage.loadIndex ||
+    !sameStringList(savedPackage.resolvedDependencies, currentPackage.resolvedDependencies) ||
+    saved.engineApiVersion !== current.engineApiVersion ||
+    saved.contentSchemaVersion !== current.contentSchemaVersion ||
+    saved.loaderVersion !== current.loaderVersion ||
+    saved.contentCompilerVersion !== current.contentCompilerVersion ||
+    saved.schemaSetHash !== current.schemaSetHash ||
+    saved.cacheFormatVersion !== current.cacheFormatVersion ||
+    saved.trustPolicyVersion !== current.trustPolicyVersion ||
+    savedPackage.version !== saved.gameVersion ||
+    currentPackage.version !== current.gameVersion
+  ) return false
+
+  const savedVersion = parseSemVer(saved.gameVersion)
+  const currentVersion = parseSemVer(current.gameVersion)
+  return savedVersion !== null && currentVersion !== null && compareSemVer(savedVersion, currentVersion) < 0
 }
 
 export const createSaveContentEnvironment = (
@@ -327,6 +374,29 @@ export const checkSaveRootCompatibility = (
     return {
       status: 'invalid',
       diagnostics: [saveEnvironmentDiagnostic('save.root.compatibility', { message })]
+    }
+  }
+
+  if (migration.environment.environmentHash === currentEnvironment.environmentHash) {
+    return { status: 'compatible', migration, diagnostics: [] }
+  }
+
+  if (canMigrateOfficialVersion(migration.environment, currentEnvironment)) {
+    return {
+      status: 'migratable',
+      migration: {
+        ...migration,
+        data: {
+          ...migration.data,
+          contentEnvironment: currentEnvironment
+        },
+        environment: currentEnvironment
+      },
+      diagnostics: [saveEnvironmentDiagnostic('save.root.compatibility', {
+        reason: 'official-version-forward-migration',
+        saved: migration.environment.gameVersion,
+        current: currentEnvironment.gameVersion
+      })]
     }
   }
 

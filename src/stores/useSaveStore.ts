@@ -199,6 +199,9 @@ export const useSaveStore = defineStore('save', () => {
     return 'invalid'
   }
 
+  const isLoadableCompatibility = (status: SaveRootCompatibilityStatus): boolean =>
+    status === 'compatible' || status === 'migratable'
+
   const runOperation = async (
     nextOperation: SaveOperation,
     task: () => Promise<boolean>
@@ -261,7 +264,7 @@ export const useSaveStore = defineStore('save', () => {
     const normalized = await normalizeSaveData(raw)
     if (!normalized) return null
     const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
-    if (compatibility.status !== 'compatible') return null
+    if (!isLoadableCompatibility(compatibility.status)) return null
     try {
       return normalizePersistedPluginData(normalized.data.pluginData)
     } catch {
@@ -275,7 +278,7 @@ export const useSaveStore = defineStore('save', () => {
     const normalized = await normalizeSaveData(raw)
     if (!normalized) return null
     const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
-    if (compatibility.status !== 'compatible') return null
+    if (!isLoadableCompatibility(compatibility.status)) return null
     try {
       return normalizePersistedPackageSettings(normalized.data.packageSettings)
     } catch {
@@ -436,7 +439,7 @@ export const useSaveStore = defineStore('save', () => {
       const normalized = await normalizeSaveData(raw)
       if (!normalized) return failOperation('loading', 'invalid')
       const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
-      if (compatibility.status !== 'compatible' || !compatibility.migration) {
+      if (!isLoadableCompatibility(compatibility.status) || !compatibility.migration) {
         return failOperation(
           'loading',
           classifyCompatibilityFailure(compatibility.status, compatibility.diagnostics),
@@ -550,7 +553,7 @@ export const useSaveStore = defineStore('save', () => {
       const normalized = await normalizeSaveData(fileContent)
       if (!normalized) return failOperation('importing', 'invalid')
       const compatibility = checkSaveRootCompatibility(normalized.data, contentEnvironment.value)
-      if (compatibility.status !== 'compatible' || !compatibility.migration) {
+      if (!isLoadableCompatibility(compatibility.status) || !compatibility.migration) {
         return failOperation(
           'importing',
           classifyCompatibilityFailure(compatibility.status, compatibility.diagnostics),

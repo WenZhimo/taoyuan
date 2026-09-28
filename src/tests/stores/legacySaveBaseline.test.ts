@@ -13,6 +13,21 @@ import legacySaveFixture from '../fixtures/saves/legacy-v1-baseline.json'
 
 const SAVE_KEY_PREFIX = 'taoyuanxiang_save_'
 
+const createOfficialVersionEnvironment = (gameVersion: string) => {
+  const official = createOfficialSaveContentEnvironment()
+  return createSaveContentEnvironment({
+    engineApiVersion: official.engineApiVersion,
+    contentSchemaVersion: official.contentSchemaVersion,
+    loaderVersion: official.loaderVersion,
+    contentCompilerVersion: official.contentCompilerVersion,
+    schemaSetHash: official.schemaSetHash,
+    cacheFormatVersion: official.cacheFormatVersion,
+    trustPolicyVersion: official.trustPolicyVersion,
+    gameVersion,
+    packages: official.packages.map(pkg => ({ ...pkg, version: gameVersion }))
+  })
+}
+
 describe('legacy save baseline fixture', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -95,5 +110,44 @@ describe('legacy save baseline fixture', () => {
     })
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(encoded)
     expect(useGameStore().isGameStarted).toBe(false)
+  })
+
+  it('loads an official older version into the current environment before deserializing', async() => {
+    const currentEnvironment = createOfficialVersionEnvironment('2.4.0')
+    const savedEnvironment = createOfficialVersionEnvironment('2.3.0')
+    const encoded = await encodeSaveData({
+      ...legacySaveFixture,
+      saveFormatVersion: 3,
+      contentEnvironment: savedEnvironment,
+      packageSettings: {}
+    })
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, encoded)
+
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(currentEnvironment)).toBe(true)
+    expect(await saveStore.loadFromSlot(0)).toBe(true)
+
+    const migrated = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}0`) ?? '')
+    expect(migrated?.contentEnvironment).toEqual(currentEnvironment)
+    expect(useGameStore().isGameStarted).toBe(true)
+  })
+
+  it('imports an official older version into the current environment without mutating the source payload', async() => {
+    const currentEnvironment = createOfficialVersionEnvironment('2.4.0')
+    const savedEnvironment = createOfficialVersionEnvironment('2.3.0')
+    const source = await encodeSaveData({
+      ...legacySaveFixture,
+      saveFormatVersion: 3,
+      contentEnvironment: savedEnvironment,
+      packageSettings: {}
+    })
+
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(currentEnvironment)).toBe(true)
+    expect(await saveStore.importSave(1, source)).toBe(true)
+
+    const imported = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}1`) ?? '')
+    expect(imported?.contentEnvironment).toEqual(currentEnvironment)
+    expect((await parseSaveData(source))?.contentEnvironment).toEqual(savedEnvironment)
   })
 })
