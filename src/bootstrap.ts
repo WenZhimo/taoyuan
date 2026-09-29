@@ -22,6 +22,7 @@ export interface ApplicationBootstrapDependencies<
   installPinia: (app: AppInstance, pinia: PiniaInstance) => void
   getRouter: () => Awaitable<RouterInstance>
   installRouter: (app: AppInstance, router: RouterInstance) => void
+  beforeMount?: () => Awaitable<unknown>
   mount: (app: AppInstance, router: RouterInstance) => Promise<void>
   afterMount?: (
     result: ApplicationBootstrapResult<AppInstance, PiniaInstance, RouterInstance>
@@ -125,6 +126,7 @@ export const bootstrapApplication = async <
 
   const router = await dependencies.getRouter()
   dependencies.installRouter(app, router)
+  await dependencies.beforeMount?.()
   await dependencies.mount(app, router)
 
   const baseResult: ApplicationBootstrapResult<AppInstance, PiniaInstance, RouterInstance> =

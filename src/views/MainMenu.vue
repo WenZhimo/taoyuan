@@ -18,7 +18,11 @@
       <!-- 存档列表 -->
       <div v-for="info in slots" :key="info.slot" class="w-full">
         <div v-if="info.exists" class="flex space-x-1 w-full">
-          <button class="btn flex-1 !justify-between" @click="handleLoadGame(info.slot)">
+          <button
+            class="btn flex-1 !justify-between"
+            :data-testid="`save-slot-${info.slot}`"
+            @click="handleLoadGame(info.slot)"
+          >
             <span class="inline-flex items-center space-x-1">
               <FolderOpen :size="14" />
               <span>存档 {{ info.slot + 1 }}</span>

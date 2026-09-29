@@ -26,7 +26,7 @@
     <button class="mobile-map-btn" @click="showMobileMap = true">
       <Map :size="20" />
     </button>
-    <button class="mobile-setting-btn" @click="showSettings = true">
+    <button class="mobile-setting-btn" data-testid="game-settings-button" @click="showSettings = true">
       <SettingsIcon :size="20" />
     </button>
     <!-- 虚空箱远程访问按钮 -->

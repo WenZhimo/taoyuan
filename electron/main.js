@@ -218,6 +218,8 @@ const runtimeProbeStartupPersistentState =
   process.env.TAOYUAN_RUNTIME_PROBE_STARTUP_PERSISTENT_STATE === '1'
 const runtimeProbeStartupPersistentStateInstalledState =
   process.env.TAOYUAN_RUNTIME_PROBE_STARTUP_PERSISTENT_STATE_INSTALLED_STATE === '1'
+const runtimeProbeSaveSafeMode =
+  process.env.TAOYUAN_RUNTIME_PROBE_SAVE_SAFE_MODE === '1'
 const runtimeProbeVisibleImport =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT === '1'
 const runtimeProbeVisibleInstallFailAfterModLockWrite =
@@ -5722,6 +5724,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeStartupPersistentStateInstalledState
             ? { taoyuanThirdPartyStartupPersistentStateInstalledState: '1' }
+            : {}),
+          ...(runtimeProbeSaveSafeMode
+            ? { taoyuanSaveSafeModeProbe: '1' }
             : {}),
           ...(runtimeProbeInstallTransactionCommitFinalization
             || runtimeProbeOrdinaryInstallTerminalSuccess

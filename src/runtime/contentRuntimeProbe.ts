@@ -14,6 +14,7 @@ import type {
 import type {
   ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
 } from '@/domain/mods/thirdPartyDataPackSettingsLockfilePersistentWriterSource'
+import type { SaveSafeModeProductProbeResult } from './saveSafeModeProductProbe'
 
 const productProbePackageId = 'product_probe_pack'
 const productProbeItemId = `${productProbePackageId}:linen_ribbon`
@@ -405,6 +406,7 @@ export interface ContentRuntimeProbeEnvelope {
   thirdPartyRendererUiIpc: ThirdPartyRendererUiIpcRuntimeProbeSummary
   thirdPartyElectronInstallCommandDispatch: ThirdPartyElectronInstallCommandDispatchRuntimeProbeSummary
   thirdPartyVisibleImport: ThirdPartyVisibleImportRuntimeProbeSummary
+  saveSafeModeProductProbe?: SaveSafeModeProductProbeResult
   ui: {
     documentTitle: string
     locationProtocol: string
@@ -426,6 +428,7 @@ export interface ContentRuntimeProbeOptions {
   readonly thirdPartyRendererUiIpcWebEventObserved?: boolean
   readonly thirdPartyElectronInstallCommandDispatchResult?: unknown
   readonly thirdPartyVisibleImportResult?: unknown
+  readonly saveSafeModeProductProbe?: SaveSafeModeProductProbeResult
 }
 
 interface ElectronRuntimeProbeReporter {
@@ -1611,6 +1614,9 @@ export const publishContentRuntimeProbe = (
     thirdPartyVisibleImport: createThirdPartyVisibleImportRuntimeProbeSummary(
       options.thirdPartyVisibleImportResult
     ),
+    ...(options.saveSafeModeProductProbe === undefined
+      ? {}
+      : { saveSafeModeProductProbe: options.saveSafeModeProductProbe }),
     ui: {
       documentTitle: document.title,
       locationProtocol: location.protocol,

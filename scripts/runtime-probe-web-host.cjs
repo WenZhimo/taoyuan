@@ -139,9 +139,16 @@ app.whenReady().then(async () => {
   })
   await window.loadURL(targetUrl)
   const report = await waitForReport(window, consoleMessages)
+  const saveSafeModeProductProbe = await window.webContents.executeJavaScript(
+    'globalThis.__TAOYUAN_SAVE_SAFE_MODE_PRODUCT_PROBE__ ?? null',
+    true
+  )
   writeOutput({
     ...report,
-    webProductSurface: await waitForWebProductSurface(window)
+    webProductSurface: await waitForWebProductSurface(window),
+    ...(saveSafeModeProductProbe === null
+      ? {}
+      : { saveSafeModeProductProbe })
   })
   app.quit()
 }).catch(fail)

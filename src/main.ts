@@ -33,11 +33,16 @@ import {
 import type {
   ThirdPartyVisibleImportProductProbeResult
 } from '@/runtime/thirdPartyVisibleImportProductProbe'
+import type {
+  SaveSafeModeProductProbeResult
+} from '@/runtime/saveSafeModeProductProbe'
 import type { PackageId } from '@/domain/mods/ids'
 import './app.css'
 
 const runtimeProbeRequested = typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).get('taoyuanContentProbe') === '1'
+const saveSafeModeProductProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search).get('taoyuanSaveSafeModeProbe') === '1'
 const thirdPartyStartupGateProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search).get('taoyuanThirdPartyStartupGateProbe') === '1'
 const thirdPartyStartupPersistentStateProbeRequested = runtimeProbeRequested
@@ -133,6 +138,7 @@ let thirdPartyElectronInstallCommandDispatchProductProbeResult:
 let thirdPartyVisibleImportProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 let thirdPartyVisibleDisableProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 let thirdPartyVisibleUninstallProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
+let saveSafeModeProductProbeResult: SaveSafeModeProductProbeResult | undefined
 const bootstrapThirdPartyStartupGate = thirdPartyStartupPersistentStateProbeRequested
   ? thirdPartyStartupPersistentStateUsesInstalledState
     ? createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
@@ -189,6 +195,13 @@ void bootstrapApplication({
   installPinia: (app, pinia) => app.use(pinia),
   getRouter: async () => (await import('@/router')).default,
   installRouter: (app, router) => app.use(router),
+  beforeMount: async () => {
+    if (!saveSafeModeProductProbeRequested) return
+    const { prepareSaveSafeModeProductProbe } = await import(
+      '@/runtime/saveSafeModeProductProbe'
+    )
+    await prepareSaveSafeModeProductProbe()
+  },
   mount: (app, router) => mountAfterRouterReady(app, router),
   afterMount: async () => {
     if (runtimeProbeRequested) {
@@ -273,6 +286,12 @@ void bootstrapApplication({
         thirdPartyElectronInstallCommandDispatchProductProbeResult =
           await runThirdPartyElectronInstallCommandDispatchProductProbe(window)
       }
+      if (saveSafeModeProductProbeRequested) {
+        const { runSaveSafeModeProductProbe } = await import(
+          '@/runtime/saveSafeModeProductProbe'
+        )
+        saveSafeModeProductProbeResult = await runSaveSafeModeProductProbe()
+      }
       return
     }
     await thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline()
@@ -311,7 +330,8 @@ void bootstrapApplication({
     thirdPartyVisibleImportResult:
       thirdPartyVisibleUninstallProductProbeResult
         ?? thirdPartyVisibleDisableProductProbeResult
-        ?? thirdPartyVisibleImportProductProbeResult
+        ?? thirdPartyVisibleImportProductProbeResult,
+    saveSafeModeProductProbe: saveSafeModeProductProbeResult
   })
 }).catch(error => {
   reportApplicationStartupFailure(error)

@@ -11,6 +11,8 @@ const root = process.cwd()
 const require = createRequire(import.meta.url)
 const targetArg = process.argv.find(argument => argument.startsWith('--target='))
 const target = targetArg?.slice('--target='.length) ?? 'all'
+const scenarioArg = process.argv.find(argument => argument.startsWith('--scenario='))
+const scenarioFilter = scenarioArg?.slice('--scenario='.length) || null
 if (!['web', 'electron', 'android', 'all'].includes(target)) {
   throw new Error('Expected --target=web, --target=electron, --target=android, or --target=all')
 }
@@ -88,6 +90,13 @@ const expectedVisibleProbeUninstallPackageCount = scenario =>
   expectedVisibleProbeUninstallRemainingPackageIds(scenario).length
 const webScenarios = [
   { name: 'precompiled', fault: null, source: 'precompiled', status: 'official-precompiled-hit' },
+  {
+    name: 'save-safe-mode',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    saveSafeMode: true
+  },
   {
     name: 'startup-gate-ready',
     fault: null,
@@ -745,6 +754,16 @@ const webScenarios = [
 
 const electronScenarios = [
   { name: 'packaged-baseline', fault: null, source: null, status: null, isolated: false },
+  {
+    name: 'save-safe-mode',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    dataRoot: 'save-safe-mode',
+    cacheStatus: 'cache-miss-not-found',
+    cacheWriteStatus: 'written',
+    saveSafeMode: true
+  },
   {
     name: 'cache-miss-write',
     fault: null,
@@ -3525,6 +3544,17 @@ const electronScenarios = [
   }
 ]
 
+const selectScenarios = scenarios => {
+  if (scenarioFilter === null) return scenarios
+  const selected = scenarios.filter(scenario =>
+    scenario.name === scenarioFilter
+  )
+  if (selected.length === 0) {
+    throw new Error(`Unknown product probe scenario: ${scenarioFilter}`)
+  }
+  return selected
+}
+
 const assert = (condition, message) => {
   if (!condition) throw new Error(message)
 }
@@ -6136,7 +6166,8 @@ const assertCandidateRegistryCacheStatus = (startupGate, scenario) => {
 const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   assert(envelope?.schemaVersion === 1, `${scenario.name}: invalid envelope version`)
   assert(envelope.ui?.locationProtocol === protocol, `${scenario.name}: wrong protocol`)
-  assert(envelope.ui?.mainMenuReady === true, `${scenario.name}: main menu not ready`)
+  assert(envelope.ui?.mainMenuReady === (scenario.saveSafeMode !== true),
+    `${scenario.name}: unexpected final MainMenu readiness`)
   assert(envelope.ui?.startupFailureVisible === false, `${scenario.name}: startup failure visible`)
   const thirdPartyStartupGate = envelope.thirdPartyStartupGate
   assert(thirdPartyStartupGate?.schemaVersion === 1,
@@ -7111,6 +7142,7 @@ const assertWebProductSurface = (envelope, scenario) => {
   const surface = envelope.webProductSurface ?? envelope.electronProductSurface
   assert(surface?.schemaVersion === 1,
     `${scenario.name}: missing product surface summary`)
+  if (scenario.saveSafeMode) return
   const expectsResponseDelivery = scenarioExpectsResponseDeliverySurface(scenario)
   const expectsVisiblePanel =
     expectsResponseDelivery || scenarioExpectsVisibleImportPanelSurface(scenario)
@@ -7141,6 +7173,35 @@ const assertWebProductSurface = (envelope, scenario) => {
     `${scenario.name}: Web response delivery summary leaked an absolute path`)
   assert(!summaryText.includes('C:/Users') && !summaryText.includes('LENOVO'),
     `${scenario.name}: Web response delivery summary leaked local user details`)
+}
+
+const assertSaveSafeModeProductProbe = (envelope, scenario) => {
+  const probe = envelope.saveSafeModeProductProbe
+    ?? envelope.runtime?.saveSafeModeProductProbe
+  assert(probe?.schemaVersion === 1,
+    `${scenario.name}: missing save safe mode product probe result`)
+  assert(probe.status === 'ready',
+    `${scenario.name}: save safe mode product probe was not ready`)
+  for (const fieldName of [
+    'ordinaryLoadRejected',
+    'safeModeDialogVisible',
+    'safeModeLoadSucceeded',
+    'safeModeReadOnly',
+    'sourceUnchanged',
+    'saveRejected',
+    'settingsReadOnlyBannerVisible'
+  ]) {
+    assert(probe[fieldName] === true,
+      `${scenario.name}: save safe mode probe field ${fieldName} was not true`)
+  }
+  assert(probe.saveFailureReason === 'safe-mode-read-only',
+    `${scenario.name}: save safe mode probe reported the wrong failure reason`)
+  assert(probe.routeAfterLoad === '/game',
+    `${scenario.name}: save safe mode probe did not reach the game route`)
+  assert(probe.savedPackageId === 'save_safe_mode_probe_pack',
+    `${scenario.name}: save safe mode probe used the wrong saved package identity`)
+  assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(probe)),
+    `${scenario.name}: save safe mode probe leaked an absolute path`)
 }
 
 const assertElectronModLockStorageProbe = (probe, scenario, isolated) => {
@@ -8044,11 +8105,14 @@ const runWebProbe = async () => {
     if (scenario.visibleArchiveImport) {
       url.searchParams.set('taoyuanThirdPartyVisibleArchiveImportProbe', '1')
     }
+    if (scenario.saveSafeMode) {
+      url.searchParams.set('taoyuanSaveSafeModeProbe', '1')
+    }
     if (scenario.fault) url.searchParams.set('taoyuanPrecompiledFault', scenario.fault)
     return url
   }
   try {
-    for (const scenario of webScenarios) {
+    for (const scenario of selectScenarios(webScenarios)) {
       const scenarioRoot = path.join(runRoot, `web-${scenario.name}`)
       const outputPath = path.join(scenarioRoot, 'report.json')
       fs.mkdirSync(scenarioRoot, { recursive: true })
@@ -8686,6 +8750,7 @@ const runWebProbe = async () => {
       const envelope = readJson(outputPath)
       assertRuntimeEnvelope(envelope, scenario, 'http:')
       assertWebProductSurface(envelope, scenario)
+      if (scenario.saveSafeMode) assertSaveSafeModeProductProbe(envelope, scenario)
       reports.push({ scenario: scenario.name, runtime: envelope.runtime })
     }
   } finally {
@@ -8793,6 +8858,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     TAOYUAN_RUNTIME_PROBE_OUTPUT: outputPath,
     TAOYUAN_RUNTIME_PROBE_AUTO_EXIT: '1',
     ...(scenario.fault ? { TAOYUAN_RUNTIME_PROBE_FAULT: scenario.fault } : {}),
+    ...(scenario.saveSafeMode ? { TAOYUAN_RUNTIME_PROBE_SAVE_SAFE_MODE: '1' } : {}),
     ...(scenario.modLockWriteRead ? { TAOYUAN_RUNTIME_PROBE_MOD_LOCK_WRITE_READ: '1' } : {}),
     ...(scenario.settingsLockfileWriteRead
       ? { TAOYUAN_RUNTIME_PROBE_SETTINGS_LOCKFILE_WRITE_READ: '1' }
@@ -9662,6 +9728,7 @@ const runPackagedScenario = async (scenario, isolated) => {
     `${scenario.name}: package file temporary files changed unexpectedly`)
   assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(productReport)),
     `${scenario.name}: Electron report leaked an absolute path`)
+  if (scenario.saveSafeMode) assertSaveSafeModeProductProbe(productReport, scenario)
   return { scenario: scenario.name, runtime: productReport.runtime, electron: productReport.electron }
 }
 
@@ -10162,12 +10229,20 @@ const runElectronProbe = async () => {
   assert(fs.existsSync(packagedExecutable),
     'Electron product is missing; run pnpm build:electron')
   const reports = []
-  reports.push(await runPackagedScenario(electronScenarios[0], false))
+  const selectedElectronScenarios = scenarioFilter === null
+    ? electronScenarios
+    : [
+        electronScenarios[0],
+        ...(scenarioFilter === electronScenarios[0].name
+          ? []
+          : selectScenarios(electronScenarios.slice(1)))
+      ]
+  reports.push(await runPackagedScenario(selectedElectronScenarios[0], false))
 
   const formalUserData = path.join(packagedRoot, 'userdata')
   assert(fs.existsSync(formalUserData), 'Packaged app did not create program-local userdata')
   const formalFingerprint = directoryFingerprint(formalUserData)
-  for (const scenario of electronScenarios.slice(1)) {
+  for (const scenario of selectedElectronScenarios.slice(1)) {
     if (scenario.visibleImportInstalledDisabledReplacementSequence) {
       reports.push(await runPackagedVisibleDisabledReplacementSequence(scenario, scenario.isolated !== false))
       continue
