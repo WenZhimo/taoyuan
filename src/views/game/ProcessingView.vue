@@ -81,13 +81,30 @@
             >
               <div class="flex items-center justify-between mb-1.5">
                 <span class="text-xs" :class="slot.ready ? 'text-success' : 'text-accent'">{{ group.name }}</span>
-                <button class="text-muted hover:text-danger" @click="handleRemoveMachine(originalIndex)">
+                <button
+                  v-if="!processingStore.isSlotReadOnly(slot)"
+                  class="text-muted hover:text-danger"
+                  @click="handleRemoveMachine(originalIndex)"
+                >
                   <Trash2 :size="12" />
                 </button>
+                <span v-else class="text-[10px] text-warning">只读</span>
               </div>
 
-              <!-- 空闲：选择配方 -->
-              <div v-if="!slot.recipeId">
+              <div v-if="processingStore.isSlotReadOnly(slot)" class="border border-warning/20 rounded-xs p-2 text-xs text-warning">
+                <p>数据已保留，当前只读。</p>
+                <p v-if="!processingStore.isMachineDefinitionAvailable(slot.machineType)" class="mt-1">
+                  未知设施（原 ID：{{ slot.machineType }}）
+                </p>
+                <p v-for="recipeId in getUnknownRecipeIds(slot)" :key="recipeId" class="mt-1">
+                  未知配方（原 ID：{{ recipeId }}）
+                </p>
+                <p class="mt-1 text-muted">恢复对应数据包后可继续加工或收取。</p>
+              </div>
+
+              <template v-else>
+                <!-- 空闲：选择配方 -->
+                <div v-if="!slot.recipeId">
                 <!-- 种子制造机：按品质展开 -->
                 <template v-if="slot.machineType === 'seed_maker'">
                   <div v-if="slot.seedMakerJobs?.length" class="flex flex-col space-y-1 mb-2">
@@ -213,10 +230,10 @@
                   </div>
                   <p v-else class="text-xs text-muted">{{ onlyAvailable ? '没有材料足够的配方' : '无可用配方' }}</p>
                 </template>
-              </div>
+                </div>
 
-              <!-- 加工中 -->
-              <div v-else-if="!slot.ready">
+                <!-- 加工中 -->
+                <div v-else-if="!slot.ready">
                 <div class="flex items-center justify-between text-xs mb-1">
                   <span class="text-muted">{{ getRecipeName(slot.recipeId) }}</span>
                   <span class="text-muted">{{ slot.daysProcessed }}/{{ slot.totalDays }}天</span>
@@ -230,10 +247,10 @@
                 <Button class="w-full justify-center" :icon="X" :icon-size="10" @click="handleCancelProcessing(originalIndex)">
                   取消加工
                 </Button>
-              </div>
+                </div>
 
-              <!-- 完成 -->
-              <div v-else>
+                <!-- 完成 -->
+                <div v-else>
                 <Button
                   class="w-full justify-center !bg-accent !text-bg"
                   :icon="Package"
@@ -242,7 +259,8 @@
                 >
                   收取 {{ getRecipeOutputName(slot.recipeId) }}
                 </Button>
-              </div>
+                </div>
+              </template>
             </div>
           </div>
         </div>
@@ -552,7 +570,7 @@
     return getWineJobPagination(slotIndex).pagedItems.value
   }
 
-  const getFilteredRecipes = (machineType: MachineType) => {
+  const getFilteredRecipes = (machineType: string) => {
     const recipes = processingStore.getAvailableRecipes(machineType)
     if (!onlyAvailable.value) return recipes
     return recipes.filter(r => r.inputItemId === null || hasCombinedItem(r.inputItemId, r.inputQuantity))
@@ -561,7 +579,7 @@
   const QUALITY_ORDER: Quality[] = ['normal', 'fine', 'excellent', 'supreme']
 
   /** 种子制造机：按品质展开配方列表 */
-  const getSeedMakerQualityRecipes = (machineType: MachineType) => {
+  const getSeedMakerQualityRecipes = (machineType: string) => {
     const recipes = processingStore.getAvailableRecipes(machineType)
     const result: { recipe: (typeof recipes)[number]; quality: Quality; count: number; available: boolean }[] = []
     for (const recipe of recipes) {
@@ -585,7 +603,7 @@
   // === 机器分组（相同设备排到一起，可折叠） ===
 
   interface MachineGroup {
-    machineType: MachineType
+    machineType: string
     name: string
     slots: { slot: (typeof processingStore.machines)[number]; originalIndex: number }[]
   }
@@ -599,9 +617,9 @@
   }
 
   const machineGroups = computed((): MachineGroup[] => {
-    const groupMap = new Map<MachineType, MachineGroup>()
+    const groupMap = new Map<string, MachineGroup>()
     // 按加工机器定义顺序作为排序基准
-    const typeOrder = new Map(getProcessingMachines().map((m, i) => [m.id as MachineType, i]))
+    const typeOrder = new Map<string, number>(getProcessingMachines().map((m, i): [string, number] => [m.id, i]))
     for (let i = 0; i < processingStore.machines.length; i++) {
       const slot = processingStore.machines[i]!
       let group = groupMap.get(slot.machineType)
@@ -614,7 +632,7 @@
     return [...groupMap.values()].sort((a, b) => (typeOrder.get(a.machineType) ?? 99) - (typeOrder.get(b.machineType) ?? 99))
   })
 
-  const toggleGroup = (type: MachineType) => {
+  const toggleGroup = (type: string) => {
     processingStore.toggleGroup(type)
   }
 
@@ -935,8 +953,8 @@
 
   // === 工具函数 ===
 
-  const getMachineName = (type: MachineType): string => {
-    return getMachineById(type)?.name ?? type
+  const getMachineName = (type: string): string => {
+    return getMachineById(type)?.name ?? `未知设施（${type}）`
   }
 
   const getItemName = (id: string): string => {
@@ -945,6 +963,15 @@
 
   const getRecipeName = (recipeId: string): string => {
     return getProcessingRecipeById(recipeId)?.name ?? recipeId
+  }
+
+  const getUnknownRecipeIds = (slot: (typeof processingStore.machines)[number]): string[] => {
+    const recipeIds = [
+      ...(slot.recipeId ? [slot.recipeId] : []),
+      ...(slot.seedMakerJobs ?? []).map(job => job.recipeId),
+      ...(slot.wineJobs ?? []).map(job => job.recipeId)
+    ]
+    return [...new Set(recipeIds.filter(recipeId => !processingStore.isRecipeDefinitionAvailable(recipeId)))]
   }
 
   const getRecipeOutputName = (recipeId: string): string => {

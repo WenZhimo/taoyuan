@@ -136,4 +136,101 @@ describe('processing store end day update', () => {
       ready: false
     })
   })
+
+  it('preserves unknown facilities and recipes as read-only processing state', () => {
+    const processingStore = useProcessingStore()
+    const source = {
+      machines: [
+        {
+          machineType: 'missing_pack:fermenter',
+          recipeId: 'missing_pack:ancient_wine',
+          inputItemId: 'missing_pack:fruit',
+          inputQuality: 'fine' as const,
+          daysProcessed: 2,
+          totalDays: 5,
+          ready: false
+        }
+      ],
+      workshopLevel: 0,
+      collapsedGroups: []
+    }
+
+    processingStore.deserialize(source)
+    const before = JSON.stringify(processingStore.serialize())
+
+    expect(processingStore.isMachineDefinitionAvailable('missing_pack:fermenter')).toBe(false)
+    expect(processingStore.isRecipeDefinitionAvailable('missing_pack:ancient_wine')).toBe(false)
+    expect(processingStore.isSlotReadOnly(processingStore.machines[0]!)).toBe(true)
+    expect(processingStore.cancelProcessing(0)).toBe(false)
+    expect(processingStore.collectProduct(0)).toBeNull()
+    expect(processingStore.removeMachine(0)).toBe(false)
+    expect(processingStore.dailyUpdate()).toEqual({ collected: [], readyNames: [] })
+    expect(JSON.stringify(processingStore.serialize())).toBe(before)
+  })
+
+  it('does not advance or remove a known facility with an unknown recipe', () => {
+    const processingStore = useProcessingStore()
+    const source = {
+      machines: [
+        {
+          machineType: 'bee_house',
+          recipeId: 'missing_pack:ancient_honey',
+          inputItemId: null,
+          daysProcessed: 3,
+          totalDays: 4,
+          ready: false
+        }
+      ],
+      workshopLevel: 0,
+      collapsedGroups: []
+    }
+
+    processingStore.deserialize(source)
+    const before = JSON.stringify(processingStore.serialize())
+
+    expect(processingStore.isSlotReadOnly(processingStore.machines[0]!)).toBe(true)
+    expect(processingStore.dailyUpdate()).toEqual({ collected: [], readyNames: [] })
+    expect(processingStore.cancelProcessing(0)).toBe(false)
+    expect(processingStore.removeMachine(0)).toBe(false)
+    expect(JSON.stringify(processingStore.serialize())).toBe(before)
+  })
+
+  it('keeps unknown queued recipes unchanged until the data pack returns', () => {
+    const processingStore = useProcessingStore()
+    const source = {
+      machines: [
+        {
+          machineType: 'seed_maker',
+          recipeId: null,
+          inputItemId: null,
+          daysProcessed: 0,
+          totalDays: 0,
+          ready: false,
+          seedMakerJobs: [
+            {
+              id: 'missing-job',
+              recipeId: 'missing_pack:ancient_seed',
+              inputItemId: 'missing_pack:seed',
+              inputQuality: 'excellent' as const,
+              daysProcessed: 1,
+              totalDays: 3,
+              ready: false
+            }
+          ]
+        }
+      ],
+      workshopLevel: 0,
+      collapsedGroups: []
+    }
+
+    processingStore.deserialize(source)
+    const before = JSON.stringify(processingStore.serialize())
+
+    expect(processingStore.isSlotReadOnly(processingStore.machines[0]!)).toBe(true)
+    expect(processingStore.dailyUpdate()).toEqual({ collected: [], readyNames: [] })
+    expect(processingStore.cancelSeedMakerJob(0, 'missing-job')).toBe(false)
+    expect(processingStore.collectSeedMakerJob(0, 'missing-job')).toBeNull()
+    expect(processingStore.removeMachine(0)).toBe(false)
+    expect(JSON.stringify(processingStore.serialize())).toBe(before)
+  })
 })

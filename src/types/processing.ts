@@ -64,7 +64,8 @@ export interface ProcessingJob {
 export type SeedMakerJob = ProcessingJob
 
 export interface ProcessingSlot {
-  machineType: MachineType
+  /** 持久化的设施 ID 可能来自当前未安装的数据包，不能因编译期未知而丢弃。 */
+  machineType: string
   recipeId: string | null
   inputItemId: string | null
   inputQuality?: Quality
