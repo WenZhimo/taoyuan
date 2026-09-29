@@ -102,6 +102,43 @@
       </div>
     </Transition>
 
+    <!-- 缺失第三方数据包时只读打开存档 -->
+    <Transition name="panel-fade">
+      <div
+        v-if="safeModeSlot !== null"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4"
+        data-testid="save-safe-mode-dialog"
+      >
+        <div class="game-panel w-full max-w-md mx-4 text-center relative">
+          <h2 class="text-accent text-lg mb-3">以安全模式打开存档</h2>
+          <p class="text-sm text-text leading-relaxed">
+            当前存档包含未启用的数据包。安全模式只加载官方内容，原存档不会被覆盖。
+          </p>
+          <p class="text-xs text-muted mt-2 leading-relaxed">
+            当前会话中的保存功能将保持关闭；恢复对应数据包后重新加载，才能继续保存。
+          </p>
+          <div class="flex gap-3 justify-center mt-5">
+            <Button
+              data-testid="save-safe-mode-confirm"
+              class="justify-center"
+              :icon="FolderOpen"
+              @click="confirmSafeModeLoad"
+            >
+              只读打开
+            </Button>
+            <Button
+              data-testid="save-safe-mode-cancel"
+              class="justify-center"
+              :icon="X"
+              @click="cancelSafeModeLoad"
+            >
+              取消
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Transition>
+
     <!-- 关于弹窗 -->
     <Transition name="panel-fade">
       <div v-if="showAbout" class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80" @click.self="showAbout = false">
@@ -460,6 +497,7 @@
   const showPrivacy = ref(false)
   const showFarmConfirm = ref(false)
   const showModManager = ref(false)
+  const safeModeSlot = ref<number | null>(null)
   const latestWebResponseDelivery = ref<WebResponseDeliverySummary | null>(null)
 
   const deleteTargetSlot = ref<number | null>(null)
@@ -604,8 +642,28 @@
         void router.push('/game')
       }
     } else {
+      if (!Capacitor.isNativePlatform() && await saveStore.canLoadSlotInSafeMode(slot)) {
+        safeModeSlot.value = slot
+        return
+      }
       showFloat(saveStore.lastOperationFailure?.message ?? '读取存档失败，原存档未修改。', 'danger')
     }
+  }
+
+  const confirmSafeModeLoad = async () => {
+    const slot = safeModeSlot.value
+    safeModeSlot.value = null
+    if (slot === null) return
+    if (await saveStore.loadFromSlotInSafeMode(slot)) {
+      showFloat('已以安全模式打开，当前存档只读且原档未修改。', 'success')
+      void router.push('/game')
+    } else {
+      showFloat(saveStore.lastOperationFailure?.message ?? '安全模式无法打开该存档，原存档未修改。', 'danger')
+    }
+  }
+
+  const cancelSafeModeLoad = () => {
+    safeModeSlot.value = null
   }
 
   /** 旧存档身份设置完成 */

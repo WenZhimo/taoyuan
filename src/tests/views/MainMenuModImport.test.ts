@@ -7,6 +7,14 @@ import MainMenu from '@/views/MainMenu.vue'
 import { showFloat } from '@/composables/useGameLog'
 import { useSaveStore } from '@/stores/useSaveStore'
 import {
+  createOfficialSaveContentEnvironment,
+  createSaveContentEnvironment
+} from '@/domain/save/saveContentEnvironment'
+import { hashPayloadJson } from '@/domain/mods/hash'
+import type { PackageId } from '@/domain/mods/ids'
+import { encodeSaveData } from '@/utils/saveCodec'
+import legacySaveFixture from '../fixtures/saves/legacy-v1-baseline.json'
+import {
   runThirdPartyRendererUiIpcProductProbe
 } from '@/runtime/thirdPartyRendererUiIpcProductProbe'
 import { resetLiveContentRegistryForTests } from '@/domain/mods/liveContentRegistry'
@@ -728,6 +736,57 @@ describe('MainMenu Web data pack import entry', () => {
       'danger'
     )
     expect(localStorage.getItem('taoyuanxiang_save_0')).toBe(rawSave)
+    wrapper.unmount()
+  })
+
+  it('offers a read-only safe mode for a save whose third-party package is not enabled', async() => {
+    const official = createOfficialSaveContentEnvironment()
+    const packageId = 'main_menu_safe_mode_pack' as PackageId
+    const contentEnvironment = createSaveContentEnvironment({
+      gameVersion: official.gameVersion,
+      engineApiVersion: official.engineApiVersion,
+      contentSchemaVersion: official.contentSchemaVersion,
+      loaderVersion: official.loaderVersion,
+      contentCompilerVersion: official.contentCompilerVersion,
+      schemaSetHash: official.schemaSetHash,
+      cacheFormatVersion: official.cacheFormatVersion,
+      trustPolicyVersion: official.trustPolicyVersion,
+      packages: [
+        official.packages[0]!,
+        {
+          id: packageId,
+          version: '1.0.0',
+          contentHash: hashPayloadJson('safe-mode-content'),
+          configurationHash: hashPayloadJson('safe-mode-config'),
+          loadIndex: 1,
+          resolvedDependencies: []
+        }
+      ]
+    })
+    const source = await encodeSaveData({
+      ...legacySaveFixture,
+      saveFormatVersion: 3,
+      contentEnvironment,
+      pluginData: {},
+      packageSettings: {}
+    })
+    localStorage.setItem('taoyuanxiang_save_0', source)
+
+    const wrapper = await mountMainMenu()
+    const saveStore = useSaveStore()
+    await wrapper.findAll('button').find(button => button.text().includes('存档 1'))!.trigger('click')
+
+    await vi.waitFor(() => {
+      expect(wrapper.find('[data-testid="save-safe-mode-dialog"]').exists()).toBe(true)
+    })
+    expect(wrapper.get('[data-testid="save-safe-mode-dialog"]').text()).toContain('只读')
+    expect(saveStore.isReadOnlySafeMode).toBe(false)
+    expect(localStorage.getItem('taoyuanxiang_save_0')).toBe(source)
+
+    await wrapper.get('[data-testid="save-safe-mode-cancel"]').trigger('click')
+    await vi.waitFor(() => {
+      expect(wrapper.find('[data-testid="save-safe-mode-dialog"]').exists()).toBe(false)
+    })
     wrapper.unmount()
   })
 

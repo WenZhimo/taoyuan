@@ -343,11 +343,18 @@
         </div>
 
         <!-- 存档管理（全局底部） -->
+        <p
+          v-if="saveStore.isReadOnlySafeMode"
+          data-testid="save-safe-mode-read-only"
+          class="text-xs text-warning leading-relaxed mt-3"
+        >
+          安全模式：当前存档只读。恢复对应数据包后重新加载，才能继续保存。
+        </p>
         <Button
           :icon="FolderOpen"
           :icon-size="12"
           class="py-1 px-3 w-full justify-center mt-3"
-          :disabled="saveStore.isBusy"
+          :disabled="saveStore.isBusy || saveStore.isReadOnlySafeMode"
           @click="handleManualSave"
         >
           {{ saveStore.isBusy ? '存档处理中...' : '手动保存' }}

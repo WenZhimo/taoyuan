@@ -30,6 +30,7 @@ import { useHiddenNpcStore } from './useHiddenNpcStore'
 import { encodeSaveData, normalizeSaveData } from '@/utils/saveCodec'
 import {
   CURRENT_SAVE_FORMAT_VERSION,
+  canLoadSaveContentEnvironmentInOfficialSafeMode,
   checkSaveRootCompatibility,
   normalizeSaveContentEnvironment,
   validateSavePackageMigrationStep,
@@ -75,6 +76,7 @@ type SaveOperationFailureReason =
   | 'plugin-data-quota'
   | 'plugin-data-migration'
   | 'package-settings-invalid'
+  | 'safe-mode-read-only'
   | 'slot-protected'
   | 'storage'
 
@@ -123,6 +125,7 @@ export const useSaveStore = defineStore('save', () => {
   const packageMigrations = new Map<string, SavePackageMigrationStep>()
   const packageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
   const persistedPackageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
+  const isReadOnlySafeMode = ref(false)
   const operation = ref<SaveOperation | null>(null)
   const lastOperationFailure = ref<SaveOperationFailure | null>(null)
   const isBusy = computed(() => operation.value !== null)
@@ -167,6 +170,8 @@ export const useSaveStore = defineStore('save', () => {
       message = nextOperation === 'importing'
         ? '存档级数据包设置结构无效，导入已拒绝且目标槽位未写入。请保留原文件并检查对应数据包。'
         : '存档级数据包设置结构无效，操作已拒绝且原存档未修改。请先导出备份，再检查对应数据包。'
+    } else if (reason === 'safe-mode-read-only') {
+      message = '当前存档已在安全模式中以只读方式打开，原存档不会被覆盖。请恢复对应数据包后重新加载，或先导出存档。'
     } else if (reason === 'slot-protected') {
       message = '目标槽位无法安全验证，保存已取消以避免覆盖原档。请先导出该槽位备份，或改用空槽。'
     } else if (reason === 'invalid') {
@@ -360,6 +365,7 @@ export const useSaveStore = defineStore('save', () => {
     const empty = getSlots().find(slot => !slot.exists)
     activeSlot.value = empty?.slot ?? -1
     if (activeSlot.value >= 0) {
+      isReadOnlySafeMode.value = false
       pluginDataState.value = createEmptyPersistedPluginData()
       persistedPluginData.value = createEmptyPersistedPluginData()
       packageSettings.value = createEmptyPersistedPackageSettings()
@@ -439,6 +445,66 @@ export const useSaveStore = defineStore('save', () => {
       hiddenNpc: hiddenNpcStore.serialize(),
       savedAt: new Date().toISOString()
     }
+  }
+
+  const applyLoadedSaveData = (data: Record<string, any>): void => {
+    const gameStore = useGameStore()
+    const playerStore = usePlayerStore()
+    const inventoryStore = useInventoryStore()
+    const farmStore = useFarmStore()
+    const skillStore = useSkillStore()
+    const npcStore = useNpcStore()
+    const miningStore = useMiningStore()
+    const cookingStore = useCookingStore()
+    const processingStore = useProcessingStore()
+    const achievementStore = useAchievementStore()
+    const animalStore = useAnimalStore()
+    const homeStore = useHomeStore()
+    const fishingStore = useFishingStore()
+    const walletStore = useWalletStore()
+    const questStore = useQuestStore()
+    const shopStore = useShopStore()
+    const settingsStore = useSettingsStore()
+    const warehouseStore = useWarehouseStore()
+    const breedingStore = useBreedingStore()
+    const museumStore = useMuseumStore()
+    const guildStore = useGuildStore()
+    const secretNoteStore = useSecretNoteStore()
+    const hanhaiStore = useHanhaiStore()
+    const fishPondStore = useFishPondStore()
+    const tutorialStore = useTutorialStore()
+    const hiddenNpcStore = useHiddenNpcStore()
+
+    gameStore.deserialize(data.game)
+    playerStore.deserialize(data.player)
+    inventoryStore.deserialize(data.inventory)
+    farmStore.deserialize(data.farm)
+    if (data.skill) skillStore.deserialize(data.skill)
+    if (data.npc) npcStore.deserialize(data.npc)
+    if (data.mining) miningStore.deserialize(data.mining)
+    if (data.cooking) cookingStore.deserialize(data.cooking)
+    if (data.processing) processingStore.deserialize(data.processing)
+    if (data.achievement) achievementStore.deserialize(data.achievement)
+    if (data.animal) animalStore.deserialize(data.animal)
+    if (data.home) homeStore.deserialize(data.home)
+    if (data.fishing) fishingStore.deserialize(data.fishing)
+    if (data.wallet) walletStore.deserialize(data.wallet)
+    if (data.quest) questStore.deserialize(data.quest)
+    if (data.shop) shopStore.deserialize(data.shop)
+    if (data.settings) settingsStore.deserialize(data.settings)
+    if (data.warehouse) warehouseStore.deserialize(data.warehouse)
+    if (data.breeding) breedingStore.deserialize(data.breeding)
+    if (data.museum) museumStore.deserialize(data.museum)
+    if (data.guild) guildStore.deserialize(data.guild)
+    if (data.secretNote) secretNoteStore.deserialize(data.secretNote)
+    if (data.hanhai) hanhaiStore.deserialize(data.hanhai)
+    if (data.fishPond) fishPondStore.deserialize(data.fishPond)
+    if (data.tutorial) tutorialStore.deserialize(data.tutorial)
+    if (data.hiddenNpc) hiddenNpcStore.deserialize(data.hiddenNpc)
+    pluginDataState.value = data.pluginData
+    persistedPluginData.value = data.pluginData
+    packageSettings.value = data.packageSettings
+    persistedPackageSettings.value = data.packageSettings
   }
 
   const setContentEnvironment = (value: unknown): boolean => {
@@ -525,6 +591,7 @@ export const useSaveStore = defineStore('save', () => {
   const saveToSlot = async (slot: number): Promise<boolean> => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     return runOperation('saving', async () => {
+      if (isReadOnlySafeMode.value) return failOperation('saving', 'safe-mode-read-only')
       const previousPluginData = await readExistingPluginData(slot)
       const previousPackageSettings = await readExistingPackageSettings(slot)
       if (!previousPluginData || !previousPackageSettings) return failOperation('saving', 'slot-protected')
@@ -570,67 +637,56 @@ export const useSaveStore = defineStore('save', () => {
       data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
       const encoded = await encodeSaveData(data)
 
-      const gameStore = useGameStore()
-      const playerStore = usePlayerStore()
-      const inventoryStore = useInventoryStore()
-      const farmStore = useFarmStore()
-      const skillStore = useSkillStore()
-      const npcStore = useNpcStore()
-      const miningStore = useMiningStore()
-      const cookingStore = useCookingStore()
-      const processingStore = useProcessingStore()
-      const achievementStore = useAchievementStore()
-      const animalStore = useAnimalStore()
-      const homeStore = useHomeStore()
-      const fishingStore = useFishingStore()
-      const walletStore = useWalletStore()
-      const questStore = useQuestStore()
-      const shopStore = useShopStore()
-      const settingsStore = useSettingsStore()
-      const warehouseStore = useWarehouseStore()
-      const breedingStore = useBreedingStore()
-      const museumStore = useMuseumStore()
-      const guildStore = useGuildStore()
-      const secretNoteStore = useSecretNoteStore()
-      const hanhaiStore = useHanhaiStore()
-      const fishPondStore = useFishPondStore()
-      const tutorialStore = useTutorialStore()
-      const hiddenNpcStore = useHiddenNpcStore()
-
       persistSlot(slot, encoded, data)
-
-      gameStore.deserialize(data.game)
-      playerStore.deserialize(data.player)
-      inventoryStore.deserialize(data.inventory)
-      farmStore.deserialize(data.farm)
-      if (data.skill) skillStore.deserialize(data.skill)
-      if (data.npc) npcStore.deserialize(data.npc)
-      if (data.mining) miningStore.deserialize(data.mining)
-      if (data.cooking) cookingStore.deserialize(data.cooking)
-      if (data.processing) processingStore.deserialize(data.processing)
-      if (data.achievement) achievementStore.deserialize(data.achievement)
-      if (data.animal) animalStore.deserialize(data.animal)
-      if (data.home) homeStore.deserialize(data.home)
-      if (data.fishing) fishingStore.deserialize(data.fishing)
-      if (data.wallet) walletStore.deserialize(data.wallet)
-      if (data.quest) questStore.deserialize(data.quest)
-      if (data.shop) shopStore.deserialize(data.shop)
-      if (data.settings) settingsStore.deserialize(data.settings)
-      if (data.warehouse) warehouseStore.deserialize(data.warehouse)
-      if (data.breeding) breedingStore.deserialize(data.breeding)
-      if (data.museum) museumStore.deserialize(data.museum)
-      if (data.guild) guildStore.deserialize(data.guild)
-      if (data.secretNote) secretNoteStore.deserialize(data.secretNote)
-      if (data.hanhai) hanhaiStore.deserialize(data.hanhai)
-      if (data.fishPond) fishPondStore.deserialize(data.fishPond)
-      if (data.tutorial) tutorialStore.deserialize(data.tutorial)
-      if (data.hiddenNpc) hiddenNpcStore.deserialize(data.hiddenNpc)
-      pluginDataState.value = data.pluginData
-      persistedPluginData.value = data.pluginData
-      packageSettings.value = data.packageSettings
-      persistedPackageSettings.value = data.packageSettings
+      applyLoadedSaveData(data)
 
       activeSlot.value = slot
+      isReadOnlySafeMode.value = false
+      return true
+    })
+  }
+
+  const canLoadSlotInSafeMode = async (slot: number): Promise<boolean> => {
+    if (slot < 0 || slot >= MAX_SLOTS || operation.value) return false
+    const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slot}`)
+    if (!raw) return false
+    const normalized = await normalizeSaveData(raw)
+    if (!normalized) return false
+    const compatibility = checkCompatibility(normalized.data)
+    return compatibility.migration !== undefined
+      && canLoadSaveContentEnvironmentInOfficialSafeMode(
+        compatibility.migration.environment,
+        contentEnvironment.value
+      )
+  }
+
+  const loadFromSlotInSafeMode = async (slot: number): Promise<boolean> => {
+    if (slot < 0 || slot >= MAX_SLOTS) return false
+    return runOperation('loading', async () => {
+      const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slot}`)
+      if (!raw) return failOperation('loading', 'invalid')
+      const normalized = await normalizeSaveData(raw)
+      if (!normalized) return failOperation('loading', 'invalid')
+      const compatibility = checkCompatibility(normalized.data)
+      const migration = compatibility.migration
+      if (
+        migration === undefined
+        || !canLoadSaveContentEnvironmentInOfficialSafeMode(
+          migration.environment,
+          contentEnvironment.value
+        )
+      ) {
+        return failOperation('loading', 'incompatible', compatibility.diagnostics)
+      }
+
+      const data = migration.data
+      data.pluginData = normalizePersistedPluginData(data.pluginData, {
+        owners: getPluginDataOwners()
+      })
+      data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
+      applyLoadedSaveData(data)
+      activeSlot.value = slot
+      isReadOnlySafeMode.value = true
       return true
     })
   }
@@ -640,7 +696,10 @@ export const useSaveStore = defineStore('save', () => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     localStorage.removeItem(`${SAVE_KEY_PREFIX}${slot}`)
     localStorage.removeItem(`${SAVE_META_KEY_PREFIX}${slot}`)
-    if (activeSlot.value === slot) activeSlot.value = -1
+    if (activeSlot.value === slot) {
+      activeSlot.value = -1
+      isReadOnlySafeMode.value = false
+    }
     return true
   }
 
@@ -698,6 +757,7 @@ export const useSaveStore = defineStore('save', () => {
     readPluginSaveData,
     writePluginSaveData,
     packageSettings,
+    isReadOnlySafeMode,
     operation,
     operationLabel,
     lastOperationFailure,
@@ -707,6 +767,8 @@ export const useSaveStore = defineStore('save', () => {
     saveToSlot,
     autoSave,
     loadFromSlot,
+    canLoadSlotInSafeMode,
+    loadFromSlotInSafeMode,
     deleteSlot,
     exportSave,
     importSave,

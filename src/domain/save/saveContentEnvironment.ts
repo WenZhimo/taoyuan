@@ -168,6 +168,26 @@ const sameRuntimeIdentity = (
   left.cacheFormatVersion === right.cacheFormatVersion &&
   left.trustPolicyVersion === right.trustPolicyVersion
 
+export const isOfficialOnlySaveContentEnvironment = (
+  environment: SaveContentEnvironment
+): boolean =>
+  environment.packages.length === 1 && environment.packages[0]?.id === OFFICIAL_PACKAGE_ID
+
+export const canLoadSaveContentEnvironmentInOfficialSafeMode = (
+  saved: SaveContentEnvironment,
+  current: SaveContentEnvironment
+): boolean => {
+  if (!isOfficialOnlySaveContentEnvironment(current)) return false
+  if (!saved.packages.some(pkg => pkg.id !== OFFICIAL_PACKAGE_ID)) return false
+
+  const savedOfficialPackage = saved.packages.find(pkg => pkg.id === OFFICIAL_PACKAGE_ID)
+  const currentOfficialPackage = current.packages.find(pkg => pkg.id === OFFICIAL_PACKAGE_ID)
+  return savedOfficialPackage !== undefined
+    && currentOfficialPackage !== undefined
+    && sameRuntimeIdentity(saved, current)
+    && samePackageIdentity(savedOfficialPackage, currentOfficialPackage)
+}
+
 const migrationDiagnostic = (
   details: Record<string, string | number | boolean | null>
 ): ModDiagnostic => saveEnvironmentDiagnostic('save.root.migration', details)

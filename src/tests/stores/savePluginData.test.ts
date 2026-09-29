@@ -203,6 +203,30 @@ describe('save store plugin data persistence', () => {
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(source)
   })
 
+  it('opens a missing third-party save in read-only safe mode without rewriting the source', async() => {
+    const source = await encodeSaveData(createCurrentSave({
+      contentEnvironment: createThirdPartyEnvironment('1.0.0', 'missing-content', 'missing-config'),
+      pluginData
+    }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, source)
+    localStorage.setItem(`${SAVE_KEY_PREFIX}1`, await encodeSaveData(createCurrentSave()))
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.canLoadSlotInSafeMode(0)).toBe(true)
+    expect(await saveStore.loadFromSlotInSafeMode(0)).toBe(true)
+    expect(saveStore.isReadOnlySafeMode).toBe(true)
+    expect(saveStore.activeSlot).toBe(0)
+    expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'saving',
+      reason: 'safe-mode-read-only'
+    })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(source)
+
+    expect(await saveStore.loadFromSlot(1)).toBe(true)
+    expect(saveStore.isReadOnlySafeMode).toBe(false)
+  })
+
   it('keeps both source and target unchanged when a third-party migration fails', async() => {
     const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'old-content', 'old-config')
     const currentEnvironment = createThirdPartyEnvironment('1.1.0', 'new-content', 'new-config')

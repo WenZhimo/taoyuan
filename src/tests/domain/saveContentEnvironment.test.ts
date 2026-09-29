@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canLoadSaveContentEnvironmentInOfficialSafeMode,
   CURRENT_SAVE_FORMAT_VERSION,
   checkSaveRootCompatibility,
   createOfficialSaveContentEnvironment,
@@ -206,6 +207,30 @@ describe('save content environment', () => {
 
     const tampered = { ...environment, environmentHash: 'sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }
     expect(() => normalizeSaveContentEnvironment(tampered)).toThrow(SaveContentEnvironmentError)
+  })
+
+  it('allows official-only safe mode only when the saved official identity is unchanged', () => {
+    const official = createOfficialSaveContentEnvironment()
+    const thirdParty = createThirdPartyEnvironment('1.0.0', 'a', 'b')
+
+    expect(canLoadSaveContentEnvironmentInOfficialSafeMode(thirdParty, official)).toBe(true)
+    expect(canLoadSaveContentEnvironmentInOfficialSafeMode(official, official)).toBe(false)
+
+    const changedOfficial = createSaveContentEnvironment({
+      gameVersion: official.gameVersion,
+      engineApiVersion: official.engineApiVersion,
+      contentSchemaVersion: official.contentSchemaVersion,
+      loaderVersion: official.loaderVersion,
+      contentCompilerVersion: official.contentCompilerVersion,
+      schemaSetHash: official.schemaSetHash,
+      cacheFormatVersion: official.cacheFormatVersion,
+      trustPolicyVersion: official.trustPolicyVersion,
+      packages: official.packages.map(pkg => ({
+        ...pkg,
+        configurationHash: testHash('a')
+      }))
+    })
+    expect(canLoadSaveContentEnvironmentInOfficialSafeMode(thirdParty, changedOfficial)).toBe(false)
   })
 
   it('derives the save environment from the verified lockfile and selected package set', () => {
