@@ -32,7 +32,9 @@ import {
   CURRENT_SAVE_FORMAT_VERSION,
   checkSaveRootCompatibility,
   normalizeSaveContentEnvironment,
+  validateSavePackageMigrationStep,
   type SaveContentEnvironment,
+  type SavePackageMigrationStep,
   type SaveRootCompatibilityStatus
 } from '@/domain/save/saveContentEnvironment'
 import {
@@ -67,6 +69,8 @@ type SaveOperation = 'saving' | 'loading' | 'importing'
 type SaveOperationFailureReason =
   | 'invalid'
   | 'incompatible'
+  | 'copy-migration-required'
+  | 'package-migration'
   | 'plugin-data-invalid'
   | 'plugin-data-quota'
   | 'plugin-data-migration'
@@ -116,6 +120,7 @@ export const useSaveStore = defineStore('save', () => {
   const pluginDataState = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const persistedPluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const pluginDataOwners = new Map<string, PluginSaveDataOwner>()
+  const packageMigrations = new Map<string, SavePackageMigrationStep>()
   const packageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
   const persistedPackageSettings = ref<PersistedPackageSettings>(createEmptyPersistedPackageSettings())
   const operation = ref<SaveOperation | null>(null)
@@ -138,6 +143,12 @@ export const useSaveStore = defineStore('save', () => {
       message = nextOperation === 'importing'
         ? '导入存档的内容环境与当前环境不匹配，目标槽位未写入。请切换到匹配的数据包状态后重试；原文件仍可保留备份。'
         : '存档内容环境与当前环境不匹配，游戏未进入且原存档未修改。请切换到匹配的数据包状态后重试，或先导出备份。'
+    } else if (reason === 'copy-migration-required') {
+      message = '该模组存档只能在副本中迁移，原槽位不会被覆盖。请使用导入到其他槽位的方式迁移，并保留原存档备份。'
+    } else if (reason === 'package-migration') {
+      message = nextOperation === 'importing'
+        ? '数据包存档迁移失败，导入已拒绝且目标槽位未写入。请保留原文件并检查数据包迁移声明。'
+        : '数据包存档迁移失败，游戏未进入且原存档未修改。请先导出备份并检查数据包迁移声明。'
     } else if (reason === 'plugin-data-quota') {
       message = nextOperation === 'saving'
         ? '插件私有数据超过保存配额，本次保存已拒绝，旧存档未覆盖。请先导出备份并检查对应数据包。'
@@ -197,6 +208,8 @@ export const useSaveStore = defineStore('save', () => {
     status: SaveRootCompatibilityStatus,
     diagnostics: readonly ModDiagnostic[]
   ): SaveOperationFailureReason => {
+    if (status === 'copy-migratable') return 'copy-migration-required'
+    if (diagnostics.some(diagnostic => diagnostic.stage === 'save.root.migration')) return 'package-migration'
     if (status === 'incompatible') return 'incompatible'
     if (diagnostics.some(diagnostic => diagnostic.code === 'SAVE-PLUGIN-DATA-002')) {
       return 'plugin-data-quota'
@@ -215,6 +228,9 @@ export const useSaveStore = defineStore('save', () => {
 
   const isLoadableCompatibility = (status: SaveRootCompatibilityStatus): boolean =>
     status === 'compatible' || status === 'migratable'
+
+  const isImportableCompatibility = (status: SaveRootCompatibilityStatus): boolean =>
+    isLoadableCompatibility(status) || status === 'copy-migratable'
 
   const runOperation = async (
     nextOperation: SaveOperation,
@@ -236,9 +252,13 @@ export const useSaveStore = defineStore('save', () => {
   const getPluginDataOwners = (): readonly PluginSaveDataOwner[] =>
     Array.from(pluginDataOwners.values())
 
+  const getPackageMigrations = (): readonly SavePackageMigrationStep[] =>
+    Array.from(packageMigrations.values())
+
   const checkCompatibility = (value: unknown) =>
     checkSaveRootCompatibility(value, contentEnvironment.value, {
-      pluginDataOwners: getPluginDataOwners()
+      pluginDataOwners: getPluginDataOwners(),
+      packageMigrations: getPackageMigrations()
     })
 
   const restoreStoredValue = (key: string, value: string | null) => {
@@ -455,6 +475,28 @@ export const useSaveStore = defineStore('save', () => {
     return pluginDataOwners.delete(packageId)
   }
 
+  const registerSavePackageMigration = (step: SavePackageMigrationStep): boolean => {
+    if (operation.value) return false
+    try {
+      validateSavePackageMigrationStep(step)
+    } catch {
+      return false
+    }
+    const key = `${step.packageId}\u0000${step.fromVersion}`
+    const existing = packageMigrations.get(key)
+    if (existing && existing !== step) return false
+    packageMigrations.set(key, step)
+    return true
+  }
+
+  const unregisterSavePackageMigration = (
+    packageId: SavePackageMigrationStep['packageId'],
+    fromVersion: string
+  ): boolean => {
+    if (operation.value) return false
+    return packageMigrations.delete(`${packageId}\u0000${fromVersion}`)
+  }
+
   const readPluginSaveData = (
     owner: PluginSaveDataOwner
   ): PersistedPluginDataEnvelope | undefined => {
@@ -628,7 +670,7 @@ export const useSaveStore = defineStore('save', () => {
       const normalized = await normalizeSaveData(fileContent)
       if (!normalized) return failOperation('importing', 'invalid')
       const compatibility = checkCompatibility(normalized.data)
-      if (!isLoadableCompatibility(compatibility.status) || !compatibility.migration) {
+      if (!isImportableCompatibility(compatibility.status) || !compatibility.migration) {
         return failOperation(
           'importing',
           classifyCompatibilityFailure(compatibility.status, compatibility.diagnostics),
@@ -651,6 +693,8 @@ export const useSaveStore = defineStore('save', () => {
     contentEnvironment,
     registerPluginSaveDataOwner,
     unregisterPluginSaveDataOwner,
+    registerSavePackageMigration,
+    unregisterSavePackageMigration,
     readPluginSaveData,
     writePluginSaveData,
     packageSettings,

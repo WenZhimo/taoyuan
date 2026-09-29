@@ -58,6 +58,35 @@ const createOfficialVersionEnvironment = (gameVersion: string) => {
 
 const testHash = (fill: string): Sha256Hash => `sha256:${fill.repeat(64)}` as Sha256Hash
 
+const createThirdPartyEnvironment = (
+  version: string,
+  contentFill: string,
+  configurationFill: string
+) => {
+  const official = createOfficialSaveContentEnvironment()
+  return createSaveContentEnvironment({
+    gameVersion: official.gameVersion,
+    engineApiVersion: official.engineApiVersion,
+    contentSchemaVersion: official.contentSchemaVersion,
+    loaderVersion: official.loaderVersion,
+    contentCompilerVersion: official.contentCompilerVersion,
+    schemaSetHash: official.schemaSetHash,
+    cacheFormatVersion: official.cacheFormatVersion,
+    trustPolicyVersion: official.trustPolicyVersion,
+    packages: [
+      official.packages[0]!,
+      {
+        id: 'example_pack' as PackageId,
+        version,
+        contentHash: testHash(contentFill),
+        configurationHash: testHash(configurationFill),
+        loadIndex: 1,
+        resolvedDependencies: []
+      }
+    ]
+  })
+}
+
 const createLockfileDraft = (): ThirdPartyDataPackLockfileDraft => {
   const official = createOfficialSaveContentEnvironment()
   const libraryPackageId = 'library_pack' as PackageId
@@ -265,6 +294,104 @@ describe('save content environment', () => {
     expect(result.status).toBe('incompatible')
     expect(result.diagnostics[0]).toMatchObject({
       details: expect.objectContaining({ reason: 'environment-mismatch' })
+    })
+  })
+
+  it('allows a declared third-party forward migration only as a copy', () => {
+    const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'a', 'b')
+    const currentEnvironment = createThirdPartyEnvironment('1.1.0', 'c', 'd')
+    const root = {
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: savedEnvironment,
+      packageSettings: {}
+    }
+
+    const result = checkSaveRootCompatibility(root, currentEnvironment, {
+      packageMigrations: [{
+        packageId: 'example_pack' as PackageId,
+        fromVersion: '1.0.0',
+        toVersion: '1.1.0',
+        migrate: data => ({
+          ...data,
+          game: { ...data.game, year: 3 }
+        })
+      }]
+    })
+
+    expect(result.status).toBe('copy-migratable')
+    expect(result.migration?.status).toBe('third-party-copy-migrated')
+    expect(result.migration?.writeMode).toBe('copy-only')
+    expect(result.migration?.data.game).toMatchObject({ year: 3 })
+    expect(result.migration?.data.contentEnvironment).toEqual(currentEnvironment)
+    expect(root.game).toEqual({ year: 2, season: 'summer', day: 4 })
+    expect(root.contentEnvironment).toEqual(savedEnvironment)
+  })
+
+  it('follows every declared third-party migration step in order', () => {
+    const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'a', 'b')
+    const currentEnvironment = createThirdPartyEnvironment('1.2.0', 'e', 'f')
+    const result = checkSaveRootCompatibility({
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: savedEnvironment,
+      packageSettings: {}
+    }, currentEnvironment, {
+      packageMigrations: [
+        {
+          packageId: 'example_pack' as PackageId,
+          fromVersion: '1.0.0',
+          toVersion: '1.1.0',
+          migrate: data => ({ ...data, player: { ...data.player, money: 20 } })
+        },
+        {
+          packageId: 'example_pack' as PackageId,
+          fromVersion: '1.1.0',
+          toVersion: '1.2.0',
+          migrate: data => ({ ...data, player: { ...data.player, money: data.player.money + 1 } })
+        }
+      ]
+    })
+
+    expect(result.status).toBe('copy-migratable')
+    expect(result.migration?.data.player).toMatchObject({ money: 21 })
+  })
+
+  it('rejects a package migration descriptor that moves backward', () => {
+    const result = checkSaveRootCompatibility({
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: createThirdPartyEnvironment('1.0.0', 'a', 'b'),
+      packageSettings: {}
+    }, createThirdPartyEnvironment('1.1.0', 'c', 'd'), {
+      packageMigrations: [{
+        packageId: 'example_pack' as PackageId,
+        fromVersion: '1.1.0',
+        toVersion: '1.0.0',
+        migrate: data => data
+      }]
+    })
+
+    expect(result.status).toBe('incompatible')
+    expect(result.diagnostics[0]).toMatchObject({
+      details: expect.objectContaining({ reason: 'non-forward-migration' })
+    })
+  })
+
+  it('rejects a third-party environment when any package migration path is missing', () => {
+    const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'a', 'b')
+    const currentEnvironment = createThirdPartyEnvironment('1.1.0', 'c', 'd')
+    const result = checkSaveRootCompatibility({
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: savedEnvironment,
+      packageSettings: {}
+    }, currentEnvironment)
+
+    expect(result.status).toBe('incompatible')
+    expect(result.diagnostics[0]).toMatchObject({
+      code: 'SAVE-ENVIRONMENT-001',
+      details: expect.objectContaining({ reason: 'migration-path-missing' })
     })
   })
 

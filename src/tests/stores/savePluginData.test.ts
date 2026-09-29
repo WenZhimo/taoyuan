@@ -1,6 +1,10 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
-import { createOfficialSaveContentEnvironment } from '@/domain/save/saveContentEnvironment'
+import {
+  createOfficialSaveContentEnvironment,
+  createSaveContentEnvironment,
+  type SavePackageMigrationStep
+} from '@/domain/save/saveContentEnvironment'
 import { hashPayloadJson } from '@/domain/mods/hash'
 import {
   MAX_PLUGIN_DATA_GROWTH_BYTES,
@@ -10,6 +14,7 @@ import type { PackageId } from '@/domain/mods/ids'
 import { useGameStore } from '@/stores/useGameStore'
 import { useSaveStore } from '@/stores/useSaveStore'
 import { encodeSaveData, parseSaveData } from '@/utils/saveCodec'
+import { resetCurrentSaveContentEnvironmentForTests } from '@/domain/save/saveContentEnvironmentRuntime'
 import legacySaveFixture from '../fixtures/saves/legacy-v1-baseline.json'
 
 const SAVE_KEY_PREFIX = 'taoyuanxiang_save_'
@@ -39,10 +44,43 @@ const createCurrentSave = (overrides: Record<string, unknown> = {}) => ({
   ...overrides
 })
 
+const createThirdPartyEnvironment = (
+  version: string,
+  contentHash: string,
+  configurationHash: string
+) => {
+  const official = createOfficialSaveContentEnvironment()
+  return createSaveContentEnvironment({
+    gameVersion: official.gameVersion,
+    engineApiVersion: official.engineApiVersion,
+    contentSchemaVersion: official.contentSchemaVersion,
+    loaderVersion: official.loaderVersion,
+    contentCompilerVersion: official.contentCompilerVersion,
+    schemaSetHash: official.schemaSetHash,
+    cacheFormatVersion: official.cacheFormatVersion,
+    trustPolicyVersion: official.trustPolicyVersion,
+    packages: [
+      official.packages[0]!,
+      {
+        id: ownerPackageId,
+        version,
+        contentHash: hashPayloadJson(contentHash),
+        configurationHash: hashPayloadJson(configurationHash),
+        loadIndex: 1,
+        resolvedDependencies: []
+      }
+    ]
+  })
+}
+
 describe('save store plugin data persistence', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
+  })
+
+  afterEach(() => {
+    resetCurrentSaveContentEnvironmentForTests()
   })
 
   it('loads plugin data and writes each envelope back without rewriting its payload', async() => {
@@ -104,6 +142,96 @@ describe('save store plugin data persistence', () => {
       count: 1,
       migrated: true
     })
+  })
+
+  it('imports a declared third-party migration into a new slot without changing the source', async() => {
+    const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'old-content', 'old-config')
+    const currentEnvironment = createThirdPartyEnvironment('1.1.0', 'new-content', 'new-config')
+    const source = await encodeSaveData(createCurrentSave({
+      contentEnvironment: savedEnvironment,
+      pluginData
+    }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, source)
+
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(currentEnvironment)).toBe(true)
+    const migration: SavePackageMigrationStep = {
+      packageId: ownerPackageId,
+      fromVersion: '1.0.0',
+      toVersion: '1.1.0',
+      migrate: data => ({
+        ...data,
+        game: { ...data.game, year: 8 }
+      })
+    }
+    expect(saveStore.registerSavePackageMigration(migration)).toBe(true)
+
+    expect(await saveStore.importSave(1, source)).toBe(true)
+    const imported = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}1`) ?? '')
+    const original = await parseSaveData(source)
+    expect(imported?.contentEnvironment).toEqual(currentEnvironment)
+    expect(imported?.game).toMatchObject({ year: 8 })
+    expect(imported?.pluginData).toEqual(pluginData)
+    expect(original?.contentEnvironment).toEqual(savedEnvironment)
+    expect(original?.game).toMatchObject({ year: 1 })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(source)
+  })
+
+  it('does not open a third-party migration in place', async() => {
+    const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'old-content', 'old-config')
+    const currentEnvironment = createThirdPartyEnvironment('1.1.0', 'new-content', 'new-config')
+    const source = await encodeSaveData(createCurrentSave({ contentEnvironment: savedEnvironment }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, source)
+
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(currentEnvironment)).toBe(true)
+    expect(saveStore.registerSavePackageMigration({
+      packageId: ownerPackageId,
+      fromVersion: '1.0.0',
+      toVersion: '1.1.0',
+      migrate: data => data
+    })).toBe(true)
+
+    expect(await saveStore.loadFromSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'loading',
+      reason: 'copy-migration-required',
+      diagnostics: [expect.objectContaining({
+        details: expect.objectContaining({ reason: 'third-party-copy-migration' })
+      })]
+    })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(source)
+  })
+
+  it('keeps both source and target unchanged when a third-party migration fails', async() => {
+    const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'old-content', 'old-config')
+    const currentEnvironment = createThirdPartyEnvironment('1.1.0', 'new-content', 'new-config')
+    const source = await encodeSaveData(createCurrentSave({ contentEnvironment: savedEnvironment }))
+    const target = await encodeSaveData(createCurrentSave({
+      contentEnvironment: currentEnvironment,
+      game: { ...legacySaveFixture.game, year: 99 }
+    }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, source)
+    localStorage.setItem(`${SAVE_KEY_PREFIX}1`, target)
+
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(currentEnvironment)).toBe(true)
+    expect(saveStore.registerSavePackageMigration({
+      packageId: ownerPackageId,
+      fromVersion: '1.0.0',
+      toVersion: '1.1.0',
+      migrate: () => {
+        throw new Error('migration rejected')
+      }
+    })).toBe(true)
+
+    expect(await saveStore.importSave(1, source)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'importing',
+      reason: 'package-migration'
+    })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(source)
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}1`)).toBe(target)
   })
 
   it('rejects a registered plugin without a migration path and preserves the old slot', async() => {

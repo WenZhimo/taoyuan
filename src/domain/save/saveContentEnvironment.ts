@@ -1,5 +1,6 @@
 import metadataJson from '@/generated/mods/official-precompiled-metadata.json'
 import { createDiagnostic, type ModDiagnostic } from '@/domain/mods/diagnostics'
+import { assertPureJsonValue } from '@/domain/mods/canonicalJson'
 import {
   createEnvironmentHash,
   normalizeCacheEnvironmentIdentity
@@ -10,7 +11,7 @@ import {
 } from '@/domain/mods/officialPrecompiled'
 import type { Sha256Hash } from '@/domain/mods/hash'
 import type { CacheEnvironmentIdentity, OfficialPrecompiledRegistryMetadata } from '@/domain/mods/precompiledRegistrySchema'
-import type { PackageId } from '@/domain/mods/ids'
+import { isPackageId, type PackageId } from '@/domain/mods/ids'
 import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDataPackLockfileDraft'
 import {
   normalizePersistedPluginData,
@@ -33,15 +34,21 @@ export type SaveContentEnvironment = CacheEnvironmentIdentity & {
   readonly environmentHash: Sha256Hash
 }
 
-export type SaveRootMigrationStatus = 'legacy-migrated' | 'current'
-export type SaveRootCompatibilityStatus = 'compatible' | 'migratable' | 'incompatible' | 'invalid'
+export type SaveRootMigrationStatus = 'legacy-migrated' | 'current' | 'third-party-copy-migrated'
+export type SaveRootCompatibilityStatus =
+  | 'compatible'
+  | 'migratable'
+  | 'copy-migratable'
+  | 'incompatible'
+  | 'invalid'
+export type SaveRootMigrationWriteMode = 'in-place' | 'copy-only'
 
 export class SaveContentEnvironmentError extends Error {
-  readonly kind: 'format' | 'structure' | 'hash'
+  readonly kind: 'format' | 'structure' | 'hash' | 'migration'
   readonly diagnostics: readonly ModDiagnostic[]
 
   constructor(
-    kind: 'format' | 'structure' | 'hash',
+    kind: 'format' | 'structure' | 'hash' | 'migration',
     message: string,
     diagnostics: readonly ModDiagnostic[]
   ) {
@@ -54,6 +61,7 @@ export class SaveContentEnvironmentError extends Error {
 
 export interface SaveRootMigrationResult {
   readonly status: SaveRootMigrationStatus
+  readonly writeMode: SaveRootMigrationWriteMode
   readonly data: Record<string, any>
   readonly environment: SaveContentEnvironment
   readonly pluginData: PersistedPluginData
@@ -68,6 +76,14 @@ export interface SaveRootCompatibilityResult {
 
 export interface SaveRootMigrationOptions {
   readonly pluginDataOwners?: readonly PluginSaveDataOwner[]
+  readonly packageMigrations?: readonly SavePackageMigrationStep[]
+}
+
+export interface SavePackageMigrationStep {
+  readonly packageId: PackageId
+  readonly fromVersion: string
+  readonly toVersion: string
+  readonly migrate: (data: Record<string, any>) => Record<string, any>
 }
 
 type SaveRootData = Record<string, any>
@@ -127,6 +143,232 @@ const compareSemVer = (
 
 const sameStringList = (left: readonly string[], right: readonly string[]): boolean =>
   left.length === right.length && left.every((value, index) => value === right[index])
+
+const samePackageIdentity = (
+  left: SaveContentEnvironment['packages'][number],
+  right: SaveContentEnvironment['packages'][number]
+): boolean =>
+  left.id === right.id &&
+  left.version === right.version &&
+  left.contentHash === right.contentHash &&
+  left.configurationHash === right.configurationHash &&
+  left.loadIndex === right.loadIndex &&
+  sameStringList(left.resolvedDependencies, right.resolvedDependencies)
+
+const sameRuntimeIdentity = (
+  left: SaveContentEnvironment,
+  right: SaveContentEnvironment
+): boolean =>
+  left.gameVersion === right.gameVersion &&
+  left.engineApiVersion === right.engineApiVersion &&
+  left.contentSchemaVersion === right.contentSchemaVersion &&
+  left.loaderVersion === right.loaderVersion &&
+  left.contentCompilerVersion === right.contentCompilerVersion &&
+  left.schemaSetHash === right.schemaSetHash &&
+  left.cacheFormatVersion === right.cacheFormatVersion &&
+  left.trustPolicyVersion === right.trustPolicyVersion
+
+const migrationDiagnostic = (
+  details: Record<string, string | number | boolean | null>
+): ModDiagnostic => saveEnvironmentDiagnostic('save.root.migration', details)
+
+const throwMigrationError = (
+  message: string,
+  details: Record<string, string | number | boolean | null>
+): never => {
+  throw new SaveContentEnvironmentError('migration', message, [migrationDiagnostic(details)])
+}
+
+export const validateSavePackageMigrationStep = (
+  step: SavePackageMigrationStep
+): void => {
+  if (
+    !step ||
+    !isPackageId(step.packageId) ||
+    step.packageId === OFFICIAL_PACKAGE_ID ||
+    typeof step.fromVersion !== 'string' ||
+    step.fromVersion.length === 0 ||
+    typeof step.toVersion !== 'string' ||
+    step.toVersion.length === 0 ||
+    step.fromVersion === step.toVersion ||
+    typeof step.migrate !== 'function'
+  ) {
+    return throwMigrationError(
+      'Save package migration descriptor is invalid',
+      { packageId: String(step?.packageId ?? ''), reason: 'invalid-migration-descriptor' }
+    )
+  }
+
+  const fromVersion = parseSemVer(step.fromVersion)
+  const toVersion = parseSemVer(step.toVersion)
+  if (fromVersion === null || toVersion === null || compareSemVer(fromVersion, toVersion) >= 0) {
+    return throwMigrationError(
+      'Save package migration must move to a higher SemVer',
+      { packageId: step.packageId, fromVersion: step.fromVersion, toVersion: step.toVersion, reason: 'non-forward-migration' }
+    )
+  }
+}
+
+const createPackageMigrationMap = (
+  steps: readonly SavePackageMigrationStep[] = []
+): Map<PackageId, Map<string, SavePackageMigrationStep>> => {
+  const result = new Map<PackageId, Map<string, SavePackageMigrationStep>>()
+  for (const step of steps) {
+    validateSavePackageMigrationStep(step)
+    const packageSteps = result.get(step.packageId) ?? new Map<string, SavePackageMigrationStep>()
+    if (packageSteps.has(step.fromVersion)) {
+      return throwMigrationError(
+        'Save package migration descriptors are ambiguous',
+        { packageId: step.packageId, fromVersion: step.fromVersion, reason: 'duplicate-from-version' }
+      )
+    }
+    packageSteps.set(step.fromVersion, step)
+    result.set(step.packageId, packageSteps)
+  }
+  return result
+}
+
+interface ThirdPartyPackageMigrationPlan {
+  readonly changedPackages: readonly {
+    readonly saved: SaveContentEnvironment['packages'][number]
+    readonly current: SaveContentEnvironment['packages'][number]
+  }[]
+}
+
+const createThirdPartyPackageMigrationPlan = (
+  saved: SaveContentEnvironment,
+  current: SaveContentEnvironment
+): ThirdPartyPackageMigrationPlan | null => {
+  if (!sameRuntimeIdentity(saved, current) || saved.packages.length !== current.packages.length) return null
+
+  const changedPackages: {
+    saved: SaveContentEnvironment['packages'][number]
+    current: SaveContentEnvironment['packages'][number]
+  }[] = []
+
+  for (let index = 0; index < saved.packages.length; index += 1) {
+    const savedPackage = saved.packages[index]!
+    const currentPackage = current.packages[index]!
+    if (
+      savedPackage.id !== currentPackage.id ||
+      savedPackage.loadIndex !== currentPackage.loadIndex ||
+      !sameStringList(savedPackage.resolvedDependencies, currentPackage.resolvedDependencies)
+    ) return null
+
+    if (savedPackage.id === OFFICIAL_PACKAGE_ID) {
+      if (!samePackageIdentity(savedPackage, currentPackage)) return null
+      continue
+    }
+
+    const identityChanged =
+      savedPackage.version !== currentPackage.version ||
+      savedPackage.contentHash !== currentPackage.contentHash ||
+      savedPackage.configurationHash !== currentPackage.configurationHash
+    if (!identityChanged) continue
+
+    const savedVersion = parseSemVer(savedPackage.version)
+    const currentVersion = parseSemVer(currentPackage.version)
+    if (
+      savedVersion === null ||
+      currentVersion === null ||
+      compareSemVer(savedVersion, currentVersion) >= 0 ||
+      savedPackage.version === currentPackage.version
+    ) return null
+
+    changedPackages.push({ saved: savedPackage, current: currentPackage })
+  }
+
+  return changedPackages.length > 0 ? { changedPackages } : null
+}
+
+const cloneMigratedSaveRoot = (value: Record<string, any>): Record<string, any> => {
+  try {
+    assertPureJsonValue(value)
+    const encoded = JSON.stringify(value)
+    if (encoded === undefined) throw new Error('Save root migration result is not serializable')
+    const cloned = JSON.parse(encoded) as unknown
+    if (!isRecord(cloned)) throw new Error('Save root migration result must be an object')
+    return cloned
+  } catch (error) {
+    return throwMigrationError(
+      error instanceof Error ? error.message : 'Save root migration result is invalid',
+      { reason: 'non-json-result' }
+    )
+  }
+}
+
+const applyThirdPartyPackageMigrations = (
+  migration: SaveRootMigrationResult,
+  currentEnvironment: SaveContentEnvironment,
+  options: SaveRootMigrationOptions,
+  plan: ThirdPartyPackageMigrationPlan
+): SaveRootMigrationResult => {
+  const migrationMap = createPackageMigrationMap(options.packageMigrations)
+  let data = cloneMigratedSaveRoot(migration.data)
+
+  for (const changedPackage of plan.changedPackages) {
+    const packageSteps = migrationMap.get(changedPackage.saved.id as PackageId)
+    let version = changedPackage.saved.version
+    const visitedVersions = new Set<string>()
+
+    while (version !== changedPackage.current.version) {
+      if (visitedVersions.has(version)) {
+        return throwMigrationError(
+          'Save package migration contains a cycle',
+          { packageId: changedPackage.saved.id, fromVersion: version, reason: 'migration-cycle' }
+        )
+      }
+      visitedVersions.add(version)
+      const step = packageSteps?.get(version)
+      if (!step) {
+        return throwMigrationError(
+          'Save package has no declared migration path to the current version',
+          {
+            packageId: changedPackage.saved.id,
+            fromVersion: version,
+            toVersion: changedPackage.current.version,
+            reason: 'migration-path-missing'
+          }
+        )
+      }
+
+      try {
+        data = cloneMigratedSaveRoot(step.migrate(cloneMigratedSaveRoot(data)))
+      } catch (error) {
+        if (error instanceof SaveContentEnvironmentError) throw error
+        return throwMigrationError(
+          error instanceof Error ? error.message : 'Save package migration failed',
+          {
+            packageId: changedPackage.saved.id,
+            fromVersion: version,
+            toVersion: step.toVersion,
+            reason: 'migration-failed'
+          }
+        )
+      }
+      version = step.toVersion
+    }
+  }
+
+  const pluginData = normalizePersistedPluginData(data.pluginData, {
+    owners: options.pluginDataOwners
+  })
+  const packageSettings = normalizePersistedPackageSettings(data.packageSettings)
+  return {
+    status: 'third-party-copy-migrated',
+    writeMode: 'copy-only',
+    data: {
+      ...data,
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: currentEnvironment,
+      pluginData,
+      packageSettings
+    },
+    environment: currentEnvironment,
+    pluginData,
+    packageSettings
+  }
+}
 
 const canMigrateOfficialVersion = (
   saved: SaveContentEnvironment,
@@ -286,6 +528,7 @@ export const migrateSaveRoot = (
     const environment = createOfficialSaveContentEnvironment()
     return {
       status: 'legacy-migrated',
+      writeMode: 'in-place',
       data: {
         ...value,
         saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
@@ -311,6 +554,7 @@ export const migrateSaveRoot = (
     const environment = normalizeSaveContentEnvironment(value.contentEnvironment)
     return {
       status: 'legacy-migrated',
+      writeMode: 'in-place',
       data: {
         ...value,
         saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
@@ -350,6 +594,7 @@ export const migrateSaveRoot = (
   const environment = normalizeSaveContentEnvironment(value.contentEnvironment)
   return {
     status: 'current',
+    writeMode: 'in-place',
     data: {
       ...value,
       saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
@@ -397,6 +642,7 @@ export const checkSaveRootCompatibility = (
       status: 'migratable',
       migration: {
         ...migration,
+        writeMode: 'in-place',
         data: {
           ...migration.data,
           contentEnvironment: currentEnvironment
@@ -408,6 +654,43 @@ export const checkSaveRootCompatibility = (
         saved: migration.environment.gameVersion,
         current: currentEnvironment.gameVersion
       })]
+    }
+  }
+
+  const thirdPartyPlan = createThirdPartyPackageMigrationPlan(
+    migration.environment,
+    currentEnvironment
+  )
+  if (thirdPartyPlan) {
+    try {
+      const thirdPartyMigration = applyThirdPartyPackageMigrations(
+        migration,
+        currentEnvironment,
+        options,
+        thirdPartyPlan
+      )
+      return {
+        status: 'copy-migratable',
+        migration: thirdPartyMigration,
+        diagnostics: [saveEnvironmentDiagnostic('save.root.compatibility', {
+          reason: 'third-party-copy-migration',
+          saved: migration.environment.environmentHash,
+          current: currentEnvironment.environmentHash
+        })]
+      }
+    } catch (error) {
+      if (error instanceof SavePluginDataError || error instanceof SavePackageSettingsError) {
+        return { status: 'invalid', migration, diagnostics: error.diagnostics }
+      }
+      if (error instanceof SaveContentEnvironmentError) {
+        return { status: 'incompatible', migration, diagnostics: error.diagnostics }
+      }
+      const message = error instanceof Error ? error.message : String(error)
+      return {
+        status: 'incompatible',
+        migration,
+        diagnostics: [saveEnvironmentDiagnostic('save.root.migration', { message })]
+      }
     }
   }
 
