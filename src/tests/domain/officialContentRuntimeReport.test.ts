@@ -1281,6 +1281,7 @@ describe('official content runtime report', () => {
       disableRuntimePublicationExcluded: true,
       disableLiveRegistrySwapped: true,
       disableAppStartupHandoffAccepted: true,
+      disableSaveContentEnvironmentPublished: true,
       effects: {
         commandDispatched: true,
         packageFilesWritten: false,
@@ -1350,6 +1351,7 @@ describe('official content runtime report', () => {
       disableRuntimePublicationExcluded: true,
       disableLiveRegistrySwapped: true,
       disableAppStartupHandoffAccepted: true,
+      disableSaveContentEnvironmentPublished: true,
       effects: {
         commandDispatched: true,
         uiIpcResponseDelivered: true,

@@ -5621,7 +5621,8 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
       'disableRuntimePublicationCommitted',
       'disableRuntimePublicationExcluded',
       'disableLiveRegistrySwapped',
-      'disableAppStartupHandoffAccepted'
+      'disableAppStartupHandoffAccepted',
+      'disableSaveContentEnvironmentPublished'
     ]) {
       assert(visibleImport[fieldName] === false,
         `${scenario.name}: visible disable failure field ${fieldName} was not false`)
@@ -5702,7 +5703,8 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     'disableRuntimePublicationCommitted',
     'disableRuntimePublicationExcluded',
     'disableLiveRegistrySwapped',
-    'disableAppStartupHandoffAccepted'
+    'disableAppStartupHandoffAccepted',
+    'disableSaveContentEnvironmentPublished'
   ]) {
     assert(visibleImport[fieldName] === true,
       `${scenario.name}: visible disable probe field ${fieldName} was not true`)

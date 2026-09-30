@@ -362,6 +362,7 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   disableRuntimePublicationExcluded?: boolean
   disableLiveRegistrySwapped?: boolean
   disableAppStartupHandoffAccepted?: boolean
+  disableSaveContentEnvironmentPublished?: boolean
   enableTerminalStatus?: 'ready' | 'blocked'
   enableTargetPackageId?: string
   enableSelectedPackageCount?: number
@@ -1302,6 +1303,8 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const disableRuntimePublicationExcluded = readOwnBooleanField(result, 'disableRuntimePublicationExcluded')
   const disableLiveRegistrySwapped = readOwnBooleanField(result, 'disableLiveRegistrySwapped')
   const disableAppStartupHandoffAccepted = readOwnBooleanField(result, 'disableAppStartupHandoffAccepted')
+  const disableSaveContentEnvironmentPublished =
+    readOwnBooleanField(result, 'disableSaveContentEnvironmentPublished')
   const enableTerminalStatus = readOwnStringField(result, 'enableTerminalStatus')
   const enableTargetPackageId = readOwnStringField(result, 'enableTargetPackageId')
   const enableSelectedPackageCount = readOwnNumberField(result, 'enableSelectedPackageCount')
@@ -1491,6 +1494,9 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
     ...(disableRuntimePublicationExcluded === undefined ? {} : { disableRuntimePublicationExcluded }),
     ...(disableLiveRegistrySwapped === undefined ? {} : { disableLiveRegistrySwapped }),
     ...(disableAppStartupHandoffAccepted === undefined ? {} : { disableAppStartupHandoffAccepted }),
+    ...(disableSaveContentEnvironmentPublished === undefined
+      ? {}
+      : { disableSaveContentEnvironmentPublished }),
     ...(enableTerminalStatus === 'ready' || enableTerminalStatus === 'blocked'
       ? { enableTerminalStatus }
       : {}),

@@ -227,6 +227,44 @@ describe('save store plugin data persistence', () => {
     expect(saveStore.isReadOnlySafeMode).toBe(false)
   })
 
+  it('reports saved slots that use a package and slots whose content cannot be verified', async() => {
+    localStorage.setItem(
+      `${SAVE_KEY_PREFIX}0`,
+      await encodeSaveData(createCurrentSave({ contentEnvironment: createThirdPartyEnvironment('1.0.0', 'saved', 'saved') }))
+    )
+    localStorage.setItem(`${SAVE_KEY_PREFIX}1`, 'not-a-save')
+    localStorage.setItem(
+      `${SAVE_KEY_PREFIX}2`,
+      await encodeSaveData(createCurrentSave())
+    )
+
+    const saveStore = useSaveStore()
+    await expect(saveStore.inspectPackageUsage(packageId)).resolves.toEqual({
+      packageId,
+      usedSlots: [0],
+      unverifiableSlots: [1]
+    })
+  })
+
+  it('rejects saving a loaded save after the runtime content environment changes', async() => {
+    const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'saved', 'saved')
+    const source = await encodeSaveData(createCurrentSave({ contentEnvironment: savedEnvironment }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, source)
+
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(savedEnvironment)).toBe(true)
+    expect(await saveStore.loadFromSlot(0)).toBe(true)
+    const loadedSource = localStorage.getItem(`${SAVE_KEY_PREFIX}0`)
+    expect(saveStore.setContentEnvironment(createOfficialSaveContentEnvironment())).toBe(true)
+
+    expect(await saveStore.saveToSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'saving',
+      reason: 'content-environment-drift'
+    })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(loadedSource)
+  })
+
   it('keeps both source and target unchanged when a third-party migration fails', async() => {
     const savedEnvironment = createThirdPartyEnvironment('1.0.0', 'old-content', 'old-config')
     const currentEnvironment = createThirdPartyEnvironment('1.1.0', 'new-content', 'new-config')

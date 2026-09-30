@@ -2149,6 +2149,11 @@ describe('WebDataPackImportPreflightPanel', () => {
     const webSettingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
     const webInstallTransactionLogStore = createInMemoryWebInstallTransactionLogPreparedStore()
     const responseDeliveryEvents: ThirdPartyDataPackWebDomResponseDeliveryEvent[] = []
+    const inspectSavePackageUsage = vi.fn(async(packageId: string) => ({
+      packageId,
+      usedSlots: [0],
+      unverifiableSlots: []
+    }))
     const collectResponseDeliveryEvent = (event: Event) => {
       responseDeliveryEvents.push(event as ThirdPartyDataPackWebDomResponseDeliveryEvent)
     }
@@ -2159,7 +2164,8 @@ describe('WebDataPackImportPreflightPanel', () => {
         officialRegistrySet,
         persistenceStore,
         webSettingsLockfileStore,
-        webInstallTransactionLogStore
+        webInstallTransactionLogStore,
+        inspectSavePackageUsage
       }
     })
 
@@ -2180,6 +2186,12 @@ describe('WebDataPackImportPreflightPanel', () => {
         .toBe(`${packageId}:linen_ribbon`)
 
       await disableButton.trigger('click')
+      expect(wrapper.get('[data-testid="web-mod-disable-save-warning"]').text())
+        .toContain('使用该数据包的槽位：1')
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+      expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['install'])
+
+      await wrapper.get('[data-testid="web-mod-disable-save-confirm"]').trigger('click')
       await waitForPreflight(() => wrapper.get('[data-testid="web-mod-disable-result"]').text())
 
       expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已禁用')
@@ -2195,6 +2207,7 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('runtime 已排除')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('live registry 已切换')
       expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('handoff 已接受')
+      expect(wrapper.get('[data-testid="web-mod-disable-result"]').text()).toContain('save environment 已发布')
       expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['install', 'disable'])
       expect(responseDeliveryEvents[1]?.detail.envelope).toMatchObject({
         kind: 'success',

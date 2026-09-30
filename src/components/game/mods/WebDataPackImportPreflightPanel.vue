@@ -77,6 +77,40 @@
             </span>
           </div>
         </div>
+        <div
+          v-if="pendingDisable"
+          data-testid="web-mod-disable-save-warning"
+          class="border border-danger/40 rounded-xs p-2 text-danger mt-2"
+        >
+          <p class="font-bold">禁用前存档警告</p>
+          <p class="mt-1">
+            数据包 {{ pendingDisable.packageId }} 正被现有存档使用，禁用后这些存档不能在当前内容环境中继续写回；恢复数据包后才能继续使用。原存档不会被覆盖。
+          </p>
+          <p v-if="pendingDisable.report.usedSlots.length > 0" data-testid="web-mod-disable-save-used-slots" class="mt-1">
+            使用该数据包的槽位：{{ pendingDisable.report.usedSlots.map(slot => slot + 1).join('、') }}
+          </p>
+          <p v-if="pendingDisable.report.unverifiableSlots.length > 0" data-testid="web-mod-disable-save-unverifiable-slots" class="mt-1">
+            无法核验的槽位：{{ pendingDisable.report.unverifiableSlots.map(slot => slot + 1).join('、') }}。请先导出备份。
+          </p>
+          <div class="flex gap-2 mt-2">
+            <Button
+              class="justify-center"
+              :icon="PowerOff"
+              data-testid="web-mod-disable-save-confirm"
+              @click="confirmPendingDisable"
+            >
+              仍然禁用
+            </Button>
+            <Button
+              class="justify-center"
+              :icon="RotateCcw"
+              data-testid="web-mod-disable-save-cancel"
+              @click="cancelPendingDisable"
+            >
+              取消
+            </Button>
+          </div>
+        </div>
         <p v-if="lastDisableResult" data-testid="web-mod-disable-result" class="text-muted mt-2">
           禁用事务：{{ managementTransactionStatusLabel(lastDisableResult) }} ·
           settings {{ lastDisableResult.terminal.settingsWritten ? '已写入' : '未写入' }} ·
@@ -87,7 +121,8 @@
           runtime host {{ managementRuntimePublicationHostModeLabel(lastDisableResult) }} ·
           runtime {{ lastDisableResult.terminal.runtimePublicationExcluded ? '已排除' : '未排除' }} ·
           live registry {{ lastDisableResult.terminal.liveRegistrySwapped ? '已切换' : '未切换' }} ·
-          handoff {{ lastDisableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }}
+          handoff {{ lastDisableResult.terminal.appStartupHandoffAccepted ? '已接受' : '未接受' }} ·
+          save environment {{ lastDisableResult.saveContentEnvironmentPublished ? '已发布' : '未发布' }}
         </p>
         <p v-if="lastEnableResult" data-testid="web-mod-enable-result" class="text-muted mt-2">
           启用事务：{{ managementTransactionStatusLabel(lastEnableResult) }} ·
@@ -258,6 +293,8 @@
     ThirdPartyDataPackRuntimePublicationCommitHostMode
   } from '@/domain/mods/thirdPartyDataPackRuntimePublicationCommitSource'
   import type { PackageId } from '@/domain/mods/ids'
+  import type { SaveContentEnvironment } from '@/domain/save/saveContentEnvironment'
+  import type { SavePackageUsageReport } from '@/stores/useSaveStore'
   import {
     useWebInstalledDataPackManagement,
     type WebInstalledDataPackManagementRow
@@ -286,6 +323,8 @@
     electronEnableCommand?: (
       envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
     ) => Promise<ThirdPartyDataPackElectronEnableCommandResult>
+    inspectSavePackageUsage?: (packageId: string) => Promise<SavePackageUsageReport>
+    publishSaveContentEnvironment?: (environment: SaveContentEnvironment) => boolean
   }>()
 
   const createDefaultPersistenceStore = (): WebIndexedDbImportPersistenceStore | null => {
@@ -480,6 +519,7 @@
     installedPackageStore: readElectronInstalledState === undefined ? persistenceStore : null,
     startupPersistentStateStore: persistenceStore,
     mountedAppStartupEvidence: readMountedAppStartupHostEvidence,
+    publishSaveContentEnvironment: props.publishSaveContentEnvironment,
     electronDisableCommand,
     electronUninstallCommand,
     electronEnableCommand,
@@ -550,6 +590,10 @@
   }
   const canManageInstalledPackage = (packageId: string): boolean =>
     installedManagement.canManagePackage(packageId as PackageId)
+  const pendingDisable = ref<{
+    readonly packageId: string
+    readonly report: SavePackageUsageReport
+  } | null>(null)
   const isPreparing = ref(false)
   const isNativePlatform = computed(() => Capacitor.isNativePlatform())
   const lastPreflight = computed(() => entry.lastSourceInstallCommandPreflight.value)
@@ -890,7 +934,7 @@
     void entry.reset()
   }
 
-  const disableInstalledPackage = async(packageId: string): Promise<void> => {
+  const executeDisableInstalledPackage = async(packageId: string): Promise<void> => {
     if (isNativePlatform.value || isPreparing.value) return
     isPreparing.value = true
     try {
@@ -899,6 +943,37 @@
     } finally {
       isPreparing.value = false
     }
+  }
+
+  const disableInstalledPackage = async(packageId: string): Promise<void> => {
+    if (isNativePlatform.value || isPreparing.value) return
+    if (props.inspectSavePackageUsage === undefined) {
+      await executeDisableInstalledPackage(packageId)
+      return
+    }
+
+    isPreparing.value = true
+    try {
+      const report = await props.inspectSavePackageUsage(packageId)
+      if (report.usedSlots.length > 0 || report.unverifiableSlots.length > 0) {
+        pendingDisable.value = Object.freeze({ packageId, report })
+        return
+      }
+    } finally {
+      isPreparing.value = false
+    }
+    await executeDisableInstalledPackage(packageId)
+  }
+
+  const confirmPendingDisable = async(): Promise<void> => {
+    const pending = pendingDisable.value
+    if (pending === null) return
+    pendingDisable.value = null
+    await executeDisableInstalledPackage(pending.packageId)
+  }
+
+  const cancelPendingDisable = (): void => {
+    pendingDisable.value = null
   }
 
   const uninstallInstalledPackage = async(packageId: string): Promise<void> => {

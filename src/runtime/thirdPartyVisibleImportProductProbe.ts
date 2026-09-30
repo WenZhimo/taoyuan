@@ -254,6 +254,7 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly disableRuntimePublicationExcluded?: boolean
   readonly disableLiveRegistrySwapped?: boolean
   readonly disableAppStartupHandoffAccepted?: boolean
+  readonly disableSaveContentEnvironmentPublished?: boolean
   readonly enableTerminalStatus?: 'ready' | 'blocked' | null
   readonly enableTargetPackageId?: string | null
   readonly enableSelectedPackageCount?: number
@@ -2067,6 +2068,7 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     && terminal.runtimePublicationExcluded
     && terminal.liveRegistrySwapped
     && terminal.appStartupHandoffAccepted
+    && readOwnBooleanField(execution.transactionResult, 'saveContentEnvironmentPublished') === true
     && execution.managementUiIpcResponseDelivered === true
     && !execution.contentAccessItemVisibleAfter
     && !execution.contentAccessRecipeVisibleAfter
@@ -2177,6 +2179,8 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     disableRuntimePublicationExcluded: terminal?.runtimePublicationExcluded === true,
     disableLiveRegistrySwapped: terminal?.liveRegistrySwapped === true,
     disableAppStartupHandoffAccepted: terminal?.appStartupHandoffAccepted === true,
+    disableSaveContentEnvironmentPublished:
+      readOwnBooleanField(execution.transactionResult, 'saveContentEnvironmentPublished') === true,
     blockedReason: execution.blockedReason,
     effects: {
       commandDispatched: execution.managementCommandDispatched === true,

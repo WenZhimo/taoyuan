@@ -29,6 +29,10 @@ import {
   type ThirdPartyDataPackEnableTransactionResult
 } from '@/domain/mods/thirdPartyDataPackEnableTransaction'
 import {
+  createSaveContentEnvironmentFromLockfileDraft,
+  type SaveContentEnvironment
+} from '@/domain/save/saveContentEnvironment'
+import {
   THIRD_PARTY_DATA_PACK_WEB_INSTALLED_STATE_IMPORT_ID
 } from '@/domain/mods/thirdPartyDataPackInstalledStateStartupGateBootstrapSource'
 import {
@@ -105,6 +109,7 @@ export interface WebInstalledDataPackManagementCommandDeliveryResult {
   readonly injectedRuntimePublicationHostMode: 'injected-test-only' | null
   readonly realWebPlatformWriterHostCalled: boolean
   readonly realElectronSettingsLockfilePersistentWriterHostCalled: boolean
+  readonly saveContentEnvironmentPublished?: boolean
 }
 
 export type WebInstalledDataPackManagementDisableResult =
@@ -123,6 +128,7 @@ export interface UseWebInstalledDataPackManagementOptions {
   readonly startupPersistentStateStore: WebIndexedDbImportPersistenceStore | null
   readonly mountedAppStartupEvidence?: () =>
     ThirdPartyDataPackRuntimeCommandAppStartupHandoffAcknowledgement | null | undefined
+  readonly publishSaveContentEnvironment?: (environment: SaveContentEnvironment) => boolean
   readonly webManagementResponseDeliveryTarget?: EventTarget | null
   readonly electronDisableCommand?: (
     envelope: ThirdPartyDataPackElectronDisableCommandEnvelope
@@ -477,6 +483,7 @@ export const useWebInstalledDataPackManagement = (
     let managementUiIpcResponseDelivered = false
     let realWebPlatformWriterHostCalled = false
     let realElectronSettingsLockfilePersistentWriterHostCalled = false
+    let saveContentEnvironmentPublished = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -614,12 +621,22 @@ export const useWebInstalledDataPackManagement = (
       if (options.electronDisableCommand === undefined) {
         managementUiIpcResponseDelivered = await deliverWebManagementUiIpcResponse(transaction.terminal)
       }
+      if (transaction.terminal.status === 'ready') {
+        saveContentEnvironmentPublished = options.publishSaveContentEnvironment === undefined
+          || options.publishSaveContentEnvironment(
+            createSaveContentEnvironmentFromLockfileDraft(
+              disableRecord.lockfileDraft,
+              disableRecord.selectedPackageIds
+            )
+          )
+      }
       const result = withManagementCommandDelivery(transaction, {
         managementCommandHostKind,
         managementCommandDispatched,
         managementUiIpcResponseDelivered,
         realWebPlatformWriterHostCalled,
-        realElectronSettingsLockfilePersistentWriterHostCalled
+        realElectronSettingsLockfilePersistentWriterHostCalled,
+        saveContentEnvironmentPublished
       })
       lastResult.value = result
       reason.value = transaction.terminal.reason
@@ -628,14 +645,18 @@ export const useWebInstalledDataPackManagement = (
         transaction.terminal.status,
         managementUiIpcResponseDelivered
       )
-      if (transaction.terminal.status === 'ready' && !deliveryBlocked) {
+      if (transaction.terminal.status === 'ready' && !deliveryBlocked && saveContentEnvironmentPublished) {
         currentRecord.value = disableRecord
         rows.value = readPackageRows(disableRecord)
         status.value = 'ready'
       } else {
         await refresh()
         status.value = 'blocked'
-        if (deliveryBlocked) reason.value = webManagementDeliveryBlockedReason('disable')
+        if (transaction.terminal.status === 'ready' && !saveContentEnvironmentPublished) {
+          reason.value = 'PC 存档内容环境发布被阻断，禁用状态已持久化但当前管理操作需要重新确认'
+        } else if (deliveryBlocked) {
+          reason.value = webManagementDeliveryBlockedReason('disable')
+        }
       }
       return result
     } catch (error) {

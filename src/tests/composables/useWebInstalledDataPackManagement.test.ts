@@ -51,6 +51,10 @@ import type {
   ThirdPartyDataPackElectronInstalledStateReadResult
 } from '@/domain/mods/thirdPartyDataPackElectronInstalledStateBridge'
 import {
+  getCurrentSaveContentEnvironment,
+  resetCurrentSaveContentEnvironmentForTests
+} from '@/domain/save/saveContentEnvironmentRuntime'
+import {
   thirdPartyDataPackWebResponseDeliveryEventName,
   type ThirdPartyDataPackWebDomResponseDeliveryEvent
 } from '@/domain/mods/thirdPartyDataPackWebDomResponseDeliveryBridge'
@@ -238,6 +242,7 @@ const createWebManagementResponseEventCollector = () => {
 
 afterEach(() => {
   resetLiveContentRegistryForTests()
+  resetCurrentSaveContentEnvironmentForTests()
 })
 
 describe('useWebInstalledDataPackManagement', () => {
@@ -249,6 +254,7 @@ describe('useWebInstalledDataPackManagement', () => {
     const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const responseDelivery = createWebManagementResponseEventCollector()
+    const publishSaveContentEnvironment = vi.fn(() => true)
     const installedDraft = createInstalledDraft()
     await settingsLockfileStore.write({
       recordId: THIRD_PARTY_DATA_PACK_WEB_SETTINGS_LOCKFILE_RECORD_ID,
@@ -276,7 +282,8 @@ describe('useWebInstalledDataPackManagement', () => {
       installedPackageStore,
       startupPersistentStateStore,
       mountedAppStartupEvidence,
-      webManagementResponseDeliveryTarget: responseDelivery.target
+      webManagementResponseDeliveryTarget: responseDelivery.target,
+      publishSaveContentEnvironment
     })
     await management.refresh()
     expect(management.rows.value).toEqual([{
@@ -307,6 +314,9 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(result?.terminal.gameAppCreated).toBe(true)
     expect(result?.terminal.piniaCreated).toBe(true)
     expect(result?.terminal.routerMounted).toBe(true)
+    expect(result?.saveContentEnvironmentPublished).toBe(true)
+    expect(publishSaveContentEnvironment).toHaveBeenCalledOnce()
+    expect(getCurrentSaveContentEnvironment().packages).toHaveLength(1)
     expect(management.status.value).toBe('ready')
     expect(management.rows.value).toEqual([{
       packageId,

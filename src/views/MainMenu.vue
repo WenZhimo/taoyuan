@@ -90,7 +90,10 @@
           <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showModManager = false">
             <X :size="14" />
           </button>
-          <WebDataPackImportPreflightPanel />
+          <WebDataPackImportPreflightPanel
+            :inspect-save-package-usage="saveStore.inspectPackageUsage"
+            :publish-save-content-environment="saveStore.setContentEnvironment"
+          />
           <div
             v-if="latestWebResponseDelivery"
             data-testid="web-mod-response-delivery-summary"

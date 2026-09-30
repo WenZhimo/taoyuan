@@ -32,6 +32,7 @@ import {
   CURRENT_SAVE_FORMAT_VERSION,
   canLoadSaveContentEnvironmentInOfficialSafeMode,
   checkSaveRootCompatibility,
+  migrateSaveRoot,
   normalizeSaveContentEnvironment,
   validateSavePackageMigrationStep,
   type SaveContentEnvironment,
@@ -77,6 +78,7 @@ type SaveOperationFailureReason =
   | 'plugin-data-migration'
   | 'package-settings-invalid'
   | 'safe-mode-read-only'
+  | 'content-environment-drift'
   | 'slot-protected'
   | 'storage'
 
@@ -96,6 +98,12 @@ export interface SaveSlotInfo {
   money?: number
   playerName?: string
   savedAt?: string
+}
+
+export interface SavePackageUsageReport {
+  readonly packageId: string
+  readonly usedSlots: readonly number[]
+  readonly unverifiableSlots: readonly number[]
 }
 
 const yieldToUi = (): Promise<void> =>
@@ -119,6 +127,7 @@ export const useSaveStore = defineStore('save', () => {
   /** 当前活跃存档槽位，-1 表示未分配 */
   const activeSlot = ref(-1)
   const contentEnvironment = ref<SaveContentEnvironment>(getCurrentSaveContentEnvironment())
+  const loadedSaveContentEnvironment = ref<SaveContentEnvironment | null>(null)
   const pluginDataState = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const persistedPluginData = ref<PersistedPluginData>(createEmptyPersistedPluginData())
   const pluginDataOwners = new Map<string, PluginSaveDataOwner>()
@@ -172,6 +181,8 @@ export const useSaveStore = defineStore('save', () => {
         : '存档级数据包设置结构无效，操作已拒绝且原存档未修改。请先导出备份，再检查对应数据包。'
     } else if (reason === 'safe-mode-read-only') {
       message = '当前存档已在安全模式中以只读方式打开，原存档不会被覆盖。请恢复对应数据包后重新加载，或先导出存档。'
+    } else if (reason === 'content-environment-drift') {
+      message = '当前运行时内容环境已改变，保存已取消以避免用错误环境覆盖存档。请恢复对应数据包后重新加载，或先导出存档。'
     } else if (reason === 'slot-protected') {
       message = '目标槽位无法安全验证，保存已取消以避免覆盖原档。请先导出该槽位备份，或改用空槽。'
     } else if (reason === 'invalid') {
@@ -360,12 +371,51 @@ export const useSaveStore = defineStore('save', () => {
     return slots
   }
 
+  const inspectPackageUsage = async (packageId: string): Promise<SavePackageUsageReport> => {
+    const usedSlots: number[] = []
+    const unverifiableSlots: number[] = []
+
+    for (const slotInfo of getSlots()) {
+      if (!slotInfo.exists) continue
+      const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slotInfo.slot}`)
+      if (!raw) {
+        unverifiableSlots.push(slotInfo.slot)
+        continue
+      }
+
+      const normalized = await normalizeSaveData(raw)
+      if (!normalized) {
+        unverifiableSlots.push(slotInfo.slot)
+        continue
+      }
+
+      try {
+        const migration = migrateSaveRoot(normalized.data, {
+          pluginDataOwners: getPluginDataOwners(),
+          packageMigrations: getPackageMigrations()
+        })
+        if (migration.environment.packages.some(pkg => pkg.id === packageId)) {
+          usedSlots.push(slotInfo.slot)
+        }
+      } catch {
+        unverifiableSlots.push(slotInfo.slot)
+      }
+    }
+
+    return Object.freeze({
+      packageId,
+      usedSlots: Object.freeze(usedSlots),
+      unverifiableSlots: Object.freeze(unverifiableSlots)
+    })
+  }
+
   /** 为新游戏分配一个空闲槽位，无空闲则返回 -1 */
   const assignNewSlot = (): number => {
     const empty = getSlots().find(slot => !slot.exists)
     activeSlot.value = empty?.slot ?? -1
     if (activeSlot.value >= 0) {
       isReadOnlySafeMode.value = false
+      loadedSaveContentEnvironment.value = null
       pluginDataState.value = createEmptyPersistedPluginData()
       persistedPluginData.value = createEmptyPersistedPluginData()
       packageSettings.value = createEmptyPersistedPackageSettings()
@@ -505,6 +555,7 @@ export const useSaveStore = defineStore('save', () => {
     persistedPluginData.value = data.pluginData
     packageSettings.value = data.packageSettings
     persistedPackageSettings.value = data.packageSettings
+    loadedSaveContentEnvironment.value = normalizeSaveContentEnvironment(data.contentEnvironment)
   }
 
   const setContentEnvironment = (value: unknown): boolean => {
@@ -592,6 +643,13 @@ export const useSaveStore = defineStore('save', () => {
     if (slot < 0 || slot >= MAX_SLOTS) return false
     return runOperation('saving', async () => {
       if (isReadOnlySafeMode.value) return failOperation('saving', 'safe-mode-read-only')
+      if (
+        activeSlot.value === slot
+        && loadedSaveContentEnvironment.value !== null
+        && loadedSaveContentEnvironment.value.environmentHash !== getCurrentSaveContentEnvironment().environmentHash
+      ) {
+        return failOperation('saving', 'content-environment-drift')
+      }
       const previousPluginData = await readExistingPluginData(slot)
       const previousPackageSettings = await readExistingPackageSettings(slot)
       if (!previousPluginData || !previousPackageSettings) return failOperation('saving', 'slot-protected')
@@ -641,6 +699,7 @@ export const useSaveStore = defineStore('save', () => {
       applyLoadedSaveData(data)
 
       activeSlot.value = slot
+      loadedSaveContentEnvironment.value = normalizeSaveContentEnvironment(data.contentEnvironment)
       isReadOnlySafeMode.value = false
       return true
     })
@@ -698,6 +757,7 @@ export const useSaveStore = defineStore('save', () => {
     localStorage.removeItem(`${SAVE_META_KEY_PREFIX}${slot}`)
     if (activeSlot.value === slot) {
       activeSlot.value = -1
+      loadedSaveContentEnvironment.value = null
       isReadOnlySafeMode.value = false
     }
     return true
@@ -750,6 +810,7 @@ export const useSaveStore = defineStore('save', () => {
   return {
     activeSlot,
     contentEnvironment,
+    inspectPackageUsage,
     registerPluginSaveDataOwner,
     unregisterPluginSaveDataOwner,
     registerSavePackageMigration,
