@@ -12,6 +12,37 @@
     </div>
 
     <div v-else class="flex flex-col space-y-2">
+      <div
+        data-testid="official-registry-cache-maintenance"
+        class="border border-accent/20 rounded-xs p-2 text-xs"
+      >
+        <div class="flex items-center justify-between gap-2">
+          <p class="text-muted">派生官方缓存</p>
+          <span data-testid="official-registry-cache-maintenance-status" class="text-text">
+            {{ officialCacheMaintenanceStatusLabel }}
+          </span>
+        </div>
+        <p class="text-muted mt-1">
+          只清除当前程序目录的派生缓存；模组、设置和存档不会改变。下次启动会按需重建缓存。
+        </p>
+        <Button
+          class="justify-center mt-2"
+          :icon="RotateCcw"
+          data-testid="official-registry-cache-clear"
+          :disabled="isNativePlatform || isPreparing || officialCacheMaintenanceStatus === 'clearing' || !canClearOfficialRegistryCache"
+          @click="clearOfficialRegistryCache"
+        >
+          清除派生缓存
+        </Button>
+        <p
+          v-if="officialCacheMaintenanceMessage"
+          data-testid="official-registry-cache-clear-result"
+          class="text-muted mt-2"
+        >
+          {{ officialCacheMaintenanceMessage }}
+        </p>
+      </div>
+
       <div class="border border-accent/20 rounded-xs p-2 text-xs" data-testid="web-mod-installed-management">
         <div class="flex items-center justify-between gap-2">
           <p class="text-muted">已安装数据包</p>
@@ -263,6 +294,10 @@
     getThirdPartyDataPackMountedAppStartupHostEvidence
   } from '@/domain/mods/thirdPartyDataPackMountedAppStartupHostConnection'
   import {
+    clearOfficialRegistryDiskCache,
+    isOfficialRegistryDiskCacheClearAvailable
+  } from '@/domain/mods/officialRegistryCacheRuntime'
+  import {
     createThirdPartyDataPackElectronDisableCommandRendererHost,
     type ThirdPartyDataPackElectronDisableCommandEnvelope,
     type ThirdPartyDataPackElectronDisableCommandResult
@@ -323,6 +358,7 @@
     electronEnableCommand?: (
       envelope: ThirdPartyDataPackElectronEnableCommandEnvelope
     ) => Promise<ThirdPartyDataPackElectronEnableCommandResult>
+    clearOfficialRegistryCache?: () => Promise<unknown>
     inspectSavePackageUsage?: (packageId: string) => Promise<SavePackageUsageReport>
     publishSaveContentEnvironment?: (environment: SaveContentEnvironment) => boolean
   }>()
@@ -470,6 +506,12 @@
   }
   const electronEnableCommand =
     props.electronEnableCommand ?? createDefaultElectronEnableCommand()
+  const createDefaultClearOfficialRegistryCache = () => {
+    if (typeof window === 'undefined' || !isOfficialRegistryDiskCacheClearAvailable()) return undefined
+    return clearOfficialRegistryDiskCache
+  }
+  const clearOfficialRegistryCacheBridge =
+    props.clearOfficialRegistryCache ?? createDefaultClearOfficialRegistryCache()
   const readMountedAppStartupHostEvidence =
     (): WebFilePickerMountedAppStartupHostEvidence | undefined => {
       const evidence = getThirdPartyDataPackMountedAppStartupHostEvidence()
@@ -596,6 +638,26 @@
   } | null>(null)
   const isPreparing = ref(false)
   const isNativePlatform = computed(() => Capacitor.isNativePlatform())
+  const canClearOfficialRegistryCache = clearOfficialRegistryCacheBridge !== undefined
+  const officialCacheMaintenanceStatus = ref<
+    'unavailable' | 'ready' | 'clearing' | 'cleared' | 'failed'
+  >(canClearOfficialRegistryCache ? 'ready' : 'unavailable')
+  const officialCacheMaintenanceStatusLabel = computed(() => {
+    if (officialCacheMaintenanceStatus.value === 'ready') return '可清除'
+    if (officialCacheMaintenanceStatus.value === 'clearing') return '清除中'
+    if (officialCacheMaintenanceStatus.value === 'cleared') return '已清除'
+    if (officialCacheMaintenanceStatus.value === 'failed') return '清除失败'
+    return '当前环境无持久化缓存'
+  })
+  const officialCacheMaintenanceMessage = computed(() => {
+    if (officialCacheMaintenanceStatus.value === 'cleared') {
+      return '已清除派生缓存；模组、设置、存档未改变。'
+    }
+    if (officialCacheMaintenanceStatus.value === 'failed') {
+      return '清除失败；模组、设置、存档未改变。'
+    }
+    return ''
+  })
   const lastPreflight = computed(() => entry.lastSourceInstallCommandPreflight.value)
   const lastDispatch = computed(() => entry.lastSourceInstallCommandDispatch.value)
 
@@ -932,6 +994,22 @@
 
   const resetImport = (): void => {
     void entry.reset()
+  }
+
+  const clearOfficialRegistryCache = async(): Promise<void> => {
+    if (
+      isNativePlatform.value
+      || isPreparing.value
+      || officialCacheMaintenanceStatus.value === 'clearing'
+      || clearOfficialRegistryCacheBridge === undefined
+    ) return
+    officialCacheMaintenanceStatus.value = 'clearing'
+    try {
+      await clearOfficialRegistryCacheBridge()
+      officialCacheMaintenanceStatus.value = 'cleared'
+    } catch {
+      officialCacheMaintenanceStatus.value = 'failed'
+    }
   }
 
   const executeDisableInstalledPackage = async(packageId: string): Promise<void> => {

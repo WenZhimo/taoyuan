@@ -36,6 +36,9 @@ import type {
 import type {
   SaveSafeModeProductProbeResult
 } from '@/runtime/saveSafeModeProductProbe'
+import type {
+  OfficialRegistryCacheMaintenanceProductProbeResult
+} from '@/runtime/officialRegistryCacheMaintenanceProductProbe'
 import type { PackageId } from '@/domain/mods/ids'
 import './app.css'
 
@@ -120,6 +123,9 @@ const thirdPartyVisibleUpgradeFailAfterModLockWriteProbeRequested = runtimeProbe
 const thirdPartyVisibleArchiveImportProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleArchiveImportProbe') === '1'
+const officialRegistryCacheMaintenanceProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanOfficialRegistryCacheMaintenanceProbe') === '1'
 const thirdPartyVisibleOperationProbeRequested =
   thirdPartyVisibleImportProbeRequested
   || thirdPartyVisibleImportRollbackProbeRequested
@@ -142,6 +148,8 @@ let thirdPartyVisibleImportProductProbeResult: ThirdPartyVisibleImportProductPro
 let thirdPartyVisibleDisableProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 let thirdPartyVisibleUninstallProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 let saveSafeModeProductProbeResult: SaveSafeModeProductProbeResult | undefined
+let officialRegistryCacheMaintenanceProductProbeResult:
+  OfficialRegistryCacheMaintenanceProductProbeResult | undefined
 const bootstrapThirdPartyStartupGate = thirdPartyStartupPersistentStateProbeRequested
   ? thirdPartyStartupPersistentStateUsesInstalledState
     ? createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
@@ -316,6 +324,13 @@ void bootstrapApplication({
     return
   }
   await cacheRefresh
+  if (officialRegistryCacheMaintenanceProbeRequested) {
+    const { runOfficialRegistryCacheMaintenanceProductProbe } = await import(
+      '@/runtime/officialRegistryCacheMaintenanceProductProbe'
+    )
+    officialRegistryCacheMaintenanceProductProbeResult =
+      await runOfficialRegistryCacheMaintenanceProductProbe()
+  }
   const { publishContentRuntimeProbe } = await import('@/runtime/contentRuntimeProbe')
   publishContentRuntimeProbe({
     thirdPartyStartupGateResult: bootstrapResult.thirdPartyStartupGateResult,
@@ -344,6 +359,12 @@ void bootstrapApplication({
       thirdPartyVisibleUninstallProductProbeResult
         ?? thirdPartyVisibleDisableProductProbeResult
         ?? thirdPartyVisibleImportProductProbeResult,
+    ...(officialRegistryCacheMaintenanceProductProbeResult === undefined
+      ? {}
+      : {
+          officialRegistryCacheMaintenanceResult:
+            officialRegistryCacheMaintenanceProductProbeResult
+        }),
     saveSafeModeProductProbe: saveSafeModeProductProbeResult
   })
 }).catch(error => {

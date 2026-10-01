@@ -411,6 +411,7 @@ export interface ContentRuntimeProbeEnvelope {
   thirdPartyRendererUiIpc: ThirdPartyRendererUiIpcRuntimeProbeSummary
   thirdPartyElectronInstallCommandDispatch: ThirdPartyElectronInstallCommandDispatchRuntimeProbeSummary
   thirdPartyVisibleImport: ThirdPartyVisibleImportRuntimeProbeSummary
+  officialRegistryCacheMaintenance?: OfficialRegistryCacheMaintenanceRuntimeProbeSummary
   saveSafeModeProductProbe?: SaveSafeModeProductProbeResult
   ui: {
     documentTitle: string
@@ -433,7 +434,20 @@ export interface ContentRuntimeProbeOptions {
   readonly thirdPartyRendererUiIpcWebEventObserved?: boolean
   readonly thirdPartyElectronInstallCommandDispatchResult?: unknown
   readonly thirdPartyVisibleImportResult?: unknown
+  readonly officialRegistryCacheMaintenanceResult?: unknown
   readonly saveSafeModeProductProbe?: SaveSafeModeProductProbeResult
+}
+
+export interface OfficialRegistryCacheMaintenanceRuntimeProbeSummary {
+  readonly schemaVersion: 1
+  readonly observed: boolean
+  readonly status?: 'ready' | 'blocked' | 'unknown'
+  readonly reason?: string
+  readonly mainMenuPanelOpened: boolean
+  readonly clearButtonClicked: boolean
+  readonly clearResultVisible: boolean
+  readonly cachePresentBefore: boolean
+  readonly cachePresentAfter: boolean
 }
 
 interface ElectronRuntimeProbeReporter {
@@ -1631,6 +1645,34 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   }
 }
 
+export const createOfficialRegistryCacheMaintenanceRuntimeProbeSummary = (
+  result: unknown
+): OfficialRegistryCacheMaintenanceRuntimeProbeSummary => {
+  if (result === undefined || result === null || typeof result !== 'object') {
+    return {
+      schemaVersion: 1,
+      observed: false,
+      mainMenuPanelOpened: false,
+      clearButtonClicked: false,
+      clearResultVisible: false,
+      cachePresentBefore: false,
+      cachePresentAfter: false
+    }
+  }
+  const status = readOwnStringField(result, 'status')
+  return {
+    schemaVersion: 1,
+    observed: true,
+    status: status === 'ready' || status === 'blocked' ? status : 'unknown',
+    reason: readOwnStringField(result, 'reason'),
+    mainMenuPanelOpened: readOwnBooleanField(result, 'mainMenuPanelOpened') === true,
+    clearButtonClicked: readOwnBooleanField(result, 'clearButtonClicked') === true,
+    clearResultVisible: readOwnBooleanField(result, 'clearResultVisible') === true,
+    cachePresentBefore: readOwnBooleanField(result, 'cachePresentBefore') === true,
+    cachePresentAfter: readOwnBooleanField(result, 'cachePresentAfter') === true
+  }
+}
+
 export const publishContentRuntimeProbe = (
   options: ContentRuntimeProbeOptions = {}
 ): ContentRuntimeProbeEnvelope | null => {
@@ -1668,6 +1710,14 @@ export const publishContentRuntimeProbe = (
     thirdPartyVisibleImport: createThirdPartyVisibleImportRuntimeProbeSummary(
       options.thirdPartyVisibleImportResult
     ),
+    ...(options.officialRegistryCacheMaintenanceResult === undefined
+      ? {}
+      : {
+          officialRegistryCacheMaintenance:
+            createOfficialRegistryCacheMaintenanceRuntimeProbeSummary(
+              options.officialRegistryCacheMaintenanceResult
+            )
+        }),
     ...(options.saveSafeModeProductProbe === undefined
       ? {}
       : { saveSafeModeProductProbe: options.saveSafeModeProductProbe }),

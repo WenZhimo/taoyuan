@@ -6,6 +6,7 @@ import officialCacheMetadata from '../src/generated/mods/official-precompiled-me
 import officialPrecompiledRegistryArtifact from '../src/generated/mods/official-precompiled-registry.json'
 import {
   getOfficialRegistryCacheFilePaths,
+  clearOfficialRegistryCacheFile,
   readOfficialRegistryCacheFile,
   writeOfficialRegistryCacheFile
 } from '../src/domain/mods/officialRegistryCacheFile'
@@ -220,6 +221,8 @@ const runtimeProbeStartupPersistentStateInstalledState =
   process.env.TAOYUAN_RUNTIME_PROBE_STARTUP_PERSISTENT_STATE_INSTALLED_STATE === '1'
 const runtimeProbeSaveSafeMode =
   process.env.TAOYUAN_RUNTIME_PROBE_SAVE_SAFE_MODE === '1'
+const runtimeProbeOfficialRegistryCacheMaintenance =
+  process.env.TAOYUAN_RUNTIME_PROBE_OFFICIAL_REGISTRY_CACHE_MAINTENANCE === '1'
 const runtimeProbeVisibleImport =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_IMPORT === '1'
 const runtimeProbeVisibleInstallFailAfterModLockWrite =
@@ -5732,6 +5735,9 @@ const createWindow = () => {
           ...(runtimeProbeSaveSafeMode
             ? { taoyuanSaveSafeModeProbe: '1' }
             : {}),
+          ...(runtimeProbeOfficialRegistryCacheMaintenance
+            ? { taoyuanOfficialRegistryCacheMaintenanceProbe: '1' }
+            : {}),
           ...(runtimeProbeInstallTransactionCommitFinalization
             || runtimeProbeOrdinaryInstallTerminalSuccess
             ? { taoyuanThirdPartyRendererUiIpcInstallResultProbe: '1' }
@@ -5870,6 +5876,14 @@ ipcMain.handle('official-registry-cache-write', async (_event, contents) => {
     officialCacheMetadata
   )
   return { status: 'written' }
+})
+
+ipcMain.handle('official-registry-cache-clear', async () => {
+  if (!isOfficialRegistryDiskCacheAvailable()) {
+    throw new Error('Official registry disk cache is unavailable outside executable userdata')
+  }
+  await clearOfficialRegistryCacheFile(officialCachePaths)
+  return { status: 'cleared' }
 })
 
 const readThirdPartyCandidateRegistryCache =

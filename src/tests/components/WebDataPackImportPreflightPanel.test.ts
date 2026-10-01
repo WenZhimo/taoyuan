@@ -2683,4 +2683,35 @@ describe('WebDataPackImportPreflightPanel', () => {
       restoreQuery()
     }
   })
+
+  it('clears the derived official cache without entering package management', async() => {
+    const clearOfficialRegistryCache = vi.fn(async() => ({ status: 'cleared' }))
+    const wrapper = mount(WebDataPackImportPreflightPanel, {
+      props: {
+        officialRegistrySet: buildOfficialRegistrySetFromStaticData(),
+        persistenceStore: null,
+        webSettingsLockfileStore: null,
+        webInstallTransactionLogStore: null,
+        clearOfficialRegistryCache
+      }
+    })
+
+    try {
+      expect(wrapper.get('[data-testid="official-registry-cache-maintenance-status"]').text())
+        .toBe('可清除')
+      expect(wrapper.get('[data-testid="official-registry-cache-clear"]').attributes('disabled'))
+        .toBeUndefined()
+
+      await wrapper.get('[data-testid="official-registry-cache-clear"]').trigger('click')
+      await waitForPreflight(() => wrapper.get('[data-testid="official-registry-cache-clear-result"]').text())
+
+      expect(clearOfficialRegistryCache).toHaveBeenCalledOnce()
+      expect(wrapper.get('[data-testid="official-registry-cache-maintenance-status"]').text())
+        .toBe('已清除')
+      expect(wrapper.get('[data-testid="official-registry-cache-clear-result"]').text())
+        .toContain('模组、设置、存档未改变')
+    } finally {
+      wrapper.unmount()
+    }
+  })
 })

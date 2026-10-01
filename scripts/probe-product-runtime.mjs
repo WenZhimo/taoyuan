@@ -1950,6 +1950,18 @@ const electronScenarios = [
     startupGateTargetPackageId: 'product_probe_pack'
   },
   {
+    name: 'official-cache-maintenance',
+    fault: null,
+    source: 'disk-cache',
+    status: 'not-attempted',
+    artifactHashSource: 'disk-cache',
+    cacheStatus: 'disk-cache-fast-hit',
+    cacheWriteStatus: 'not-needed',
+    dataRoot: 'official-cache-maintenance',
+    cacheSeed: 'valid',
+    officialRegistryCacheMaintenance: true
+  },
+  {
     name: 'visible-import-disabled-replace-then-restart',
     fault: null,
     source: 'disk-cache',
@@ -8124,6 +8136,9 @@ const runWebProbe = async () => {
     if (scenario.visibleArchiveImport) {
       url.searchParams.set('taoyuanThirdPartyVisibleArchiveImportProbe', '1')
     }
+    if (scenario.officialRegistryCacheMaintenance) {
+      url.searchParams.set('taoyuanOfficialRegistryCacheMaintenanceProbe', '1')
+    }
     if (scenario.saveSafeMode) {
       url.searchParams.set('taoyuanSaveSafeModeProbe', '1')
     }
@@ -8823,6 +8838,10 @@ const runPackagedScenario = async (scenario, isolated) => {
     || exercisesVisibleInitialImport
   const exercisesPersistentWrite = exercisesSettingsOrLockfileWrite || exercisesPackageFileWrite
   seedElectronCache(path.join(scenarioRoot, 'userdata'), scenario.cacheSeed)
+  if (scenario.officialRegistryCacheMaintenance) {
+    assert(isolated, `${scenario.name}: cache maintenance probe must be isolated`)
+    writeModLockProtectionSentinels(scenarioRoot, userDataPath)
+  }
   if (exercisesPersistentWrite) {
     assert(isolated, `${scenario.name}: persistent write/read scenario must be isolated`)
     if (
@@ -8838,6 +8857,12 @@ const runPackagedScenario = async (scenario, isolated) => {
   }
   const protectedBefore = exercisesPersistentWrite
     ? modLockProtectedFingerprints(scenarioRoot, userDataPath)
+    : null
+  const officialCacheMaintenanceProtectedBefore = scenario.officialRegistryCacheMaintenance
+    ? modLockProtectedFingerprints(scenarioRoot, userDataPath)
+    : null
+  const officialCacheMaintenanceModLockBefore = scenario.officialRegistryCacheMaintenance
+    ? fileContentFingerprint(modLockFilePath(userDataPath))
     : null
   const packageFileBefore = exercisesPackageFileWrite && !exercisesVisibleUpgrade && !exercisesVisibleDisabledUpgrade
     ? writePackageFileProtectionSentinels(scenarioRoot)
@@ -8878,6 +8903,9 @@ const runPackagedScenario = async (scenario, isolated) => {
     TAOYUAN_RUNTIME_PROBE_AUTO_EXIT: '1',
     ...(scenario.fault ? { TAOYUAN_RUNTIME_PROBE_FAULT: scenario.fault } : {}),
     ...(scenario.saveSafeMode ? { TAOYUAN_RUNTIME_PROBE_SAVE_SAFE_MODE: '1' } : {}),
+    ...(scenario.officialRegistryCacheMaintenance
+      ? { TAOYUAN_RUNTIME_PROBE_OFFICIAL_REGISTRY_CACHE_MAINTENANCE: '1' }
+      : {}),
     ...(scenario.modLockWriteRead ? { TAOYUAN_RUNTIME_PROBE_MOD_LOCK_WRITE_READ: '1' } : {}),
     ...(scenario.settingsLockfileWriteRead
       ? { TAOYUAN_RUNTIME_PROBE_SETTINGS_LOCKFILE_WRITE_READ: '1' }
@@ -8993,8 +9021,8 @@ const runPackagedScenario = async (scenario, isolated) => {
     `${scenario.name}: save storage escaped userData`)
   assert(productReport.electron?.officialCacheInsideUserData === true,
     `${scenario.name}: official cache escaped userData`)
-  assert(productReport.electron?.officialCacheExists === true,
-    `${scenario.name}: official cache was not written`)
+  assert(productReport.electron?.officialCacheExists === !scenario.officialRegistryCacheMaintenance,
+    `${scenario.name}: unexpected official cache presence after the probe`)
   assert(productReport.electron?.startupLogChanged === false,
     `${scenario.name}: startup error log changed`)
   assertElectronModLockStorageProbe(productReport.electron?.modLockStorageProbe, scenario, isolated)
@@ -9029,7 +9057,36 @@ const runPackagedScenario = async (scenario, isolated) => {
     scenario,
     isolated
   )
-  assertOfficialCacheFile(userDataPath, scenario.name)
+  if (scenario.officialRegistryCacheMaintenance) {
+    const cacheMaintenance = productReport.runtime?.officialRegistryCacheMaintenance
+    assert(cacheMaintenance?.status === 'ready',
+      `${scenario.name}: cache maintenance probe did not reach ready status`)
+    assert(cacheMaintenance.mainMenuPanelOpened === true,
+      `${scenario.name}: cache maintenance probe did not open the visible panel`)
+    assert(cacheMaintenance.clearButtonClicked === true,
+      `${scenario.name}: cache maintenance probe did not click the clear button`)
+    assert(cacheMaintenance.clearResultVisible === true,
+      `${scenario.name}: cache maintenance probe did not render the clear result`)
+    assert(cacheMaintenance.cachePresentBefore === true,
+      `${scenario.name}: cache maintenance probe did not observe the seeded cache`)
+    assert(cacheMaintenance.cachePresentAfter === false,
+      `${scenario.name}: cache maintenance probe observed a cache after clearing`)
+    for (const name of Object.keys(officialCacheMaintenanceProtectedBefore ?? {})) {
+      if (name === 'officialCache') continue
+      assert(
+        JSON.stringify(fileContentFingerprint(modLockProtectedPaths(scenarioRoot, userDataPath)[name]))
+          === JSON.stringify(officialCacheMaintenanceProtectedBefore?.[name]),
+        `${scenario.name}: protected ${name} changed during cache maintenance`
+      )
+    }
+    assert(
+      JSON.stringify(fileContentFingerprint(modLockFilePath(userDataPath)))
+        === JSON.stringify(officialCacheMaintenanceModLockBefore),
+      `${scenario.name}: mod-lock changed during cache maintenance`
+    )
+  } else {
+    assertOfficialCacheFile(userDataPath, scenario.name)
+  }
   if (exercisesSettingsOrLockfileWrite && !exercisesVisibleInstallWriteFailure) {
     const lockfileAfter = fileFingerprint(lockfilePath)
     if (scenario.modLockWriteRead) {
@@ -10247,6 +10304,33 @@ const corruptCandidateRegistryCacheBeforeScenario = scenario => {
   fs.writeFileSync(cacheFiles[0], 'not-json\n', 'utf8')
 }
 
+const runPackagedOfficialRegistryCacheMaintenanceSequence = async (scenario, isolated) => {
+  const clearScenario = {
+    ...scenario,
+    name: `${scenario.name}-clear`,
+    officialRegistryCacheMaintenance: true,
+    cacheSeed: 'valid'
+  }
+  const clear = await runPackagedScenario(clearScenario, isolated)
+  const restartScenario = {
+    ...scenario,
+    name: `${scenario.name}-restart`,
+    officialRegistryCacheMaintenance: false,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    artifactHashSource: undefined,
+    cacheStatus: 'cache-miss-not-found',
+    cacheWriteStatus: 'written',
+    cacheSeed: undefined
+  }
+  const restart = await runPackagedScenario(restartScenario, isolated)
+  return {
+    scenario: scenario.name,
+    clearRuntime: clear.runtime,
+    restartRuntime: restart.runtime
+  }
+}
+
 const runElectronProbe = async () => {
   assert(fs.existsSync(packagedExecutable),
     'Electron product is missing; run pnpm build:electron')
@@ -10265,6 +10349,13 @@ const runElectronProbe = async () => {
   assert(fs.existsSync(formalUserData), 'Packaged app did not create program-local userdata')
   const formalFingerprint = directoryFingerprint(formalUserData)
   for (const scenario of selectedElectronScenarios.slice(1)) {
+    if (scenario.officialRegistryCacheMaintenance) {
+      reports.push(await runPackagedOfficialRegistryCacheMaintenanceSequence(
+        scenario,
+        scenario.isolated !== false
+      ))
+      continue
+    }
     if (scenario.visibleImportInstalledDisabledReplacementSequence) {
       reports.push(await runPackagedVisibleDisabledReplacementSequence(scenario, scenario.isolated !== false))
       continue

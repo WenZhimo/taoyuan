@@ -55,6 +55,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Cache access is restricted to fixed program-local paths in the main process.
   readOfficialRegistryCache: () => ipcRenderer.invoke('official-registry-cache-read'),
   writeOfficialRegistryCache: contents => ipcRenderer.invoke('official-registry-cache-write', contents),
+  clearOfficialRegistryCache: () => ipcRenderer.invoke('official-registry-cache-clear'),
   readThirdPartyDataPackCandidateRegistryCache: environmentHash =>
     ipcRenderer.invoke('third-party-data-pack-candidate-registry-cache-read', environmentHash),
   writeThirdPartyDataPackCandidateRegistryCache: (environmentHash, contents) =>

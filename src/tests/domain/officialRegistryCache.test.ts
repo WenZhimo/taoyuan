@@ -12,6 +12,7 @@ import {
   OfficialRegistryCacheError
 } from '@/domain/mods/officialRegistryCache'
 import {
+  clearOfficialRegistryCacheFile,
   cleanupOfficialRegistryCacheTempFiles,
   getOfficialRegistryCacheFilePaths,
   readOfficialRegistryCacheFile,
@@ -281,6 +282,31 @@ describe('official registry disk cache file', () => {
 
     await expect(stat(staleTemp)).rejects.toMatchObject({ code: 'ENOENT' })
     expect(await readFile(path.join(paths.directory, 'unrelated.tmp'), 'utf8')).toBe('keep')
+  })
+
+  it('clears only the current cache and its temporary files', async () => {
+    const root = await createRoot()
+    const userData = path.join(root, 'userdata')
+    const paths = createPaths(root)
+    const settingsPath = path.join(userData, 'settings.json')
+    const savePath = path.join(userData, 'saves', 'slot-0.tyx')
+    const temporaryPath = path.join(paths.directory, `.${OFFICIAL_REGISTRY_CACHE_FILE_NAME}.tmp-active`)
+    const unrelatedPath = path.join(paths.directory, 'unrelated.tmp')
+    await writeOfficialRegistryCacheFile(paths, createCacheText(), committedMetadata as unknown)
+    await mkdir(path.dirname(settingsPath), { recursive: true })
+    await mkdir(path.dirname(savePath), { recursive: true })
+    await writeFile(settingsPath, 'settings-sentinel', 'utf8')
+    await writeFile(savePath, 'save-sentinel', 'utf8')
+    await writeFile(temporaryPath, 'temporary-cache', 'utf8')
+    await writeFile(unrelatedPath, 'keep', 'utf8')
+
+    await clearOfficialRegistryCacheFile(paths)
+
+    expect(await readOfficialRegistryCacheFile(paths)).toBeNull()
+    await expect(stat(temporaryPath)).rejects.toMatchObject({ code: 'ENOENT' })
+    expect(await readFile(unrelatedPath, 'utf8')).toBe('keep')
+    expect(await readFile(settingsPath, 'utf8')).toBe('settings-sentinel')
+    expect(await readFile(savePath, 'utf8')).toBe('save-sentinel')
   })
 
   it('preserves the previous cache when writing is interrupted or replacement fails', async () => {

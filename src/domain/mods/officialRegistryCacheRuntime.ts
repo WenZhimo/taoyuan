@@ -11,6 +11,7 @@ import type { RegistrySet } from './registry'
 interface OfficialRegistryCacheElectronBridge {
   readOfficialRegistryCache?: () => Promise<unknown>
   writeOfficialRegistryCache?: (contents: string) => Promise<unknown>
+  clearOfficialRegistryCache?: () => Promise<unknown>
 }
 
 type CacheWindow = Window & { electronAPI?: OfficialRegistryCacheElectronBridge }
@@ -32,6 +33,9 @@ export const isOfficialRegistryDiskCacheAvailable = (): boolean => {
   return typeof bridge?.readOfficialRegistryCache === 'function'
     && typeof bridge.writeOfficialRegistryCache === 'function'
 }
+
+export const isOfficialRegistryDiskCacheClearAvailable = (): boolean =>
+  typeof getBridge()?.clearOfficialRegistryCache === 'function'
 
 export const loadOfficialRegistryDiskCache = async (): Promise<unknown | null> => {
   const bridge = getBridge()
@@ -61,6 +65,14 @@ export const writeOfficialRegistryDiskCache = async (contents: string): Promise<
   }
   parseOfficialRegistryCacheText(contents, metadataJson as unknown, { validationMode: 'full' })
   await bridge.writeOfficialRegistryCache(contents)
+}
+
+export const clearOfficialRegistryDiskCache = async (): Promise<void> => {
+  const bridge = getBridge()
+  if (typeof bridge?.clearOfficialRegistryCache !== 'function') {
+    throw new Error('Official registry disk cache clear bridge is unavailable')
+  }
+  await bridge.clearOfficialRegistryCache()
 }
 
 export const getLastDiskCacheArtifactHash = (): Sha256Hash | null => lastDiskCacheArtifactHash

@@ -103,6 +103,38 @@ export const cleanupOfficialRegistryCacheTempFiles = async (
     }))
 }
 
+export const clearOfficialRegistryCacheFile = async (
+  paths: OfficialRegistryCacheFilePaths,
+  options?: OfficialRegistryCacheFileOptions
+): Promise<void> => {
+  const fs = fileSystem(options)
+  let entries
+  try {
+    entries = await fs.readdir(paths.directory, { withFileTypes: true })
+  } catch (error) {
+    if (isNotFound(error)) return
+    throw error
+  }
+
+  await Promise.all(entries
+    .filter(entry => entry.isFile() && isTemporaryName(entry.name))
+    .map(async entry => {
+      const temporaryPath = path.join(paths.directory, entry.name)
+      assertInsideCacheDirectory(paths, temporaryPath)
+      try {
+        await fs.unlink(temporaryPath)
+      } catch (error) {
+        if (!isNotFound(error)) throw error
+      }
+    }))
+
+  try {
+    await fs.unlink(paths.filePath)
+  } catch (error) {
+    if (!isNotFound(error)) throw error
+  }
+}
+
 export const readOfficialRegistryCacheFile = async (
   paths: OfficialRegistryCacheFilePaths,
   options?: OfficialRegistryCacheFileOptions
