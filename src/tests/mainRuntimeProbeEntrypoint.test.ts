@@ -35,6 +35,7 @@ const mocks = vi.hoisted(() => {
     publishContentRuntimeProbe: vi.fn(),
     publishOfficialContentRegistrySet: vi.fn(async() => undefined),
     publishThirdPartyDataPackMountedAppStartupHostEvidence: vi.fn(),
+    prepareThirdPartyVisibleDisableSaveWarningProductProbe: vi.fn(async() => undefined),
     refreshOfficialRegistryDiskCache: vi.fn(async() => undefined),
     reportApplicationStartupFailure: vi.fn(),
     runThirdPartyElectronInstallCommandDispatchProductProbe: vi.fn(async() => ({
@@ -110,6 +111,8 @@ vi.mock('@/runtime/thirdPartyStartupGateProductProbe', () => ({
 }))
 
 vi.mock('@/runtime/thirdPartyVisibleImportProductProbe', () => ({
+  prepareThirdPartyVisibleDisableSaveWarningProductProbe:
+    mocks.prepareThirdPartyVisibleDisableSaveWarningProductProbe,
   runThirdPartyVisibleImportProductProbe: mocks.runThirdPartyVisibleImportProductProbe,
   runThirdPartyVisibleDisableProductProbe: mocks.runThirdPartyVisibleDisableProductProbe,
   runThirdPartyVisibleUninstallProductProbe: mocks.runThirdPartyVisibleUninstallProductProbe
@@ -494,6 +497,38 @@ describe('main runtime probe entrypoint', () => {
       expect(mocks.runThirdPartyVisibleDisableProductProbe).toHaveBeenCalledWith({
         targetPackageId: 'product_probe_pack',
         includeDependency: true,
+        expectBlocked: false
+      })
+    })
+    expect(mocks.runThirdPartyVisibleImportProductProbe).not.toHaveBeenCalled()
+    expect(mocks.runThirdPartyRendererUiIpcProductProbe).not.toHaveBeenCalled()
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({
+        thirdPartyVisibleImportResult: visibleDisableResult
+      })
+    )
+  })
+
+  it('passes the visible disable save warning query wiring into the product probe', async() => {
+    const visibleDisableResult = {
+      status: 'ready',
+      operation: 'disable',
+      targetPackageId: 'product_probe_pack',
+      disableSaveWarningShown: true
+    }
+    mocks.runThirdPartyVisibleDisableProductProbe.mockResolvedValueOnce(visibleDisableResult)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanThirdPartyVisibleDisableProbe=1&taoyuanThirdPartyVisibleDisableSaveWarningProbe=1'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.runThirdPartyVisibleDisableProductProbe).toHaveBeenCalledWith({
+        targetPackageId: 'product_probe_pack',
+        expectSaveWarning: true,
         expectBlocked: false
       })
     })

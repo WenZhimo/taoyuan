@@ -243,6 +243,10 @@ const runtimeProbeVisibleArchiveImport =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_ARCHIVE_IMPORT === '1'
 const runtimeProbeVisibleDisable =
   process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE === '1'
+const runtimeProbeVisibleDisableSaveWarning =
+  runtimeProbeEnabled
+  && runtimeProbeVisibleDisable
+  && process.env.TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE_SAVE_WARNING === '1'
 const runtimeProbeVisibleDisableFailAfterModLockWrite =
   runtimeProbeEnabled
   && runtimeProbeVisibleDisable
@@ -5770,6 +5774,9 @@ const createWindow = () => {
             : {}),
           ...(runtimeProbeVisibleDisable
             ? { taoyuanThirdPartyVisibleDisableProbe: '1' }
+            : {}),
+          ...(runtimeProbeVisibleDisableSaveWarning
+            ? { taoyuanThirdPartyVisibleDisableSaveWarningProbe: '1' }
             : {}),
           ...(runtimeProbeVisibleDisableFailAfterModLockWrite
             ? { taoyuanThirdPartyVisibleDisableExpectBlocked: '1' }

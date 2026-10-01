@@ -395,6 +395,7 @@ const webScenarios = [
     source: 'precompiled',
     status: 'official-precompiled-hit',
     visibleImportInstalledDisableSequence: true,
+    visibleDisableSaveWarning: true,
     startupPersistentStateSourceKind: 'web-indexeddb',
     startupPersistentStateSourceHostMode: 'web-indexeddb-startup-persistent-state',
     startupGateTargetPackageId: 'product_probe_pack'
@@ -1356,6 +1357,7 @@ const electronScenarios = [
     dataRoot: 'visible-import-disable-sequence',
     cacheSeed: 'valid',
     visibleImportInstalledDisableSequence: true,
+    visibleDisableSaveWarning: true,
     startupPersistentStateSourceKind: 'electron-program-directory-userdata',
     startupPersistentStateSourceHostMode: 'electron-program-directory-startup-persistent-state',
     startupPersistentStateExpectsResponseDeliveryHandoff: false,
@@ -5694,6 +5696,18 @@ const assertVisibleDisableProductProbe = (visibleImport, scenario, protocol) => 
     `${scenario.name}: visible disable probe changed the official entry count`)
   assert(visibleImport.disablePackageCount === expectedVisibleProbePackageCount(scenario),
     `${scenario.name}: visible disable probe reported the wrong package count`)
+  if (scenario.visibleDisableSaveWarning) {
+    assert(visibleImport.disableSaveWarningShown === true,
+      `${scenario.name}: visible disable probe did not show the save warning`)
+    assert(Array.isArray(visibleImport.disableSaveWarningUsedSlots)
+      && JSON.stringify(visibleImport.disableSaveWarningUsedSlots) === JSON.stringify([0]),
+    `${scenario.name}: visible disable probe reported the wrong save warning slots`)
+    assert(visibleImport.disableSaveWarningCancelled === true,
+      `${scenario.name}: visible disable probe did not verify save warning cancellation`)
+    assert(visibleImport.disableCommandDispatchedBeforeConfirmation === false,
+      `${scenario.name}: visible disable probe dispatched before save warning confirmation`
+    )
+  }
   for (const fieldName of [
     'disableSettingsWritten',
     'disableLockfileWritten',
@@ -8093,6 +8107,9 @@ const runWebProbe = async () => {
     if (scenario.visibleDisable) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableProbe', '1')
     }
+    if (scenario.visibleDisable && scenario.visibleDisableSaveWarning) {
+      url.searchParams.set('taoyuanThirdPartyVisibleDisableSaveWarningProbe', '1')
+    }
     if (scenario.visibleDisable && scenario.visibleDisableFailAfterModLockWrite) {
       url.searchParams.set('taoyuanThirdPartyVisibleDisableExpectBlocked', '1')
       url.searchParams.set('taoyuanThirdPartyVisibleDisableFailAfterModLockWrite', '1')
@@ -8926,6 +8943,9 @@ const runPackagedScenario = async (scenario, isolated) => {
       : {}),
     ...(scenario.visibleDisable
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE: '1' }
+      : {}),
+    ...(scenario.visibleDisable && scenario.visibleDisableSaveWarning
+      ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE_SAVE_WARNING: '1' }
       : {}),
     ...(scenario.visibleDisableFailAfterModLockWrite
       ? { TAOYUAN_RUNTIME_PROBE_VISIBLE_DISABLE_FAIL_AFTER_MOD_LOCK_WRITE: '1' }

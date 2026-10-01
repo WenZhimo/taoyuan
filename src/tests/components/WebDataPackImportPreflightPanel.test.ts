@@ -2191,6 +2191,13 @@ describe('WebDataPackImportPreflightPanel', () => {
       expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
       expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['install'])
 
+      await wrapper.get('[data-testid="web-mod-disable-save-cancel"]').trigger('click')
+      expect(wrapper.find('[data-testid="web-mod-disable-save-warning"]').exists()).toBe(false)
+      expect(wrapper.get(`[data-testid="web-mod-installed-row-${packageId}"]`).text()).toContain('已启用')
+      expect(responseDeliveryEvents.map(event => event.detail.envelope.commandId)).toEqual(['install'])
+
+      await wrapper.get(`[data-testid="web-mod-disable-${packageId}"]`).trigger('click')
+      expect(wrapper.find('[data-testid="web-mod-disable-save-warning"]').exists()).toBe(true)
       await wrapper.get('[data-testid="web-mod-disable-save-confirm"]').trigger('click')
       await waitForPreflight(() => wrapper.get('[data-testid="web-mod-disable-result"]').text())
 

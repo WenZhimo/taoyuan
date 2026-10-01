@@ -340,6 +340,10 @@ export interface ThirdPartyVisibleImportRuntimeProbeSummary {
   operation?:
     'install' | 'disable' | 'enable' | 'upgrade' | 'disabled-upgrade' | 'uninstall' | 'rollback' | 'failure'
   disableButtonClicked?: boolean
+  disableSaveWarningShown?: boolean
+  disableSaveWarningUsedSlots?: readonly number[]
+  disableSaveWarningCancelled?: boolean
+  disableCommandDispatchedBeforeConfirmation?: boolean
   enableButtonClicked?: boolean
   uninstallButtonClicked?: boolean
   disableTerminalStatus?: 'ready' | 'blocked'
@@ -509,6 +513,35 @@ const readOwnStringArray = (
       descriptor === undefined
       || !('value' in descriptor)
       || typeof descriptor.value !== 'string'
+    ) {
+      return Object.freeze([])
+    }
+    result.push(descriptor.value)
+  }
+  return Object.freeze(result)
+}
+
+const readOwnNumberArray = (
+  value: unknown,
+  fieldName: string
+): readonly number[] => {
+  const field = readOwnDataField(value, fieldName)
+  if (!Array.isArray(field)) return Object.freeze([])
+  const length = readOwnArrayLength(field)
+  const result: number[] = []
+  for (let index = 0; index < length; index += 1) {
+    let descriptor: PropertyDescriptor | undefined
+    try {
+      descriptor = Reflect.getOwnPropertyDescriptor(field, index)
+    } catch {
+      return Object.freeze([])
+    }
+    if (
+      descriptor === undefined
+      || !('value' in descriptor)
+      || typeof descriptor.value !== 'number'
+      || !Number.isSafeInteger(descriptor.value)
+      || descriptor.value < 0
     ) {
       return Object.freeze([])
     }
@@ -1273,6 +1306,13 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
   const contentAccessDependencyItemVisibleAfter =
     readOwnBooleanField(result, 'contentAccessDependencyItemVisibleAfter')
   const disableButtonClicked = readOwnBooleanField(result, 'disableButtonClicked')
+  const disableSaveWarningShown = readOwnBooleanField(result, 'disableSaveWarningShown')
+  const disableSaveWarningUsedSlots = readOwnNumberArray(result, 'disableSaveWarningUsedSlots')
+  const disableSaveWarningCancelled = readOwnBooleanField(result, 'disableSaveWarningCancelled')
+  const disableCommandDispatchedBeforeConfirmation = readOwnBooleanField(
+    result,
+    'disableCommandDispatchedBeforeConfirmation'
+  )
   const enableButtonClicked = readOwnBooleanField(result, 'enableButtonClicked')
   const uninstallButtonClicked = readOwnBooleanField(result, 'uninstallButtonClicked')
   const archiveImportButtonClicked = readOwnBooleanField(result, 'archiveImportButtonClicked')
@@ -1463,6 +1503,14 @@ export const createThirdPartyVisibleImportRuntimeProbeSummary = (
       ? { operation }
       : {}),
     ...(disableButtonClicked === undefined ? {} : { disableButtonClicked }),
+    ...(disableSaveWarningShown === undefined ? {} : { disableSaveWarningShown }),
+    ...(disableSaveWarningUsedSlots.length === 0
+      ? {}
+      : { disableSaveWarningUsedSlots }),
+    ...(disableSaveWarningCancelled === undefined ? {} : { disableSaveWarningCancelled }),
+    ...(disableCommandDispatchedBeforeConfirmation === undefined
+      ? {}
+      : { disableCommandDispatchedBeforeConfirmation }),
     ...(enableButtonClicked === undefined ? {} : { enableButtonClicked }),
     ...(uninstallButtonClicked === undefined ? {} : { uninstallButtonClicked }),
     ...(disableTerminalStatus === 'ready' || disableTerminalStatus === 'blocked'

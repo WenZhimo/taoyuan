@@ -18,6 +18,12 @@ import type {
 } from '@/domain/mods/thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 import { CURRENT_GAME_VERSION } from '@/domain/mods/officialContentVersions'
 import { buildOfficialRegistrySetFromStaticData } from '@/domain/mods/staticAdapters'
+import {
+  CURRENT_SAVE_FORMAT_VERSION,
+  type SaveContentEnvironment
+} from '@/domain/save/saveContentEnvironment'
+import { getCurrentSaveContentEnvironment } from '@/domain/save/saveContentEnvironmentRuntime'
+import { encodeSaveData } from '@/utils/saveCodec'
 import type { WebFilePickerImportFile } from '@/domain/mods/webFilePickerImportSource'
 import {
   createWebIndexedDbImportPersistenceStore,
@@ -125,6 +131,7 @@ export interface RunThirdPartyVisibleDisableProductProbeOptions {
   readonly targetPackageId?: PackageId
   readonly includeDependency?: boolean
   readonly expectBlocked?: boolean
+  readonly expectSaveWarning?: boolean
 }
 
 export interface RunThirdPartyVisibleUninstallProductProbeOptions {
@@ -232,6 +239,10 @@ export interface ThirdPartyVisibleImportProductProbeResult {
   readonly operation?:
     'install' | 'disable' | 'enable' | 'upgrade' | 'disabled-upgrade' | 'uninstall' | 'rollback' | 'failure'
   readonly disableButtonClicked?: boolean
+  readonly disableSaveWarningShown?: boolean
+  readonly disableSaveWarningUsedSlots?: readonly number[]
+  readonly disableSaveWarningCancelled?: boolean
+  readonly disableCommandDispatchedBeforeConfirmation?: boolean
   readonly enableButtonClicked?: boolean
   readonly uninstallButtonClicked?: boolean
   readonly disableTerminalStatus?: 'ready' | 'blocked' | null
@@ -357,6 +368,10 @@ interface VisibleDisableProbeExecution {
   readonly contentAccessShopOfferVisibleAfter: boolean
   readonly contentAccessDependencyItemVisibleBefore: boolean
   readonly contentAccessDependencyItemVisibleAfter: boolean
+  readonly disableSaveWarningShown: boolean
+  readonly disableSaveWarningUsedSlots: readonly number[]
+  readonly disableSaveWarningCancelled: boolean
+  readonly disableCommandDispatchedBeforeConfirmation: boolean
   readonly blockedReason?: string
 }
 
@@ -1457,6 +1472,52 @@ const readPanelDisableResult = (
 ): ThirdPartyDataPackDisableTransactionResult | null =>
   (probeWindow as VisibleImportPanelProbeWindow).__TAOYUAN_VISIBLE_DISABLE_PANEL_RESULT__ ?? null
 
+const saveWarningProbeStorageKey = 'taoyuanxiang_save_0'
+
+const createSaveWarningProbeRoot = (
+  contentEnvironment: SaveContentEnvironment
+): Record<string, unknown> => ({
+  saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+  contentEnvironment,
+  pluginData: {},
+  packageSettings: {},
+  game: {
+    year: 1,
+    season: 'spring',
+    day: 1,
+    currentLocation: 'farm'
+  },
+  player: {
+    playerName: 'Product Probe',
+    money: 0
+  },
+  inventory: {
+    items: [],
+    weapons: [],
+    rings: [],
+    hats: [],
+    shoes: [],
+    equippedWeaponIndex: -1,
+    equippedRingIndex: -1,
+    equippedHatIndex: -1,
+    equippedShoeIndex: -1
+  },
+  farm: {}
+})
+
+export const prepareThirdPartyVisibleDisableSaveWarningProductProbe = async(): Promise<void> => {
+  const targetPackageId = packageId
+  const contentEnvironment = getCurrentSaveContentEnvironment()
+  if (!contentEnvironment.packages.some(pkg => pkg.id === targetPackageId)) {
+    throw new Error(`save warning probe environment does not contain ${targetPackageId}`)
+  }
+  localStorage.setItem(
+    saveWarningProbeStorageKey,
+    await encodeSaveData(createSaveWarningProbeRoot(contentEnvironment))
+  )
+  localStorage.removeItem('taoyuanxiang_save_meta_0')
+}
+
 const clearPanelUninstallResult = (probeWindow: Window): void => {
   Reflect.deleteProperty(probeWindow, '__TAOYUAN_VISIBLE_UNINSTALL_PANEL_RESULT__')
 }
@@ -1478,6 +1539,10 @@ const runMainMenuPanelDisableProbe = async(
     getOfficialItemDef(dependencyItemId) !== undefined
   let mainMenuPanelOpened = false
   let disableButtonClicked = false
+  let disableSaveWarningShown = false
+  let disableSaveWarningUsedSlots: readonly number[] = Object.freeze([])
+  let disableSaveWarningCancelled = false
+  let disableCommandDispatchedBeforeConfirmation = false
   try {
     clearPanelDisableResult(probeWindow)
     const mainMenuButton = await waitForCondition(
@@ -1499,6 +1564,52 @@ const runMainMenuPanelDisableProbe = async(
     )
     disableButtonClicked = true
     disableButton.click()
+    if (options.expectSaveWarning === true) {
+      await waitForCondition(
+        () => document.querySelector('[data-testid="web-mod-disable-save-warning"]'),
+        'visible disable panel did not show the save warning before confirmation'
+      )
+      disableSaveWarningShown = true
+      const usedSlotsText = document.querySelector(
+        '[data-testid="web-mod-disable-save-used-slots"]'
+      )?.textContent ?? ''
+      disableSaveWarningUsedSlots = Object.freeze(
+        [...usedSlotsText.matchAll(/\d+/g)].map(match => Number(match[0]) - 1)
+      )
+      disableCommandDispatchedBeforeConfirmation = readPanelDisableResult(probeWindow) !== null
+      const cancelButton = document.querySelector(
+        '[data-testid="web-mod-disable-save-cancel"]'
+      ) as HTMLButtonElement | null
+      if (!cancelButton) throw new Error('visible disable panel did not show the save warning cancel action')
+      cancelButton.click()
+      await waitForCondition(
+        () => document.querySelector('[data-testid="web-mod-disable-save-warning"]') === null
+          && document.querySelector(
+            `[data-testid="web-mod-installed-row-${targetPackageId}"]`
+          )?.textContent?.includes('已启用') === true,
+        'visible disable panel changed package state after save warning cancellation'
+      )
+      disableSaveWarningCancelled = true
+      if (readPanelDisableResult(probeWindow) !== null) {
+        throw new Error('visible disable panel dispatched before save warning confirmation')
+      }
+      const retryDisableButton = await waitForCondition(
+        () => document.querySelector(
+          `[data-testid="web-mod-disable-${targetPackageId}"]`
+        ) as HTMLButtonElement | null,
+        'visible disable probe could not retry the disabled package action after cancellation'
+      )
+      retryDisableButton.click()
+      await waitForCondition(
+        () => document.querySelector('[data-testid="web-mod-disable-save-warning"]'),
+        'visible disable panel did not show the save warning on retry'
+      )
+      const confirmButton = document.querySelector(
+        '[data-testid="web-mod-disable-save-confirm"]'
+      ) as HTMLButtonElement | null
+      if (!confirmButton) throw new Error('visible disable panel did not show the save warning confirmation action')
+      confirmButton.click()
+    }
     const transactionResult = await waitForCondition(
       () => readPanelDisableResult(probeWindow),
       'visible disable panel did not publish the disable transaction result'
@@ -1549,7 +1660,11 @@ const runMainMenuPanelDisableProbe = async(
       contentAccessShopOfferVisibleBefore,
       contentAccessShopOfferVisibleAfter,
       contentAccessDependencyItemVisibleBefore,
-      contentAccessDependencyItemVisibleAfter
+      contentAccessDependencyItemVisibleAfter,
+      disableSaveWarningShown,
+      disableSaveWarningUsedSlots,
+      disableSaveWarningCancelled,
+      disableCommandDispatchedBeforeConfirmation
     })
   } catch (error) {
     const transactionResult = readPanelDisableResult(probeWindow)
@@ -1577,6 +1692,10 @@ const runMainMenuPanelDisableProbe = async(
       contentAccessShopOfferVisibleAfter: readProbeShopOfferNameFallback() !== undefined,
       contentAccessDependencyItemVisibleBefore,
       contentAccessDependencyItemVisibleAfter: getOfficialItemDef(dependencyItemId) !== undefined,
+      disableSaveWarningShown,
+      disableSaveWarningUsedSlots,
+      disableSaveWarningCancelled,
+      disableCommandDispatchedBeforeConfirmation,
       blockedReason: toErrorMessage(error)
     })
   }
@@ -2089,6 +2208,11 @@ export const runThirdPartyVisibleDisableProductProbe = async(
     mainMenuPanelOpened: execution.mainMenuPanelOpened,
     panelImportButtonClicked: false,
     disableButtonClicked: execution.disableButtonClicked,
+    disableSaveWarningShown: execution.disableSaveWarningShown,
+    disableSaveWarningUsedSlots: execution.disableSaveWarningUsedSlots,
+    disableSaveWarningCancelled: execution.disableSaveWarningCancelled,
+    disableCommandDispatchedBeforeConfirmation:
+      execution.disableCommandDispatchedBeforeConfirmation,
     defaultFileInputSelectorUsed: false,
     ...(execution.managementCommandHostKind === undefined
       ? {}

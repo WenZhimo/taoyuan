@@ -78,6 +78,9 @@ const thirdPartyVisibleInstallFailAfterModLockWriteProbeRequested = runtimeProbe
 const thirdPartyVisibleDisableProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableProbe') === '1'
+const thirdPartyVisibleDisableSaveWarningProbeRequested = runtimeProbeRequested
+  && new URLSearchParams(window.location.search)
+    .get('taoyuanThirdPartyVisibleDisableSaveWarningProbe') === '1'
 const thirdPartyVisibleDisableExpectBlockedProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search)
     .get('taoyuanThirdPartyVisibleDisableExpectBlocked') === '1'
@@ -196,11 +199,18 @@ void bootstrapApplication({
   getRouter: async () => (await import('@/router')).default,
   installRouter: (app, router) => app.use(router),
   beforeMount: async () => {
-    if (!saveSafeModeProductProbeRequested) return
-    const { prepareSaveSafeModeProductProbe } = await import(
-      '@/runtime/saveSafeModeProductProbe'
-    )
-    await prepareSaveSafeModeProductProbe()
+    if (saveSafeModeProductProbeRequested) {
+      const { prepareSaveSafeModeProductProbe } = await import(
+        '@/runtime/saveSafeModeProductProbe'
+      )
+      await prepareSaveSafeModeProductProbe()
+    }
+    if (thirdPartyVisibleDisableSaveWarningProbeRequested) {
+      const { prepareThirdPartyVisibleDisableSaveWarningProductProbe } = await import(
+        '@/runtime/thirdPartyVisibleImportProductProbe'
+      )
+      await prepareThirdPartyVisibleDisableSaveWarningProductProbe()
+    }
   },
   mount: (app, router) => mountAfterRouterReady(app, router),
   afterMount: async () => {
@@ -250,6 +260,9 @@ void bootstrapApplication({
           await runThirdPartyVisibleDisableProductProbe({
             targetPackageId: 'product_probe_pack' as PackageId,
             ...(thirdPartyVisibleDependencyProbeRequested ? { includeDependency: true } : {}),
+            ...(thirdPartyVisibleDisableSaveWarningProbeRequested
+              ? { expectSaveWarning: true }
+              : {}),
             expectBlocked: thirdPartyVisibleDisableExpectBlockedProbeRequested
               || thirdPartyVisibleDisableFailAfterModLockWriteProbeRequested
           })
