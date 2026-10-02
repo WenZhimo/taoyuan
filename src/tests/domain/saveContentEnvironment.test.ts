@@ -257,6 +257,28 @@ describe('save content environment', () => {
     expect(draft).toEqual(before)
   })
 
+  it('keeps installation configuration changes visible in the save environment identity', () => {
+    const draft = createLockfileDraft()
+    const configuredDraft: ThirdPartyDataPackLockfileDraft = {
+      ...draft,
+      packages: draft.packages.map((pkg, index) => index === 1
+        ? { ...pkg, configurationHash: testHash('9') }
+        : pkg)
+    }
+
+    const defaultEnvironment = createSaveContentEnvironmentFromLockfileDraft(
+      draft,
+      ['library_pack', 'selected_pack'] as PackageId[]
+    )
+    const configuredEnvironment = createSaveContentEnvironmentFromLockfileDraft(
+      configuredDraft,
+      ['library_pack', 'selected_pack'] as PackageId[]
+    )
+
+    expect(configuredEnvironment.packages[2]?.configurationHash).toBe(testHash('9'))
+    expect(configuredEnvironment.environmentHash).not.toBe(defaultEnvironment.environmentHash)
+  })
+
   it('excludes packages that are not selected from the save environment', () => {
     const environment = createSaveContentEnvironmentFromLockfileDraft(
       createLockfileDraft(),

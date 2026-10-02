@@ -107,6 +107,7 @@ const createPack = async(
     dependencies?: readonly JsonObject[]
     optionalDependencies?: readonly JsonObject[]
     items?: readonly JsonObject[]
+    settings?: readonly JsonObject[]
   } = {}
 ): Promise<void> => {
   const packageId = options.id ?? directoryName.replace(/-/g, '_')
@@ -124,12 +125,16 @@ const createPack = async(
     license: 'MIT',
     dependencies: [...(options.dependencies ?? [])],
     ...(options.optionalDependencies ? { optionalDependencies: [...options.optionalDependencies] } : {}),
-    entrypoints: { 'taoyuan:item': ['data/items.json'] }
+    entrypoints: { 'taoyuan:item': ['data/items.json'] },
+    ...(options.settings === undefined ? {} : { settings: 'settings.schema.json' })
   })
   await writeJson(path.join(packRoot, 'locales', 'zh-CN.json'), {})
   await writeJson(path.join(packRoot, 'data', 'items.json'), options.items ?? [
     createItem(`${packageId}:linen_ribbon`)
   ])
+  if (options.settings !== undefined) {
+    await writeJson(path.join(packRoot, 'settings.schema.json'), options.settings)
+  }
 }
 
 const collectFileContents = async(root: string): Promise<Record<string, string>> => {
@@ -238,6 +243,58 @@ describe('third-party data pack lockfile draft', () => {
     expect(first.draftResult.draft!.packages[0]!.source.manifestPath).not.toMatch(/^[A-Za-z]:/)
     expect(first.draftResult.draft!.packages[0]!.contentHash).toMatch(/^sha256:/)
     expect(first.draftResult.draft!.lockfileHash).toMatch(/^sha256:/)
+  }, 15_000)
+
+  it('derives installation configuration hashes from defaults and explicit values', async() => {
+    const root = await createRoot()
+    await createPack(root, 'settings-pack', {
+      settings: [{
+        id: 'settings_pack:spawn_rate',
+        scope: 'installation',
+        default: 2,
+        schema: { type: 'integer', minimum: 1 }
+      }]
+    })
+
+    const reports = await buildReportsFromRoot(root)
+    const defaultDraft = reports.draftResult
+    const configuredDraft = createThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot: reports.candidateSnapshot,
+      installationSettingsByPackageId: {
+        settings_pack: { 'settings_pack:spawn_rate': 7 }
+      }
+    })
+
+    expect(defaultDraft.status).toBe('valid')
+    expect(configuredDraft.status).toBe('valid')
+    expect(defaultDraft.draft!.packages[0]!.configurationHash).not.toBe(
+      configuredDraft.draft!.packages[0]!.configurationHash
+    )
+    expect(defaultDraft.draft!.lockfileHash).not.toBe(configuredDraft.draft!.lockfileHash)
+
+    const configuredValidation = validateThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot: reports.candidateSnapshot,
+      installationSettingsByPackageId: {
+        settings_pack: { 'settings_pack:spawn_rate': 7 }
+      },
+      draft: configuredDraft.draft
+    })
+    expect(configuredValidation.status).toBe('valid')
+
+    const defaultValidationAgainstConfiguredDraft = validateThirdPartyDataPackLockfileDraft({
+      discoveryReport: reports.discoveryReport,
+      selectionReport: reports.selectionReport,
+      candidateSnapshot: reports.candidateSnapshot,
+      draft: configuredDraft.draft
+    })
+    expect(defaultValidationAgainstConfiguredDraft.status).toBe('invalid')
+    expect(defaultValidationAgainstConfiguredDraft.diagnostics).toContainEqual(expect.objectContaining({
+      fieldPath: '/packages/0/configurationHash'
+    }))
   }, 15_000)
 
   it('freezes exposed lockfile draft and validation output graphs', async() => {

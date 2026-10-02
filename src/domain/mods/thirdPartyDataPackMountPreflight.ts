@@ -20,6 +20,7 @@ import {
   selectThirdPartyDataPacks,
   type ThirdPartyDataPackSelectionReport
 } from './thirdPartyDataPackSelection'
+import type { InstallationPackageSettingsByPackageId } from './thirdPartyDataPackSettings'
 
 export type ThirdPartyDataPackMountPreflightStatus = 'ready' | 'rolled-back' | 'skipped'
 
@@ -86,6 +87,7 @@ export interface BuildThirdPartyDataPackMountPreflightOptions {
   readonly officialRegistrySet: RegistrySet
   readonly discoveryReport: ThirdPartyDataPackDiscoveryReport
   readonly selectionReport?: ThirdPartyDataPackSelectionReport
+  readonly installationSettingsByPackageId?: InstallationPackageSettingsByPackageId
   readonly candidateSnapshot?: ThirdPartyCandidateRegistrySnapshotResult
   readonly lockfileDraftResult?: ThirdPartyDataPackLockfileDraftResult
   readonly lockfileValidationResult?: ThirdPartyDataPackLockfileDraftValidationResult
@@ -477,7 +479,8 @@ export const buildThirdPartyDataPackMountPreflight = (
   const lockfileDraftResult = options.lockfileDraftResult ?? createThirdPartyDataPackLockfileDraft({
     discoveryReport: options.discoveryReport,
     selectionReport,
-    candidateSnapshot
+    candidateSnapshot,
+    installationSettingsByPackageId: options.installationSettingsByPackageId
   })
   const lockfileValidationResult = options.lockfileValidationResult ?? validateThirdPartyDataPackLockfileDraft({
     discoveryReport: options.discoveryReport,

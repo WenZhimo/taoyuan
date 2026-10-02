@@ -22,6 +22,10 @@ import {
   type PackageDependency,
   type PackageManifest
 } from './schemas'
+import {
+  validatePackageSettingDefinitions,
+  type PackageSettingDefinition
+} from './thirdPartyDataPackSettings'
 
 export type ThirdPartyDataPackDiscoveryIssueKind =
   | 'directory-not-found'
@@ -92,6 +96,7 @@ export interface ThirdPartyDataPackCandidate {
   readonly status: ThirdPartyDataPackCandidateStatus
   readonly packageId?: PackageId
   readonly manifest?: PackageManifest
+  readonly settingDefinitions?: readonly PackageSettingDefinition[]
   readonly contentFiles: readonly ThirdPartyDataPackContentFile[]
   readonly issues: readonly ThirdPartyDataPackDiscoveryIssue[]
 }
@@ -344,6 +349,16 @@ const cloneDiscoveryCandidate = (
   status: candidate.status,
   packageId: candidate.packageId,
   manifest: candidate.manifest ? clonePackageManifest(candidate.manifest) : undefined,
+  ...(candidate.settingDefinitions === undefined
+    ? {}
+    : {
+        settingDefinitions: candidate.settingDefinitions.map(definition => ({
+          id: definition.id,
+          scope: definition.scope,
+          default: cloneJsonValue(definition.default as JsonValue),
+          schema: cloneJsonValue(definition.schema as JsonValue)
+        }))
+      }),
   contentFiles: freezeJsonTree(candidate.contentFiles.map(file => cloneContentFile(file))),
   issues: candidate.issues.map(issue => cloneDiscoveryIssue(issue))
 })
@@ -1441,6 +1456,7 @@ const scanCandidateDirectory = async (
   const candidateRoot = joinFilePath(rootDirectory, entry.name)
   const issues: ThirdPartyDataPackDiscoveryIssue[] = []
   const contentFiles: ThirdPartyDataPackContentFile[] = []
+  let settingDefinitions: readonly PackageSettingDefinition[] | undefined
   const manifestDisplayPath = `${candidatePath}/manifest.json`
   const manifestFilePath = joinFilePath(candidateRoot, 'manifest.json')
 
@@ -1497,6 +1513,45 @@ const scanCandidateDirectory = async (
   }
 
   const { manifest, packageId } = manifestResult
+  if (manifest.settings !== undefined) {
+    const settingsDisplayPath = `${candidatePath}/${manifest.settings}`
+    const settingsResolved = await resolveSafePackageFile(
+      fileSystem,
+      candidateRoot,
+      candidatePath,
+      manifest.settings,
+      { packageId }
+    )
+    if (!settingsResolved.ok) {
+      issues.push(settingsResolved.issue)
+    } else {
+      const settingsJson = await readJsonFile(
+        fileSystem,
+        settingsResolved.filePath,
+        settingsDisplayPath,
+        { candidatePath, packageId }
+      )
+      if (!settingsJson.ok) {
+        issues.push(settingsJson.issue)
+      } else {
+        const settingsResult = validatePackageSettingDefinitions(settingsJson.data, {
+          packageId,
+          file: settingsDisplayPath
+        })
+        if (!settingsResult.ok) {
+          issues.push(createIssue('schema-validation-failed', {
+            path: settingsDisplayPath,
+            candidatePath,
+            packageId,
+            reason: 'Package settings file does not satisfy the package setting contract',
+            diagnostics: settingsResult.diagnostics
+          }))
+        } else {
+          settingDefinitions = settingsResult.definitions
+        }
+      }
+    }
+  }
   const entrypoints = Object.entries(manifest.entrypoints)
     .sort(([a], [b]) => compareCodePoints(a, b))
 
@@ -1560,6 +1615,7 @@ const scanCandidateDirectory = async (
     status: hasBlockingIssue(issues) ? 'invalid' : 'valid',
     packageId,
     manifest,
+    ...(settingDefinitions === undefined ? {} : { settingDefinitions }),
     contentFiles,
     issues
   }

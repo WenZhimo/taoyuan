@@ -238,6 +238,7 @@ const createPack = async(
     optionalDependencies?: readonly JsonObject[]
     conflicts?: readonly JsonObject[]
     itemEntries?: readonly JsonObject[]
+    settings?: readonly JsonObject[]
   } = {}
 ): Promise<string> => {
   const packRoot = path.join(root, directoryName)
@@ -277,6 +278,11 @@ const createPack = async(
       edible: false
     }
   ])
+  if (options.settings !== undefined) {
+    manifest.settings = 'settings.schema.json'
+    await writeJson(manifestPath, manifest)
+    await writeJson(path.join(packRoot, 'settings.schema.json'), options.settings)
+  }
   return packRoot
 }
 
@@ -655,6 +661,70 @@ describe('third-party data pack read-only discovery', () => {
       }
     }
   })
+
+  it('reads and validates installation setting definitions without treating save settings as installation values', async() => {
+    const root = await createRoot()
+    await createPack(root, 'settings-pack', {
+      settings: [
+        {
+          id: 'settings_pack:spawn_rate',
+          scope: 'installation',
+          default: 2,
+          schema: { type: 'integer', minimum: 1 }
+        },
+        {
+          id: 'settings_pack:notes',
+          scope: 'save',
+          default: 'keep in save',
+          schema: { type: 'string' }
+        }
+      ]
+    })
+
+    const report = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const candidate = report.candidates.find(item => item.packageId === 'settings_pack')
+
+    expect(candidate).toMatchObject({
+      status: 'valid',
+      settingDefinitions: [
+        {
+          id: 'settings_pack:notes',
+          scope: 'save'
+        },
+        {
+          id: 'settings_pack:spawn_rate',
+          scope: 'installation',
+          default: 2
+        }
+      ]
+    })
+    expect(candidate?.issues).toEqual([])
+  }, 15_000)
+
+  it('rejects invalid setting defaults before a candidate can be selected', async() => {
+    const root = await createRoot()
+    await createPack(root, 'invalid-settings-pack', {
+      settings: [{
+        id: 'invalid_settings_pack:spawn_rate',
+        scope: 'installation',
+        default: 'not-a-number',
+        schema: { type: 'integer' }
+      }]
+    })
+
+    const report = await discoverThirdPartyDataPacks(root, createNodeFileSystem())
+    const candidate = report.candidates.find(item => item.packageId === 'invalid_settings_pack')
+
+    expect(candidate?.status).toBe('invalid')
+    expect(candidate?.issues).toContainEqual(expect.objectContaining({
+      kind: 'schema-validation-failed',
+      path: 'invalid-settings-pack/settings.schema.json'
+    }))
+    expect(candidate?.issues.flatMap(issue => issue.diagnostics)).toContainEqual(expect.objectContaining({
+      code: 'SCHEMA-VALIDATE-001',
+      packageId: 'invalid_settings_pack'
+    }))
+  }, 15_000)
 
   it('redacts unsafe JSON parse fragments before discovery diagnostics expose host text', async() => {
     const root = await createRoot()

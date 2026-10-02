@@ -15,6 +15,10 @@ import {
 import type { ThirdPartyDataPackSelectionReport } from './thirdPartyDataPackSelection'
 import { ThirdPartyDataPackLockfileDraftSchema, type PackageDependency, type PackageManifest } from './schemas'
 import { validateUnknown } from './schemaValidation'
+import {
+  resolveInstallationPackageSettings,
+  type InstallationPackageSettingsByPackageId
+} from './thirdPartyDataPackSettings'
 
 export type ThirdPartyDataPackLockfileDraftStatus = 'valid' | 'invalid' | 'skipped'
 export type ThirdPartyDataPackLockfileDraftValidationStatus = 'valid' | 'invalid'
@@ -87,13 +91,13 @@ export interface CreateThirdPartyDataPackLockfileDraftOptions {
   readonly discoveryReport: ThirdPartyDataPackDiscoveryReport
   readonly selectionReport: ThirdPartyDataPackSelectionReport
   readonly candidateSnapshot: ThirdPartyCandidateRegistrySnapshotResult
+  readonly installationSettingsByPackageId?: InstallationPackageSettingsByPackageId
 }
 
 export interface ValidateThirdPartyDataPackLockfileDraftOptions extends CreateThirdPartyDataPackLockfileDraftOptions {
   readonly draft?: unknown
 }
 
-const EMPTY_CONFIGURATION_HASH = hashCanonicalJson({ schemaVersion: '1', values: {} })
 const blockingSeverity = new Set(['error', 'fatal'])
 
 const diagnosticCopyFallbackCode = 'CACHE-INVALID-001'
@@ -475,26 +479,41 @@ const createPackageDraft = (
   packageId: PackageId,
   version: string,
   loadIndex: number,
-  selectedManifestByPackageId: ReadonlyMap<PackageId, PackageManifest>
-): ThirdPartyDataPackLockfileDraftPackage | null => {
-  if (!candidate.manifest) return null
+  selectedManifestByPackageId: ReadonlyMap<PackageId, PackageManifest>,
+  installationSettingsByPackageId: InstallationPackageSettingsByPackageId | undefined
+): { readonly packageDraft?: ThirdPartyDataPackLockfileDraftPackage; readonly diagnostics: readonly ModDiagnostic[] } => {
+  if (!candidate.manifest) return { diagnostics: [] }
   const manifestHash = hashCanonicalJson(candidate.manifest)
   const contentFiles = contentFilesForDraft(candidate)
   const contentHash = createPackageContentHash(manifestHash, contentFiles)
+  const settingsResult = resolveInstallationPackageSettings(
+    candidate.settingDefinitions ?? [],
+    installationSettingsByPackageId?.[packageId],
+    {
+      packageId,
+      file: candidate.manifest.settings === undefined
+        ? `${candidate.path}/manifest.json`
+        : `${candidate.path}/${candidate.manifest.settings}`
+    }
+  )
+  if (!settingsResult.ok) return { diagnostics: settingsResult.diagnostics }
   return {
-    packageId,
-    version,
-    loadIndex,
-    source: {
-      candidatePath: candidate.path,
-      manifestPath: `${candidate.path}/manifest.json`,
-      contentFiles: contentFiles.map(file => `${candidate.path}/${file.path}`)
+    packageDraft: {
+      packageId,
+      version,
+      loadIndex,
+      source: {
+        candidatePath: candidate.path,
+        manifestPath: `${candidate.path}/manifest.json`,
+        contentFiles: contentFiles.map(file => `${candidate.path}/${file.path}`)
+      },
+      manifestHash,
+      contentHash,
+      configurationHash: settingsResult.configurationHash,
+      resolvedDependencies: resolvedDependenciesFor(candidate.manifest, selectedManifestByPackageId),
+      contentFiles
     },
-    manifestHash,
-    contentHash,
-    configurationHash: EMPTY_CONFIGURATION_HASH,
-    resolvedDependencies: resolvedDependenciesFor(candidate.manifest, selectedManifestByPackageId),
-    contentFiles
+    diagnostics: []
   }
 }
 
@@ -566,8 +585,16 @@ export const createThirdPartyDataPackLockfileDraft = (
       continue
     }
 
-    const packageDraft = createPackageDraft(candidate, packageId, version, loadIndex, selectedManifestByPackageId)
-    if (!packageDraft) {
+    const packageDraftResult = createPackageDraft(
+      candidate,
+      packageId,
+      version,
+      loadIndex,
+      selectedManifestByPackageId,
+      options.installationSettingsByPackageId
+    )
+    diagnostics.push(...packageDraftResult.diagnostics)
+    if (!packageDraftResult.packageDraft) {
       diagnostics.push(createLockfileDiagnostic('third-party.lockfile-draft.package', {
         packageId,
         relatedPackageIds: [packageId],
@@ -578,7 +605,7 @@ export const createThirdPartyDataPackLockfileDraft = (
       }))
       continue
     }
-    packages.push(packageDraft)
+    packages.push(packageDraftResult.packageDraft)
   }
 
   if (diagnostics.some(isBlockingDiagnostic)) {
@@ -689,6 +716,18 @@ const comparePackageDrafts = (
           reason: 'Package content hash does not match the current candidate.',
           expected: expectedPackage.contentHash,
           actual: actualPackage.contentHash
+        }
+      }))
+    }
+    if (actualPackage.configurationHash !== expectedPackage.configurationHash) {
+      diagnostics.push(createLockfileDiagnostic('third-party.lockfile-draft.package-configuration-hash', {
+        packageId: expectedPackage.packageId,
+        relatedPackageIds: [expectedPackage.packageId],
+        fieldPath: `/packages/${packageIndex}/configurationHash`,
+        details: {
+          reason: 'Package installation configuration hash does not match the current settings.',
+          expected: expectedPackage.configurationHash,
+          actual: actualPackage.configurationHash
         }
       }))
     }
