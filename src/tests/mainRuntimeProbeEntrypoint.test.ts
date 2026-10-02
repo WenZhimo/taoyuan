@@ -11,8 +11,10 @@ const mocks = vi.hoisted(() => {
       status: 'ready'
     })),
     bootstrapApplication: vi.fn(async(dependencies: {
+      beforeMount?: () => unknown | Promise<unknown>
       afterMount?: (result: typeof bootstrapResult) => unknown | Promise<unknown>
     }) => {
+      await dependencies.beforeMount?.()
       await dependencies.afterMount?.(bootstrapResult)
       return bootstrapResult
     }),
@@ -36,6 +38,7 @@ const mocks = vi.hoisted(() => {
     publishOfficialContentRegistrySet: vi.fn(async() => undefined),
     publishThirdPartyDataPackMountedAppStartupHostEvidence: vi.fn(),
     prepareThirdPartyVisibleDisableSaveWarningProductProbe: vi.fn(async() => undefined),
+    prepareSaveMigrationProductProbe: vi.fn(async() => undefined),
     refreshOfficialRegistryDiskCache: vi.fn(async() => undefined),
     reportApplicationStartupFailure: vi.fn(),
     runThirdPartyElectronInstallCommandDispatchProductProbe: vi.fn(async() => ({
@@ -51,6 +54,7 @@ const mocks = vi.hoisted(() => {
     runThirdPartyVisibleDisableProductProbe: vi.fn(async() => ({ status: 'ready' })),
     runThirdPartyVisibleImportProductProbe: vi.fn(async() => ({ status: 'ready' })),
     runThirdPartyVisibleUninstallProductProbe: vi.fn(async() => ({ status: 'ready' })),
+    runSaveMigrationProductProbe: vi.fn(async() => ({ status: 'ready' })),
     thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline: vi.fn(
       async() => ({ status: 'ready' })
     )
@@ -118,6 +122,11 @@ vi.mock('@/runtime/thirdPartyVisibleImportProductProbe', () => ({
   runThirdPartyVisibleUninstallProductProbe: mocks.runThirdPartyVisibleUninstallProductProbe
 }))
 
+vi.mock('@/runtime/saveMigrationProductProbe', () => ({
+  prepareSaveMigrationProductProbe: mocks.prepareSaveMigrationProductProbe,
+  runSaveMigrationProductProbe: mocks.runSaveMigrationProductProbe
+}))
+
 vi.mock('@/runtime/thirdPartyRendererUiIpcProductProbe', () => ({
   runThirdPartyRendererUiIpcProductProbe: mocks.runThirdPartyRendererUiIpcProductProbe
 }))
@@ -136,6 +145,46 @@ describe('main runtime probe entrypoint', () => {
     vi.clearAllMocks()
     vi.resetModules()
     window.history.replaceState(null, '', '/')
+  })
+
+  it('routes official save migration product probe query wiring', async() => {
+    const result = { status: 'ready', operation: 'official-forward' }
+    mocks.runSaveMigrationProductProbe.mockResolvedValueOnce(result)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanSaveMigrationProbe=official-forward'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.prepareSaveMigrationProductProbe).toHaveBeenCalledWith('official-forward')
+      expect(mocks.runSaveMigrationProductProbe).toHaveBeenCalledWith('official-forward')
+    })
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({ saveMigrationProductProbe: result })
+    )
+  })
+
+  it('routes third-party save migration failure product probe query wiring', async() => {
+    const result = { status: 'ready', operation: 'third-party-failure' }
+    mocks.runSaveMigrationProductProbe.mockResolvedValueOnce(result)
+    window.history.replaceState(
+      null,
+      '',
+      '/?taoyuanContentProbe=1&taoyuanSaveMigrationProbe=third-party-failure'
+    )
+
+    await import('@/main')
+
+    await vi.waitFor(() => {
+      expect(mocks.prepareSaveMigrationProductProbe).toHaveBeenCalledWith('third-party-failure')
+      expect(mocks.runSaveMigrationProductProbe).toHaveBeenCalledWith('third-party-failure')
+    })
+    expect(mocks.publishContentRuntimeProbe).toHaveBeenCalledWith(
+      expect.objectContaining({ saveMigrationProductProbe: result })
+    )
   })
 
   it('runs the visible import product probe for rollback-only Electron query wiring', async() => {

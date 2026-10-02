@@ -37,6 +37,10 @@ import type {
   SaveSafeModeProductProbeResult
 } from '@/runtime/saveSafeModeProductProbe'
 import type {
+  SaveMigrationProductProbeOperation,
+  SaveMigrationProductProbeResult
+} from '@/runtime/saveMigrationProductProbe'
+import type {
   OfficialRegistryCacheMaintenanceProductProbeResult
 } from '@/runtime/officialRegistryCacheMaintenanceProductProbe'
 import type { PackageId } from '@/domain/mods/ids'
@@ -46,6 +50,12 @@ const runtimeProbeRequested = typeof window !== 'undefined'
   && new URLSearchParams(window.location.search).get('taoyuanContentProbe') === '1'
 const saveSafeModeProductProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search).get('taoyuanSaveSafeModeProbe') === '1'
+const saveMigrationProductProbeOperation = runtimeProbeRequested
+  ? new URLSearchParams(window.location.search).get('taoyuanSaveMigrationProbe')
+  : null
+const saveMigrationProductProbeRequested =
+  saveMigrationProductProbeOperation === 'official-forward'
+  || saveMigrationProductProbeOperation === 'third-party-failure'
 const thirdPartyStartupGateProbeRequested = runtimeProbeRequested
   && new URLSearchParams(window.location.search).get('taoyuanThirdPartyStartupGateProbe') === '1'
 const thirdPartyStartupPersistentStateProbeRequested = runtimeProbeRequested
@@ -148,6 +158,7 @@ let thirdPartyVisibleImportProductProbeResult: ThirdPartyVisibleImportProductPro
 let thirdPartyVisibleDisableProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 let thirdPartyVisibleUninstallProductProbeResult: ThirdPartyVisibleImportProductProbeResult | undefined
 let saveSafeModeProductProbeResult: SaveSafeModeProductProbeResult | undefined
+let saveMigrationProductProbeResult: SaveMigrationProductProbeResult | undefined
 let officialRegistryCacheMaintenanceProductProbeResult:
   OfficialRegistryCacheMaintenanceProductProbeResult | undefined
 const bootstrapThirdPartyStartupGate = thirdPartyStartupPersistentStateProbeRequested
@@ -212,6 +223,14 @@ void bootstrapApplication({
         '@/runtime/saveSafeModeProductProbe'
       )
       await prepareSaveSafeModeProductProbe()
+    }
+    if (saveMigrationProductProbeRequested) {
+      const { prepareSaveMigrationProductProbe } = await import(
+        '@/runtime/saveMigrationProductProbe'
+      )
+      await prepareSaveMigrationProductProbe(
+        saveMigrationProductProbeOperation as SaveMigrationProductProbeOperation
+      )
     }
     if (thirdPartyVisibleDisableSaveWarningProbeRequested) {
       const { prepareThirdPartyVisibleDisableSaveWarningProductProbe } = await import(
@@ -313,6 +332,14 @@ void bootstrapApplication({
         )
         saveSafeModeProductProbeResult = await runSaveSafeModeProductProbe()
       }
+      if (saveMigrationProductProbeRequested) {
+        const { runSaveMigrationProductProbe } = await import(
+          '@/runtime/saveMigrationProductProbe'
+        )
+        saveMigrationProductProbeResult = await runSaveMigrationProductProbe(
+          saveMigrationProductProbeOperation as SaveMigrationProductProbeOperation
+        )
+      }
       return
     }
     await thirdPartyDataPackRendererUiIpcResponseDeliveryBridgeConnectionPipeline()
@@ -365,7 +392,8 @@ void bootstrapApplication({
           officialRegistryCacheMaintenanceResult:
             officialRegistryCacheMaintenanceProductProbeResult
         }),
-    saveSafeModeProductProbe: saveSafeModeProductProbeResult
+    saveSafeModeProductProbe: saveSafeModeProductProbeResult,
+    saveMigrationProductProbe: saveMigrationProductProbeResult
   })
 }).catch(error => {
   reportApplicationStartupFailure(error)

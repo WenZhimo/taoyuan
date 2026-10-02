@@ -15,6 +15,7 @@ import type {
   ThirdPartyDataPackSettingsLockfilePersistentWriterHostMode
 } from '@/domain/mods/thirdPartyDataPackSettingsLockfilePersistentWriterSource'
 import type { SaveSafeModeProductProbeResult } from './saveSafeModeProductProbe'
+import type { SaveMigrationProductProbeResult } from './saveMigrationProductProbe'
 
 const productProbePackageId = 'product_probe_pack'
 const productProbeItemId = `${productProbePackageId}:linen_ribbon`
@@ -413,6 +414,7 @@ export interface ContentRuntimeProbeEnvelope {
   thirdPartyVisibleImport: ThirdPartyVisibleImportRuntimeProbeSummary
   officialRegistryCacheMaintenance?: OfficialRegistryCacheMaintenanceRuntimeProbeSummary
   saveSafeModeProductProbe?: SaveSafeModeProductProbeResult
+  saveMigrationProductProbe?: SaveMigrationProductProbeResult
   ui: {
     documentTitle: string
     locationProtocol: string
@@ -436,6 +438,7 @@ export interface ContentRuntimeProbeOptions {
   readonly thirdPartyVisibleImportResult?: unknown
   readonly officialRegistryCacheMaintenanceResult?: unknown
   readonly saveSafeModeProductProbe?: SaveSafeModeProductProbeResult
+  readonly saveMigrationProductProbe?: SaveMigrationProductProbeResult
 }
 
 export interface OfficialRegistryCacheMaintenanceRuntimeProbeSummary {
@@ -1721,6 +1724,9 @@ export const publishContentRuntimeProbe = (
     ...(options.saveSafeModeProductProbe === undefined
       ? {}
       : { saveSafeModeProductProbe: options.saveSafeModeProductProbe }),
+    ...(options.saveMigrationProductProbe === undefined
+      ? {}
+      : { saveMigrationProductProbe: options.saveMigrationProductProbe }),
     ui: {
       documentTitle: document.title,
       locationProtocol: location.protocol,

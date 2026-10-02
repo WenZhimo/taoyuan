@@ -221,6 +221,12 @@ const runtimeProbeStartupPersistentStateInstalledState =
   process.env.TAOYUAN_RUNTIME_PROBE_STARTUP_PERSISTENT_STATE_INSTALLED_STATE === '1'
 const runtimeProbeSaveSafeMode =
   process.env.TAOYUAN_RUNTIME_PROBE_SAVE_SAFE_MODE === '1'
+const runtimeProbeSaveMigration =
+  process.env.TAOYUAN_RUNTIME_PROBE_SAVE_MIGRATION === 'official-forward'
+    ? 'official-forward'
+    : process.env.TAOYUAN_RUNTIME_PROBE_SAVE_MIGRATION === 'third-party-failure'
+      ? 'third-party-failure'
+      : null
 const runtimeProbeOfficialRegistryCacheMaintenance =
   process.env.TAOYUAN_RUNTIME_PROBE_OFFICIAL_REGISTRY_CACHE_MAINTENANCE === '1'
 const runtimeProbeVisibleImport =
@@ -5735,6 +5741,9 @@ const createWindow = () => {
           ...(runtimeProbeSaveSafeMode
             ? { taoyuanSaveSafeModeProbe: '1' }
             : {}),
+          ...(runtimeProbeSaveMigration === null
+            ? {}
+            : { taoyuanSaveMigrationProbe: runtimeProbeSaveMigration }),
           ...(runtimeProbeOfficialRegistryCacheMaintenance
             ? { taoyuanOfficialRegistryCacheMaintenanceProbe: '1' }
             : {}),

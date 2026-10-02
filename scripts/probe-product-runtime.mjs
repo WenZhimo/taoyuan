@@ -98,6 +98,22 @@ const webScenarios = [
     saveSafeMode: true
   },
   {
+    name: 'save-migration-official-forward',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    saveMigrationOperation: 'official-forward',
+    expectedMainMenuReady: false
+  },
+  {
+    name: 'save-migration-third-party-failure',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    saveMigrationOperation: 'third-party-failure',
+    expectedMainMenuReady: true
+  },
+  {
     name: 'startup-gate-ready',
     fault: null,
     source: 'precompiled',
@@ -764,6 +780,28 @@ const electronScenarios = [
     cacheStatus: 'cache-miss-not-found',
     cacheWriteStatus: 'written',
     saveSafeMode: true
+  },
+  {
+    name: 'save-migration-official-forward',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    dataRoot: 'save-migration-official-forward',
+    cacheStatus: 'cache-miss-not-found',
+    cacheWriteStatus: 'written',
+    saveMigrationOperation: 'official-forward',
+    expectedMainMenuReady: false
+  },
+  {
+    name: 'save-migration-third-party-failure',
+    fault: null,
+    source: 'precompiled',
+    status: 'official-precompiled-hit',
+    dataRoot: 'save-migration-third-party-failure',
+    cacheStatus: 'cache-miss-not-found',
+    cacheWriteStatus: 'written',
+    saveMigrationOperation: 'third-party-failure',
+    expectedMainMenuReady: true
   },
   {
     name: 'cache-miss-write',
@@ -6194,7 +6232,9 @@ const assertCandidateRegistryCacheStatus = (startupGate, scenario) => {
 const assertRuntimeEnvelope = (envelope, scenario, protocol) => {
   assert(envelope?.schemaVersion === 1, `${scenario.name}: invalid envelope version`)
   assert(envelope.ui?.locationProtocol === protocol, `${scenario.name}: wrong protocol`)
-  assert(envelope.ui?.mainMenuReady === (scenario.saveSafeMode !== true),
+  assert(envelope.ui?.mainMenuReady === (
+    scenario.expectedMainMenuReady ?? (scenario.saveSafeMode !== true)
+  ),
     `${scenario.name}: unexpected final MainMenu readiness`)
   assert(envelope.ui?.startupFailureVisible === false, `${scenario.name}: startup failure visible`)
   const thirdPartyStartupGate = envelope.thirdPartyStartupGate
@@ -7171,6 +7211,7 @@ const assertWebProductSurface = (envelope, scenario) => {
   assert(surface?.schemaVersion === 1,
     `${scenario.name}: missing product surface summary`)
   if (scenario.saveSafeMode) return
+  if (scenario.saveMigrationOperation) return
   const expectsResponseDelivery = scenarioExpectsResponseDeliverySurface(scenario)
   const expectsVisiblePanel =
     expectsResponseDelivery || scenarioExpectsVisibleImportPanelSurface(scenario)
@@ -7230,6 +7271,48 @@ const assertSaveSafeModeProductProbe = (envelope, scenario) => {
     `${scenario.name}: save safe mode probe used the wrong saved package identity`)
   assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(probe)),
     `${scenario.name}: save safe mode probe leaked an absolute path`)
+}
+
+const assertSaveMigrationProductProbe = (envelope, scenario) => {
+  const probe = envelope.saveMigrationProductProbe
+    ?? envelope.runtime?.saveMigrationProductProbe
+  assert(probe?.schemaVersion === 1,
+    `${scenario.name}: missing save migration product probe result`)
+  assert(probe.status === 'ready',
+    `${scenario.name}: save migration product probe was not ready`)
+  assert(probe.operation === scenario.saveMigrationOperation,
+    `${scenario.name}: save migration probe reported the wrong operation`)
+  assert(probe.sourceSlot === 0,
+    `${scenario.name}: save migration probe used the wrong source slot`)
+  assert(/^sha256:[0-9a-f]{64}$/.test(probe.currentEnvironmentHash),
+    `${scenario.name}: save migration probe reported an invalid environment hash`)
+  if (scenario.saveMigrationOperation === 'official-forward') {
+    assert(probe.loadSucceeded === true,
+      `${scenario.name}: official forward migration did not load the save`)
+    assert(probe.loadRejected === false,
+      `${scenario.name}: official forward migration was unexpectedly rejected`)
+    assert(probe.sourceRewrittenWithCurrentEnvironment === true,
+      `${scenario.name}: official forward migration did not rewrite the current environment`)
+    assert(probe.sourceUnchanged === false,
+      `${scenario.name}: official forward migration incorrectly reported an unchanged source`)
+    assert(typeof probe.targetRoute === 'string' && probe.targetRoute.startsWith('/game/'),
+      `${scenario.name}: official forward migration did not enter the game route`)
+  } else {
+    assert(probe.loadSucceeded === false,
+      `${scenario.name}: failed third-party migration unexpectedly loaded the save`)
+    assert(probe.loadRejected === true,
+      `${scenario.name}: failed third-party migration was not rejected`)
+    assert(probe.sourceRewrittenWithCurrentEnvironment === false,
+      `${scenario.name}: failed third-party migration rewrote the source environment`)
+    assert(probe.sourceUnchanged === true,
+      `${scenario.name}: failed third-party migration did not preserve the source`)
+    assert(probe.failureReason === 'package-migration',
+      `${scenario.name}: failed third-party migration reported the wrong failure reason`)
+    assert(probe.targetRoute === '/',
+      `${scenario.name}: failed third-party migration left the main menu route`)
+  }
+  assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(probe)),
+    `${scenario.name}: save migration probe leaked an absolute path`)
 }
 
 const assertElectronModLockStorageProbe = (probe, scenario, isolated) => {
@@ -8142,6 +8225,9 @@ const runWebProbe = async () => {
     if (scenario.saveSafeMode) {
       url.searchParams.set('taoyuanSaveSafeModeProbe', '1')
     }
+    if (scenario.saveMigrationOperation) {
+      url.searchParams.set('taoyuanSaveMigrationProbe', scenario.saveMigrationOperation)
+    }
     if (scenario.fault) url.searchParams.set('taoyuanPrecompiledFault', scenario.fault)
     return url
   }
@@ -8785,6 +8871,7 @@ const runWebProbe = async () => {
       assertRuntimeEnvelope(envelope, scenario, 'http:')
       assertWebProductSurface(envelope, scenario)
       if (scenario.saveSafeMode) assertSaveSafeModeProductProbe(envelope, scenario)
+      if (scenario.saveMigrationOperation) assertSaveMigrationProductProbe(envelope, scenario)
       reports.push({ scenario: scenario.name, runtime: envelope.runtime })
     }
   } finally {
@@ -8903,6 +8990,9 @@ const runPackagedScenario = async (scenario, isolated) => {
     TAOYUAN_RUNTIME_PROBE_AUTO_EXIT: '1',
     ...(scenario.fault ? { TAOYUAN_RUNTIME_PROBE_FAULT: scenario.fault } : {}),
     ...(scenario.saveSafeMode ? { TAOYUAN_RUNTIME_PROBE_SAVE_SAFE_MODE: '1' } : {}),
+    ...(scenario.saveMigrationOperation
+      ? { TAOYUAN_RUNTIME_PROBE_SAVE_MIGRATION: scenario.saveMigrationOperation }
+      : {}),
     ...(scenario.officialRegistryCacheMaintenance
       ? { TAOYUAN_RUNTIME_PROBE_OFFICIAL_REGISTRY_CACHE_MAINTENANCE: '1' }
       : {}),
@@ -9808,6 +9898,7 @@ const runPackagedScenario = async (scenario, isolated) => {
   assert(!/[A-Za-z]:[\\/]/.test(JSON.stringify(productReport)),
     `${scenario.name}: Electron report leaked an absolute path`)
   if (scenario.saveSafeMode) assertSaveSafeModeProductProbe(productReport, scenario)
+  if (scenario.saveMigrationOperation) assertSaveMigrationProductProbe(productReport, scenario)
   return { scenario: scenario.name, runtime: productReport.runtime, electron: productReport.electron }
 }
 

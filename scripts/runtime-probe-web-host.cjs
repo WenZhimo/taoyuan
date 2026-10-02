@@ -143,12 +143,19 @@ app.whenReady().then(async () => {
     'globalThis.__TAOYUAN_SAVE_SAFE_MODE_PRODUCT_PROBE__ ?? null',
     true
   )
+  const saveMigrationProductProbe = await window.webContents.executeJavaScript(
+    'globalThis.__TAOYUAN_SAVE_MIGRATION_PRODUCT_PROBE__ ?? null',
+    true
+  )
   writeOutput({
     ...report,
     webProductSurface: await waitForWebProductSurface(window),
     ...(saveSafeModeProductProbe === null
       ? {}
-      : { saveSafeModeProductProbe })
+      : { saveSafeModeProductProbe }),
+    ...(saveMigrationProductProbe === null
+      ? {}
+      : { saveMigrationProductProbe })
   })
   app.quit()
 }).catch(fail)
