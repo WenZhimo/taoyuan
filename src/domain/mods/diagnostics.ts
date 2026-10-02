@@ -66,6 +66,7 @@ export const MOD_ERROR_REGISTRY = [
   { code: 'CACHE-INVALID-001', ruleId: 'CACHE-INVALID-001', meaning: '缓存结构、版本或快照哈希无效，已退回完整挂载', defaultSeverity: 'warning' },
   { code: 'CACHE-WRITE-001', ruleId: 'CACHE-WRITE-001', meaning: '新缓存写入或回读验证失败', defaultSeverity: 'warning' },
   { code: 'CACHE-RESTORE-001', ruleId: 'CACHE-RESTORE-001', meaning: '缓存无法恢复运行时注册表，已退回完整挂载', defaultSeverity: 'warning' },
+  { code: 'SAVE-ROOT-001', ruleId: 'SAVE-ROOT-001', meaning: '存档根结构无效', defaultSeverity: 'error' },
   { code: 'SAVE-ENVIRONMENT-001', ruleId: 'SAVE-ENVIRONMENT-001', meaning: '存档内容环境与当前环境不兼容', defaultSeverity: 'error' },
   { code: 'SAVE-PLUGIN-DATA-001', ruleId: 'SAVE-PLUGIN-DATA-001', meaning: '插件私有负载哈希或 Schema 无效', defaultSeverity: 'error' },
   { code: 'SAVE-PLUGIN-DATA-002', ruleId: 'SAVE-PLUGIN-DATA-002', meaning: '插件私有数据超过配额', defaultSeverity: 'error' },

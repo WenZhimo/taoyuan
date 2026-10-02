@@ -17,6 +17,8 @@ import type { ThirdPartyDataPackLockfileDraft } from '@/domain/mods/thirdPartyDa
 const createLegacyRoot = () => ({
   game: { year: 2, season: 'summer', day: 4 },
   player: { money: 12 },
+  inventory: {},
+  farm: { plots: [] },
   savedAt: '2026-09-26T00:00:00.000Z'
 })
 
@@ -199,6 +201,41 @@ describe('save content environment', () => {
 
     expect(result.status).toBe('invalid')
     expect(result.diagnostics[0]?.code).toBe('SAVE-PACKAGE-SETTINGS-001')
+  })
+
+  it('rejects a versioned root with a missing core section before compatibility can approve it', () => {
+    const { inventory: _inventory, ...missingInventory } = createLegacyRoot()
+    const result = checkSaveRootCompatibility({
+      ...missingInventory,
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: createOfficialSaveContentEnvironment(),
+      packageSettings: {}
+    }, createOfficialSaveContentEnvironment())
+
+    expect(result.status).toBe('invalid')
+    expect(result.diagnostics[0]).toMatchObject({
+      code: 'SAVE-ROOT-001',
+      stage: 'save.root.structure',
+      fieldPath: 'inventory',
+      details: { reason: 'missing' }
+    })
+  })
+
+  it('rejects a versioned root whose core section is not an object', () => {
+    const result = checkSaveRootCompatibility({
+      ...createLegacyRoot(),
+      saveFormatVersion: CURRENT_SAVE_FORMAT_VERSION,
+      contentEnvironment: createOfficialSaveContentEnvironment(),
+      packageSettings: {},
+      farm: []
+    }, createOfficialSaveContentEnvironment())
+
+    expect(result.status).toBe('invalid')
+    expect(result.diagnostics[0]).toMatchObject({
+      code: 'SAVE-ROOT-001',
+      fieldPath: 'farm',
+      details: { reason: 'not-object' }
+    })
   })
 
   it('accepts the current environment only when the identity hash is valid', () => {

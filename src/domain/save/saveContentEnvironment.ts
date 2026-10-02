@@ -106,6 +106,8 @@ const saveEnvironmentKeys = new Set([
 const isRecord = (value: unknown): value is SaveRootData =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
 
+const REQUIRED_VERSIONED_SAVE_ROOT_FIELDS = ['game', 'player', 'inventory', 'farm'] as const
+
 const saveEnvironmentDiagnostic = (
   stage: string,
   details: Record<string, string | number | boolean | null>
@@ -114,6 +116,37 @@ const saveEnvironmentDiagnostic = (
   details,
   recovery: 'safe-mode'
 })
+
+const saveRootStructureDiagnostic = (
+  field: string,
+  reason: 'missing' | 'not-object'
+): ModDiagnostic => createDiagnostic('SAVE-ROOT-001', {
+  stage: 'save.root.structure',
+  fieldPath: field,
+  details: { field, reason },
+  recovery: 'restore-backup'
+})
+
+const validateVersionedSaveRoot = (value: SaveRootData, version: unknown): void => {
+  if (version !== 1 && version !== 2 && version !== CURRENT_SAVE_FORMAT_VERSION) return
+
+  for (const field of REQUIRED_VERSIONED_SAVE_ROOT_FIELDS) {
+    if (!(field in value)) {
+      throw new SaveContentEnvironmentError(
+        'structure',
+        `Save root is missing required section: ${field}`,
+        [saveRootStructureDiagnostic(field, 'missing')]
+      )
+    }
+    if (!isRecord(value[field])) {
+      throw new SaveContentEnvironmentError(
+        'structure',
+        `Save root section must be an object: ${field}`,
+        [saveRootStructureDiagnostic(field, 'not-object')]
+      )
+    }
+  }
+}
 
 const cloneEnvironmentIdentity = (identity: CacheEnvironmentIdentity): CacheEnvironmentIdentity => ({
   ...identity,
@@ -540,6 +573,7 @@ export const migrateSaveRoot = (
   }
 
   const version = value.saveFormatVersion
+  validateVersionedSaveRoot(value, version)
   const pluginData = normalizePersistedPluginData(value.pluginData, {
     owners: options.pluginDataOwners
   })
