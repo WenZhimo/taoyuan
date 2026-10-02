@@ -439,6 +439,76 @@ describe('save store plugin data persistence', () => {
     expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}1`)).toBe(metadata)
   })
 
+  it('keeps the source slot and current stores unchanged when deserialization throws', async() => {
+    const malformedSave = createCurrentSave({
+      home: {
+        cellarSlots: [null]
+      }
+    })
+    const source = await encodeSaveData(malformedSave)
+    const metadata = JSON.stringify({ slot: 0, exists: true, playerName: '原有摘要' })
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, source)
+
+    const gameStore = useGameStore()
+    gameStore.deserialize({ year: 9, season: 'winter', day: 17, currentLocation: 'mine' })
+    const before = {
+      year: gameStore.year,
+      season: gameStore.season,
+      day: gameStore.day,
+      currentLocation: gameStore.currentLocation,
+      isGameStarted: gameStore.isGameStarted
+    }
+    localStorage.setItem(`${SAVE_META_KEY_PREFIX}0`, metadata)
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.loadFromSlot(0)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'loading',
+      reason: 'invalid',
+      diagnostics: [expect.objectContaining({
+        code: 'SAVE-ROOT-001',
+        stage: 'save.root.deserialize'
+      })]
+    })
+    expect({
+      year: gameStore.year,
+      season: gameStore.season,
+      day: gameStore.day,
+      currentLocation: gameStore.currentLocation,
+      isGameStarted: gameStore.isGameStarted
+    }).toEqual(before)
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(source)
+    expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}0`)).toBe(metadata)
+  })
+
+  it('rejects a malformed store collection before replacing an import target', async() => {
+    const source = await encodeSaveData(createCurrentSave({
+      farm: {
+        ...(legacySaveFixture.farm as Record<string, unknown>),
+        plots: {}
+      }
+    }))
+    const target = await encodeSaveData(createCurrentSave({
+      game: { ...legacySaveFixture.game, year: 7 }
+    }))
+    const metadata = JSON.stringify({ slot: 1, exists: true, playerName: '不可覆盖' })
+    localStorage.setItem(`${SAVE_KEY_PREFIX}1`, target)
+    localStorage.setItem(`${SAVE_META_KEY_PREFIX}1`, metadata)
+
+    const saveStore = useSaveStore()
+    expect(await saveStore.importSave(1, source)).toBe(false)
+    expect(saveStore.lastOperationFailure).toMatchObject({
+      operation: 'importing',
+      reason: 'invalid',
+      diagnostics: [expect.objectContaining({
+        code: 'SAVE-ROOT-001',
+        fieldPath: 'farm.plots'
+      })]
+    })
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}1`)).toBe(target)
+    expect(localStorage.getItem(`${SAVE_META_KEY_PREFIX}1`)).toBe(metadata)
+  })
+
   it('rejects invalid plugin data during import without writing the target slot', async() => {
     const invalidSave = createCurrentSave({
       pluginData: {

@@ -58,7 +58,7 @@ import {
   SavePackageSettingsError,
   type PersistedPackageSettings
 } from '@/domain/save/savePackageSettings'
-import type { ModDiagnostic } from '@/domain/mods/diagnostics'
+import { createDiagnostic, type ModDiagnostic } from '@/domain/mods/diagnostics'
 
 export { parseSaveData } from '@/utils/saveCodec'
 
@@ -122,6 +122,172 @@ const createSlotInfo = (slot: number, data: Record<string, any>): SaveSlotInfo =
   playerName: data.player?.playerName,
   savedAt: data.savedAt
 })
+
+const isRecord = (value: unknown): value is Record<string, any> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value)
+
+const requiredSaveArrayFields = [
+  ['farm', 'plots'],
+  ['npc', 'npcStates']
+] as const
+
+const optionalSaveArrayFields = [
+  ['game', 'creekCatch'],
+  ['inventory', 'items'],
+  ['inventory', 'tempItems'],
+  ['inventory', 'tools'],
+  ['inventory', 'ownedWeapons'],
+  ['inventory', 'ownedRings'],
+  ['inventory', 'ownedHats'],
+  ['inventory', 'ownedShoes'],
+  ['inventory', 'equipmentPresets'],
+  ['inventory', 'pendingUpgrades'],
+  ['farm', 'sprinklers'],
+  ['farm', 'fruitTrees'],
+  ['farm', 'greenhousePlots'],
+  ['farm', 'wildTrees'],
+  ['skill', 'skills'],
+  ['npc', 'children'],
+  ['processing', 'machines'],
+  ['processing', 'collapsedGroups'],
+  ['animal', 'buildings'],
+  ['animal', 'animals'],
+  ['home', 'cellarSlots'],
+  ['breeding', 'breedingBox'],
+  ['breeding', 'stations'],
+  ['hiddenNpc', 'hiddenNpcStates'],
+  ['fishPond', 'pendingProducts'],
+  ['fishPond', 'discoveredBreeds']
+] as const
+
+const saveArrayFieldsWithObjectEntries = [
+  ['game', 'creekCatch'],
+  ['inventory', 'items'],
+  ['inventory', 'tempItems'],
+  ['inventory', 'tools'],
+  ['inventory', 'ownedWeapons'],
+  ['inventory', 'ownedRings'],
+  ['inventory', 'ownedHats'],
+  ['inventory', 'ownedShoes'],
+  ['inventory', 'equipmentPresets'],
+  ['inventory', 'pendingUpgrades'],
+  ['farm', 'plots'],
+  ['farm', 'sprinklers'],
+  ['farm', 'fruitTrees'],
+  ['farm', 'greenhousePlots'],
+  ['farm', 'wildTrees'],
+  ['skill', 'skills'],
+  ['npc', 'npcStates'],
+  ['npc', 'children'],
+  ['animal', 'buildings'],
+  ['animal', 'animals'],
+  ['home', 'cellarSlots'],
+  ['breeding', 'breedingBox'],
+  ['breeding', 'stations'],
+  ['hiddenNpc', 'hiddenNpcStates'],
+  ['fishPond', 'pendingProducts']
+] as const
+
+const saveStoreSections = [
+  'game',
+  'player',
+  'inventory',
+  'farm',
+  'skill',
+  'npc',
+  'mining',
+  'cooking',
+  'processing',
+  'achievement',
+  'animal',
+  'home',
+  'fishing',
+  'wallet',
+  'quest',
+  'shop',
+  'settings',
+  'warehouse',
+  'breeding',
+  'museum',
+  'guild',
+  'secretNote',
+  'hanhai',
+  'fishPond',
+  'tutorial',
+  'hiddenNpc'
+] as const
+
+const saveRootShapeDiagnostic = (fieldPath: string, reason: string): ModDiagnostic =>
+  createDiagnostic('SAVE-ROOT-001', {
+    stage: 'save.root.deserialize',
+    fieldPath,
+    details: { reason },
+    recovery: 'restore-backup'
+  })
+
+const validateSaveRootForDeserialization = (data: Record<string, any>): readonly ModDiagnostic[] => {
+  const diagnostics: ModDiagnostic[] = []
+
+  for (const section of saveStoreSections) {
+    if (data[section] !== undefined && data[section] !== null && !isRecord(data[section])) {
+      diagnostics.push(saveRootShapeDiagnostic(section, 'not-object'))
+    }
+  }
+
+  for (const [section, field] of requiredSaveArrayFields) {
+    const sectionValue = data[section]
+    if (!isRecord(sectionValue) || !(field in sectionValue)) continue
+    if (!Array.isArray(sectionValue[field])) {
+      diagnostics.push(saveRootShapeDiagnostic(`${section}.${field}`, 'not-array'))
+    }
+  }
+
+  for (const [section, field] of optionalSaveArrayFields) {
+    const sectionValue = data[section]
+    if (!isRecord(sectionValue) || !(field in sectionValue)) continue
+    if (!Array.isArray(sectionValue[field])) {
+      diagnostics.push(saveRootShapeDiagnostic(`${section}.${field}`, 'not-array'))
+    }
+  }
+
+  for (const [section, field] of saveArrayFieldsWithObjectEntries) {
+    const sectionValue = data[section]
+    const values = isRecord(sectionValue) && Array.isArray(sectionValue[field])
+      ? sectionValue[field]
+      : []
+    for (const [index, value] of values.entries()) {
+      if (!isRecord(value)) {
+        diagnostics.push(saveRootShapeDiagnostic(`${section}.${field}[${index}]`, 'not-object'))
+      }
+    }
+  }
+
+  const processing = data.processing
+  if (isRecord(processing) && Array.isArray(processing.machines)) {
+    for (const [index, machine] of processing.machines.entries()) {
+      if (!isRecord(machine)) {
+        diagnostics.push(saveRootShapeDiagnostic(`processing.machines[${index}]`, 'not-object'))
+        continue
+      }
+      for (const field of ['seedMakerJobs', 'wineJobs']) {
+        if (field in machine && !Array.isArray(machine[field])) {
+          diagnostics.push(saveRootShapeDiagnostic(`processing.machines[${index}].${field}`, 'not-array'))
+        }
+      }
+    }
+  }
+
+  const fishPond = data.fishPond
+  if (isRecord(fishPond) && isRecord(fishPond.pond)) {
+    for (const field of ['fish', 'nurseryBreeding']) {
+      if (field in fishPond.pond && !Array.isArray(fishPond.pond[field])) {
+        diagnostics.push(saveRootShapeDiagnostic(`fishPond.pond.${field}`, 'not-array'))
+      }
+    }
+  }
+
+  return diagnostics
+}
 
 export const useSaveStore = defineStore('save', () => {
   /** 当前活跃存档槽位，-1 表示未分配 */
@@ -558,6 +724,37 @@ export const useSaveStore = defineStore('save', () => {
     loadedSaveContentEnvironment.value = normalizeSaveContentEnvironment(data.contentEnvironment)
   }
 
+  const createDeserializationFailureDiagnostics = (error: unknown): readonly ModDiagnostic[] => [
+    createDiagnostic('SAVE-ROOT-001', {
+      stage: 'save.root.deserialize',
+      details: {
+        reason: 'deserialization-failed',
+        message: error instanceof Error ? error.message : String(error)
+      },
+      recovery: 'restore-backup'
+    })
+  ]
+
+  const captureCurrentSaveState = (): Record<string, any> =>
+    buildSaveData(persistedPluginData.value, persistedPackageSettings.value) as Record<string, any>
+
+  const applyLoadedSaveDataSafely = (
+    data: Record<string, any>,
+    previousState: Record<string, any>
+  ): readonly ModDiagnostic[] => {
+    try {
+      applyLoadedSaveData(data)
+      return []
+    } catch (error) {
+      try {
+        applyLoadedSaveData(previousState)
+      } catch {
+        // A valid in-memory snapshot should always be restorable; keep the original diagnostic if it is not.
+      }
+      return createDeserializationFailureDiagnostics(error)
+    }
+  }
+
   const setContentEnvironment = (value: unknown): boolean => {
     try {
       contentEnvironment.value = normalizeSaveContentEnvironment(value)
@@ -693,10 +890,25 @@ export const useSaveStore = defineStore('save', () => {
         owners: getPluginDataOwners()
       })
       data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
+      const shapeDiagnostics = validateSaveRootForDeserialization(data)
+      if (shapeDiagnostics.length > 0) return failOperation('loading', 'invalid', shapeDiagnostics)
+      const previousState = captureCurrentSaveState()
+      const deserializationDiagnostics = applyLoadedSaveDataSafely(data, previousState)
+      if (deserializationDiagnostics.length > 0) {
+        return failOperation('loading', 'invalid', deserializationDiagnostics)
+      }
       const encoded = await encodeSaveData(data)
 
-      persistSlot(slot, encoded, data)
-      applyLoadedSaveData(data)
+      try {
+        persistSlot(slot, encoded, data)
+      } catch (error) {
+        try {
+          applyLoadedSaveData(previousState)
+        } catch {
+          throw new Error('save state rollback failed')
+        }
+        throw error
+      }
 
       activeSlot.value = slot
       loadedSaveContentEnvironment.value = normalizeSaveContentEnvironment(data.contentEnvironment)
@@ -743,7 +955,13 @@ export const useSaveStore = defineStore('save', () => {
         owners: getPluginDataOwners()
       })
       data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
-      applyLoadedSaveData(data)
+      const shapeDiagnostics = validateSaveRootForDeserialization(data)
+      if (shapeDiagnostics.length > 0) return failOperation('loading', 'invalid', shapeDiagnostics)
+      const previousState = captureCurrentSaveState()
+      const deserializationDiagnostics = applyLoadedSaveDataSafely(data, previousState)
+      if (deserializationDiagnostics.length > 0) {
+        return failOperation('loading', 'invalid', deserializationDiagnostics)
+      }
       activeSlot.value = slot
       isReadOnlySafeMode.value = true
       return true
@@ -801,6 +1019,8 @@ export const useSaveStore = defineStore('save', () => {
         owners: getPluginDataOwners()
       })
       data.packageSettings = normalizePersistedPackageSettings(data.packageSettings)
+      const shapeDiagnostics = validateSaveRootForDeserialization(data)
+      if (shapeDiagnostics.length > 0) return failOperation('importing', 'invalid', shapeDiagnostics)
       const encoded = await encodeSaveData(data)
       persistSlot(slot, encoded, data)
       return true
