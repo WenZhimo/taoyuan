@@ -148,6 +148,34 @@ describe('web file-picker import source', () => {
     expect(discoveryReport.candidates[0]?.path).toBe('valid-gift-pack')
   })
 
+  it('accepts Windows-style ZIP entry separators while preserving canonical paths', async() => {
+    const archive = createArchiveFile('windows-style.zip', {
+      'windows-style\\manifest.json': toJson(createManifest('windows_style_zip')),
+      'windows-style\\locales\\zh-CN.json': '{}\n',
+      'windows-style\\data\\items.json': toJson([createItem('windows_style_zip:linen_ribbon')])
+    })
+
+    const archiveFiles = await readWebFilePickerImportArchiveFiles({ file: archive })
+
+    expect(archiveFiles.map(file => file.webkitRelativePath)).toEqual([
+      'windows-style/data/items.json',
+      'windows-style/locales/zh-CN.json',
+      'windows-style/manifest.json'
+    ])
+    await expect(archiveFiles[2]?.text()).resolves.toContain('windows_style_zip')
+  })
+
+  it('rejects ZIP entries that collide after Windows separator normalization', async() => {
+    const archive = createArchiveFile('duplicate-windows-style.zip', {
+      'windows-style/manifest.json': toJson(createManifest('windows_style_zip')),
+      'windows-style\\manifest.json': toJson(createManifest('windows_style_zip'))
+    })
+
+    await expect(readWebFilePickerImportArchiveFiles({ file: archive })).rejects.toMatchObject({
+      code: 'SOURCE_DUPLICATE_PATH'
+    })
+  })
+
   it('rejects unsafe ZIP archive entry paths before publishing selected files', async() => {
     const archive = createArchiveFile('private.zip', {
       '../userdata/manifest.json': toJson(createManifest('unsafe_zip')),

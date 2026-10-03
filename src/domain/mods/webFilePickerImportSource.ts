@@ -276,7 +276,16 @@ const archiveDiagnosticPath = 'archive.zip'
 const isZipArchiveName = (name: string): boolean =>
   name.toLowerCase().endsWith(WEB_FILE_PICKER_IMPORT_ARCHIVE_EXTENSION)
 
-const isArchiveDirectoryEntryName = (name: string): boolean => name.endsWith('/')
+const isArchiveDirectoryEntryName = (name: string): boolean =>
+  name.endsWith('/') || name.endsWith('\\')
+
+const normalizeZipArchiveEntryPath = (
+  path: string,
+  policy: ContentPackageSourceSafeReadPolicy
+): string => normalizeContentPackageSourceArchiveEntryPath(
+  path.replace(/\\/g, '/'),
+  policy
+)
 
 const readArchiveBytes = async(
   file: WebFilePickerImportFile,
@@ -326,7 +335,7 @@ const collectArchiveEntryMetadata = (
       filter: (file: UnzipFileInfo) => {
         if (!isArchiveDirectoryEntryName(file.name)) {
           entries.push(Object.freeze({
-            path: file.name,
+            path: normalizeZipArchiveEntryPath(file.name, policy),
             uncompressedSizeBytes: file.originalSize,
             compressedSizeBytes: file.size
           }))
@@ -352,7 +361,7 @@ const extractValidatedArchiveFiles = (
     extracted = unzipSync(archiveBytes, {
       filter: (file: UnzipFileInfo) => {
         if (isArchiveDirectoryEntryName(file.name)) return false
-        const normalizedPath = normalizeContentPackageSourceArchiveEntryPath(file.name, policy)
+        const normalizedPath = normalizeZipArchiveEntryPath(file.name, policy)
         return selectedPaths.has(normalizedPath)
       }
     })
@@ -361,8 +370,13 @@ const extractValidatedArchiveFiles = (
     throw toContentPackageSourceHostOperationError('read', error, archiveDiagnosticPath, 'SOURCE_ENTRY_UNSAFE')
   }
 
+  const extractedByNormalizedPath = new Map<string, Uint8Array>()
+  for (const [rawPath, payload] of Object.entries(extracted)) {
+    extractedByNormalizedPath.set(normalizeZipArchiveEntryPath(rawPath, policy), payload)
+  }
+
   return Object.freeze(entries.map(entry => {
-    const payload = extracted[entry.path]
+    const payload = extractedByNormalizedPath.get(entry.path)
     if (payload === undefined) {
       throw new ContentPackageSourceError(
         'SOURCE_ENTRY_NOT_FOUND',
