@@ -821,6 +821,9 @@ describe('MainMenu Web data pack import entry', () => {
     await wrapper.findAll('button').find(button => button.text().includes('数据包预检'))!.trigger('click')
 
     expect(wrapper.find('[data-testid="web-data-pack-import-preflight-panel-stub"]').exists()).toBe(true)
+    expect(wrapper.get('[data-testid="web-mod-manager-dialog"]').classes()).toEqual(
+      expect.arrayContaining(['max-h-[80vh]', 'overflow-y-auto'])
+    )
 
     wrapper.unmount()
   })

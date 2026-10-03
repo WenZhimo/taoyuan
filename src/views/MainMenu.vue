@@ -96,7 +96,10 @@
         class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 p-4"
         @click.self="showModManager = false"
       >
-        <div class="game-panel w-full max-w-lg mx-4 relative">
+        <div
+          data-testid="web-mod-manager-dialog"
+          class="game-panel w-full max-w-lg mx-4 relative max-h-[80vh] overflow-y-auto"
+        >
           <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showModManager = false">
             <X :size="14" />
           </button>
