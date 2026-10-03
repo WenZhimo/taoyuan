@@ -277,7 +277,7 @@ const isZipArchiveName = (name: string): boolean =>
   name.toLowerCase().endsWith(WEB_FILE_PICKER_IMPORT_ARCHIVE_EXTENSION)
 
 const isArchiveDirectoryEntryName = (name: string): boolean =>
-  name.endsWith('/') || name.endsWith('\\')
+  name === '' || name.endsWith('/') || name.endsWith('\\')
 
 const normalizeZipArchiveEntryPath = (
   path: string,

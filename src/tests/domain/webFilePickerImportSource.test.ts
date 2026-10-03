@@ -165,6 +165,24 @@ describe('web file-picker import source', () => {
     await expect(archiveFiles[2]?.text()).resolves.toContain('windows_style_zip')
   })
 
+  it('ignores empty ZIP container entries before validating file paths', async() => {
+    const archive = createArchiveFile('empty-container-entry.zip', {
+      '': '',
+      'empty-container-entry/manifest.json': toJson(createManifest('empty_container_entry')),
+      'empty-container-entry/locales/zh-CN.json': '{}\n',
+      'empty-container-entry/data/items.json': toJson([createItem('empty_container_entry:linen_ribbon')])
+    })
+
+    const archiveFiles = await readWebFilePickerImportArchiveFiles({ file: archive })
+
+    expect(archiveFiles.map(file => file.webkitRelativePath)).toEqual([
+      'empty-container-entry/data/items.json',
+      'empty-container-entry/locales/zh-CN.json',
+      'empty-container-entry/manifest.json'
+    ])
+    await expect(archiveFiles[2]?.text()).resolves.toContain('empty_container_entry')
+  })
+
   it('rejects ZIP entries that collide after Windows separator normalization', async() => {
     const archive = createArchiveFile('duplicate-windows-style.zip', {
       'windows-style/manifest.json': toJson(createManifest('windows_style_zip')),
