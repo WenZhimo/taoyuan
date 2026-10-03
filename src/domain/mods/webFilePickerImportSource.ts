@@ -282,10 +282,26 @@ const isArchiveDirectoryEntryName = (name: string): boolean =>
 const normalizeZipArchiveEntryPath = (
   path: string,
   policy: ContentPackageSourceSafeReadPolicy
-): string => normalizeContentPackageSourceArchiveEntryPath(
-  path.replace(/\\/g, '/'),
-  policy
-)
+): string => {
+  const posixPath = path.replace(/\\/g, '/')
+  if (posixPath === '') return ''
+
+  const segments = posixPath.split('/')
+  if (
+    posixPath.startsWith('/')
+    || /^[A-Za-z]:/.test(posixPath)
+    || segments.includes('..')
+  ) {
+    return normalizeContentPackageSourceArchiveEntryPath(posixPath, policy)
+  }
+
+  const canonicalPath = segments
+    .filter(segment => segment !== '' && segment !== '.')
+    .join('/')
+  if (canonicalPath === '') return ''
+
+  return normalizeContentPackageSourceArchiveEntryPath(canonicalPath, policy)
+}
 
 const readArchiveBytes = async(
   file: WebFilePickerImportFile,
@@ -333,13 +349,13 @@ const collectArchiveEntryMetadata = (
   try {
     unzipSync(archiveBytes, {
       filter: (file: UnzipFileInfo) => {
-        if (!isArchiveDirectoryEntryName(file.name)) {
-          entries.push(Object.freeze({
-            path: normalizeZipArchiveEntryPath(file.name, policy),
-            uncompressedSizeBytes: file.originalSize,
-            compressedSizeBytes: file.size
-          }))
-        }
+        const normalizedPath = normalizeZipArchiveEntryPath(file.name, policy)
+        if (normalizedPath === '' || isArchiveDirectoryEntryName(file.name)) return false
+        entries.push(Object.freeze({
+          path: normalizedPath,
+          uncompressedSizeBytes: file.originalSize,
+          compressedSizeBytes: file.size
+        }))
         return false
       }
     })
@@ -360,8 +376,8 @@ const extractValidatedArchiveFiles = (
   try {
     extracted = unzipSync(archiveBytes, {
       filter: (file: UnzipFileInfo) => {
-        if (isArchiveDirectoryEntryName(file.name)) return false
         const normalizedPath = normalizeZipArchiveEntryPath(file.name, policy)
+        if (normalizedPath === '' || isArchiveDirectoryEntryName(file.name)) return false
         return selectedPaths.has(normalizedPath)
       }
     })

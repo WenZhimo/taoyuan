@@ -165,6 +165,23 @@ describe('web file-picker import source', () => {
     await expect(archiveFiles[2]?.text()).resolves.toContain('windows_style_zip')
   })
 
+  it('canonicalizes safe redundant separators and dot segments in ZIP entries', async() => {
+    const archive = createArchiveFile('non-canonical.zip', {
+      './non-canonical//manifest.json': toJson(createManifest('non_canonical_zip')),
+      'non-canonical\\./locales\\zh-CN.json': '{}\n',
+      'non-canonical/data//items.json': toJson([createItem('non_canonical_zip:linen_ribbon')])
+    })
+
+    const archiveFiles = await readWebFilePickerImportArchiveFiles({ file: archive })
+
+    expect(archiveFiles.map(file => file.webkitRelativePath)).toEqual([
+      'non-canonical/data/items.json',
+      'non-canonical/locales/zh-CN.json',
+      'non-canonical/manifest.json'
+    ])
+    await expect(archiveFiles[2]?.text()).resolves.toContain('non_canonical_zip')
+  })
+
   it('ignores empty ZIP container entries before validating file paths', async() => {
     const archive = createArchiveFile('empty-container-entry.zip', {
       '': '',
@@ -209,6 +226,18 @@ describe('web file-picker import source', () => {
       })
       expect(JSON.stringify(error)).not.toContain('userdata')
     }
+    expect(archive.text).not.toHaveBeenCalled()
+  })
+
+  it('rejects unsafe ZIP directory entries instead of skipping their paths', async() => {
+    const archive = createArchiveFile('unsafe-directory.zip', {
+      '../': '',
+      'valid-gift-pack/manifest.json': toJson(createManifest('zip_valid'))
+    })
+
+    await expect(readWebFilePickerImportArchiveFiles({ file: archive })).rejects.toMatchObject({
+      code: 'SOURCE_PATH_UNSAFE'
+    })
     expect(archive.text).not.toHaveBeenCalled()
   })
 
