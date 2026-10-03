@@ -34,6 +34,16 @@ export type SaveContentEnvironment = CacheEnvironmentIdentity & {
   readonly environmentHash: Sha256Hash
 }
 
+export interface SaveContentEnvironmentPackageSummary {
+  readonly packageId: PackageId
+  readonly version: string
+}
+
+export interface SaveContentEnvironmentSummary {
+  readonly environmentHash: Sha256Hash
+  readonly packages: readonly SaveContentEnvironmentPackageSummary[]
+}
+
 export type SaveRootMigrationStatus = 'legacy-migrated' | 'current' | 'third-party-copy-migrated'
 export type SaveRootCompatibilityStatus =
   | 'compatible'
@@ -464,6 +474,16 @@ export const createSaveContentEnvironment = (
     environmentHash: createEnvironmentHash(identity)
   })
 }
+
+export const summarizeSaveContentEnvironment = (
+  environment: SaveContentEnvironment
+): SaveContentEnvironmentSummary => Object.freeze({
+  environmentHash: environment.environmentHash,
+  packages: Object.freeze(environment.packages.map(pkg => Object.freeze({
+    packageId: pkg.id as PackageId,
+    version: pkg.version
+  })))
+})
 
 export const createOfficialSaveContentEnvironment = (): SaveContentEnvironment =>
   createSaveContentEnvironment(

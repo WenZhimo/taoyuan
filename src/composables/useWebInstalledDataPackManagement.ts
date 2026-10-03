@@ -887,6 +887,7 @@ export const useWebInstalledDataPackManagement = (
     let managementUiIpcResponseDelivered = false
     let realWebPlatformWriterHostCalled = false
     let realElectronSettingsLockfilePersistentWriterHostCalled = false
+    let saveContentEnvironmentPublished = false
     try {
       if (
         options.readElectronInstalledState === undefined
@@ -1044,28 +1045,42 @@ export const useWebInstalledDataPackManagement = (
       if (options.electronEnableCommand === undefined) {
         managementUiIpcResponseDelivered = await deliverWebManagementUiIpcResponse(transaction.terminal)
       }
-      const result = withManagementCommandDelivery(transaction, {
-        managementCommandHostKind,
-        managementCommandDispatched,
-        managementUiIpcResponseDelivered,
-        realWebPlatformWriterHostCalled,
-        realElectronSettingsLockfilePersistentWriterHostCalled
-      })
-      lastEnableResult.value = result
-      reason.value = transaction.terminal.reason
       const deliveryBlocked = isMissingRequiredWebManagementDelivery(
         managementCommandHostKind,
         transaction.terminal.status,
         managementUiIpcResponseDelivered
       )
       if (transaction.terminal.status === 'ready' && !deliveryBlocked) {
+        saveContentEnvironmentPublished = options.publishSaveContentEnvironment === undefined
+          || options.publishSaveContentEnvironment(
+            createSaveContentEnvironmentFromLockfileDraft(
+              enableRecord.lockfileDraft,
+              enableRecord.selectedPackageIds
+            )
+          )
+      }
+      const result = withManagementCommandDelivery(transaction, {
+        managementCommandHostKind,
+        managementCommandDispatched,
+        managementUiIpcResponseDelivered,
+        realWebPlatformWriterHostCalled,
+        realElectronSettingsLockfilePersistentWriterHostCalled,
+        saveContentEnvironmentPublished
+      })
+      lastEnableResult.value = result
+      reason.value = transaction.terminal.reason
+      if (transaction.terminal.status === 'ready' && !deliveryBlocked && saveContentEnvironmentPublished) {
         currentRecord.value = enableRecord
         rows.value = readPackageRows(enableRecord)
         status.value = 'ready'
       } else {
         await refresh()
         status.value = 'blocked'
-        if (deliveryBlocked) reason.value = webManagementDeliveryBlockedReason('enable')
+        if (deliveryBlocked) {
+          reason.value = webManagementDeliveryBlockedReason('enable')
+        } else if (transaction.terminal.status === 'ready' && !saveContentEnvironmentPublished) {
+          reason.value = 'PC 存档内容环境发布被阻断，启用状态已持久化但当前管理操作需要重新确认'
+        }
       }
       return result
     } catch (error) {

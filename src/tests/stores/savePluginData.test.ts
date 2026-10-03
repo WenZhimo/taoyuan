@@ -722,6 +722,33 @@ describe('save store plugin data persistence', () => {
     expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(unreadableSlot)
   })
 
+  it('records content environment package summaries in slot metadata and inspection', async() => {
+    const environment = createThirdPartyEnvironment('1.0.0', 'metadata-content', 'metadata-config')
+    const saveStore = useSaveStore()
+
+    expect(saveStore.setContentEnvironment(environment)).toBe(true)
+    expect(await saveStore.saveToSlot(0)).toBe(true)
+
+    expect(saveStore.getSlots()[0]?.contentEnvironment).toEqual({
+      environmentHash: environment.environmentHash,
+      packages: [
+        { packageId: 'taoyuan-core', version: environment.packages[0]!.version },
+        { packageId, version: '1.0.0' }
+      ]
+    })
+    await expect(saveStore.inspectSlot(0)).resolves.toMatchObject({
+      slot: 0,
+      exists: true,
+      contentEnvironment: {
+        environmentHash: environment.environmentHash,
+        packages: [
+          { packageId: 'taoyuan-core', version: environment.packages[0]!.version },
+          { packageId, version: '1.0.0' }
+        ]
+      }
+    })
+  })
+
   it('does not overwrite a slot from another content environment', async() => {
     const current = createOfficialSaveContentEnvironment()
     const incompatibleEnvironment = {

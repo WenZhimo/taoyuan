@@ -548,7 +548,8 @@
     readPostCommitVerificationExecutorAdapter: props.readPostCommitVerificationExecutorAdapter,
     readPostCommitPersistentState: props.readPostCommitPersistentState,
     executePostCommitVerification: props.executePostCommitVerification,
-    readPostCommitUiIpcDeliveryContinuationSource: props.readPostCommitUiIpcDeliveryContinuationSource
+    readPostCommitUiIpcDeliveryContinuationSource: props.readPostCommitUiIpcDeliveryContinuationSource,
+    publishSaveContentEnvironment: props.publishSaveContentEnvironment
   })
   const restoreInstalledPackageSource = async() =>
     readElectronInstalledState === undefined
@@ -947,6 +948,7 @@
         readPostCommitUiIpcDeliveryContinuationSource: props.readPostCommitUiIpcDeliveryContinuationSource,
         webSettingsLockfileStore,
         webInstallTransactionLogStore,
+        publishSaveContentEnvironment: props.publishSaveContentEnvironment,
         mountedAppStartupHostEvidence: readMountedAppStartupHostEvidence()
       })
 

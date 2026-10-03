@@ -38,12 +38,22 @@
                 class="px-2 h-full"
                 :icon="Settings"
                 :icon-size="12"
+                :data-testid="`save-slot-menu-${info.slot}`"
                 @click.stop="menuOpen = menuOpen === info.slot ? null : info.slot"
               />
               <div
                 v-if="menuOpen === info.slot"
                 class="absolute right-0 top-full mt-1 z-10 flex flex-col border border-accent/30 rounded-xs overflow-hidden w-30"
               >
+                <Button
+                  :icon="Info"
+                  :icon-size="12"
+                  class="text-center !rounded-none justify-center text-sm"
+                  data-testid="save-slot-info"
+                  @click="showInfo(info.slot)"
+                >
+                  存档信息
+                </Button>
                 <Button
                   v-if="webdavReady"
                   :icon="CloudUpload"
@@ -124,14 +134,16 @@
         </div>
       </Transition>
     </div>
+    <SaveSlotInfoDialog v-if="infoSlot !== null" :slot="infoSlot" @close="infoSlot = null" />
   </div>
 </template>
 
 <script setup lang="ts">
   import { ref } from 'vue'
-  import { X, FolderOpen, Settings, Download, Trash2, Upload, CloudUpload, CloudDownload } from 'lucide-vue-next'
+  import { X, FolderOpen, Settings, Download, Trash2, Upload, CloudUpload, CloudDownload, Info } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
+  import SaveSlotInfoDialog from '@/components/game/SaveSlotInfoDialog.vue'
   import { SEASON_NAMES } from '@/stores/useGameStore'
   import { useSaveStore } from '@/stores/useSaveStore'
   import { showFloat } from '@/composables/useGameLog'
@@ -146,6 +158,7 @@
 
   const slots = ref(saveStore.getSlots())
   const menuOpen = ref<number | null>(null)
+  const infoSlot = ref<number | null>(null)
   const uploading = ref(false)
   const downloading = ref(false)
 
@@ -157,6 +170,11 @@
     if (!saveStore.exportSave(slot)) {
       showFloat('导出失败。', 'danger')
     }
+  }
+
+  const showInfo = (slot: number) => {
+    infoSlot.value = slot
+    menuOpen.value = null
   }
 
   const deleteTargetSlot = ref<number | null>(null)

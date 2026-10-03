@@ -41,6 +41,7 @@
               class="px-2 h-full"
               :icon="Settings"
               :icon-size="12"
+              :data-testid="`save-slot-menu-${info.slot}`"
               @click.stop="slotMenuOpen = slotMenuOpen === info.slot ? null : info.slot"
             />
             <div
@@ -55,6 +56,15 @@
                 @click="handleExportSlot(info.slot)"
               >
                 导出
+              </Button>
+              <Button
+                class="text-center !rounded-none justify-center !text-sm"
+                :icon="Info"
+                :icon-size="12"
+                data-testid="save-slot-info"
+                @click="showInfo(info.slot)"
+              >
+                存档信息
               </Button>
               <Button
                 class="btn-danger !rounded-none text-center justify-center !text-sm"
@@ -392,6 +402,8 @@
       </div>
     </Transition>
 
+    <SaveSlotInfoDialog v-if="infoSlot !== null" :slot="infoSlot" @close="infoSlot = null" />
+
     <!-- 隐私协议弹窗 -->
     <Transition name="panel-fade">
       <div v-if="showPrivacy" class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80" @click.self="handlePrivacyDecline">
@@ -446,6 +458,7 @@
   } from 'lucide-vue-next'
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
+  import SaveSlotInfoDialog from '@/components/game/SaveSlotInfoDialog.vue'
   import WebDataPackImportPreflightPanel from '@/components/game/mods/WebDataPackImportPreflightPanel.vue'
   import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
@@ -508,6 +521,7 @@
   const latestWebResponseDelivery = ref<WebResponseDeliverySummary | null>(null)
 
   const deleteTargetSlot = ref<number | null>(null)
+  const infoSlot = ref<number | null>(null)
 
   const farmMapDefs = computed(() => getFarmMapDefs())
   const selectedFarmDef = computed(() => farmMapDefs.value.find(f => f.type === selectedMap.value))
@@ -682,6 +696,11 @@
 
   const handleDeleteSlot = (slot: number) => {
     deleteTargetSlot.value = slot
+  }
+
+  const showInfo = (slot: number) => {
+    infoSlot.value = slot
+    slotMenuOpen.value = null
   }
 
   const confirmDeleteSlot = () => {

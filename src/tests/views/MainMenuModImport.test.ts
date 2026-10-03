@@ -704,7 +704,7 @@ const mountMainMenu = async(options: {
         Button: {
           props: ['icon', 'iconSize'],
           emits: ['click'],
-          template: '<button type="button" @click="$emit(\'click\')"><slot /></button>'
+          template: '<button type="button" @click="$emit(\'click\', $event)"><slot /></button>'
         },
         Transition: false,
         ...(options.stubWebDataPackImportPreflightPanel === false
@@ -787,6 +787,31 @@ describe('MainMenu Web data pack import entry', () => {
     await vi.waitFor(() => {
       expect(wrapper.find('[data-testid="save-safe-mode-dialog"]').exists()).toBe(false)
     })
+    wrapper.unmount()
+  })
+
+  it('opens save information from the main menu slot actions', async() => {
+    const source = await encodeSaveData({
+      ...legacySaveFixture,
+      saveFormatVersion: 3,
+      contentEnvironment: createOfficialSaveContentEnvironment(),
+      pluginData: {},
+      packageSettings: {}
+    })
+    localStorage.setItem('taoyuanxiang_save_0', source)
+
+    const wrapper = await mountMainMenu()
+    await wrapper.get('[data-testid="save-slot-menu-0"]').trigger('click')
+    await wrapper.get('[data-testid="save-slot-info"]').trigger('click')
+
+    await vi.waitFor(() => {
+      expect(wrapper.find('[data-testid="save-slot-info-environment-hash"]').exists()).toBe(true)
+    })
+    expect(wrapper.get('[data-testid="save-slot-info-environment-hash"]').text())
+      .toMatch(/^sha256:[0-9a-f]{64}$/)
+    expect(wrapper.get('[data-testid="save-slot-info-packages"]').text()).toContain('taoyuan-core')
+    await wrapper.get('[data-testid="save-slot-info-dialog"] button').trigger('click')
+    expect(wrapper.find('[data-testid="save-slot-info-dialog"]').exists()).toBe(false)
     wrapper.unmount()
   })
 

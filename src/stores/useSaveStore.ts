@@ -34,8 +34,10 @@ import {
   checkSaveRootCompatibility,
   migrateSaveRoot,
   normalizeSaveContentEnvironment,
+  summarizeSaveContentEnvironment,
   validateSavePackageMigrationStep,
   type SaveContentEnvironment,
+  type SaveContentEnvironmentSummary,
   type SavePackageMigrationStep,
   type SaveRootCompatibilityStatus
 } from '@/domain/save/saveContentEnvironment'
@@ -98,6 +100,7 @@ export interface SaveSlotInfo {
   money?: number
   playerName?: string
   savedAt?: string
+  contentEnvironment?: SaveContentEnvironmentSummary
 }
 
 export interface SavePackageUsageReport {
@@ -112,16 +115,30 @@ const yieldToUi = (): Promise<void> =>
     else setTimeout(resolve, 0)
   })
 
-const createSlotInfo = (slot: number, data: Record<string, any>): SaveSlotInfo => ({
-  slot,
-  exists: true,
-  year: data.game?.year,
-  season: data.game?.season,
-  day: data.game?.day,
-  money: data.player?.money,
-  playerName: data.player?.playerName,
-  savedAt: data.savedAt
-})
+const readSaveContentEnvironmentSummary = (
+  value: unknown
+): SaveContentEnvironmentSummary | undefined => {
+  try {
+    return summarizeSaveContentEnvironment(normalizeSaveContentEnvironment(value))
+  } catch {
+    return undefined
+  }
+}
+
+const createSlotInfo = (slot: number, data: Record<string, any>): SaveSlotInfo => {
+  const contentEnvironment = readSaveContentEnvironmentSummary(data.contentEnvironment)
+  return {
+    slot,
+    exists: true,
+    year: data.game?.year,
+    season: data.game?.season,
+    day: data.game?.day,
+    money: data.player?.money,
+    playerName: data.player?.playerName,
+    savedAt: data.savedAt,
+    ...(contentEnvironment === undefined ? {} : { contentEnvironment })
+  }
+}
 
 const isRecord = (value: unknown): value is Record<string, any> =>
   value !== null && typeof value === 'object' && !Array.isArray(value)
@@ -573,6 +590,23 @@ export const useSaveStore = defineStore('save', () => {
       usedSlots: Object.freeze(usedSlots),
       unverifiableSlots: Object.freeze(unverifiableSlots)
     })
+  }
+
+  const inspectSlot = async (slot: number): Promise<SaveSlotInfo | null> => {
+    if (slot < 0 || slot >= MAX_SLOTS) return null
+    const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slot}`)
+    if (!raw) return null
+    try {
+      const normalized = await normalizeSaveData(raw)
+      if (!normalized) return null
+      const migration = migrateSaveRoot(normalized.data, {
+        pluginDataOwners: getPluginDataOwners(),
+        packageMigrations: getPackageMigrations()
+      })
+      return createSlotInfo(slot, migration.data)
+    } catch {
+      return null
+    }
   }
 
   /** 为新游戏分配一个空闲槽位，无空闲则返回 -1 */
@@ -1044,6 +1078,7 @@ export const useSaveStore = defineStore('save', () => {
     lastOperationFailure,
     isBusy,
     getSlots,
+    inspectSlot,
     assignNewSlot,
     saveToSlot,
     autoSave,

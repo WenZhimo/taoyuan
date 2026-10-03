@@ -521,6 +521,7 @@ describe('useWebInstalledDataPackManagement', () => {
     const installedPackageStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const startupPersistentStateStore = createInMemoryWebIndexedDbImportPersistenceStore()
     const responseDelivery = createWebManagementResponseEventCollector()
+    const publishSaveContentEnvironment = vi.fn(() => true)
     const enabledMountInput = await createEnabledMountInput(officialRegistrySet)
     expect(enabledMountInput.status).toBe('ready')
     const installedDraft = enabledMountInput.lockfileDraft!
@@ -547,6 +548,7 @@ describe('useWebInstalledDataPackManagement', () => {
       startupPersistentStateStore,
       mountedAppStartupEvidence,
       webManagementResponseDeliveryTarget: responseDelivery.target,
+      publishSaveContentEnvironment,
       readEnableMountInput: async(targetPackageId) =>
         targetPackageId === packageId ? enabledMountInput : null
     })
@@ -587,6 +589,13 @@ describe('useWebInstalledDataPackManagement', () => {
     expect(enableResult?.terminal.gameAppCreated).toBe(true)
     expect(enableResult?.terminal.piniaCreated).toBe(true)
     expect(enableResult?.terminal.routerMounted).toBe(true)
+    expect(enableResult?.saveContentEnvironmentPublished).toBe(true)
+    expect(publishSaveContentEnvironment).toHaveBeenCalledTimes(2)
+    expect(publishSaveContentEnvironment).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      packages: expect.arrayContaining([
+        expect.objectContaining({ id: packageId })
+      ])
+    }))
     expect(management.status.value).toBe('ready')
     expect(management.rows.value).toEqual([{
       packageId,

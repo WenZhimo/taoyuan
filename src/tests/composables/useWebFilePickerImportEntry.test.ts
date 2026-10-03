@@ -1996,12 +1996,14 @@ describe('useWebFilePickerImportEntry', () => {
     const continueThirdPartyDataPackOrdinaryInstallTerminal = vi.fn(async(
       envelope: ThirdPartyDataPackElectronOrdinaryInstallTerminalContinuationEnvelope
     ) => createReadyElectronOrdinaryInstallTerminalContinuationResult(envelope))
+    const publishSaveContentEnvironment = vi.fn(() => true)
     const restoreElectronApi = withWindowElectronApi({
       dispatchThirdPartyDataPackInstallCommand,
       continueThirdPartyDataPackOrdinaryInstallTerminal
     })
     const entry = useWebFilePickerImportEntry({
-      selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId))
+      selectFiles: vi.fn(async() => createValidFiles(webEntryPackageId)),
+      publishSaveContentEnvironment
     })
 
     try {
@@ -2084,6 +2086,12 @@ describe('useWebFilePickerImportEntry', () => {
       expect(dispatchResult.rendererLiveRegistrySwapApplied).toBe(true)
       expect(dispatchResult.runtimeEnablementAllowed).toBe(true)
       expect(dispatchResult.uiIpcResponseDelivered).toBe(true)
+      expect(dispatchResult.saveContentEnvironmentPublished).toBe(true)
+      expect(publishSaveContentEnvironment).toHaveBeenCalledWith(expect.objectContaining({
+        packages: expect.arrayContaining([
+          expect.objectContaining({ id: webEntryPackageId })
+        ])
+      }))
       expect(getOfficialItemDef(`${webEntryPackageId}:linen_ribbon`)?.name.fallback)
         .toBe(`${webEntryPackageId}:linen_ribbon`)
       expect(entry.runtimeBoundaryClosed.value).toBe(true)

@@ -29,6 +29,10 @@ import {
 } from '@/domain/mods/electronContentPackageSourceProbe'
 import type { PackageId } from '@/domain/mods/ids'
 import {
+  createSaveContentEnvironmentFromLockfileDraft,
+  type SaveContentEnvironment
+} from '@/domain/save/saveContentEnvironment'
+import {
   buildThirdPartyDataPackModManagementReadModel,
   type ThirdPartyDataPackModManagementReadModel
 } from '@/domain/mods/thirdPartyDataPackModManagementReadModel'
@@ -378,6 +382,7 @@ export interface UseWebFilePickerImportEntryOptions {
   readonly webInstallResponseDeliveryEventName?: string
   readonly startupPersistentStateStore?: WebIndexedDbImportPersistenceStore | null
   readonly mountedAppStartupHostEvidence?: WebFilePickerMountedAppStartupHostEvidence
+  readonly publishSaveContentEnvironment?: (environment: SaveContentEnvironment) => boolean
 }
 
 export interface WebFilePickerImportEntryResult {
@@ -437,6 +442,7 @@ export interface WebFilePickerSourceInstallCommandDispatchOptions
   readonly webInstallResponseDeliveryEventName?: string
   readonly startupPersistentStateStore?: WebIndexedDbImportPersistenceStore | null
   readonly mountedAppStartupHostEvidence?: WebFilePickerMountedAppStartupHostEvidence
+  readonly publishSaveContentEnvironment?: (environment: SaveContentEnvironment) => boolean
 }
 
 export interface WebFilePickerMountedAppStartupHostEvidence {
@@ -541,6 +547,7 @@ export interface WebFilePickerSourceInstallCommandDispatchResult
   readonly rendererLiveRegistrySwapApplied: boolean
   readonly runtimeEnablementAllowed: boolean
   readonly uiIpcResponseDelivered: boolean
+  readonly saveContentEnvironmentPublished: boolean
 }
 
 export const WEB_FILE_PICKER_IMPORT_ENTRY_DEFAULT_IMPORT_ID =
@@ -3069,6 +3076,7 @@ export const useWebFilePickerImportEntry = (
       readonly webStartupPersistentStateWriteStatus?: WebFilePickerStartupPersistentStateWriteStatus | null
       readonly electronStartupPersistentStateWriteStatus?: WebFilePickerStartupPersistentStateWriteStatus | null
       readonly rendererLiveRegistrySwapApplied?: boolean
+      readonly saveContentEnvironmentPublished?: boolean
       readonly transactionCommandDispatcherHostKind?: WebFilePickerInstallCommandDispatcherHostKind | null
     } = {}
   ): WebFilePickerSourceInstallCommandDispatchResult => {
@@ -3187,7 +3195,8 @@ export const useWebFilePickerImportEntry = (
       rendererLiveRegistrySwapApplied,
       runtimeEnablementAllowed,
       uiIpcResponseDelivered:
-        postCommitUiIpcDeliveryContinuation?.effects.uiIpcResponseDelivered === true
+        postCommitUiIpcDeliveryContinuation?.effects.uiIpcResponseDelivered === true,
+      saveContentEnvironmentPublished: overrides.saveContentEnvironmentPublished === true
     })
   }
 
@@ -3488,6 +3497,7 @@ export const useWebFilePickerImportEntry = (
       ThirdPartyDataPackRuntimePublicationCommitAppStartupReadinessPipelineResult | null = null
     let runtimePublicationCommitAppStartupHostConnection:
       ThirdPartyDataPackRuntimePublicationCommitAppStartupHostConnectionPipelineResult | null = null
+    let saveContentEnvironmentPublished = false
     let webPlatformWriterHostConnection:
       ThirdPartyDataPackWebPlatformWriterHostConnectionSourceResult | null = null
     let webStartupPersistentStateWriteStatus:
@@ -3968,6 +3978,30 @@ export const useWebFilePickerImportEntry = (
       }
     }
 
+    if (
+      ordinaryInstallTransactionTerminalSucceeded(ordinaryInstallTransactionTerminalConnection)
+      && runtimePublicationCommitAfterPostCommitVerification?.status === 'accepted'
+      && runtimePublicationCommitLiveRegistrySwapHostConnection?.status === 'swapped'
+      && runtimePublicationCommitAppStartupReadiness?.status === 'ready'
+      && runtimePublicationCommitAppStartupHostConnection?.status === 'accepted'
+      && rendererLiveRegistrySwapApplied
+      && (
+        webStartupPersistentStateWriteStatus === 'written'
+        || electronStartupPersistentStateWriteStatus === 'written'
+      )
+      && mountInput.lockfileDraft !== undefined
+    ) {
+      const publishSaveContentEnvironment = dispatchOptions.publishSaveContentEnvironment
+        ?? options.publishSaveContentEnvironment
+      saveContentEnvironmentPublished = publishSaveContentEnvironment === undefined
+        || publishSaveContentEnvironment(
+          createSaveContentEnvironmentFromLockfileDraft(
+            mountInput.lockfileDraft,
+            runtimePublicationCommitLiveRegistrySwapHostConnection.selectedPackageIds
+          )
+        )
+    }
+
     const readPostCommitUiIpcDeliveryContinuationSource =
       dispatchOptions.readPostCommitUiIpcDeliveryContinuationSource
         ?? options.readPostCommitUiIpcDeliveryContinuationSource
@@ -4012,6 +4046,7 @@ export const useWebFilePickerImportEntry = (
       webStartupPersistentStateWriteStatus,
       electronStartupPersistentStateWriteStatus,
       rendererLiveRegistrySwapApplied,
+      saveContentEnvironmentPublished,
       transactionCommandDispatcherHostKind: dispatcherHost.kind
     })
     lastInstallCommandPreflight.value = result
