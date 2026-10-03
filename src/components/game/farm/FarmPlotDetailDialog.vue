@@ -20,6 +20,10 @@
           ·
           <span class="text-success">{{ fertilizerName }}</span>
         </template>
+        <template v-if="plot.retainingSoil">
+          ·
+          <span class="text-water">永久保湿土：{{ retainingSoilName }}</span>
+        </template>
         <template v-if="hasSprinkler">
           ·
           <span class="text-water">洒水器</span>
@@ -128,7 +132,7 @@
         <template v-if="canFertilize && fertilizers.length > 0">
           <Divider label="施肥" />
           <button
-            v-for="fertilizer in fertilizers"
+            v-for="fertilizer in availableFertilizers"
             :key="fertilizer.itemId"
             class="btn text-xs justify-between mr-1 shrink-0"
             @click="$emit('fertilize', fertilizer.type)"
@@ -167,6 +171,7 @@
   import { groupInventoryItemsByQuality } from '@/domain/inventory/qualityGroups'
   import type { BreedingSeed, SeedGenetics } from '@/types/breeding'
   import type { FarmPlot, FertilizerType, InventoryItem, Quality, SprinklerType } from '@/types'
+  import { isRetainingSoilType } from '@/domain/farm/soil'
 
   export interface FarmPlotSprinklerOption {
     type: SprinklerType
@@ -189,6 +194,7 @@
     cropName: string
     cropRegrowth: boolean
     fertilizerName: string
+    retainingSoilName: string
     fertilizers: FarmBatchFertilizerOption[]
     getBreedingStarRating: (genetics: SeedGenetics) => number
     getCropName: (cropId: string) => string
@@ -220,6 +226,13 @@
 
   const growthProgressPercent = computed(() => Math.min(100, Math.floor((props.plot.growthDays / (Number(props.cropGrowthDays) || 1)) * 100)))
   const hasCrop = computed(() => props.plot.state === 'planted' || props.plot.state === 'growing' || props.plot.state === 'harvestable')
+  const availableFertilizers = computed(() => props.fertilizers.filter(fertilizer => {
+    if (isRetainingSoilType(fertilizer.type)) {
+      return !props.plot.retainingSoil
+        || (props.plot.retainingSoil === 'retaining_soil' && fertilizer.type === 'quality_retaining_soil')
+    }
+    return !props.plot.fertilizer
+  }))
   const groupedSeeds = computed(() =>
     groupInventoryItemsByQuality<GroupableSeed>(
       props.seeds.map(seed => ({

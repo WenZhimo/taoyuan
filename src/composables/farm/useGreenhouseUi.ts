@@ -74,15 +74,23 @@ export const useGreenhouseUi = ({
   })
   const ghTilledEmptyCount = computed(() => {
     if (!usesCompactTimers()) return legacyPlots().filter(plot => plot.state === 'tilled').length
-    return Math.max(0, totalPlotCount() - timers().reduce((total, timer) => total + timer.plotIds.length, 0))
+    return Math.max(0, totalPlotCount() - timers().reduce((total, timer) => total + (timer.cropId ? timer.plotIds.length : 0), 0))
   })
   const ghFertilizableCount = computed(() => {
-    if (!usesCompactTimers()) return legacyPlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer).length
-    return timers().reduce((total, timer) => total + (timer.fertilizer ? 0 : timer.plotIds.length), 0)
+    if (!usesCompactTimers()) return legacyPlots().filter(plot =>
+      plot.state !== 'wasteland' && (!plot.fertilizer || !plot.retainingSoil || plot.retainingSoil === 'retaining_soil')
+    ).length
+    const fullyFertilized = new Set<number>()
+    for (const timer of timers()) {
+      if (timer.fertilizer && timer.retainingSoil === 'quality_retaining_soil') {
+        for (const plotId of timer.plotIds) fullyFertilized.add(plotId)
+      }
+    }
+    return Math.max(0, totalPlotCount() - fullyFertilized.size)
   })
   const ghPlantedCount = computed(() => {
     if (!usesCompactTimers()) return legacyPlots().length - ghTilledEmptyCount.value
-    return timers().reduce((total, timer) => total + timer.plotIds.length, 0)
+    return timers().reduce((total, timer) => total + (timer.cropId ? timer.plotIds.length : 0), 0)
   })
 
   const nextGhUpgrade = computed(() => upgrades[greenhouseLevel()] ?? null)
@@ -108,6 +116,7 @@ export const useGreenhouseUi = ({
       const occupied = new Set<number>()
       const walletGrowth = cropGrowthBonus()
       for (const timer of timers()) {
+        if (!timer.cropId) continue
         const state = greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth)
         const stat = stats[state]
         if (!stat) continue

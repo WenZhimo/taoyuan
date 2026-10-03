@@ -30,6 +30,10 @@
             <span class="text-xs text-muted">肥料</span>
             <span class="text-xs text-success">{{ fertilizerName }}</span>
           </div>
+          <div v-if="plot.retainingSoil" class="flex items-center justify-between">
+            <span class="text-xs text-muted">土壤</span>
+            <span class="text-xs text-water">永久保湿土：{{ retainingSoilName }}</span>
+          </div>
           <div class="flex items-center justify-between">
             <span class="text-xs text-muted">特性</span>
             <span class="text-xs text-water">自动浇水 · 无季节限制</span>
@@ -80,7 +84,7 @@
         <template v-if="canFertilize && fertilizers.length > 0">
           <Divider label="施肥" class="!my-2" />
           <button
-            v-for="fertilizer in fertilizers"
+            v-for="fertilizer in availableFertilizers"
             :key="fertilizer.itemId"
             class="btn text-xs justify-between mr-1 shrink-0"
             @click="$emit('fertilize', fertilizer.type)"
@@ -106,6 +110,7 @@
   import type { FarmBatchFertilizerOption } from '@/components/game/farm/FarmBatchFertilizeDialog.vue'
   import type { FarmPlot } from '@/types/farm'
   import type { FertilizerType } from '@/types'
+  import { isRetainingSoilType } from '@/domain/farm/soil'
 
   export interface GreenhousePlotSeedOption {
     cropId: string
@@ -129,6 +134,7 @@
     cropName: string
     cropRegrowth: boolean
     fertilizerName: string
+    retainingSoilName: string
     fertilizers: FarmBatchFertilizerOption[]
     isShopOpen: boolean
     plot: FarmPlot
@@ -147,4 +153,11 @@
   }>()
 
   const growthProgressPercent = computed(() => Math.min(100, Math.floor((props.plot.growthDays / (Number(props.cropGrowthDays) || 1)) * 100)))
+  const availableFertilizers = computed(() => props.fertilizers.filter(fertilizer => {
+    if (isRetainingSoilType(fertilizer.type)) {
+      return !props.plot.retainingSoil
+        || (props.plot.retainingSoil === 'retaining_soil' && fertilizer.type === 'quality_retaining_soil')
+    }
+    return !props.plot.fertilizer
+  }))
 </script>

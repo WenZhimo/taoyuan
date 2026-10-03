@@ -1,4 +1,4 @@
-import type { FertilizerType } from './processing'
+import type { FertilizerType, RetainingSoilType } from './processing'
 import type { SeedGenetics } from './breeding'
 import type { Season } from './game'
 
@@ -19,6 +19,8 @@ export interface FarmPlot {
   unwateredDays: number
   /** 已施加的肥料类型 */
   fertilizer: FertilizerType | null
+  /** 永久改变地块保水能力的土壤类型 */
+  retainingSoil?: RetainingSoilType | null
   /** 多茬作物已收获次数 */
   harvestCount: number
   /** 巨型作物组 ID，非 null 表示属于巨型作物 */
@@ -35,12 +37,14 @@ export interface FarmPlot {
   weedyDays: number
 }
 
-/** 温室中一组状态相同的作物定时器。空地不在运行时单独分配对象。 */
+/** 温室中一组状态相同的作物定时器；未改造的空地不在运行时单独分配对象。 */
 export interface GreenhousePlotTimer {
   plotIds: number[]
-  cropId: string
+  /** null 表示只保存空地上的肥料或永久土壤改造 */
+  cropId: string | null
   growthDays: number
   fertilizer: FertilizerType | null
+  retainingSoil?: RetainingSoilType | null
   harvestCount: number
   seedGenetics: SeedGenetics | null
 }

@@ -143,7 +143,7 @@ describe('useGreenhouseUi', () => {
     expect(greenhouseUi.showGreenhouse.value).toBe(true)
     expect(greenhouseUi.ghHarvestableCount.value).toBe(1)
     expect(greenhouseUi.ghTilledEmptyCount.value).toBe(1)
-    expect(greenhouseUi.ghFertilizableCount.value).toBe(3)
+    expect(greenhouseUi.ghFertilizableCount.value).toBe(4)
     expect(greenhouseUi.ghPlantedCount.value).toBe(3)
     expect(greenhouseUi.ghStateStats.value.map(stat => [stat.key, stat.count, stat.firstPlotId])).toEqual([
       ['tilled', 1, 2],

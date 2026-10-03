@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { FarmPlot, FarmSize, Season, Quality, GreenhousePlotTimer } from '@/types'
-import type { SprinklerType, FertilizerType, PlantedFruitTree, FruitTreeType, WildTreeType, PlantedWildTree } from '@/types'
+import type { SprinklerType, FertilizerType, RetainingSoilType, PlantedFruitTree, FruitTreeType, WildTreeType, PlantedWildTree } from '@/types'
 import type { SeedGenetics } from '@/types/breeding'
 import { getCropById } from '@/data'
 import { getFertilizerById, getSprinklerById } from '@/data/processing'
@@ -15,6 +15,7 @@ import { useGameStore } from './useGameStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
 import { forEachEndDayChunk } from '@/domain/endDay/types'
 import type { EndDayChunkOptions } from '@/domain/endDay/types'
+import { isRetainingSoilType } from '@/domain/farm/soil'
 import {
   createGreenhousePlotFromTimer,
   createGreenhousePlotTimer,
@@ -40,6 +41,7 @@ const createPlots = (size: FarmSize): FarmPlot[] => {
     watered: false,
     unwateredDays: 0,
     fertilizer: null,
+    retainingSoil: null,
     harvestCount: 0,
     giantCropGroup: null,
     seedGenetics: null,
@@ -58,6 +60,7 @@ const createGreenhousePlot = (id: number): FarmPlot => ({
   watered: false,
   unwateredDays: 0,
   fertilizer: null,
+  retainingSoil: null,
   harvestCount: 0,
   giantCropGroup: null,
   seedGenetics: null,
@@ -71,6 +74,7 @@ const normalizeGreenhousePlot = (plot: any): FarmPlot => ({
   ...createGreenhousePlot(plot.id ?? 0),
   ...plot,
   fertilizer: plot.fertilizer ?? null,
+  retainingSoil: plot.retainingSoil ?? null,
   harvestCount: plot.harvestCount ?? 0,
   giantCropGroup: plot.giantCropGroup ?? null,
   seedGenetics: plot.seedGenetics ?? null,
@@ -372,29 +376,62 @@ export const useFarmStore = defineStore('farm', () => {
     const plot = plots.value[plotId]
     if (!plot) return false
     if (plot.state === 'wasteland') return false
+    if (isRetainingSoilType(fertilizerType)) {
+      if (plot.retainingSoil === 'quality_retaining_soil') return false
+      if (plot.retainingSoil === fertilizerType) return false
+      plot.retainingSoil = fertilizerType
+      return true
+    }
     if (plot.fertilizer) return false
     plot.fertilizer = fertilizerType
     return true
   }
 
-  /** 给温室地块施肥 */
-  const applyGreenhouseFertilizer = (plotId: number, fertilizerType: FertilizerType): boolean => {
+  /** 从紧凑定时器中拆出单个地块，保留该地块已有的土壤和肥料状态。 */
+  const detachGreenhousePlot = (plotId: number): GreenhousePlotTimer | null => {
     const timerIndex = greenhouseTimers.value.findIndex(candidate => candidate.plotIds.includes(plotId))
-    if (timerIndex === -1) return false
+    if (timerIndex === -1) return null
     const timer = greenhouseTimers.value[timerIndex]!
-    if (timer.fertilizer) return false
     timer.plotIds = timer.plotIds.filter(id => id !== plotId)
-    if (timer.plotIds.length === 0) {
-      timer.plotIds = [plotId]
-      timer.fertilizer = fertilizerType
-    } else {
-      greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, timer.cropId, {
-        growthDays: timer.growthDays,
-        fertilizer: fertilizerType,
-        harvestCount: timer.harvestCount,
-        seedGenetics: timer.seedGenetics
-      }))
+    if (timer.plotIds.length === 0) greenhouseTimers.value.splice(timerIndex, 1)
+    return {
+      plotIds: [plotId],
+      cropId: timer.cropId,
+      growthDays: timer.growthDays,
+      fertilizer: timer.fertilizer,
+      retainingSoil: timer.retainingSoil ?? null,
+      harvestCount: timer.harvestCount,
+      seedGenetics: timer.seedGenetics
     }
+  }
+
+  /** 给温室地块施肥；空地也会以紧凑定时器保存改造状态。 */
+  const applyGreenhouseFertilizer = (plotId: number, fertilizerType: FertilizerType): boolean => {
+    if (plotId < 0 || plotId >= greenhousePlotCount.value) return false
+    const existing = greenhousePlotTimerFor(plotId)
+    if (isRetainingSoilType(fertilizerType)) {
+      if (existing?.retainingSoil === 'quality_retaining_soil' || existing?.retainingSoil === fertilizerType) return false
+      const detached = detachGreenhousePlot(plotId)
+      greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, detached?.cropId ?? null, {
+        growthDays: detached?.growthDays,
+        fertilizer: detached?.fertilizer,
+        retainingSoil: fertilizerType,
+        harvestCount: detached?.harvestCount,
+        seedGenetics: detached?.seedGenetics
+      }))
+      greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
+      return true
+    }
+
+    if (existing?.fertilizer) return false
+    const detached = detachGreenhousePlot(plotId)
+    greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, detached?.cropId ?? null, {
+      growthDays: detached?.growthDays,
+      fertilizer: fertilizerType,
+      retainingSoil: detached?.retainingSoil,
+      harvestCount: detached?.harvestCount,
+      seedGenetics: detached?.seedGenetics
+    }))
     greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return true
   }
@@ -527,9 +564,9 @@ export const useFarmStore = defineStore('farm', () => {
       if (sprinklerWatered.has(plot.id)) {
         // 洒水器覆盖，保持浇水状态
       } else {
-        const retainFert = plot.fertilizer ? getFertilizerById(plot.fertilizer) : null
+        const retainFert = plot.retainingSoil ? getFertilizerById(plot.retainingSoil) : null
         if (retainFert?.retainChance && Math.random() < retainFert.retainChance) {
-          // 保湿土保持浇水
+          // 永久保湿土保持浇水，普通肥料不参与隔夜保水
         } else {
           plot.watered = false
         }
@@ -916,6 +953,7 @@ export const useFarmStore = defineStore('farm', () => {
     if (limit <= 0 || greenhousePlotCount.value === 0) return []
     const occupied = new Set<number>()
     for (const timer of greenhouseTimers.value) {
+      if (!timer.cropId) continue
       for (const plotId of timer.plotIds) occupied.add(plotId)
     }
     const result: number[] = []
@@ -930,6 +968,7 @@ export const useFarmStore = defineStore('farm', () => {
     const walletGrowth = useWalletStore().getCropGrowthBonus()
     const result: number[] = []
     for (const timer of greenhouseTimers.value) {
+      if (!timer.cropId) continue
       if (greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth) === state) {
         result.push(...timer.plotIds)
       }
@@ -937,10 +976,30 @@ export const useFarmStore = defineStore('farm', () => {
     return result
   }
 
-  const getGreenhouseFertilizablePlotIds = (): number[] => {
-    const result: number[] = []
+  const getGreenhouseFertilizablePlotIds = (fertilizerType?: FertilizerType): number[] => {
+    if (fertilizerType && isRetainingSoilType(fertilizerType)) {
+      const soilByPlot = new Map<number, RetainingSoilType>()
+      for (const timer of greenhouseTimers.value) {
+        if (!timer.retainingSoil) continue
+        for (const plotId of timer.plotIds) soilByPlot.set(plotId, timer.retainingSoil)
+      }
+      const result: number[] = []
+      for (let plotId = 0; plotId < greenhousePlotCount.value; plotId++) {
+        const soil = soilByPlot.get(plotId)
+        if (!soil || (soil === 'retaining_soil' && fertilizerType === 'quality_retaining_soil')) result.push(plotId)
+      }
+      return result
+    }
+
+    const fertilizerApplied = new Set<number>()
     for (const timer of greenhouseTimers.value) {
-      if (!timer.fertilizer) result.push(...timer.plotIds)
+      if (timer.fertilizer) {
+        for (const plotId of timer.plotIds) fertilizerApplied.add(plotId)
+      }
+    }
+    const result: number[] = []
+    for (let plotId = 0; plotId < greenhousePlotCount.value; plotId++) {
+      if (!fertilizerApplied.has(plotId)) result.push(plotId)
     }
     return result
   }
@@ -950,7 +1009,11 @@ export const useFarmStore = defineStore('farm', () => {
     if (getGreenhousePlot(plotId)?.state !== 'tilled') return false
     const crop = getCropById(cropId)
     if (!crop) return false
-    greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, cropId))
+    const existing = detachGreenhousePlot(plotId)
+    greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, cropId, {
+      fertilizer: existing?.fertilizer,
+      retainingSoil: existing?.retainingSoil
+    }))
     greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return true
   }
@@ -960,7 +1023,12 @@ export const useFarmStore = defineStore('farm', () => {
     if (getGreenhousePlot(plotId)?.state !== 'tilled') return false
     const crop = getCropById(genetics.cropId)
     if (!crop) return false
-    greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, genetics.cropId, { seedGenetics: genetics }))
+    const existing = detachGreenhousePlot(plotId)
+    greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, genetics.cropId, {
+      fertilizer: existing?.fertilizer,
+      retainingSoil: existing?.retainingSoil,
+      seedGenetics: genetics
+    }))
     greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return true
   }
@@ -982,8 +1050,13 @@ export const useFarmStore = defineStore('farm', () => {
         greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, cropId, {
           growthDays: crop.growthDays - crop.regrowthDays,
           fertilizer: timer.fertilizer,
+          retainingSoil: timer.retainingSoil,
           harvestCount,
           seedGenetics: timer.seedGenetics
+        }))
+      } else if (timer.retainingSoil) {
+        greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, null, {
+          retainingSoil: timer.retainingSoil
         }))
       }
       if (timer.plotIds.length === 0) {
@@ -991,6 +1064,11 @@ export const useFarmStore = defineStore('farm', () => {
       }
     } else {
       timer.plotIds = timer.plotIds.filter(id => id !== plotId)
+      if (timer.retainingSoil) {
+        greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, null, {
+          retainingSoil: timer.retainingSoil
+        }))
+      }
       if (timer.plotIds.length === 0) {
         greenhouseTimers.value.splice(timerIndex, 1)
       }
@@ -1002,7 +1080,7 @@ export const useFarmStore = defineStore('farm', () => {
   /** 温室每日更新：按定时器批量推进，不为每块空地创建响应式对象。 */
   const greenhouseDailyUpdate = (chunkOptions: EndDayChunkOptions = {}): void => {
     const walletGrowth = useWalletStore().getCropGrowthBonus()
-    const total = greenhouseTimers.value.reduce((count, timer) => count + timer.plotIds.length, 0)
+    const total = greenhouseTimers.value.reduce((count, timer) => count + (timer.cropId ? timer.plotIds.length : 0), 0)
     const requestedChunkSize = chunkOptions.chunkSize
     const chunkSize = requestedChunkSize === undefined || !Number.isFinite(requestedChunkSize)
       ? Math.max(1, total)
@@ -1010,6 +1088,7 @@ export const useFarmStore = defineStore('farm', () => {
     let processed = 0
     let nextReport = chunkSize
     for (const timer of greenhouseTimers.value) {
+      if (!timer.cropId) continue
       const crop = getCropById(timer.cropId)
       const state = greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth)
       if (state === 'planted' || state === 'growing') {
@@ -1079,19 +1158,28 @@ export const useFarmStore = defineStore('farm', () => {
     return f as FertilizerType
   }
 
+  const migrateRetainingSoil = (soil: unknown): RetainingSoilType | null =>
+    soil === 'retaining_soil' || soil === 'quality_retaining_soil' ? soil : null
+
   const deserialize = (data: ReturnType<typeof serialize>) => {
     farmSize.value = data.farmSize as FarmSize
-    plots.value = data.plots.map(p => ({
-      ...p,
-      fertilizer: migrateFertilizer(p.fertilizer),
-      harvestCount: (p as any).harvestCount ?? 0,
-      giantCropGroup: (p as any).giantCropGroup ?? null,
-      seedGenetics: (p as any).seedGenetics ?? null,
-      infested: (p as any).infested ?? false,
-      infestedDays: (p as any).infestedDays ?? 0,
-      weedy: (p as any).weedy ?? false,
-      weedyDays: (p as any).weedyDays ?? 0
-    }))
+    plots.value = data.plots.map(p => {
+      const fertilizer = migrateFertilizer(p.fertilizer)
+      const retainingSoil = migrateRetainingSoil((p as any).retainingSoil)
+        ?? (isRetainingSoilType(fertilizer) ? fertilizer : null)
+      return {
+        ...p,
+        fertilizer: isRetainingSoilType(fertilizer) ? null : fertilizer,
+        retainingSoil,
+        harvestCount: (p as any).harvestCount ?? 0,
+        giantCropGroup: (p as any).giantCropGroup ?? null,
+        seedGenetics: (p as any).seedGenetics ?? null,
+        infested: (p as any).infested ?? false,
+        infestedDays: (p as any).infestedDays ?? 0,
+        weedy: (p as any).weedy ?? false,
+        weedyDays: (p as any).weedyDays ?? 0
+      }
+    })
     sprinklers.value = (data as any).sprinklers ?? []
     fruitTrees.value = ((data as any).fruitTrees ?? []).map((t: any) => ({
       ...t,
@@ -1106,17 +1194,29 @@ export const useFarmStore = defineStore('farm', () => {
     nextWildTreeId.value =
       (data as any).nextWildTreeId ?? (wildTrees.value.length > 0 ? Math.max(...wildTrees.value.map(t => t.id)) + 1 : 0)
     greenhousePlotCount.value = (data as any).greenhousePlotCount ?? GREENHOUSE_PLOT_COUNT
-    const savedGreenhouseTimers = ((data as any).greenhouseTimers ?? []).map((timer: any) => ({
-      plotIds: Array.isArray(timer.plotIds) ? timer.plotIds.filter((id: any) => Number.isInteger(id)) : [],
-      cropId: timer.cropId,
-      growthDays: timer.growthDays ?? 0,
-      fertilizer: migrateFertilizer(timer.fertilizer),
-      harvestCount: timer.harvestCount ?? 0,
-      seedGenetics: timer.seedGenetics ?? null
-    }))
-    const savedGreenhousePlots = ((data as any).greenhousePlots ?? []).map((p: any, index: number) =>
-      normalizeGreenhousePlot({ ...p, id: p.id ?? index, fertilizer: migrateFertilizer(p.fertilizer) })
-    )
+    const savedGreenhouseTimers = ((data as any).greenhouseTimers ?? []).map((timer: any) => {
+      const fertilizer = migrateFertilizer(timer.fertilizer)
+      return {
+        plotIds: Array.isArray(timer.plotIds) ? timer.plotIds.filter((id: any) => Number.isInteger(id)) : [],
+        cropId: timer.cropId ?? null,
+        growthDays: timer.growthDays ?? 0,
+        fertilizer: isRetainingSoilType(fertilizer) ? null : fertilizer,
+        retainingSoil: migrateRetainingSoil(timer.retainingSoil)
+          ?? (isRetainingSoilType(fertilizer) ? fertilizer : null),
+        harvestCount: timer.harvestCount ?? 0,
+        seedGenetics: timer.seedGenetics ?? null
+      }
+    })
+    const savedGreenhousePlots = ((data as any).greenhousePlots ?? []).map((p: any, index: number) => {
+      const fertilizer = migrateFertilizer(p.fertilizer)
+      return normalizeGreenhousePlot({
+        ...p,
+        id: p.id ?? index,
+        fertilizer: isRetainingSoilType(fertilizer) ? null : fertilizer,
+        retainingSoil: migrateRetainingSoil(p.retainingSoil)
+          ?? (isRetainingSoilType(fertilizer) ? fertilizer : null)
+      })
+    })
     const legacyTimers: GreenhousePlotTimer[] = []
     for (const plot of savedGreenhousePlots as FarmPlot[]) {
       if (!plot.cropId) continue
@@ -1125,6 +1225,7 @@ export const useFarmStore = defineStore('farm', () => {
         cropId: plot.cropId,
         growthDays: plot.growthDays,
         fertilizer: plot.fertilizer,
+        retainingSoil: plot.retainingSoil ?? null,
         harvestCount: plot.harvestCount,
         seedGenetics: plot.seedGenetics
       })

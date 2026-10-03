@@ -89,7 +89,7 @@ describe('useFarmSelection', () => {
     expect(selection.plotCropMaxHarvests.value).toBe(3)
     expect(selection.plotFertName.value).toBe('速生肥')
     expect(selection.canWater.value).toBe(true)
-    expect(selection.canFertilize.value).toBe(false)
+    expect(selection.canFertilize.value).toBe(true)
   })
 
   it('keeps greenhouse selection index based to match existing farm view behavior', () => {

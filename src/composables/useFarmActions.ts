@@ -20,6 +20,7 @@ import type { FertilizerType } from '@/types/processing'
 import type { ChunkedBatchOptions, ChunkedBatchResult } from './farm/useFarmBatchUi'
 import { shouldReturnBreedingSeed, generateGeneticsId } from '@/data/breeding'
 import { FARM_BATCH_LIMIT } from '@/domain/farm/batchLimits'
+import { isRetainingSoilType } from '@/domain/farm/soil'
 import { addLog, showFloat } from './useGameLog'
 import { handleEndDay } from './useEndDay'
 import { sfxDig, sfxPlant, sfxWater, sfxHarvest, sfxLevelUp, sfxBuy, sfxCoin } from './useAudio'
@@ -723,7 +724,14 @@ export const handleBatchFertilize = async (fertilizerType: FertilizerType, runBa
   const fertDef = getFertilizerById(fertilizerType)
   if (!fertDef) return
 
-  const targets = farmStore.plots.filter(p => p.state !== 'wasteland' && !p.fertilizer)
+  const targets = farmStore.plots.filter(p => {
+    if (p.state === 'wasteland') return false
+    if (isRetainingSoilType(fertilizerType)) {
+      return !p.retainingSoil
+        || (p.retainingSoil === 'retaining_soil' && fertilizerType === 'quality_retaining_soil')
+    }
+    return !p.fertilizer
+  })
   if (targets.length === 0) {
     addLog('没有可施肥的地块。')
     return

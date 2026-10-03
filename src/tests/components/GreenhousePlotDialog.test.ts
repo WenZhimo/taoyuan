@@ -63,6 +63,7 @@ const mountDialog = (props: Partial<InstanceType<typeof GreenhousePlotDialog>['$
       cropName: '',
       cropRegrowth: false,
       fertilizerName: '',
+      retainingSoilName: '',
       fertilizers,
       isShopOpen: true,
       plot,
@@ -88,6 +89,7 @@ describe('GreenhousePlotDialog', () => {
         seedGenetics: genetics
       },
       fertilizerName: '基础肥料',
+      retainingSoilName: '',
       stateLabel: '生长中'
     })
 
@@ -99,6 +101,15 @@ describe('GreenhousePlotDialog', () => {
     expect(wrapper.text()).toContain('自动浇水 · 无季节限制')
     expect(wrapper.text()).toContain('G3 甜12 产8 抗5')
     expect(wrapper.text()).toContain('基础肥料')
+  })
+
+  it('shows permanent retaining soil on a greenhouse plot', () => {
+    const wrapper = mountDialog({
+      plot: { ...plot, retainingSoil: 'retaining_soil' },
+      retainingSoilName: '保湿土'
+    })
+
+    expect(wrapper.text()).toContain('永久保湿土：保湿土')
   })
 
   it('renders seed and breeding seed choices and emits selected ids', async () => {

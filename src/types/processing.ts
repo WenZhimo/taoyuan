@@ -101,6 +101,8 @@ export type FertilizerType =
   | 'retaining_soil'
   | 'quality_retaining_soil'
 
+export type RetainingSoilType = 'retaining_soil' | 'quality_retaining_soil'
+
 /** 肥料定义 */
 export interface FertilizerDef {
   id: FertilizerType
@@ -110,7 +112,7 @@ export interface FertilizerDef {
   qualityBonus?: number
   /** 生长速度加成百分比 (0.25 = +25%) */
   growthSpeedup?: number
-  /** 隔夜保水概率 (0.5 = 50%) */
+  /** 永久保湿土每晚保持浇水状态的概率 (0.5 = 50%) */
   retainChance?: number
   craftCost: { itemId: string; quantity: number }[]
   craftMoney: number

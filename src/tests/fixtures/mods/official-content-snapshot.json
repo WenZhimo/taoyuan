@@ -75998,7 +75998,7 @@
           "entry": {
             "category": "fertilizer",
             "description": {
-              "fallback": "50%概率隔夜保持浇水状态。",
+              "fallback": "永久改变地块，使其每晚有50%概率保持浇水状态。",
               "key": "taoyuan.item.retaining_soil.description"
             },
             "edible": false,
@@ -76019,7 +76019,7 @@
           "entry": {
             "category": "fertilizer",
             "description": {
-              "fallback": "100%隔夜保持浇水状态。",
+              "fallback": "永久改变地块，使其每晚保持浇水状态。",
               "key": "taoyuan.item.quality_retaining_soil.description"
             },
             "edible": false,
@@ -112681,7 +112681,7 @@
           },
           "entry": {
             "description": {
-              "fallback": "50%概率隔夜保持浇水状态。",
+              "fallback": "永久改变地块，使其每晚有50%概率保持浇水状态。",
               "key": "taoyuan.shop.yaopu.retaining_soil.description"
             },
             "groupId": "fertilizers",
@@ -112708,7 +112708,7 @@
           },
           "entry": {
             "description": {
-              "fallback": "100%隔夜保持浇水状态。",
+              "fallback": "永久改变地块，使其每晚保持浇水状态。",
               "key": "taoyuan.shop.yaopu.quality_retaining_soil.description"
             },
             "groupId": "fertilizers",
@@ -118357,5 +118357,5 @@
       ]
     }
   ],
-  "snapshotHash": "sha256:4e87e4bc1d6310d4467335da77603006bf769fdb5c4da45ad927f7ed85a5c4b3"
+  "snapshotHash": "sha256:5ada37028ed83c3ea3ca9c9e0b7cc3cb161a675634dcbab44a4787696fdef0c3"
 }

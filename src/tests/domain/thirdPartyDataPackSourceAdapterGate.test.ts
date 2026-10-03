@@ -334,11 +334,11 @@ const expectOfficialBaseline = (): void => {
   )).toBe(4242)
   expect(snapshot.snapshotHash).toBe(committedMetadata.snapshotHash)
   expect(committedMetadata).toMatchObject({
-    artifactHash: 'sha256:2948895f8961ff54df5ff91869fd4f07a16db6df1b3274fef921561be5f71732',
-    contentHash: 'sha256:588d16eb0f16a193c0fc741fb73908ef0dc99549aff9a0d3b91dfd25c0ee985b',
+    artifactHash: 'sha256:2f18b9bfc596b7850f7c8dd4b08634d3fe0c599ec5c2aeb97086c0f56f9ad8cc',
+    contentHash: 'sha256:db7c4856fe6259054813285bc861f5de5b958b445111d8b3eba5260dd5c97f5f',
     schemaSetHash: 'sha256:38c1ce55e1c5ac8f84089f1adf3e11a81ff486ac43db7ac8ec18a55fba11af26',
-    environmentHash: 'sha256:4f52687194773d59c5c6260f6170bfa290c180d21d8bb24904bbcee1e3c5e22b',
-    snapshotHash: 'sha256:4e87e4bc1d6310d4467335da77603006bf769fdb5c4da45ad927f7ed85a5c4b3'
+    environmentHash: 'sha256:b1484c4309d514649ffef4f662900b1024519565c15f7a62effbc4e1476355ff',
+    snapshotHash: 'sha256:5ada37028ed83c3ea3ca9c9e0b7cc3cb161a675634dcbab44a4787696fdef0c3'
   })
 }
 

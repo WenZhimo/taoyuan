@@ -106,6 +106,119 @@ describe('farm store end day chunking', () => {
     expect(farmStore.greenhouseTimers[0]?.plotIds).toEqual([0, 1])
   })
 
+  it('persists retaining soil independently from crop fertilizer and harvest cleanup', () => {
+    const farmStore = useFarmStore()
+    farmStore.plots = [createPlot(0, {
+      state: 'harvestable',
+      growthDays: 8,
+      watered: true,
+      retainingSoil: 'retaining_soil'
+    })]
+
+    expect(farmStore.applyFertilizer(0, 'quality_fertilizer')).toBe(true)
+    expect(farmStore.harvestPlot(0)).toEqual({ cropId: 'cabbage', genetics: null })
+    expect(farmStore.plots[0]).toMatchObject({
+      state: 'tilled',
+      fertilizer: null,
+      retainingSoil: 'retaining_soil'
+    })
+  })
+
+  it('migrates legacy retaining soil out of the temporary fertilizer field', () => {
+    const sourceStore = useFarmStore()
+    const payload = sourceStore.serialize()
+    payload.plots = [createPlot(0, { fertilizer: 'quality_retaining_soil' })]
+
+    setActivePinia(createPinia())
+    const restoredStore = useFarmStore()
+    restoredStore.deserialize(payload)
+
+    expect(restoredStore.plots[0]).toMatchObject({
+      fertilizer: null,
+      retainingSoil: 'quality_retaining_soil'
+    })
+  })
+
+  it('migrates legacy greenhouse retaining soil without losing the crop timer', () => {
+    const sourceStore = useFarmStore()
+    const payload = sourceStore.serialize()
+    payload.greenhousePlotCount = 1
+    payload.greenhouseTimers = [{
+      plotIds: [0],
+      cropId: 'cabbage',
+      growthDays: 2,
+      fertilizer: 'retaining_soil',
+      harvestCount: 0,
+      seedGenetics: null
+    }]
+
+    setActivePinia(createPinia())
+    const restoredStore = useFarmStore()
+    restoredStore.deserialize(payload)
+
+    expect(restoredStore.greenhouseTimers).toMatchObject([{
+      plotIds: [0],
+      cropId: 'cabbage',
+      fertilizer: null,
+      retainingSoil: 'retaining_soil'
+    }])
+  })
+
+  it('keeps a quality retaining soil plot watered after an overnight update', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.99)
+    const farmStore = useFarmStore()
+    farmStore.plots = [createPlot(0, {
+      watered: true,
+      retainingSoil: 'quality_retaining_soil'
+    })]
+
+    farmStore.dailyUpdate(false)
+
+    expect(farmStore.plots[0]).toMatchObject({ state: 'growing', growthDays: 1, watered: true })
+  })
+
+  it('stores greenhouse retaining soil on empty plots and carries it into crops', () => {
+    const farmStore = useFarmStore()
+    farmStore.greenhousePlotCount = 4
+
+    expect(farmStore.applyGreenhouseFertilizer(0, 'retaining_soil')).toBe(true)
+    expect(farmStore.greenhouseTimers).toMatchObject([{
+      plotIds: [0],
+      cropId: null,
+      retainingSoil: 'retaining_soil'
+    }])
+    expect(farmStore.getGreenhousePlot(0)).toMatchObject({ state: 'tilled', retainingSoil: 'retaining_soil' })
+
+    expect(farmStore.greenhousePlantCrop(0, 'cabbage')).toBe(true)
+    expect(farmStore.greenhouseTimers).toMatchObject([{
+      plotIds: [0],
+      cropId: 'cabbage',
+      retainingSoil: 'retaining_soil'
+    }])
+  })
+
+  it('keeps greenhouse retaining soil after a non-regrowth crop is harvested', () => {
+    const farmStore = useFarmStore()
+    farmStore.greenhousePlotCount = 1
+    farmStore.greenhouseTimers = [{
+      plotIds: [0],
+      cropId: 'cabbage',
+      growthDays: 100,
+      fertilizer: null,
+      retainingSoil: 'quality_retaining_soil',
+      harvestCount: 0,
+      seedGenetics: null
+    }]
+
+    expect(farmStore.greenhouseHarvestPlot(0)).toEqual({ cropId: 'cabbage', genetics: null })
+    expect(farmStore.greenhouseTimers).toMatchObject([{
+      plotIds: [0],
+      cropId: null,
+      retainingSoil: 'quality_retaining_soil'
+    }])
+    expect(farmStore.getGreenhousePlot(0)).toMatchObject({ state: 'tilled', retainingSoil: 'quality_retaining_soil' })
+  })
+
   it('processes 100,000 farm plots within the performance boundary', () => {
     const farmStore = useFarmStore()
     farmStore.plots = Array.from({ length: 100_000 }, (_, index) => createPlot(index, { giantCropGroup: 1 }))

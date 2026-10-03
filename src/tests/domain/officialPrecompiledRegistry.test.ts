@@ -65,7 +65,7 @@ describe('official precompiled registry artifact', () => {
     expect(first).toEqual(committedArtifact)
     expect(first.artifactFormatVersion).toBe(1)
     expect(first.snapshot.formatVersion).toBe(2)
-    expect(first.snapshot.snapshotHash).toBe('sha256:4e87e4bc1d6310d4467335da77603006bf769fdb5c4da45ad927f7ed85a5c4b3')
+    expect(first.snapshot.snapshotHash).toBe('sha256:5ada37028ed83c3ea3ca9c9e0b7cc3cb161a675634dcbab44a4787696fdef0c3')
     expect(first.snapshot.registries).toHaveLength(54)
     expect(first.snapshot.registries.reduce((total, registry) => total + registry.entries.length, 0)).toBe(4242)
   })

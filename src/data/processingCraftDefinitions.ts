@@ -103,7 +103,7 @@ export const FERTILIZERS: FertilizerDef[] = [
   {
     id: 'retaining_soil',
     name: '保湿土',
-    description: '50%概率隔夜保持浇水状态。',
+    description: '永久改变地块，使其每晚有50%概率保持浇水状态。',
     retainChance: 0.5,
     craftCost: [
       { itemId: 'wood', quantity: 3 },
@@ -115,7 +115,7 @@ export const FERTILIZERS: FertilizerDef[] = [
   {
     id: 'quality_retaining_soil',
     name: '优质保湿土',
-    description: '100%隔夜保持浇水状态。',
+    description: '永久改变地块，使其每晚保持浇水状态。',
     retainChance: 1.0,
     craftCost: [
       { itemId: 'quartz', quantity: 1 },

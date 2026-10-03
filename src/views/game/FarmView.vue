@@ -84,6 +84,7 @@
           :crop-regrowth="plotCropRegrowth"
           :crop-max-harvests="plotCropMaxHarvests"
           :fertilizer-name="plotFertName"
+          :retaining-soil-name="plotRetainingSoilName"
           :has-sprinkler="hasSprinkler(activePlot.id)"
           :can-water="canWater"
           :can-fertilize="canFertilize"
@@ -292,6 +293,7 @@
         :crop-max-harvests="ghPlotCropMaxHarvests"
         :can-fertilize="canFertilizeGreenhouse"
         :fertilizer-name="ghPlotFertName"
+        :retaining-soil-name="ghPlotRetainingSoilName"
         :fertilizers="fertilizerItems"
         :seeds="ghSeedOptions"
         :breeding-seeds="ghBreedingSeedOptions"
@@ -564,11 +566,13 @@
     ghPlotCropMaxHarvests,
     ghPlotCropRegrowth,
     ghPlotFertName,
+    ghPlotRetainingSoilName,
     ghPlotStateLabel,
     plotCropGrowthDays,
     plotCropMaxHarvests,
     plotCropRegrowth,
     plotFertName,
+    plotRetainingSoilName,
     plotStateLabel
   } = useFarmSelection({
     plots: () => farmStore.plots,
@@ -700,7 +704,9 @@
   const wastelandCount = computed(() => farmStore.plots.filter(p => p.state === 'wasteland').length)
   const harvestableCount = computed(() => farmStore.plots.filter(p => p.state === 'harvestable').length)
   const tilledEmptyCount = computed(() => farmStore.plots.filter(p => p.state === 'tilled').length)
-  const fertilizableCount = computed(() => farmStore.plots.filter(p => p.state !== 'wasteland' && !p.fertilizer).length)
+  const fertilizableCount = computed(() => farmStore.plots.filter(p =>
+    p.state !== 'wasteland' && (!p.fertilizer || !p.retainingSoil || p.retainingSoil === 'retaining_soil')
+  ).length)
   const infestedCount = computed(() => farmStore.plots.filter(p => p.infested).length)
   const weedyCount = computed(() => farmStore.plots.filter(p => p.weedy).length)
 

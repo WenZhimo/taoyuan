@@ -1,6 +1,7 @@
 import type { Ref } from 'vue'
 import { generateGeneticsId, shouldReturnBreedingSeed } from '@/data/breeding'
 import { GREENHOUSE_BATCH_LIMIT } from '@/domain/farm/batchLimits'
+import { isRetainingSoilType } from '@/domain/farm/soil'
 import { addLog, showFloat } from '@/composables/useGameLog'
 import { sfxHarvest, sfxPlant } from '@/composables/useAudio'
 import type { ChunkedBatchOptions, ChunkedBatchResult } from './useFarmBatchUi'
@@ -24,7 +25,7 @@ export interface UseGreenhouseActionsOptions {
   greenhousePlots?: () => readonly FarmPlot[]
   getGreenhousePlotIdsByState?: (state: Exclude<FarmPlot['state'], 'wasteland'>) => number[]
   getGreenhouseEmptyPlotIds?: (limit?: number) => number[]
-  getGreenhouseFertilizablePlotIds?: () => number[]
+  getGreenhouseFertilizablePlotIds?: (fertilizerType?: FertilizerType) => number[]
   breedingSeeds: () => readonly BreedingSeed[]
   getCropById: (cropId: string) => CropDef | undefined
   getCropName: (cropId: string) => string
@@ -97,9 +98,16 @@ export const useGreenhouseActions = ({
   const getEmptyPlotIds = (limit?: number): number[] =>
     getGreenhouseEmptyPlotIds?.(limit)
     ?? legacyGreenhousePlots().filter(plot => plot.state === 'tilled').slice(0, limit).map(plot => plot.id)
-  const getFertilizablePlotIds = (): number[] =>
-    getGreenhouseFertilizablePlotIds?.()
-    ?? legacyGreenhousePlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer).map(plot => plot.id)
+  const getFertilizablePlotIds = (fertilizerType?: FertilizerType): number[] =>
+    getGreenhouseFertilizablePlotIds?.(fertilizerType)
+    ?? legacyGreenhousePlots().filter(plot => {
+      if (plot.state === 'wasteland') return false
+      if (fertilizerType && isRetainingSoilType(fertilizerType)) {
+        return !plot.retainingSoil
+          || (plot.retainingSoil === 'retaining_soil' && fertilizerType === 'quality_retaining_soil')
+      }
+      return !plot.fertilizer
+    }).map(plot => plot.id)
   const closeActiveGreenhousePlot = () => {
     activeGhPlotId.value = null
   }
@@ -173,7 +181,7 @@ export const useGreenhouseActions = ({
   }
 
   const doGhBatchFertilize = async (fertilizerType: FertilizerType, confirmed = false) => {
-    const targets = getFertilizablePlotIds()
+    const targets = getFertilizablePlotIds(fertilizerType)
     const plannedTotal = Math.min(targets.length, getItemCount(fertilizerType))
     if (!confirmed) {
       runWithLargeBatchConfirm('温室一键施肥', plannedTotal, () => doGhBatchFertilize(fertilizerType, true), GREENHOUSE_BATCH_LIMIT)

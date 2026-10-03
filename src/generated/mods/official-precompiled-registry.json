@@ -13,14 +13,14 @@
       {
         "id": "taoyuan-core",
         "version": "2.4.0",
-        "contentHash": "sha256:588d16eb0f16a193c0fc741fb73908ef0dc99549aff9a0d3b91dfd25c0ee985b",
+        "contentHash": "sha256:db7c4856fe6259054813285bc861f5de5b958b445111d8b3eba5260dd5c97f5f",
         "configurationHash": "sha256:ccaf12cbf1b2f071daab0fc127665de0a17e8b393d1208a4bf742896fdffe805",
         "loadIndex": 0,
         "resolvedDependencies": []
       }
     ]
   },
-  "environmentHash": "sha256:4f52687194773d59c5c6260f6170bfa290c180d21d8bb24904bbcee1e3c5e22b",
+  "environmentHash": "sha256:b1484c4309d514649ffef4f662900b1024519565c15f7a62effbc4e1476355ff",
   "snapshot": {
     "formatVersion": 2,
     "registries": [
@@ -76021,7 +76021,7 @@
             "entry": {
               "category": "fertilizer",
               "description": {
-                "fallback": "50%概率隔夜保持浇水状态。",
+                "fallback": "永久改变地块，使其每晚有50%概率保持浇水状态。",
                 "key": "taoyuan.item.retaining_soil.description"
               },
               "edible": false,
@@ -76042,7 +76042,7 @@
             "entry": {
               "category": "fertilizer",
               "description": {
-                "fallback": "100%隔夜保持浇水状态。",
+                "fallback": "永久改变地块，使其每晚保持浇水状态。",
                 "key": "taoyuan.item.quality_retaining_soil.description"
               },
               "edible": false,
@@ -112704,7 +112704,7 @@
             },
             "entry": {
               "description": {
-                "fallback": "50%概率隔夜保持浇水状态。",
+                "fallback": "永久改变地块，使其每晚有50%概率保持浇水状态。",
                 "key": "taoyuan.shop.yaopu.retaining_soil.description"
               },
               "groupId": "fertilizers",
@@ -112731,7 +112731,7 @@
             },
             "entry": {
               "description": {
-                "fallback": "100%隔夜保持浇水状态。",
+                "fallback": "永久改变地块，使其每晚保持浇水状态。",
                 "key": "taoyuan.shop.yaopu.quality_retaining_soil.description"
               },
               "groupId": "fertilizers",
@@ -118380,6 +118380,6 @@
         ]
       }
     ],
-    "snapshotHash": "sha256:4e87e4bc1d6310d4467335da77603006bf769fdb5c4da45ad927f7ed85a5c4b3"
+    "snapshotHash": "sha256:5ada37028ed83c3ea3ca9c9e0b7cc3cb161a675634dcbab44a4787696fdef0c3"
   }
 }

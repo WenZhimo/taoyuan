@@ -74,6 +74,7 @@ const mountDialog = (props: Partial<InstanceType<typeof FarmPlotDetailDialog>['$
       cropRegrowth: false,
       cropMaxHarvests: 0,
       fertilizerName: '',
+      retainingSoilName: '',
       hasSprinkler: false,
       canWater: false,
       canFertilize: true,
@@ -107,6 +108,15 @@ describe('FarmPlotDetailDialog', () => {
     expect(wrapper.text()).toContain('普通肥料')
     expect(wrapper.text()).toContain('洒水器')
     expect(wrapper.text()).toContain('竹筒洒水器')
+  })
+
+  it('shows permanent retaining soil separately from crop fertilizer', () => {
+    const wrapper = mountDialog({
+      plot: makePlot({ retainingSoil: 'quality_retaining_soil' }),
+      retainingSoilName: '优质保湿土'
+    })
+
+    expect(wrapper.text()).toContain('永久保湿土：优质保湿土')
   })
 
   it('emits planting, breeding, fertilizer, sprinkler, and close events', async () => {
@@ -162,6 +172,7 @@ describe('FarmPlotDetailDialog', () => {
       cropRegrowth: true,
       cropMaxHarvests: 3,
       fertilizerName: '普通肥料',
+      retainingSoilName: '',
       hasSprinkler: true,
       canWater: true,
       canFertilize: false

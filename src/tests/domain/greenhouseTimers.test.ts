@@ -39,4 +39,16 @@ describe('greenhouse plot timers', () => {
 
     expect(mergeGreenhousePlotTimers([base, fertilized, breeding])).toHaveLength(3)
   })
+
+  it('keeps permanent soil state as a merge boundary and preserves empty soil timers', () => {
+    const basicSoil = createGreenhousePlotTimer(1, null, { retainingSoil: 'retaining_soil' })
+    const qualitySoil = createGreenhousePlotTimer(2, null, { retainingSoil: 'quality_retaining_soil' })
+
+    expect(mergeGreenhousePlotTimers([basicSoil, qualitySoil])).toHaveLength(2)
+    expect(mergeGreenhousePlotTimers([basicSoil])).toMatchObject([{
+      plotIds: [1],
+      cropId: null,
+      retainingSoil: 'retaining_soil'
+    }])
+  })
 })
