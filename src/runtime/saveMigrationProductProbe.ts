@@ -204,7 +204,14 @@ export const runSaveMigrationProductProbe = async (
   }
 
   const saveStore = useSaveStore()
-  await delay(150)
+  await waitForCondition(
+    () => saveStore.isBusy || saveStore.lastOperationFailure !== null,
+    'third-party migration probe did not start or finish the load operation'
+  )
+  await waitForCondition(
+    () => !saveStore.isBusy,
+    'third-party migration probe load operation did not settle'
+  )
   const after = await readSource()
   const failureReason = saveStore.lastOperationFailure?.reason
   const loadRejected = saveStore.lastOperationFailure?.operation === 'loading'
