@@ -27,6 +27,7 @@ export interface SaveMigrationProductProbeResult {
   readonly loadRejected: boolean
   readonly sourceRewrittenWithCurrentEnvironment: boolean
   readonly sourceUnchanged: boolean
+  readonly environmentMismatchPresented: boolean
   readonly targetRoute: string
   readonly currentEnvironmentHash: string
   readonly failureReason?: string
@@ -170,6 +171,25 @@ export const runSaveMigrationProductProbe = async (
 
   loadButton.click()
 
+  let environmentMismatchPresented = false
+  if (operation === 'third-party-failure') {
+    await waitForCondition(
+      () => document.querySelector<HTMLElement>('[data-testid="save-environment-mismatch-dialog"]'),
+      'third-party migration probe did not present the environment mismatch guard'
+    )
+    environmentMismatchPresented = true
+    const closeButton = await waitForCondition(
+      () => document.querySelector<HTMLButtonElement>('[data-testid="save-environment-mismatch-close"]'),
+      'third-party migration probe could not close the environment mismatch guard'
+    )
+    closeButton.click()
+
+    // The visible load path deliberately stops before the incompatible in-place transaction.
+    // Exercise that transaction only after proving the player-facing guard, so the probe also
+    // verifies the package-migration rejection and source-slot protection beneath the UI.
+    await currentStore.loadFromSlot(PROBE_SLOT)
+  }
+
   if (operation === 'official-forward') {
     await waitForCondition(
       () => document.querySelector<HTMLButtonElement>('[data-testid="game-settings-button"]'),
@@ -193,6 +213,7 @@ export const runSaveMigrationProductProbe = async (
       loadRejected: false,
       sourceRewrittenWithCurrentEnvironment: true,
       sourceUnchanged: false,
+      environmentMismatchPresented,
       targetRoute: getCurrentRoute(),
       currentEnvironmentHash: current.environmentHash
     })
@@ -205,11 +226,7 @@ export const runSaveMigrationProductProbe = async (
 
   const saveStore = useSaveStore()
   await waitForCondition(
-    () => saveStore.isBusy || saveStore.lastOperationFailure !== null,
-    'third-party migration probe did not start or finish the load operation'
-  )
-  await waitForCondition(
-    () => !saveStore.isBusy,
+    () => saveStore.lastOperationFailure !== null,
     'third-party migration probe load operation did not settle'
   )
   const after = await readSource()
@@ -228,6 +245,7 @@ export const runSaveMigrationProductProbe = async (
     loadRejected: true,
     sourceRewrittenWithCurrentEnvironment: false,
     sourceUnchanged: true,
+    environmentMismatchPresented,
     targetRoute: getCurrentRoute(),
     currentEnvironmentHash: currentStore.contentEnvironment.environmentHash,
     failureReason

@@ -7298,6 +7298,8 @@ const assertSaveMigrationProductProbe = (envelope, scenario) => {
     assert(typeof probe.targetRoute === 'string' && probe.targetRoute.startsWith('/game/'),
       `${scenario.name}: official forward migration did not enter the game route`)
   } else {
+    assert(probe.environmentMismatchPresented === true,
+      `${scenario.name}: failed third-party migration did not present the environment mismatch guard`)
     assert(probe.loadSucceeded === false,
       `${scenario.name}: failed third-party migration unexpectedly loaded the save`)
     assert(probe.loadRejected === true,
