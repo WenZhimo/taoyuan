@@ -76,6 +76,7 @@ import { getOfficialRecipesAsLegacy } from '@/domain/mods/contentAccess'
 import { processMorningRandomEventEndDay } from '@/domain/endDay/morningEventEndDay'
 import { processSeasonChangeEndDay } from '@/domain/endDay/seasonEndDay'
 import type { LocationGroup } from '@/types'
+import type { EndDayProgressReporter } from '@/domain/endDay/types'
 import router from '@/router'
 
 interface EndDayOptions {
@@ -125,7 +126,7 @@ export const handleAdvanceTimeResult = (result: { passedOut: boolean; message: s
 }
 
 /** 日结算处理 */
-export const handleEndDay = (options: EndDayOptions = {}) => {
+export const handleEndDay = async(options: EndDayOptions = {}, reportProgress?: EndDayProgressReporter) => {
   sfxSleep()
 
   const gameStore = useGameStore()
@@ -143,6 +144,13 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   const skillStore = useSkillStore()
   const tutorialStore = useTutorialStore()
   const resolvedOptions = options.wakeLocationGroup ? options : (getResourceSleepOptions() ?? options)
+  const stageCount = 7
+  const reportStage = async(stageIndex: number, stage: string, processed = 0, total = 1) => {
+    reportProgress?.({ stage, stageIndex, stageCount, processed, total })
+    await new Promise<void>(resolve => setTimeout(resolve, 0))
+  }
+
+  await reportStage(1, '准备结算')
 
   // 新手引导：记录体力低标记（在 dailyReset 之前）
   if (playerStore.stamina < 20) tutorialStore.setFlag('staminaWasLow')
@@ -166,6 +174,7 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     else miningStore.leaveMine()
   }
 
+  await reportStage(2, '农场作物与工具')
   const farmPlotEndDay = processFarmPlotEndDay({
     isRainy: gameStore.isRainy,
     scarecrowCount: farmStore.scarecrows,
@@ -290,6 +299,7 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   const hanhaiStore = useHanhaiStore()
   const hiddenNpcStore = useHiddenNpcStore()
   const shopStore = useShopStore()
+  await reportStage(3, '每日事件与资源')
   processOldDateEndDay({
     dailyNpcReset: npcStore.dailyReset,
     dailyCookingReset: cookingStore.dailyReset,
@@ -310,6 +320,8 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     updateMainQuestProgress: questStore.updateMainQuestProgress,
     addLog
   })
+
+  await reportStage(4, '推进日期')
 
   // === 日期推进 ===
   const { seasonChanged, oldSeason } = gameStore.nextDay()
@@ -402,10 +414,22 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   })
   for (const msg of farmTreeEndDay.logs) addLog(msg)
 
+  const greenhouseTotal = farmStore.greenhouseTimers.reduce((total, timer) => total + timer.plotIds.length, 0)
+  await reportStage(5, '温室作物', 0, greenhouseTotal || 1)
+
   // 温室更新
   processGreenhouseEndDay({
     greenhouseUnlocked: homeStore.greenhouseUnlocked,
-    dailyUpdate: farmStore.greenhouseDailyUpdate
+    dailyUpdate: farmStore.greenhouseDailyUpdate,
+    chunkOptions: {
+      onChunkComplete: progress => reportProgress?.({
+        stage: '温室作物',
+        stageIndex: 5,
+        stageCount,
+        processed: progress.processed,
+        total: progress.total || greenhouseTotal || 1
+      })
+    }
   })
 
   // 酒窖更新
@@ -621,6 +645,8 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
     triggerPetAdoption()
   }
 
+  await reportStage(6, '任务、事件与奖励')
+
   if (resolvedOptions.wakeLocationGroup) {
     gameStore.currentLocationGroup = resolvedOptions.wakeLocationGroup
   }
@@ -629,7 +655,8 @@ export const handleEndDay = (options: EndDayOptions = {}) => {
   void router.push({ name: resolvedOptions.wakePanel ?? 'farm' })
 
   // 自动存档
-  void saveStore.autoSave()
+  await reportStage(7, '保存新的一天', 1, 1)
+  await saveStore.autoSave()
 }
 
 export const useEndDay = () => {

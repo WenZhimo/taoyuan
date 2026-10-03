@@ -15,7 +15,8 @@ export const FARM_PLOT_STATE_LABELS: Record<FarmPlot['state'], string> = {
 
 export interface UseFarmSelectionOptions {
   plots: () => readonly FarmPlot[]
-  greenhousePlots: () => readonly FarmPlot[]
+  greenhousePlots?: () => readonly FarmPlot[]
+  getGreenhousePlot?: (plotId: number) => FarmPlot | null
   getCropById: CropLookup
   getFertilizerById: FertilizerLookup
   cropGrowthBonus: () => number
@@ -46,12 +47,17 @@ const getCropMaxHarvests = (plot: FarmPlot | null, getCropById: CropLookup): num
   return getCropById(plot.cropId)?.maxHarvests ?? 0
 }
 
-export const useFarmSelection = ({ plots, greenhousePlots, getCropById, getFertilizerById, cropGrowthBonus }: UseFarmSelectionOptions) => {
+export const useFarmSelection = ({ plots, greenhousePlots, getGreenhousePlot, getCropById, getFertilizerById, cropGrowthBonus }: UseFarmSelectionOptions) => {
   const activePlotId = ref<number | null>(null)
   const activePlot = computed(() => (activePlotId.value !== null ? (plots().find(plot => plot.id === activePlotId.value) ?? null) : null))
 
   const activeGhPlotId = ref<number | null>(null)
-  const activeGhPlot = computed(() => (activeGhPlotId.value !== null ? (greenhousePlots()[activeGhPlotId.value] ?? null) : null))
+  const activeGhPlot = computed(() => {
+    if (activeGhPlotId.value === null) return null
+    return getGreenhousePlot?.(activeGhPlotId.value)
+      ?? greenhousePlots?.()[activeGhPlotId.value]
+      ?? null
+  })
 
   const plotStateLabel = computed(() => (activePlot.value ? FARM_PLOT_STATE_LABELS[activePlot.value.state] : ''))
   const ghPlotStateLabel = computed(() => (activeGhPlot.value ? FARM_PLOT_STATE_LABELS[activeGhPlot.value.state] : ''))

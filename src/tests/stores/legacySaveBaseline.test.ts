@@ -63,14 +63,19 @@ describe('legacy save baseline fixture', () => {
     expect(inventoryStore.pendingUpgrades[0]?.toolType).toBe('pickaxe')
     expect(farmStore.plots).toHaveLength(4)
     expect(farmStore.plots[0]?.fertilizer).toBe('basic_fertilizer')
-    expect(farmStore.greenhousePlots).toHaveLength(GREENHOUSE_PLOT_COUNT)
-    expect(farmStore.greenhousePlots[0]?.fertilizer).toBe('deluxe_speed_gro')
+    expect(farmStore.greenhousePlotCount).toBe(GREENHOUSE_PLOT_COUNT)
+    expect(farmStore.getGreenhousePlot(0)?.fertilizer).toBe('deluxe_speed_gro')
     expect(miningStore.defeatedBosses).toContain('boss_slime_king')
     expect(miningStore.isExploring).toBe(false)
     expect(miningStore.inCombat).toBe(false)
     expect(miningStore.combatMonster).toBeNull()
 
     expect(await saveStore.saveToSlot(0)).toBe(true)
+    const compacted = await parseSaveData(localStorage.getItem(`${SAVE_KEY_PREFIX}0`) ?? '')
+    expect(compacted?.farm).toMatchObject({
+      greenhousePlots: [],
+      greenhouseTimers: [{ plotIds: [0], cropId: 'tomato', fertilizer: 'deluxe_speed_gro' }]
+    })
     setActivePinia(createPinia())
     expect(await useSaveStore().loadFromSlot(0)).toBe(true)
     expect(useInventoryStore().getItemCount('cabbage')).toBe(45)

@@ -3,6 +3,14 @@ export interface EndDayChunkProgress {
   total: number
 }
 
+export interface EndDayProgress extends EndDayChunkProgress {
+  stage: string
+  stageIndex: number
+  stageCount: number
+}
+
+export type EndDayProgressReporter = (progress: EndDayProgress) => void
+
 export interface EndDayChunkOptions {
   chunkSize?: number
   onChunkComplete?: (progress: EndDayChunkProgress) => void

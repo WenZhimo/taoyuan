@@ -170,7 +170,7 @@
       <GreenhouseEntry
         v-if="showGreenhouse"
         :harvestable-count="ghHarvestableCount"
-        :plot-count="farmStore.greenhousePlots.length"
+        :plot-count="farmStore.greenhousePlotCount"
         @open="showGreenhouseModal = true"
       />
     </div>
@@ -234,7 +234,7 @@
         :harvestable-count="ghHarvestableCount"
         :has-fertilizer="fertilizerItems.length > 0"
         :planted-count="ghPlantedCount"
-        :plot-count="farmStore.greenhousePlots.length"
+        :plot-count="farmStore.greenhousePlotCount"
         :seed-count="allSeeds.length"
         :state-stats="ghStateStats"
         :tilled-empty-count="ghTilledEmptyCount"
@@ -572,7 +572,7 @@
     plotStateLabel
   } = useFarmSelection({
     plots: () => farmStore.plots,
-    greenhousePlots: () => farmStore.greenhousePlots,
+    getGreenhousePlot: farmStore.getGreenhousePlot,
     getCropById,
     getFertilizerById,
     cropGrowthBonus: () => useWalletStore().getCropGrowthBonus()
@@ -1028,7 +1028,8 @@
     getItemName,
     getStarRating,
     greenhouseLevel: () => farmStore.greenhouseLevel,
-    greenhousePlots: () => farmStore.greenhousePlots,
+    greenhouseTimers: () => farmStore.greenhouseTimers,
+    greenhousePlotCount: () => farmStore.greenhousePlotCount,
     greenhouseUnlocked: () => homeStore.greenhouseUnlocked,
     upgrades: GREENHOUSE_UPGRADES
   })
@@ -1049,7 +1050,9 @@
     showGhBatchFertilize,
     showGhBatchPlant,
     showGhUpgradeModal,
-    greenhousePlots: () => farmStore.greenhousePlots,
+    getGreenhousePlotIdsByState: farmStore.getGreenhousePlotIdsByState,
+    getGreenhouseEmptyPlotIds: farmStore.getGreenhouseEmptyPlotIds,
+    getGreenhouseFertilizablePlotIds: farmStore.getGreenhouseFertilizablePlotIds,
     breedingSeeds: () => breedingStore.breedingBox,
     getCropById,
     getCropName,

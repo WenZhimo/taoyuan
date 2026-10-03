@@ -11,7 +11,14 @@
       {{ sleepLabel }}
     </Button>
 
-    <ResolvingDayOverlay v-if="isResolvingDay" />
+    <ResolvingDayOverlay
+      v-if="isResolvingDay"
+      :stage="endDayProgress.stage"
+      :stage-index="endDayProgress.stageIndex"
+      :stage-count="endDayProgress.stageCount"
+      :processed="endDayProgress.processed"
+      :total="endDayProgress.total"
+    />
 
     <!-- 内容 -->
     <div class="game-panel flex-1 min-h-0 overflow-y-auto">
@@ -283,6 +290,7 @@
   import SettingsDialog from '@/components/game/SettingsDialog.vue'
   import DiscoveryScene from '@/components/game/DiscoveryScene.vue'
   import { Capacitor } from '@capacitor/core'
+  import type { EndDayProgress } from '@/domain/endDay/types'
 
   const router = useRouter()
   const route = useRoute()
@@ -325,6 +333,13 @@
   const showMobileMap = ref(false)
 
   const isResolvingDay = ref(false)
+  const endDayProgress = ref<EndDayProgress>({
+    stage: '准备结算',
+    stageIndex: 1,
+    stageCount: 7,
+    processed: 0,
+    total: 1
+  })
   const napQuickMinutes = [30, 60, 120, 240] as const
 
   /** 设置弹窗 */
@@ -500,6 +515,9 @@
     resumeClock,
     switchToSeasonalBgm,
     handleEndDay,
+    onEndDayProgress: progress => {
+      endDayProgress.value = progress
+    },
     handleSleepOrPassOut,
     getResourceSleepOptions,
     advanceTime: gameStore.advanceTime,

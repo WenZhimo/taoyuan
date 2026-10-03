@@ -80,7 +80,7 @@ describe('useRestActions', () => {
     await flushTimers()
     await promise
 
-    expect(options.handleEndDay).toHaveBeenCalledWith()
+    expect(options.handleEndDay).toHaveBeenCalledWith(undefined, expect.any(Function))
     expect(options.switchToSeasonalBgm).toHaveBeenCalled()
     expect(options.resumeClock).toHaveBeenCalled()
     expect(isResolvingDay.value).toBe(false)
@@ -98,7 +98,7 @@ describe('useRestActions', () => {
     expect(options.handleEndDay).toHaveBeenCalledWith({
       wakeLocationGroup: 'mine',
       forceRecoveryMode: 'normal'
-    })
+    }, expect.any(Function))
   })
 
   it('prevents naps after the nap boundary', () => {

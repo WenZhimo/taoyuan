@@ -35,6 +35,16 @@ export interface FarmPlot {
   weedyDays: number
 }
 
+/** 温室中一组状态相同的作物定时器。空地不在运行时单独分配对象。 */
+export interface GreenhousePlotTimer {
+  plotIds: number[]
+  cropId: string
+  growthDays: number
+  fertilizer: FertilizerType | null
+  harvestCount: number
+  seedGenetics: SeedGenetics | null
+}
+
 /** 作物定义（配置数据用） */
 export interface CropDef {
   id: string

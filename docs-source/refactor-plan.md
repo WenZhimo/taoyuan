@@ -924,10 +924,10 @@ src/composables/useEndDay.ts
 - 已新增 `src/domain/endDay/processingEndDay.ts`，先承载酒窖每日升级处理，保留农舍 3 级解锁边界、每周期增值日志与每 16 次升级的陈酿年份日志。
 - 已新增 `src/tests/domain/processingEndDay.test.ts`，覆盖未解锁跳过、普通增值、陈酿年份里程碑，以及 5,000 条酒窖升级结果约 4ms 的性能边界。
 - 已扩展 `src/domain/endDay/farmEndDay.ts`，将农田虫害/杂草结果的日志格式化抽出为处理器；每日地块更新仍在原顺序执行，日志仍在工具升级和乌鸦袭击之后写入。
-- 已新增 `src/domain/endDay/greenhouseEndDay.ts` 和 `src/domain/endDay/types.ts`，为农田/温室结算提供连续分块遍历、稳定顺序和每块完成进度回调；`handleEndDay()` 继续保持同步唯一入口。
+- 已新增 `src/domain/endDay/greenhouseEndDay.ts` 和 `src/domain/endDay/types.ts`，为农田/温室结算提供连续分块遍历、稳定顺序和每块完成进度回调；`handleEndDay()` 仍是唯一外部入口，并通过隔夜遮罩报告当前阶段和总进度。
 - `useFarmStore.dailyUpdate()` 与 `greenhouseDailyUpdate()` 已增加可选 chunk 参数，默认调用行为不变；同步单次遍历与分块遍历的状态和统计结果已有 Store 等价性测试。
 - `src/data/crops.ts` 已为作物 ID 和种子 ID 建立保留首项语义的只读索引，避免大存档日结为每个地块重复线性扫描全部作物数据。
-- 已新增 `src/tests/domain/endDayChunking.test.ts`、`greenhouseEndDay.test.ts`、`cropLookup.test.ts` 和 `src/tests/stores/farm.test.ts`；实测 10 万农田地块约 925ms、10 万温室地块约 963ms、10 万次作物查询约 5ms。
+- 已新增 `src/tests/domain/endDayChunking.test.ts`、`greenhouseEndDay.test.ts`、`cropLookup.test.ts` 和 `src/tests/stores/farm.test.ts`；温室进一步改为 `src/domain/farm/greenhouseTimers.ts` 的可合并定时器，旧 `farm.greenhousePlots` 会在读档时迁移，十万块相同作物只推进一个定时器组，避免创建十万空地响应式对象。
 - 已新增 `src/domain/endDay/animalEndDay.ts`，分别抽取动物产出、鸡舍/牲口棚孵化器和宠物拾取处理器；动物日更、晨间雇工/配偶、孵化器和宠物的相对调用位置保持不变。
 - 已新增 `src/tests/domain/animalEndDay.test.ts`，覆盖空结果、产物入包、死亡/生病/康复日志、鸡舍先于牲口棚的孵化顺序、宠物拾取与无产物分支，以及 5,000 件动物产物和 500 个状态名称约 6ms 的性能边界。
 - 已扩展 `src/domain/endDay/processingEndDay.ts`，新增工坊加工、育种进度和工具升级处理器；`useProcessingStore.dailyUpdate()` 返回自动收取与待收取名称，`useBreedingStore.dailyUpdate()` 返回按原顺序生成的日志和完成数量，`useEndDay.ts` 继续在原调用位置汇总日志。

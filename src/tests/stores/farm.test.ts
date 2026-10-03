@@ -60,7 +60,15 @@ describe('farm store end day chunking', () => {
     vi.spyOn(Math, 'random').mockReturnValue(1)
     const farmStore = useFarmStore()
     farmStore.plots = Array.from({ length: 5 }, (_, index) => createPlot(index, { giantCropGroup: 1 }))
-    farmStore.greenhousePlots = Array.from({ length: 5 }, (_, index) => createPlot(index))
+    farmStore.greenhousePlotCount = 5
+    farmStore.greenhouseTimers = Array.from({ length: 5 }, (_, index) => ({
+      plotIds: [index],
+      cropId: 'cabbage',
+      growthDays: 0,
+      fertilizer: null,
+      harvestCount: 0,
+      seedGenetics: null
+    }))
     const farmProgress: number[] = []
     const greenhouseProgress: number[] = []
 
@@ -76,7 +84,26 @@ describe('farm store end day chunking', () => {
     expect(farmProgress).toEqual([2, 4, 5])
     expect(greenhouseProgress).toEqual([2, 4, 5])
     expect(farmStore.plots.every(plot => plot.growthDays === 1)).toBe(true)
-    expect(farmStore.greenhousePlots.every(plot => plot.growthDays === 1)).toBe(true)
+    expect(Array.from({ length: 5 }, (_, index) => farmStore.getGreenhousePlot(index)?.growthDays))
+      .toEqual([1, 1, 1, 1, 1])
+  })
+
+  it('splits one greenhouse timer for a single-plot fertilizer change and merges it back when equal', () => {
+    const farmStore = useFarmStore()
+    farmStore.greenhousePlotCount = 4
+
+    expect(farmStore.greenhousePlantCrop(0, 'cabbage')).toBe(true)
+    expect(farmStore.greenhousePlantCrop(1, 'cabbage')).toBe(true)
+    expect(farmStore.greenhouseTimers).toHaveLength(1)
+
+    expect(farmStore.applyGreenhouseFertilizer(0, 'quality_fertilizer')).toBe(true)
+    expect(farmStore.greenhouseTimers).toHaveLength(2)
+    expect(farmStore.getGreenhousePlot(0)?.fertilizer).toBe('quality_fertilizer')
+    expect(farmStore.getGreenhousePlot(1)?.fertilizer).toBeNull()
+
+    expect(farmStore.applyGreenhouseFertilizer(1, 'quality_fertilizer')).toBe(true)
+    expect(farmStore.greenhouseTimers).toHaveLength(1)
+    expect(farmStore.greenhouseTimers[0]?.plotIds).toEqual([0, 1])
   })
 
   it('processes 100,000 farm plots within the performance boundary', () => {
@@ -106,7 +133,15 @@ describe('farm store end day chunking', () => {
 
   it('processes 100,000 greenhouse plots within the performance boundary', () => {
     const farmStore = useFarmStore()
-    farmStore.greenhousePlots = Array.from({ length: 100_000 }, (_, index) => createPlot(index))
+    farmStore.greenhousePlotCount = 100_000
+    farmStore.greenhouseTimers = [{
+      plotIds: Array.from({ length: 100_000 }, (_, index) => index),
+      cropId: 'cabbage',
+      growthDays: 0,
+      fertilizer: null,
+      harvestCount: 0,
+      seedGenetics: null
+    }]
     const progress: number[] = []
 
     const start = performance.now()
@@ -116,10 +151,10 @@ describe('farm store end day chunking', () => {
     })
     const elapsed = performance.now() - start
 
-    expect(progress).toHaveLength(50)
+    expect(progress).toEqual([100_000])
     expect(progress[progress.length - 1]).toBe(100_000)
-    expect(farmStore.greenhousePlots[0]).toMatchObject({ state: 'growing', growthDays: 1, watered: false })
-    expect(farmStore.greenhousePlots[99_999]).toMatchObject({ state: 'growing', growthDays: 1, watered: false })
+    expect(farmStore.getGreenhousePlot(0)).toMatchObject({ state: 'growing', growthDays: 1, watered: false })
+    expect(farmStore.getGreenhousePlot(99_999)).toMatchObject({ state: 'growing', growthDays: 1, watered: false })
     expect(elapsed).toBeLessThan(5_000)
   })
 

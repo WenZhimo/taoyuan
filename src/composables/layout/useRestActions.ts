@@ -4,6 +4,7 @@ import { getLocationGroupName } from '@/data/timeConstants'
 import { addLog } from '@/composables/useGameLog'
 import { formatNapDuration } from '@/composables/layout/useSleepFlow'
 import type { LocationGroup } from '@/types'
+import type { EndDayProgressReporter } from '@/domain/endDay/types'
 
 interface SleepOptions {
   wakeLocationGroup?: LocationGroup
@@ -28,7 +29,8 @@ interface UseRestActionsOptions {
   pauseClock: () => void
   resumeClock: () => void
   switchToSeasonalBgm: () => void
-  handleEndDay: (options?: SleepOptions) => void
+  handleEndDay: (options?: SleepOptions, reportProgress?: EndDayProgressReporter) => void | Promise<void>
+  onEndDayProgress?: EndDayProgressReporter
   handleSleepOrPassOut: () => boolean
   getResourceSleepOptions: () => SleepOptions | null
   advanceTime: (hours: number, options?: { ignoreSpeedBuff?: boolean }) => AdvanceTimeResult
@@ -50,18 +52,20 @@ export const useRestActions = ({
   resumeClock,
   switchToSeasonalBgm,
   handleEndDay,
+  onEndDayProgress,
   handleSleepOrPassOut,
   getResourceSleepOptions,
   advanceTime,
   calcNapRecovery,
   restoreStamina
 }: UseRestActionsOptions) => {
-  const runEndDayWithBusyOverlay = async (run: () => void) => {
+  const runEndDayWithBusyOverlay = async (run: (reportProgress: EndDayProgressReporter) => void | Promise<void>) => {
+    const reportProgress: EndDayProgressReporter = onEndDayProgress ?? (() => {})
     isResolvingDay.value = true
     await nextTick()
     await new Promise(resolve => window.setTimeout(resolve, 0))
     try {
-      run()
+      await run(reportProgress)
     } finally {
       isResolvingDay.value = false
     }
@@ -71,12 +75,12 @@ export const useRestActions = ({
     const sleepOptions = resourceSleepOptions.value
     showSleepConfirm.value = false
     pauseClock()
-    await runEndDayWithBusyOverlay(() => {
+    await runEndDayWithBusyOverlay(reportProgress => {
       if (sleepOptions?.wakeLocationGroup) {
         addLog(`在${getLocationGroupName(sleepOptions.wakeLocationGroup)}铺开睡袋过夜。`)
-        handleEndDay({ ...sleepOptions, forceRecoveryMode: hour() >= 24 ? 'late' : 'normal' })
+        return handleEndDay({ ...sleepOptions, forceRecoveryMode: hour() >= 24 ? 'late' : 'normal' }, reportProgress)
       } else {
-        handleEndDay()
+        return handleEndDay(undefined, reportProgress)
       }
     })
     switchToSeasonalBgm()

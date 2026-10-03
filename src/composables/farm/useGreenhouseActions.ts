@@ -21,7 +21,10 @@ export interface UseGreenhouseActionsOptions {
   showGhBatchFertilize: Ref<boolean>
   showGhBatchPlant: Ref<boolean>
   showGhUpgradeModal: Ref<boolean>
-  greenhousePlots: () => readonly FarmPlot[]
+  greenhousePlots?: () => readonly FarmPlot[]
+  getGreenhousePlotIdsByState?: (state: Exclude<FarmPlot['state'], 'wasteland'>) => number[]
+  getGreenhouseEmptyPlotIds?: (limit?: number) => number[]
+  getGreenhouseFertilizablePlotIds?: () => number[]
   breedingSeeds: () => readonly BreedingSeed[]
   getCropById: (cropId: string) => CropDef | undefined
   getCropName: (cropId: string) => string
@@ -82,8 +85,21 @@ export const useGreenhouseActions = ({
   rollCropQuality,
   applyCropBlessing,
   runWithLargeBatchConfirm,
-  runChunkedBatch
+  runChunkedBatch,
+  getGreenhousePlotIdsByState,
+  getGreenhouseEmptyPlotIds,
+  getGreenhouseFertilizablePlotIds
 }: UseGreenhouseActionsOptions) => {
+  const legacyGreenhousePlots = () => greenhousePlots?.() ?? []
+  const getPlotIdsByState = (state: Exclude<FarmPlot['state'], 'wasteland'>): number[] =>
+    getGreenhousePlotIdsByState?.(state)
+    ?? legacyGreenhousePlots().filter(plot => plot.state === state).map(plot => plot.id)
+  const getEmptyPlotIds = (limit?: number): number[] =>
+    getGreenhouseEmptyPlotIds?.(limit)
+    ?? legacyGreenhousePlots().filter(plot => plot.state === 'tilled').slice(0, limit).map(plot => plot.id)
+  const getFertilizablePlotIds = (): number[] =>
+    getGreenhouseFertilizablePlotIds?.()
+    ?? legacyGreenhousePlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer).map(plot => plot.id)
   const closeActiveGreenhousePlot = () => {
     activeGhPlotId.value = null
   }
@@ -157,7 +173,7 @@ export const useGreenhouseActions = ({
   }
 
   const doGhBatchFertilize = async (fertilizerType: FertilizerType, confirmed = false) => {
-    const targets = greenhousePlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer)
+    const targets = getFertilizablePlotIds()
     const plannedTotal = Math.min(targets.length, getItemCount(fertilizerType))
     if (!confirmed) {
       runWithLargeBatchConfirm('温室一键施肥', plannedTotal, () => doGhBatchFertilize(fertilizerType, true), GREENHOUSE_BATCH_LIMIT)
@@ -177,7 +193,7 @@ export const useGreenhouseActions = ({
       processChunk: (start, end) => {
         let completed = 0
         for (let index = start; index < end; index++) {
-          if (!applyGreenhouseFertilizer(targets[index]!.id, fertilizerType)) break
+          if (!applyGreenhouseFertilizer(targets[index]!, fertilizerType)) break
           applied++
           completed++
         }
@@ -223,7 +239,7 @@ export const useGreenhouseActions = ({
   }
 
   const doGhBatchHarvest = async (confirmed = false) => {
-    const targets = greenhousePlots().filter(plot => plot.state === 'harvestable')
+    const targets = getPlotIdsByState('harvestable')
     const plannedTotal = Math.min(targets.length, Math.max(0, Math.floor(stamina())))
     if (!confirmed) {
       runWithLargeBatchConfirm('温室一键收获', plannedTotal, () => doGhBatchHarvest(true), GREENHOUSE_BATCH_LIMIT)
@@ -245,7 +261,7 @@ export const useGreenhouseActions = ({
         let completed = 0
         for (let index = start; index < end; index++) {
           if (!consumeStamina(1)) break
-          const { cropId, genetics } = greenhouseHarvestPlot(targets[index]!.id)
+          const { cropId, genetics } = greenhouseHarvestPlot(targets[index]!)
           if (!cropId) break
           harvested++
           completed++
@@ -308,7 +324,7 @@ export const useGreenhouseActions = ({
     }
 
     let planted = 0
-    const targets = greenhousePlots().filter(plot => plot.state === 'tilled').slice(0, plantLimit)
+    const targets = getEmptyPlotIds(plantLimit)
     const batchResult = await runChunkedBatch({
       label: `温室一键种植${crop.name}`,
       total: plantLimit,
@@ -317,7 +333,7 @@ export const useGreenhouseActions = ({
         let completed = 0
         for (let index = start; index < end; index++) {
           if (!consumeStamina(1)) break
-          if (!greenhousePlantCrop(targets[index]!.id, cropId)) break
+          if (!greenhousePlantCrop(targets[index]!, cropId)) break
           planted++
           completed++
         }

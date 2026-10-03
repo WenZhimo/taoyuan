@@ -7,7 +7,8 @@ describe('ResolvingDayOverlay', () => {
     const wrapper = mount(ResolvingDayOverlay)
 
     expect(wrapper.text()).toContain('隔夜结算中')
-    expect(wrapper.text()).toContain('正在处理作物生长、工坊产出和其他每日事件')
+    expect(wrapper.text()).toContain('阶段 1 / 1：准备结算')
+    expect(wrapper.text()).toContain('当前处理 0 / 1')
     expect(wrapper.classes()).toContain('fixed')
   })
 

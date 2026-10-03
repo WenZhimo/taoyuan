@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { FarmPlot, FarmSize, Season, Quality } from '@/types'
+import type { FarmPlot, FarmSize, Season, Quality, GreenhousePlotTimer } from '@/types'
 import type { SprinklerType, FertilizerType, PlantedFruitTree, FruitTreeType, WildTreeType, PlantedWildTree } from '@/types'
 import type { SeedGenetics } from '@/types/breeding'
 import { getCropById } from '@/data'
@@ -15,6 +15,12 @@ import { useGameStore } from './useGameStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
 import { forEachEndDayChunk } from '@/domain/endDay/types'
 import type { EndDayChunkOptions } from '@/domain/endDay/types'
+import {
+  createGreenhousePlotFromTimer,
+  createGreenhousePlotTimer,
+  greenhousePlotState,
+  mergeGreenhousePlotTimers
+} from '@/domain/farm/greenhouseTimers'
 
 /** 已放置洒水器 */
 export interface PlacedSprinkler {
@@ -61,21 +67,6 @@ const createGreenhousePlot = (id: number): FarmPlot => ({
   weedyDays: 0
 })
 
-const isDefaultGreenhousePlot = (plot: FarmPlot): boolean =>
-  plot.state === 'tilled' &&
-  plot.cropId === null &&
-  plot.growthDays === 0 &&
-  !plot.watered &&
-  plot.unwateredDays === 0 &&
-  plot.fertilizer === null &&
-  plot.harvestCount === 0 &&
-  plot.giantCropGroup === null &&
-  plot.seedGenetics === null &&
-  !plot.infested &&
-  plot.infestedDays === 0 &&
-  !plot.weedy &&
-  plot.weedyDays === 0
-
 const normalizeGreenhousePlot = (plot: any): FarmPlot => ({
   ...createGreenhousePlot(plot.id ?? 0),
   ...plot,
@@ -94,7 +85,8 @@ export const useFarmStore = defineStore('farm', () => {
   const plots = ref<FarmPlot[]>(createPlots(4))
   const sprinklers = ref<PlacedSprinkler[]>([])
   const fruitTrees = ref<PlantedFruitTree[]>([])
-  const greenhousePlots = ref<FarmPlot[]>([])
+  const greenhouseTimers = ref<GreenhousePlotTimer[]>([])
+  const greenhousePlotCount = ref(0)
   const greenhouseLevel = ref(0)
   const wildTrees = ref<PlantedWildTree[]>([])
   const nextFruitTreeId = ref(0)
@@ -111,7 +103,8 @@ export const useFarmStore = defineStore('farm', () => {
     plots.value = createPlots(size)
     sprinklers.value = []
     fruitTrees.value = []
-    greenhousePlots.value = []
+    greenhouseTimers.value = []
+    greenhousePlotCount.value = 0
     wildTrees.value = []
     nextFruitTreeId.value = 0
     nextWildTreeId.value = 0
@@ -386,11 +379,23 @@ export const useFarmStore = defineStore('farm', () => {
 
   /** 给温室地块施肥 */
   const applyGreenhouseFertilizer = (plotId: number, fertilizerType: FertilizerType): boolean => {
-    const plot = greenhousePlots.value[plotId]
-    if (!plot) return false
-    if (plot.state === 'wasteland') return false
-    if (plot.fertilizer) return false
-    plot.fertilizer = fertilizerType
+    const timerIndex = greenhouseTimers.value.findIndex(candidate => candidate.plotIds.includes(plotId))
+    if (timerIndex === -1) return false
+    const timer = greenhouseTimers.value[timerIndex]!
+    if (timer.fertilizer) return false
+    timer.plotIds = timer.plotIds.filter(id => id !== plotId)
+    if (timer.plotIds.length === 0) {
+      timer.plotIds = [plotId]
+      timer.fertilizer = fertilizerType
+    } else {
+      greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, timer.cropId, {
+        growthDays: timer.growthDays,
+        fertilizer: fertilizerType,
+        harvestCount: timer.harvestCount,
+        seedGenetics: timer.seedGenetics
+      }))
+    }
+    greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return true
   }
 
@@ -405,12 +410,13 @@ export const useFarmStore = defineStore('farm', () => {
         count++
       }
     }
-    for (const plot of greenhousePlots.value) {
-      if (plot.state !== 'wasteland' && !plot.fertilizer) {
-        plot.fertilizer = fertilizerId
-        count++
+    for (const timer of greenhouseTimers.value) {
+      if (!timer.fertilizer) {
+        timer.fertilizer = fertilizerId
+        count += timer.plotIds.length
       }
     }
+    greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return { count, fertilizerName }
   }
 
@@ -890,108 +896,145 @@ export const useFarmStore = defineStore('farm', () => {
 
   /** 初始化温室地块 */
   const initGreenhouse = (): void => {
-    if (greenhousePlots.value.length > 0) return
-    greenhousePlots.value = Array.from({ length: GREENHOUSE_PLOT_COUNT }, (_, i) => createGreenhousePlot(i))
+    if (greenhousePlotCount.value > 0) return
+    greenhousePlotCount.value = GREENHOUSE_PLOT_COUNT
+    greenhouseTimers.value = []
+  }
+
+  const greenhousePlotTimerFor = (plotId: number): GreenhousePlotTimer | undefined =>
+    greenhouseTimers.value.find(timer => timer.plotIds.includes(plotId))
+
+  const getGreenhousePlot = (plotId: number): FarmPlot | null => {
+    if (plotId < 0 || plotId >= greenhousePlotCount.value) return null
+    const timer = greenhousePlotTimerFor(plotId)
+    if (!timer) return createGreenhousePlot(plotId)
+    const walletGrowth = useWalletStore().getCropGrowthBonus()
+    return createGreenhousePlotFromTimer(plotId, timer, getCropById, getFertilizerById, walletGrowth)
+  }
+
+  const getGreenhouseEmptyPlotIds = (limit = Number.POSITIVE_INFINITY): number[] => {
+    if (limit <= 0 || greenhousePlotCount.value === 0) return []
+    const occupied = new Set<number>()
+    for (const timer of greenhouseTimers.value) {
+      for (const plotId of timer.plotIds) occupied.add(plotId)
+    }
+    const result: number[] = []
+    for (let plotId = 0; plotId < greenhousePlotCount.value && result.length < limit; plotId++) {
+      if (!occupied.has(plotId)) result.push(plotId)
+    }
+    return result
+  }
+
+  const getGreenhousePlotIdsByState = (state: Exclude<FarmPlot['state'], 'wasteland'>): number[] => {
+    if (state === 'tilled') return getGreenhouseEmptyPlotIds()
+    const walletGrowth = useWalletStore().getCropGrowthBonus()
+    const result: number[] = []
+    for (const timer of greenhouseTimers.value) {
+      if (greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth) === state) {
+        result.push(...timer.plotIds)
+      }
+    }
+    return result
+  }
+
+  const getGreenhouseFertilizablePlotIds = (): number[] => {
+    const result: number[] = []
+    for (const timer of greenhouseTimers.value) {
+      if (!timer.fertilizer) result.push(...timer.plotIds)
+    }
+    return result
   }
 
   /** 温室播种 */
   const greenhousePlantCrop = (plotId: number, cropId: string): boolean => {
-    const plot = greenhousePlots.value[plotId]
-    if (!plot || plot.state !== 'tilled') return false
+    if (getGreenhousePlot(plotId)?.state !== 'tilled') return false
     const crop = getCropById(cropId)
     if (!crop) return false
-    plot.state = 'planted'
-    plot.cropId = cropId
-    plot.growthDays = 0
-    plot.watered = false
-    plot.unwateredDays = 0
-    plot.seedGenetics = null
+    greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, cropId))
+    greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return true
   }
 
   /** 温室播种育种种子 */
   const greenhousePlantGeneticSeed = (plotId: number, genetics: SeedGenetics): boolean => {
-    const plot = greenhousePlots.value[plotId]
-    if (!plot || plot.state !== 'tilled') return false
+    if (getGreenhousePlot(plotId)?.state !== 'tilled') return false
     const crop = getCropById(genetics.cropId)
     if (!crop) return false
-    plot.state = 'planted'
-    plot.cropId = genetics.cropId
-    plot.growthDays = 0
-    plot.watered = false
-    plot.unwateredDays = 0
-    plot.seedGenetics = genetics
+    greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, genetics.cropId, { seedGenetics: genetics }))
+    greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return true
   }
 
   /** 温室收获 */
   const greenhouseHarvestPlot = (plotId: number): { cropId: string | null; genetics: SeedGenetics | null } => {
-    const plot = greenhousePlots.value[plotId]
-    if (!plot || plot.state !== 'harvestable') return { cropId: null, genetics: null }
-    const cropId = plot.cropId
-    const genetics = plot.seedGenetics ?? null
+    const timerIndex = greenhouseTimers.value.findIndex(candidate => candidate.plotIds.includes(plotId))
+    if (timerIndex === -1) return { cropId: null, genetics: null }
+    const timer = greenhouseTimers.value[timerIndex]!
+    if (getGreenhousePlot(plotId)?.state !== 'harvestable') return { cropId: null, genetics: null }
+    const cropId = timer.cropId
+    const genetics = timer.seedGenetics ?? null
     const crop = cropId ? getCropById(cropId) : null
 
     if (crop && crop.regrowth && crop.regrowthDays) {
-      plot.harvestCount++
-      if (crop.maxHarvests && plot.harvestCount >= crop.maxHarvests) {
-        plot.state = 'tilled'
-        plot.cropId = null
-        plot.growthDays = 0
-        plot.watered = false
-        plot.unwateredDays = 0
-        plot.harvestCount = 0
-        plot.fertilizer = null
-        plot.seedGenetics = null
-      } else {
-        plot.state = 'growing'
-        plot.growthDays = crop.growthDays - crop.regrowthDays
-        plot.watered = false
-        plot.unwateredDays = 0
-        // 多茬未达上限：保留 seedGenetics
+      const harvestCount = timer.harvestCount + 1
+      timer.plotIds = timer.plotIds.filter(id => id !== plotId)
+      if (!(crop.maxHarvests && harvestCount >= crop.maxHarvests)) {
+        greenhouseTimers.value.push(createGreenhousePlotTimer(plotId, cropId, {
+          growthDays: crop.growthDays - crop.regrowthDays,
+          fertilizer: timer.fertilizer,
+          harvestCount,
+          seedGenetics: timer.seedGenetics
+        }))
+      }
+      if (timer.plotIds.length === 0) {
+        greenhouseTimers.value.splice(timerIndex, 1)
       }
     } else {
-      plot.state = 'tilled'
-      plot.cropId = null
-      plot.growthDays = 0
-      plot.watered = false
-      plot.unwateredDays = 0
-      plot.fertilizer = null
-      plot.harvestCount = 0
-      plot.seedGenetics = null
+      timer.plotIds = timer.plotIds.filter(id => id !== plotId)
+      if (timer.plotIds.length === 0) {
+        greenhouseTimers.value.splice(timerIndex, 1)
+      }
     }
+    greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
     return { cropId, genetics }
   }
 
-  /** 温室每日更新（自动浇水，无天气影响） */
+  /** 温室每日更新：按定时器批量推进，不为每块空地创建响应式对象。 */
   const greenhouseDailyUpdate = (chunkOptions: EndDayChunkOptions = {}): void => {
     const walletGrowth = useWalletStore().getCropGrowthBonus()
-    forEachEndDayChunk(greenhousePlots.value, plot => {
-      if (plot.state !== 'planted' && plot.state !== 'growing') return
-      plot.watered = true
-      const fertDef = plot.fertilizer ? getFertilizerById(plot.fertilizer) : null
-      const speedup = (fertDef?.growthSpeedup ?? 0) + walletGrowth
-      plot.growthDays += 1
-      const crop = getCropById(plot.cropId!)
-      if (crop) {
-        const effectiveDays = Math.max(1, Math.floor(crop.growthDays * (1 - speedup)))
-        if (plot.growthDays >= effectiveDays) {
-          plot.state = 'harvestable'
-        } else if (plot.state === 'planted') {
-          plot.state = 'growing'
+    const total = greenhouseTimers.value.reduce((count, timer) => count + timer.plotIds.length, 0)
+    const requestedChunkSize = chunkOptions.chunkSize
+    const chunkSize = requestedChunkSize === undefined || !Number.isFinite(requestedChunkSize)
+      ? Math.max(1, total)
+      : Math.max(1, Math.floor(requestedChunkSize))
+    let processed = 0
+    let nextReport = chunkSize
+    for (const timer of greenhouseTimers.value) {
+      const crop = getCropById(timer.cropId)
+      const state = greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth)
+      if (state === 'planted' || state === 'growing') {
+        timer.growthDays += 1
+        if (crop) {
+          const fertilizer = timer.fertilizer ? getFertilizerById(timer.fertilizer) : undefined
+          const speedup = (fertilizer?.growthSpeedup ?? 0) + walletGrowth
+          const effectiveDays = Math.max(1, Math.floor(crop.growthDays * (1 - speedup)))
+          if (timer.growthDays > effectiveDays) timer.growthDays = effectiveDays
         }
       }
-      plot.watered = false
-    }, chunkOptions)
+      processed += timer.plotIds.length
+      if (processed >= nextReport || processed === total) {
+        chunkOptions.onChunkComplete?.({ processed, total })
+        while (nextReport <= processed) nextReport += chunkSize
+      }
+    }
+    greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
   }
 
-  /** 温室升级：扩展地块数量 */
+  /** 温室升级：只增加可用地块计数。 */
   const upgradeGreenhouse = (newPlotCount: number): boolean => {
-    const current = greenhousePlots.value.length
+    const current = greenhousePlotCount.value
     if (newPlotCount <= current) return false
-    for (let i = current; i < newPlotCount; i++) {
-      greenhousePlots.value.push(createGreenhousePlot(i))
-    }
+    greenhousePlotCount.value = newPlotCount
     greenhouseLevel.value++
     return true
   }
@@ -999,10 +1042,8 @@ export const useFarmStore = defineStore('farm', () => {
   /** 温室一键收获：返回收获结果列表 */
   const greenhouseBatchHarvest = (): { cropId: string; genetics: SeedGenetics | null }[] => {
     const results: { cropId: string; genetics: SeedGenetics | null }[] = []
-    for (let i = 0; i < greenhousePlots.value.length; i++) {
-      const plot = greenhousePlots.value[i]!
-      if (plot.state !== 'harvestable') continue
-      const result = greenhouseHarvestPlot(i)
+    for (const plotId of getGreenhousePlotIdsByState('harvestable')) {
+      const result = greenhouseHarvestPlot(plotId)
       if (result.cropId) results.push({ cropId: result.cropId, genetics: result.genetics })
     }
     return results
@@ -1014,8 +1055,12 @@ export const useFarmStore = defineStore('farm', () => {
       plots: plots.value,
       sprinklers: sprinklers.value,
       fruitTrees: fruitTrees.value,
-      greenhousePlots: greenhousePlots.value.filter(plot => !isDefaultGreenhousePlot(plot)),
-      greenhousePlotCount: greenhousePlots.value.length,
+      greenhousePlots: [],
+      greenhouseTimers: greenhouseTimers.value.map(timer => ({
+        ...timer,
+        plotIds: [...timer.plotIds]
+      })),
+      greenhousePlotCount: greenhousePlotCount.value,
       greenhouseLevel: greenhouseLevel.value,
       wildTrees: wildTrees.value,
       nextFruitTreeId: nextFruitTreeId.value,
@@ -1060,13 +1105,47 @@ export const useFarmStore = defineStore('farm', () => {
     }))
     nextWildTreeId.value =
       (data as any).nextWildTreeId ?? (wildTrees.value.length > 0 ? Math.max(...wildTrees.value.map(t => t.id)) + 1 : 0)
-    greenhousePlots.value = Array.from({ length: GREENHOUSE_PLOT_COUNT }, (_, i) => createGreenhousePlot(i))
+    greenhousePlotCount.value = (data as any).greenhousePlotCount ?? GREENHOUSE_PLOT_COUNT
+    const savedGreenhouseTimers = ((data as any).greenhouseTimers ?? []).map((timer: any) => ({
+      plotIds: Array.isArray(timer.plotIds) ? timer.plotIds.filter((id: any) => Number.isInteger(id)) : [],
+      cropId: timer.cropId,
+      growthDays: timer.growthDays ?? 0,
+      fertilizer: migrateFertilizer(timer.fertilizer),
+      harvestCount: timer.harvestCount ?? 0,
+      seedGenetics: timer.seedGenetics ?? null
+    }))
     const savedGreenhousePlots = ((data as any).greenhousePlots ?? []).map((p: any, index: number) =>
       normalizeGreenhousePlot({ ...p, id: p.id ?? index, fertilizer: migrateFertilizer(p.fertilizer) })
     )
-    for (const plot of savedGreenhousePlots) {
-      if (plot.id >= 0 && plot.id < GREENHOUSE_PLOT_COUNT) {
-        greenhousePlots.value[plot.id] = plot
+    const legacyTimers: GreenhousePlotTimer[] = []
+    for (const plot of savedGreenhousePlots as FarmPlot[]) {
+      if (!plot.cropId) continue
+      legacyTimers.push({
+        plotIds: [plot.id],
+        cropId: plot.cropId,
+        growthDays: plot.growthDays,
+        fertilizer: plot.fertilizer,
+        harvestCount: plot.harvestCount,
+        seedGenetics: plot.seedGenetics
+      })
+    }
+    greenhouseTimers.value = mergeGreenhousePlotTimers([
+      ...savedGreenhouseTimers,
+      ...legacyTimers
+    ])
+    for (const timer of greenhouseTimers.value) {
+      timer.plotIds = timer.plotIds.filter(plotId => plotId >= 0 && plotId < greenhousePlotCount.value)
+    }
+    greenhouseTimers.value = mergeGreenhousePlotTimers(greenhouseTimers.value)
+    if (greenhousePlotCount.value === 0 && greenhouseTimers.value.length > 0) {
+      greenhousePlotCount.value = GREENHOUSE_PLOT_COUNT
+    }
+    if (!Number.isFinite(greenhousePlotCount.value) || greenhousePlotCount.value < 0) {
+      greenhousePlotCount.value = GREENHOUSE_PLOT_COUNT
+    }
+    for (const timer of greenhouseTimers.value) {
+      if (timer.plotIds.some(plotId => plotId >= greenhousePlotCount.value)) {
+        timer.plotIds = timer.plotIds.filter(plotId => plotId < greenhousePlotCount.value)
       }
     }
     greenhouseLevel.value = (data as any).greenhouseLevel ?? 0
@@ -1080,7 +1159,8 @@ export const useFarmStore = defineStore('farm', () => {
     plots,
     sprinklers,
     fruitTrees,
-    greenhousePlots,
+    greenhouseTimers,
+    greenhousePlotCount,
     tilledPlots,
     harvestableCount,
     resetFarm,
@@ -1120,6 +1200,10 @@ export const useFarmStore = defineStore('farm', () => {
     dailyWildTreeUpdate,
     initGreenhouse,
     greenhouseLevel,
+    getGreenhousePlot,
+    getGreenhousePlotIdsByState,
+    getGreenhouseEmptyPlotIds,
+    getGreenhouseFertilizablePlotIds,
     greenhousePlantCrop,
     greenhousePlantGeneticSeed,
     greenhouseHarvestPlot,

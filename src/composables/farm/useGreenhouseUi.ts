@@ -4,9 +4,10 @@ import type { GreenhouseCropStat, GreenhouseStateStat } from '@/components/game/
 import type { GreenhousePlotSeedOption, GreenhouseBreedingSeedOption } from '@/components/game/farm/GreenhousePlotDialog.vue'
 import type { GreenhouseUpgradeMaterialRow } from '@/components/game/farm/GreenhouseUpgradeDialog.vue'
 import type { GreenhouseUpgradeDef } from '@/data/buildings'
-import type { CropDef, FarmPlot } from '@/types/farm'
+import type { CropDef, FarmPlot, GreenhousePlotTimer } from '@/types/farm'
 import type { FertilizerType } from '@/types'
 import type { SeedGenetics } from '@/types/breeding'
+import { greenhousePlotState } from '@/domain/farm/greenhouseTimers'
 
 export interface GreenhouseSeedSource {
   cropId: string
@@ -22,7 +23,9 @@ export interface UseGreenhouseUiOptions {
   getItemName: (itemId: string) => string
   getStarRating: (genetics: SeedGenetics) => number
   greenhouseLevel: () => number
-  greenhousePlots: () => readonly FarmPlot[]
+  greenhousePlots?: () => readonly FarmPlot[]
+  greenhouseTimers?: () => readonly GreenhousePlotTimer[]
+  greenhousePlotCount?: () => number
   greenhouseUnlocked: () => boolean
   upgrades: readonly GreenhouseUpgradeDef[]
   breedingSeeds: () => readonly GreenhouseSeedSource[]
@@ -43,6 +46,8 @@ export const useGreenhouseUi = ({
   getStarRating,
   greenhouseLevel,
   greenhousePlots,
+  greenhouseTimers,
+  greenhousePlotCount,
   greenhouseUnlocked,
   upgrades,
   breedingSeeds
@@ -53,10 +58,32 @@ export const useGreenhouseUi = ({
   const showGhBatchPlant = ref(false)
   const showGhBatchFertilize = ref(false)
 
-  const ghHarvestableCount = computed(() => greenhousePlots().filter(plot => plot.state === 'harvestable').length)
-  const ghTilledEmptyCount = computed(() => greenhousePlots().filter(plot => plot.state === 'tilled').length)
-  const ghFertilizableCount = computed(() => greenhousePlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer).length)
-  const ghPlantedCount = computed(() => greenhousePlots().length - ghTilledEmptyCount.value)
+  const legacyPlots = () => greenhousePlots?.() ?? []
+  const timers = () => greenhouseTimers?.() ?? []
+  const usesCompactTimers = () => greenhouseTimers !== undefined && greenhousePlotCount !== undefined
+  const totalPlotCount = () => greenhousePlotCount?.() ?? legacyPlots().length
+
+  const ghHarvestableCount = computed(() => {
+    if (!usesCompactTimers()) return legacyPlots().filter(plot => plot.state === 'harvestable').length
+    const walletGrowth = cropGrowthBonus()
+    return timers().reduce((total, timer) => total + (
+      greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth) === 'harvestable'
+        ? timer.plotIds.length
+        : 0
+    ), 0)
+  })
+  const ghTilledEmptyCount = computed(() => {
+    if (!usesCompactTimers()) return legacyPlots().filter(plot => plot.state === 'tilled').length
+    return Math.max(0, totalPlotCount() - timers().reduce((total, timer) => total + timer.plotIds.length, 0))
+  })
+  const ghFertilizableCount = computed(() => {
+    if (!usesCompactTimers()) return legacyPlots().filter(plot => plot.state !== 'wasteland' && !plot.fertilizer).length
+    return timers().reduce((total, timer) => total + (timer.fertilizer ? 0 : timer.plotIds.length), 0)
+  })
+  const ghPlantedCount = computed(() => {
+    if (!usesCompactTimers()) return legacyPlots().length - ghTilledEmptyCount.value
+    return timers().reduce((total, timer) => total + timer.plotIds.length, 0)
+  })
 
   const nextGhUpgrade = computed(() => upgrades[greenhouseLevel()] ?? null)
 
@@ -77,11 +104,33 @@ export const useGreenhouseUi = ({
       growing: { key: 'growing', label: '生长中', count: 0, firstPlotId: null },
       harvestable: { key: 'harvestable', label: '可收获', count: 0, firstPlotId: null }
     }
-    for (const plot of greenhousePlots()) {
-      const stat = stats[plot.state]
-      if (!stat) continue
-      stat.count++
-      if (stat.firstPlotId === null) stat.firstPlotId = plot.id
+    if (usesCompactTimers()) {
+      const occupied = new Set<number>()
+      const walletGrowth = cropGrowthBonus()
+      for (const timer of timers()) {
+        const state = greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth)
+        const stat = stats[state]
+        if (!stat) continue
+        stat.count += timer.plotIds.length
+        if (stat.firstPlotId === null) stat.firstPlotId = timer.plotIds[0] ?? null
+        for (const plotId of timer.plotIds) occupied.add(plotId)
+      }
+      if (stats.tilled!.count < totalPlotCount()) {
+        for (let plotId = 0; plotId < totalPlotCount(); plotId++) {
+          if (!occupied.has(plotId)) {
+            stats.tilled!.firstPlotId = plotId
+            break
+          }
+        }
+      }
+      stats.tilled!.count = Math.max(0, totalPlotCount() - occupied.size)
+    } else {
+      for (const plot of legacyPlots()) {
+        const stat = stats[plot.state]
+        if (!stat) continue
+        stat.count++
+        if (stat.firstPlotId === null) stat.firstPlotId = plot.id
+      }
     }
     return [stats.tilled!, stats.planted!, stats.growing!, stats.harvestable!]
   })
@@ -90,8 +139,8 @@ export const useGreenhouseUi = ({
     const statsByCrop = new Map<string, GreenhouseCropStatAccumulator>()
     const walletGrowth = cropGrowthBonus()
 
-    for (const plot of greenhousePlots()) {
-      if (!plot.cropId) continue
+    const addCropStat = (plot: Pick<FarmPlot, 'id' | 'cropId' | 'growthDays' | 'state' | 'fertilizer' | 'seedGenetics'>, count = 1) => {
+      if (!plot.cropId) return
       const crop = getCropById(plot.cropId)
       const generation = plot.seedGenetics?.generation ?? null
       const key = `${plot.cropId}:${generation ?? 'base'}`
@@ -112,16 +161,32 @@ export const useGreenhouseUi = ({
         statsByCrop.set(key, stat)
       }
 
-      stat.count++
-      if (plot.state === 'harvestable') stat.harvestable++
+      stat.count += count
+      if (plot.state === 'harvestable') stat.harvestable += count
       if (plot.state === 'planted' || plot.state === 'growing') {
-        stat.growing++
+        stat.growing += count
         const fertilizer = plot.fertilizer ? getFertilizerById(plot.fertilizer) : undefined
         const speedup = (fertilizer?.growthSpeedup ?? 0) + walletGrowth
         const effectiveDays = crop ? Math.max(1, Math.floor(crop.growthDays * (1 - speedup))) : 1
-        stat.progressSum += Math.min(100, Math.floor((plot.growthDays / effectiveDays) * 100))
-        stat.progressCount++
+        stat.progressSum += Math.min(100, Math.floor((plot.growthDays / effectiveDays) * 100)) * count
+        stat.progressCount += count
       }
+    }
+
+    if (usesCompactTimers()) {
+      const walletGrowth = cropGrowthBonus()
+      for (const timer of timers()) {
+        addCropStat({
+          id: timer.plotIds[0] ?? 0,
+          cropId: timer.cropId,
+          growthDays: timer.growthDays,
+          state: greenhousePlotState(timer, getCropById, getFertilizerById, walletGrowth),
+          fertilizer: timer.fertilizer,
+          seedGenetics: timer.seedGenetics
+        }, timer.plotIds.length)
+      }
+    } else {
+      for (const plot of legacyPlots()) addCropStat(plot)
     }
 
     return Array.from(statsByCrop.values())
