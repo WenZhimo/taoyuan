@@ -109,6 +109,15 @@ export interface SavePackageUsageReport {
   readonly unverifiableSlots: readonly number[]
 }
 
+export type SaveSlotLoadPreviewStatus = 'loadable' | 'safe-mode' | 'environment-mismatch' | 'unavailable'
+
+export interface SaveSlotLoadPreview {
+  readonly slot: number
+  readonly status: SaveSlotLoadPreviewStatus
+  readonly currentEnvironment: SaveContentEnvironmentSummary
+  readonly savedEnvironment?: SaveContentEnvironmentSummary
+}
+
 const yieldToUi = (): Promise<void> =>
   new Promise(resolve => {
     if (typeof requestAnimationFrame === 'function') requestAnimationFrame(() => resolve())
@@ -611,6 +620,53 @@ export const useSaveStore = defineStore('save', () => {
     }
   }
 
+  const previewSlotLoad = async (slot: number): Promise<SaveSlotLoadPreview> => {
+    const currentEnvironment = summarizeSaveContentEnvironment(contentEnvironment.value)
+    const unavailable = (): SaveSlotLoadPreview => Object.freeze({
+      slot,
+      status: 'unavailable',
+      currentEnvironment
+    })
+
+    if (slot < 0 || slot >= MAX_SLOTS || operation.value) return unavailable()
+    const raw = localStorage.getItem(`${SAVE_KEY_PREFIX}${slot}`)
+    if (!raw) return unavailable()
+
+    const normalized = await normalizeSaveData(raw)
+    if (!normalized) return unavailable()
+
+    const compatibility = checkCompatibility(normalized.data)
+    if (isLoadableCompatibility(compatibility.status)) {
+      return Object.freeze({ slot, status: 'loadable', currentEnvironment })
+    }
+
+    const savedEnvironment = compatibility.migration === undefined
+      ? (() => {
+          try {
+            return summarizeSaveContentEnvironment(normalizeSaveContentEnvironment(normalized.data.contentEnvironment))
+          } catch {
+            return undefined
+          }
+        })()
+      : summarizeSaveContentEnvironment(compatibility.migration.environment)
+
+    if (
+      compatibility.migration !== undefined
+      && canLoadSaveContentEnvironmentInOfficialSafeMode(
+        compatibility.migration.environment,
+        contentEnvironment.value
+      )
+    ) {
+      return Object.freeze({ slot, status: 'safe-mode', currentEnvironment, savedEnvironment })
+    }
+
+    if (compatibility.status === 'incompatible' && savedEnvironment !== undefined) {
+      return Object.freeze({ slot, status: 'environment-mismatch', currentEnvironment, savedEnvironment })
+    }
+
+    return unavailable()
+  }
+
   /** 为新游戏分配一个空闲槽位，无空闲则返回 -1 */
   const assignNewSlot = (): number => {
     const empty = getSlots().find(slot => !slot.exists)
@@ -1081,6 +1137,7 @@ export const useSaveStore = defineStore('save', () => {
     isBusy,
     getSlots,
     inspectSlot,
+    previewSlotLoad,
     assignNewSlot,
     saveToSlot,
     autoSave,

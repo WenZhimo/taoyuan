@@ -370,6 +370,14 @@
   <Transition name="panel-fade">
     <SaveManager v-if="showSaveManager" :allow-load="true" @close="showSaveManager = false" @load="handleLoadSlot" />
   </Transition>
+
+  <SaveEnvironmentMismatchDialog
+    v-if="pendingLoadPreview?.status === 'environment-mismatch' && pendingLoadPreview.savedEnvironment"
+    :slot="pendingLoadPreview.slot"
+    :current-environment="pendingLoadPreview.currentEnvironment"
+    :saved-environment="pendingLoadPreview.savedEnvironment"
+    @close="pendingLoadPreview = null"
+  />
 </template>
 
 <script setup lang="ts">
@@ -404,11 +412,12 @@
   import { useGameClock } from '@/composables/useGameClock'
   import { useGameLog } from '@/composables/useGameLog'
   import { useSettingsStore, type QmsgPosition, type QmsgLimitWidthWrap } from '@/stores/useSettingsStore'
-  import { useSaveStore } from '@/stores/useSaveStore'
+  import { useSaveStore, type SaveSlotLoadPreview } from '@/stores/useSaveStore'
   import { useTutorialStore } from '@/stores/useTutorialStore'
   import { useWebdav } from '@/composables/useWebdav'
   import { THEMES } from '@/data/themes'
   import SaveManager from '@/components/game/SaveManager.vue'
+  import SaveEnvironmentMismatchDialog from '@/components/game/SaveEnvironmentMismatchDialog.vue'
   import ClipboardJS from 'clipboard'
 
   type SettingsTab = 'general' | 'display' | 'notification'
@@ -468,9 +477,16 @@
   } = useWebdav()
 
   const showSaveManager = ref(false)
+  const pendingLoadPreview = ref<SaveSlotLoadPreview | null>(null)
   let clipboard: ClipboardJS | null = null
 
   const handleLoadSlot = async (slot: number) => {
+    pendingLoadPreview.value = null
+    const preview = await saveStore.previewSlotLoad(slot)
+    if (preview.status === 'environment-mismatch') {
+      pendingLoadPreview.value = preview
+      return
+    }
     if (await saveStore.loadFromSlot(slot)) {
       showSaveManager.value = false
       emit('close')

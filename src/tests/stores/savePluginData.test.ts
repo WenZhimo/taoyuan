@@ -227,6 +227,29 @@ describe('save store plugin data persistence', () => {
     expect(saveStore.isReadOnlySafeMode).toBe(false)
   })
 
+  it('previews a pure save as an environment mismatch while third-party content is active', async() => {
+    const official = createOfficialSaveContentEnvironment()
+    const activeEnvironment = createThirdPartyEnvironment('1.0.0', 'active-content', 'active-config')
+    const source = await encodeSaveData(createCurrentSave({ contentEnvironment: official }))
+    localStorage.setItem(`${SAVE_KEY_PREFIX}0`, source)
+
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(activeEnvironment)).toBe(true)
+
+    const preview = await saveStore.previewSlotLoad(0)
+    expect(preview).toMatchObject({
+      slot: 0,
+      status: 'environment-mismatch',
+      currentEnvironment: { environmentHash: activeEnvironment.environmentHash },
+      savedEnvironment: { environmentHash: official.environmentHash }
+    })
+    expect(preview.currentEnvironment.packages).toContainEqual({ packageId, version: '1.0.0' })
+    expect(preview.savedEnvironment?.packages).toEqual([
+      { packageId: 'taoyuan-core', version: official.packages[0]!.version }
+    ])
+    expect(localStorage.getItem(`${SAVE_KEY_PREFIX}0`)).toBe(source)
+  })
+
   it('reports saved slots that use a package and slots whose content cannot be verified', async() => {
     localStorage.setItem(
       `${SAVE_KEY_PREFIX}0`,

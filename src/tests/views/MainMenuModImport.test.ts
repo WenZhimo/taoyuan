@@ -790,6 +790,58 @@ describe('MainMenu Web data pack import entry', () => {
     wrapper.unmount()
   })
 
+  it('blocks a pure save switch with a visible content-environment warning', async() => {
+    const official = createOfficialSaveContentEnvironment()
+    const packageId = 'main_menu_environment_warning_pack' as PackageId
+    const activeEnvironment = createSaveContentEnvironment({
+      gameVersion: official.gameVersion,
+      engineApiVersion: official.engineApiVersion,
+      contentSchemaVersion: official.contentSchemaVersion,
+      loaderVersion: official.loaderVersion,
+      contentCompilerVersion: official.contentCompilerVersion,
+      schemaSetHash: official.schemaSetHash,
+      cacheFormatVersion: official.cacheFormatVersion,
+      trustPolicyVersion: official.trustPolicyVersion,
+      packages: [
+        official.packages[0]!,
+        {
+          id: packageId,
+          version: '1.0.0',
+          contentHash: hashPayloadJson('warning-content'),
+          configurationHash: hashPayloadJson('warning-config'),
+          loadIndex: 1,
+          resolvedDependencies: []
+        }
+      ]
+    })
+    const source = await encodeSaveData({
+      ...legacySaveFixture,
+      saveFormatVersion: 3,
+      contentEnvironment: official,
+      pluginData: {},
+      packageSettings: {}
+    })
+    localStorage.setItem('taoyuanxiang_save_0', source)
+
+    const wrapper = await mountMainMenu()
+    const saveStore = useSaveStore()
+    expect(saveStore.setContentEnvironment(activeEnvironment)).toBe(true)
+
+    await wrapper.findAll('button').find(button => button.text().includes('存档 1'))!.trigger('click')
+
+    await vi.waitFor(() => {
+      expect(wrapper.find('[data-testid="save-environment-mismatch-dialog"]').exists()).toBe(true)
+    })
+    expect(wrapper.get('[data-testid="save-environment-mismatch-dialog"]').text()).toContain('内容环境不匹配')
+    expect(wrapper.get('[data-testid="save-environment-mismatch-dialog"]').text()).toContain(packageId)
+    expect(saveStore.activeSlot).toBe(-1)
+    expect(localStorage.getItem('taoyuanxiang_save_0')).toBe(source)
+
+    await wrapper.get('[data-testid="save-environment-mismatch-close"]').trigger('click')
+    expect(wrapper.find('[data-testid="save-environment-mismatch-dialog"]').exists()).toBe(false)
+    wrapper.unmount()
+  })
+
   it('opens save information from the main menu slot actions', async() => {
     const source = await encodeSaveData({
       ...legacySaveFixture,

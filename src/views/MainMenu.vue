@@ -159,6 +159,14 @@
       </div>
     </Transition>
 
+    <SaveEnvironmentMismatchDialog
+      v-if="pendingLoadPreview?.status === 'environment-mismatch' && pendingLoadPreview.savedEnvironment"
+      :slot="pendingLoadPreview.slot"
+      :current-environment="pendingLoadPreview.currentEnvironment"
+      :saved-environment="pendingLoadPreview.savedEnvironment"
+      @close="pendingLoadPreview = null"
+    />
+
     <!-- 关于弹窗 -->
     <Transition name="panel-fade">
       <div v-if="showAbout" class="fixed inset-0 z-50 flex items-center justify-center bg-bg/80" @click.self="showAbout = false">
@@ -462,11 +470,12 @@
   import Button from '@/components/game/Button.vue'
   import Divider from '@/components/game/Divider.vue'
   import SaveSlotInfoDialog from '@/components/game/SaveSlotInfoDialog.vue'
+  import SaveEnvironmentMismatchDialog from '@/components/game/SaveEnvironmentMismatchDialog.vue'
   import WebDataPackImportPreflightPanel from '@/components/game/mods/WebDataPackImportPreflightPanel.vue'
   import { ref, computed, onBeforeUnmount, onMounted } from 'vue'
   import { useRouter } from 'vue-router'
   import { useGameStore, SEASON_NAMES } from '@/stores/useGameStore'
-  import { useSaveStore } from '@/stores/useSaveStore'
+  import { useSaveStore, type SaveSlotLoadPreview } from '@/stores/useSaveStore'
   import { useFarmStore } from '@/stores/useFarmStore'
   import { useAnimalStore } from '@/stores/useAnimalStore'
   import { usePlayerStore } from '@/stores/usePlayerStore'
@@ -521,6 +530,7 @@
   const showFarmConfirm = ref(false)
   const showModManager = ref(false)
   const safeModeSlot = ref<number | null>(null)
+  const pendingLoadPreview = ref<SaveSlotLoadPreview | null>(null)
   const latestWebResponseDelivery = ref<WebResponseDeliverySummary | null>(null)
 
   const deleteTargetSlot = ref<number | null>(null)
@@ -658,6 +668,12 @@
   }
 
   const handleLoadGame = async (slot: number) => {
+    pendingLoadPreview.value = null
+    const preview = await saveStore.previewSlotLoad(slot)
+    if (preview.status === 'environment-mismatch') {
+      pendingLoadPreview.value = preview
+      return
+    }
     if (await saveStore.loadFromSlot(slot)) {
       if (playerStore.needsIdentitySetup) {
         // 旧存档没有性别/名字数据，先让玩家设置
