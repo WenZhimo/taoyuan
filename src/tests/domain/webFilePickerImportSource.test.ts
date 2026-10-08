@@ -148,6 +148,42 @@ describe('web file-picker import source', () => {
     expect(discoveryReport.candidates[0]?.path).toBe('valid-gift-pack')
   })
 
+  it('wraps a root-level ZIP package for directory-based discovery', async() => {
+    const archive = createArchiveFile('root-level-pack.zip', {
+      'manifest.json': toJson(createManifest('root_level_zip')),
+      'locales/zh-CN.json': '{}\n',
+      'data/items.json': toJson([createItem('root_level_zip:linen_ribbon')])
+    })
+
+    const archiveFiles = await readWebFilePickerImportArchiveFiles({ file: archive })
+    const source = createWebFilePickerImportSource({ files: archiveFiles })
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+
+    expect(archiveFiles.map(file => file.webkitRelativePath)).toEqual([
+      'root-level-pack/data/items.json',
+      'root-level-pack/locales/zh-CN.json',
+      'root-level-pack/manifest.json'
+    ])
+    expect(discoveryReport.status).toBe('completed')
+    expect(discoveryReport.candidates[0]?.path).toBe('root-level-pack')
+    expect(discoveryReport.candidates[0]?.packageId).toBe('root_level_zip')
+  })
+
+  it('rejects an archive that mixes root and nested package manifests', async() => {
+    const archive = createArchiveFile('ambiguous-pack.zip', {
+      'manifest.json': toJson(createManifest('root_level_zip')),
+      'nested-pack/manifest.json': toJson(createManifest('nested_zip'))
+    })
+
+    await expect(readWebFilePickerImportArchiveFiles({ file: archive })).rejects.toMatchObject({
+      code: 'SOURCE_ENTRY_UNSAFE',
+      message: 'ZIP import cannot combine a root package manifest with nested package manifests'
+    })
+  })
+
   it('accepts Windows-style ZIP entry separators while preserving canonical paths', async() => {
     const archive = createArchiveFile('windows-style.zip', {
       'windows-style\\manifest.json': toJson(createManifest('windows_style_zip')),

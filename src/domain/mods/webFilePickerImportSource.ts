@@ -443,7 +443,11 @@ export const readWebFilePickerImportArchiveFiles = async(
 
   const archiveBytes = await readArchiveBytes(file, policy)
   const entries = collectArchiveEntryMetadata(archiveBytes, policy)
-  return extractValidatedArchiveFiles(archiveBytes, entries, policy)
+  return wrapRootArchivePackage(
+    name,
+    extractValidatedArchiveFiles(archiveBytes, entries, policy),
+    policy
+  )
 }
 
 const readFiles = (
@@ -473,6 +477,50 @@ const parentPath = (sourcePath: string): string => {
 const entryName = (sourcePath: string, fallback: string): string => {
   const separatorIndex = sourcePath.lastIndexOf('/')
   return separatorIndex === -1 ? sourcePath || fallback : sourcePath.slice(separatorIndex + 1)
+}
+
+const archivePackageRootPath = (archiveName: string): string => {
+  const baseName = archiveName
+    .replace(/\\/g, '/')
+    .split('/')
+    .pop()
+    ?.replace(/\.zip$/i, '')
+    ?? ''
+  const safeBaseName = baseName
+    .replace(/[^A-Za-z0-9_.-]/g, '-')
+    .replace(/^-+|-+$/g, '')
+  return safeBaseName !== '' && safeBaseName !== '.' && safeBaseName !== '..'
+    ? safeBaseName
+    : 'archive-package'
+}
+
+const wrapRootArchivePackage = (
+  archiveName: string,
+  files: readonly WebFilePickerImportFile[],
+  policy: ContentPackageSourceSafeReadPolicy
+): readonly WebFilePickerImportFile[] => {
+  const paths = files.map(file => file.webkitRelativePath ?? file.name)
+  if (!paths.includes('manifest.json')) return files
+
+  if (paths.some(path => path !== 'manifest.json' && path.endsWith('/manifest.json'))) {
+    throw new ContentPackageSourceError(
+      'SOURCE_ENTRY_UNSAFE',
+      'ZIP import cannot combine a root package manifest with nested package manifests'
+    )
+  }
+
+  const rootPath = archivePackageRootPath(archiveName)
+  return Object.freeze(files.map((file, index) => {
+    const normalizedPath = normalizeContentPackageSourcePath(
+      `${rootPath}/${paths[index]!}`,
+      policy
+    )
+    return Object.freeze({
+      ...file,
+      name: entryName(normalizedPath, file.name),
+      webkitRelativePath: normalizedPath
+    })
+  }))
 }
 
 const toDirectoryEntry = (
