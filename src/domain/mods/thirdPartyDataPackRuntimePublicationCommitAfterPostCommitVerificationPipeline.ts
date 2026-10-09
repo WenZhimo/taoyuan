@@ -380,7 +380,8 @@ const arraysEqual = (left: readonly string[], right: readonly string[]): boolean
 
 const everyOwnDataBooleanFalseExcept = (
   value: object | undefined,
-  allowedTrueKeys: readonly string[]
+  allowedTrueKeys: readonly string[],
+  optionalBooleanKeys: readonly string[] = []
 ): boolean => {
   if (value === undefined) return false
   let keys: readonly (string | symbol)[]
@@ -398,7 +399,9 @@ const everyOwnDataBooleanFalseExcept = (
     }
     if (descriptor?.enumerable !== true) return true
     if (!('value' in descriptor) || typeof descriptor.value !== 'boolean') return false
-    return allowedTrueKeys.includes(String(key)) ? descriptor.value === true : descriptor.value === false
+    const keyName = String(key)
+    if (optionalBooleanKeys.includes(keyName)) return true
+    return allowedTrueKeys.includes(keyName) ? descriptor.value === true : descriptor.value === false
   })
 }
 
@@ -458,6 +461,8 @@ const safeReadyPostCommit = (
     'packageBackupsWritten',
     'lockfileWritten',
     'settingsWritten'
+  ], [
+    'packageBackupsWritten'
   ])
   && pathFreePostCommit(postCommit)
 

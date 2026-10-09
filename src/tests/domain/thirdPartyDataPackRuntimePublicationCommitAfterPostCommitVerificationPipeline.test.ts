@@ -447,4 +447,25 @@ describe('third-party runtime publication commit after post-commit verification 
     expectContainedBoundary(result, false)
     expectJsonGraphFrozen(result)
   })
+
+  it('accepts an initial install post-commit result without package backups', async() => {
+    const readRuntimePublicationCommit = vi.fn(async() => createAcceptedRuntimeCommit())
+    const pipeline = createThirdPartyDataPackRuntimePublicationCommitAfterPostCommitVerificationPipeline({
+      enabled: true,
+      readPostCommitVerificationAfterInstallTransactionCommit: async() => createReadyPostCommit({
+        effects: postCommitEffects({
+          packageBackupsWritten: false
+        })
+      }),
+      readRuntimePublicationCommit
+    })
+
+    const result = await pipeline()
+
+    expect(result.status).toBe('accepted')
+    expect(readRuntimePublicationCommit).toHaveBeenCalledOnce()
+    expect(result.checks.every(check => check.status === 'satisfied')).toBe(true)
+    expect(result.effects.packageBackupsWritten).toBe(false)
+    expectJsonGraphFrozen(result)
+  })
 })
