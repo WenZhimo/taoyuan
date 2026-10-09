@@ -98,25 +98,27 @@
       >
         <div
           data-testid="web-mod-manager-dialog"
-          class="game-panel w-full max-w-lg mx-4 relative max-h-[80vh] overflow-y-auto"
+          class="game-panel w-full max-w-lg mx-4 relative max-h-[80vh] flex flex-col min-h-0"
         >
           <button class="absolute top-2 right-2 text-muted hover:text-text" @click="showModManager = false">
             <X :size="14" />
           </button>
-          <WebDataPackImportPreflightPanel
-            :inspect-save-package-usage="saveStore.inspectPackageUsage"
-            :publish-save-content-environment="saveStore.setContentEnvironment"
-          />
-          <div
-            v-if="latestWebResponseDelivery"
-            data-testid="web-mod-response-delivery-summary"
-            class="mt-3 border border-accent/20 rounded-xs p-2 text-xs text-left"
-          >
-            <p class="text-muted mb-1">响应送达</p>
-            <p class="text-text break-all">
-              {{ webResponseKindLabel }} · {{ latestWebResponseDelivery.packageId }} ·
-              {{ latestWebResponseDelivery.messageKey }}
-            </p>
+          <div data-testid="web-mod-manager-scroll-viewport" class="flex-1 min-h-0 overflow-y-auto pr-1">
+            <WebDataPackImportPreflightPanel
+              :inspect-save-package-usage="saveStore.inspectPackageUsage"
+              :publish-save-content-environment="saveStore.setContentEnvironment"
+            />
+            <div
+              v-if="latestWebResponseDelivery"
+              data-testid="web-mod-response-delivery-summary"
+              class="mt-3 border border-accent/20 rounded-xs p-2 text-xs text-left"
+            >
+              <p class="text-muted mb-1">响应送达</p>
+              <p class="text-text break-all">
+                {{ webResponseKindLabel }} · {{ latestWebResponseDelivery.packageId }} ·
+                {{ latestWebResponseDelivery.messageKey }}
+              </p>
+            </div>
           </div>
         </div>
       </div>

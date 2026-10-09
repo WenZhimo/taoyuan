@@ -874,8 +874,10 @@ describe('MainMenu Web data pack import entry', () => {
 
     expect(wrapper.find('[data-testid="web-data-pack-import-preflight-panel-stub"]').exists()).toBe(true)
     expect(wrapper.get('[data-testid="web-mod-manager-dialog"]').classes()).toEqual(
-      expect.arrayContaining(['max-h-[80vh]', 'overflow-y-auto'])
+      expect.arrayContaining(['max-h-[80vh]', 'flex', 'flex-col', 'min-h-0'])
     )
+    expect(wrapper.get('[data-testid="web-mod-manager-scroll-viewport"]').classes())
+      .toEqual(expect.arrayContaining(['flex-1', 'min-h-0', 'overflow-y-auto']))
 
     wrapper.unmount()
   })
