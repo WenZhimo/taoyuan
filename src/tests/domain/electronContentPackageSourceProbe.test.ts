@@ -15,6 +15,7 @@ import {
 import {
   buildElectronReadonlySourceAdapterProbeReport,
   buildElectronReadonlyRuntimeReadinessProbeReport,
+  createElectronReadonlyDirectorySource,
   createElectronReadonlyDirectoryProbeSource,
   createElectronReadonlyRuntimeReadinessProbeEffects,
   createElectronReadonlySourceAdapterProbeEffects,
@@ -264,6 +265,38 @@ describe('electron content package source read-only probe', () => {
     })
     expect(discoveryReport.candidates[0]?.path).toBe('valid-gift-pack')
     expectOfficialBaseline()
+  }, 15_000)
+
+  it('discovers installed packages through the production Electron mods source identity', async() => {
+    const root = await createRoot()
+    const modsRoot = path.join(root, 'mods')
+    await cp(path.join(fixtureRoot, 'valid-gift-pack'), path.join(modsRoot, 'valid-gift-pack'), { recursive: true })
+    const source = createElectronReadonlyDirectorySource({
+      host: createNodeProbeHost(modsRoot)
+    })
+
+    const discoveryReport = await discoverThirdPartyDataPacks(
+      source.identity.rootPath,
+      createDiscoveryFileSystemFromContentPackageSource(source)
+    )
+
+    expect(source.identity).toEqual({
+      contractVersion: CONTENT_PACKAGE_SOURCE_CONTRACT_VERSION,
+      kind: 'electron-readonly-directory',
+      sourceId: 'electron/mods-readonly-directory',
+      rootPath: 'mods'
+    })
+    expect(discoveryReport.status).toBe('completed')
+    expect(discoveryReport.summary).toMatchObject({
+      scannedEntries: 1,
+      candidateCount: 1,
+      validPackageCount: 1,
+      invalidPackageCount: 0,
+      issueCount: 0
+    })
+    expect(discoveryReport.candidates[0]?.path).toBe('valid-gift-pack')
+
+    await source.dispose()
   }, 15_000)
 
   it('does not write lockfiles, settings, saves, caches, package files or transaction logs', async() => {

@@ -27,6 +27,9 @@ import {
   toElectronReadonlyDirectorySourceIpcResult
 } from '../src/domain/mods/electronReadonlyDirectorySourceHost'
 import {
+  createElectronReadonlyDirectorySource
+} from '../src/domain/mods/electronContentPackageSourceProbe'
+import {
   createDiscoveryFileSystemFromContentPackageSource,
   createMemoryContentPackageSource
 } from '../src/domain/mods/contentPackageSource'
@@ -348,6 +351,9 @@ const officialCachePaths = getOfficialRegistryCacheFilePaths(
   officialCacheMetadata.environmentHash
 )
 const electronReadonlyDirectorySourceHost = createElectronReadonlyDirectoryNodeHost(getExecutableModsPath())
+const createElectronInstalledPackageSource = () => createElectronReadonlyDirectorySource({
+  host: electronReadonlyDirectorySourceHost
+})
 const thirdPartyDataPackResponseDeliveryHandler =
   createThirdPartyDataPackElectronIpcResponseDeliveryMainHandler()
 const thirdPartyDataPackStartupPersistentStateReadHandler =
@@ -3261,9 +3267,11 @@ const createRuntimePublicationContinuationContext = async(
   packageFilePayload,
   lockfileDraft,
   rendererRuntimePublicationCommitAdapter,
-  targetPackageId
+  targetPackageId,
+  persistedPackageSource
 ) => {
-  const source = createVisibleImportContinuationMemorySource(packageFilePayload, lockfileDraft)
+  const source = persistedPackageSource
+    ?? createVisibleImportContinuationMemorySource(packageFilePayload, lockfileDraft)
   const discoveryReport = await discoverThirdPartyDataPacks(
     source.identity.rootPath,
     createDiscoveryFileSystemFromContentPackageSource(source)
@@ -4446,7 +4454,8 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
         packageFilePayload,
         lockfileDraft,
         runtimePublicationCommitAdapter,
-        targetPackageId
+        targetPackageId,
+        createElectronInstalledPackageSource()
       )
       if (
         disabledReplacementContext === undefined
@@ -4564,7 +4573,8 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
       packageFilePayload,
       lockfileDraft,
       runtimePublicationCommitAdapter,
-      targetPackageId
+      targetPackageId,
+      createElectronInstalledPackageSource()
     )
     if (
       runtimeContinuationContext === undefined
@@ -4590,11 +4600,21 @@ const continueOrdinaryInstallTerminalFromRenderer = async envelope => {
     runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification.status !== 'accepted'
     || runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection.status !== 'swapped'
   ) {
+    const runtimePublicationCommitAfterPostCommitVerification =
+      runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification
+    const runtimePublicationCommitLiveRegistrySwapHostConnection =
+      runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection
     return createBlockedOrdinaryInstallTerminalContinuationResult(
-      'Electron ordinary install terminal continuation did not reach runtime publication live-registry handoff',
       [
-        ...runtimePublicationContinuation.runtimePublicationCommitAfterPostCommitVerification.diagnostics,
-        ...runtimePublicationContinuation.runtimePublicationCommitLiveRegistrySwapHostConnection.diagnostics
+        'Electron ordinary install terminal continuation did not reach runtime publication live-registry handoff',
+        `runtimeCommit=${runtimePublicationCommitAfterPostCommitVerification.status}`,
+        `runtimeCommitReason=${runtimePublicationCommitAfterPostCommitVerification.reason}`,
+        `liveRegistry=${runtimePublicationCommitLiveRegistrySwapHostConnection.status}`,
+        `liveRegistryReason=${runtimePublicationCommitLiveRegistrySwapHostConnection.reason}`
+      ].join('; '),
+      [
+        ...runtimePublicationCommitAfterPostCommitVerification.diagnostics,
+        ...runtimePublicationCommitLiveRegistrySwapHostConnection.diagnostics
       ]
     )
   }
