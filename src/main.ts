@@ -8,6 +8,10 @@ import {
 import { bootstrapOfficialContent } from '@/domain/mods/officialContentBootstrap'
 import { publishOfficialContentRegistrySet } from '@/domain/mods/liveContentRegistry'
 import { setCurrentSaveContentEnvironment } from '@/domain/save/saveContentEnvironmentRuntime'
+import {
+  publishThirdPartyGameplayModifiersSnapshot,
+  type ActiveThirdPartyGameplayModifiers
+} from '@/domain/mods/thirdPartyGameplayModifiers'
 import { refreshOfficialRegistryDiskCache } from '@/domain/mods/officialRegistryCacheRefresh'
 import {
   bootstrapInstalledStateThirdPartyDataPackStartupGate,
@@ -190,6 +194,18 @@ void bootstrapApplication({
   bootstrapThirdPartyStartupGate,
   onStartupGateAccepted: result => {
     if (result === null || typeof result !== 'object') return
+    const gameplayModifiersDescriptor = Reflect.getOwnPropertyDescriptor(result, 'gameplayModifiers')
+    const selectedPackageIdsDescriptor = Reflect.getOwnPropertyDescriptor(result, 'selectedPackageIds')
+    publishThirdPartyGameplayModifiersSnapshot(
+      gameplayModifiersDescriptor?.enumerable === true && 'value' in gameplayModifiersDescriptor
+        ? gameplayModifiersDescriptor.value as ActiveThirdPartyGameplayModifiers
+        : undefined,
+      selectedPackageIdsDescriptor?.enumerable === true
+        && 'value' in selectedPackageIdsDescriptor
+        && Array.isArray(selectedPackageIdsDescriptor.value)
+        ? selectedPackageIdsDescriptor.value
+        : []
+    )
     const descriptor = Reflect.getOwnPropertyDescriptor(result, 'saveContentEnvironment')
     if (descriptor?.enumerable === true && 'value' in descriptor && descriptor.value !== undefined) {
       if (!setCurrentSaveContentEnvironment(descriptor.value)) {

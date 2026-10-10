@@ -263,6 +263,48 @@ const cloneDependencies = (
     version: dependency.version
   }))
 
+const cloneGameplayModifiers = (
+  modifiers: PackageManifest['gameplayModifiers']
+): PackageManifest['gameplayModifiers'] => modifiers === undefined
+  ? undefined
+  : {
+      ...(modifiers.unlimitedMoney === undefined ? {} : { unlimitedMoney: modifiers.unlimitedMoney }),
+      ...(modifiers.startingMoney === undefined ? {} : { startingMoney: modifiers.startingMoney }),
+      ...(modifiers.startingItems === undefined
+        ? {}
+        : {
+            startingItems: modifiers.startingItems.map(item => ({
+              itemId: item.itemId,
+              quantity: item.quantity
+            }))
+          }),
+      ...(modifiers.randomStartingItems === undefined
+        ? {}
+        : {
+            randomStartingItems: {
+              options: modifiers.randomStartingItems.options.map(item => ({
+                itemId: item.itemId,
+                quantity: item.quantity
+              })),
+              picks: modifiers.randomStartingItems.picks
+            }
+          }),
+      ...(modifiers.unlockedRecipeIds === undefined
+        ? {}
+        : { unlockedRecipeIds: [...modifiers.unlockedRecipeIds] }),
+      ...(modifiers.startingEquipment === undefined
+        ? {}
+        : {
+            startingEquipment: modifiers.startingEquipment.map(equipment => ({
+              weaponId: equipment.weaponId,
+              enchantmentIds: [...equipment.enchantmentIds]
+            }))
+          }),
+      ...(modifiers.monsterHealthBarColor === undefined
+        ? {}
+        : { monsterHealthBarColor: modifiers.monsterHealthBarColor })
+    }
+
 const cloneEntryPoints = (
   entrypoints: PackageManifest['entrypoints']
 ): PackageManifest['entrypoints'] => {
@@ -295,6 +337,7 @@ const clonePackageManifest = (manifest: PackageManifest): PackageManifest => {
   if (manifest.dependencies !== undefined) result.dependencies = cloneDependencies(manifest.dependencies)
   if (manifest.optionalDependencies !== undefined) result.optionalDependencies = cloneDependencies(manifest.optionalDependencies)
   if (manifest.conflicts !== undefined) result.conflicts = cloneDependencies(manifest.conflicts)
+  if (manifest.gameplayModifiers !== undefined) result.gameplayModifiers = cloneGameplayModifiers(manifest.gameplayModifiers)
   if (manifest.settings !== undefined) result.settings = manifest.settings
   if (manifest.attributions !== undefined) result.attributions = manifest.attributions
   if (manifest.assets !== undefined) result.assets = manifest.assets

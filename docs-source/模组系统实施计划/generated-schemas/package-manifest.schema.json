@@ -195,6 +195,113 @@
         }
       }
     },
+    "gameplayModifiers": {
+      "additionalProperties": false,
+      "type": "object",
+      "properties": {
+        "unlimitedMoney": {
+          "type": "boolean"
+        },
+        "startingMoney": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "startingItems": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "itemId",
+              "quantity"
+            ],
+            "properties": {
+              "itemId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "quantity": {
+                "minimum": 1,
+                "type": "integer"
+              }
+            }
+          }
+        },
+        "randomStartingItems": {
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+            "options",
+            "picks"
+          ],
+          "properties": {
+            "options": {
+              "minItems": 1,
+              "type": "array",
+              "items": {
+                "additionalProperties": false,
+                "type": "object",
+                "required": [
+                  "itemId",
+                  "quantity"
+                ],
+                "properties": {
+                  "itemId": {
+                    "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                    "type": "string"
+                  },
+                  "quantity": {
+                    "minimum": 1,
+                    "type": "integer"
+                  }
+                }
+              }
+            },
+            "picks": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        },
+        "unlockedRecipeIds": {
+          "uniqueItems": true,
+          "type": "array",
+          "items": {
+            "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+            "type": "string"
+          }
+        },
+        "startingEquipment": {
+          "type": "array",
+          "items": {
+            "additionalProperties": false,
+            "type": "object",
+            "required": [
+              "weaponId",
+              "enchantmentIds"
+            ],
+            "properties": {
+              "weaponId": {
+                "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                "type": "string"
+              },
+              "enchantmentIds": {
+                "uniqueItems": true,
+                "type": "array",
+                "items": {
+                  "pattern": "^[a-z0-9_.-]+:[a-z0-9_./-]+$",
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "monsterHealthBarColor": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "type": "string"
+        }
+      }
+    },
     "entrypoints": {
       "type": "object",
       "patternProperties": {

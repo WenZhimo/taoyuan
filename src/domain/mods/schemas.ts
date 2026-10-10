@@ -148,6 +148,43 @@ export const PackageDependencySchema = Type.Object(
   { additionalProperties: false }
 )
 
+const GameplayStartingItemSchema = Type.Object(
+  {
+    itemId: ContentIdSchema,
+    quantity: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+const GameplayStartingEquipmentSchema = Type.Object(
+  {
+    weaponId: ContentIdSchema,
+    enchantmentIds: Type.Array(ContentIdSchema, { uniqueItems: true })
+  },
+  { additionalProperties: false }
+)
+
+const GameplayRandomStartingItemsSchema = Type.Object(
+  {
+    options: Type.Array(GameplayStartingItemSchema, { minItems: 1 }),
+    picks: Type.Integer({ minimum: 1 })
+  },
+  { additionalProperties: false }
+)
+
+export const GameplayModifiersSchema = Type.Object(
+  {
+    unlimitedMoney: Type.Optional(Type.Boolean()),
+    startingMoney: Type.Optional(Type.Integer({ minimum: 0 })),
+    startingItems: Type.Optional(Type.Array(GameplayStartingItemSchema)),
+    randomStartingItems: Type.Optional(GameplayRandomStartingItemsSchema),
+    unlockedRecipeIds: Type.Optional(Type.Array(ContentIdSchema, { uniqueItems: true })),
+    startingEquipment: Type.Optional(Type.Array(GameplayStartingEquipmentSchema)),
+    monsterHealthBarColor: Type.Optional(Type.String({ pattern: '^#[0-9A-Fa-f]{6}$' }))
+  },
+  { $id: 'taoyuan.schema.GameplayModifiers', additionalProperties: false }
+)
+
 export const PackageManifestSchema = Type.Object(
   {
     id: PackageIdSchema,
@@ -167,6 +204,7 @@ export const PackageManifestSchema = Type.Object(
     dependencies: Type.Optional(Type.Array(PackageDependencySchema)),
     optionalDependencies: Type.Optional(Type.Array(PackageDependencySchema)),
     conflicts: Type.Optional(Type.Array(PackageDependencySchema)),
+    gameplayModifiers: Type.Optional(GameplayModifiersSchema),
     entrypoints: Type.Record(RegistryTypeIdSchema, Type.Array(Type.String({ minLength: 1 }), { minItems: 1 })),
     settings: Type.Optional(Type.String({ minLength: 1 })),
     attributions: Type.Optional(Type.String({ minLength: 1 })),
@@ -2293,6 +2331,7 @@ export const PUBLIC_JSON_SCHEMAS = {
 export type LocalizedTextRef = Static<typeof LocalizedTextRefSchema>
 export type AuthorMetadata = Static<typeof AuthorMetadataSchema>
 export type PackageDependency = Static<typeof PackageDependencySchema>
+export type GameplayModifiers = Static<typeof GameplayModifiersSchema>
 export type PackageManifest = Static<typeof PackageManifestSchema>
 export type ThirdPartyDataPackLockfileDraftContract = Static<typeof ThirdPartyDataPackLockfileDraftSchema>
 export type PackageSettingDefinition = Static<typeof PackageSettingDefinitionSchema>

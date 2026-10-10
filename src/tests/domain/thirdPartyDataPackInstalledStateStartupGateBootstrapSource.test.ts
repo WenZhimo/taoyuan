@@ -94,6 +94,28 @@ const createManifest = (
   authors: [{ name: 'Startup Installed State Test', role: 'developer' }],
   license: 'MIT',
   dependencies,
+  ...(packageId === 'gameplay_modifier_pack'
+    ? {
+        gameplayModifiers: {
+          unlimitedMoney: true,
+          startingMoney: 987654,
+          startingItems: [{ itemId: `${packageId}:seed_test`, quantity: 3 }],
+          randomStartingItems: {
+            options: [
+              { itemId: `${packageId}:seed_a`, quantity: 2 },
+              { itemId: `${packageId}:seed_b`, quantity: 2 }
+            ],
+            picks: 1
+          },
+          unlockedRecipeIds: [`${packageId}:test_recipe`],
+          startingEquipment: [{
+            weaponId: `${packageId}:test_blade`,
+            enchantmentIds: [`${packageId}:test_enchantment`]
+          }],
+          monsterHealthBarColor: '#f97316'
+        }
+      }
+    : {}),
   entrypoints: {
     'taoyuan:item': ['data/items.json'],
     'taoyuan:recipe': ['data/recipes.json'],
@@ -1396,6 +1418,42 @@ describe('third-party installed-state startup gate bootstrap source', () => {
     expect(JSON.stringify(result)).not.toContain('indexedDb')
     expect(JSON.stringify(result)).not.toContain('window')
     expect(JSON.stringify(result)).not.toContain('startup-persistent-state-snapshot.json')
+  })
+
+  it('publishes validated gameplay modifiers only after ordinary startup handoff', async() => {
+    const packageId = 'gameplay_modifier_pack' as PackageId
+    const store = createInMemoryWebIndexedDbImportPersistenceStore()
+    const settingsLockfileStore = createInMemoryWebSettingsLockfilePersistentWriterStore()
+    await seedWebInstalledState(store, packageId, buildOfficialRegistrySetFromStaticData(), settingsLockfileStore)
+
+    const result = await createThirdPartyDataPackInstalledStateStartupGateBootstrapSource({
+      runtimeHost: new EventTarget(),
+      webStore: store,
+      webSettingsLockfileStore: settingsLockfileStore
+    })()
+
+    expect(result.status).toBe('ready')
+    expect(result.effects.realRuntimePublicationCommitCalled).toBe(true)
+    expect(result.effects.realNormalStartupHostCalled).toBe(true)
+    expect(result.gameplayModifiers).toMatchObject({
+      unlimitedMoney: true,
+      startingMoney: 987654,
+      startingItems: [{ itemId: 'seed_test', quantity: 3 }],
+      randomStartingItems: {
+        options: [
+          { itemId: 'seed_a', quantity: 2 },
+          { itemId: 'seed_b', quantity: 2 }
+        ],
+        picks: 1
+      },
+      unlockedRecipeIds: ['test_recipe'],
+      startingEquipment: [{
+        weaponId: 'test_blade',
+        enchantmentIds: ['test_enchantment']
+      }],
+      monsterHealthBarColor: '#f97316'
+    })
+    expect(Object.isFrozen(result.gameplayModifiers)).toBe(true)
   })
 
   it('restores a Web re-enabled package through ordinary app-startup handoff', async() => {
