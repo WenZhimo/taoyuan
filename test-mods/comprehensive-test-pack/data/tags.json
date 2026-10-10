@@ -1,0 +1,16 @@
+[
+  {
+    "id": "taoyuan_test_suite:seed",
+    "name": { "key": "taoyuan_test_suite.tag.seed.name", "fallback": "测试种子" },
+    "description": { "key": "taoyuan_test_suite.tag.seed.description", "fallback": "用于验证种子与随机开局物品。" },
+    "propagateToCraftedOutput": false,
+    "stackPolicy": "merge"
+  },
+  {
+    "id": "taoyuan_test_suite:ingredient",
+    "name": { "key": "taoyuan_test_suite.tag.ingredient.name", "fallback": "测试食材" },
+    "description": { "key": "taoyuan_test_suite.tag.ingredient.description", "fallback": "用于验证标签配方。" },
+    "propagateToCraftedOutput": true,
+    "stackPolicy": "merge"
+  }
+]

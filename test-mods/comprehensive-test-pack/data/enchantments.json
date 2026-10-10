@@ -1,0 +1,46 @@
+[
+  {
+    "id": "taoyuan_test_suite:ember_edge",
+    "name": { "key": "taoyuan_test_suite.enchantment.ember_edge.name", "fallback": "余烬" },
+    "description": { "key": "taoyuan_test_suite.enchantment.ember_edge.description", "fallback": "验证灼烧附魔。" },
+    "rarity": 1,
+    "randomWeight": 1,
+    "attackBonus": 3,
+    "critBonus": 0.02,
+    "special": "burn",
+    "effects": [{ "type": "attack_bonus", "value": 3 }]
+  },
+  {
+    "id": "taoyuan_test_suite:blood_link",
+    "name": { "key": "taoyuan_test_suite.enchantment.blood_link.name", "fallback": "血契" },
+    "description": { "key": "taoyuan_test_suite.enchantment.blood_link.description", "fallback": "验证吸血附魔。" },
+    "rarity": 2,
+    "randomWeight": 0.5,
+    "attackBonus": 1,
+    "critBonus": 0,
+    "special": "vampiric",
+    "effects": [{ "type": "vampiric", "value": 0.08 }]
+  },
+  {
+    "id": "taoyuan_test_suite:lucky_charm",
+    "name": { "key": "taoyuan_test_suite.enchantment.lucky_charm.name", "fallback": "幸运符" },
+    "description": { "key": "taoyuan_test_suite.enchantment.lucky_charm.description", "fallback": "验证暴击与幸运附魔。" },
+    "rarity": 1,
+    "randomWeight": 1,
+    "attackBonus": 0,
+    "critBonus": 0.15,
+    "special": "lucky",
+    "effects": [{ "type": "luck", "value": 0.1 }]
+  },
+  {
+    "id": "taoyuan_test_suite:sturdy_grip",
+    "name": { "key": "taoyuan_test_suite.enchantment.sturdy_grip.name", "fallback": "坚握" },
+    "description": { "key": "taoyuan_test_suite.enchantment.sturdy_grip.description", "fallback": "验证防御附魔。" },
+    "rarity": 1,
+    "randomWeight": 1,
+    "attackBonus": 0,
+    "critBonus": 0,
+    "special": "sturdy",
+    "effects": [{ "type": "defense_bonus", "value": 4 }]
+  }
+]

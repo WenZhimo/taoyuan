@@ -1,0 +1,74 @@
+[
+  {
+    "id": "taoyuan_test_suite:ember_blade",
+    "kind": "weapon",
+    "name": { "key": "taoyuan_test_suite.equipment.ember_blade.name", "fallback": "余烬长刃" },
+    "description": { "key": "taoyuan_test_suite.equipment.ember_blade.description", "fallback": "开局获得的测试剑。" },
+    "weaponType": "sword",
+    "attack": 12,
+    "critRate": 0.1,
+    "shopPrice": 250,
+    "shopMaterials": [{ "itemId": "taoyuan_test_suite:crafting_fiber", "quantity": 2 }],
+    "fixedEnchantment": "taoyuan_test_suite:ember_edge",
+    "sellPrice": 120
+  },
+  {
+    "id": "taoyuan_test_suite:scout_dagger",
+    "kind": "weapon",
+    "name": { "key": "taoyuan_test_suite.equipment.scout_dagger.name", "fallback": "侦察短刃" },
+    "description": { "key": "taoyuan_test_suite.equipment.scout_dagger.description", "fallback": "开局获得的测试匕首。" },
+    "weaponType": "dagger",
+    "attack": 8,
+    "critRate": 0.25,
+    "shopPrice": 220,
+    "shopMaterials": [{ "itemId": "taoyuan_test_suite:spice", "quantity": 2 }],
+    "fixedEnchantment": "taoyuan_test_suite:lucky_charm",
+    "sellPrice": 100
+  },
+  {
+    "id": "taoyuan_test_suite:training_hammer",
+    "kind": "weapon",
+    "name": { "key": "taoyuan_test_suite.equipment.training_hammer.name", "fallback": "训练重锤" },
+    "description": { "key": "taoyuan_test_suite.equipment.training_hammer.description", "fallback": "开局获得的测试棍棒。" },
+    "weaponType": "club",
+    "attack": 18,
+    "critRate": 0.05,
+    "shopPrice": 300,
+    "shopMaterials": [{ "itemId": "taoyuan_test_suite:wild_mushroom", "quantity": 2 }],
+    "fixedEnchantment": "taoyuan_test_suite:blood_link",
+    "sellPrice": 140
+  },
+  {
+    "id": "taoyuan_test_suite:test_ring",
+    "kind": "ring",
+    "name": { "key": "taoyuan_test_suite.equipment.test_ring.name", "fallback": "测试戒指" },
+    "description": { "key": "taoyuan_test_suite.equipment.test_ring.description", "fallback": "可制作的测试戒指。" },
+    "effects": [{ "type": "crit_rate_bonus", "value": 0.1 }],
+    "recipe": [{ "itemId": "taoyuan_test_suite:crafting_fiber", "quantity": 2 }],
+    "recipeMoney": 0,
+    "obtainSource": { "key": "taoyuan_test_suite.equipment.test_ring.obtainSource", "fallback": "测试模组配方" },
+    "sellPrice": 50
+  },
+  {
+    "id": "taoyuan_test_suite:test_hat",
+    "kind": "hat",
+    "name": { "key": "taoyuan_test_suite.equipment.test_hat.name", "fallback": "测试帽子" },
+    "description": { "key": "taoyuan_test_suite.equipment.test_hat.description", "fallback": "可制作的测试帽子。" },
+    "effects": [{ "type": "defense_bonus", "value": 5 }],
+    "recipe": [{ "itemId": "taoyuan_test_suite:crafting_fiber", "quantity": 3 }],
+    "recipeMoney": 0,
+    "obtainSource": { "key": "taoyuan_test_suite.equipment.test_hat.obtainSource", "fallback": "测试模组配方" },
+    "sellPrice": 50
+  },
+  {
+    "id": "taoyuan_test_suite:test_shoes",
+    "kind": "shoe",
+    "name": { "key": "taoyuan_test_suite.equipment.test_shoes.name", "fallback": "测试鞋子" },
+    "description": { "key": "taoyuan_test_suite.equipment.test_shoes.description", "fallback": "可制作的测试鞋子。" },
+    "effects": [{ "type": "travel_speed", "value": 0.15 }],
+    "recipe": [{ "itemId": "taoyuan_test_suite:crafting_fiber", "quantity": 3 }],
+    "recipeMoney": 0,
+    "obtainSource": { "key": "taoyuan_test_suite.equipment.test_shoes.obtainSource", "fallback": "测试模组配方" },
+    "sellPrice": 50
+  }
+]

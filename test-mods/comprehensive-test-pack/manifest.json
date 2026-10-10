@@ -1,0 +1,82 @@
+{
+  "id": "taoyuan_test_suite",
+  "name": {
+    "key": "taoyuan_test_suite.package.name",
+    "fallback": "桃源综合测试模组"
+  },
+  "version": "1.0.0",
+  "gameVersion": "2.4.0",
+  "engineApiVersion": "1",
+  "contentSchemaVersion": "1",
+  "defaultLocale": "zh-CN",
+  "locales": {
+    "zh-CN": "locales/zh-CN.json"
+  },
+  "authors": [
+    {
+      "name": "Taoyuan QA",
+      "role": "test content"
+    }
+  ],
+  "license": "MIT",
+  "dependencies": [],
+  "gameplayModifiers": {
+    "unlimitedMoney": true,
+    "startingMoney": 9007199254740991,
+    "startingItems": [
+      { "itemId": "taoyuan_test_suite:seed_radish", "quantity": 12 },
+      { "itemId": "taoyuan_test_suite:seed_tomato", "quantity": 12 },
+      { "itemId": "taoyuan_test_suite:seed_melon", "quantity": 12 },
+      { "itemId": "taoyuan_test_suite:seed_bean", "quantity": 12 },
+      { "itemId": "taoyuan_test_suite:seed_mint", "quantity": 12 },
+      { "itemId": "taoyuan_test_suite:radish_crop", "quantity": 5 },
+      { "itemId": "taoyuan_test_suite:tomato_crop", "quantity": 5 },
+      { "itemId": "taoyuan_test_suite:melon_crop", "quantity": 5 },
+      { "itemId": "taoyuan_test_suite:mint_crop", "quantity": 5 },
+      { "itemId": "taoyuan_test_suite:crafting_fiber", "quantity": 20 },
+      { "itemId": "taoyuan_test_suite:spice", "quantity": 10 },
+      { "itemId": "taoyuan_test_suite:wild_mushroom", "quantity": 10 }
+    ],
+    "randomStartingItems": {
+      "options": [
+        { "itemId": "taoyuan_test_suite:seed_radish", "quantity": 6 },
+        { "itemId": "taoyuan_test_suite:seed_tomato", "quantity": 6 },
+        { "itemId": "taoyuan_test_suite:seed_melon", "quantity": 6 },
+        { "itemId": "taoyuan_test_suite:seed_bean", "quantity": 6 },
+        { "itemId": "taoyuan_test_suite:seed_mint", "quantity": 6 }
+      ],
+      "picks": 2
+    },
+    "unlockedRecipeIds": [
+      "taoyuan_test_suite:hearty_soup",
+      "taoyuan_test_suite:garden_salad",
+      "taoyuan_test_suite:spicy_skewer",
+      "taoyuan_test_suite:melon_pie"
+    ],
+    "startingEquipment": [
+      {
+        "weaponId": "taoyuan_test_suite:ember_blade",
+        "enchantmentIds": ["taoyuan_test_suite:ember_edge", "taoyuan_test_suite:sturdy_grip"]
+      },
+      {
+        "weaponId": "taoyuan_test_suite:scout_dagger",
+        "enchantmentIds": ["taoyuan_test_suite:lucky_charm"]
+      },
+      {
+        "weaponId": "taoyuan_test_suite:training_hammer",
+        "enchantmentIds": ["taoyuan_test_suite:blood_link"]
+      }
+    ],
+    "monsterHealthBarColor": "#f97316"
+  },
+  "entrypoints": {
+    "taoyuan:tag": ["data/tags.json"],
+    "taoyuan:item": ["data/items.json"],
+    "taoyuan:crop": ["data/crops.json"],
+    "taoyuan:monster": ["data/monsters.json"],
+    "taoyuan:drop_table": ["data/drop-tables.json"],
+    "taoyuan:enchantment": ["data/enchantments.json"],
+    "taoyuan:equipment": ["data/equipment.json"],
+    "taoyuan:recipe": ["data/recipes.json"]
+  }
+}

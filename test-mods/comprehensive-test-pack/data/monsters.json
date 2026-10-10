@@ -1,0 +1,12 @@
+[
+  {
+    "id": "taoyuan_test_suite:training_slime",
+    "name": { "key": "taoyuan_test_suite.monster.training_slime.name", "fallback": "训练史莱姆" },
+    "hp": 240,
+    "attack": 6,
+    "defense": 2,
+    "expReward": 20,
+    "dropTableId": "taoyuan_test_suite:training_drop",
+    "description": { "key": "taoyuan_test_suite.monster.training_slime.description", "fallback": "用于验证战斗、血条颜色和掉落的测试怪物。" }
+  }
+]

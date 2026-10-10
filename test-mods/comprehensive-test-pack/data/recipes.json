@@ -1,0 +1,54 @@
+[
+  {
+    "id": "taoyuan_test_suite:hearty_soup",
+    "name": { "key": "taoyuan_test_suite.recipe.hearty_soup.name", "fallback": "测试浓汤" },
+    "ingredients": [
+      { "type": "item", "itemId": "taoyuan_test_suite:wild_mushroom", "quantity": 1 },
+      { "type": "item", "itemId": "taoyuan_test_suite:crafting_fiber", "quantity": 1 }
+    ],
+    "outputItemId": "taoyuan_test_suite:hearty_soup",
+    "outputQuantity": 1,
+    "effect": { "staminaRestore": 30, "healthRestore": 12 },
+    "unlockSource": "桃源综合测试模组开局解锁",
+    "description": { "key": "taoyuan_test_suite.recipe.hearty_soup.description", "fallback": "使用开局材料制作的基础食物。" }
+  },
+  {
+    "id": "taoyuan_test_suite:garden_salad",
+    "name": { "key": "taoyuan_test_suite.recipe.garden_salad.name", "fallback": "测试田园沙拉" },
+    "ingredients": [
+      { "type": "item", "itemId": "taoyuan_test_suite:radish_crop", "quantity": 1 },
+      { "type": "item", "itemId": "taoyuan_test_suite:mint_crop", "quantity": 1 }
+    ],
+    "outputItemId": "taoyuan_test_suite:garden_salad",
+    "outputQuantity": 1,
+    "effect": { "staminaRestore": 24, "healthRestore": 16, "buff": { "type": "farming", "value": 1, "description": "测试料理增益" } },
+    "unlockSource": "桃源综合测试模组开局解锁",
+    "description": { "key": "taoyuan_test_suite.recipe.garden_salad.description", "fallback": "验证多种作物材料和料理增益。" }
+  },
+  {
+    "id": "taoyuan_test_suite:spicy_skewer",
+    "name": { "key": "taoyuan_test_suite.recipe.spicy_skewer.name", "fallback": "测试香辣串" },
+    "ingredients": [
+      { "type": "item", "itemId": "taoyuan_test_suite:tomato_crop", "quantity": 1 },
+      { "type": "item", "itemId": "taoyuan_test_suite:spice", "quantity": 1 }
+    ],
+    "outputItemId": "taoyuan_test_suite:spicy_skewer",
+    "outputQuantity": 1,
+    "effect": { "staminaRestore": 28, "healthRestore": 10, "buff": { "type": "speed", "value": 1, "description": "测试移动增益" } },
+    "unlockSource": "桃源综合测试模组开局解锁",
+    "description": { "key": "taoyuan_test_suite.recipe.spicy_skewer.description", "fallback": "验证带速度增益的料理。" }
+  },
+  {
+    "id": "taoyuan_test_suite:melon_pie",
+    "name": { "key": "taoyuan_test_suite.recipe.melon_pie.name", "fallback": "测试甜瓜派" },
+    "ingredients": [
+      { "type": "item", "itemId": "taoyuan_test_suite:melon_crop", "quantity": 1 },
+      { "type": "item", "itemId": "taoyuan_test_suite:crafting_fiber", "quantity": 2 }
+    ],
+    "outputItemId": "taoyuan_test_suite:melon_pie",
+    "outputQuantity": 1,
+    "effect": { "staminaRestore": 36, "healthRestore": 18, "buff": { "type": "luck", "value": 1, "description": "测试幸运增益" } },
+    "unlockSource": "桃源综合测试模组开局解锁",
+    "description": { "key": "taoyuan_test_suite.recipe.melon_pie.description", "fallback": "验证高价值作物和幸运增益。" }
+  }
+]

@@ -1,0 +1,4 @@
+{
+  "taoyuan_test_suite.package.name": "桃源综合测试模组",
+  "taoyuan_test_suite.package.description": "用于验证 PC 端模组加载、初始状态、注册表消费和战斗流程。"
+}

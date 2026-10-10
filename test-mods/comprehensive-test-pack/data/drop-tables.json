@@ -1,0 +1,9 @@
+[
+  {
+    "id": "taoyuan_test_suite:training_drop",
+    "entries": [
+      { "itemId": "taoyuan_test_suite:monster_token", "chance": 1, "minQuantity": 1, "maxQuantity": 3 },
+      { "itemId": "taoyuan_test_suite:wild_mushroom", "chance": 0.5, "minQuantity": 1, "maxQuantity": 2 }
+    ]
+  }
+]
