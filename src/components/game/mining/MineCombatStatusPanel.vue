@@ -41,7 +41,12 @@
       <div class="bg-bg rounded-xs h-1.5 mb-1">
         <div
           class="h-1.5 bg-danger rounded-xs transition-all"
-          :style="{ width: `${monsterHpPercent}%` }"
+          :style="{
+            width: `${monsterHpPercent}%`,
+            ...(getMonsterHealthBarColor() === undefined
+              ? {}
+              : { backgroundColor: getMonsterHealthBarColor() })
+          }"
         />
       </div>
       <p class="text-[10px] text-muted">{{ monsterHp }}/{{ monsterMaxHp }}</p>
@@ -69,6 +74,7 @@
 <script setup lang="ts">
   import { computed } from 'vue'
   import type { CombatStatusEffect } from '@/types'
+  import { getMonsterHealthBarColor } from '@/domain/mods/thirdPartyGameplayModifiers'
 
   interface CombatFloat {
     text: string

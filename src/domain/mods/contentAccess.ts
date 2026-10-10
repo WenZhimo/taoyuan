@@ -172,6 +172,21 @@ const getLocalContentId = (id: string): string => {
   return contentId.slice(contentId.indexOf(':') + 1)
 }
 
+const getRegistryEntryById = <T extends { readonly id: string }>(
+  registryId: string,
+  id: string
+): Readonly<T> | undefined => {
+  const registry = getCurrentContentRegistrySet().get<T>(toOfficialRegistryTypeId(registryId))
+  const exactContentId = toQueryContentId(id)
+  if (exactContentId !== null) {
+    const exact = registry.get(exactContentId)
+    if (exact !== undefined) return exact
+  }
+
+  if (id.includes(':')) return undefined
+  return registry.values().find(entry => getLocalContentId(entry.id) === id)
+}
+
 const toSecretNoteQueryContentId = (id: number | string) => {
   const rawId = typeof id === 'number' ? `secret_note/${id}` : id
   return toQueryContentId(rawId.includes(':') || rawId.includes('/') ? rawId : `secret_note/${rawId}`)
@@ -300,8 +315,7 @@ const toHanhaiCasinoWagerQueryContentId = (id: string) => {
 }
 
 export const getOfficialTagDef = (id: string): Readonly<TagDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId ? getCurrentContentRegistrySet().get<TagDef>(toOfficialRegistryTypeId('tag')).get(contentId) : undefined
+  return getRegistryEntryById<TagDef>('tag', id)
 }
 
 export const getOfficialTagDefs = (): readonly Readonly<TagDef>[] =>
@@ -313,13 +327,11 @@ export const getOfficialSeparateStackTagIds = (): readonly string[] =>
     .map(tag => tag.id)
 
 export const getOfficialItemDef = (id: string): Readonly<ItemDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId ? getCurrentContentRegistrySet().get<ItemDef>(toOfficialRegistryTypeId('item')).get(contentId) : undefined
+  return getRegistryEntryById<ItemDef>('item', id)
 }
 
 export const getOfficialRecipeDef = (id: string): Readonly<RecipeDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId ? getCurrentContentRegistrySet().get<RecipeDef>(toOfficialRegistryTypeId('recipe')).get(contentId) : undefined
+  return getRegistryEntryById<RecipeDef>('recipe', id)
 }
 
 export const getOfficialRecipeDefs = (): readonly Readonly<RecipeDef>[] =>
@@ -376,8 +388,7 @@ export const getOfficialShopOfferDefs = (): readonly Readonly<ShopOfferDef>[] =>
   getCurrentContentRegistrySet().get<ShopOfferDef>(toOfficialRegistryTypeId('shop_offer')).values()
 
 export const getOfficialEnchantmentDef = (id: string): Readonly<EnchantmentDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId ? getCurrentContentRegistrySet().get<EnchantmentDef>(toOfficialRegistryTypeId('enchantment')).get(contentId) : undefined
+  return getRegistryEntryById<EnchantmentDef>('enchantment', id)
 }
 
 export const getOfficialEnchantmentDefs = (): readonly Readonly<EnchantmentDef>[] =>
@@ -401,26 +412,21 @@ export const getOfficialEnchantmentById = (id: string): LegacyEnchantmentDef | u
 }
 
 export const getOfficialDropTableDef = (id: string): Readonly<DropTableDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId ? getCurrentContentRegistrySet().get<DropTableDef>(toOfficialRegistryTypeId('drop_table')).get(contentId) : undefined
+  return getRegistryEntryById<DropTableDef>('drop_table', id)
 }
 
 export const getOfficialDropTableDefs = (): readonly Readonly<DropTableDef>[] =>
   getCurrentContentRegistrySet().get<DropTableDef>(toOfficialRegistryTypeId('drop_table')).values()
 
 export const getOfficialMonsterDef = (id: string): Readonly<MonsterDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId ? getCurrentContentRegistrySet().get<MonsterDef>(toOfficialRegistryTypeId('monster')).get(contentId) : undefined
+  return getRegistryEntryById<MonsterDef>('monster', id)
 }
 
 export const getOfficialMonsterDefs = (): readonly Readonly<MonsterDef>[] =>
   getCurrentContentRegistrySet().get<MonsterDef>(toOfficialRegistryTypeId('monster')).values()
 
 export const getOfficialMonsterPoolDef = (id: string): Readonly<MonsterPoolDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId
-    ? getCurrentContentRegistrySet().get<MonsterPoolDef>(toOfficialRegistryTypeId('monster_pool')).get(contentId)
-    : undefined
+  return getRegistryEntryById<MonsterPoolDef>('monster_pool', id)
 }
 
 export const getOfficialMonsterPoolDefs = (): readonly Readonly<MonsterPoolDef>[] =>
@@ -532,10 +538,7 @@ export const getOfficialEquipmentDropPoolsAsLegacy = (
 }
 
 export const getOfficialEquipmentDef = (id: string): Readonly<EquipmentContentDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId
-    ? getCurrentContentRegistrySet().get<EquipmentContentDef>(toOfficialRegistryTypeId('equipment')).get(contentId)
-    : undefined
+  return getRegistryEntryById<EquipmentContentDef>('equipment', id)
 }
 
 export const getOfficialEquipmentDefs = (): readonly Readonly<EquipmentContentDef>[] =>
@@ -1080,8 +1083,7 @@ export const getOfficialHanhaiCasinoWinMultiplier = (id: string): number =>
   getOfficialHanhaiCasinoWager(id)!.winMultiplier
 
 export const getOfficialCropDef = (id: string): Readonly<CropDef> | undefined => {
-  const contentId = toQueryContentId(id)
-  return contentId ? getCurrentContentRegistrySet().get<CropDef>(toOfficialRegistryTypeId('crop')).get(contentId) : undefined
+  return getRegistryEntryById<CropDef>('crop', id)
 }
 
 const toLegacyCropDef = (crop: Readonly<CropDef>): LegacyCropDef => ({

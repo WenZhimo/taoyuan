@@ -70,6 +70,17 @@ export const useCookingStore = defineStore('cooking', () => {
   const getCookingIngredients = (recipe: RecipeDef): readonly CookingIngredient[] =>
     getOfficialRecipeDef(recipe.id)?.ingredients ?? recipe.ingredients
 
+  const getRecipeOutput = (recipe: RecipeDef): { readonly itemId: string; readonly quantity: number } => {
+    const registryRecipe = getOfficialRecipeDef(recipe.id)
+    if (registryRecipe !== undefined) {
+      return {
+        itemId: registryRecipe.outputItemId.slice(registryRecipe.outputItemId.indexOf(':') + 1),
+        quantity: registryRecipe.outputQuantity
+      }
+    }
+    return { itemId: `food_${recipe.id}`, quantity: 1 }
+  }
+
   const getRecipeCookingIngredients = (recipeId: string): readonly CookingIngredient[] => {
     const recipe = getRecipeById(recipeId)
     return recipe ? getCookingIngredients(recipe) : []
@@ -215,8 +226,14 @@ export const useCookingStore = defineStore('cooking', () => {
       removeCombinedItem(removal.itemId, removal.quantity, removal.quality)
     }
 
-    // 添加食物到背包
-    inventoryStore.addItem(`food_${recipe.id}`, maxPossible, resultQuality, getCraftedCompositionTags(plan))
+    // 注册表食谱可以输出自定义物品；旧食谱沿用 food_<recipeId> 适配规则。
+    const output = getRecipeOutput(recipe)
+    inventoryStore.addItem(
+      output.itemId,
+      maxPossible * output.quantity,
+      resultQuality,
+      getCraftedCompositionTags(plan)
+    )
     for (let i = 0; i < maxPossible; i++) {
       useAchievementStore().recordRecipeCooked()
     }
@@ -227,13 +244,12 @@ export const useCookingStore = defineStore('cooking', () => {
 
   /** 食用烹饪品 */
   const eat = (recipeId: string, quality: Quality = 'normal'): { success: boolean; message: string } => {
-    const foodItemId = `food_${recipeId}`
+    const recipe = getRecipeById(recipeId)
+    if (!recipe) return { success: false, message: '食谱数据丢失。' }
+    const foodItemId = getRecipeOutput(recipe).itemId
     if (!inventoryStore.removeItem(foodItemId, 1, quality)) {
       return { success: false, message: '背包中没有这个食物。' }
     }
-
-    const recipe = getRecipeById(recipeId)
-    if (!recipe) return { success: false, message: '食谱数据丢失。' }
 
     // 品质加成
     const qualityBonus = QUALITY_MULTIPLIER[quality]

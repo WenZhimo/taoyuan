@@ -483,6 +483,7 @@
   import { usePlayerStore } from '@/stores/usePlayerStore'
   import { useQuestStore } from '@/stores/useQuestStore'
   import { useInventoryStore } from '@/stores/useInventoryStore'
+  import { useCookingStore } from '@/stores/useCookingStore'
   import { getFarmMapDefs } from '@/data/farmMaps'
   import _pkg from '../../package.json'
   import { useAudio } from '@/composables/useAudio'
@@ -496,6 +497,12 @@
     type ThirdPartyDataPackWebDomResponseDeliveryEvent
   } from '@/domain/mods/thirdPartyDataPackWebDomResponseDeliveryBridge'
   import type { PackageId } from '@/domain/mods/ids'
+  import {
+    getConfiguredStartingMoney,
+    getStartingEquipment,
+    getStartingItems,
+    getUnlockedRecipeIds
+  } from '@/domain/mods/thirdPartyGameplayModifiers'
   import type {
     ThirdPartyDataPackUiIpcResultEnvelopeOutcomeKind
   } from '@/domain/mods/thirdPartyDataPackUiIpcResultEnvelopeContract'
@@ -517,6 +524,7 @@
   const playerStore = usePlayerStore()
   const questStore = useQuestStore()
   const inventoryStore = useInventoryStore()
+  const cookingStore = useCookingStore()
 
   const slots = ref(saveStore.getSlots())
   const showCharCreate = ref(false)
@@ -615,10 +623,21 @@
     resetAllStoresForNewGame()
     playerStore.setIdentity((charName.value.trim() || '未命名').slice(0, 4), charGender.value)
     gameStore.startNewGame(selectedMap.value)
+    const startingMoney = getConfiguredStartingMoney()
+    if (startingMoney !== undefined) playerStore.setMoney(startingMoney)
     // 标准农场初始6×6，其余4×4
     farmStore.resetFarm(selectedMap.value === 'standard' ? 6 : 4)
     // 新手赠送：10个青菜种子
     inventoryStore.addItem('seed_cabbage', 10)
+    for (const item of getStartingItems()) {
+      inventoryStore.addItem(item.itemId, item.quantity)
+    }
+    for (const recipeId of getUnlockedRecipeIds()) {
+      cookingStore.unlockRecipe(recipeId)
+    }
+    for (const equipment of getStartingEquipment()) {
+      inventoryStore.addWeapon(equipment.weaponId, [...equipment.enchantmentIds])
+    }
     // 草地农场：免费鸡舍 + 2只鸡
     if (selectedMap.value === 'meadowlands') {
       const coop = animalStore.buildings.find(b => b.type === 'coop')

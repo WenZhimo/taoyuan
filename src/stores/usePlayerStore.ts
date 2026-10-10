@@ -15,6 +15,7 @@ import { useAchievementStore } from './useAchievementStore'
 import { useHiddenNpcStore } from './useHiddenNpcStore'
 import { useMiningStore } from './useMiningStore'
 import { useGuildStore } from './useGuildStore'
+import { isUnlimitedMoneyActive } from '@/domain/mods/thirdPartyGameplayModifiers'
 
 /** 最大体力阶梯 (5档, 270 起 508 顶) */
 const STAMINA_CAPS = [120, 160, 200, 250, 300]
@@ -127,8 +128,10 @@ export const usePlayerStore = defineStore('player', () => {
         const staminaBonus2 = homeStore2.getStaminaRecoveryBonus()
         recoveryPct = PASSOUT_STAMINA_RECOVERY + staminaBonus2
         stamina.value = Math.floor(maxStamina.value * Math.min(recoveryPct, 1))
-        moneyLost = Math.min(Math.floor(money.value * PASSOUT_MONEY_PENALTY_RATE), PASSOUT_MONEY_PENALTY_CAP)
-        money.value -= moneyLost
+        if (!isUnlimitedMoneyActive()) {
+          moneyLost = Math.min(Math.floor(money.value * PASSOUT_MONEY_PENALTY_RATE), PASSOUT_MONEY_PENALTY_CAP)
+          money.value -= moneyLost
+        }
         break
       }
     }
@@ -153,6 +156,7 @@ export const usePlayerStore = defineStore('player', () => {
 
   /** 花费铜钱，返回是否成功 */
   const spendMoney = (amount: number): boolean => {
+    if (isUnlimitedMoneyActive()) return true
     if (money.value < amount) return false
     money.value -= amount
     return true
@@ -160,8 +164,14 @@ export const usePlayerStore = defineStore('player', () => {
 
   /** 获得铜钱 */
   const earnMoney = (amount: number) => {
-    money.value += amount
+    if (!isUnlimitedMoneyActive()) money.value += amount
     useAchievementStore().recordMoneyEarned(amount)
+  }
+
+  /** 设置新游戏初始铜钱；不允许将无效值写入玩家状态。 */
+  const setMoney = (amount: number) => {
+    if (!Number.isFinite(amount)) return
+    money.value = Math.max(0, Math.floor(amount))
   }
 
   /** 设置玩家身份（新游戏或旧存档迁移时调用） */
@@ -236,6 +246,7 @@ export const usePlayerStore = defineStore('player', () => {
     addBonusMaxStamina,
     spendMoney,
     earnMoney,
+    setMoney,
     setIdentity,
     serialize,
     deserialize
